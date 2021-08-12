@@ -22,8 +22,12 @@ public class ReadClasses {
     public static String jarDirectory = System.getProperty("user.dir")+"/examples";
     public static String clsName = "UsageExample";
     public Set<Method> methods = new HashSet<Method>();
-    
-    
+    private FeatureDetector featureDetector;
+    public String testCp;
+
+    public ReadClasses(String testCp) {
+      this.testCp = testCp;
+    }
     public Set<Method> methods() {
         return methods;
     }
@@ -57,7 +61,7 @@ public class ReadClasses {
 		}
 		return classes;
 	}
-	/*
+	
 	private void loadMethodsFromTestLib(final Set<String> testClasses) {
 	    int methodCount = methods.size();
 
@@ -100,8 +104,8 @@ public class ReadClasses {
 	      }
 
 	    }.applies(new Method("a", "void", "x.y"));
-	    //System.out.println("Loaded " + (methods.size() - methodCount)  + " methods from the test JAR.");
-	  } */
+	    System.out.println("Loaded " + (methods.size() - methodCount)  + " methods from the test JAR.");
+	  } 
 	
 	public static String buildCP(String dir) {
 		File folder = new File(dir);
@@ -120,9 +124,4 @@ public class ReadClasses {
 		return sb.toString();
 	}
 	
-	public static void main(String[] args) {
-		//Set<String> fileClasses = getAllClassesFromDirectory(jarDirectory);
-		String testCp = buildCP(jarDirectory);
-		System.out.print(jarDirectory);
-	}
 }
