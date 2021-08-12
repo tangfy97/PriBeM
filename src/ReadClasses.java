@@ -57,7 +57,7 @@ public class ReadClasses {
 		}
 		return classes;
 	}
-	
+	/*
 	private void loadMethodsFromTestLib(final Set<String> testClasses) {
 	    int methodCount = methods.size();
 
@@ -101,11 +101,28 @@ public class ReadClasses {
 
 	    }.applies(new Method("a", "void", "x.y"));
 	    //System.out.println("Loaded " + (methods.size() - methodCount)  + " methods from the test JAR.");
-	  }
+	  } */
+	
+	public static String buildCP(String dir) {
+		File folder = new File(dir);
+		File[] listOfFiles = folder.listFiles();
+		StringBuilder sb = new StringBuilder();
+		if (listOfFiles != null) {
+			for (int i = 0; i < listOfFiles.length; i++) {
+				if (listOfFiles[i].getName().endsWith(".jar") || listOfFiles[i].getName().endsWith(".apk")) {
+					if (sb.length() > 0) {
+						sb.append(System.getProperty("path.separator"));
+					}
+					sb.append(listOfFiles[i].getAbsolutePath().toString());
+				}
+			}
+		}
+		return sb.toString();
+	}
 	
 	public static void main(String[] args) {
 		//Set<String> fileClasses = getAllClassesFromDirectory(jarDirectory);
-		
+		String testCp = buildCP(jarDirectory);
 		System.out.print(jarDirectory);
 	}
 }
