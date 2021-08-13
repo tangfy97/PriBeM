@@ -1,4 +1,3 @@
-import de.fraunhofer.iem.swan.data.Method;
 
 /**
  * Common interface for all features in the probabilistic model
