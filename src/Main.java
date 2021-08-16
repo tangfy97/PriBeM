@@ -16,11 +16,12 @@ public class Main {
     public static String clsName = "UsageExample";
     public Set<Method> methods = new HashSet<Method>();
     private FeatureDetector featureDetector;
+    private ReadClasses classReader;
     public String testCp;
 	
 	public static void main(String[] args) throws IOException,InterruptedException {
 		
-		try {
+		try {/*
             if (args.length != 2) {
                 System.err.println("");
                 System.err.println(
@@ -29,13 +30,13 @@ public class Main {
                 System.err.println("\t\tThis is the actual user library being evaluated.\n");
                 System.err.println("<output-dir>:\tDirectory where the output should be written.\n");
                 return;
-            }
+            }*/
 
             // Get configuration options from command line arguments.
-            String sourceDir = args[0];
+            String sourceDir = jarDirectory;
             //String trainSourceCode = args[1].equals("internal") ? null : args[1];
             //String trainJson = args[2].equals("internal") ? null : args[2];
-            String outputDir = args[1];
+            String outputDir = sourceDirectory;
 
             Main main = new Main();
             main.run(sourceDir, outputDir);
@@ -69,11 +70,17 @@ public class Main {
             throws IOException, InterruptedException {
 		Set<String> testClasses = ReadClasses.getAllClassesFromDirectory(jarDirectory);
 		String testCp = ReadClasses.buildCP(jarDirectory);
-		System.out.print(jarDirectory);
-		// System.out.println("***** Loading features");
+		System.out.print(jarDirectory + "\n");
 		
+		//Cache the features
+		System.out.println("***** Loading features *****");
 		featureDetector = new FeatureDetector(testCp);
 		featureDetector.initializeFeatures(1); // use 0 for all feature instances
+		
+		// Cache the methods from the set.
+        System.out.println("***** Loading java classes *****");
+		classReader = new ReadClasses(testCp);
+		classReader.loadTestSet(testClasses);
 	}
 	
 	

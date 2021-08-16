@@ -13,6 +13,9 @@ import java.*;
 
 import soot.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ReadClasses {
 	
 	public static String javapath = System.getProperty("java.class.path");
@@ -22,7 +25,6 @@ public class ReadClasses {
     public static String jarDirectory = System.getProperty("user.dir")+"/examples";
     public static String clsName = "UsageExample";
     public Set<Method> methods = new HashSet<Method>();
-    private FeatureDetector featureDetector;
     public String testCp;
 
     public ReadClasses(String testCp) {
@@ -31,6 +33,13 @@ public class ReadClasses {
     public Set<Method> methods() {
         return methods;
     }
+    
+    public void loadTestSet(final Set<String> testClasses) {
+    	    loadMethodsFromTestLib(testClasses);
+    	    //Util.createSubclassAnnotations(methods, testCp);
+    	    //methods = Util.sanityCheck(methods, trainingSet);
+    	    //Util.printStatistics("Test set complete", methods);
+    	  }
 	
 
 	public static Set<String> getAllClassesFromJar(String jarFile) throws IOException {
@@ -95,7 +104,7 @@ public class ReadClasses {
 
 	              Method newMethod =
 	                  new Method(methodName, parameters, returnType, className);
-	              //System.out.println(newMethod.getSignature());
+	              System.out.println(newMethod.getSignature());
 	              methods.add(newMethod);
 	            }
 	          }
@@ -106,6 +115,7 @@ public class ReadClasses {
 	    }.applies(new Method("a", "void", "x.y"));
 	    System.out.println("Loaded " + (methods.size() - methodCount)  + " methods from the test JAR.");
 	  } 
+	
 	
 	public static String buildCP(String dir) {
 		File folder = new File(dir);
