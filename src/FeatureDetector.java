@@ -38,19 +38,13 @@ public class FeatureDetector {
       featuresMap.put(category, new HashSet<IFeature>());
 
     if(disable != 3) {
-    	IFeature classNameContainsSaniti = new MethodClassContainsNameFeature(
-    	        "Saniti");
+    	IFeature classNameContainsUser = new MethodClassContainsNameFeature(
+    	        "User");
         //((WeightedFeature)classNameContainsSaniti).setWeight(2);
-    	    addFeature(classNameContainsSaniti,
-    	        new HashSet<>(Arrays.asList(Category.SANITIZER, Category.NONE)));
+    	    addFeature(classNameContainsUser,
+    	        new HashSet<>(Arrays.asList(Category.PPI, Category.SOURCE)));
     }
-    if(disable != 4) {
-    	IFeature classNameContainsEncode = new MethodClassContainsNameFeature(
-                "Encod");
-        //((WeightedFeature)classNameContainsEncode).setWeight(-12);
-            addFeature(classNameContainsEncode,
-                new HashSet<>(Arrays.asList(Category.SANITIZER, Category.NONE)));	
-    }
+    
     System.out.println("Initialized " + getFeaturesSize() + " features.");
   }
 

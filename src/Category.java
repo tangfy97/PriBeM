@@ -3,14 +3,11 @@ public enum Category {
             Constants.AUTHENTICATION_SAFE, false), AUTHENTICATION_TO_LOW(
             Constants.AUTHENTICATION_UNSAFE, false), AUTHENTICATION_NEUTRAL(
             Constants.AUTHENTICATION_NOCHANGE, false), SANITIZER(Constants.SANITIZER,
-            false), NONE(Constants.NONE, false),
+            false), NONE(Constants.NONE, false), PPI(Constants.PPI, false),
     CWE359("CWE359", true), CWE200("CWE200", true), CWE202("CWE202", 
       true), CWE213("CWE213", true), CWE201("CWE201", 
           true), CWE538("CWE538", true), CWE_NONE("none", true);
 
-  /*CWE089("CWE089", true),CWE306("CWE306", true), CWE078("CWE078",
-      true), CWE862("CWE862", true), CWE863("CWE863", 
-          true), CWE601("CWE601", true), CWETEST("CWEtest", true), CWE079("CWE079",true), CWE_NONE("none", true);*/
   private final String id;
   private final boolean cwe;
 
