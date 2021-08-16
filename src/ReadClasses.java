@@ -113,7 +113,7 @@ public class ReadClasses {
 	      }
 
 	    }.applies(new Method("a", "void", "x.y"));
-	    System.out.println("Loaded " + (methods.size() - methodCount)  + " methods from the test JAR.");
+	    System.out.println("Loaded " + (methods.size() - methodCount)  + " methods from JAR files.");
 	  } 
 	
 	

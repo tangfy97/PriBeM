@@ -75,7 +75,7 @@ public class Main {
 		//Cache the features
 		System.out.println("***** Loading features *****");
 		featureDetector = new FeatureDetector(testCp);
-		featureDetector.initializeFeatures(1); // use 0 for all feature instances
+		featureDetector.initializeFeatures(0); // use 0 for all feature instances
 		
 		// Cache the methods from the set.
         System.out.println("***** Loading java classes *****");
