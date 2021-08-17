@@ -81,6 +81,7 @@ public class Main {
         System.out.println("***** Loading java classes *****");
 		classReader = new ReadClasses(testCp);
 		classReader.loadTestSet(testClasses);
+		
 	}
 	
 	

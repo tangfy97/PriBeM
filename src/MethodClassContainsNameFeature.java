@@ -11,6 +11,11 @@ public class MethodClassContainsNameFeature  implements IFeature {
     return (method.getClassName().toLowerCase().contains(partOfName) ? Type.TRUE
         : Type.FALSE);
   }
+  
+  @Override
+  public boolean check(Method method) {
+	  return (method.getClassName().toLowerCase().contains(partOfName) ? true : false);
+  }
 
   @Override
   public String toString() {

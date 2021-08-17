@@ -104,7 +104,7 @@ public class ReadClasses {
 
 	              Method newMethod =
 	                  new Method(methodName, parameters, returnType, className);
-	              System.out.println(newMethod.getSignature());
+	              //System.out.println(newMethod.getSignature());
 	              methods.add(newMethod);
 	            }
 	          }
@@ -112,8 +112,24 @@ public class ReadClasses {
 	        return Type.NOT_SUPPORTED;
 	      }
 
+		@Override
+		public boolean check(Method method) {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
 	    }.applies(new Method("a", "void", "x.y"));
 	    System.out.println("Loaded " + (methods.size() - methodCount)  + " methods from JAR files.");
+	    
+	    IFeature classNameContainsUser = new MethodClassContainsNameFeature("card");
+	    
+	    for (Method s : methods) {
+	    	if (classNameContainsUser.check(s))
+	    		System.out.println("<"+s.getSignature() + " is part of class that contains the name card >");
+		    
+		    //System.out.println("end");
+		}
+	    
 	  } 
 	
 	

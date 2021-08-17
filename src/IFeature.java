@@ -12,6 +12,7 @@ public interface IFeature {
   }
 
   Type applies(Method method);
+  boolean check(Method method);
 
   String toString();
 
