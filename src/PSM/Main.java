@@ -11,15 +11,10 @@ import soot.*;
 
 
 public class Main {
-	
-	public static String javapath = System.getProperty("java.class.path");
-	public static String jredir = System.getProperty("java.home")+"/lib/rt.jar";
-	public static String path = javapath+File.pathSeparator+jredir;
-    public static String sourceDirectory = System.getProperty("user.dir");
+	public static String sourceDirectory = System.getProperty("user.dir")+"/output";
     public static String jarDirectory = System.getProperty("user.dir")+"/examples";
-    public static String clsName = "UsageExample";
     public Set<Method> methods = new HashSet<Method>();
-    private FeatureDetector featureDetector;
+    //private FeatureDetector featureDetector;
     private ReadClasses classReader;
     public String testCp;
 	
