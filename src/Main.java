@@ -70,7 +70,7 @@ public class Main {
             throws IOException, InterruptedException {
 		Set<String> testClasses = ReadClasses.getAllClassesFromDirectory(jarDirectory);
 		String testCp = ReadClasses.buildCP(jarDirectory);
-		System.out.print(jarDirectory + "\n");
+		//System.out.print(jarDirectory + "\n");
 		
 		//Cache the features
 		System.out.println("***** Loading features *****");
