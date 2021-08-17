@@ -45,7 +45,7 @@ public class FeatureDetector {
     	        new HashSet<>(Arrays.asList(Category.PPI, Category.SOURCE)));
     }
     
-    System.out.println("Initialized " + getFeaturesSize() + " features.");
+    System.out.println("Initialised " + getFeaturesSize() + " features.");
   }
 
   private int getFeaturesSize() {

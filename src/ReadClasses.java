@@ -36,10 +36,24 @@ public class ReadClasses {
     
     public void loadTestSet(final Set<String> testClasses) {
     	    loadMethodsFromTestLib(testClasses);
-    	    //Util.createSubclassAnnotations(methods, testCp);
-    	    //methods = Util.sanityCheck(methods, trainingSet);
-    	    //Util.printStatistics("Test set complete", methods);
+    	    System.out.println("Methods extraction finished.");
     	  }
+    public void featureChecker () {
+    	IFeature classNameContainsUser = new MethodClassContainsNameFeature("card");
+	    IFeature methodreturnsconstant = new MethodReturnsConstantFeature("cp");
+	    IFeature methodNameContainsName = new MethodNameContainsFeature("name");
+	    System.out.println("***** Checking features *****");
+	    for (Method s : methods) {
+	    	if (classNameContainsUser.check(s))
+	    		System.out.println("<" + s.getSignature() + " is part of class that contains the name card >.");
+	    	if (methodNameContainsName.check(s))
+	    		System.out.println("<" + s.getSignature() + " contains the name 'name' >.");
+		    if (methodreturnsconstant.check(s))
+		    	System.out.println("<" + s.getSignature() + " returns a constant >.");
+		    System.out.println("***********");
+		}
+	    System.out.println("***** Job finished *****");
+    }
 	
 
 	public static Set<String> getAllClassesFromJar(String jarFile) throws IOException {
@@ -121,15 +135,7 @@ public class ReadClasses {
 	    }.applies(new Method("a", "void", "x.y"));
 	    System.out.println("Loaded " + (methods.size() - methodCount)  + " methods from JAR files.");
 	    
-	    IFeature classNameContainsUser = new MethodClassContainsNameFeature("card");
-	    IFeature methodreturnsconstant = new MethodReturnsConstantFeature("cp");
-	    for (Method s : methods) {
-	    	if (classNameContainsUser.check(s))
-	    		System.out.println("<"+s.getSignature() + " is part of class that contains the name card >");
-		    if (methodreturnsconstant.check(s))
-		    	System.out.println(s.getSignature() + "returns a constant");
-		    //System.out.println("end");
-		}
+	    
 	    
 	  } 
 	

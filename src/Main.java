@@ -72,15 +72,18 @@ public class Main {
 		String testCp = ReadClasses.buildCP(jarDirectory);
 		//System.out.print(jarDirectory + "\n");
 		
+		/*
 		//Cache the features
 		System.out.println("***** Loading features *****");
 		featureDetector = new FeatureDetector(testCp);
 		featureDetector.initializeFeatures(0); // use 0 for all feature instances
+		*/
 		
 		// Cache the methods from the set.
-        System.out.println("***** Loading java classes *****");
+        System.out.println("***** Loading java classes ***** \n");
 		classReader = new ReadClasses(testCp);
 		classReader.loadTestSet(testClasses);
+		classReader.featureChecker();
 		
 	}
 	
