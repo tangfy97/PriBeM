@@ -1,4 +1,9 @@
-package PSM;
+package PSM.Features;
+
+import PSM.IFeature;
+import PSM.IFeature.Type;
+import PSM.Info.Method;
+
 public class MethodClassContainsNameFeature  implements IFeature {
 
   private final String partOfName;

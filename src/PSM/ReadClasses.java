@@ -17,14 +17,20 @@ import soot.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import PSM.Features.AbstractSootFeature;
+import PSM.Features.MethodClassContainsNameFeature;
+import PSM.Features.MethodNameContainsFeature;
+import PSM.Features.MethodReturnsConstantFeature;
+import PSM.Info.Method;
+
 public class ReadClasses {
 	
-	public static String javapath = System.getProperty("java.class.path");
-	public static String jredir = System.getProperty("java.home")+"/lib/rt.jar";
-	public static String path = javapath+File.pathSeparator+jredir;
+	//public static String javapath = System.getProperty("java.class.path");
+	//public static String jredir = System.getProperty("java.home")+"/lib/rt.jar";
+	//public static String path = javapath+File.pathSeparator+jredir;
     public static String sourceDirectory = System.getProperty("user.dir");
     public static String jarDirectory = System.getProperty("user.dir")+"/examples";
-    public static String clsName = "UsageExample";
+    //public static String clsName = "UsageExample";
     public Set<Method> methods = new HashSet<Method>();
     public String testCp;
 

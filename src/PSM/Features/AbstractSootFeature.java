@@ -1,8 +1,10 @@
-package PSM;
+package PSM.Features;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import PSM.IFeature;
+import PSM.Info.Method;
 import soot.G;
 import soot.Hierarchy;
 import soot.RefType;

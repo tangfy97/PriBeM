@@ -1,4 +1,7 @@
-package PSM;
+package PSM.Features;
+import PSM.IFeature;
+import PSM.IFeature.Type;
+import PSM.Info.Method;
 import soot.Body;
 import soot.SootMethod;
 import soot.Unit;

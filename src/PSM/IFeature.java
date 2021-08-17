@@ -1,5 +1,7 @@
 package PSM;
 
+import PSM.Info.Method;
+
 /**
  * Common interface for all features in the probabilistic model
  *

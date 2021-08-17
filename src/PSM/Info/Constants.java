@@ -1,4 +1,4 @@
-package PSM;
+package PSM.Info;
 public final class Constants {
 	
 	//JSON Attributes

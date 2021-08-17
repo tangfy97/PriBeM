@@ -3,6 +3,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
+
+import PSM.Info.Method;
+
 import java.*;
 import soot.*;
 

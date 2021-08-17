@@ -5,6 +5,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import PSM.Features.MethodClassContainsNameFeature;
+import PSM.Info.Category;
+
 public class FeatureDetector {
 
   private final String cp;
