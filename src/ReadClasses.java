@@ -122,11 +122,12 @@ public class ReadClasses {
 	    System.out.println("Loaded " + (methods.size() - methodCount)  + " methods from JAR files.");
 	    
 	    IFeature classNameContainsUser = new MethodClassContainsNameFeature("card");
-	    
+	    IFeature methodreturnsconstant = new MethodReturnsConstantFeature("cp");
 	    for (Method s : methods) {
 	    	if (classNameContainsUser.check(s))
 	    		System.out.println("<"+s.getSignature() + " is part of class that contains the name card >");
-		    
+		    if (methodreturnsconstant.check(s))
+		    	System.out.println(s.getSignature() + "returns a constant");
 		    //System.out.println("end");
 		}
 	    
