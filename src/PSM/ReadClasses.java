@@ -18,9 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import PSM.Features.AbstractSootFeature;
-import PSM.Features.MethodClassContainsNameFeature;
-import PSM.Features.MethodNameContainsFeature;
-import PSM.Features.MethodReturnsConstantFeature;
+import PSM.Features.*;
 import PSM.Info.Method;
 
 public class ReadClasses {
@@ -45,6 +43,7 @@ public class ReadClasses {
     	IFeature classNameContainsUser = new MethodClassContainsNameFeature("card");
 	    IFeature methodreturnsconstant = new MethodReturnsConstantFeature("cp");
 	    IFeature methodNameContainsName = new MethodNameContainsFeature("name");
+	    IFeature methodHasInvocation = new MethodInvocationFeature("cp","x");
 	    System.out.println("***** Checking features *****");
 	    for (Method s : methods) {
 	    	if (classNameContainsUser.check(s))
@@ -53,6 +52,8 @@ public class ReadClasses {
 	    		System.out.println("<" + s.getSignature() + " contains the name 'name' >.");
 		    if (methodreturnsconstant.check(s))
 		    	System.out.println("<" + s.getSignature() + " returns a constant >.");
+		    	if (methodHasInvocation.check(s))
+		    		System.out.println("< An invocation to " + s.getSignature() + " is made >.");
 		    System.out.println("***********");
 		}
 	    System.out.println("***** Job finished *****");
