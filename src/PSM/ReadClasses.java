@@ -47,13 +47,16 @@ public class ReadClasses {
 	    System.out.println("***** Checking features *****");
 	    for (Method s : methods) {
 	    	if (classNameContainsUser.check(s))
-	    		System.out.println("<" + s.getSignature() + " is part of class that contains the name card >.");
+	    		System.out.println("<" + s.getSignature() + " is part of class that contains the name 'card' >.");
+	    		//System.out.println("***********");
 	    	if (methodNameContainsName.check(s))
 	    		System.out.println("<" + s.getSignature() + " contains the name 'name' >.");
+	    		//System.out.println("***********");
 		    if (methodreturnsconstant.check(s))
 		    	System.out.println("<" + s.getSignature() + " returns a constant >.");
 		    	if (methodHasInvocation.check(s))
 		    		System.out.println("< An invocation to " + s.getSignature() + " is made >.");
+		    		//System.out.println("***********");
 		    System.out.println("***********");
 		}
 	    System.out.println("***** Job finished *****");
