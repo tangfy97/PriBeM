@@ -45,6 +45,7 @@ public class ReadClasses {
 	    IFeature methodNameContainsName = new MethodNameContainsFeature("name");
 	    IFeature methodHasInvocation = new MethodInvocationFeature("cp","x");
 	    IFeature paramFlowsToReturn = new ParameterFlowsToReturn("cp");
+	    IFeature methodInvocatesMethod = new MethodCallsAnotherMethod("cp","**");
 	    System.out.println("***** Checking features *****");
 	    for (Method s : methods) {
 	    	if (paramFlowsToReturn.check(s))
