@@ -44,8 +44,11 @@ public class ReadClasses {
 	    IFeature methodreturnsconstant = new MethodReturnsConstantFeature("cp");
 	    IFeature methodNameContainsName = new MethodNameContainsFeature("name");
 	    IFeature methodHasInvocation = new MethodInvocationFeature("cp","x");
+	    IFeature paramFlowsToReturn = new ParameterFlowsToReturn("cp");
 	    System.out.println("***** Checking features *****");
 	    for (Method s : methods) {
+	    	if (paramFlowsToReturn.check(s))
+	    		System.out.println("<" + s.getSignature() + " has a parameter that flows to return >.");
 	    	if (classNameContainsUser.check(s))
 	    		System.out.println("<" + s.getSignature() + " is part of class that contains the name 'card' >.");
 	    		//System.out.println("***********");
