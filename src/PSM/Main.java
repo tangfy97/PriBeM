@@ -82,7 +82,7 @@ public class Main {
         System.out.println("***** Loading java classes ***** \n");
 		classReader = new ReadClasses(testCp);
 		classReader.loadTestSet(testClasses);
-		classReader.featureChecker();
+		//classReader.featureChecker();
 		
 	}
 	

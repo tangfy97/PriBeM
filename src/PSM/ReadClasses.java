@@ -13,6 +13,9 @@ import java.util.zip.ZipInputStream;
 import java.*;
 
 import soot.*;
+import soot.jimple.InvokeExpr;
+import soot.jimple.Stmt;
+import soot.util.Chain;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,9 +43,9 @@ public class ReadClasses {
     	    System.out.println("Methods extraction finished.");
     	  }
     public void featureChecker () {
-    	IFeature classNameContainsUser = new MethodClassContainsNameFeature("card");
+    	IFeature classNameContainsUser = new MethodClassContainsNameFeature("java.io");
 	    IFeature methodreturnsconstant = new MethodReturnsConstantFeature("cp");
-	    IFeature methodNameContainsName = new MethodNameContainsFeature("name");
+	    IFeature methodNameContainsName = new MethodNameContainsFeature("print");
 	    IFeature methodHasInvocation = new MethodInvocationFeature("cp","x");
 	    IFeature paramFlowsToReturn = new ParameterFlowsToReturn("cp");
 	    IFeature methodInvocatesMethod = new MethodCallsAnotherMethod("cp","**");
@@ -51,10 +54,10 @@ public class ReadClasses {
 	    	if (paramFlowsToReturn.check(s))
 	    		System.out.println("<" + s.getSignature() + " has a parameter that flows to return >.");
 	    	if (classNameContainsUser.check(s))
-	    		System.out.println("<" + s.getSignature() + " is part of class that contains the name 'card' >.");
+	    		System.out.println("<" + s.getSignature() + " is part of class that contains the name '' >.");
 	    		//System.out.println("***********");
 	    	if (methodNameContainsName.check(s))
-	    		System.out.println("<" + s.getSignature() + " contains the name 'name' >.");
+	    		System.out.println("<" + s.getSignature() + " contains the name '' >.");
 	    		//System.out.println("***********");
 		    if (methodreturnsconstant.check(s))
 		    	System.out.println("<" + s.getSignature() + " returns a constant >.");
@@ -104,21 +107,58 @@ public class ReadClasses {
 	      @Override
 	      public Type appliesInternal(Method method) {
 	        for (String className : testClasses) {
-	          SootClass sc = Scene.v().forceResolve(className, SootClass.HIERARCHY);
-	          if (sc == null) continue;
-	          if (!testClasses.contains(sc.getName())) continue;
-	          if (!sc.isInterface() && !sc.isPrivate())
+	          SootClass sc = Scene.v().forceResolve(className, SootClass.SIGNATURES);
+	          //if (sc == null) continue;
+	          //if (!testClasses.contains(sc.getName())) continue;
+
 	            for (SootMethod sm : sc.getMethods()) {
-	            if (sm.isConcrete()) {
+	            //if (sm.isConcrete()) {
 	              // This is done by hand here because of the cases where the
 	              // character ' is in the signature. This is not supported by the
 	              // current Soot.
 	              // TODO: Get Soot to support the character '
+	              Body body = sm.retrieveActiveBody();
+	              for (Unit u : body.getUnits()) {
+	                  if (!(u instanceof Stmt))
+	                    continue;
+	                  Stmt stmt = (Stmt) u;
+	                  
+	                  //System.out.println(stmt);
+	                  
+	                  if (!stmt.containsInvokeExpr())
+	                    continue;
+
+	                  InvokeExpr inv = stmt.getInvokeExpr();
+	                  
+	                  //System.out.println(inv.getMethod().getName());
+	                  
+	                  if ((inv.getMethod().getDeclaringClass().getName().contains("java.io."))) {
+	                  //if ((inv.getMethod().getDeclaringClass().getName().contains("java.io.")) && (!(inv.getArgCount() == 0))) {
+	                	//System.out.println("method: " + inv.getMethod().getName() + inv.getArgs());
+	                	  SootMethod gm = inv.getMethod();
+	                	  Body newB = gm.retrieveActiveBody();
+	                	  for (Unit newU : newB.getUnits()) {
+	                		  Stmt newS = (Stmt) newU;
+	                		  if (!newS.containsInvokeExpr())
+	                			  continue;
+	                		  InvokeExpr newInv = newS.getInvokeExpr();
+	                		  //System.out.println(newInv.getMethod());
+	                		  if ((newInv.getMethod().getName().contains(""))) {
+	                			  System.out.println("Here "+gm.getName()+" has invocation to "+newInv.getMethod().getName());
+	                		  }
+	                	  }
+	                      
+	                  }
+	                }
+	              
 	              String sig = sm.getSignature();
 	              sig = sig.substring(sig.indexOf(": ") + 2, sig.length());
+	              
 	              String returnType = sig.substring(0, sig.indexOf(" "));
+	              
 	              String methodName =
 	                  sig.substring(sig.indexOf(" ") + 1, sig.indexOf("("));
+	              
 	              List<String> parameters = new ArrayList<String>();
 	              for (String parameter : sig
 	                  .substring(sig.indexOf("(") + 1, sig.indexOf(")"))
@@ -131,7 +171,7 @@ public class ReadClasses {
 	                  new Method(methodName, parameters, returnType, className);
 	              //System.out.println(newMethod.getSignature());
 	              methods.add(newMethod);
-	            }
+	            //}
 	          }
 	        }
 	        return Type.NOT_SUPPORTED;
