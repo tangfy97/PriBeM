@@ -3,6 +3,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -14,7 +15,9 @@ import java.*;
 
 import soot.*;
 import soot.jimple.AssignStmt;
+import soot.jimple.IdentityStmt;
 import soot.jimple.InvokeExpr;
+import soot.jimple.ParameterRef;
 import soot.jimple.ReturnStmt;
 import soot.jimple.Stmt;
 import soot.util.Chain;
@@ -110,74 +113,62 @@ public class ReadClasses {
 	      public Type appliesInternal(Method method) {
 	        for (String className : testClasses) {
 	          SootClass sc = Scene.v().forceResolve(className, SootClass.SIGNATURES);
-	          //if (sc == null) continue;
-	          //if (!testClasses.contains(sc.getName())) continue;
 
 	            for (SootMethod sm : sc.getMethods()) {
-	              for (Unit u : sm.retrieveActiveBody().getUnits()) {
-	                  if (!(u instanceof Stmt))
-	                    continue;
-	                  Stmt stmt = (Stmt) u;
-	                  
-	                  //System.out.println(stmt);
-	                  
-	                  if (!stmt.containsInvokeExpr())
-	                    continue;
+	            	if (!sm.getName().contains("main"))
+	            	try {
+	            	      Set<Value> paramVals = new HashSet<Value>();
 
-	                  InvokeExpr inv = stmt.getInvokeExpr();
-	                  
-	                  
-	                  //System.out.println(inv.getMethod().getName());
-	                  
-	                  if ((!inv.getMethod().getName().contains("init"))) {
-	                  //if ((inv.getMethod().getDeclaringClass().getName().contains("java.io.")) && (!(inv.getArgCount() == 0))) {
-	                	//System.out.println("method: " + inv.getMethod().getName() + inv.getArgs());
-	                	  SootMethod gm = inv.getMethod();
-	                	  Set<Value> paramVals = new HashSet<Value>();
-	                	  //System.out.println(gm.retrieveActiveBody());
-	                	  for (Unit u1 : gm.retrieveActiveBody().getUnits()) {
-	                	        // Check for invocations
-	                	        if (((Stmt) u1).containsInvokeExpr()) {
-	                	          InvokeExpr invokeExpr = ((Stmt) u1).getInvokeExpr();
-	                	          //System.out.println(invokeExpr);
-	                	          Value leftOp = null;
-	                	          if (u1 instanceof AssignStmt) leftOp = ((AssignStmt) u1).getLeftOp();
-	                	          if (leftOp != null) paramVals.add(leftOp);
-	                	          // TODO: Add arguments as well? Not sure.
-	                	          if (invokeExpr.getMethod().getName().toLowerCase().contains("read")){
-	                	          if(true) {
-	                	            paramVals.addAll(invokeExpr.getArgs());
-	                	            //System.out.println("arg: "+paramVals);
-	                	          }
-	                	          }
-	                	        }
+	            	      for (Unit u : sm.retrieveActiveBody().getUnits()) {
+	            	        if (((Stmt) u).containsInvokeExpr()) {
+	            	          InvokeExpr invokeExpr = ((Stmt) u).getInvokeExpr();
+	            	          Value leftOp = null;
+	            	          
+	            	          //String[] matches = new String[] {"print", "init"};
+	            	          if ((invokeExpr.getMethod().getDeclaringClass().getName().contains("java.io.")) && (!(invokeExpr.getArgCount() == 0) && 
+	            	        		  !invokeExpr.getMethod().getName().contains("init")&& !invokeExpr.getMethod().getName().contains("print"))) {
+	            	        	  //System.out.println(invokeExpr.getMethod().getName());
+	            	          }
+	            	          
+	            	          
+	            	          //if (u instanceof AssignStmt) leftOp = ((AssignStmt) u).getLeftOp();
+	            	          //if (leftOp != null) paramVals.add(leftOp);
+	            	          
+	            	          if (invokeExpr.getMethod().getName().toLowerCase().contains("name")) {
+	            	        	  //System.out.println(invokeExpr.getMethod());
+	            	        	  if (u instanceof AssignStmt) leftOp = ((AssignStmt) u).getLeftOp();
+		            	          if (leftOp != null) paramVals.add(leftOp);
+	            	        	  paramVals.addAll(invokeExpr.getArgs());
+	            	        	  for (Unit u1 : invokeExpr.getMethod().retrieveActiveBody().getUnits()) {
+	            	        		  if (u1 instanceof IdentityStmt) {
+	            	        	          IdentityStmt id = (IdentityStmt) u1;
+	            	        	          if (id.getRightOp() instanceof ParameterRef) paramVals.add(id.getLeftOp());
+	            	        	          }
+	            	        	  }
+	            	          }
+	            	          if (invokeExpr.getMethod().getName().toLowerCase().contains("print")) {
+	            	        	  //System.out.println(invokeExpr.getMethod().getName());
+	            	        	  for (Value arg : invokeExpr.getArgs())
+	            	        		  if (paramVals.contains(arg)) System.out.println("YES! Method name: "+sm.getName()+" to sink print");
+	            	        	  }
+	            	        }
+	            	        
 
-	                	        if (u1 instanceof AssignStmt) {
-	                	          Value leftOp = ((AssignStmt) u1).getLeftOp();
-	                	          //System.out.println("left: "+leftOp);
-	                	          Value rightOp = ((AssignStmt) u1).getRightOp();
-	                	          //System.out.println("right: "+rightOp);
-	                	          if (paramVals.contains(leftOp)) paramVals.remove(leftOp);
-	                	          if (paramVals.contains(rightOp)) {
-	                	            paramVals.add(leftOp);
-	                	            System.out.println("assign: "+paramVals);
-	                	          }
-	                	        }
-
-	                	        // Check for invocations
-	                	        if (u1 instanceof ReturnStmt) {
-	                	          ReturnStmt rstmt = (ReturnStmt) u1;
-	                	          //System.out.println("returnstmt: "+rstmt);
-	                	          //System.out.println("returnop: "+rstmt.getOp()+" val: "+paramVals);
-	                	          if (paramVals.contains(rstmt.getOp())) {
-	                	        	  System.out.println("returnstmt: "+rstmt);
-		                	          System.out.println("returnop: "+rstmt.getOp()+" val: "+paramVals);
-	                	        	  System.out.println("YES! Method name: "+gm);
-	                	          }
-	                	        }
-	                	      }
-	                  }
-	                  }
+	            	        // Check for invocations
+	            	        if (u instanceof ReturnStmt) {
+	            	          ReturnStmt stmt = (ReturnStmt) u;
+	            	          if (paramVals.contains(stmt.getOp())) {
+                	        	  System.out.println("YES! Method name: "+sm.getName()+" to return");
+                	          }
+	            	        }
+	            	      }
+	            	      throw new RuntimeException(
+	            	          "No return statement in method " + method.getSignature());
+	            	    } catch (Exception ex) {
+	            	      // System.err.println("Something went wrong:");
+	            	      // ex.printStackTrace();
+	            	    }
+	                  
 	                
 	              
 	              String sig = sm.getSignature();
