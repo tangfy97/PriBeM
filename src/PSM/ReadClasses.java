@@ -126,19 +126,17 @@ public class ReadClasses {
 	            	        if (((Stmt) u).containsInvokeExpr()) {
 	            	          InvokeExpr invokeExpr = ((Stmt) u).getInvokeExpr();
 	            	          Value leftOp = null;
-	            	          
-	            	          
-	            	          //System.out.println(invokeExpr);
-	            	          //List<String> basicSource = new ArrayList<String>();
-	            	          //if ((invokeExpr.getMethod().getDeclaringClass().getName().contains("java.io") && !invokeExpr.getMethod().getName().contains("close") && !(invokeExpr.getMethod().getName().isEmpty()) &&
-	            	        	//	  !invokeExpr.getMethod().getName().contains("init")&& !invokeExpr.getMethod().getName().contains("print"))) {
-	            	        //	  basicSource.add(invokeExpr.getMethod().getName());
-	            	          //}
+
+	            	          List<String> basicSource = new ArrayList<String>();
+	            	          if ((invokeExpr.getMethod().getDeclaringClass().getName().contains("java.io") && !invokeExpr.getMethod().getName().contains("close") && !(invokeExpr.getMethod().getName().isEmpty()) &&
+	            	        		  !invokeExpr.getMethod().getName().contains("init")&& !invokeExpr.getMethod().getName().contains("print"))) {
+	            	        	  basicSource.add(invokeExpr.getMethod().getName());
+	            	          }
 	            	          
 	            	          if (u instanceof AssignStmt) leftOp = ((AssignStmt) u).getLeftOp();
 	            	          if (leftOp != null) paramVals.add(leftOp);
-	            	          //for (String m : basicSource){
-	            	        	  if (invokeExpr.getMethod().getName().toLowerCase().contains("a")) {
+	            	          for (String m : basicSource){
+	            	        	  if (invokeExpr.getMethod().getName().toLowerCase().contains(m)) {
 
 		            	        	  paramVals.addAll(invokeExpr.getArgs());
 		            	        	  for (Unit u1 : invokeExpr.getMethod().retrieveActiveBody().getUnits()) {
@@ -147,19 +145,17 @@ public class ReadClasses {
 		            	        	          if (id.getRightOp() instanceof ParameterRef) paramVals.add(id.getLeftOp());
 		            	        	          }
 		            	        	  }
-		            	        	  //System.out.println(paramVals);
 		            	          }
+	            	          }
 	            	        	  
-	            	        	  if (invokeExpr.getMethod().getName().toLowerCase().contains("ln")) {
-		            	        	  //System.out.println(invokeExpr.getArgs());
+	            	        	  if (invokeExpr.getMethod().getName().toLowerCase().contains("print")) {
 		            	        	  for (Value arg : invokeExpr.getArgs())
 		            	        		  if (paramVals.contains(arg)) System.out.println("YES! Method name: "+sm.getName()+" to sink print");
 		            	        	  }
-	            	        	  //}
+	            	        
 	            	          }
 	            	      
 
-	            	        // Check for invocations
 	            	        if (u instanceof ReturnStmt) {
 	            	          ReturnStmt stmt = (ReturnStmt) u;
 	            	          if (paramVals.contains(stmt.getOp())) System.out.println("YES! Method name: "+sm.getName()+" to return");
