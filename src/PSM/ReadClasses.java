@@ -118,15 +118,16 @@ public class ReadClasses {
 	          SootClass sc = Scene.v().forceResolve(className, SootClass.BODIES);
 
 	            for (SootMethod sm : sc.getMethods()) {
+	            	//we are not interested in main function
 	            	if (!sm.getName().contains("main"))
 	            	try {
+	            		//create a list of interested values
 	            	      Set<Value> paramVals = new HashSet<Value>();
-
 	            	      for (Unit u : sm.retrieveActiveBody().getUnits()) {
 	            	        if (((Stmt) u).containsInvokeExpr()) {
 	            	          InvokeExpr invokeExpr = ((Stmt) u).getInvokeExpr();
 	            	          Value leftOp = null;
-
+	            	          //find all basic source
 	            	          List<String> basicSource = new ArrayList<String>();
 	            	          if ((invokeExpr.getMethod().getDeclaringClass().getName().contains("java.io") && !invokeExpr.getMethod().getName().contains("close") && !(invokeExpr.getMethod().getName().isEmpty()) &&
 	            	        		  !invokeExpr.getMethod().getName().contains("init")&& !invokeExpr.getMethod().getName().contains("print"))) {
@@ -135,6 +136,7 @@ public class ReadClasses {
 	            	          
 	            	          if (u instanceof AssignStmt) leftOp = ((AssignStmt) u).getLeftOp();
 	            	          if (leftOp != null) paramVals.add(leftOp);
+	            	          //search calls to values from basic source
 	            	          for (String m : basicSource){
 	            	        	  if (invokeExpr.getMethod().getName().toLowerCase().contains(m)) {
 
@@ -147,26 +149,24 @@ public class ReadClasses {
 		            	        	  }
 		            	          }
 	            	          }
-	            	        	  
-	            	        	  if (invokeExpr.getMethod().getName().toLowerCase().contains("print")) {
-		            	        	  for (Value arg : invokeExpr.getArgs())
-		            	        		  if (paramVals.contains(arg)) System.out.println("YES! Method name: "+sm.getName()+" to sink print");
-		            	        	  }
-	            	        
+	            	          //find flows to print sink
+	            	          if (invokeExpr.getMethod().getName().toLowerCase().contains("print")) {
+	            	        	  for (Value arg : invokeExpr.getArgs())
+	            	        		  if (paramVals.contains(arg)) System.out.println("YES! Method name: "+sm.getName()+" to sink print");
+	            	        	  }
 	            	          }
-	            	      
-
+	            	        //find flows to return stmt
 	            	        if (u instanceof ReturnStmt) {
-	            	          ReturnStmt stmt = (ReturnStmt) u;
-	            	          if (paramVals.contains(stmt.getOp())) System.out.println("YES! Method name: "+sm.getName()+" to return");
+	            	        	ReturnStmt stmt = (ReturnStmt) u;
+	            	        	if (paramVals.contains(stmt.getOp())) System.out.println("YES! Method name: "+sm.getName()+" to return");
+	            	        	}
 	            	        }
-	            	      }
 	            	      throw new RuntimeException(
-	            	          "No return statement in method " + method.getSignature());
-	            	    } catch (Exception ex) {
+	            	    		  "No return statement in method " + method.getSignature());
+	            	      } catch (Exception ex) {
 	            	      // System.err.println("Something went wrong:");
 	            	      // ex.printStackTrace();
-	            	    }
+	            	    	  }
 	                  
 	                
 	              
