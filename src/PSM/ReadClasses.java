@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.*;
@@ -35,6 +36,9 @@ public class ReadClasses {
     public static String jarDirectory = System.getProperty("user.dir")+"/examples";
     public Set<Method> methods = new HashSet<Method>();
     public String testCp;
+    public Set<SootMethod> basicSource = new HashSet<SootMethod>();
+    public Set<SootMethod> flow2Return = new HashSet<SootMethod>();
+    public Set<SootMethod> flow2Sink = new HashSet<SootMethod>();
 
     public ReadClasses(String testCp) {
       this.testCp = testCp;
@@ -128,17 +132,17 @@ public class ReadClasses {
 	            	          InvokeExpr invokeExpr = ((Stmt) u).getInvokeExpr();
 	            	          Value leftOp = null;
 	            	          //find all basic source
-	            	          List<String> basicSource = new ArrayList<String>();
+
 	            	          if ((invokeExpr.getMethod().getDeclaringClass().getName().contains("java.io") && !invokeExpr.getMethod().getName().contains("close") && !(invokeExpr.getMethod().getName().isEmpty()) &&
 	            	        		  !invokeExpr.getMethod().getName().contains("init")&& !invokeExpr.getMethod().getName().contains("print"))) {
-	            	        	  basicSource.add(invokeExpr.getMethod().getName());
+	            	        	  basicSource.add(invokeExpr.getMethod());
 	            	          }
 	            	          
 	            	          if (u instanceof AssignStmt) leftOp = ((AssignStmt) u).getLeftOp();
 	            	          if (leftOp != null) paramVals.add(leftOp);
 	            	          //search calls to values from basic source
-	            	          for (String m : basicSource){
-	            	        	  if (invokeExpr.getMethod().getName().toLowerCase().contains(m)) {
+	            	          for (SootMethod m : basicSource){
+	            	        	  if (invokeExpr.getMethod().equals(m)) {
 
 		            	        	  paramVals.addAll(invokeExpr.getArgs());
 		            	        	  for (Unit u1 : invokeExpr.getMethod().retrieveActiveBody().getUnits()) {
@@ -152,13 +156,19 @@ public class ReadClasses {
 	            	          //find flows to print sink
 	            	          if (invokeExpr.getMethod().getName().toLowerCase().contains("print")) {
 	            	        	  for (Value arg : invokeExpr.getArgs())
-	            	        		  if (paramVals.contains(arg)) System.out.println("YES! Method name: "+sm.getName()+" to sink print");
+	            	        		  if (paramVals.contains(arg)) {
+	            	        			  //System.out.println("YES! Method name: "+sm.getName()+" to sink print");
+	            	        			  flow2Sink.add(sm);
+	            	        		  }
 	            	        	  }
 	            	          }
 	            	        //find flows to return stmt
 	            	        if (u instanceof ReturnStmt) {
 	            	        	ReturnStmt stmt = (ReturnStmt) u;
-	            	        	if (paramVals.contains(stmt.getOp())) System.out.println("YES! Method name: "+sm.getName()+" to return");
+	            	        	if (paramVals.contains(stmt.getOp())) {
+	            	        		//System.out.println("YES! Method name: "+sm.getName()+" to return");
+	            	        		flow2Return.add(sm);
+	            	        	}
 	            	        	}
 	            	        }
 	            	      throw new RuntimeException(
@@ -203,12 +213,17 @@ public class ReadClasses {
 		}
 
 	    }.applies(new Method("a", "void", "x.y"));
+	    
+	    //List<String> distinctBasicSource = basicSource.stream().distinct().collect(Collectors.toList());
+	    //System.out.println(distinctBasicSource);
+	    System.out.println("Basic Source Methods: "+basicSource);
+	    System.out.println("Methods flow to return : "+flow2Return);
+	    System.out.println("Methods flow to print sink:  "+flow2Sink);
 	    System.out.println("Loaded " + (methods.size() - methodCount)  + " methods from JAR files.");
 	    
 	    
 	    
 	  } 
-	
 	
 	public static String buildCP(String dir) {
 		File folder = new File(dir);
