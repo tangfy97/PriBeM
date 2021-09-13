@@ -1,7 +1,9 @@
 package PSM;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -87,7 +89,7 @@ public class ReadClasses {
 				String className = entry.getName().replace('/', '.');
 				className = className.substring(0, className.length() - ".class".length());
 				if (className.contains("$"))
-					className = className.substring(0, className.indexOf("$") - 1);
+					className = className.substring(0, Math.max(className.indexOf("$") - 1, className.length()));
 				classes.add(className);
 			}
 		}
@@ -123,7 +125,7 @@ public class ReadClasses {
 
 	            for (SootMethod sm : sc.getMethods()) {
 	            	//we are not interested in main function
-	            	if (!sm.getName().contains("main"))
+	            	if (!sm.getName().contains("main") && sm.isConcrete())
 	            	try {
 	            		//create a list of interested values
 	            	      Set<Value> paramVals = new HashSet<Value>();
@@ -216,9 +218,37 @@ public class ReadClasses {
 	    
 	    //List<String> distinctBasicSource = basicSource.stream().distinct().collect(Collectors.toList());
 	    //System.out.println(distinctBasicSource);
-	    System.out.println("Basic Source Methods: "+basicSource);
-	    System.out.println("Methods flow to return : "+flow2Return);
-	    System.out.println("Methods flow to print sink:  "+flow2Sink);
+	    
+	    try {
+	    	PrintWriter bsWriter = new PrintWriter("basicsource.txt", "UTF-8");
+	    	for (SootMethod m : basicSource) {
+	    		bsWriter.println("Basic Source Methods: "+m);
+	    	}
+	    	bsWriter.println("Finished.");
+	    	bsWriter.close();
+	    	
+	    	PrintWriter frWriter = new PrintWriter("flow2Return.txt", "UTF-8");
+	    	for (SootMethod m : flow2Return) {
+	    		frWriter.println("Methods flow to return: "+m);
+	    	}
+	    	frWriter.println("Finished.");
+	    	frWriter.close();
+	    	
+	    	PrintWriter fsWriter = new PrintWriter("flow2Sink.txt", "UTF-8");
+	    	for (SootMethod m : flow2Sink) {
+	    		fsWriter.println("Methods flow to print sink: "+m);
+	    	}
+	    	fsWriter.println("Finished.");
+	    	fsWriter.close();
+	      } catch (IOException e) {
+	        System.out.println("An error occurred.");
+	        e.printStackTrace();
+	      }
+	    
+	    
+	    //System.out.println("Basic Source Methods: "+basicSource);
+	    //System.out.println("Methods flow to return : "+flow2Return);
+	    //System.out.println("Methods flow to print sink:  "+flow2Sink);
 	    System.out.println("Loaded " + (methods.size() - methodCount)  + " methods from JAR files.");
 	    
 	    
