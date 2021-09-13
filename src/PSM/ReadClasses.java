@@ -19,6 +19,7 @@ import java.*;
 import soot.*;
 import soot.jimple.AssignStmt;
 import soot.jimple.IdentityStmt;
+import soot.jimple.InstanceInvokeExpr;
 import soot.jimple.InvokeExpr;
 import soot.jimple.ParameterRef;
 import soot.jimple.ReturnStmt;
@@ -122,65 +123,63 @@ public class ReadClasses {
 	      public Type appliesInternal(Method method) {
 	        for (String className : testClasses) {
 	          SootClass sc = Scene.v().forceResolve(className, SootClass.BODIES);
-
-	            for (SootMethod sm : sc.getMethods()) {
-	            	//we are not interested in main function
-	            	if (!sm.getName().contains("main") && sm.isConcrete())
-	            	try {
-	            		//create a list of interested values
-	            	      Set<Value> paramVals = new HashSet<Value>();
-	            	      for (Unit u : sm.retrieveActiveBody().getUnits()) {
-	            	        if (((Stmt) u).containsInvokeExpr()) {
-	            	          InvokeExpr invokeExpr = ((Stmt) u).getInvokeExpr();
-	            	          Value leftOp = null;
-	            	          //find all basic source
-
-	            	          if ((invokeExpr.getMethod().getDeclaringClass().getName().contains("java.io") && !invokeExpr.getMethod().getName().contains("close") && !(invokeExpr.getMethod().getName().isEmpty()) &&
+	          
+	          for (SootMethod sm : sc.getMethods()) {
+	        	  if (!sm.getName().contains("main") && sm.isConcrete()) {
+	        		  for (Unit u : sm.retrieveActiveBody().getUnits()) {
+	        			  if (((Stmt) u).containsInvokeExpr()) {
+	        				  InvokeExpr invokeExpr = ((Stmt) u).getInvokeExpr();
+	        				  if ((invokeExpr.getMethod().getDeclaringClass().getName().contains("java.io") && !invokeExpr.getMethod().getName().contains("close") && !(invokeExpr.getMethod().getName().isEmpty()) &&
 	            	        		  !invokeExpr.getMethod().getName().contains("init")&& !invokeExpr.getMethod().getName().contains("print"))) {
 	            	        	  basicSource.add(invokeExpr.getMethod());
 	            	          }
-	            	          
-	            	          if (u instanceof AssignStmt) leftOp = ((AssignStmt) u).getLeftOp();
-	            	          if (leftOp != null) paramVals.add(leftOp);
-	            	          //search calls to values from basic source
-	            	          for (SootMethod m : basicSource){
-	            	        	  if (invokeExpr.getMethod().equals(m)) {
+	        			  }
+	        		  }
+	        	  }
+	          }
+	          
+	          for (SootMethod sm : sc.getMethods()) {
+	        	  try {
+	        		  Set<Value> paramVals = new HashSet<Value>();
+	        		  if (!sm.getName().contains("main") && sm.isConcrete()) {
+	        	      for (Unit u : sm.retrieveActiveBody().getUnits()) {
 
-		            	        	  paramVals.addAll(invokeExpr.getArgs());
-		            	        	  for (Unit u1 : invokeExpr.getMethod().retrieveActiveBody().getUnits()) {
-		            	        		  if (u1 instanceof IdentityStmt) {
-		            	        	          IdentityStmt id = (IdentityStmt) u1;
-		            	        	          if (id.getRightOp() instanceof ParameterRef) paramVals.add(id.getLeftOp());
-		            	        	          }
-		            	        	  }
-		            	          }
-	            	          }
-	            	          //find flows to print sink
-	            	          if (invokeExpr.getMethod().getName().toLowerCase().contains("print")) {
-	            	        	  for (Value arg : invokeExpr.getArgs())
-	            	        		  if (paramVals.contains(arg)) {
-	            	        			  //System.out.println("YES! Method name: "+sm.getName()+" to sink print");
-	            	        			  flow2Sink.add(sm);
-	            	        		  }
-	            	        	  }
-	            	          }
-	            	        //find flows to return stmt
-	            	        if (u instanceof ReturnStmt) {
-	            	        	ReturnStmt stmt = (ReturnStmt) u;
-	            	        	if (paramVals.contains(stmt.getOp())) {
-	            	        		//System.out.println("YES! Method name: "+sm.getName()+" to return");
-	            	        		flow2Return.add(sm);
-	            	        	}
-	            	        	}
-	            	        }
-	            	      throw new RuntimeException(
-	            	    		  "No return statement in method " + method.getSignature());
-	            	      } catch (Exception ex) {
-	            	      // System.err.println("Something went wrong:");
-	            	      // ex.printStackTrace();
-	            	    	  }
-	                  
-	                
+	        	          if (((Stmt) u).containsInvokeExpr()) {
+	        	            InvokeExpr invokeExpr = ((Stmt) u).getInvokeExpr();
+	        	            Value leftOp = null;
+	        	            if (u instanceof AssignStmt) leftOp = ((AssignStmt) u).getLeftOp();
+	        	            if (leftOp != null) paramVals.add(leftOp);
+	        	            if (basicSource.contains(invokeExpr.getMethod())) {
+	        	              paramVals.addAll(invokeExpr.getArgs());
+	        	            }
+	        	          }
+
+	        	          if (u instanceof AssignStmt) {
+	        	            Value leftOp = ((AssignStmt) u).getLeftOp();
+	        	            Value rightOp = ((AssignStmt) u).getRightOp();
+	        	            if (paramVals.contains(leftOp)) paramVals.remove(leftOp);
+	        	            if (paramVals.contains(rightOp)) {
+	        	              paramVals.add(leftOp);
+	        	            }
+	        	          }
+
+	        	          if (u instanceof ReturnStmt) {
+	        	            ReturnStmt stmt = (ReturnStmt) u;
+	        	            if (paramVals.contains(stmt.getOp())) flow2Return.add(sm);
+	        	          }
+	        	          
+	        	          if (((Stmt) u).containsInvokeExpr()) {
+	        	        	  InvokeExpr invokeExpr = ((Stmt) u).getInvokeExpr();
+	        	        	  if (invokeExpr.getMethod().getName().toLowerCase().contains("print")) {
+	        	        		  for (Value arg : invokeExpr.getArgs())
+	        	        			  if (paramVals.contains(arg)) flow2Sink.add(sm);
+	        	        	  }
+	        	          }
+	        	      }}
+	        	  } catch (Exception ex) {
+	        		  System.err.println("Something went wrong:");
+	        		  ex.printStackTrace();
+	        		  }
 	              
 	              String sig = sm.getSignature();
 	              sig = sig.substring(sig.indexOf(": ") + 2, sig.length());
