@@ -42,6 +42,7 @@ public class ReadClasses {
     public Set<SootMethod> basicSource = new HashSet<SootMethod>();
     public Set<SootMethod> flow2Return = new HashSet<SootMethod>();
     public Set<SootMethod> flow2Sink = new HashSet<SootMethod>();
+    public Set<SootClass> flow2Field = new HashSet<SootClass>();
 
     public ReadClasses(String testCp) {
       this.testCp = testCp;
@@ -123,13 +124,14 @@ public class ReadClasses {
 	      public Type appliesInternal(Method method) {
 	        for (String className : testClasses) {
 	          SootClass sc = Scene.v().forceResolve(className, SootClass.BODIES);
-	          
+	          //System.out.println(sc.getFieldByName("random"));
 	          for (SootMethod sm : sc.getMethods()) {
 	        	  if (!sm.getName().contains("main") && sm.isConcrete()) {
 	        		  for (Unit u : sm.retrieveActiveBody().getUnits()) {
 	        			  if (((Stmt) u).containsInvokeExpr()) {
 	        				  InvokeExpr invokeExpr = ((Stmt) u).getInvokeExpr();
-	        				  if ((invokeExpr.getMethod().getDeclaringClass().getName().contains("java.io") && !invokeExpr.getMethod().getName().contains("close") && !(invokeExpr.getMethod().getName().isEmpty()) &&
+	        				  if (((invokeExpr.getMethod().getDeclaringClass().getName().contains("java.io") || invokeExpr.getMethod().getDeclaringClass().getName().contains("java.util.Scanner")) 
+	        						  && !invokeExpr.getMethod().getName().contains("close") && !(invokeExpr.getMethod().getName().isEmpty()) &&
 	            	        		  !invokeExpr.getMethod().getName().contains("init")&& !invokeExpr.getMethod().getName().contains("print"))) {
 	            	        	  basicSource.add(invokeExpr.getMethod());
 	            	          }
@@ -153,13 +155,23 @@ public class ReadClasses {
 	        	              paramVals.addAll(invokeExpr.getArgs());
 	        	            }
 	        	          }
+	        	          
+	        	          
 
 	        	          if (u instanceof AssignStmt) {
+	        	        	  
 	        	            Value leftOp = ((AssignStmt) u).getLeftOp();
 	        	            Value rightOp = ((AssignStmt) u).getRightOp();
-	        	            if (paramVals.contains(leftOp)) paramVals.remove(leftOp);
-	        	            if (paramVals.contains(rightOp)) {
-	        	              paramVals.add(leftOp);
+	        	            
+	        	            if (!((AssignStmt) u).containsInvokeExpr()) {
+	        	            	if (paramVals.contains(leftOp)) paramVals.remove(leftOp);
+	        	            	if (paramVals.contains(rightOp)) {
+	        	            		paramVals.add(leftOp);
+	        	            		if ((((AssignStmt) u).containsFieldRef())) {
+	        	            			//System.out.println(" Flow to a field: "+((AssignStmt) u).getFieldRef());
+	        	            			flow2Field.add(sc);
+	        	            		}
+	        	            	}
 	        	            }
 	        	          }
 
@@ -175,6 +187,7 @@ public class ReadClasses {
 	        	        			  if (paramVals.contains(arg)) flow2Sink.add(sm);
 	        	        	  }
 	        	          }
+	        	          
 	        	      }}
 	        	  } catch (Exception ex) {
 	        		  System.err.println("Something went wrong:");
@@ -239,6 +252,14 @@ public class ReadClasses {
 	    	}
 	    	fsWriter.println("Finished.");
 	    	fsWriter.close();
+	    	
+	    	PrintWriter ffWriter = new PrintWriter("flow2Field.txt", "UTF-8");
+	    	for (SootClass c : flow2Field) {
+	    		ffWriter.println("Methods flow to a field in class: "+c);
+	    	}
+	    	ffWriter.println("Finished.");
+	    	ffWriter.close();
+	    	
 	      } catch (IOException e) {
 	        System.out.println("An error occurred.");
 	        e.printStackTrace();
