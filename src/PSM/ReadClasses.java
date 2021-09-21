@@ -40,6 +40,7 @@ public class ReadClasses {
     public Set<Method> methods = new HashSet<Method>();
     public String testCp;
     public Set<SootMethod> basicSource = new HashSet<SootMethod>();
+    public Set<SootMethod> basicSink = new HashSet<SootMethod>();
     public Set<SootMethod> flow2Return = new HashSet<SootMethod>();
     public Set<SootMethod> flow2Sink = new HashSet<SootMethod>();
     public Set<SootClass> flow2Field = new HashSet<SootClass>();
@@ -124,20 +125,59 @@ public class ReadClasses {
 	      public Type appliesInternal(Method method) {
 	        for (String className : testClasses) {
 	          SootClass sc = Scene.v().forceResolve(className, SootClass.BODIES);
-	          //System.out.println(sc.getFieldByName("random"));
 	          for (SootMethod sm : sc.getMethods()) {
 	        	  if (!sm.getName().contains("main") && sm.isConcrete()) {
 	        		  for (Unit u : sm.retrieveActiveBody().getUnits()) {
 	        			  if (((Stmt) u).containsInvokeExpr()) {
 	        				  InvokeExpr invokeExpr = ((Stmt) u).getInvokeExpr();
-	        				  if (((invokeExpr.getMethod().getDeclaringClass().getName().contains("java.io") || invokeExpr.getMethod().getDeclaringClass().getName().contains("java.util.Scanner")) 
-	        						  && !invokeExpr.getMethod().getName().contains("close") && !(invokeExpr.getMethod().getName().isEmpty()) &&
-	            	        		  !invokeExpr.getMethod().getName().contains("init")&& !invokeExpr.getMethod().getName().contains("print"))) {
+	        				  if (invokeExpr.getMethod().getDeclaringClass().getName().contains("java.io") 
+	        						  && (invokeExpr.getMethod().getDeclaringClass().getName().toLowerCase().contains("input") 
+	        						  || invokeExpr.getMethod().getDeclaringClass().getName().toLowerCase().contains("read")
+	        						  || invokeExpr.getMethod().getName().toLowerCase().contains("get")
+	        						  || invokeExpr.getMethod().getDeclaringClass().getName().toLowerCase().contains("file"))
+	        						  && !invokeExpr.getMethod().getName().contains("close")
+	        						  && !invokeExpr.getMethod().getName().isEmpty() 
+	        						  && !invokeExpr.getMethod().getName().contains("init") 
+	        						  && !invokeExpr.getMethod().getName().contains("print")) {
 	            	        	  basicSource.add(invokeExpr.getMethod());
 	            	          }
 	        			  }
 	        		  }
 	        	  }
+	          }
+	          
+	          for (SootMethod sm : sc.getMethods()) {
+	        	  if ((sm.getDeclaringClass().getName().toLowerCase().contains("java.io") && 
+	        			  (sm.getName().toLowerCase().contains("input") || sm.getName().toLowerCase().contains("read")
+	        					  ||sm.getName().toLowerCase().contains("get") || sm.getName().toLowerCase().contains("file"))
+	        			  ) && !sm.getName().toLowerCase().contains("print") && !sm.getName().isEmpty() && !sm.getName().contains("init") && !sm.getName().contains("close")
+	        			  )
+	        		  basicSource.add(sm);
+	          }
+	          
+	          for (SootMethod sm : sc.getMethods()) {
+	        	  if (!sm.getName().contains("main") && sm.isConcrete()) {
+	        		  for (Unit u : sm.retrieveActiveBody().getUnits()) {
+	        			  if (((Stmt) u).containsInvokeExpr()) {
+	        				  InvokeExpr invokeExpr = ((Stmt) u).getInvokeExpr();
+	        				  if (invokeExpr.getMethod().getDeclaringClass().getName().contains("java.io") 
+	        						  && (invokeExpr.getMethod().getName().toLowerCase().contains("output") 
+	        						  || invokeExpr.getMethod().getName().toLowerCase().contains("write"))
+	        						  || invokeExpr.getMethod().getName().contains("print")
+	        						  || invokeExpr.getMethod().getDeclaringClass().getName().contains("url")) {
+	        					  basicSink.add(invokeExpr.getMethod());
+	            	          }
+	        			  }
+	        		  }
+	        	  }
+	          }
+	          
+	          for (SootMethod sm : sc.getMethods()) {
+	        	  if ((sm.getDeclaringClass().getName().toLowerCase().contains("java.io") && 
+	        			  (sm.getName().toLowerCase().contains("output") || sm.getName().toLowerCase().contains("write"))
+	        			  ) || sm.getName().toLowerCase().contains("print") ||
+	        			  (sm.getDeclaringClass().getName().toLowerCase().contains("java.net.url")))
+	        		  basicSink.add(sm);
 	          }
 	          
 	          for (SootMethod sm : sc.getMethods()) {
@@ -177,12 +217,20 @@ public class ReadClasses {
 
 	        	          if (u instanceof ReturnStmt) {
 	        	            ReturnStmt stmt = (ReturnStmt) u;
-	        	            if (paramVals.contains(stmt.getOp())) flow2Return.add(sm);
+	        	            //if (paramVals.contains(stmt.getOp())) {
+	        	            if (paramVals.contains(stmt.getOp()) 
+	        	            		&& !stmt.getOp().getType().toString().toLowerCase().contains("bool") 
+	        	            		&& !stmt.getOp().getType().toString().toLowerCase().contains("int") 
+	        	            		&& !stmt.getOp().getType().toString().toLowerCase().contains("void")) {
+	        	            	//System.out.println(stmt.getOp().getType());
+	        	            	flow2Return.add(sm);
+	        	            }
 	        	          }
 	        	          
 	        	          if (((Stmt) u).containsInvokeExpr()) {
 	        	        	  InvokeExpr invokeExpr = ((Stmt) u).getInvokeExpr();
-	        	        	  if (invokeExpr.getMethod().getName().toLowerCase().contains("print")) {
+	        	        	  if (basicSink.contains(invokeExpr.getMethod())) {
+	        	        	  //if (invokeExpr.getMethod().getName().toLowerCase().contains("print")) {
 	        	        		  for (Value arg : invokeExpr.getArgs())
 	        	        			  if (paramVals.contains(arg)) flow2Sink.add(sm);
 	        	        	  }
@@ -232,12 +280,19 @@ public class ReadClasses {
 	    //System.out.println(distinctBasicSource);
 	    
 	    try {
-	    	PrintWriter bsWriter = new PrintWriter("basicsource.txt", "UTF-8");
+	    	PrintWriter bsWriter = new PrintWriter("basicSource.txt", "UTF-8");
 	    	for (SootMethod m : basicSource) {
 	    		bsWriter.println("Basic Source Methods: "+m);
 	    	}
 	    	bsWriter.println("Finished.");
 	    	bsWriter.close();
+	    	
+	    	PrintWriter bkWriter = new PrintWriter("basicSink.txt", "UTF-8");
+	    	for (SootMethod m : basicSink) {
+	    		bkWriter.println("Basic Sink Methods: "+m);
+	    	}
+	    	bkWriter.println("Finished.");
+	    	bkWriter.close();
 	    	
 	    	PrintWriter frWriter = new PrintWriter("flow2Return.txt", "UTF-8");
 	    	for (SootMethod m : flow2Return) {
@@ -248,7 +303,7 @@ public class ReadClasses {
 	    	
 	    	PrintWriter fsWriter = new PrintWriter("flow2Sink.txt", "UTF-8");
 	    	for (SootMethod m : flow2Sink) {
-	    		fsWriter.println("Methods flow to print sink: "+m);
+	    		fsWriter.println("Methods flow to a sink: "+m);
 	    	}
 	    	fsWriter.println("Finished.");
 	    	fsWriter.close();
@@ -265,11 +320,12 @@ public class ReadClasses {
 	        e.printStackTrace();
 	      }
 	    
-	    
-	    //System.out.println("Basic Source Methods: "+basicSource);
-	    //System.out.println("Methods flow to return : "+flow2Return);
-	    //System.out.println("Methods flow to print sink:  "+flow2Sink);
 	    System.out.println("Loaded " + (methods.size() - methodCount)  + " methods from JAR files.");
+	    System.out.println("Found " + basicSource.size() + " Basic Source Methods.");
+	    System.out.println("Found " + basicSink.size() + " Basic Sink Methods.");
+	    System.out.println("Found " + flow2Return.size() + " Methods flow to return.");
+	    System.out.println("Found " + flow2Sink.size() + " Methods flow to a sink.");
+	    System.out.println("Found " + flow2Field.size() + " Methods flow to a field in class.");
 	    
 	    
 	    
