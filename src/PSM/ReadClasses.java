@@ -36,6 +36,7 @@ import soot.jimple.infoflow.sourcesSinks.definitions.MethodSourceSinkDefinition;
 import soot.jimple.infoflow.sourcesSinks.manager.ISourceSinkManager;
 import soot.jimple.infoflow.sourcesSinks.manager.SinkInfo;
 import soot.jimple.infoflow.sourcesSinks.manager.SourceInfo;
+import soot.jimple.infoflow.problems.InfoflowProblem;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -127,18 +128,22 @@ public class ReadClasses {
 	}
 	
 	public void findFlow() {
-		String targetPath = System.getProperty("user.dir")+"/examples/test.jar";
-		String libPath = System.getProperty("user.dir")+"/examples/";
+		String targetPath = System.getProperty("user.dir")+"/examples/testing.jar";
+		String libPath = System.getProperty("user.dir")+"/lib/3rd.jar";
 
 		IInfoflow infoflow = new Infoflow();
 		Collection<String> epoints = new ArrayList<String>();
 		epoints.add("<toy.test: void main(java.lang.String[])>");
+		//epoints.add("<manipulation.basic: void <init>()>");
+		//epoints.add("<calculation.add: void <init>()>");
+		
+		
 		/*
 		Collection<String> source = new ArrayList<String>();
 		Collection<String> sink = new ArrayList<String>();
 		String entryPoints="<toy.test: void main(java.lang.String[])>";
 		source.add("<toy.test: int scan()>");
-		sink.add("<calculation.Inner: int val()>");*/
+		sink.add("<calculation.add: int db(int)>");*/
 		
 		DefaultEntryPointCreator entryPoints = new DefaultEntryPointCreator(epoints);
 
@@ -183,7 +188,7 @@ public class ReadClasses {
 
 		infoflow.computeInfoflow(targetPath, libPath, entryPoints, sourceSinkMgr);
 		//infoflow.computeInfoflow(targetPath, libPath, entryPoints, source, sink);
-		infoflow.getResults();
+		System.out.println(infoflow.getResults());
 		//infoflow.getCollectedSinks();
 		//infoflow.getCollectedSources();
 
@@ -207,7 +212,8 @@ public class ReadClasses {
 	        		  for (Unit u : sm.retrieveActiveBody().getUnits()) {
 	        			  if (((Stmt) u).containsInvokeExpr()) {
 	        				  InvokeExpr invokeExpr = ((Stmt) u).getInvokeExpr();
-	        				  if (invokeExpr.getMethod().getDeclaringClass().getName().contains("java.io") 
+	        				  if ((invokeExpr.getMethod().getDeclaringClass().getName().contains("java.io") ||
+	        						  invokeExpr.getMethod().getName().toLowerCase().contains("scann"))
 	        						  && (invokeExpr.getMethod().getDeclaringClass().getName().toLowerCase().contains("input") 
 	        						  || invokeExpr.getMethod().getDeclaringClass().getName().toLowerCase().contains("read")
 	        						  || invokeExpr.getMethod().getName().toLowerCase().contains("get")
@@ -224,10 +230,10 @@ public class ReadClasses {
 	          }
 	          
 	          for (SootMethod sm : sc.getMethods()) {
-	        	  if ((sm.getDeclaringClass().getName().toLowerCase().contains("java.io") && 
+	        	  if (((sm.getDeclaringClass().getName().toLowerCase().contains("java.io") && 
 	        			  (sm.getName().toLowerCase().contains("input") || sm.getName().toLowerCase().contains("read")
 	        					  ||sm.getName().toLowerCase().contains("get") || sm.getName().toLowerCase().contains("file"))
-	        			  ) && !sm.getName().toLowerCase().contains("print") && !sm.getName().isEmpty() && !sm.getName().contains("init") && !sm.getName().contains("close")
+	        			  ) || sm.getName().toLowerCase().contains("scann")) && !sm.getName().toLowerCase().contains("print") && !sm.getName().isEmpty() && !sm.getName().contains("init") && !sm.getName().contains("close")
 	        			  )
 	        		  basicSource.add(sm);
 	          }
