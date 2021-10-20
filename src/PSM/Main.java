@@ -18,7 +18,7 @@ public class Main {
     private ReadClasses classReader;
     public String testCp;
 	
-	public static void main(String[] args) throws IOException,InterruptedException {
+	public static void main(String[] args) throws Exception {
 		
 		try {/*
             if (args.length != 2) {
@@ -48,7 +48,7 @@ public class Main {
 		
 	}
 	
-	public void run(String sourceDir, String outputDir) throws IOException, InterruptedException {
+	public void run(String sourceDir, String outputDir) throws Exception {
 		// This helper object keeps track of created temporary directories and files to
         // to be deleted before exiting the
         // application.
@@ -66,7 +66,7 @@ public class Main {
     }
 	
 	private void internalRun(String sourceDir, String outputDir)
-            throws IOException, InterruptedException {
+            throws Exception {
 		Set<String> testClasses = ReadClasses.getAllClassesFromDirectory(jarDirectory);
 		String testCp = ReadClasses.buildCP(jarDirectory);
 		//System.out.print(jarDirectory + "\n");
@@ -81,8 +81,10 @@ public class Main {
 		// Cache the methods from the set.
         System.out.println("***** Loading java classes ***** \n");
 		classReader = new ReadClasses(testCp);
+		//classReader.fd();
+		//System.out.println("The end.");
 		classReader.loadTestSet(testClasses);
-		classReader.findFlow();
+		//classReader.findFlow();
 		//classReader.featureChecker();
 		
 	}

@@ -3,6 +3,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -120,7 +122,7 @@ public class ReadClasses {
 		File[] listOfFiles = folder.listFiles();
 		if (listOfFiles != null) {
 			for (int i = 0; i < listOfFiles.length; i++) {
-				if (listOfFiles[i].getName().endsWith(".jar"))
+				if (listOfFiles[i].getName().endsWith(".jar") || listOfFiles[i].getName().endsWith(".apk"))
 					classes.addAll(getAllClassesFromJar(listOfFiles[i].getAbsolutePath()));
 			}
 		}
@@ -128,12 +130,12 @@ public class ReadClasses {
 	}
 	
 	public void findFlow() {
-		String targetPath = System.getProperty("user.dir")+"/examples/testing.jar";
-		String libPath = System.getProperty("user.dir")+"/lib/3rd.jar";
+		String targetPath = System.getProperty("user.dir")+"/examples/nc-dex2jar.jar";
+		String libPath = System.getProperty("user.dir")+"/examples/nc-dex2jar.jar";
 
 		IInfoflow infoflow = new Infoflow();
 		Collection<String> epoints = new ArrayList<String>();
-		epoints.add("<toy.test: void main(java.lang.String[])>");
+		epoints.add("<com.fasterxml.jackson.core.io.IOContext: char[] allocNameCopyBuffer(int)>");
 		//epoints.add("<manipulation.basic: void <init>()>");
 		//epoints.add("<calculation.add: void <init>()>");
 		
@@ -153,7 +155,7 @@ public class ReadClasses {
 			public SourceInfo getSourceInfo(Stmt sCallSite, InfoflowManager manager) {
 				if (sCallSite.containsInvokeExpr()
 						&& sCallSite instanceof DefinitionStmt
-						&& sCallSite.getInvokeExpr().getMethod().getName().toLowerCase().equals("scan")) {
+						&& sCallSite.getInvokeExpr().getMethod().getName().toLowerCase().contains("buf")) {
 					AccessPath ap = manager.getAccessPathFactory().createAccessPath(
 							((DefinitionStmt) sCallSite).getLeftOp(), true);
 					return new SourceInfo(null, ap);
@@ -168,15 +170,15 @@ public class ReadClasses {
 
 				SootMethod target = sCallSite.getInvokeExpr().getMethod();
 				SinkInfo targetInfo = new SinkInfo((ISourceSinkDefinition) new MethodSourceSinkDefinition(new SootMethodAndClass(target)));
-
+/*
 				if ((target.getName().toLowerCase().contains("pt"))){ //|| target.getSignature().equals(sinkAP2)|| target.getSignature().equals(sink)) && sCallSite.getInvokeExpr().getArgCount() > 0) {
 					if (ap == null)
 						return targetInfo;
 					else if (ap.getPlainValue() == sCallSite.getInvokeExpr().getArg(0))
 						if (ap.isLocal() || ap.getTaintSubFields())
 							return targetInfo;
-				}
-				return null;
+				}*/
+				return targetInfo;
 			}
 
 			@Override
@@ -192,6 +194,49 @@ public class ReadClasses {
 		//infoflow.getCollectedSinks();
 		//infoflow.getCollectedSources();
 
+	}
+	
+	public void flowDroid() {
+		ProcessBuilder pb = new ProcessBuilder("java", "-jar", System.getProperty("user.dir")+"/lib/soot-infoflow-cmd-2.9.0-jar-with-dependencies.jar", 
+				"-a "+System.getProperty("user.dir")+"/examples/nc.apk",
+			    "-p "+System.getProperty("user.dir")+"/lib/android.jar",
+			    "-s "+System.getProperty("user.dir")+"test.txt");
+        pb.directory(new File(System.getProperty("user.dir")));
+        try {
+            Process p = pb.start();
+            InputStream in = p.getInputStream();
+            OutputStream out = p.getOutputStream();
+            InputStream err = p.getErrorStream();
+
+            byte b[]=new byte[in.available()];
+            in.read(b,0,b.length);
+            System.out.println(new String(b));
+
+            byte c[]=new byte[err.available()];
+            err.read(c,0,c.length);
+            System.out.println(new String(c));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+	}
+	
+	public void fd() throws Exception {
+		Process proc = Runtime.getRuntime().exec("java -jar "+System.getProperty("user.dir")+"/lib/soot-infoflow-cmd-2.9.0-jar-with-dependencies.jar "
+				+ "-a "+System.getProperty("user.dir")+"/examples/nc.apk "
+						+ "-p "+System.getProperty("user.dir")+"/lib/android.jar "
+								+ "-s "+System.getProperty("user.dir")+"/test.txt");
+	    proc.waitFor();
+	    // Then retreive the process output
+	    InputStream in = proc.getInputStream();
+	    InputStream err = proc.getErrorStream();
+
+	    byte b[]=new byte[in.available()];
+	    in.read(b,0,b.length);
+	    System.out.println(new String(b));
+
+	    byte c[]=new byte[err.available()];
+	    err.read(c,0,c.length);
+	    System.out.println(new String(c));
 	}
 	
 
@@ -246,10 +291,12 @@ public class ReadClasses {
 	        				  if (((invokeExpr.getMethod().getDeclaringClass().getName().contains("java.io") 
 	        						  && (invokeExpr.getMethod().getName().toLowerCase().contains("output") 
 	        						  || invokeExpr.getMethod().getName().toLowerCase().contains("write"))
-	        						  || invokeExpr.getMethod().getName().contains("print"))
+	        						  || invokeExpr.getMethod().getName().toLowerCase().contains("print")
+	        						  || invokeExpr.getMethod().getName().toLowerCase().contains("llll"))
 	        						  || invokeExpr.getMethod().getDeclaringClass().getName().contains("url"))
 	        						  && invokeExpr.getMethod().getParameterCount() > 0
-	        						  && !invokeExpr.getMethod().getReturnType().toString().toLowerCase().contains("void")
+	        						  && !invokeExpr.getMethod().getName().toLowerCase().contains("logo")
+	        						  //&& !invokeExpr.getMethod().getReturnType().toString().toLowerCase().contains("void")
 	        						  && !invokeExpr.getMethod().getReturnType().toString().toLowerCase().contains("bool")) {
 	        					  basicSink.add(invokeExpr.getMethod());
 	            	          }
@@ -261,11 +308,13 @@ public class ReadClasses {
 	          for (SootMethod sm : sc.getMethods()) {
 	        	  if (((sm.getDeclaringClass().getName().toLowerCase().contains("java.io") && 
 	        			  (sm.getName().toLowerCase().contains("output") || sm.getName().toLowerCase().contains("write"))
-	        			  || sm.getName().toLowerCase().contains("print")) ||
-	        			  (sm.getDeclaringClass().getName().toLowerCase().contains("java.net.url"))) 
+	        			  || sm.getName().toLowerCase().contains("print")
+	        			  || sm.getName().toLowerCase().contains("llll")) 
+	        			  ||(sm.getDeclaringClass().getName().toLowerCase().contains("url"))) 
 	        			  && sm.getParameterCount() > 0
-	        			  && sm.getReturnType().toString().toLowerCase().contains("void")
-	        			  && sm.getReturnType().toString().toLowerCase().contains("bool"))
+	        			  //&& sm.getReturnType().toString().toLowerCase().contains("void")
+	        			  && !sm.getName().toLowerCase().contains("logo")
+	        			  && !sm.getReturnType().toString().toLowerCase().contains("bool"))
 	        		  basicSink.add(sm);
 	          }
 	          
@@ -277,9 +326,9 @@ public class ReadClasses {
 
 	        	          if (((Stmt) u).containsInvokeExpr()) {
 	        	            InvokeExpr invokeExpr = ((Stmt) u).getInvokeExpr();
-	        	            Value leftOp = null;
-	        	            if (u instanceof AssignStmt) leftOp = ((AssignStmt) u).getLeftOp();
-	        	            if (leftOp != null) paramVals.add(leftOp);
+	        	            //Value leftOp = null;
+	        	            //if (u instanceof AssignStmt) leftOp = ((AssignStmt) u).getLeftOp();
+	        	            //if (leftOp != null) paramVals.add(leftOp);
 	        	            if (basicSource.contains(invokeExpr.getMethod())) {
 	        	              paramVals.addAll(invokeExpr.getArgs());
 	        	            }
@@ -350,7 +399,7 @@ public class ReadClasses {
 
 	              Method newMethod =
 	                  new Method(methodName, parameters, returnType, className);
-	              System.out.println(newMethod.getSignature());
+	              //System.out.println(newMethod.getSignature());
 	              methods.add(newMethod);
 	            //}
 	          }
@@ -373,46 +422,46 @@ public class ReadClasses {
 	    //System.out.println(distinctBasicSource);
 	    
 	    try {    	
-	    	PrintWriter bsWriter = new PrintWriter("basicSource.txt", "UTF-8");
+	    	PrintWriter bsWriter = new PrintWriter("BOM.txt", "UTF-8");
 	    	for (SootMethod m : basicSource) {
-	    		bsWriter.println("Basic Source Methods: "+m);
+	    		bsWriter.println(m+" -> _BOM_");
 	    	}
-	    	bsWriter.println("Finished.");
+	    	//bsWriter.println("Finished.");
 	    	bsWriter.close();
 	    	
-	    	PrintWriter bkWriter = new PrintWriter("basicSink.txt", "UTF-8");
+	    	PrintWriter bkWriter = new PrintWriter("BIM.txt", "UTF-8");
 	    	for (SootMethod m : basicSink) {
-	    		bkWriter.println("Basic Sink Methods: "+m);
+	    		bkWriter.println(m+" -> _SINK_");
 	    	}
-	    	bkWriter.println("Finished.");
+	    	//bkWriter.println("Finished.");
 	    	bkWriter.close();
 	    	
-	    	PrintWriter frWriter = new PrintWriter("flow2Return.txt", "UTF-8");
+	    	PrintWriter frWriter = new PrintWriter("F2R.txt", "UTF-8");
 	    	for (SootMethod m : flow2Return) {
-	    		frWriter.println("Methods flow to return: "+m);
+	    		frWriter.println(m+" -> _SOURCE_");
 	    	}
-	    	frWriter.println("Finished.");
+	    	//frWriter.println("Finished.");
 	    	frWriter.close();
 	    	
-	    	PrintWriter fsWriter = new PrintWriter("flow2Sink.txt", "UTF-8");
+	    	PrintWriter fsWriter = new PrintWriter("F2S.txt", "UTF-8");
 	    	for (SootMethod m : flow2Sink) {
-	    		fsWriter.println("Methods flow to a sink: "+m);
+	    		fsWriter.println(m+" -> _DEFECT_");
 	    	}
-	    	fsWriter.println("Finished.");
+	    	//fsWriter.println("Finished.");
 	    	fsWriter.close();
 	    	
-	    	PrintWriter ffWriter = new PrintWriter("flow2FieldC.txt", "UTF-8");
+	    	PrintWriter ffWriter = new PrintWriter("F2FC.txt", "UTF-8");
 	    	for (SootClass c : flow2FieldC) {
-	    		ffWriter.println("Methods flow to a field in class: "+c);
+	    		ffWriter.println(c+" -> _CLASS_");
 	    	}
-	    	ffWriter.println("Finished.");
+	    	//ffWriter.println("Finished.");
 	    	ffWriter.close();
 	    	
-	    	PrintWriter ffmWriter = new PrintWriter("flow2FieldM.txt", "UTF-8");
+	    	PrintWriter ffmWriter = new PrintWriter("F2FM.txt", "UTF-8");
 	    	for (SootMethod m : flow2FieldM) {
-	    		ffmWriter.println("Methods flow to a field in class: "+m);
+	    		ffmWriter.println(m+" -> _SOURCE_");
 	    	}
-	    	ffmWriter.println("Finished.");
+	    	//ffmWriter.println("Finished.");
 	    	ffmWriter.close();
 	    	
 	      } catch (IOException e) {
