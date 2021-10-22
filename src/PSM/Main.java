@@ -81,9 +81,9 @@ public class Main {
 		// Cache the methods from the set.
         System.out.println("***** Loading java classes ***** \n");
 		classReader = new ReadClasses(testCp);
-		//classReader.fd();
-		//System.out.println("The end.");
-		classReader.loadTestSet(testClasses);
+		classReader.fd();
+		System.out.println("The end.");
+		//classReader.loadTestSet(testClasses);
 		//classReader.findFlow();
 		//classReader.featureChecker();
 		

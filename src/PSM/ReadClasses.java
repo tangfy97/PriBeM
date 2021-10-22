@@ -39,9 +39,11 @@ import soot.jimple.infoflow.sourcesSinks.manager.ISourceSinkManager;
 import soot.jimple.infoflow.sourcesSinks.manager.SinkInfo;
 import soot.jimple.infoflow.sourcesSinks.manager.SourceInfo;
 import soot.jimple.infoflow.problems.InfoflowProblem;
+import soot.jimple.infoflow.android.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xmlpull.v1.XmlPullParserException;
 
 import PSM.Features.AbstractSootFeature;
 import PSM.Features.*;
@@ -52,6 +54,10 @@ public class ReadClasses {
 
     public static String sourceDirectory = System.getProperty("user.dir");
     public static String jarDirectory = System.getProperty("user.dir")+"/examples";
+    public static String androidDirPath = System.getProperty("user.dir")+"/lib/android.jar";
+    // these might change
+	public String apkFilePath = System.getProperty("user.dir")+"/examples/nc.apk";
+	public String sourceSinkFilePath = System.getProperty("user.dir")+"/SourcesAndSinks.txt";
     public Set<Method> methods = new HashSet<Method>();
     public String testCp;
     public Set<SootMethod> basicSource = new HashSet<SootMethod>();
@@ -196,48 +202,24 @@ public class ReadClasses {
 
 	}
 	
-	public void flowDroid() {
-		ProcessBuilder pb = new ProcessBuilder("java", "-jar", System.getProperty("user.dir")+"/lib/soot-infoflow-cmd-2.9.0-jar-with-dependencies.jar", 
-				"-a "+System.getProperty("user.dir")+"/examples/nc.apk",
-			    "-p "+System.getProperty("user.dir")+"/lib/android.jar",
-			    "-s "+System.getProperty("user.dir")+"test.txt");
-        pb.directory(new File(System.getProperty("user.dir")));
-        try {
-            Process p = pb.start();
-            InputStream in = p.getInputStream();
-            OutputStream out = p.getOutputStream();
-            InputStream err = p.getErrorStream();
-
-            byte b[]=new byte[in.available()];
-            in.read(b,0,b.length);
-            System.out.println(new String(b));
-
-            byte c[]=new byte[err.available()];
-            err.read(c,0,c.length);
-            System.out.println(new String(c));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+	public void fd() throws Exception, XmlPullParserException {
+		InfoflowAndroidConfiguration conf = new InfoflowAndroidConfiguration();
+		conf.getAnalysisFileConfig().setAndroidPlatformDir(androidDirPath);
+		conf.getAnalysisFileConfig().setTargetAPKFile(apkFilePath);
+		conf.getAnalysisFileConfig().setSourceSinkFile(sourceSinkFilePath);
+		// apk中的dex文件有对方法数量的限制导致实际app中往往是多dex，不作设置将仅分析classes.dex
+		conf.setMergeDexFiles(true);
+		// 设置AccessPath长度限制，默认为5，设置负数表示不作限制，AccessPath会在后文解释
+		conf.getAccessPathConfiguration().setAccessPathLength(-1);
+		// 设置Abstraction的path长度限制，设置负数表示不作限制，Abstraction会在后文解释
+		conf.getSolverConfiguration().setMaxAbstractionPathLength(-1);
+		SetupApplication setup = new SetupApplication(conf);
+		// 设置Callback的声明文件（不显式地设置好像FlowDroid会找不到）
+		setup.setCallbackFile("res/AndroidCallbacks.txt");
+		setup.runInfoflow();
 	}
 	
-	public void fd() throws Exception {
-		Process proc = Runtime.getRuntime().exec("java -jar "+System.getProperty("user.dir")+"/lib/soot-infoflow-cmd-2.9.0-jar-with-dependencies.jar "
-				+ "-a "+System.getProperty("user.dir")+"/examples/nc.apk "
-						+ "-p "+System.getProperty("user.dir")+"/lib/android.jar "
-								+ "-s "+System.getProperty("user.dir")+"/test.txt");
-	    proc.waitFor();
-	    // Then retreive the process output
-	    InputStream in = proc.getInputStream();
-	    InputStream err = proc.getErrorStream();
 
-	    byte b[]=new byte[in.available()];
-	    in.read(b,0,b.length);
-	    System.out.println(new String(b));
-
-	    byte c[]=new byte[err.available()];
-	    err.read(c,0,c.length);
-	    System.out.println(new String(c));
-	}
 	
 
 	
