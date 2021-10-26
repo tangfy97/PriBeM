@@ -1,6 +1,9 @@
 package PSM;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -55,6 +58,10 @@ public class ReadClasses {
     public static String sourceDirectory = System.getProperty("user.dir");
     public static String jarDirectory = System.getProperty("user.dir")+"/examples";
     public static String androidDirPath = System.getProperty("user.dir")+"/lib/android.jar";
+    public static String bomPath = System.getProperty("user.dir")+"/basic/BOM.txt";
+    public static String bimPath = System.getProperty("user.dir")+"/basic/BIM.txt";
+    public Set<String> BOM = new HashSet<String>();
+    public Set<String> BIM = new HashSet<String>();
     // these might change
 	public String apkFilePath = System.getProperty("user.dir")+"/examples/nc.apk";
 	public String sourceSinkFilePath = System.getProperty("user.dir")+"/SourcesAndSinks.txt";
@@ -74,7 +81,7 @@ public class ReadClasses {
         return methods;
     }
     
-    public void loadTestSet(final Set<String> testClasses) {
+    public void loadTestSet(final Set<String> testClasses) throws Exception {
     	    loadMethodsFromTestLib(testClasses);
     	    System.out.println("Methods extraction finished.");
     	  }
@@ -219,14 +226,38 @@ public class ReadClasses {
 		setup.runInfoflow();
 	}
 	
+	public Set<String> loadBOM() throws Exception {
+		BufferedReader bufReader = new BufferedReader(new FileReader(bomPath)); 
+		Set<String> BOM = new HashSet<String>(); 
+		String line = bufReader.readLine(); 
+		while (line != null) { 
+			BOM.add(line); 
+			line = bufReader.readLine(); 
+			}
+		bufReader.close();
+		return BOM;
+	}
+	
+	public Set<String> loadBIM() throws Exception {
+		BufferedReader bufReader = new BufferedReader(new FileReader(bimPath)); 
+		Set<String> BIM = new HashSet<String>(); 
+		String line = bufReader.readLine(); 
+		while (line != null) { 
+			BIM.add(line); 
+			line = bufReader.readLine(); 
+			} 
+		bufReader.close();
+		return BIM;
+	}
 
 	
 
 	
 	
-	private void loadMethodsFromTestLib(final Set<String> testClasses) {
+	private void loadMethodsFromTestLib(final Set<String> testClasses) throws Exception {
 	    int methodCount = methods.size();
-
+	    BOM = loadBOM();
+	    BIM = loadBIM();
 	    new AbstractSootFeature(testCp) {
 
 	      @Override
@@ -239,6 +270,11 @@ public class ReadClasses {
 	        		  for (Unit u : sm.retrieveActiveBody().getUnits()) {
 	        			  if (((Stmt) u).containsInvokeExpr()) {
 	        				  InvokeExpr invokeExpr = ((Stmt) u).getInvokeExpr();
+	        				  if ((BOM.contains(invokeExpr.getMethod().toString()))) {
+	        					 // basicSource.add(invokeExpr.getMethod());
+	        					  basicSource.add(sm);
+	        				  }
+	        					  /*
 	        				  if ((invokeExpr.getMethod().getDeclaringClass().getName().contains("java.io") ||
 	        						  invokeExpr.getMethod().getName().toLowerCase().contains("scann"))
 	        						  && (invokeExpr.getMethod().getDeclaringClass().getName().toLowerCase().contains("input") 
@@ -249,27 +285,38 @@ public class ReadClasses {
 	        						  && !invokeExpr.getMethod().getName().isEmpty() 
 	        						  && !invokeExpr.getMethod().getName().contains("init") 
 	        						  && !invokeExpr.getMethod().getName().contains("print")) {
-	            	        	  basicSource.add(invokeExpr.getMethod());
-	            	          }
+	            	        	  //basicSource.add(invokeExpr.getMethod());
+	        					  basicSource.add(sm);
+	            	          }*/
 	        			  }
 	        		  }
 	        	  }
 	          }
-	          
+	          /*
 	          for (SootMethod sm : sc.getMethods()) {
+	        	  if (BOM.contains(sm.toString())) {
+	        		  basicSource.add(sm);
+	        	  }
+	        	  
 	        	  if (((sm.getDeclaringClass().getName().toLowerCase().contains("java.io") && 
 	        			  (sm.getName().toLowerCase().contains("input") || sm.getName().toLowerCase().contains("read")
 	        					  ||sm.getName().toLowerCase().contains("get") || sm.getName().toLowerCase().contains("file"))
 	        			  ) || sm.getName().toLowerCase().contains("scann")) && !sm.getName().toLowerCase().contains("print") && !sm.getName().isEmpty() && !sm.getName().contains("init") && !sm.getName().contains("close")
 	        			  )
 	        		  basicSource.add(sm);
-	          }
+	        		  
+	          }*/
 	          
-	          for (SootMethod sm : sc.getMethods()) {
+	          for (SootMethod sm : sc.getMethods()) {        	  
 	        	  if (!sm.getName().contains("main") && sm.isConcrete()) {
 	        		  for (Unit u : sm.retrieveActiveBody().getUnits()) {
 	        			  if (((Stmt) u).containsInvokeExpr()) {
 	        				  InvokeExpr invokeExpr = ((Stmt) u).getInvokeExpr();
+	        				  if (BIM.contains(invokeExpr.getMethod().toString())) {
+	        					  //basicSink.add(invokeExpr.getMethod());
+	        					  basicSink.add(sm);
+	        				  }
+	        				  /*
 	        				  if (((invokeExpr.getMethod().getDeclaringClass().getName().contains("java.io") 
 	        						  && (invokeExpr.getMethod().getName().toLowerCase().contains("output") 
 	        						  || invokeExpr.getMethod().getName().toLowerCase().contains("write"))
@@ -281,13 +328,15 @@ public class ReadClasses {
 	        						  //&& !invokeExpr.getMethod().getReturnType().toString().toLowerCase().contains("void")
 	        						  && !invokeExpr.getMethod().getReturnType().toString().toLowerCase().contains("bool")) {
 	        					  basicSink.add(invokeExpr.getMethod());
-	            	          }
+	            	          }*/
 	        			  }
 	        		  }
 	        	  }
 	          }
-	          
+	          /*
 	          for (SootMethod sm : sc.getMethods()) {
+	        	  if (BIM.contains(sm.toString())) basicSink.add(sm);
+	        	  
 	        	  if (((sm.getDeclaringClass().getName().toLowerCase().contains("java.io") && 
 	        			  (sm.getName().toLowerCase().contains("output") || sm.getName().toLowerCase().contains("write"))
 	        			  || sm.getName().toLowerCase().contains("print")
@@ -298,7 +347,7 @@ public class ReadClasses {
 	        			  && !sm.getName().toLowerCase().contains("logo")
 	        			  && !sm.getReturnType().toString().toLowerCase().contains("bool"))
 	        		  basicSink.add(sm);
-	          }
+	          }*/
 	          
 	          for (SootMethod sm : sc.getMethods()) {
 	        	  try {
@@ -308,9 +357,9 @@ public class ReadClasses {
 
 	        	          if (((Stmt) u).containsInvokeExpr()) {
 	        	            InvokeExpr invokeExpr = ((Stmt) u).getInvokeExpr();
-	        	            //Value leftOp = null;
-	        	            //if (u instanceof AssignStmt) leftOp = ((AssignStmt) u).getLeftOp();
-	        	            //if (leftOp != null) paramVals.add(leftOp);
+	        	            Value leftOp = null;/*
+	        	            if (u instanceof AssignStmt) leftOp = ((AssignStmt) u).getLeftOp();
+	        	            if (leftOp != null) paramVals.add(leftOp);*/
 	        	            if (basicSource.contains(invokeExpr.getMethod())) {
 	        	              paramVals.addAll(invokeExpr.getArgs());
 	        	            }
@@ -445,6 +494,20 @@ public class ReadClasses {
 	    	}
 	    	//ffmWriter.println("Finished.");
 	    	ffmWriter.close();
+	    	
+	    	PrintWriter fdWriter = new PrintWriter("GFA.txt", "UTF-8");
+	    	for (SootMethod m : flow2FieldM) {
+	    		fdWriter.println(m+" -> _SOURCE_");
+	    	}
+	    	
+	    	for (SootMethod m : flow2Return) {
+	    		fdWriter.println(m+" -> _SOURCE_");
+	    	}
+	    	
+	    	for (SootMethod m : basicSink) {
+	    		fdWriter.println(m+" -> _SINK_");
+	    	}
+	    	fdWriter.close();
 	    	
 	      } catch (IOException e) {
 	        System.out.println("An error occurred.");
