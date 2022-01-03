@@ -1,5 +1,6 @@
 package PSM.Features;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -33,6 +34,13 @@ public abstract class AbstractSootFeature implements IFeature {
     Options.v().set_whole_program(true);
     Options.v().set_include_all(true);
     Options.v().set_soot_classpath(cp);
+    Options.v().setPhaseOption("cg.spark", "on");
+    Options.v().set_output_format(Options.output_format_none);
+    Options.v().set_no_bodies_for_excluded(true);
+    
+    Options.v().setPhaseOption("jb", "use-original-names:true");
+
+    Options.v().set_prepend_classpath(true);
 
     Scene.v().loadNecessaryClasses();
     SOOT_INITIALIZED = true;
@@ -95,7 +103,7 @@ public abstract class AbstractSootFeature implements IFeature {
     return false;
   }
 
-  public Type applies(Method method) {
+  public Type applies(Method method) throws Exception {
     if (this.resultCache.containsKey(method))
       return this.resultCache.get(method);
     else {
@@ -105,6 +113,6 @@ public abstract class AbstractSootFeature implements IFeature {
     }
   }
 
-  public abstract Type appliesInternal(Method method);
+  public abstract Type appliesInternal(Method method) throws Exception;
 
 }
