@@ -96,7 +96,7 @@ public class ReadClasses {
     public static String epPath = System.getProperty("user.dir")+"/onCreate.txt";
     public Collection<String> OC = new HashSet<String>();
     public Collection<String> EP = new HashSet<String>();
-    public Set<String> BOM = new HashSet<String>();
+    public static Set<String> BOM = new HashSet<String>();
     public Set<String> BIM = new HashSet<String>();
     // these might change
 	public String apkFilePath = System.getProperty("user.dir")+"/examples/nc.apk";
@@ -361,13 +361,13 @@ public class ReadClasses {
 	              protected Collection<? extends Query> generate(Edge cfgEdge) {
 	                Statement statement = cfgEdge.getStart();
 	                //if (statement.getMethod().getName().contains("read")
-	                //if (BOM.contains(statement.getMethod().toString())
-	                if (statement.getMethod().getDeclaringClass().toString().contains("java.io")
+	                if (BOM.contains(statement.getMethod().toString())
+	                //if (statement.getMethod().getDeclaringClass().toString().contains("java.io")
 	                	//&&!statement.getMethod().getName().contains("init")
 	                    //&& statement.getMethod().isConstructor()
 	                    && statement.isAssign()) {
 	                  //if (statement.getRightOp().isIntConstant()) {
-	                	System.out.println("****method****: "+statement.getMethod().toString());
+	                	System.out.println("****method****: "+statement.getMethod());
 	                	//basicSource.add(statement.getMethod().getName());
 	                    return Collections.singleton(
 	                        new ForwardQuery(
@@ -410,22 +410,6 @@ public class ReadClasses {
 	      }
 	    };
 	  }
-	
-	
-	  class Pair {
-		  
-		    // Pair attributes
-		    public SootMethod sootMethod;
-		    public Value value2;
-		  
-		    // Constructor to initialize pair
-		    public Pair(SootMethod sootMethod, Value value2)
-		    {
-		        // This keyword refers to current instance
-		        this.sootMethod = sootMethod;
-		        this.value2 = value2;
-		    }
-		}
 	
 	
 	private void loadMethodsFromTestLib(final Set<String> testClasses) throws Exception {
@@ -601,7 +585,18 @@ public class ReadClasses {
 	        			  && !sm.getName().toLowerCase().contains("logo")
 	        			  && !sm.getReturnType().toString().toLowerCase().contains("bool"))
 	        		  basicSink.add(sm);*/
-	          
+	          for (SootMethod sm : sc.getMethods()) {        	  
+	        	  if (!sm.getName().contains("main") && sm.isConcrete()) {
+	        		  for (Unit u : sm.retrieveActiveBody().getUnits()) {
+	        			  if (((Stmt) u).containsInvokeExpr()) {
+	        				  InvokeExpr invokeExpr = ((Stmt) u).getInvokeExpr();
+	        				  if (invokeExpr.getMethod().getName().contains("crypt") || invokeExpr.getMethod().getDeclaringClass().getName().contains("crypt")) {
+	        					  System.out.println("Encryption here: "+invokeExpr);
+	        				  }
+	        			  }
+	        		  }
+	        	  }
+	          }
 	          
 	          for (SootMethod sm : sc.getMethods()) {
 	        	  try {
@@ -634,7 +629,7 @@ public class ReadClasses {
 	        	            //if (!((AssignStmt) u).containsInvokeExpr()) {
 	        	            	if (paramVals.containsKey(leftOp)) paramVals.remove(leftOp);
 	        	            	if (paramVals.containsKey(rightOp)) {
-	        	            		paramVals.put(leftOp, ((AssignStmt) u).getInvokeExpr().getMethod());
+	        	            		paramVals.put(leftOp, sm);
 	        	            		if ((((AssignStmt) u).containsFieldRef())) {
 	        	            			System.out.println("Value: "+rightOp+ " from BOM: "+paramVals.get(rightOp)+"flows to a field: "+((AssignStmt) u).getFieldRef());
 	        	            			flow2FieldM.add(sm);
@@ -650,15 +645,16 @@ public class ReadClasses {
 	        	            ReturnStmt stmt = (ReturnStmt) u;
 	        	            //if (paramVals.contains(stmt.getOp())) {
 	        	            if (paramVals.containsKey(stmt.getOp()) 
-	        	            		//&& !stmt.getOp().getType().toString().toLowerCase().contains("bool") 
-	        	            		//&& !stmt.getOp().getType().toString().toLowerCase().contains("int") 
-	        	            		//&& !stmt.getOp().getType().toString().toLowerCase().contains("void")
+	        	            		&& !stmt.getOp().getType().toString().toLowerCase().contains("bool") 
+	        	            		&& !stmt.getOp().getType().toString().toLowerCase().contains("int") 
+	        	            		&& !stmt.getOp().getType().toString().toLowerCase().contains("void")
 	        	            		) {
-	        	            	//System.out.println(stmt.getOp().getType());
+	        	            	System.out.println("Value: "+stmt.getOp()+ " from BOM: "+paramVals.get(stmt.getOp())+"flows to a field: "+stmt.getOp().getType());
 	        	            	flow2Return.add(sm);
 	        	            }
 	        	          }
 	        	      }
+	        	      
 	        	      
 	        	      /*
 	        	      for (Unit u : sm.retrieveActiveBody().getUnits()) {
@@ -703,6 +699,7 @@ public class ReadClasses {
 	              methods.add(newMethod);
 	            //}
 	          }
+	          //analyze();
 	        }
 	        return Type.NOT_SUPPORTED;
 	      
