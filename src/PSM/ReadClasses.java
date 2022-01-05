@@ -90,7 +90,7 @@ public class ReadClasses {
     public static String jarDirectory = System.getProperty("user.dir")+"/examples";
     public static String androidDirPath = System.getProperty("user.dir")+"/lib/android.jar";
     //public static String bomPath = System.getProperty("user.dir")+"/basic/acc.txt";
-    public static String bomPath = System.getProperty("user.dir")+"/basic/BOM3.txt";
+    public static String bomPath = System.getProperty("user.dir")+"/basic/BOM33.txt";
     public static String bimPath = System.getProperty("user.dir")+"/basic/BIM3.txt";
     public static String ocPath = System.getProperty("user.dir")+"/entrypoints.txt";
     public static String epPath = System.getProperty("user.dir")+"/onCreate.txt";
@@ -441,6 +441,7 @@ public class ReadClasses {
 	        				  if (((AssignStmt) u).containsInvokeExpr()) {
 	        					  InvokeExpr invokeSource = ((AssignStmt) u).getInvokeExpr();
 	        				  		if ((BOM.contains(invokeSource.getMethod().toString()))) {
+	        					  //if(invokeSource.getMethod().getDeclaringClass().getName().contains("java.io")) {
 	        				  			methodBOM = invokeSource.getMethod();
 	        				  			basicSource.add(methodBOM);
 	        				  			value = ((AssignStmt) u).getLeftOp();	
@@ -460,8 +461,10 @@ public class ReadClasses {
 	  	        				  //if (valueSet.contains(ie.getArg(i)) && !ie.getMethod().getName().toString().toLowerCase().contains("valueof")) {
 	  	        				  if (map.containsKey(ie.getArg(i)) && !ie.getMethod().getName().toString().toLowerCase().contains("valueof")) {
 	  	        					  //System.out.println("Value: "+ie.getArg(i)+" from BOM gets processed here: "+ie);
-	  	        					  if(!(ie.getMethod().getReturnType() == ie.getArg(i).getType()) && !ie.getMethod().getReturnType().toString().contains("void")) {
+	  	        					if(!(ie.getMethod().getReturnType() == ie.getArg(i).getType()) && !ie.getMethod().getReturnType().toString().contains("void") && ie.getArg(i).getType().toString().toLowerCase().contains("string")) {
+	  	        					  //if(!(ie.getMethod().getReturnType() == ie.getArg(i).getType()) && !ie.getMethod().getReturnType().toString().contains("void")) {
 	  	        						  System.out.println("Value: "+ie.getArg(i)+ " from BOM: "+map.get(ie.getArg(i))+" type got changed here from "+ie.getArg(i).getType()+" to "+ie.getMethod().getReturnType());
+	  	        						  //System.out.println("Value: "+ie.getArg(i)+ " from BOM: "+map.get(ie.getArg(i))+" type got changed here from "+ie.getArg(i).getType()+" to "+ie.getMethod().getReturnType());
 	  	        					  }
 	  	        					  if(!(ie.getMethod().getReturnType() == ie.getArg(i).getType()) && ie.getMethod().getReturnType().toString().contains("void")) {
 	  	        						  //System.out.println("Value: "+ie.getArg(i)+" gets processed and no return.");
@@ -591,7 +594,7 @@ public class ReadClasses {
 	        			  if (((Stmt) u).containsInvokeExpr()) {
 	        				  InvokeExpr invokeExpr = ((Stmt) u).getInvokeExpr();
 	        				  if (invokeExpr.getMethod().getName().contains("crypt") || invokeExpr.getMethod().getDeclaringClass().getName().contains("crypt")) {
-	        					  System.out.println("Encryption here: "+invokeExpr);
+	        					  //System.out.println("Encryption here: "+invokeExpr);
 	        				  }
 	        			  }
 	        		  }
