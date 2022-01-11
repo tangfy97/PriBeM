@@ -41,7 +41,6 @@ public abstract class AbstractSootFeature implements IFeature {
     Options.v().setPhaseOption("jb", "use-original-names:true");
 
     Options.v().set_prepend_classpath(true);
-
     Scene.v().loadNecessaryClasses();
     SOOT_INITIALIZED = true;
   }

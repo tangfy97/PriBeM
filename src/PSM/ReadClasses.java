@@ -51,6 +51,7 @@ import soot.jimple.infoflow.sourcesSinks.manager.ISourceSinkManager;
 import soot.jimple.infoflow.sourcesSinks.manager.SinkInfo;
 import soot.jimple.infoflow.sourcesSinks.manager.SourceInfo;
 import soot.jimple.toolkits.callgraph.CallGraph;
+import soot.options.Options;
 //import soot.jimple.toolkits.callgraph.Edge;
 import soot.jimple.infoflow.problems.InfoflowProblem;
 import soot.jimple.infoflow.android.*;
@@ -99,8 +100,8 @@ public class ReadClasses {
     public static Set<String> BOM = new HashSet<String>();
     public Set<String> BIM = new HashSet<String>();
     // these might change
-	public String apkFilePath = System.getProperty("user.dir")+"/examples/nc.apk";
-	public String sourceSinkFilePath = System.getProperty("user.dir")+"/SourcesAndSinks.txt";
+	public String apkFilePath = System.getProperty("user.dir")+"/examples/vipps.apk";
+	public String sourceSinkFilePath = System.getProperty("user.dir")+"/sourcesandsinks.txt";
     public Set<Method> methods = new HashSet<Method>();
     public String testCp;
     public Set<SootMethod> basicSource = new HashSet<SootMethod>();
@@ -251,8 +252,23 @@ public class ReadClasses {
 	}
 	
 	public void fd() throws Exception, XmlPullParserException {
-		BOM = loadBOM();
-	    BIM = loadBIM();
+		Options.v().set_allow_phantom_refs(true);
+	    Options.v().set_prepend_classpath(true);
+	    Options.v().set_whole_program(true);
+	    Options.v().set_include_all(true);
+	    Options.v().set_soot_classpath(testCp);
+	    Options.v().setPhaseOption("cg.spark", "on");
+	    Options.v().set_output_format(Options.output_format_none);
+	    Options.v().set_no_bodies_for_excluded(true);
+	    
+	    Options.v().setPhaseOption("jb", "use-original-names:true");
+
+	    Options.v().set_prepend_classpath(true);
+	    //Scene.v().addBasicClass("android.app.IntentService",0);
+		
+		
+		
+		
 		InfoflowAndroidConfiguration conf = new InfoflowAndroidConfiguration();
 		conf.getAnalysisFileConfig().setAndroidPlatformDir(androidDirPath);
 		conf.getAnalysisFileConfig().setTargetAPKFile(apkFilePath);
@@ -264,15 +280,11 @@ public class ReadClasses {
 		conf.setIgnoreFlowsInSystemPackages(false); // Without this line the onCreate method doesn't have any entries
 		
 		
-		// apkä¸­çš„dexæ–‡ä»¶æœ‰å¯¹æ–¹æ³•æ•°é‡�çš„é™�åˆ¶å¯¼è‡´å®žé™…appä¸­å¾€å¾€æ˜¯å¤šdexï¼Œä¸�ä½œè®¾ç½®å°†ä»…åˆ†æž�classes.dex
 		conf.setMergeDexFiles(true);
-		// è®¾ç½®AccessPathé•¿åº¦é™�åˆ¶ï¼Œé»˜è®¤ä¸º5ï¼Œè®¾ç½®è´Ÿæ•°è¡¨ç¤ºä¸�ä½œé™�åˆ¶
 		conf.getAccessPathConfiguration().setAccessPathLength(-1);
-		// è®¾ç½®Abstractionçš„pathé•¿åº¦é™�åˆ¶ï¼Œè®¾ç½®è´Ÿæ•°è¡¨ç¤ºä¸�ä½œé™�åˆ¶
 		conf.getSolverConfiguration().setMaxAbstractionPathLength(-1);
 		SetupApplication setup = new SetupApplication(conf);
-		// è®¾ç½®Callbackçš„å£°æ˜Žæ–‡ä»¶ï¼ˆä¸�æ˜¾å¼�åœ°è®¾ç½®å¥½åƒ�FlowDroidä¼šæ‰¾ä¸�åˆ°ï¼‰
-		setup.setCallbackFile("res/AndroidCallbacks.txt");
+		setup.setCallbackFile("lib/AndroidCallbacks.txt");
 		
 		//setup.runInfoflow();
 		setup.constructCallgraph();
@@ -415,6 +427,7 @@ public class ReadClasses {
 	private void loadMethodsFromTestLib(final Set<String> testClasses) throws Exception {
 		Set<Value> valueSet = new HashSet<Value>();
 		Map<Value, SootMethod> map = new LinkedHashMap<Value, SootMethod>();
+		Map<Value, SootMethod> sinkMap = new LinkedHashMap<Value, SootMethod>();
 	    int methodCount = methods.size();
 	    BOM = loadBOM();
 	    BIM = loadBIM();
@@ -461,10 +474,15 @@ public class ReadClasses {
 	  	        				  //if (valueSet.contains(ie.getArg(i)) && !ie.getMethod().getName().toString().toLowerCase().contains("valueof")) {
 	  	        				  if (map.containsKey(ie.getArg(i)) && !ie.getMethod().getName().toString().toLowerCase().contains("valueof")) {
 	  	        					  //System.out.println("Value: "+ie.getArg(i)+" from BOM gets processed here: "+ie);
-	  	        					if(!(ie.getMethod().getReturnType() == ie.getArg(i).getType()) && !ie.getMethod().getReturnType().toString().contains("void") && ie.getArg(i).getType().toString().toLowerCase().contains("string")) {
+	  	        					if(!(ie.getMethod().getReturnType() == ie.getArg(i).getType()) 
+	  	        							&& !ie.getMethod().getReturnType().toString().contains("void") 
+	  	        							//&& ie.getArg(i).getType().toString().toLowerCase().contains("string")
+	  	        							&& !ie.getArg(i).toString().toLowerCase().contains("$")
+	  	        							&& !ie.getArg(i).toString().toLowerCase().contains("#")) {
+	  	        							//&& !ie.getMethod().getReturnType().toString().toLowerCase().contains("string")) {
 	  	        					  //if(!(ie.getMethod().getReturnType() == ie.getArg(i).getType()) && !ie.getMethod().getReturnType().toString().contains("void")) {
-	  	        						  System.out.println("Value: "+ie.getArg(i)+ " from BOM: "+map.get(ie.getArg(i))+" type got changed here from "+ie.getArg(i).getType()+" to "+ie.getMethod().getReturnType());
-	  	        						  //System.out.println("Value: "+ie.getArg(i)+ " from BOM: "+map.get(ie.getArg(i))+" type got changed here from "+ie.getArg(i).getType()+" to "+ie.getMethod().getReturnType());
+	  	        						  System.out.println("Type change: "+ie.getArg(i)+" "+map.get(ie.getArg(i))+" "+ie.getArg(i).getType()+" "+ie.getMethod().getReturnType());
+	  	        						  System.out.println(ie);
 	  	        					  }
 	  	        					  if(!(ie.getMethod().getReturnType() == ie.getArg(i).getType()) && ie.getMethod().getReturnType().toString().contains("void")) {
 	  	        						  //System.out.println("Value: "+ie.getArg(i)+" gets processed and no return.");
@@ -472,12 +490,17 @@ public class ReadClasses {
 	  	        				  }
 	  	        			  }
 	  	        		  }
+
 	  	        		  
 	  	        		  if (u0 instanceof AssignStmt) {
 	  	        			  Value leftVal = ((AssignStmt) u0).getLeftOp();
 	  	        			  Value rightVal = ((AssignStmt) u0).getRightOp();
-	  	        			  if (valueSet.contains(leftVal)) {
-	  	        				  //System.out.println("Value: "+leftVal+" from BOM gets re-assigned here: "+u0);
+	  	        			  //if (map.containsKey(leftVal)) map.remove(leftVal);
+	  	        			  if (map.containsKey(rightVal)) {
+	  	        				  map.put(leftVal, m);
+	  	        				  if ((((AssignStmt) u0).containsFieldRef())) {
+	  	        					  System.out.println("Value: "+rightVal+ " from BOM: "+map.get(rightVal)+"flows to a field: "+((AssignStmt) u0).getFieldRef());
+	  	        				  }
 	  	        			  }
 	  	        		  }
 	  	        	  }
@@ -545,20 +568,51 @@ public class ReadClasses {
 	        			  )
 	        		  basicSource.add(sm);*/
 	          
-	          /*
+	          
 	          for (SootMethod sm : sc.getMethods()) {        	  
-	        	  if (!sm.getName().contains("main") && sm.isConcrete()) {
+	        	  if (sm.isConcrete()) {
 	        		  for (Unit u : sm.retrieveActiveBody().getUnits()) {
 	        			  if (((Stmt) u).containsInvokeExpr()) {
 	        				  InvokeExpr invokeExpr = ((Stmt) u).getInvokeExpr();
-	        				  if (BIM.contains(invokeExpr.getMethod().toString())) {
+	        				  if (invokeExpr.getMethod().toString().toLowerCase().contains("sql")
+	        						  || invokeExpr.getMethod().getDeclaringClass().toString().toLowerCase().contains("sql")
+	        						  || invokeExpr.getMethod().toString().toLowerCase().contains("query")
+	        						  //|| invokeExpr.getMethod().toString().toLowerCase().contains("db")
+	        						  || invokeExpr.getMethod().toString().toLowerCase().contains("database")
+	        						  || invokeExpr.getMethod().toString().toLowerCase().contains("storage")
+	        						  //|| invokeExpr.getMethod().toString().toLowerCase().contains("store")
+	        						  || invokeExpr.getMethod().getDeclaringClass().toString().toLowerCase().contains("query")) {
+	        					  sinkMap.put(invokeExpr.getArg(0), invokeExpr.getMethod());
 	        					  basicSink.add(invokeExpr.getMethod());
 	        					  basicSink.add(sm);
 	        				  }
 	        			  }
 	        		  }
 	        	  }
-	          }*/
+	          }
+	          
+	          for (SootMethod sm : sc.getMethods()) {        	  
+	        	  if (sm.isConcrete()) {
+	        		  for (Unit u1 : sm.retrieveActiveBody().getUnits()) {
+	        			  if (u1 instanceof AssignStmt) {
+	        				  if (sinkMap.containsKey(((AssignStmt) u1).getLeftOp())) {
+	        					  //System.out.println("Value from sink: "+sinkMap.get(((AssignStmt) u1).getLeftOp())+" was assigned here: "+u1);
+	        					  //if (((AssignStmt) u1).getLeftOp()).getType() =! )
+	        					  //System.out.println("Value: "+ie.getArg(i)+ " from BOM: "+map.get(ie.getArg(i))+" type got changed here from "+ie.getArg(i).getType()+" to "+ie.getMethod().getReturnType());
+	        				  }
+	        				  
+	        			  }
+	        			  if (((Stmt) u1).containsInvokeExpr()) {
+	        				  InvokeExpr call = ((Stmt) u1).getInvokeExpr();
+	  	        			  for (int i = 0; i < call.getArgCount(); i++) {
+	  	        				  if (sinkMap.containsKey(call.getArg(i)) && !call.getMethod().getName().toString().toLowerCase().contains("valueof")) {
+	  	        					  //System.out.println("Value: "+call.getArg(i)+" from sink: "+sinkMap.get(call.getArg(i))+ " got processed here: "+call);
+	  	        				  }
+	  	        			  }
+	        			  }
+	        		  }
+	        	  }
+	          }
 	        				  /*
 	        				  if (((invokeExpr.getMethod().getDeclaringClass().getName().contains("java.io") 
 	        						  && (invokeExpr.getMethod().getName().toLowerCase().contains("output") 
@@ -634,9 +688,9 @@ public class ReadClasses {
 	        	            	if (paramVals.containsKey(rightOp)) {
 	        	            		paramVals.put(leftOp, sm);
 	        	            		if ((((AssignStmt) u).containsFieldRef())) {
-	        	            			System.out.println("Value: "+rightOp+ " from BOM: "+paramVals.get(rightOp)+"flows to a field: "+((AssignStmt) u).getFieldRef());
-	        	            			flow2FieldM.add(sm);
-	        	            			flow2FieldC.add(sc);
+	        	            			//System.out.println("Value: "+rightOp+ " from BOM: "+paramVals.get(rightOp)+"flows to a field: "+((AssignStmt) u).getFieldRef());
+	        	            			//flow2FieldM.add(sm);
+	        	            			//flow2FieldC.add(sc);
 	        	            		}
 	        	            	}
 	        	          }
@@ -652,7 +706,7 @@ public class ReadClasses {
 	        	            		&& !stmt.getOp().getType().toString().toLowerCase().contains("int") 
 	        	            		&& !stmt.getOp().getType().toString().toLowerCase().contains("void")
 	        	            		) {
-	        	            	System.out.println("Value: "+stmt.getOp()+ " from BOM: "+paramVals.get(stmt.getOp())+"flows to a field: "+stmt.getOp().getType());
+	        	            	//System.out.println("Value: "+stmt.getOp()+ " from BOM: "+paramVals.get(stmt.getOp())+"flows to a field: "+stmt.getOp().getType());
 	        	            	flow2Return.add(sm);
 	        	            }
 	        	          }
@@ -724,18 +778,18 @@ public class ReadClasses {
 	    
 	    try {    	
 	    	
-	    	PrintWriter bsWriter = new PrintWriter("BOM.txt", "UTF-8");
+	    	PrintWriter bsWriter = new PrintWriter("source.txt", "UTF-8");
 	    	for (SootMethod m : basicSource) {
-	    		//bsWriter.println(m+" -> _SOURCE_");
-	    		bsWriter.println(m);
+	    		bsWriter.println(m+" -> _SOURCE_");
+	    		//bsWriter.println(m);
 	    	}
 	    	//bsWriter.println("Finished.");
 	    	bsWriter.close();
 	    	
-	    	PrintWriter bkWriter = new PrintWriter("BIM.txt", "UTF-8");
+	    	PrintWriter bkWriter = new PrintWriter("sink.txt", "UTF-8");
 	    	for (SootMethod m : basicSink) {
-	    		//bkWriter.println(m+" -> _SINK_");
-	    		bkWriter.println(m);
+	    		bkWriter.println(m+" -> _SINK_");
+	    		//bkWriter.println(m);
 	    	}
 	    	//bkWriter.println("Finished.");
 	    	bkWriter.close();
