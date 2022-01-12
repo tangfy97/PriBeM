@@ -100,7 +100,7 @@ public class ReadClasses {
     public static Set<String> BOM = new HashSet<String>();
     public Set<String> BIM = new HashSet<String>();
     // these might change
-	public String apkFilePath = System.getProperty("user.dir")+"/examples/vipps.apk";
+	public String apkFilePath = System.getProperty("user.dir")+"/examples/kik.apk";
 	public String sourceSinkFilePath = System.getProperty("user.dir")+"/sourcesandsinks.txt";
     public Set<Method> methods = new HashSet<Method>();
     public String testCp;
@@ -284,11 +284,11 @@ public class ReadClasses {
 		conf.getAccessPathConfiguration().setAccessPathLength(-1);
 		conf.getSolverConfiguration().setMaxAbstractionPathLength(-1);
 		SetupApplication setup = new SetupApplication(conf);
-		setup.setCallbackFile("lib/AndroidCallbacks.txt");
+		setup.setCallbackFile("res/AndroidCallbacks.txt");
 		
-		//setup.runInfoflow();
-		setup.constructCallgraph();
-		setup.printEntrypoints();
+		setup.runInfoflow();
+		//setup.constructCallgraph();
+		//setup.printEntrypoints();
 		/*
 		for (SootMethod x : setup.getDummyMainMethod().getDeclaringClass().getMethods())
             entrypoints.add(x);
@@ -472,7 +472,7 @@ public class ReadClasses {
 	  	        			  for (int i = 0; i < ie.getArgCount(); i++) {
 	  	        				  //the function cannot be valueOf and the type must change
 	  	        				  //if (valueSet.contains(ie.getArg(i)) && !ie.getMethod().getName().toString().toLowerCase().contains("valueof")) {
-	  	        				  if (map.containsKey(ie.getArg(i)) && !ie.getMethod().getName().toString().toLowerCase().contains("valueof")) {
+	  	        				  if (map.containsKey(ie.getArg(i)) && !ie.getMethod().getName().toString().toLowerCase().contains("valueof") && !ie.getMethod().getName().toString().toLowerCase().contains("init")) {
 	  	        					  //System.out.println("Value: "+ie.getArg(i)+" from BOM gets processed here: "+ie);
 	  	        					if(!(ie.getMethod().getReturnType() == ie.getArg(i).getType()) 
 	  	        							&& !ie.getMethod().getReturnType().toString().contains("void") 
@@ -499,7 +499,7 @@ public class ReadClasses {
 	  	        			  if (map.containsKey(rightVal)) {
 	  	        				  map.put(leftVal, m);
 	  	        				  if ((((AssignStmt) u0).containsFieldRef())) {
-	  	        					  System.out.println("Value: "+rightVal+ " from BOM: "+map.get(rightVal)+"flows to a field: "+((AssignStmt) u0).getFieldRef());
+	  	        					  //System.out.println("Value: "+rightVal+ " from BOM: "+map.get(rightVal)+"flows to a field: "+((AssignStmt) u0).getFieldRef());
 	  	        				  }
 	  	        			  }
 	  	        		  }
@@ -574,14 +574,17 @@ public class ReadClasses {
 	        		  for (Unit u : sm.retrieveActiveBody().getUnits()) {
 	        			  if (((Stmt) u).containsInvokeExpr()) {
 	        				  InvokeExpr invokeExpr = ((Stmt) u).getInvokeExpr();
+	        				  /*
 	        				  if (invokeExpr.getMethod().toString().toLowerCase().contains("sql")
+	        						  && !invokeExpr.getMethod().toString().contains("init")
 	        						  || invokeExpr.getMethod().getDeclaringClass().toString().toLowerCase().contains("sql")
 	        						  || invokeExpr.getMethod().toString().toLowerCase().contains("query")
 	        						  //|| invokeExpr.getMethod().toString().toLowerCase().contains("db")
 	        						  || invokeExpr.getMethod().toString().toLowerCase().contains("database")
-	        						  || invokeExpr.getMethod().toString().toLowerCase().contains("storage")
+	        						  //|| invokeExpr.getMethod().toString().toLowerCase().contains("storage")
 	        						  //|| invokeExpr.getMethod().toString().toLowerCase().contains("store")
-	        						  || invokeExpr.getMethod().getDeclaringClass().toString().toLowerCase().contains("query")) {
+	        						  || invokeExpr.getMethod().getDeclaringClass().toString().toLowerCase().contains("query")) {*/
+	        				  if (BIM.contains(invokeExpr.getMethod().getName().toString())) {
 	        					  sinkMap.put(invokeExpr.getArg(0), invokeExpr.getMethod());
 	        					  basicSink.add(invokeExpr.getMethod());
 	        					  basicSink.add(sm);
