@@ -473,7 +473,8 @@ public class ReadClasses {
 	  	        				  //the function cannot be valueOf and the type must change
 	  	        				  //if (valueSet.contains(ie.getArg(i)) && !ie.getMethod().getName().toString().toLowerCase().contains("valueof")) {
 	  	        				  if (map.containsKey(ie.getArg(i)) && !ie.getMethod().getName().toString().toLowerCase().contains("valueof") && !ie.getMethod().getName().toString().toLowerCase().contains("init")) {
-	  	        					  //System.out.println("Value: "+ie.getArg(i)+" from BOM gets processed here: "+ie);
+	  	        					  System.out.println("Value: "+ie.getArg(i)+" from BOM gets processed here: "+ie+" from: ");
+	  	        					  System.out.println(map.get(ie.getArg(i)));
 	  	        					if(!(ie.getMethod().getReturnType() == ie.getArg(i).getType()) 
 	  	        							&& !ie.getMethod().getReturnType().toString().contains("void") 
 	  	        							//&& ie.getArg(i).getType().toString().toLowerCase().contains("string")
@@ -481,8 +482,8 @@ public class ReadClasses {
 	  	        							&& !ie.getArg(i).toString().toLowerCase().contains("#")) {
 	  	        							//&& !ie.getMethod().getReturnType().toString().toLowerCase().contains("string")) {
 	  	        					  //if(!(ie.getMethod().getReturnType() == ie.getArg(i).getType()) && !ie.getMethod().getReturnType().toString().contains("void")) {
-	  	        						  System.out.println("Type change: "+ie.getArg(i)+" "+map.get(ie.getArg(i))+" "+ie.getArg(i).getType()+" "+ie.getMethod().getReturnType());
-	  	        						  System.out.println(ie);
+	  	        						  //System.out.println("Type change: "+ie.getArg(i)+" "+map.get(ie.getArg(i))+" "+ie.getArg(i).getType()+" "+ie.getMethod().getReturnType());
+	  	        						  //System.out.println(ie);
 	  	        					  }
 	  	        					  if(!(ie.getMethod().getReturnType() == ie.getArg(i).getType()) && ie.getMethod().getReturnType().toString().contains("void")) {
 	  	        						  //System.out.println("Value: "+ie.getArg(i)+" gets processed and no return.");
