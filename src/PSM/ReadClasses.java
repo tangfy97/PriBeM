@@ -446,6 +446,7 @@ public class ReadClasses {
 	          //analyze();
 	          
 	          for (SootMethod m : sc.getMethods()) {
+	        	  //if (m.getName().contains("Main")) System.out.println(sc);
 	  	        if (m.isConcrete()) {
 	  	        	for (Unit u : m.retrieveActiveBody().getUnits()) {
 	        			  Value value = null;
@@ -467,23 +468,30 @@ public class ReadClasses {
 	        			  }
 	        		  }
 	  	        	for (Unit u0 : m.retrieveActiveBody().getUnits()) {
+	  	        		
+	  	        		
 	  	        		  if (((Stmt) u0).containsInvokeExpr()) {
 	  	        			  InvokeExpr ie = ((Stmt) u0).getInvokeExpr();
 	  	        			  for (int i = 0; i < ie.getArgCount(); i++) {
 	  	        				  //the function cannot be valueOf and the type must change
 	  	        				  //if (valueSet.contains(ie.getArg(i)) && !ie.getMethod().getName().toString().toLowerCase().contains("valueof")) {
 	  	        				  if (map.containsKey(ie.getArg(i)) && !ie.getMethod().getName().toString().toLowerCase().contains("valueof") && !ie.getMethod().getName().toString().toLowerCase().contains("init")) {
-	  	        					  System.out.println("Value: "+ie.getArg(i)+" from BOM gets processed here: "+ie+" from: ");
-	  	        					  System.out.println(map.get(ie.getArg(i)));
+	  	        					  //System.out.println("Value: "+ie.getArg(i)+" from BOM gets processed here: "+ie+" from: ");
+	  	        					  //System.out.println(map.get(ie.getArg(i)));
 	  	        					if(!(ie.getMethod().getReturnType() == ie.getArg(i).getType()) 
 	  	        							&& !ie.getMethod().getReturnType().toString().contains("void") 
-	  	        							//&& ie.getArg(i).getType().toString().toLowerCase().contains("string")
+	  	        							&& (ie.getArg(i).getType().toString().toLowerCase().contains("string")
+	  	        									|| ie.getArg(i).getType().toString().toLowerCase().contains("list")
+	  	        									|| ie.getArg(i).getType().toString().toLowerCase().contains("array")
+	  	        									|| ie.getArg(i).getType().toString().toLowerCase().contains("buffer")
+	  	        									|| ie.getArg(i).getType().toString().toLowerCase().contains("byte"))
 	  	        							&& !ie.getArg(i).toString().toLowerCase().contains("$")
+	  	        							&& !ie.getArg(i).getType().toString().toLowerCase().contains("exception")
 	  	        							&& !ie.getArg(i).toString().toLowerCase().contains("#")) {
 	  	        							//&& !ie.getMethod().getReturnType().toString().toLowerCase().contains("string")) {
 	  	        					  //if(!(ie.getMethod().getReturnType() == ie.getArg(i).getType()) && !ie.getMethod().getReturnType().toString().contains("void")) {
-	  	        						  //System.out.println("Type change: "+ie.getArg(i)+" "+map.get(ie.getArg(i))+" "+ie.getArg(i).getType()+" "+ie.getMethod().getReturnType());
-	  	        						  //System.out.println(ie);
+	  	        						  System.out.println("Type change: "+ie.getArg(i)+" "+map.get(ie.getArg(i))+" "+ie.getArg(i).getType()+" "+ie.getMethod().getReturnType());
+	  	        						  System.out.println(ie);
 	  	        					  }
 	  	        					  if(!(ie.getMethod().getReturnType() == ie.getArg(i).getType()) && ie.getMethod().getReturnType().toString().contains("void")) {
 	  	        						  //System.out.println("Value: "+ie.getArg(i)+" gets processed and no return.");
@@ -594,6 +602,7 @@ public class ReadClasses {
 	        		  }
 	        	  }
 	          }
+	
 	          
 	          for (SootMethod sm : sc.getMethods()) {        	  
 	        	  if (sm.isConcrete()) {
@@ -617,20 +626,7 @@ public class ReadClasses {
 	        		  }
 	        	  }
 	          }
-	        				  /*
-	        				  if (((invokeExpr.getMethod().getDeclaringClass().getName().contains("java.io") 
-	        						  && (invokeExpr.getMethod().getName().toLowerCase().contains("output") 
-	        						  || invokeExpr.getMethod().getName().toLowerCase().contains("write"))
-	        						  || invokeExpr.getMethod().getName().toLowerCase().contains("print")
-	        						  || invokeExpr.getMethod().getName().toLowerCase().contains("llll"))
-	        						  || invokeExpr.getMethod().getDeclaringClass().getName().contains("url"))
-	        						  && invokeExpr.getMethod().getParameterCount() > 0
-	        						  && !invokeExpr.getMethod().getName().toLowerCase().contains("logo")
-	        						  //&& !invokeExpr.getMethod().getReturnType().toString().toLowerCase().contains("void")
-	        						  && !invokeExpr.getMethod().getReturnType().toString().toLowerCase().contains("bool")) {
-	        					  //basicSink.add(invokeExpr.getMethod());
-	        					  basicSink.add(sm);
-	            	          }*/
+
 	          /*
 	          for (SootMethod sm : sc.getMethods()) {
 	        	  if (BIM.contains(sm.toString())) basicSink.add(sm);
@@ -645,7 +641,7 @@ public class ReadClasses {
 	        			  //&& sm.getReturnType().toString().toLowerCase().contains("void")
 	        			  && !sm.getName().toLowerCase().contains("logo")
 	        			  && !sm.getReturnType().toString().toLowerCase().contains("bool"))
-	        		  basicSink.add(sm);*/
+	        		  basicSink.add(sm);
 	          for (SootMethod sm : sc.getMethods()) {        	  
 	        	  if (!sm.getName().contains("main") && sm.isConcrete()) {
 	        		  for (Unit u : sm.retrieveActiveBody().getUnits()) {
@@ -657,7 +653,8 @@ public class ReadClasses {
 	        			  }
 	        		  }
 	        	  }
-	          }
+	          }*/
+	          
 	          
 	          for (SootMethod sm : sc.getMethods()) {
 	        	  try {
@@ -797,7 +794,7 @@ public class ReadClasses {
 	    	}
 	    	//bkWriter.println("Finished.");
 	    	bkWriter.close();
-	    	
+	    	/*
 	    	PrintWriter frWriter = new PrintWriter("F2R.txt", "UTF-8");
 	    	for (SootMethod m : flow2Return) {
 	    		frWriter.println(m+" -> _SOURCE_");
@@ -843,7 +840,7 @@ public class ReadClasses {
 	    		fdWriter.println(m4+" -> _SOURCE_");
 	    	}
 	    	fdWriter.close();
-	    	
+	    	*/
 	      } catch (IOException e) {
 	        System.out.println("An error occurred.");
 	        e.printStackTrace();
