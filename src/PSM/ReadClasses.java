@@ -52,6 +52,7 @@ import soot.jimple.infoflow.sourcesSinks.manager.SinkInfo;
 import soot.jimple.infoflow.sourcesSinks.manager.SourceInfo;
 import soot.jimple.toolkits.callgraph.CallGraph;
 import soot.options.Options;
+import soot.tagkit.LineNumberTag;
 //import soot.jimple.toolkits.callgraph.Edge;
 import soot.jimple.infoflow.problems.InfoflowProblem;
 import soot.jimple.infoflow.android.*;
@@ -448,6 +449,7 @@ public class ReadClasses {
 	          for (SootMethod m : sc.getMethods()) {
 	        	  //if (m.getName().contains("Main")) System.out.println(sc);
 	  	        if (m.isConcrete()) {
+	  	        	
 	  	        	for (Unit u : m.retrieveActiveBody().getUnits()) {
 	        			  Value value = null;
 	        			  SootMethod methodBOM = null;
@@ -487,11 +489,11 @@ public class ReadClasses {
 	  	        									|| ie.getArg(i).getType().toString().toLowerCase().contains("byte"))
 	  	        							&& !ie.getArg(i).toString().toLowerCase().contains("$")
 	  	        							&& !ie.getArg(i).getType().toString().toLowerCase().contains("exception")
+	  	        							&& !ie.getMethod().getReturnType().toString().toLowerCase().contains("exception")
 	  	        							&& !ie.getArg(i).toString().toLowerCase().contains("#")) {
 	  	        							//&& !ie.getMethod().getReturnType().toString().toLowerCase().contains("string")) {
 	  	        					  //if(!(ie.getMethod().getReturnType() == ie.getArg(i).getType()) && !ie.getMethod().getReturnType().toString().contains("void")) {
-	  	        						  System.out.println("Type change: "+ie.getArg(i)+" "+map.get(ie.getArg(i))+" "+ie.getArg(i).getType()+" "+ie.getMethod().getReturnType());
-	  	        						  System.out.println(ie);
+	  	        						  System.out.println(ie.getArg(i)+" "+map.get(ie.getArg(i))+" "+ie+" "+ie.getArg(i).getType()+" "+ie.getMethod().getReturnType());
 	  	        					  }
 	  	        					  if(!(ie.getMethod().getReturnType() == ie.getArg(i).getType()) && ie.getMethod().getReturnType().toString().contains("void")) {
 	  	        						  //System.out.println("Value: "+ie.getArg(i)+" gets processed and no return.");
@@ -583,7 +585,7 @@ public class ReadClasses {
 	        		  for (Unit u : sm.retrieveActiveBody().getUnits()) {
 	        			  if (((Stmt) u).containsInvokeExpr()) {
 	        				  InvokeExpr invokeExpr = ((Stmt) u).getInvokeExpr();
-	        				  /*
+	        				  
 	        				  if (invokeExpr.getMethod().toString().toLowerCase().contains("sql")
 	        						  && !invokeExpr.getMethod().toString().contains("init")
 	        						  || invokeExpr.getMethod().getDeclaringClass().toString().toLowerCase().contains("sql")
@@ -592,10 +594,15 @@ public class ReadClasses {
 	        						  || invokeExpr.getMethod().toString().toLowerCase().contains("database")
 	        						  //|| invokeExpr.getMethod().toString().toLowerCase().contains("storage")
 	        						  //|| invokeExpr.getMethod().toString().toLowerCase().contains("store")
-	        						  || invokeExpr.getMethod().getDeclaringClass().toString().toLowerCase().contains("query")) {*/
-	        				  if (BIM.contains(invokeExpr.getMethod().getName().toString())) {
+	        						  || invokeExpr.getMethod().getDeclaringClass().toString().toLowerCase().contains("query")) {
+	        				  //if (BIM.contains(invokeExpr.getMethod().getName().toString())) {
 	        					  sinkMap.put(invokeExpr.getArg(0), invokeExpr.getMethod());
 	        					  basicSink.add(invokeExpr.getMethod());
+	        					  if (u.hasTag("LineNumberTag")) {
+	        						  LineNumberTag tag = (LineNumberTag)u.getTag(("LineNumberTag"));
+	        						  //System.out.println("Line: "+tag.getLineNumber());
+	        					  }
+	        					  //System.out.println("Class: "+sc+" Method: "+sm);
 	        					  basicSink.add(sm);
 	        				  }
 	        			  }
