@@ -51,6 +51,7 @@ import soot.jimple.infoflow.sourcesSinks.manager.ISourceSinkManager;
 import soot.jimple.infoflow.sourcesSinks.manager.SinkInfo;
 import soot.jimple.infoflow.sourcesSinks.manager.SourceInfo;
 import soot.jimple.toolkits.callgraph.CallGraph;
+import soot.jimple.toolkits.callgraph.Sources;
 import soot.options.Options;
 import soot.tagkit.LineNumberTag;
 //import soot.jimple.toolkits.callgraph.Edge;
@@ -187,31 +188,33 @@ public class ReadClasses {
 	public void findFlow() throws Exception {
 		BOM = loadBOM();
 	    BIM = loadBIM();
-		String targetPath = System.getProperty("user.dir")+"/examples/nc-dex2jar.jar";
+	    String targetPath = System.getProperty("user.dir")+"/examples/acts_0.jar";
 		String libPath = System.getProperty("user.dir")+"/lib/android.jar";
 
 		IInfoflow infoflow = new Infoflow();
-		Collection<String> epoints = EP;
-		//Collection<String> epoints = new ArrayList<String>();
-		//epoints.add("<com.fasterxml.jackson.core.io.IOContext: char[] allocNameCopyBuffer(int)>");
+		//Collection<String> epoints = EP;
+		Collection<String> epoints = new ArrayList<String>();
+		epoints.add("<edu.uta.cse.fireeye.console.ActsConsoleManager: void main(java.lang.String[])>");
 		
 		//take a look with all source that has passed into thoughtcrime but not coming from thoughtcrime
 		//then take a look with these sources, mark them as sinks, how many of them actually have values that come from BOM
 		
 		DefaultEntryPointCreator entryPoints = new DefaultEntryPointCreator(epoints);
+		
+		System.out.println("global: ");
 
 		ISourceSinkManager sourceSinkMgr = new ISourceSinkManager() {
 
 			@Override
 			public SourceInfo getSourceInfo(Stmt sCallSite, InfoflowManager manager) {
 				if (sCallSite.containsInvokeExpr()
-						//&& sCallSite instanceof DefinitionStmt){
+						//&& sCallSite instanceof AssignStmt){
 						//&& sCallSite.getInvokeExpr().getMethod().getDeclaringClass().getName().toLowerCase().contains("edittext")){
 						//&& sCallSite instanceof DefinitionStmt && !sCallSite.getInvokeExpr().getMethod().getDeclaringClass().getName().toLowerCase().contains("securesms")) {
-						&& sCallSite instanceof DefinitionStmt && sCallSite.getInvokeExpr().getMethod().getDeclaringClass().getName().toLowerCase().contains("edittext")) {
-						//&& sCallSite instanceof DefinitionStmt && sCallSite.getInvokeExpr().getMethod().getName().toLowerCase().contains("get")) {
+						//&& sCallSite instanceof AssignStmt && sCallSite.getInvokeExpr().getMethod().getDeclaringClass().getName().toLowerCase().contains("java.io")) {
+						&& sCallSite instanceof AssignStmt && BOM.contains(sCallSite.getInvokeExpr().getMethod().toString())) {
 					AccessPath ap = manager.getAccessPathFactory().createAccessPath(
-							((DefinitionStmt) sCallSite).getLeftOp(), true);
+							((AssignStmt) sCallSite).getLeftOp(), true);
 					return new SourceInfo(null, ap);
 				}
 				return null;
@@ -225,13 +228,17 @@ public class ReadClasses {
 
 				SootMethod target = sCallSite.getInvokeExpr().getMethod();
 				SinkInfo targetInfo = new SinkInfo((ISourceSinkDefinition) new MethodSourceSinkDefinition(new SootMethodAndClass(target)));
+				
 
-				if ((target.getDeclaringClass().getName().toLowerCase().contains("thoughtcrime"))){ //|| target.getSignature().equals(sinkAP2)|| target.getSignature().equals(sink)) && sCallSite.getInvokeExpr().getArgCount() > 0) {
-					if (ap == null)
-						return targetInfo;
-					else if (ap.getPlainValue() == sCallSite.getInvokeExpr().getArg(0))
-						if (ap.isLocal() || ap.getTaintSubFields())
+				if ((target.getName().toLowerCase().contains("print"))){//|| target.getSignature().equals(sinkAP2)|| target.getSignature().equals(sink)) && sCallSite.getInvokeExpr().getArgCount() > 0) {
+					/*
+					if (ap == null) return null;
+					else if (ap.getPlainValue() == sCallSite.getInvokeExpr().getArg(0)) {
+						if (ap.isLocal() || ap.getTaintSubFields()) {
 							return targetInfo;
+						}
+						return targetInfo;
+					}*/
 					return targetInfo;
 				}
 				return targetInfo;
@@ -247,8 +254,8 @@ public class ReadClasses {
 		infoflow.computeInfoflow(targetPath, libPath, entryPoints, sourceSinkMgr);
 		//infoflow.computeInfoflow(targetPath, libPath, entryPoints, source, sink);
 		infoflow.getResults();
-		//infoflow.getCollectedSinks();
-		//infoflow.getCollectedSources();
+		infoflow.getCollectedSinks();
+		infoflow.getCollectedSources();
 
 	}
 	
@@ -423,7 +430,14 @@ public class ReadClasses {
 	      }
 	    };
 	  }
-	
+	  public void printPossibleCallers(SootMethod target) {
+    	  CallGraph cg = Scene.v().getCallGraph();
+    	  Sources sources = new Sources(cg.edgesInto(target));
+    	  while (sources.hasNext()) {
+    		  SootMethod src = (SootMethod)sources.next();
+    		  System.out.println(target + " might be called by " + src);
+    		  }
+    	  }
 	
 	private void loadMethodsFromTestLib(final Set<String> testClasses) throws Exception {
 		Set<Value> valueSet = new HashSet<Value>();
@@ -438,6 +452,7 @@ public class ReadClasses {
 	      @Override
 	      public Type appliesInternal(Method method) throws Exception {
 	    	  System.out.println("Local flow analysis: ");
+	    	  
 	    	  setup();
 	        for (String className : testClasses) {
 	          SootClass sc = Scene.v().forceResolve(className, SootClass.BODIES);
@@ -446,8 +461,11 @@ public class ReadClasses {
 	          //setup();
 	          //analyze();
 	          
+	          
+
+	          
 	          for (SootMethod m : sc.getMethods()) {
-	        	  //if (m.getName().contains("Main")) System.out.println(sc);
+	        	  if (m.getName().contains("main")&& m.getDeclaringClass().getName().contains("console")) System.out.println(m);
 	  	        if (m.isConcrete()) {
 	  	        	
 	  	        	for (Unit u : m.retrieveActiveBody().getUnits()) {
@@ -493,7 +511,7 @@ public class ReadClasses {
 	  	        							&& !ie.getArg(i).toString().toLowerCase().contains("#")) {
 	  	        							//&& !ie.getMethod().getReturnType().toString().toLowerCase().contains("string")) {
 	  	        					  //if(!(ie.getMethod().getReturnType() == ie.getArg(i).getType()) && !ie.getMethod().getReturnType().toString().contains("void")) {
-	  	        						  System.out.println(ie.getArg(i)+" "+map.get(ie.getArg(i))+" "+ie+" "+ie.getArg(i).getType()+" "+ie.getMethod().getReturnType());
+	  	        						  //System.out.println(ie.getArg(i)+" "+map.get(ie.getArg(i))+" "+ie+" "+ie.getArg(i).getType()+" "+ie.getMethod().getReturnType());
 	  	        					  }
 	  	        					  if(!(ie.getMethod().getReturnType() == ie.getArg(i).getType()) && ie.getMethod().getReturnType().toString().contains("void")) {
 	  	        						  //System.out.println("Value: "+ie.getArg(i)+" gets processed and no return.");
@@ -586,15 +604,16 @@ public class ReadClasses {
 	        			  if (((Stmt) u).containsInvokeExpr()) {
 	        				  InvokeExpr invokeExpr = ((Stmt) u).getInvokeExpr();
 	        				  
-	        				  if (invokeExpr.getMethod().toString().toLowerCase().contains("sql")
-	        						  && !invokeExpr.getMethod().toString().contains("init")
+	        				  if ((invokeExpr.getMethod().toString().toLowerCase().contains("sql")
 	        						  || invokeExpr.getMethod().getDeclaringClass().toString().toLowerCase().contains("sql")
 	        						  || invokeExpr.getMethod().toString().toLowerCase().contains("query")
 	        						  //|| invokeExpr.getMethod().toString().toLowerCase().contains("db")
 	        						  || invokeExpr.getMethod().toString().toLowerCase().contains("database")
 	        						  //|| invokeExpr.getMethod().toString().toLowerCase().contains("storage")
 	        						  //|| invokeExpr.getMethod().toString().toLowerCase().contains("store")
-	        						  || invokeExpr.getMethod().getDeclaringClass().toString().toLowerCase().contains("query")) {
+	        						  || invokeExpr.getMethod().getDeclaringClass().toString().toLowerCase().contains("query"))
+	        						  && !invokeExpr.getMethod().toString().toLowerCase().contains("init")
+	        						  && !invokeExpr.getMethod().toString().toLowerCase().contains("exception")) {
 	        				  //if (BIM.contains(invokeExpr.getMethod().getName().toString())) {
 	        					  sinkMap.put(invokeExpr.getArg(0), invokeExpr.getMethod());
 	        					  basicSink.add(invokeExpr.getMethod());
@@ -616,6 +635,7 @@ public class ReadClasses {
 	        		  for (Unit u1 : sm.retrieveActiveBody().getUnits()) {
 	        			  if (u1 instanceof AssignStmt) {
 	        				  if (sinkMap.containsKey(((AssignStmt) u1).getLeftOp())) {
+	        					  //System.out.println(((AssignStmt) u1).getLeftOp()+" "+sinkMap.get(((AssignStmt) u1).getLeftOp())+" "+u1);
 	        					  //System.out.println("Value from sink: "+sinkMap.get(((AssignStmt) u1).getLeftOp())+" was assigned here: "+u1);
 	        					  //if (((AssignStmt) u1).getLeftOp()).getType() =! )
 	        					  //System.out.println("Value: "+ie.getArg(i)+ " from BOM: "+map.get(ie.getArg(i))+" type got changed here from "+ie.getArg(i).getType()+" to "+ie.getMethod().getReturnType());
