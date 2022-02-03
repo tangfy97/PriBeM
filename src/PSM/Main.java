@@ -82,10 +82,10 @@ public class Main {
         System.out.println("***** Loading java classes ***** \n");
 		classReader = new ReadClasses(testCp);
 		//classReader.readMethod(testClasses);
-		classReader.loadTestSet(testClasses);
+		//classReader.loadTestSet(testClasses);
 		//classReader.fd();
 		//System.out.println("JARs are loaded.");
-		//classReader.findFlow();
+		classReader.findFlow();
 		System.out.println("done");
 		//classReader.featureChecker();
 		

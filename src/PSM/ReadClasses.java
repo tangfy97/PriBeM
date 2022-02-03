@@ -42,22 +42,27 @@ import soot.util.Chain;
 import wpds.impl.Weight;
 import wpds.impl.Weight.NoWeight;
 import soot.jimple.infoflow.*;
+import soot.jimple.infoflow.InfoflowConfiguration.AliasingAlgorithm;
+import soot.jimple.infoflow.InfoflowConfiguration.ImplicitFlowMode;
 import soot.jimple.infoflow.data.AccessPath;
 import soot.jimple.infoflow.data.SootMethodAndClass;
 import soot.jimple.infoflow.entryPointCreators.DefaultEntryPointCreator;
+import soot.jimple.infoflow.methodSummary.data.provider.LazySummaryProvider;
+import soot.jimple.infoflow.methodSummary.taintWrappers.SummaryTaintWrapper;
 import soot.jimple.infoflow.sourcesSinks.definitions.ISourceSinkDefinition;
 import soot.jimple.infoflow.sourcesSinks.definitions.MethodSourceSinkDefinition;
 import soot.jimple.infoflow.sourcesSinks.manager.ISourceSinkManager;
 import soot.jimple.infoflow.sourcesSinks.manager.SinkInfo;
 import soot.jimple.infoflow.sourcesSinks.manager.SourceInfo;
+import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
 import soot.jimple.toolkits.callgraph.CallGraph;
 import soot.jimple.toolkits.callgraph.Sources;
 import soot.options.Options;
 import soot.tagkit.LineNumberTag;
 //import soot.jimple.toolkits.callgraph.Edge;
 import soot.jimple.infoflow.problems.InfoflowProblem;
-import soot.jimple.infoflow.android.*;
-import soot.jimple.infoflow.android.entryPointCreators.*;
+//import soot.jimple.infoflow.android.*;
+//import soot.jimple.infoflow.android.entryPointCreators.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,6 +113,7 @@ public class ReadClasses {
     public String testCp;
     public Set<SootMethod> basicSource = new HashSet<SootMethod>();
     public Set<SootMethod> basicSink = new HashSet<SootMethod>();
+    public Set<SootMethod> basicSinkAll = new HashSet<SootMethod>();
     public Set<SootMethod> flow2Return = new HashSet<SootMethod>();
     public Set<SootMethod> flow2Sink = new HashSet<SootMethod>();
     public Set<SootMethod> flow2FieldM = new HashSet<SootMethod>();
@@ -188,13 +194,16 @@ public class ReadClasses {
 	public void findFlow() throws Exception {
 		BOM = loadBOM();
 	    BIM = loadBIM();
-	    String targetPath = System.getProperty("user.dir")+"/examples/acts_0.jar";
-		String libPath = System.getProperty("user.dir")+"/lib/android.jar";
+	    String targetPath = System.getProperty("user.dir")+"/examples/dummySQL.jar";
+		String libPath = System.getProperty("user.dir")+"/lib/mysql-connector-java-8.0.28.jar";
+		
+		//Options.v().
 
 		IInfoflow infoflow = new Infoflow();
+		infoflow.setTaintWrapper(new SummaryTaintWrapper(new LazySummaryProvider("summariesManual")));
 		//Collection<String> epoints = EP;
 		Collection<String> epoints = new ArrayList<String>();
-		epoints.add("<edu.uta.cse.fireeye.console.ActsConsoleManager: void main(java.lang.String[])>");
+		epoints.add("<databaseReader.FirstExample: void main(java.lang.String[])>");
 		
 		//take a look with all source that has passed into thoughtcrime but not coming from thoughtcrime
 		//then take a look with these sources, mark them as sinks, how many of them actually have values that come from BOM
@@ -207,19 +216,20 @@ public class ReadClasses {
 
 			@Override
 			public SourceInfo getSourceInfo(Stmt sCallSite, InfoflowManager manager) {
-				if (sCallSite.containsInvokeExpr()
+				if (sCallSite.containsInvokeExpr() //&& sCallSite.getInvokeExpr().getArgCount() > 0
 						//&& sCallSite instanceof AssignStmt){
-						//&& sCallSite.getInvokeExpr().getMethod().getDeclaringClass().getName().toLowerCase().contains("edittext")){
+						//&& sCallSite instanceof DefinitionStmt){
+						//&& sCallSite.getInvokeExpr().getMethod().getName().contains("Query")){
 						//&& sCallSite instanceof DefinitionStmt && !sCallSite.getInvokeExpr().getMethod().getDeclaringClass().getName().toLowerCase().contains("securesms")) {
-						//&& sCallSite instanceof AssignStmt && sCallSite.getInvokeExpr().getMethod().getDeclaringClass().getName().toLowerCase().contains("java.io")) {
-						&& sCallSite instanceof AssignStmt && BOM.contains(sCallSite.getInvokeExpr().getMethod().toString())) {
-					AccessPath ap = manager.getAccessPathFactory().createAccessPath(
-							((AssignStmt) sCallSite).getLeftOp(), true);
+						&& sCallSite instanceof AssignStmt && sCallSite.getInvokeExpr().getMethod().getName().contains("Query")) {
+						//&& sCallSite instanceof AssignStmt && BOM.contains(sCallSite.getInvokeExpr().getMethod().toString())) {
+					//AccessPath ap = manager.getAccessPathFactory().createAccessPath(((DefinitionStmt) sCallSite).getLeftOp(), true);
+					AccessPath ap = manager.getAccessPathFactory().createAccessPath(((AssignStmt) sCallSite).getLeftOp(), true);
+					//AccessPath ap = manager.getAccessPathFactory().createAccessPath(sCallSite.getInvokeExpr().getArg(0), true);
 					return new SourceInfo(null, ap);
 				}
 				return null;
 			}
-			//&& BOM.contains(sCallSite.getInvokeExpr().getMethod().getName())){
 
 			@Override
 			public SinkInfo getSinkInfo(Stmt sCallSite, InfoflowManager manager, AccessPath ap) {
@@ -230,7 +240,7 @@ public class ReadClasses {
 				SinkInfo targetInfo = new SinkInfo((ISourceSinkDefinition) new MethodSourceSinkDefinition(new SootMethodAndClass(target)));
 				
 
-				if ((target.getName().toLowerCase().contains("print"))){//|| target.getSignature().equals(sinkAP2)|| target.getSignature().equals(sink)) && sCallSite.getInvokeExpr().getArgCount() > 0) {
+				if ((target.toString().toLowerCase().contains("print"))){//|| target.getSignature().equals(sinkAP2)|| target.getSignature().equals(sink)) && sCallSite.getInvokeExpr().getArgCount() > 0) {
 					/*
 					if (ap == null) return null;
 					else if (ap.getPlainValue() == sCallSite.getInvokeExpr().getArg(0)) {
@@ -241,7 +251,7 @@ public class ReadClasses {
 					}*/
 					return targetInfo;
 				}
-				return targetInfo;
+				return null;
 			}
 
 			@Override
@@ -254,11 +264,12 @@ public class ReadClasses {
 		infoflow.computeInfoflow(targetPath, libPath, entryPoints, sourceSinkMgr);
 		//infoflow.computeInfoflow(targetPath, libPath, entryPoints, source, sink);
 		infoflow.getResults();
+		infoflow.getConfig();
 		infoflow.getCollectedSinks();
 		infoflow.getCollectedSources();
 
 	}
-	
+	/*
 	public void fd() throws Exception, XmlPullParserException {
 		Options.v().set_allow_phantom_refs(true);
 	    Options.v().set_prepend_classpath(true);
@@ -295,42 +306,8 @@ public class ReadClasses {
 		setup.setCallbackFile("res/AndroidCallbacks.txt");
 		
 		setup.runInfoflow();
-		//setup.constructCallgraph();
-		//setup.printEntrypoints();
-		/*
-		for (SootMethod x : setup.getDummyMainMethod().getDeclaringClass().getMethods())
-            entrypoints.add(x);
-		
-		PrintWriter ocWriter = new PrintWriter("entrypoints.txt", "UTF-8");
-    	for (SootMethod m : entrypoints) {
-    		//bsWriter.println(m+" -> _SOURCE_");
-    		ocWriter.println(m);
-    	}
-    	//bsWriter.println("Finished.");
-    	ocWriter.close();*/
-		
-		/*
-		CallGraph callGraph = Scene.v().getCallGraph();
-		  Chain<SootClass> classes = Scene.v().getClasses();
-		  for (SootClass cls : classes)
-		  {
-		    if (!cls.getName().startsWith("com.android.insecurebank"))
-		      continue;
-		    System.out.println(String.format("Class %s:", cls.getName()));
-		    for (SootMethod sootMethod : cls.getMethods())
-		    {
-		      System.out.println(String.format("\tMethod %s, Phantom: %b", sootMethod.getName(), sootMethod.isPhantom()));
-		      for (Edge e : iteratorToIterable(callGraph.edgesInto(sootMethod)))
-		      {
-		        System.out.println(String.format("\t\tCall graph call from: %s:%s", e.src().getDeclaringClass().getName(), e.src().getName()));
-		      }
-		      for (Edge e : iteratorToIterable(callGraph.edgesOutOf(sootMethod)))
-		      {
-		        System.out.println(String.format("\t\tCall graph call to: %s:%s", e.tgt().getDeclaringClass().getName(), e.tgt().getName()));
-		      }
-		    }
-		  }*/
-	}
+
+	}*/
 	
 	public Set<String> loadBOM() throws Exception {
 		BufferedReader bufReader = new BufferedReader(new FileReader(bomPath)); 
@@ -463,7 +440,7 @@ public class ReadClasses {
 	          
 	          
 
-	          
+	          /*
 	          for (SootMethod m : sc.getMethods()) {
 	        	  if (m.getName().contains("main")&& m.getDeclaringClass().getName().contains("console")) System.out.println(m);
 	  	        if (m.isConcrete()) {
@@ -536,70 +513,25 @@ public class ReadClasses {
 	  	        	
 	  	        	//analyze();
 	  	        }
-	  	      }
-	          /*
-	          for (SootMethod sm : sc.getMethods()) {
-	        	  if (!sm.getName().contains("main") && sm.isConcrete()) {
-		        	  for (Unit u0 : sm.retrieveActiveBody().getUnits()) {
-		        		  if (((Stmt) u0).containsInvokeExpr()) {
-		        			  InvokeExpr ie = ((Stmt) u0).getInvokeExpr();
-		        			  for (int i = 0; i < ie.getArgCount(); i++) {
-		        				  if (valueSet.contains(ie.getArg(i))) System.out.println("Value: "+ie.getArg(i)+" from BOM gets processed here: "+ie);
-		        			  }
-		        		  }
-		        		  
-		        		  if (u0 instanceof AssignStmt) {
-		        			  Value leftVal = ((AssignStmt) u0).getLeftOp();
-		        			  Value rightVal = ((AssignStmt) u0).getRightOp();
-		        			  if (valueSet.contains(leftVal)) System.out.println("Value: "+leftVal+" from BOM gets re-assigned here: "+u0);
-		        		  }
-		        	  }
+	  	      }*/
+/*
+	          
+	          for (SootMethod sm : sc.getMethods()) {    
+	        	  
+	        	  if (sm.isConcrete() && (sm.toString().toLowerCase().contains("sql")
+						  || sm.getDeclaringClass().toString().toLowerCase().contains("sql")
+						  || sm.toString().toLowerCase().contains("query")
+						  || sm.getDeclaringClass().toString().toLowerCase().contains("database")
+						  || sm.toString().toLowerCase().contains("database")
+						  || sm.getDeclaringClass().toString().toLowerCase().contains("query"))
+						  && sm.toString().toLowerCase().contains("init")
+						  && sm.toString().toLowerCase().contains("exception")) {
+	        		  System.out.println(sm);
+	        		  basicSink.add(sm);
 	        	  }
-	          }*/
-	          
-	          
-	          /*
-	          for (SootMethod sm : sc.getMethods()) {
-	        	  if (!sm.getName().contains("main") && sm.isConcrete()) {
-	        		  for (Unit u : sm.retrieveActiveBody().getUnits()) {
-	        			  if (((Stmt) u).containsInvokeExpr()) {
-	        				  InvokeExpr invokeExpr = ((Stmt) u).getInvokeExpr();
-	        				  if (invokeExpr.getMethod().getDeclaringClass().getName().toString().toLowerCase().contains("Firebase")) {
-	        				  //if ((BOM.contains(invokeExpr.getMethod().toString()))) {
-	        					  basicSource.add(invokeExpr.getMethod());
-	        					  //basicSource.add(sm);
-	        				  }
-	        			  }
-	        		  }
-	        	  }
-	          }*/
-	        	 
-	        					  /*
-	        				  if ((invokeExpr.getMethod().getDeclaringClass().getName().contains("java.io") ||
-	        						  invokeExpr.getMethod().getName().toLowerCase().contains("scann"))
-	        						  && (invokeExpr.getMethod().getDeclaringClass().getName().toLowerCase().contains("input") 
-	        						  || invokeExpr.getMethod().getDeclaringClass().getName().toLowerCase().contains("read")
-	        						  || invokeExpr.getMethod().getName().toLowerCase().contains("get")
-	        						  || invokeExpr.getMethod().getDeclaringClass().getName().toLowerCase().contains("file"))
-	        						  && !invokeExpr.getMethod().getName().contains("close")
-	        						  && !invokeExpr.getMethod().getName().isEmpty() 
-	        						  && !invokeExpr.getMethod().getName().contains("init") 
-	        						  && !invokeExpr.getMethod().getName().contains("print")) {
-	            	        	  //basicSource.add(invokeExpr.getMethod());}
-	        					  basicSource.add(sm);}*/
-
-	          
-	        	  /*
-	        	  if (((sm.getDeclaringClass().getName().toLowerCase().contains("java.io") && 
-	        			  (sm.getName().toLowerCase().contains("input") || sm.getName().toLowerCase().contains("read")
-	        					  ||sm.getName().toLowerCase().contains("get") || sm.getName().toLowerCase().contains("file"))
-	        			  ) || sm.getName().toLowerCase().contains("scann")) && !sm.getName().toLowerCase().contains("print") && !sm.getName().isEmpty() && !sm.getName().contains("init") && !sm.getName().contains("close")
-	        			  )
-	        		  basicSource.add(sm);*/
-	          
-	          
-	          for (SootMethod sm : sc.getMethods()) {        	  
+	        	  
 	        	  if (sm.isConcrete()) {
+	        		  
 	        		  for (Unit u : sm.retrieveActiveBody().getUnits()) {
 	        			  if (((Stmt) u).containsInvokeExpr()) {
 	        				  InvokeExpr invokeExpr = ((Stmt) u).getInvokeExpr();
@@ -607,29 +539,115 @@ public class ReadClasses {
 	        				  if ((invokeExpr.getMethod().toString().toLowerCase().contains("sql")
 	        						  || invokeExpr.getMethod().getDeclaringClass().toString().toLowerCase().contains("sql")
 	        						  || invokeExpr.getMethod().toString().toLowerCase().contains("query")
-	        						  //|| invokeExpr.getMethod().toString().toLowerCase().contains("db")
+	        						  || invokeExpr.getMethod().getDeclaringClass().toString().toLowerCase().contains("database")
 	        						  || invokeExpr.getMethod().toString().toLowerCase().contains("database")
-	        						  //|| invokeExpr.getMethod().toString().toLowerCase().contains("storage")
-	        						  //|| invokeExpr.getMethod().toString().toLowerCase().contains("store")
 	        						  || invokeExpr.getMethod().getDeclaringClass().toString().toLowerCase().contains("query"))
 	        						  && !invokeExpr.getMethod().toString().toLowerCase().contains("init")
 	        						  && !invokeExpr.getMethod().toString().toLowerCase().contains("exception")) {
 	        				  //if (BIM.contains(invokeExpr.getMethod().getName().toString())) {
-	        					  sinkMap.put(invokeExpr.getArg(0), invokeExpr.getMethod());
-	        					  basicSink.add(invokeExpr.getMethod());
-	        					  if (u.hasTag("LineNumberTag")) {
-	        						  LineNumberTag tag = (LineNumberTag)u.getTag(("LineNumberTag"));
-	        						  //System.out.println("Line: "+tag.getLineNumber());
-	        					  }
+	        					  //sinkMap.put(invokeExpr.getArg(0), invokeExpr.getMethod());
+	        					  //basicSink.add(invokeExpr.getMethod());
 	        					  //System.out.println("Class: "+sc+" Method: "+sm);
+	        					  System.out.println(sm);
 	        					  basicSink.add(sm);
 	        				  }
 	        			  }
 	        		  }
 	        	  }
-	          }
-	
+	          }*/
 	          
+	          for (SootMethod sm : sc.getMethods()) {    
+	        	  	        	  
+	        	  if (sm.isConcrete() 
+	        			  && (sm.getName().toString().startsWith("get") || sm.getName().toString().startsWith("read") || sm.getName().toString().startsWith("copy"))
+						  && !sm.getReturnType().toString().toLowerCase().contains("bool")
+						  && !sm.getReturnType().toString().toLowerCase().contains("void")
+						  && !sm.getReturnType().toString().toLowerCase().contains("long")
+						  && !sm.getReturnType().toString().toLowerCase().contains("int")
+						  && !sm.toString().toLowerCase().contains("exception")) {
+	        		  //System.out.println(sm);
+	        		  basicSinkAll.add(sm);
+	        	  }
+	        	  
+	        	  if (sm.isConcrete() && BOM.contains(sm.toString())) {
+	        		  //System.out.println(sm);
+	        		  basicSink.add(sm);
+	        	  }
+	        	  
+	        	  if (sm.isConcrete()) {
+	        		  
+	        		  for (Unit u : sm.retrieveActiveBody().getUnits()) {
+	        			  if (((Stmt) u).containsInvokeExpr()) {
+	        				  InvokeExpr invokeExpr = ((Stmt) u).getInvokeExpr();
+	        				  /*
+	        				  if ((invokeExpr.getMethod().toString().toLowerCase().contains("http")
+	        						  || invokeExpr.getMethod().getDeclaringClass().toString().toLowerCase().contains("http")
+	        						  //|| invokeExpr.getMethod().toString().toLowerCase().contains("query")
+	        						  //|| invokeExpr.getMethod().getDeclaringClass().toString().toLowerCase().contains("database")
+	        						  || invokeExpr.getMethod().toString().toLowerCase().contains("url")
+	        						  || invokeExpr.getMethod().getDeclaringClass().toString().toLowerCase().contains("url"))
+	        						  && !invokeExpr.getMethod().toString().toLowerCase().contains("init")
+	        						  && !invokeExpr.getMethod().toString().toLowerCase().contains("exception")) {*/
+	        				  if (BOM.contains(invokeExpr.getMethod().toString())) {
+	        					  //System.out.println(sm);
+	        					  //sinkMap.put(invokeExpr.getArg(0), invokeExpr.getMethod());
+	        					  basicSink.add(invokeExpr.getMethod());
+	        					  //System.out.println("Class: "+sc+" Method: "+sm);
+	        					  //System.out.println(sm);
+	        					  //System.out.println(invokeExpr.getMethod());
+	        					  basicSink.add(sm);
+	        					  //basicSink.add(invokeExpr.getMethod());)
+	        				  }
+	        			  }
+	        		  }
+	        	  }
+	          }
+	          /*
+	          for (SootMethod sm : sc.getMethods()) {    
+	        	  
+	        	  if (sm.isConcrete() && (sm.toString().toLowerCase().contains("url")
+						  || sm.getDeclaringClass().toString().toLowerCase().contains("url")
+						  || sm.toString().toLowerCase().contains("http")
+						  //|| sm.getDeclaringClass().toString().toLowerCase().contains("http")
+						  //|| sm.toString().toLowerCase().contains("database")
+						  || sm.getDeclaringClass().toString().toLowerCase().contains("http"))
+						  && sm.toString().toLowerCase().contains("init")
+						  && sm.toString().toLowerCase().contains("exception")) {
+	        		  System.out.println(sm);
+	        		  basicSink.add(sm);
+	        	  }
+	        	  
+	        	  if (sm.isConcrete()) {
+	        		  
+	        		  for (Unit u : sm.retrieveActiveBody().getUnits()) {
+	        			  if (((Stmt) u).containsInvokeExpr()) {
+	        				  InvokeExpr invokeExpr = ((Stmt) u).getInvokeExpr();
+	        				  
+	        				  if ((invokeExpr.getMethod().toString().toLowerCase().contains("http")
+	        						  || invokeExpr.getMethod().getDeclaringClass().toString().toLowerCase().contains("http")
+	        						  //|| invokeExpr.getMethod().toString().toLowerCase().contains("query")
+	        						  //|| invokeExpr.getMethod().getDeclaringClass().toString().toLowerCase().contains("database")
+	        						  || invokeExpr.getMethod().toString().toLowerCase().contains("url")
+	        						  || invokeExpr.getMethod().getDeclaringClass().toString().toLowerCase().contains("url"))
+	        						  && !invokeExpr.getMethod().toString().toLowerCase().contains("init")
+	        						  && !invokeExpr.getMethod().toString().toLowerCase().contains("exception")) {
+	        				  //if (BIM.contains(invokeExpr.getMethod().getName().toString())) {
+	        					  //sinkMap.put(invokeExpr.getArg(0), invokeExpr.getMethod());
+	        					  basicSink.add(invokeExpr.getMethod());
+	        					  //System.out.println("Class: "+sc+" Method: "+sm);
+	        					  System.out.println(sm);
+	        					  System.out.println(invokeExpr.getMethod());
+	        					  basicSink.add(sm);
+	        					  //basicSink.add(invokeExpr.getMethod());)
+	        				  }
+	        			  }
+	        		  }
+	        	  }
+	          }*/
+	          
+	          
+	
+	          /*
 	          for (SootMethod sm : sc.getMethods()) {        	  
 	        	  if (sm.isConcrete()) {
 	        		  for (Unit u1 : sm.retrieveActiveBody().getUnits()) {
@@ -652,36 +670,9 @@ public class ReadClasses {
 	        			  }
 	        		  }
 	        	  }
-	          }
+	          }*/
 
-	          /*
-	          for (SootMethod sm : sc.getMethods()) {
-	        	  if (BIM.contains(sm.toString())) basicSink.add(sm);
-	          }*/
-	        	  /*
-	        	  if (((sm.getDeclaringClass().getName().toLowerCase().contains("java.io") && 
-	        			  (sm.getName().toLowerCase().contains("output") || sm.getName().toLowerCase().contains("write"))
-	        			  || sm.getName().toLowerCase().contains("print")
-	        			  || sm.getName().toLowerCase().contains("llll")) 
-	        			  ||(sm.getDeclaringClass().getName().toLowerCase().contains("url"))) 
-	        			  && sm.getParameterCount() > 0
-	        			  //&& sm.getReturnType().toString().toLowerCase().contains("void")
-	        			  && !sm.getName().toLowerCase().contains("logo")
-	        			  && !sm.getReturnType().toString().toLowerCase().contains("bool"))
-	        		  basicSink.add(sm);
-	          for (SootMethod sm : sc.getMethods()) {        	  
-	        	  if (!sm.getName().contains("main") && sm.isConcrete()) {
-	        		  for (Unit u : sm.retrieveActiveBody().getUnits()) {
-	        			  if (((Stmt) u).containsInvokeExpr()) {
-	        				  InvokeExpr invokeExpr = ((Stmt) u).getInvokeExpr();
-	        				  if (invokeExpr.getMethod().getName().contains("crypt") || invokeExpr.getMethod().getDeclaringClass().getName().contains("crypt")) {
-	        					  //System.out.println("Encryption here: "+invokeExpr);
-	        				  }
-	        			  }
-	        		  }
-	        	  }
-	          }*/
-	          
+
 	          
 	          for (SootMethod sm : sc.getMethods()) {
 	        	  try {
@@ -689,7 +680,7 @@ public class ReadClasses {
 	        		  //Set<Value> paramVals = new HashSet<Value>();
 	        		  if (!sm.getName().contains("main") && sm.isConcrete()) {
 	        	      for (Unit u : sm.retrieveActiveBody().getUnits()) {
-
+/*
 	        	          if (((Stmt) u).containsInvokeExpr()) {
 	        	            InvokeExpr invokeExpr = ((Stmt) u).getInvokeExpr();
 	        	            Value leftOp = null;
@@ -701,11 +692,11 @@ public class ReadClasses {
 	        	            		paramVals.put(invokeExpr.getArg(i),invokeExpr.getMethod());
 	        	            	}
 	        	            }
-	        	          }
+	        	          }*/
 	        	      }
 	        	          
 	        	      for (Unit u : sm.retrieveActiveBody().getUnits()) {
-
+/*
 	        	          if (u instanceof AssignStmt) {
 	        	        	  
 	        	            Value leftOp = ((AssignStmt) u).getLeftOp();
@@ -721,11 +712,11 @@ public class ReadClasses {
 	        	            			//flow2FieldC.add(sc);
 	        	            		}
 	        	            	}
-	        	          }
+	        	          }*/
 	        	      }
 	        	      
 	        	      for (Unit u : sm.retrieveActiveBody().getUnits()) {
-
+/*
 	        	          if (u instanceof ReturnStmt) {
 	        	            ReturnStmt stmt = (ReturnStmt) u;
 	        	            //if (paramVals.contains(stmt.getOp())) {
@@ -737,8 +728,9 @@ public class ReadClasses {
 	        	            	//System.out.println("Value: "+stmt.getOp()+ " from BOM: "+paramVals.get(stmt.getOp())+"flows to a field: "+stmt.getOp().getType());
 	        	            	flow2Return.add(sm);
 	        	            }
-	        	          }
+	        	          }*/
 	        	      }
+	        		 
 	        	      
 	        	      
 	        	      /*
@@ -818,6 +810,14 @@ public class ReadClasses {
 	    	for (SootMethod m : basicSink) {
 	    		bkWriter.println(m+" -> _SINK_");
 	    		//bkWriter.println(m);
+	    	}
+	    	//bkWriter.println("Finished.");
+	    	bkWriter.close();
+	    	
+	    	PrintWriter baWriter = new PrintWriter("sinkall.txt", "UTF-8");
+	    	for (SootMethod m : basicSinkAll) {
+	    		//bkWriter.println(m+" -> _SINK_");
+	    		baWriter.println(m);
 	    	}
 	    	//bkWriter.println("Finished.");
 	    	bkWriter.close();
