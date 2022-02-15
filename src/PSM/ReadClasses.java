@@ -99,9 +99,11 @@ public class ReadClasses {
     public static String androidDirPath = System.getProperty("user.dir")+"/lib/android.jar";
     //public static String bomPath = System.getProperty("user.dir")+"/basic/acc.txt";
     public static String bomPath = System.getProperty("user.dir")+"/basic/BOM.txt";
-    public static String bimPath = System.getProperty("user.dir")+"/basic/BIM3.txt";
+    public static String bimPath = System.getProperty("user.dir")+"/basic/BIM.txt";
     public static String eomPath = System.getProperty("user.dir")+"/basic/EOM.txt";
+    public static String eimPath = System.getProperty("user.dir")+"/basic/EIM.txt";
     public Set<String> EOM = new HashSet<String>();
+    public Set<String> EIM = new HashSet<String>();
     public Set<String> BOM = new HashSet<String>();
     public Set<String> BIM = new HashSet<String>();
     // these might change
@@ -346,6 +348,19 @@ public class ReadClasses {
 		return EOM;
 	}
 	
+	public Set<String> loadEIM() throws Exception {
+		BufferedReader bufReader = new BufferedReader(new FileReader(eimPath)); 
+		Set<String> EIM = new HashSet<String>(); 
+		String line = bufReader.readLine(); 
+		while (line != null) { 
+			EIM.add(line); 
+			line = bufReader.readLine(); 
+			} 
+		bufReader.close();
+		System.out.println("EIM is loaded with "+EIM.size()+" methods.");
+		return EIM;
+	}
+	
 	private void loadMethodsFromTestLib(final Set<String> testClasses) throws Exception {
 		Set<Value> valueSet = new HashSet<Value>();
 		Map<Value, SootMethod> map = new LinkedHashMap<Value, SootMethod>();
@@ -354,6 +369,7 @@ public class ReadClasses {
 	    BOM = loadBOM();
 	    BIM = loadBIM();
 	    EOM = loadEOM();
+	    EIM = loadEIM();
 	    new AbstractSootFeature(testCp) {
 
 	      @Override
@@ -488,19 +504,13 @@ public class ReadClasses {
 	          }*/
 	          
 	          for (SootMethod sm : sc.getMethods()) {    
-	        	  	        	  
-	        	  if (sm.isConcrete() 
-	        			  && (sm.getName().toString().startsWith("get") || sm.getName().toString().startsWith("read") || sm.getName().toString().startsWith("copy"))
-						  && !sm.getReturnType().toString().toLowerCase().contains("bool")
-						  && !sm.getReturnType().toString().toLowerCase().contains("void")
-						  && !sm.getReturnType().toString().toLowerCase().contains("long")
-						  && !sm.getReturnType().toString().toLowerCase().contains("int")
-						  && !sm.toString().toLowerCase().contains("exception")) {
-	        		  //System.out.println(sm);
-	        		  basicSinkAll.add(sm);
-	        	  }
 	        	  
 	        	  if (sm.isConcrete() && BIM.contains(sm.toString())) {
+	        		  //System.out.println(sm);
+	        		  basicSink.add(sm);
+	        	  }
+	        	  
+	        	  if (sm.isConcrete() && EIM.contains(sm.toString())) {
 	        		  //System.out.println(sm);
 	        		  basicSink.add(sm);
 	        	  }
@@ -510,19 +520,10 @@ public class ReadClasses {
 	        		  for (Unit u : sm.retrieveActiveBody().getUnits()) {
 	        			  if (((Stmt) u).containsInvokeExpr()) {
 	        				  InvokeExpr invokeExpr = ((Stmt) u).getInvokeExpr();
-	        				  /*
-	        				  if ((invokeExpr.getMethod().toString().toLowerCase().contains("http")
-	        						  || invokeExpr.getMethod().getDeclaringClass().toString().toLowerCase().contains("http")
-	        						  //|| invokeExpr.getMethod().toString().toLowerCase().contains("query")
-	        						  //|| invokeExpr.getMethod().getDeclaringClass().toString().toLowerCase().contains("database")
-	        						  || invokeExpr.getMethod().toString().toLowerCase().contains("url")
-	        						  || invokeExpr.getMethod().getDeclaringClass().toString().toLowerCase().contains("url"))
-	        						  && !invokeExpr.getMethod().toString().toLowerCase().contains("init")
-	        						  && !invokeExpr.getMethod().toString().toLowerCase().contains("exception")) {*/
 	        				  if (BIM.contains(invokeExpr.getMethod().toString())) {
 	        					  //System.out.println(sm);
 	        					  //sinkMap.put(invokeExpr.getArg(0), invokeExpr.getMethod());
-	        					  basicSink.add(invokeExpr.getMethod());
+	        					  //basicSink.add(invokeExpr.getMethod());
 	        					  //System.out.println("Class: "+sc+" Method: "+sm);
 	        					  //System.out.println(sm);
 	        					  //System.out.println(invokeExpr.getMethod());
@@ -739,12 +740,12 @@ public class ReadClasses {
 	    	
 	    	PrintWriter bkWriter = new PrintWriter("sink.txt", "UTF-8");
 	    	for (SootMethod m : basicSink) {
-	    		bkWriter.println(m+" -> _SINK_");
-	    		//bkWriter.println(m);
+	    		//bkWriter.println(m+" -> _SINK_");
+	    		bkWriter.println(m);
 	    	}
 	    	//bkWriter.println("Finished.");
 	    	bkWriter.close();
-	    	
+	    	/*
 	    	PrintWriter baWriter = new PrintWriter("sinkall.txt", "UTF-8");
 	    	for (SootMethod m : basicSinkAll) {
 	    		//bkWriter.println(m+" -> _SINK_");
@@ -752,7 +753,7 @@ public class ReadClasses {
 	    	}
 	    	//bkWriter.println("Finished.");
 	    	bkWriter.close();
-	    	/*
+	    	
 	    	PrintWriter frWriter = new PrintWriter("F2R.txt", "UTF-8");
 	    	for (SootMethod m : flow2Return) {
 	    		frWriter.println(m+" -> _SOURCE_");
@@ -807,10 +808,10 @@ public class ReadClasses {
 	    System.out.println("Loaded " + (methods.size() - methodCount)  + " methods from JAR files.");
 	    System.out.println("Found " + basicSource.size() + " Basic Source Methods.");
 	    System.out.println("Found " + basicSink.size() + " Basic Sink Methods.");
-	    System.out.println("Found " + flow2Return.size() + " Methods flow to return.");
-	    System.out.println("Found " + flow2Sink.size() + " Methods flow to a sink.");
-	    System.out.println("Found " + flow2FieldC.size() + " Methods in this Class flow to a field in class.");
-	    System.out.println("Found " + flow2FieldM.size() + " Methods flow to a field in class.");
+	    //System.out.println("Found " + flow2Return.size() + " Methods flow to return.");
+	    //System.out.println("Found " + flow2Sink.size() + " Methods flow to a sink.");
+	    //System.out.println("Found " + flow2FieldC.size() + " Methods in this Class flow to a field in class.");
+	    //System.out.println("Found " + flow2FieldM.size() + " Methods flow to a field in class.");
 	    
 	    
 	    
