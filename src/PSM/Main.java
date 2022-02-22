@@ -85,7 +85,7 @@ public class Main {
 		classReader.loadTestSet(testClasses);
 		//classReader.fd();
 		//System.out.println("JARs are loaded.");
-		//classReader.findFlow();
+		classReader.findFlow();
 		System.out.println("done");
 		//classReader.featureChecker();
 		

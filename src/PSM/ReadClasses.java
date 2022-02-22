@@ -97,7 +97,8 @@ public class ReadClasses {
 	public static String sourceDirectory = System.getProperty("user.dir");
     public static String jarDirectory = System.getProperty("user.dir")+"/examples";
     public static String androidDirPath = System.getProperty("user.dir")+"/lib/android.jar";
-    //public static String bomPath = System.getProperty("user.dir")+"/basic/acc.txt";
+    public static String sourcePath = System.getProperty("user.dir")+"/source.txt";
+    public static String sinkPath = System.getProperty("user.dir")+"/sink.txt";
     public static String bomPath = System.getProperty("user.dir")+"/basic/BOM.txt";
     public static String bimPath = System.getProperty("user.dir")+"/basic/BIM.txt";
     public static String eomPath = System.getProperty("user.dir")+"/basic/EOM.txt";
@@ -106,6 +107,8 @@ public class ReadClasses {
     public Set<String> EIM = new HashSet<String>();
     public Set<String> BOM = new HashSet<String>();
     public Set<String> BIM = new HashSet<String>();
+    public Set<String> source = new HashSet<String>();
+    public Set<String> sink = new HashSet<String>();
     // these might change
 	public String apkFilePath = System.getProperty("user.dir")+"/examples/kik.apk";
 	public String sourceSinkFilePath = System.getProperty("user.dir")+"/sourcesandsinks.txt";
@@ -191,22 +194,43 @@ public class ReadClasses {
 		return classes;
 	}
 	
+	public Set<String> loadSource() throws Exception {
+		BufferedReader bufReader = new BufferedReader(new FileReader(sourcePath)); 
+		Set<String> source = new HashSet<String>(); 
+		String line = bufReader.readLine(); 
+		while (line != null) { 
+			source.add(line); 
+			line = bufReader.readLine(); 
+			}
+		bufReader.close();
+		System.out.println("Source is loaded with "+source.size()+" methods.");
+		return source;
+	}
+	
+	public Set<String> loadSink() throws Exception {
+		BufferedReader bufReader = new BufferedReader(new FileReader(sinkPath)); 
+		Set<String> sink = new HashSet<String>(); 
+		String line = bufReader.readLine(); 
+		while (line != null) { 
+			sink.add(line); 
+			line = bufReader.readLine(); 
+			} 
+		bufReader.close();
+		System.out.println("Sink is loaded with "+sink.size()+" methods.");
+		return sink;
+	}
+	
 	public void findFlow() throws Exception {
-		BOM = loadBOM();
-	    BIM = loadBIM();
-	    String targetPath = System.getProperty("user.dir")+"/examples/dummySQL.jar";
+		source = loadSource();
+		sink = loadSink();
+	    String targetPath = System.getProperty("user.dir")+"/examples/alphabot_0.jar";
 		String libPath = System.getProperty("user.dir")+"/lib/mysql-connector-java-8.0.28.jar";
-		
-		//Options.v().
 
 		IInfoflow infoflow = new Infoflow();
 		infoflow.setTaintWrapper(new SummaryTaintWrapper(new LazySummaryProvider("summariesManual")));
-		//Collection<String> epoints = EP;
+
 		Collection<String> epoints = new ArrayList<String>();
-		epoints.add("<databaseReader.FirstExample: void main(java.lang.String[])>");
-		
-		//take a look with all source that has passed into thoughtcrime but not coming from thoughtcrime
-		//then take a look with these sources, mark them as sinks, how many of them actually have values that come from BOM
+		epoints.add("<com.zack6849.alphabot.Bot: void main(java.lang.String[])>");
 		
 		DefaultEntryPointCreator entryPoints = new DefaultEntryPointCreator(epoints);
 		
@@ -216,17 +240,12 @@ public class ReadClasses {
 
 			@Override
 			public SourceInfo getSourceInfo(Stmt sCallSite, InfoflowManager manager) {
-				if (sCallSite.containsInvokeExpr() //&& sCallSite.getInvokeExpr().getArgCount() > 0
-						//&& sCallSite instanceof AssignStmt){
-						//&& sCallSite instanceof DefinitionStmt){
-						//&& sCallSite.getInvokeExpr().getMethod().getName().contains("Query")){
-						//&& sCallSite instanceof DefinitionStmt && !sCallSite.getInvokeExpr().getMethod().getDeclaringClass().getName().toLowerCase().contains("securesms")) {
-						&& sCallSite instanceof AssignStmt && sCallSite.getInvokeExpr().getMethod().getName().contains("Query")) {
-						//&& sCallSite instanceof AssignStmt && BOM.contains(sCallSite.getInvokeExpr().getMethod().toString())) {
-					//AccessPath ap = manager.getAccessPathFactory().createAccessPath(((DefinitionStmt) sCallSite).getLeftOp(), true);
-					AccessPath ap = manager.getAccessPathFactory().createAccessPath(((AssignStmt) sCallSite).getLeftOp(), true);
-					//AccessPath ap = manager.getAccessPathFactory().createAccessPath(sCallSite.getInvokeExpr().getArg(0), true);
-					return new SourceInfo(null, ap);
+				if (sCallSite.containsInvokeExpr() && (sCallSite instanceof AssignStmt || sCallSite instanceof DefinitionStmt)) {
+					for (String s : source) {
+						if (s.contains(sCallSite.getInvokeExpr().getMethod().toString())){
+					if (sCallSite instanceof AssignStmt) { AccessPath ap = manager.getAccessPathFactory().createAccessPath(((AssignStmt) sCallSite).getLeftOp(), true); return new SourceInfo(null, ap);}
+					if (sCallSite instanceof DefinitionStmt) { AccessPath ap = manager.getAccessPathFactory().createAccessPath(((DefinitionStmt) sCallSite).getLeftOp(), true); return new SourceInfo(null, ap);}}
+					}
 				}
 				return null;
 			}
@@ -239,8 +258,9 @@ public class ReadClasses {
 				SootMethod target = sCallSite.getInvokeExpr().getMethod();
 				SinkInfo targetInfo = new SinkInfo((ISourceSinkDefinition) new MethodSourceSinkDefinition(new SootMethodAndClass(target)));
 				
-
-				if ((target.toString().toLowerCase().contains("print"))){//|| target.getSignature().equals(sinkAP2)|| target.getSignature().equals(sink)) && sCallSite.getInvokeExpr().getArgCount() > 0) {
+				//if(target.getName().toString().toLowerCase().contains("print")) {
+				for (String s : sink) {
+				if (s.contains(target.toString())){
 					/*
 					if (ap == null) return null;
 					else if (ap.getPlainValue() == sCallSite.getInvokeExpr().getArg(0)) {
@@ -250,7 +270,7 @@ public class ReadClasses {
 						return targetInfo;
 					}*/
 					return targetInfo;
-				}
+				}}
 				return null;
 			}
 
@@ -392,7 +412,8 @@ public class ReadClasses {
 	        			  if (u instanceof AssignStmt) {
 	        				  if (((AssignStmt) u).containsInvokeExpr()) {
 	        					  InvokeExpr invokeSource = ((AssignStmt) u).getInvokeExpr();
-	        				  		if ((BOM.contains(invokeSource.getMethod().toString()))) {
+	        					  for (String s : BOM) {
+	        				  		if ((s.contains(invokeSource.getMethod().toString()))) {
 	        				  			methodBOM = invokeSource.getMethod();
 	        				  			//basicSource.add(methodBOM);
 	        				  			//if (!m.getReturnType().toString().toLowerCase().contains("void")) basicSource.add(m);
@@ -401,13 +422,13 @@ public class ReadClasses {
 	        				  			//System.out.println("value "+value);
 	        				  			//System.out.println("source: "+u);
 	        				  			//valueSet.add(value);
-	        				  		}
+	        				  		}}
 	        				  }
 	        			  }
 	        			  
 	        			  if (u instanceof ReturnStmt) {
 	        				  ReturnStmt stmt = (ReturnStmt) u;
-	        				  if (map.containsKey(stmt.getOp())) basicSource.add(map.get(stmt.getOp()));
+	        				  if (map.containsKey(stmt.getOp())) basicSource.add(map.get(stmt.getOp())); //basicSource.add(m);
 	        			  }
 	        		  }
 	  	        	/*
@@ -520,7 +541,8 @@ public class ReadClasses {
 	        		  for (Unit u : sm.retrieveActiveBody().getUnits()) {
 	        			  if (((Stmt) u).containsInvokeExpr()) {
 	        				  InvokeExpr invokeExpr = ((Stmt) u).getInvokeExpr();
-	        				  if (BIM.contains(invokeExpr.getMethod().toString())) {
+	        				  for (String s : BIM) {
+	        				  if (s.contains(invokeExpr.getMethod().toString())) {
 	        					  //System.out.println(sm);
 	        					  //sinkMap.put(invokeExpr.getArg(0), invokeExpr.getMethod());
 	        					  //basicSink.add(invokeExpr.getMethod());
@@ -529,7 +551,7 @@ public class ReadClasses {
 	        					  //System.out.println(invokeExpr.getMethod());
 	        					  basicSink.add(sm);
 	        					  //basicSink.add(invokeExpr.getMethod());)
-	        				  }
+	        				  }}
 	        			  }
 	        		  }
 	        	  }
