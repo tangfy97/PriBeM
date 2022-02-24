@@ -223,26 +223,33 @@ public class ReadClasses {
 	public void findFlow() throws Exception {
 		source = loadSource();
 		sink = loadSink();
-	    String targetPath = System.getProperty("user.dir")+"/examples/alphabot_0.jar";
+	    String targetPath = System.getProperty("user.dir")+"/examples/animeRecommendation_0.jar";
 		String libPath = System.getProperty("user.dir")+"/lib/mysql-connector-java-8.0.28.jar";
 
 		IInfoflow infoflow = new Infoflow();
+		infoflow.getConfig().getEnableLineNumbers();
+		infoflow.getConfig().getIncrementalResultReporting();
+		infoflow.getConfig().getInspectSinks();
+		infoflow.getConfig().getInspectSources();
+		infoflow.getConfig().getAccessPathConfiguration().setAccessPathLength(10);
+		infoflow.getConfig().getLogSourcesAndSinks();
+		infoflow.getConfig().getWriteOutputFiles();
 		infoflow.setTaintWrapper(new SummaryTaintWrapper(new LazySummaryProvider("summariesManual")));
 
 		Collection<String> epoints = new ArrayList<String>();
-		epoints.add("<com.zack6849.alphabot.Bot: void main(java.lang.String[])>");
+		epoints.add("<core.Main: void main(java.lang.String[])>");
 		
 		DefaultEntryPointCreator entryPoints = new DefaultEntryPointCreator(epoints);
 		
-		System.out.println("global: ");
+		System.out.println("Now finding flows between sources and sinks: ");
 
 		ISourceSinkManager sourceSinkMgr = new ISourceSinkManager() {
 
 			@Override
 			public SourceInfo getSourceInfo(Stmt sCallSite, InfoflowManager manager) {
 				if (sCallSite.containsInvokeExpr() && (sCallSite instanceof AssignStmt || sCallSite instanceof DefinitionStmt)) {
-					for (String s : source) {
-						if (s.contains(sCallSite.getInvokeExpr().getMethod().toString())){
+					for (SootMethod s : basicSource) {
+						if (s.getName().equals(sCallSite.getInvokeExpr().getMethod().getName())){
 					if (sCallSite instanceof AssignStmt) { AccessPath ap = manager.getAccessPathFactory().createAccessPath(((AssignStmt) sCallSite).getLeftOp(), true); return new SourceInfo(null, ap);}
 					if (sCallSite instanceof DefinitionStmt) { AccessPath ap = manager.getAccessPathFactory().createAccessPath(((DefinitionStmt) sCallSite).getLeftOp(), true); return new SourceInfo(null, ap);}}
 					}
@@ -259,16 +266,13 @@ public class ReadClasses {
 				SinkInfo targetInfo = new SinkInfo((ISourceSinkDefinition) new MethodSourceSinkDefinition(new SootMethodAndClass(target)));
 				
 				//if(target.getName().toString().toLowerCase().contains("print")) {
-				for (String s : sink) {
-				if (s.contains(target.toString())){
-					/*
-					if (ap == null) return null;
-					else if (ap.getPlainValue() == sCallSite.getInvokeExpr().getArg(0)) {
-						if (ap.isLocal() || ap.getTaintSubFields()) {
-							return targetInfo;
-						}
-						return targetInfo;
-					}*/
+				for (SootMethod s : basicSink) {
+				if (s.getName().equals(target.getName())
+						&& !target.getName().toLowerCase().contains("error")
+						&& !target.getName().toLowerCase().contains("init")
+						&& !target.getName().toLowerCase().contains("bug")
+						&& !target.getName().toLowerCase().contains("abort")
+						&& !target.getName().toLowerCase().contains("main")){
 					return targetInfo;
 				}}
 				return null;
@@ -283,8 +287,8 @@ public class ReadClasses {
 
 		infoflow.computeInfoflow(targetPath, libPath, entryPoints, sourceSinkMgr);
 		//infoflow.computeInfoflow(targetPath, libPath, entryPoints, source, sink);
+		System.out.println("*****");
 		infoflow.getResults();
-		infoflow.getConfig();
 		infoflow.getCollectedSinks();
 		infoflow.getCollectedSources();
 
@@ -394,7 +398,7 @@ public class ReadClasses {
 
 	      @Override
 	      public Type appliesInternal(Method method) throws Exception {
-	    	  System.out.println("Local flow analysis: ");
+	    	  System.out.println("Start looking for sources and sinks: ");
 	    	  
 	        for (String className : testClasses) {
 	          SootClass sc = Scene.v().forceResolve(className, SootClass.BODIES);
@@ -542,7 +546,11 @@ public class ReadClasses {
 	        			  if (((Stmt) u).containsInvokeExpr()) {
 	        				  InvokeExpr invokeExpr = ((Stmt) u).getInvokeExpr();
 	        				  for (String s : BIM) {
-	        				  if (s.contains(invokeExpr.getMethod().toString())) {
+	        				  if (s.contains(invokeExpr.getMethod().toString()) 
+	        						  && !(invokeExpr.getMethod().getName().contains("init"))
+	        						  && !(invokeExpr.getMethod().getName().contains("error"))
+	        						  && !(invokeExpr.getMethod().getName().contains("bug"))
+	        						  && !(invokeExpr.getMethod().getName().contains("abort"))) {
 	        					  //System.out.println(sm);
 	        					  //sinkMap.put(invokeExpr.getArg(0), invokeExpr.getMethod());
 	        					  //basicSink.add(invokeExpr.getMethod());
@@ -827,14 +835,10 @@ public class ReadClasses {
 	        e.printStackTrace();
 	      }
 	    
-	    System.out.println("Loaded " + (methods.size() - methodCount)  + " methods from JAR files.");
-	    System.out.println("Found " + basicSource.size() + " Basic Source Methods.");
-	    System.out.println("Found " + basicSink.size() + " Basic Sink Methods.");
-	    //System.out.println("Found " + flow2Return.size() + " Methods flow to return.");
-	    //System.out.println("Found " + flow2Sink.size() + " Methods flow to a sink.");
-	    //System.out.println("Found " + flow2FieldC.size() + " Methods in this Class flow to a field in class.");
-	    //System.out.println("Found " + flow2FieldM.size() + " Methods flow to a field in class.");
-	    
+	    System.out.println("Loaded " + (methods.size() - methodCount)  + " methods from JAR files. \n");
+	    System.out.println("Found " + basicSource.size() + " Source Methods.");
+	    System.out.println("Found " + basicSink.size() + " Sink Methods.");
+	    System.out.println("Sources and Sinks collected. \n");
 	    
 	    
 	  } 

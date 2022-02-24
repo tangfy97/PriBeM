@@ -86,7 +86,7 @@ public class Main {
 		//classReader.fd();
 		//System.out.println("JARs are loaded.");
 		classReader.findFlow();
-		System.out.println("done");
+		System.out.println("All finished.");
 		//classReader.featureChecker();
 		
 	}
