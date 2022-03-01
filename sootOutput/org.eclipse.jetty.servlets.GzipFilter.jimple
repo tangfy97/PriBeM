@@ -1,0 +1,1044 @@
+public class org.eclipse.jetty.servlets.GzipFilter extends org.eclipse.jetty.servlets.UserAgentFilter
+{
+    private static final org.eclipse.jetty.util.log.Logger LOG;
+    public static final java.lang.String GZIP;
+    public static final java.lang.String ETAG_GZIP;
+    public static final java.lang.String DEFLATE;
+    public static final java.lang.String ETAG_DEFLATE;
+    public static final java.lang.String ETAG;
+    protected javax.servlet.ServletContext _context;
+    protected java.util.Set _mimeTypes;
+    protected int _bufferSize;
+    protected int _minGzipSize;
+    protected int _deflateCompressionLevel;
+    protected boolean _deflateNoWrap;
+    protected final java.util.Set _methods;
+    protected java.util.Set _excludedAgents;
+    protected java.util.Set _excludedAgentPatterns;
+    protected java.util.Set _excludedPaths;
+    protected java.util.Set _excludedPathPatterns;
+    protected java.lang.String _vary;
+    private static final int STATE_SEPARATOR;
+    private static final int STATE_Q;
+    private static final int STATE_QVALUE;
+    private static final int STATE_DEFAULT;
+
+    public void <init>()
+    {
+        java.util.HashSet $r2;
+        int $i1;
+        org.eclipse.jetty.servlets.GzipFilter r0;
+
+        r0 := @this: org.eclipse.jetty.servlets.GzipFilter;
+
+        specialinvoke r0.<org.eclipse.jetty.servlets.UserAgentFilter: void <init>()>();
+
+        r0.<org.eclipse.jetty.servlets.GzipFilter: int _bufferSize> = 8192;
+
+        r0.<org.eclipse.jetty.servlets.GzipFilter: int _minGzipSize> = 256;
+
+        $i1 = (int) -1;
+
+        r0.<org.eclipse.jetty.servlets.GzipFilter: int _deflateCompressionLevel> = $i1;
+
+        r0.<org.eclipse.jetty.servlets.GzipFilter: boolean _deflateNoWrap> = 1;
+
+        $r2 = new java.util.HashSet;
+
+        specialinvoke $r2.<java.util.HashSet: void <init>()>();
+
+        r0.<org.eclipse.jetty.servlets.GzipFilter: java.util.Set _methods> = $r2;
+
+        r0.<org.eclipse.jetty.servlets.GzipFilter: java.lang.String _vary> = "Accept-Encoding, User-Agent";
+
+        return;
+    }
+
+    public void init(javax.servlet.FilterConfig) throws javax.servlet.ServletException
+    {
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6;
+        java.util.Set $r8, $r17, $r22, $r26, $r31, $r35, $r38;
+        java.util.regex.Pattern $r19, $r28;
+        java.util.HashSet $r15, $r20, $r24, $r29, $r33;
+        org.eclipse.jetty.servlets.GzipFilter r0;
+        java.util.StringTokenizer $r16, $r21, $r25, $r30, $r34, $r37;
+        int $i0, $i1, $i2;
+        java.lang.String $r3, $r4, $r5, $r6, $r7, $r9, $r10, $r11, $r12, $r13, $r14, $r18, $r23, $r27, $r32, $r36, $r39, $r40, $r41;
+        javax.servlet.FilterConfig r1;
+        javax.servlet.ServletContext $r2;
+
+        r0 := @this: org.eclipse.jetty.servlets.GzipFilter;
+
+        r1 := @parameter0: javax.servlet.FilterConfig;
+
+        specialinvoke r0.<org.eclipse.jetty.servlets.UserAgentFilter: void init(javax.servlet.FilterConfig)>(r1);
+
+        $r2 = interfaceinvoke r1.<javax.servlet.FilterConfig: javax.servlet.ServletContext getServletContext()>();
+
+        r0.<org.eclipse.jetty.servlets.GzipFilter: javax.servlet.ServletContext _context> = $r2;
+
+        $r3 = interfaceinvoke r1.<javax.servlet.FilterConfig: java.lang.String getInitParameter(java.lang.String)>("bufferSize");
+
+        if $r3 == null goto label01;
+
+        $i2 = staticinvoke <java.lang.Integer: int parseInt(java.lang.String)>($r3);
+
+        r0.<org.eclipse.jetty.servlets.GzipFilter: int _bufferSize> = $i2;
+
+     label01:
+        $r4 = interfaceinvoke r1.<javax.servlet.FilterConfig: java.lang.String getInitParameter(java.lang.String)>("minGzipSize");
+
+        if $r4 == null goto label02;
+
+        $i1 = staticinvoke <java.lang.Integer: int parseInt(java.lang.String)>($r4);
+
+        r0.<org.eclipse.jetty.servlets.GzipFilter: int _minGzipSize> = $i1;
+
+     label02:
+        $r5 = interfaceinvoke r1.<javax.servlet.FilterConfig: java.lang.String getInitParameter(java.lang.String)>("deflateCompressionLevel");
+
+        if $r5 == null goto label03;
+
+        $i0 = staticinvoke <java.lang.Integer: int parseInt(java.lang.String)>($r5);
+
+        r0.<org.eclipse.jetty.servlets.GzipFilter: int _deflateCompressionLevel> = $i0;
+
+     label03:
+        $r6 = interfaceinvoke r1.<javax.servlet.FilterConfig: java.lang.String getInitParameter(java.lang.String)>("deflateNoWrap");
+
+        if $r6 == null goto label04;
+
+        $z6 = staticinvoke <java.lang.Boolean: boolean parseBoolean(java.lang.String)>($r6);
+
+        r0.<org.eclipse.jetty.servlets.GzipFilter: boolean _deflateNoWrap> = $z6;
+
+     label04:
+        $r7 = interfaceinvoke r1.<javax.servlet.FilterConfig: java.lang.String getInitParameter(java.lang.String)>("methods");
+
+        if $r7 == null goto label07;
+
+        $r37 = new java.util.StringTokenizer;
+
+        specialinvoke $r37.<java.util.StringTokenizer: void <init>(java.lang.String,java.lang.String,boolean)>($r7, ",", 0);
+
+     label05:
+        $z5 = virtualinvoke $r37.<java.util.StringTokenizer: boolean hasMoreTokens()>();
+
+        if $z5 == 0 goto label06;
+
+        $r38 = r0.<org.eclipse.jetty.servlets.GzipFilter: java.util.Set _methods>;
+
+        $r39 = virtualinvoke $r37.<java.util.StringTokenizer: java.lang.String nextToken()>();
+
+        $r40 = virtualinvoke $r39.<java.lang.String: java.lang.String trim()>();
+
+        $r41 = virtualinvoke $r40.<java.lang.String: java.lang.String toUpperCase()>();
+
+        interfaceinvoke $r38.<java.util.Set: boolean add(java.lang.Object)>($r41);
+
+        goto label05;
+
+     label06:
+        goto label08;
+
+     label07:
+        $r8 = r0.<org.eclipse.jetty.servlets.GzipFilter: java.util.Set _methods>;
+
+        interfaceinvoke $r8.<java.util.Set: boolean add(java.lang.Object)>("GET");
+
+     label08:
+        $r9 = interfaceinvoke r1.<javax.servlet.FilterConfig: java.lang.String getInitParameter(java.lang.String)>("mimeTypes");
+
+        if $r9 == null goto label10;
+
+        $r33 = new java.util.HashSet;
+
+        specialinvoke $r33.<java.util.HashSet: void <init>()>();
+
+        r0.<org.eclipse.jetty.servlets.GzipFilter: java.util.Set _mimeTypes> = $r33;
+
+        $r34 = new java.util.StringTokenizer;
+
+        specialinvoke $r34.<java.util.StringTokenizer: void <init>(java.lang.String,java.lang.String,boolean)>($r9, ",", 0);
+
+     label09:
+        $z4 = virtualinvoke $r34.<java.util.StringTokenizer: boolean hasMoreTokens()>();
+
+        if $z4 == 0 goto label10;
+
+        $r35 = r0.<org.eclipse.jetty.servlets.GzipFilter: java.util.Set _mimeTypes>;
+
+        $r36 = virtualinvoke $r34.<java.util.StringTokenizer: java.lang.String nextToken()>();
+
+        interfaceinvoke $r35.<java.util.Set: boolean add(java.lang.Object)>($r36);
+
+        goto label09;
+
+     label10:
+        $r10 = interfaceinvoke r1.<javax.servlet.FilterConfig: java.lang.String getInitParameter(java.lang.String)>("excludedAgents");
+
+        if $r10 == null goto label12;
+
+        $r29 = new java.util.HashSet;
+
+        specialinvoke $r29.<java.util.HashSet: void <init>()>();
+
+        r0.<org.eclipse.jetty.servlets.GzipFilter: java.util.Set _excludedAgents> = $r29;
+
+        $r30 = new java.util.StringTokenizer;
+
+        specialinvoke $r30.<java.util.StringTokenizer: void <init>(java.lang.String,java.lang.String,boolean)>($r10, ",", 0);
+
+     label11:
+        $z3 = virtualinvoke $r30.<java.util.StringTokenizer: boolean hasMoreTokens()>();
+
+        if $z3 == 0 goto label12;
+
+        $r31 = r0.<org.eclipse.jetty.servlets.GzipFilter: java.util.Set _excludedAgents>;
+
+        $r32 = virtualinvoke $r30.<java.util.StringTokenizer: java.lang.String nextToken()>();
+
+        interfaceinvoke $r31.<java.util.Set: boolean add(java.lang.Object)>($r32);
+
+        goto label11;
+
+     label12:
+        $r11 = interfaceinvoke r1.<javax.servlet.FilterConfig: java.lang.String getInitParameter(java.lang.String)>("excludeAgentPatterns");
+
+        if $r11 == null goto label14;
+
+        $r24 = new java.util.HashSet;
+
+        specialinvoke $r24.<java.util.HashSet: void <init>()>();
+
+        r0.<org.eclipse.jetty.servlets.GzipFilter: java.util.Set _excludedAgentPatterns> = $r24;
+
+        $r25 = new java.util.StringTokenizer;
+
+        specialinvoke $r25.<java.util.StringTokenizer: void <init>(java.lang.String,java.lang.String,boolean)>($r11, ",", 0);
+
+     label13:
+        $z2 = virtualinvoke $r25.<java.util.StringTokenizer: boolean hasMoreTokens()>();
+
+        if $z2 == 0 goto label14;
+
+        $r26 = r0.<org.eclipse.jetty.servlets.GzipFilter: java.util.Set _excludedAgentPatterns>;
+
+        $r27 = virtualinvoke $r25.<java.util.StringTokenizer: java.lang.String nextToken()>();
+
+        $r28 = staticinvoke <java.util.regex.Pattern: java.util.regex.Pattern compile(java.lang.String)>($r27);
+
+        interfaceinvoke $r26.<java.util.Set: boolean add(java.lang.Object)>($r28);
+
+        goto label13;
+
+     label14:
+        $r12 = interfaceinvoke r1.<javax.servlet.FilterConfig: java.lang.String getInitParameter(java.lang.String)>("excludePaths");
+
+        if $r12 == null goto label16;
+
+        $r20 = new java.util.HashSet;
+
+        specialinvoke $r20.<java.util.HashSet: void <init>()>();
+
+        r0.<org.eclipse.jetty.servlets.GzipFilter: java.util.Set _excludedPaths> = $r20;
+
+        $r21 = new java.util.StringTokenizer;
+
+        specialinvoke $r21.<java.util.StringTokenizer: void <init>(java.lang.String,java.lang.String,boolean)>($r12, ",", 0);
+
+     label15:
+        $z1 = virtualinvoke $r21.<java.util.StringTokenizer: boolean hasMoreTokens()>();
+
+        if $z1 == 0 goto label16;
+
+        $r22 = r0.<org.eclipse.jetty.servlets.GzipFilter: java.util.Set _excludedPaths>;
+
+        $r23 = virtualinvoke $r21.<java.util.StringTokenizer: java.lang.String nextToken()>();
+
+        interfaceinvoke $r22.<java.util.Set: boolean add(java.lang.Object)>($r23);
+
+        goto label15;
+
+     label16:
+        $r13 = interfaceinvoke r1.<javax.servlet.FilterConfig: java.lang.String getInitParameter(java.lang.String)>("excludePathPatterns");
+
+        if $r13 == null goto label18;
+
+        $r15 = new java.util.HashSet;
+
+        specialinvoke $r15.<java.util.HashSet: void <init>()>();
+
+        r0.<org.eclipse.jetty.servlets.GzipFilter: java.util.Set _excludedPathPatterns> = $r15;
+
+        $r16 = new java.util.StringTokenizer;
+
+        specialinvoke $r16.<java.util.StringTokenizer: void <init>(java.lang.String,java.lang.String,boolean)>($r13, ",", 0);
+
+     label17:
+        $z0 = virtualinvoke $r16.<java.util.StringTokenizer: boolean hasMoreTokens()>();
+
+        if $z0 == 0 goto label18;
+
+        $r17 = r0.<org.eclipse.jetty.servlets.GzipFilter: java.util.Set _excludedPathPatterns>;
+
+        $r18 = virtualinvoke $r16.<java.util.StringTokenizer: java.lang.String nextToken()>();
+
+        $r19 = staticinvoke <java.util.regex.Pattern: java.util.regex.Pattern compile(java.lang.String)>($r18);
+
+        interfaceinvoke $r17.<java.util.Set: boolean add(java.lang.Object)>($r19);
+
+        goto label17;
+
+     label18:
+        $r14 = interfaceinvoke r1.<javax.servlet.FilterConfig: java.lang.String getInitParameter(java.lang.String)>("vary");
+
+        if $r14 == null goto label19;
+
+        r0.<org.eclipse.jetty.servlets.GzipFilter: java.lang.String _vary> = $r14;
+
+     label19:
+        return;
+    }
+
+    public void destroy()
+    {
+        org.eclipse.jetty.servlets.GzipFilter r0;
+
+        r0 := @this: org.eclipse.jetty.servlets.GzipFilter;
+
+        return;
+    }
+
+    public void doFilter(javax.servlet.ServletRequest, javax.servlet.ServletResponse, javax.servlet.FilterChain) throws java.io.IOException, javax.servlet.ServletException
+    {
+        javax.servlet.FilterChain r8;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9, $z10, $z11;
+        java.util.Set $r6, $r9, $r19, $r23;
+        javax.servlet.ServletResponse r2;
+        java.lang.StringBuilder $r14, $r16, $r17;
+        java.lang.Throwable $r24;
+        org.eclipse.jetty.continuation.Continuation $r25, $r31;
+        javax.servlet.http.HttpServletRequest r1;
+        org.eclipse.jetty.servlets.GzipFilter$ContinuationListenerWaitingForWrappedResponseToFinish $r13, $r26;
+        org.eclipse.jetty.servlets.GzipFilter r5;
+        int $i0, $i1;
+        java.lang.String $r4, $r7, $r10, r11, $r12, $r15, $r18, $r21, $r22, $r27, $r28, $r29;
+        javax.servlet.ServletRequest r0;
+        javax.servlet.http.HttpServletResponse r3;
+        org.eclipse.jetty.http.gzip.CompressedResponseWrapper $r30;
+        javax.servlet.ServletContext $r20;
+
+        r5 := @this: org.eclipse.jetty.servlets.GzipFilter;
+
+        r0 := @parameter0: javax.servlet.ServletRequest;
+
+        r2 := @parameter1: javax.servlet.ServletResponse;
+
+        r8 := @parameter2: javax.servlet.FilterChain;
+
+        r1 = (javax.servlet.http.HttpServletRequest) r0;
+
+        r3 = (javax.servlet.http.HttpServletResponse) r2;
+
+        $r4 = interfaceinvoke r1.<javax.servlet.http.HttpServletRequest: java.lang.String getRequestURI()>();
+
+        $r6 = r5.<org.eclipse.jetty.servlets.GzipFilter: java.util.Set _methods>;
+
+        $r7 = interfaceinvoke r1.<javax.servlet.http.HttpServletRequest: java.lang.String getMethod()>();
+
+        $z0 = interfaceinvoke $r6.<java.util.Set: boolean contains(java.lang.Object)>($r7);
+
+        if $z0 == 0 goto label01;
+
+        $z1 = specialinvoke r5.<org.eclipse.jetty.servlets.GzipFilter: boolean isExcludedPath(java.lang.String)>($r4);
+
+        if $z1 == 0 goto label02;
+
+     label01:
+        specialinvoke r5.<org.eclipse.jetty.servlets.UserAgentFilter: void doFilter(javax.servlet.ServletRequest,javax.servlet.ServletResponse,javax.servlet.FilterChain)>(r1, r3, r8);
+
+        return;
+
+     label02:
+        $r9 = r5.<org.eclipse.jetty.servlets.GzipFilter: java.util.Set _mimeTypes>;
+
+        if $r9 == null goto label03;
+
+        $r19 = r5.<org.eclipse.jetty.servlets.GzipFilter: java.util.Set _mimeTypes>;
+
+        $i1 = interfaceinvoke $r19.<java.util.Set: int size()>();
+
+        if $i1 <= 0 goto label03;
+
+        $r20 = r5.<org.eclipse.jetty.servlets.GzipFilter: javax.servlet.ServletContext _context>;
+
+        $r21 = interfaceinvoke r1.<javax.servlet.http.HttpServletRequest: java.lang.String getRequestURI()>();
+
+        $r22 = interfaceinvoke $r20.<javax.servlet.ServletContext: java.lang.String getMimeType(java.lang.String)>($r21);
+
+        if $r22 == null goto label03;
+
+        $r23 = r5.<org.eclipse.jetty.servlets.GzipFilter: java.util.Set _mimeTypes>;
+
+        $z6 = interfaceinvoke $r23.<java.util.Set: boolean contains(java.lang.Object)>($r22);
+
+        if $z6 != 0 goto label03;
+
+        specialinvoke r5.<org.eclipse.jetty.servlets.UserAgentFilter: void doFilter(javax.servlet.ServletRequest,javax.servlet.ServletResponse,javax.servlet.FilterChain)>(r1, r3, r8);
+
+        return;
+
+     label03:
+        $r27 = virtualinvoke r5.<org.eclipse.jetty.servlets.GzipFilter: java.lang.String getUserAgent(javax.servlet.ServletRequest)>(r1);
+
+        if $r27 == null goto label04;
+
+        $z5 = specialinvoke r5.<org.eclipse.jetty.servlets.GzipFilter: boolean isExcludedAgent(java.lang.String)>($r27);
+
+        if $z5 == 0 goto label04;
+
+        $z10 = 1;
+
+        goto label05;
+
+     label04:
+        $z10 = 0;
+
+     label05:
+        if $z10 == 0 goto label06;
+
+        $r28 = null;
+
+        goto label07;
+
+     label06:
+        $r10 = interfaceinvoke r1.<javax.servlet.http.HttpServletRequest: java.lang.String getHeader(java.lang.String)>("accept-encoding");
+
+        $r28 = specialinvoke r5.<org.eclipse.jetty.servlets.GzipFilter: java.lang.String selectCompression(java.lang.String)>($r10);
+
+     label07:
+        r11 = $r28;
+
+        $r12 = interfaceinvoke r1.<javax.servlet.http.HttpServletRequest: java.lang.String getHeader(java.lang.String)>("If-None-Match");
+
+        if $r12 == null goto label10;
+
+        $i0 = virtualinvoke $r12.<java.lang.String: int indexOf(java.lang.String)>("--");
+
+        if $i0 <= 0 goto label10;
+
+        $r14 = new java.lang.StringBuilder;
+
+        specialinvoke $r14.<java.lang.StringBuilder: void <init>()>();
+
+        $r15 = virtualinvoke $r12.<java.lang.String: java.lang.String substring(int,int)>(0, $i0);
+
+        $r16 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r15);
+
+        $z4 = virtualinvoke $r12.<java.lang.String: boolean endsWith(java.lang.String)>("\"");
+
+        if $z4 == 0 goto label08;
+
+        $r29 = "\"";
+
+        goto label09;
+
+     label08:
+        $r29 = "";
+
+     label09:
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r29);
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke r1.<javax.servlet.http.HttpServletRequest: void setAttribute(java.lang.String,java.lang.Object)>("o.e.j.s.GzipFilter.ETag", $r18);
+
+     label10:
+        $r30 = virtualinvoke r5.<org.eclipse.jetty.servlets.GzipFilter: org.eclipse.jetty.http.gzip.CompressedResponseWrapper createWrappedResponse(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse,java.lang.String)>(r1, r3, r11);
+
+     label11:
+        specialinvoke r5.<org.eclipse.jetty.servlets.UserAgentFilter: void doFilter(javax.servlet.ServletRequest,javax.servlet.ServletResponse,javax.servlet.FilterChain)>(r1, $r30, r8);
+
+     label12:
+        $r31 = staticinvoke <org.eclipse.jetty.continuation.ContinuationSupport: org.eclipse.jetty.continuation.Continuation getContinuation(javax.servlet.ServletRequest)>(r1);
+
+        $z11 = interfaceinvoke $r31.<org.eclipse.jetty.continuation.Continuation: boolean isSuspended()>();
+
+        if $z11 == 0 goto label13;
+
+        $z3 = interfaceinvoke $r31.<org.eclipse.jetty.continuation.Continuation: boolean isResponseWrapped()>();
+
+        if $z3 == 0 goto label13;
+
+        $r13 = new org.eclipse.jetty.servlets.GzipFilter$ContinuationListenerWaitingForWrappedResponseToFinish;
+
+        specialinvoke $r13.<org.eclipse.jetty.servlets.GzipFilter$ContinuationListenerWaitingForWrappedResponseToFinish: void <init>(org.eclipse.jetty.servlets.GzipFilter,org.eclipse.jetty.http.gzip.CompressedResponseWrapper)>(r5, $r30);
+
+        interfaceinvoke $r31.<org.eclipse.jetty.continuation.Continuation: void addContinuationListener(org.eclipse.jetty.continuation.ContinuationListener)>($r13);
+
+        goto label15;
+
+     label13:
+        if 0 == 0 goto label14;
+
+        $z2 = interfaceinvoke r3.<javax.servlet.http.HttpServletResponse: boolean isCommitted()>();
+
+        if $z2 != 0 goto label14;
+
+        virtualinvoke $r30.<org.eclipse.jetty.http.gzip.CompressedResponseWrapper: void resetBuffer()>();
+
+        virtualinvoke $r30.<org.eclipse.jetty.http.gzip.CompressedResponseWrapper: void noCompression()>();
+
+        goto label15;
+
+     label14:
+        virtualinvoke $r30.<org.eclipse.jetty.http.gzip.CompressedResponseWrapper: void finish()>();
+
+     label15:
+        goto label21;
+
+     label16:
+        $r24 := @caughtexception;
+
+     label17:
+        $r25 = staticinvoke <org.eclipse.jetty.continuation.ContinuationSupport: org.eclipse.jetty.continuation.Continuation getContinuation(javax.servlet.ServletRequest)>(r1);
+
+        $z7 = interfaceinvoke $r25.<org.eclipse.jetty.continuation.Continuation: boolean isSuspended()>();
+
+        if $z7 == 0 goto label18;
+
+        $z9 = interfaceinvoke $r25.<org.eclipse.jetty.continuation.Continuation: boolean isResponseWrapped()>();
+
+        if $z9 == 0 goto label18;
+
+        $r26 = new org.eclipse.jetty.servlets.GzipFilter$ContinuationListenerWaitingForWrappedResponseToFinish;
+
+        specialinvoke $r26.<org.eclipse.jetty.servlets.GzipFilter$ContinuationListenerWaitingForWrappedResponseToFinish: void <init>(org.eclipse.jetty.servlets.GzipFilter,org.eclipse.jetty.http.gzip.CompressedResponseWrapper)>(r5, $r30);
+
+        interfaceinvoke $r25.<org.eclipse.jetty.continuation.Continuation: void addContinuationListener(org.eclipse.jetty.continuation.ContinuationListener)>($r26);
+
+        goto label20;
+
+     label18:
+        if 1 == 0 goto label19;
+
+        $z8 = interfaceinvoke r3.<javax.servlet.http.HttpServletResponse: boolean isCommitted()>();
+
+        if $z8 != 0 goto label19;
+
+        virtualinvoke $r30.<org.eclipse.jetty.http.gzip.CompressedResponseWrapper: void resetBuffer()>();
+
+        virtualinvoke $r30.<org.eclipse.jetty.http.gzip.CompressedResponseWrapper: void noCompression()>();
+
+        goto label20;
+
+     label19:
+        virtualinvoke $r30.<org.eclipse.jetty.http.gzip.CompressedResponseWrapper: void finish()>();
+
+     label20:
+        throw $r24;
+
+     label21:
+        return;
+
+        catch java.lang.Throwable from label11 to label12 with label16;
+        catch java.lang.Throwable from label16 to label17 with label16;
+    }
+
+    private java.lang.String selectCompression(java.lang.String)
+    {
+        java.lang.String[] $r2;
+        org.eclipse.jetty.servlets.GzipFilter r1;
+        java.util.Locale $r3, $r6;
+        int $i0, i1;
+        java.lang.String r0, $r4, $r5, $r7, $r8, $r9, $r10, r11;
+        boolean $z0, $z1, $z2, $z3;
+
+        r1 := @this: org.eclipse.jetty.servlets.GzipFilter;
+
+        r0 := @parameter0: java.lang.String;
+
+        r11 = null;
+
+        if r0 == null goto label4;
+
+        $r2 = specialinvoke r1.<org.eclipse.jetty.servlets.GzipFilter: java.lang.String[] getEncodings(java.lang.String)>(r0);
+
+        if $r2 == null goto label4;
+
+        i1 = 0;
+
+     label1:
+        $i0 = lengthof $r2;
+
+        if i1 >= $i0 goto label4;
+
+        $r4 = $r2[i1];
+
+        $r3 = <java.util.Locale: java.util.Locale ENGLISH>;
+
+        $r5 = virtualinvoke $r4.<java.lang.String: java.lang.String toLowerCase(java.util.Locale)>($r3);
+
+        $z0 = virtualinvoke $r5.<java.lang.String: boolean contains(java.lang.CharSequence)>("gzip");
+
+        if $z0 == 0 goto label2;
+
+        $r10 = $r2[i1];
+
+        $z3 = specialinvoke r1.<org.eclipse.jetty.servlets.GzipFilter: boolean isEncodingAcceptable(java.lang.String)>($r10);
+
+        if $z3 == 0 goto label2;
+
+        r11 = "gzip";
+
+        goto label4;
+
+     label2:
+        $r7 = $r2[i1];
+
+        $r6 = <java.util.Locale: java.util.Locale ENGLISH>;
+
+        $r8 = virtualinvoke $r7.<java.lang.String: java.lang.String toLowerCase(java.util.Locale)>($r6);
+
+        $z1 = virtualinvoke $r8.<java.lang.String: boolean contains(java.lang.CharSequence)>("deflate");
+
+        if $z1 == 0 goto label3;
+
+        $r9 = $r2[i1];
+
+        $z2 = specialinvoke r1.<org.eclipse.jetty.servlets.GzipFilter: boolean isEncodingAcceptable(java.lang.String)>($r9);
+
+        if $z2 == 0 goto label3;
+
+        r11 = "deflate";
+
+     label3:
+        i1 = i1 + 1;
+
+        goto label1;
+
+     label4:
+        return r11;
+    }
+
+    private java.lang.String[] getEncodings(java.lang.String)
+    {
+        java.lang.String[] $r1;
+        java.lang.String r0;
+        org.eclipse.jetty.servlets.GzipFilter r2;
+
+        r2 := @this: org.eclipse.jetty.servlets.GzipFilter;
+
+        r0 := @parameter0: java.lang.String;
+
+        if r0 != null goto label1;
+
+        return null;
+
+     label1:
+        $r1 = virtualinvoke r0.<java.lang.String: java.lang.String[] split(java.lang.String)>(",");
+
+        return $r1;
+    }
+
+    private boolean isEncodingAcceptable(java.lang.String)
+    {
+        org.eclipse.jetty.servlets.GzipFilter r4;
+        byte b2;
+        int $i0, i3, i4, $i6, $i7, $i8, $i9, $i10, $i11, $i12;
+        java.lang.String r0, $r1, $r2, $r3;
+        boolean $z0;
+        char $c1;
+
+        r4 := @this: org.eclipse.jetty.servlets.GzipFilter;
+
+        r0 := @parameter0: java.lang.String;
+
+        b2 = 3;
+
+        $i6 = (int) -1;
+
+        i3 = $i6;
+
+        i4 = 0;
+
+     label01:
+        $i0 = virtualinvoke r0.<java.lang.String: int length()>();
+
+        if i4 >= $i0 goto label10;
+
+        $c1 = virtualinvoke r0.<java.lang.String: char charAt(int)>(i4);
+
+        tableswitch(b2)
+        {
+            case 0: goto label03;
+            case 1: goto label05;
+            case 2: goto label06;
+            case 3: goto label02;
+            default: goto label09;
+        };
+
+     label02:
+        $i7 = (int) $c1;
+
+        if 59 != $i7 goto label09;
+
+        b2 = 0;
+
+        goto label09;
+
+     label03:
+        $i8 = (int) $c1;
+
+        if 113 == $i8 goto label04;
+
+        $i9 = (int) $c1;
+
+        if 81 != $i9 goto label09;
+
+     label04:
+        b2 = 1;
+
+        goto label09;
+
+     label05:
+        $i10 = (int) $c1;
+
+        if 61 != $i10 goto label09;
+
+        b2 = 2;
+
+        goto label09;
+
+     label06:
+        if i3 >= 0 goto label07;
+
+        $i11 = (int) $c1;
+
+        if 48 == $i11 goto label08;
+
+     label07:
+        $i12 = (int) $c1;
+
+        if 49 != $i12 goto label09;
+
+     label08:
+        i3 = i4;
+
+     label09:
+        i4 = i4 + 1;
+
+        goto label01;
+
+     label10:
+        if i3 >= 0 goto label11;
+
+        return 1;
+
+     label11:
+        $r1 = "0";
+
+        $r2 = virtualinvoke r0.<java.lang.String: java.lang.String substring(int)>(i3);
+
+        $r3 = virtualinvoke $r2.<java.lang.String: java.lang.String trim()>();
+
+        $z0 = virtualinvoke $r1.<java.lang.String: boolean equals(java.lang.Object)>($r3);
+
+        if $z0 == 0 goto label12;
+
+        return 0;
+
+     label12:
+        return 1;
+    }
+
+    protected org.eclipse.jetty.http.gzip.CompressedResponseWrapper createWrappedResponse(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.String)
+    {
+        java.lang.IllegalStateException $r1;
+        org.eclipse.jetty.servlets.GzipFilter$1 $r11;
+        org.eclipse.jetty.servlets.GzipFilter$2 $r10;
+        javax.servlet.http.HttpServletResponse r9;
+        org.eclipse.jetty.http.gzip.CompressedResponseWrapper r12;
+        javax.servlet.http.HttpServletRequest r8;
+        org.eclipse.jetty.servlets.GzipFilter r7;
+        java.lang.StringBuilder $r2, $r3, $r4;
+        org.eclipse.jetty.servlets.GzipFilter$3 $r6;
+        java.lang.String r0, $r5;
+        boolean $z0, $z1;
+
+        r7 := @this: org.eclipse.jetty.servlets.GzipFilter;
+
+        r8 := @parameter0: javax.servlet.http.HttpServletRequest;
+
+        r9 := @parameter1: javax.servlet.http.HttpServletResponse;
+
+        r0 := @parameter2: java.lang.String;
+
+        if r0 != null goto label1;
+
+        $r11 = new org.eclipse.jetty.servlets.GzipFilter$1;
+
+        specialinvoke $r11.<org.eclipse.jetty.servlets.GzipFilter$1: void <init>(org.eclipse.jetty.servlets.GzipFilter,javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse)>(r7, r8, r9);
+
+        r12 = $r11;
+
+        goto label4;
+
+     label1:
+        $z0 = virtualinvoke r0.<java.lang.String: boolean equals(java.lang.Object)>("gzip");
+
+        if $z0 == 0 goto label2;
+
+        $r10 = new org.eclipse.jetty.servlets.GzipFilter$2;
+
+        specialinvoke $r10.<org.eclipse.jetty.servlets.GzipFilter$2: void <init>(org.eclipse.jetty.servlets.GzipFilter,javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse,java.lang.String)>(r7, r8, r9, r0);
+
+        r12 = $r10;
+
+        goto label4;
+
+     label2:
+        $z1 = virtualinvoke r0.<java.lang.String: boolean equals(java.lang.Object)>("deflate");
+
+        if $z1 == 0 goto label3;
+
+        $r6 = new org.eclipse.jetty.servlets.GzipFilter$3;
+
+        specialinvoke $r6.<org.eclipse.jetty.servlets.GzipFilter$3: void <init>(org.eclipse.jetty.servlets.GzipFilter,javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse,java.lang.String)>(r7, r8, r9, r0);
+
+        r12 = $r6;
+
+        goto label4;
+
+     label3:
+        $r1 = new java.lang.IllegalStateException;
+
+        $r2 = new java.lang.StringBuilder;
+
+        specialinvoke $r2.<java.lang.StringBuilder: void <init>()>();
+
+        $r3 = virtualinvoke $r2.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r0);
+
+        $r4 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" not supported");
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r1.<java.lang.IllegalStateException: void <init>(java.lang.String)>($r5);
+
+        throw $r1;
+
+     label4:
+        virtualinvoke r7.<org.eclipse.jetty.servlets.GzipFilter: void configureWrappedResponse(org.eclipse.jetty.http.gzip.CompressedResponseWrapper)>(r12);
+
+        return r12;
+    }
+
+    protected void configureWrappedResponse(org.eclipse.jetty.http.gzip.CompressedResponseWrapper)
+    {
+        org.eclipse.jetty.http.gzip.CompressedResponseWrapper r0;
+        org.eclipse.jetty.servlets.GzipFilter r1;
+        int $i0, $i1;
+        java.util.Set $r2;
+
+        r1 := @this: org.eclipse.jetty.servlets.GzipFilter;
+
+        r0 := @parameter0: org.eclipse.jetty.http.gzip.CompressedResponseWrapper;
+
+        $r2 = r1.<org.eclipse.jetty.servlets.GzipFilter: java.util.Set _mimeTypes>;
+
+        virtualinvoke r0.<org.eclipse.jetty.http.gzip.CompressedResponseWrapper: void setMimeTypes(java.util.Set)>($r2);
+
+        $i0 = r1.<org.eclipse.jetty.servlets.GzipFilter: int _bufferSize>;
+
+        virtualinvoke r0.<org.eclipse.jetty.http.gzip.CompressedResponseWrapper: void setBufferSize(int)>($i0);
+
+        $i1 = r1.<org.eclipse.jetty.servlets.GzipFilter: int _minGzipSize>;
+
+        virtualinvoke r0.<org.eclipse.jetty.http.gzip.CompressedResponseWrapper: void setMinCompressSize(int)>($i1);
+
+        return;
+    }
+
+    private boolean isExcludedAgent(java.lang.String)
+    {
+        java.util.Iterator $r5;
+        java.util.Set $r2, $r3, $r4, $r9;
+        org.eclipse.jetty.servlets.GzipFilter r1;
+        java.util.regex.Matcher $r8;
+        java.lang.Object $r6;
+        java.lang.String r0;
+        java.util.regex.Pattern r7;
+        boolean $z0, $z1, $z2;
+
+        r1 := @this: org.eclipse.jetty.servlets.GzipFilter;
+
+        r0 := @parameter0: java.lang.String;
+
+        if r0 != null goto label1;
+
+        return 0;
+
+     label1:
+        $r2 = r1.<org.eclipse.jetty.servlets.GzipFilter: java.util.Set _excludedAgents>;
+
+        if $r2 == null goto label2;
+
+        $r9 = r1.<org.eclipse.jetty.servlets.GzipFilter: java.util.Set _excludedAgents>;
+
+        $z2 = interfaceinvoke $r9.<java.util.Set: boolean contains(java.lang.Object)>(r0);
+
+        if $z2 == 0 goto label2;
+
+        return 1;
+
+     label2:
+        $r3 = r1.<org.eclipse.jetty.servlets.GzipFilter: java.util.Set _excludedAgentPatterns>;
+
+        if $r3 == null goto label5;
+
+        $r4 = r1.<org.eclipse.jetty.servlets.GzipFilter: java.util.Set _excludedAgentPatterns>;
+
+        $r5 = interfaceinvoke $r4.<java.util.Set: java.util.Iterator iterator()>();
+
+     label3:
+        $z0 = interfaceinvoke $r5.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label5;
+
+        $r6 = interfaceinvoke $r5.<java.util.Iterator: java.lang.Object next()>();
+
+        r7 = (java.util.regex.Pattern) $r6;
+
+        $r8 = virtualinvoke r7.<java.util.regex.Pattern: java.util.regex.Matcher matcher(java.lang.CharSequence)>(r0);
+
+        $z1 = virtualinvoke $r8.<java.util.regex.Matcher: boolean matches()>();
+
+        if $z1 == 0 goto label4;
+
+        return 1;
+
+     label4:
+        goto label3;
+
+     label5:
+        return 0;
+    }
+
+    private boolean isExcludedPath(java.lang.String)
+    {
+        org.eclipse.jetty.servlets.GzipFilter r1;
+        java.util.regex.Matcher $r7;
+        java.lang.String r0, r11;
+        boolean $z0, $z1, $z2, $z3;
+        java.util.Iterator $r5, $r9;
+        java.util.Set $r2, $r3, $r4, $r8;
+        java.lang.Object $r6, $r10;
+        java.util.regex.Pattern r12;
+
+        r1 := @this: org.eclipse.jetty.servlets.GzipFilter;
+
+        r0 := @parameter0: java.lang.String;
+
+        if r0 != null goto label1;
+
+        return 0;
+
+     label1:
+        $r2 = r1.<org.eclipse.jetty.servlets.GzipFilter: java.util.Set _excludedPaths>;
+
+        if $r2 == null goto label4;
+
+        $r8 = r1.<org.eclipse.jetty.servlets.GzipFilter: java.util.Set _excludedPaths>;
+
+        $r9 = interfaceinvoke $r8.<java.util.Set: java.util.Iterator iterator()>();
+
+     label2:
+        $z2 = interfaceinvoke $r9.<java.util.Iterator: boolean hasNext()>();
+
+        if $z2 == 0 goto label4;
+
+        $r10 = interfaceinvoke $r9.<java.util.Iterator: java.lang.Object next()>();
+
+        r11 = (java.lang.String) $r10;
+
+        $z3 = virtualinvoke r0.<java.lang.String: boolean startsWith(java.lang.String)>(r11);
+
+        if $z3 == 0 goto label3;
+
+        return 1;
+
+     label3:
+        goto label2;
+
+     label4:
+        $r3 = r1.<org.eclipse.jetty.servlets.GzipFilter: java.util.Set _excludedPathPatterns>;
+
+        if $r3 == null goto label7;
+
+        $r4 = r1.<org.eclipse.jetty.servlets.GzipFilter: java.util.Set _excludedPathPatterns>;
+
+        $r5 = interfaceinvoke $r4.<java.util.Set: java.util.Iterator iterator()>();
+
+     label5:
+        $z0 = interfaceinvoke $r5.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label7;
+
+        $r6 = interfaceinvoke $r5.<java.util.Iterator: java.lang.Object next()>();
+
+        r12 = (java.util.regex.Pattern) $r6;
+
+        $r7 = virtualinvoke r12.<java.util.regex.Pattern: java.util.regex.Matcher matcher(java.lang.CharSequence)>(r0);
+
+        $z1 = virtualinvoke $r7.<java.util.regex.Matcher: boolean matches()>();
+
+        if $z1 == 0 goto label6;
+
+        return 1;
+
+     label6:
+        goto label5;
+
+     label7:
+        return 0;
+    }
+
+    static org.eclipse.jetty.util.log.Logger access$000()
+    {
+        org.eclipse.jetty.util.log.Logger $r0;
+
+        $r0 = <org.eclipse.jetty.servlets.GzipFilter: org.eclipse.jetty.util.log.Logger LOG>;
+
+        return $r0;
+    }
+
+    static void <clinit>()
+    {
+        org.eclipse.jetty.util.log.Logger $r0;
+
+        <org.eclipse.jetty.servlets.GzipFilter: int STATE_DEFAULT> = 3;
+
+        <org.eclipse.jetty.servlets.GzipFilter: int STATE_QVALUE> = 2;
+
+        <org.eclipse.jetty.servlets.GzipFilter: int STATE_Q> = 1;
+
+        <org.eclipse.jetty.servlets.GzipFilter: int STATE_SEPARATOR> = 0;
+
+        <org.eclipse.jetty.servlets.GzipFilter: java.lang.String ETAG> = "o.e.j.s.GzipFilter.ETag";
+
+        <org.eclipse.jetty.servlets.GzipFilter: java.lang.String ETAG_DEFLATE> = "--deflate\"";
+
+        <org.eclipse.jetty.servlets.GzipFilter: java.lang.String DEFLATE> = "deflate";
+
+        <org.eclipse.jetty.servlets.GzipFilter: java.lang.String ETAG_GZIP> = "--gzip\"";
+
+        <org.eclipse.jetty.servlets.GzipFilter: java.lang.String GZIP> = "gzip";
+
+        $r0 = staticinvoke <org.eclipse.jetty.util.log.Log: org.eclipse.jetty.util.log.Logger getLogger(java.lang.Class)>(class "Lorg/eclipse/jetty/servlets/GzipFilter;");
+
+        <org.eclipse.jetty.servlets.GzipFilter: org.eclipse.jetty.util.log.Logger LOG> = $r0;
+
+        return;
+    }
+}

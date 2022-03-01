@@ -1,0 +1,1334 @@
+public class org.bouncycastle.crypto.engines.Grain128Engine extends java.lang.Object implements org.bouncycastle.crypto.StreamCipher
+{
+    private static final int STATE_SIZE;
+    private byte[] workingKey;
+    private byte[] workingIV;
+    private byte[] out;
+    private int[] lfsr;
+    private int[] nfsr;
+    private int output;
+    private int index;
+    private boolean initialised;
+
+    public void <init>()
+    {
+        org.bouncycastle.crypto.engines.Grain128Engine r0;
+
+        r0 := @this: org.bouncycastle.crypto.engines.Grain128Engine;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        r0.<org.bouncycastle.crypto.engines.Grain128Engine: int index> = 4;
+
+        r0.<org.bouncycastle.crypto.engines.Grain128Engine: boolean initialised> = 0;
+
+        return;
+    }
+
+    public java.lang.String getAlgorithmName()
+    {
+        org.bouncycastle.crypto.engines.Grain128Engine r0;
+
+        r0 := @this: org.bouncycastle.crypto.engines.Grain128Engine;
+
+        return "Grain-128";
+    }
+
+    public void init(boolean, org.bouncycastle.crypto.CipherParameters) throws java.lang.IllegalArgumentException
+    {
+        byte[] $r2, $r8, $r9, $r10, $r11, $r14, $r15, $r16, $r17, $r18, $r19, $r20;
+        org.bouncycastle.crypto.params.ParametersWithIV r1;
+        int[] $r12, $r13;
+        int $i0, $i1, $i2, $i3, $i4;
+        org.bouncycastle.crypto.engines.Grain128Engine r7;
+        org.bouncycastle.crypto.params.KeyParameter r6;
+        org.bouncycastle.crypto.CipherParameters r0, $r4, $r5;
+        boolean $z0, $z1, z2;
+        java.lang.IllegalArgumentException $r3, $r21, $r22;
+
+        r7 := @this: org.bouncycastle.crypto.engines.Grain128Engine;
+
+        z2 := @parameter0: boolean;
+
+        r0 := @parameter1: org.bouncycastle.crypto.CipherParameters;
+
+        $z0 = r0 instanceof org.bouncycastle.crypto.params.ParametersWithIV;
+
+        if $z0 != 0 goto label1;
+
+        $r22 = new java.lang.IllegalArgumentException;
+
+        specialinvoke $r22.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>("Grain-128 Init parameters must include an IV");
+
+        throw $r22;
+
+     label1:
+        r1 = (org.bouncycastle.crypto.params.ParametersWithIV) r0;
+
+        $r2 = virtualinvoke r1.<org.bouncycastle.crypto.params.ParametersWithIV: byte[] getIV()>();
+
+        if $r2 == null goto label2;
+
+        $i0 = lengthof $r2;
+
+        if $i0 == 12 goto label3;
+
+     label2:
+        $r3 = new java.lang.IllegalArgumentException;
+
+        specialinvoke $r3.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>("Grain-128  requires exactly 12 bytes of IV");
+
+        throw $r3;
+
+     label3:
+        $r4 = virtualinvoke r1.<org.bouncycastle.crypto.params.ParametersWithIV: org.bouncycastle.crypto.CipherParameters getParameters()>();
+
+        $z1 = $r4 instanceof org.bouncycastle.crypto.params.KeyParameter;
+
+        if $z1 != 0 goto label4;
+
+        $r21 = new java.lang.IllegalArgumentException;
+
+        specialinvoke $r21.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>("Grain-128 Init parameters must include a key");
+
+        throw $r21;
+
+     label4:
+        $r5 = virtualinvoke r1.<org.bouncycastle.crypto.params.ParametersWithIV: org.bouncycastle.crypto.CipherParameters getParameters()>();
+
+        r6 = (org.bouncycastle.crypto.params.KeyParameter) $r5;
+
+        $r8 = virtualinvoke r6.<org.bouncycastle.crypto.params.KeyParameter: byte[] getKey()>();
+
+        $i1 = lengthof $r8;
+
+        $r9 = newarray (byte)[$i1];
+
+        r7.<org.bouncycastle.crypto.engines.Grain128Engine: byte[] workingIV> = $r9;
+
+        $r10 = virtualinvoke r6.<org.bouncycastle.crypto.params.KeyParameter: byte[] getKey()>();
+
+        $i2 = lengthof $r10;
+
+        $r11 = newarray (byte)[$i2];
+
+        r7.<org.bouncycastle.crypto.engines.Grain128Engine: byte[] workingKey> = $r11;
+
+        $r12 = newarray (int)[4];
+
+        r7.<org.bouncycastle.crypto.engines.Grain128Engine: int[] lfsr> = $r12;
+
+        $r13 = newarray (int)[4];
+
+        r7.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr> = $r13;
+
+        $r14 = newarray (byte)[4];
+
+        r7.<org.bouncycastle.crypto.engines.Grain128Engine: byte[] out> = $r14;
+
+        $r15 = r7.<org.bouncycastle.crypto.engines.Grain128Engine: byte[] workingIV>;
+
+        $i3 = lengthof $r2;
+
+        staticinvoke <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)>($r2, 0, $r15, 0, $i3);
+
+        $r16 = virtualinvoke r6.<org.bouncycastle.crypto.params.KeyParameter: byte[] getKey()>();
+
+        $r17 = r7.<org.bouncycastle.crypto.engines.Grain128Engine: byte[] workingKey>;
+
+        $r18 = virtualinvoke r6.<org.bouncycastle.crypto.params.KeyParameter: byte[] getKey()>();
+
+        $i4 = lengthof $r18;
+
+        staticinvoke <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)>($r16, 0, $r17, 0, $i4);
+
+        $r20 = r7.<org.bouncycastle.crypto.engines.Grain128Engine: byte[] workingKey>;
+
+        $r19 = r7.<org.bouncycastle.crypto.engines.Grain128Engine: byte[] workingIV>;
+
+        specialinvoke r7.<org.bouncycastle.crypto.engines.Grain128Engine: void setKey(byte[],byte[])>($r20, $r19);
+
+        specialinvoke r7.<org.bouncycastle.crypto.engines.Grain128Engine: void initGrain()>();
+
+        return;
+    }
+
+    private void initGrain()
+    {
+        int[] $r1, $r2, $r3, $r4, $r5;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, i9;
+        org.bouncycastle.crypto.engines.Grain128Engine r0;
+
+        r0 := @this: org.bouncycastle.crypto.engines.Grain128Engine;
+
+        i9 = 0;
+
+     label1:
+        if i9 >= 8 goto label2;
+
+        $i0 = specialinvoke r0.<org.bouncycastle.crypto.engines.Grain128Engine: int getOutput()>();
+
+        r0.<org.bouncycastle.crypto.engines.Grain128Engine: int output> = $i0;
+
+        $r1 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i1 = specialinvoke r0.<org.bouncycastle.crypto.engines.Grain128Engine: int getOutputNFSR()>();
+
+        $r2 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] lfsr>;
+
+        $i2 = $r2[0];
+
+        $i4 = $i1 ^ $i2;
+
+        $i3 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int output>;
+
+        $i5 = $i4 ^ $i3;
+
+        $r3 = specialinvoke r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] shift(int[],int)>($r1, $i5);
+
+        r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr> = $r3;
+
+        $r4 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] lfsr>;
+
+        $i6 = specialinvoke r0.<org.bouncycastle.crypto.engines.Grain128Engine: int getOutputLFSR()>();
+
+        $i7 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int output>;
+
+        $i8 = $i6 ^ $i7;
+
+        $r5 = specialinvoke r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] shift(int[],int)>($r4, $i8);
+
+        r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] lfsr> = $r5;
+
+        i9 = i9 + 1;
+
+        goto label1;
+
+     label2:
+        r0.<org.bouncycastle.crypto.engines.Grain128Engine: boolean initialised> = 1;
+
+        return;
+    }
+
+    private int getOutputNFSR()
+    {
+        int[] $r1, $r2, $r3, $r4, $r5, $r6, $r7, $r8, $r9, $r10, $r11, $r12, $r13, $r14, $r15, $r16, $r17, $r18, $r19, $r20, $r21, $r22, $r23, $r24, $r25, $r26, $r27, $r28, $r29, $r30, $r31, $r32, $r33, $r34, $r35, $r36;
+        int i0, $i1, $i2, $i3, $i4, i5, $i6, $i7, $i8, $i9, i10, $i11, $i12, $i13, $i14, i15, $i16, $i17, $i18, $i19, i20, $i21, $i22, $i23, $i24, i25, $i26, $i27, $i28, $i29, i30, $i31, $i32, $i33, $i34, i35, $i36, $i37, $i38, $i39, i40, $i41, $i42, $i43, $i44, i45, $i46, $i47, $i48, $i49, i50, $i51, $i52, $i53, $i54, i55, $i56, $i57, $i58, $i59, i60, $i61, $i62, $i63, $i64, i65, $i66, $i67, $i68, $i69, i70, $i71, $i72, $i73, $i74, i75, $i76, $i77, $i78, $i79, i80, $i81, $i82, $i83, $i84, i85, i86, $i87, $i88, $i89, $i90, $i91, $i92, $i93, $i94, $i95, $i96, $i97, $i98, $i99, $i100, $i101, $i102, $i103, $i104;
+        org.bouncycastle.crypto.engines.Grain128Engine r0;
+
+        r0 := @this: org.bouncycastle.crypto.engines.Grain128Engine;
+
+        $r1 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        i0 = $r1[0];
+
+        $r2 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i1 = $r2[0];
+
+        $i4 = $i1 >>> 3;
+
+        $r3 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i2 = $r3[1];
+
+        $i3 = $i2 << 29;
+
+        i5 = $i4 | $i3;
+
+        $r4 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i6 = $r4[0];
+
+        $i9 = $i6 >>> 11;
+
+        $r5 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i7 = $r5[1];
+
+        $i8 = $i7 << 21;
+
+        i10 = $i9 | $i8;
+
+        $r6 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i11 = $r6[0];
+
+        $i14 = $i11 >>> 13;
+
+        $r7 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i12 = $r7[1];
+
+        $i13 = $i12 << 19;
+
+        i15 = $i14 | $i13;
+
+        $r8 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i16 = $r8[0];
+
+        $i19 = $i16 >>> 17;
+
+        $r9 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i17 = $r9[1];
+
+        $i18 = $i17 << 15;
+
+        i20 = $i19 | $i18;
+
+        $r10 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i21 = $r10[0];
+
+        $i24 = $i21 >>> 18;
+
+        $r11 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i22 = $r11[1];
+
+        $i23 = $i22 << 14;
+
+        i25 = $i24 | $i23;
+
+        $r12 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i26 = $r12[0];
+
+        $i29 = $i26 >>> 26;
+
+        $r13 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i27 = $r13[1];
+
+        $i28 = $i27 << 6;
+
+        i30 = $i29 | $i28;
+
+        $r14 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i31 = $r14[0];
+
+        $i34 = $i31 >>> 27;
+
+        $r15 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i32 = $r15[1];
+
+        $i33 = $i32 << 5;
+
+        i35 = $i34 | $i33;
+
+        $r16 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i36 = $r16[1];
+
+        $i39 = $i36 >>> 8;
+
+        $r17 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i37 = $r17[2];
+
+        $i38 = $i37 << 24;
+
+        i40 = $i39 | $i38;
+
+        $r18 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i41 = $r18[1];
+
+        $i44 = $i41 >>> 16;
+
+        $r19 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i42 = $r19[2];
+
+        $i43 = $i42 << 16;
+
+        i45 = $i44 | $i43;
+
+        $r20 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i46 = $r20[1];
+
+        $i49 = $i46 >>> 24;
+
+        $r21 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i47 = $r21[2];
+
+        $i48 = $i47 << 8;
+
+        i50 = $i49 | $i48;
+
+        $r22 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i51 = $r22[1];
+
+        $i54 = $i51 >>> 27;
+
+        $r23 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i52 = $r23[2];
+
+        $i53 = $i52 << 5;
+
+        i55 = $i54 | $i53;
+
+        $r24 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i56 = $r24[1];
+
+        $i59 = $i56 >>> 29;
+
+        $r25 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i57 = $r25[2];
+
+        $i58 = $i57 << 3;
+
+        i60 = $i59 | $i58;
+
+        $r26 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i61 = $r26[2];
+
+        $i64 = $i61 >>> 1;
+
+        $r27 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i62 = $r27[3];
+
+        $i63 = $i62 << 31;
+
+        i65 = $i64 | $i63;
+
+        $r28 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i66 = $r28[2];
+
+        $i69 = $i66 >>> 3;
+
+        $r29 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i67 = $r29[3];
+
+        $i68 = $i67 << 29;
+
+        i70 = $i69 | $i68;
+
+        $r30 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i71 = $r30[2];
+
+        $i74 = $i71 >>> 4;
+
+        $r31 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i72 = $r31[3];
+
+        $i73 = $i72 << 28;
+
+        i75 = $i74 | $i73;
+
+        $r32 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i76 = $r32[2];
+
+        $i79 = $i76 >>> 20;
+
+        $r33 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i77 = $r33[3];
+
+        $i78 = $i77 << 12;
+
+        i80 = $i79 | $i78;
+
+        $r34 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i81 = $r34[2];
+
+        $i84 = $i81 >>> 27;
+
+        $r35 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i82 = $r35[3];
+
+        $i83 = $i82 << 5;
+
+        i85 = $i84 | $i83;
+
+        $r36 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        i86 = $r36[3];
+
+        $i87 = i0 ^ i30;
+
+        $i88 = $i87 ^ i50;
+
+        $i89 = $i88 ^ i85;
+
+        $i91 = $i89 ^ i86;
+
+        $i90 = i5 & i70;
+
+        $i93 = $i91 ^ $i90;
+
+        $i92 = i10 & i15;
+
+        $i95 = $i93 ^ $i92;
+
+        $i94 = i20 & i25;
+
+        $i97 = $i95 ^ $i94;
+
+        $i96 = i35 & i55;
+
+        $i99 = $i97 ^ $i96;
+
+        $i98 = i40 & i45;
+
+        $i101 = $i99 ^ $i98;
+
+        $i100 = i60 & i65;
+
+        $i103 = $i101 ^ $i100;
+
+        $i102 = i75 & i80;
+
+        $i104 = $i103 ^ $i102;
+
+        return $i104;
+    }
+
+    private int getOutputLFSR()
+    {
+        int[] $r1, $r2, $r3, $r4, $r5, $r6, $r7, $r8, $r9, $r10;
+        org.bouncycastle.crypto.engines.Grain128Engine r0;
+        int i0, $i1, $i2, $i3, $i4, i5, $i6, $i7, $i8, $i9, i10, $i11, $i12, $i13, $i14, i15, $i16, $i17, $i18, $i19, i20, i21, $i22, $i23, $i24, $i25, $i26;
+
+        r0 := @this: org.bouncycastle.crypto.engines.Grain128Engine;
+
+        $r1 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] lfsr>;
+
+        i0 = $r1[0];
+
+        $r2 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] lfsr>;
+
+        $i1 = $r2[0];
+
+        $i4 = $i1 >>> 7;
+
+        $r3 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] lfsr>;
+
+        $i2 = $r3[1];
+
+        $i3 = $i2 << 25;
+
+        i5 = $i4 | $i3;
+
+        $r4 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] lfsr>;
+
+        $i6 = $r4[1];
+
+        $i9 = $i6 >>> 6;
+
+        $r5 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] lfsr>;
+
+        $i7 = $r5[2];
+
+        $i8 = $i7 << 26;
+
+        i10 = $i9 | $i8;
+
+        $r6 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] lfsr>;
+
+        $i11 = $r6[2];
+
+        $i14 = $i11 >>> 6;
+
+        $r7 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] lfsr>;
+
+        $i12 = $r7[3];
+
+        $i13 = $i12 << 26;
+
+        i15 = $i14 | $i13;
+
+        $r8 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] lfsr>;
+
+        $i16 = $r8[2];
+
+        $i19 = $i16 >>> 17;
+
+        $r9 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] lfsr>;
+
+        $i17 = $r9[3];
+
+        $i18 = $i17 << 15;
+
+        i20 = $i19 | $i18;
+
+        $r10 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] lfsr>;
+
+        i21 = $r10[3];
+
+        $i22 = i0 ^ i5;
+
+        $i23 = $i22 ^ i10;
+
+        $i24 = $i23 ^ i15;
+
+        $i25 = $i24 ^ i20;
+
+        $i26 = $i25 ^ i21;
+
+        return $i26;
+    }
+
+    private int getOutput()
+    {
+        int[] $r1, $r2, $r3, $r4, $r5, $r6, $r7, $r8, $r9, $r10, $r11, $r12, $r13, $r14, $r15, $r16, $r17, $r18, $r19, $r20, $r21, $r22, $r23, $r24, $r25, $r26, $r27, $r28, $r29, $r30, $r31, $r32, $r33;
+        int $i0, $i1, $i2, $i3, i4, $i5, $i6, $i7, $i8, i9, $i10, $i11, $i12, $i13, i14, $i15, $i16, $i17, $i18, i19, $i20, $i21, $i22, $i23, i24, i25, $i26, $i27, $i28, $i29, i30, $i31, $i32, $i33, $i34, i35, $i36, $i37, $i38, $i39, i40, $i41, $i42, $i43, $i44, i45, $i46, $i47, $i48, $i49, i50, $i51, $i52, $i53, $i54, i55, $i56, $i57, $i58, $i59, i60, $i61, $i62, $i63, $i64, i65, $i66, $i67, $i68, $i69, i70, $i71, $i72, $i73, $i74, i75, $i76, $i77, $i78, $i79, i80, $i81, $i82, $i83, $i84, $i85, $i86, $i87, $i88, $i89, $i90, $i91, $i92, $i93, $i94, $i95, $i96, $i97, $i98;
+        org.bouncycastle.crypto.engines.Grain128Engine r0;
+
+        r0 := @this: org.bouncycastle.crypto.engines.Grain128Engine;
+
+        $r1 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i0 = $r1[0];
+
+        $i3 = $i0 >>> 2;
+
+        $r2 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i1 = $r2[1];
+
+        $i2 = $i1 << 30;
+
+        i4 = $i3 | $i2;
+
+        $r3 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i5 = $r3[0];
+
+        $i8 = $i5 >>> 12;
+
+        $r4 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i6 = $r4[1];
+
+        $i7 = $i6 << 20;
+
+        i9 = $i8 | $i7;
+
+        $r5 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i10 = $r5[0];
+
+        $i13 = $i10 >>> 15;
+
+        $r6 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i11 = $r6[1];
+
+        $i12 = $i11 << 17;
+
+        i14 = $i13 | $i12;
+
+        $r7 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i15 = $r7[1];
+
+        $i18 = $i15 >>> 4;
+
+        $r8 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i16 = $r8[2];
+
+        $i17 = $i16 << 28;
+
+        i19 = $i18 | $i17;
+
+        $r9 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i20 = $r9[1];
+
+        $i23 = $i20 >>> 13;
+
+        $r10 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i21 = $r10[2];
+
+        $i22 = $i21 << 19;
+
+        i24 = $i23 | $i22;
+
+        $r11 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        i25 = $r11[2];
+
+        $r12 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i26 = $r12[2];
+
+        $i29 = $i26 >>> 9;
+
+        $r13 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i27 = $r13[3];
+
+        $i28 = $i27 << 23;
+
+        i30 = $i29 | $i28;
+
+        $r14 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i31 = $r14[2];
+
+        $i34 = $i31 >>> 25;
+
+        $r15 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i32 = $r15[3];
+
+        $i33 = $i32 << 7;
+
+        i35 = $i34 | $i33;
+
+        $r16 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i36 = $r16[2];
+
+        $i39 = $i36 >>> 31;
+
+        $r17 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i37 = $r17[3];
+
+        $i38 = $i37 << 1;
+
+        i40 = $i39 | $i38;
+
+        $r18 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] lfsr>;
+
+        $i41 = $r18[0];
+
+        $i44 = $i41 >>> 8;
+
+        $r19 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] lfsr>;
+
+        $i42 = $r19[1];
+
+        $i43 = $i42 << 24;
+
+        i45 = $i44 | $i43;
+
+        $r20 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] lfsr>;
+
+        $i46 = $r20[0];
+
+        $i49 = $i46 >>> 13;
+
+        $r21 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] lfsr>;
+
+        $i47 = $r21[1];
+
+        $i48 = $i47 << 19;
+
+        i50 = $i49 | $i48;
+
+        $r22 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] lfsr>;
+
+        $i51 = $r22[0];
+
+        $i54 = $i51 >>> 20;
+
+        $r23 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] lfsr>;
+
+        $i52 = $r23[1];
+
+        $i53 = $i52 << 12;
+
+        i55 = $i54 | $i53;
+
+        $r24 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] lfsr>;
+
+        $i56 = $r24[1];
+
+        $i59 = $i56 >>> 10;
+
+        $r25 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] lfsr>;
+
+        $i57 = $r25[2];
+
+        $i58 = $i57 << 22;
+
+        i60 = $i59 | $i58;
+
+        $r26 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] lfsr>;
+
+        $i61 = $r26[1];
+
+        $i64 = $i61 >>> 28;
+
+        $r27 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] lfsr>;
+
+        $i62 = $r27[2];
+
+        $i63 = $i62 << 4;
+
+        i65 = $i64 | $i63;
+
+        $r28 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] lfsr>;
+
+        $i66 = $r28[2];
+
+        $i69 = $i66 >>> 15;
+
+        $r29 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] lfsr>;
+
+        $i67 = $r29[3];
+
+        $i68 = $i67 << 17;
+
+        i70 = $i69 | $i68;
+
+        $r30 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] lfsr>;
+
+        $i71 = $r30[2];
+
+        $i74 = $i71 >>> 29;
+
+        $r31 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] lfsr>;
+
+        $i72 = $r31[3];
+
+        $i73 = $i72 << 3;
+
+        i75 = $i74 | $i73;
+
+        $r32 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] lfsr>;
+
+        $i76 = $r32[2];
+
+        $i79 = $i76 >>> 31;
+
+        $r33 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] lfsr>;
+
+        $i77 = $r33[3];
+
+        $i78 = $i77 << 1;
+
+        i80 = $i79 | $i78;
+
+        $i82 = i9 & i45;
+
+        $i81 = i50 & i55;
+
+        $i84 = $i82 ^ $i81;
+
+        $i83 = i40 & i60;
+
+        $i86 = $i84 ^ $i83;
+
+        $i85 = i65 & i70;
+
+        $i89 = $i86 ^ $i85;
+
+        $i87 = i9 & i40;
+
+        $i88 = $i87 & i80;
+
+        $i90 = $i89 ^ $i88;
+
+        $i91 = $i90 ^ i75;
+
+        $i92 = $i91 ^ i4;
+
+        $i93 = $i92 ^ i14;
+
+        $i94 = $i93 ^ i19;
+
+        $i95 = $i94 ^ i24;
+
+        $i96 = $i95 ^ i25;
+
+        $i97 = $i96 ^ i30;
+
+        $i98 = $i97 ^ i35;
+
+        return $i98;
+    }
+
+    private int[] shift(int[], int)
+    {
+        int[] r0;
+        int $i0, $i1, $i2, i3;
+        org.bouncycastle.crypto.engines.Grain128Engine r1;
+
+        r1 := @this: org.bouncycastle.crypto.engines.Grain128Engine;
+
+        r0 := @parameter0: int[];
+
+        i3 := @parameter1: int;
+
+        $i0 = r0[1];
+
+        r0[0] = $i0;
+
+        $i1 = r0[2];
+
+        r0[1] = $i1;
+
+        $i2 = r0[3];
+
+        r0[2] = $i2;
+
+        r0[3] = i3;
+
+        return r0;
+    }
+
+    private void setKey(byte[], byte[])
+    {
+        byte[] r0, r2, $r4, $r5, $r6, $r7, $r9, $r10, $r11, $r12;
+        byte $b2, $b4, $b9, $b13, $b18, $b20, $b25, $b29;
+        int[] $r3, $r8, $r13;
+        org.bouncycastle.crypto.engines.Grain128Engine r1;
+        short $s14, $s30, $s40, $s47;
+        int $i0, $i1, $i3, $i5, $i6, $i7, $i8, $i10, $i11, $i12, $i15, $i16, $i17, $i19, $i21, $i22, $i23, $i24, $i26, $i27, $i28, $i31, $i32, i33, i34, $i35, $i36, $i37, $i39, $i41, $i42, $i43, $i44, $i46, $i48;
+
+        r1 := @this: org.bouncycastle.crypto.engines.Grain128Engine;
+
+        r2 := @parameter0: byte[];
+
+        r0 := @parameter1: byte[];
+
+        r0[12] = -1;
+
+        r0[13] = -1;
+
+        r0[14] = -1;
+
+        r0[15] = -1;
+
+        r1.<org.bouncycastle.crypto.engines.Grain128Engine: byte[] workingKey> = r2;
+
+        r1.<org.bouncycastle.crypto.engines.Grain128Engine: byte[] workingIV> = r0;
+
+        i33 = 0;
+
+        i34 = 0;
+
+     label1:
+        $r3 = r1.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i0 = lengthof $r3;
+
+        if i34 >= $i0 goto label2;
+
+        $r8 = r1.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $r4 = r1.<org.bouncycastle.crypto.engines.Grain128Engine: byte[] workingKey>;
+
+        $i1 = i33 + 3;
+
+        $b2 = $r4[$i1];
+
+        $i35 = (int) $b2;
+
+        $i7 = $i35 << 24;
+
+        $r5 = r1.<org.bouncycastle.crypto.engines.Grain128Engine: byte[] workingKey>;
+
+        $i3 = i33 + 2;
+
+        $b4 = $r5[$i3];
+
+        $i36 = (int) $b4;
+
+        $i5 = $i36 << 16;
+
+        $i6 = $i5 & 16711680;
+
+        $i12 = $i7 | $i6;
+
+        $r6 = r1.<org.bouncycastle.crypto.engines.Grain128Engine: byte[] workingKey>;
+
+        $i8 = i33 + 1;
+
+        $b9 = $r6[$i8];
+
+        $i37 = (int) $b9;
+
+        $i10 = $i37 << 8;
+
+        $i39 = (int) 65280;
+
+        $i11 = $i10 & $i39;
+
+        $i15 = $i12 | $i11;
+
+        $r7 = r1.<org.bouncycastle.crypto.engines.Grain128Engine: byte[] workingKey>;
+
+        $b13 = $r7[i33];
+
+        $s40 = (short) $b13;
+
+        $s14 = $s40 & 255;
+
+        $i41 = (int) $s14;
+
+        $i16 = $i15 | $i41;
+
+        $r8[i34] = $i16;
+
+        $r13 = r1.<org.bouncycastle.crypto.engines.Grain128Engine: int[] lfsr>;
+
+        $r9 = r1.<org.bouncycastle.crypto.engines.Grain128Engine: byte[] workingIV>;
+
+        $i17 = i33 + 3;
+
+        $b18 = $r9[$i17];
+
+        $i42 = (int) $b18;
+
+        $i23 = $i42 << 24;
+
+        $r10 = r1.<org.bouncycastle.crypto.engines.Grain128Engine: byte[] workingIV>;
+
+        $i19 = i33 + 2;
+
+        $b20 = $r10[$i19];
+
+        $i43 = (int) $b20;
+
+        $i21 = $i43 << 16;
+
+        $i22 = $i21 & 16711680;
+
+        $i28 = $i23 | $i22;
+
+        $r11 = r1.<org.bouncycastle.crypto.engines.Grain128Engine: byte[] workingIV>;
+
+        $i24 = i33 + 1;
+
+        $b25 = $r11[$i24];
+
+        $i44 = (int) $b25;
+
+        $i26 = $i44 << 8;
+
+        $i46 = (int) 65280;
+
+        $i27 = $i26 & $i46;
+
+        $i31 = $i28 | $i27;
+
+        $r12 = r1.<org.bouncycastle.crypto.engines.Grain128Engine: byte[] workingIV>;
+
+        $b29 = $r12[i33];
+
+        $s47 = (short) $b29;
+
+        $s30 = $s47 & 255;
+
+        $i48 = (int) $s30;
+
+        $i32 = $i31 | $i48;
+
+        $r13[i34] = $i32;
+
+        i33 = i33 + 4;
+
+        i34 = i34 + 1;
+
+        goto label1;
+
+     label2:
+        return;
+    }
+
+    public void processBytes(byte[], int, int, byte[], int) throws org.bouncycastle.crypto.DataLengthException
+    {
+        byte[] r1, r2;
+        java.lang.IllegalStateException $r5;
+        org.bouncycastle.crypto.DataLengthException $r3, $r4;
+        byte $b9, $b10, $b11, $b12;
+        int i0, i1, $i2, $i3, i4, $i5, $i6, $i7, $i8, i13;
+        org.bouncycastle.crypto.engines.Grain128Engine r0;
+        java.lang.String $r7, $r10;
+        boolean $z0;
+        java.lang.StringBuilder $r6, $r8, $r9;
+
+        r0 := @this: org.bouncycastle.crypto.engines.Grain128Engine;
+
+        r1 := @parameter0: byte[];
+
+        i0 := @parameter1: int;
+
+        i1 := @parameter2: int;
+
+        r2 := @parameter3: byte[];
+
+        i4 := @parameter4: int;
+
+        $z0 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: boolean initialised>;
+
+        if $z0 != 0 goto label1;
+
+        $r5 = new java.lang.IllegalStateException;
+
+        $r6 = new java.lang.StringBuilder;
+
+        specialinvoke $r6.<java.lang.StringBuilder: void <init>()>();
+
+        $r7 = virtualinvoke r0.<org.bouncycastle.crypto.engines.Grain128Engine: java.lang.String getAlgorithmName()>();
+
+        $r8 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r7);
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" not initialised");
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r5.<java.lang.IllegalStateException: void <init>(java.lang.String)>($r10);
+
+        throw $r5;
+
+     label1:
+        $i3 = i0 + i1;
+
+        $i2 = lengthof r1;
+
+        if $i3 <= $i2 goto label2;
+
+        $r4 = new org.bouncycastle.crypto.DataLengthException;
+
+        specialinvoke $r4.<org.bouncycastle.crypto.DataLengthException: void <init>(java.lang.String)>("input buffer too short");
+
+        throw $r4;
+
+     label2:
+        $i6 = i4 + i1;
+
+        $i5 = lengthof r2;
+
+        if $i6 <= $i5 goto label3;
+
+        $r3 = new org.bouncycastle.crypto.DataLengthException;
+
+        specialinvoke $r3.<org.bouncycastle.crypto.DataLengthException: void <init>(java.lang.String)>("output buffer too short");
+
+        throw $r3;
+
+     label3:
+        i13 = 0;
+
+     label4:
+        if i13 >= i1 goto label5;
+
+        $i8 = i4 + i13;
+
+        $i7 = i0 + i13;
+
+        $b9 = r1[$i7];
+
+        $b10 = specialinvoke r0.<org.bouncycastle.crypto.engines.Grain128Engine: byte getKeyStream()>();
+
+        $b11 = $b9 ^ $b10;
+
+        $b12 = (byte) $b11;
+
+        r2[$i8] = $b12;
+
+        i13 = i13 + 1;
+
+        goto label4;
+
+     label5:
+        return;
+    }
+
+    public void reset()
+    {
+        org.bouncycastle.crypto.engines.Grain128Engine r0;
+        byte[] $r1, $r2;
+
+        r0 := @this: org.bouncycastle.crypto.engines.Grain128Engine;
+
+        r0.<org.bouncycastle.crypto.engines.Grain128Engine: int index> = 4;
+
+        $r2 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: byte[] workingKey>;
+
+        $r1 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: byte[] workingIV>;
+
+        specialinvoke r0.<org.bouncycastle.crypto.engines.Grain128Engine: void setKey(byte[],byte[])>($r2, $r1);
+
+        specialinvoke r0.<org.bouncycastle.crypto.engines.Grain128Engine: void initGrain()>();
+
+        return;
+    }
+
+    private void oneRound()
+    {
+        byte[] $r1, $r2, $r3, $r4;
+        byte $b2, $b5, $b8, $b11;
+        int[] $r5, $r6, $r7, $r8, $r9;
+        int $i0, $i1, $i3, $i4, $i6, $i7, $i9, $i10, $i12, $i13, $i14, $i15;
+        org.bouncycastle.crypto.engines.Grain128Engine r0;
+
+        r0 := @this: org.bouncycastle.crypto.engines.Grain128Engine;
+
+        $i0 = specialinvoke r0.<org.bouncycastle.crypto.engines.Grain128Engine: int getOutput()>();
+
+        r0.<org.bouncycastle.crypto.engines.Grain128Engine: int output> = $i0;
+
+        $r1 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: byte[] out>;
+
+        $i1 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int output>;
+
+        $b2 = (byte) $i1;
+
+        $r1[0] = $b2;
+
+        $r2 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: byte[] out>;
+
+        $i3 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int output>;
+
+        $i4 = $i3 >> 8;
+
+        $b5 = (byte) $i4;
+
+        $r2[1] = $b5;
+
+        $r3 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: byte[] out>;
+
+        $i6 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int output>;
+
+        $i7 = $i6 >> 16;
+
+        $b8 = (byte) $i7;
+
+        $r3[2] = $b8;
+
+        $r4 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: byte[] out>;
+
+        $i9 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int output>;
+
+        $i10 = $i9 >> 24;
+
+        $b11 = (byte) $i10;
+
+        $r4[3] = $b11;
+
+        $r5 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr>;
+
+        $i12 = specialinvoke r0.<org.bouncycastle.crypto.engines.Grain128Engine: int getOutputNFSR()>();
+
+        $r6 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] lfsr>;
+
+        $i13 = $r6[0];
+
+        $i14 = $i12 ^ $i13;
+
+        $r7 = specialinvoke r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] shift(int[],int)>($r5, $i14);
+
+        r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] nfsr> = $r7;
+
+        $r8 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] lfsr>;
+
+        $i15 = specialinvoke r0.<org.bouncycastle.crypto.engines.Grain128Engine: int getOutputLFSR()>();
+
+        $r9 = specialinvoke r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] shift(int[],int)>($r8, $i15);
+
+        r0.<org.bouncycastle.crypto.engines.Grain128Engine: int[] lfsr> = $r9;
+
+        return;
+    }
+
+    public byte returnByte(byte)
+    {
+        java.lang.IllegalStateException $r1;
+        byte b0, $b1, $b2, $b3;
+        org.bouncycastle.crypto.engines.Grain128Engine r0;
+        java.lang.StringBuilder $r2, $r4, $r5;
+        java.lang.String $r3, $r6;
+        boolean $z0;
+
+        r0 := @this: org.bouncycastle.crypto.engines.Grain128Engine;
+
+        b0 := @parameter0: byte;
+
+        $z0 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: boolean initialised>;
+
+        if $z0 != 0 goto label1;
+
+        $r1 = new java.lang.IllegalStateException;
+
+        $r2 = new java.lang.StringBuilder;
+
+        specialinvoke $r2.<java.lang.StringBuilder: void <init>()>();
+
+        $r3 = virtualinvoke r0.<org.bouncycastle.crypto.engines.Grain128Engine: java.lang.String getAlgorithmName()>();
+
+        $r4 = virtualinvoke $r2.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r3);
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" not initialised");
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r1.<java.lang.IllegalStateException: void <init>(java.lang.String)>($r6);
+
+        throw $r1;
+
+     label1:
+        $b1 = specialinvoke r0.<org.bouncycastle.crypto.engines.Grain128Engine: byte getKeyStream()>();
+
+        $b2 = b0 ^ $b1;
+
+        $b3 = (byte) $b2;
+
+        return $b3;
+    }
+
+    private byte getKeyStream()
+    {
+        byte[] $r1;
+        byte $b3;
+        int $i0, $i1, $i2;
+        org.bouncycastle.crypto.engines.Grain128Engine r0;
+
+        r0 := @this: org.bouncycastle.crypto.engines.Grain128Engine;
+
+        $i0 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int index>;
+
+        if $i0 <= 3 goto label1;
+
+        specialinvoke r0.<org.bouncycastle.crypto.engines.Grain128Engine: void oneRound()>();
+
+        r0.<org.bouncycastle.crypto.engines.Grain128Engine: int index> = 0;
+
+     label1:
+        $r1 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: byte[] out>;
+
+        $i1 = r0.<org.bouncycastle.crypto.engines.Grain128Engine: int index>;
+
+        $i2 = $i1 + 1;
+
+        r0.<org.bouncycastle.crypto.engines.Grain128Engine: int index> = $i2;
+
+        $b3 = $r1[$i1];
+
+        return $b3;
+    }
+
+    public static void <clinit>()
+    {
+        <org.bouncycastle.crypto.engines.Grain128Engine: int STATE_SIZE> = 4;
+
+        return;
+    }
+}

@@ -1,0 +1,1241 @@
+public class org.eclipse.jetty.websocket.WebSocketParserRFC6455 extends java.lang.Object implements org.eclipse.jetty.websocket.WebSocketParser
+{
+    private static final org.eclipse.jetty.util.log.Logger LOG;
+    private final org.eclipse.jetty.websocket.WebSocketBuffers _buffers;
+    private final org.eclipse.jetty.io.EndPoint _endp;
+    private final org.eclipse.jetty.websocket.WebSocketParser$FrameHandler _handler;
+    private final boolean _shouldBeMasked;
+    private org.eclipse.jetty.websocket.WebSocketParserRFC6455$State _state;
+    private org.eclipse.jetty.io.Buffer _buffer;
+    private byte _flags;
+    private byte _opcode;
+    private int _bytesNeeded;
+    private long _length;
+    private boolean _masked;
+    private final byte[] _mask;
+    private int _m;
+    private boolean _skip;
+    private boolean _fragmentFrames;
+
+    public void <init>(org.eclipse.jetty.websocket.WebSocketBuffers, org.eclipse.jetty.io.EndPoint, org.eclipse.jetty.websocket.WebSocketParser$FrameHandler, boolean)
+    {
+        org.eclipse.jetty.websocket.WebSocketBuffers r2;
+        org.eclipse.jetty.websocket.WebSocketParserRFC6455 r0;
+        byte[] $r1;
+        org.eclipse.jetty.websocket.WebSocketParser$FrameHandler r4;
+        org.eclipse.jetty.io.EndPoint r3;
+        org.eclipse.jetty.websocket.WebSocketParserRFC6455$State $r5;
+        boolean z0;
+
+        r0 := @this: org.eclipse.jetty.websocket.WebSocketParserRFC6455;
+
+        r2 := @parameter0: org.eclipse.jetty.websocket.WebSocketBuffers;
+
+        r3 := @parameter1: org.eclipse.jetty.io.EndPoint;
+
+        r4 := @parameter2: org.eclipse.jetty.websocket.WebSocketParser$FrameHandler;
+
+        z0 := @parameter3: boolean;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        $r1 = newarray (byte)[4];
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: byte[] _mask> = $r1;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: boolean _fragmentFrames> = 1;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketBuffers _buffers> = r2;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.EndPoint _endp> = r3;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketParser$FrameHandler _handler> = r4;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: boolean _shouldBeMasked> = z0;
+
+        $r5 = <org.eclipse.jetty.websocket.WebSocketParserRFC6455$State: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State START>;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State _state> = $r5;
+
+        return;
+    }
+
+    public boolean isFakeFragments()
+    {
+        org.eclipse.jetty.websocket.WebSocketParserRFC6455 r0;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.websocket.WebSocketParserRFC6455;
+
+        $z0 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: boolean _fragmentFrames>;
+
+        return $z0;
+    }
+
+    public void setFakeFragments(boolean)
+    {
+        org.eclipse.jetty.websocket.WebSocketParserRFC6455 r0;
+        boolean z0;
+
+        r0 := @this: org.eclipse.jetty.websocket.WebSocketParserRFC6455;
+
+        z0 := @parameter0: boolean;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: boolean _fragmentFrames> = z0;
+
+        return;
+    }
+
+    public boolean isBufferEmpty()
+    {
+        org.eclipse.jetty.websocket.WebSocketParserRFC6455 r0;
+        int $i0;
+        org.eclipse.jetty.io.Buffer $r1, $r2;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.websocket.WebSocketParserRFC6455;
+
+        $r1 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer>;
+
+        if $r1 == null goto label1;
+
+        $r2 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i0 = interfaceinvoke $r2.<org.eclipse.jetty.io.Buffer: int length()>();
+
+        if $i0 != 0 goto label2;
+
+     label1:
+        $z0 = 1;
+
+        goto label3;
+
+     label2:
+        $z0 = 0;
+
+     label3:
+        return $z0;
+    }
+
+    public org.eclipse.jetty.io.Buffer getBuffer()
+    {
+        org.eclipse.jetty.websocket.WebSocketParserRFC6455 r0;
+        org.eclipse.jetty.io.Buffer $r1;
+
+        r0 := @this: org.eclipse.jetty.websocket.WebSocketParserRFC6455;
+
+        $r1 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer>;
+
+        return $r1;
+    }
+
+    public int parseNext()
+    {
+        byte[] $r10, $r11, $r12, $r24, $r86, $r87, $r88;
+        byte $b2, $b3, $b7, $b9, $b10, $b11, $b23, $b36, $b40, $b51, $b55, $b57, $b58, $b60, $b61, $b62, $b63, $b66, $b67, $b68, $b69, $b81, $b83, $b84, $b88, $b90, $b91, $b92;
+        java.lang.StringBuilder $r33, $r34, $r35, $r37, $r44, $r45, $r46, $r48, $r56, $r58, $r71, $r73, $r74, $r75, $r76, $r78, $r112, $r114, $r115, $r116;
+        org.eclipse.jetty.websocket.WebSocketBuffers $r91;
+        java.lang.Object[] $r60;
+        long $l20, $l24, $l26, $l27, $l28, $l31, $l33, $l35, $l38, $l41, $l43, $l44, $l45, $l48, $l50, $l53, $l59;
+        short $s25, $s42, $s56, $s82, $s109, $s120, $s124, $s128;
+        java.io.IOException $r93;
+        int[] $r20;
+        org.eclipse.jetty.io.Buffer $r1, $r3, $r6, $r7, $r13, $r14, $r21, $r22, $r25, $r28, $r29, $r36, $r39, $r40, $r47, $r50, $r53, $r63, $r64, $r66, $r68, $r77, $r82, $r83, $r84, $r89, $r90, $r92, r97, $r98, r111;
+        org.eclipse.jetty.websocket.WebSocketParserRFC6455 r0;
+        org.eclipse.jetty.websocket.WebSocketParser$FrameHandler $r8, $r16, $r32, $r43, $r61, $r85;
+        int $i0, $i1, $i4, $i5, $i6, $i8, $i12, $i13, $i14, $i15, $i16, $i17, $i18, $i19, $i21, $i22, $i29, $i30, $i32, $i34, $i37, $i39, $i46, $i47, $i49, $i52, $i54, $i64, $i65, $i70, $i71, $i72, $i73, $i74, $i75, $i76, $i77, $i78, $i79, $i80, $i85, $i86, $i87, $i89, $i93, $i94, i95, i96, $i97, i98, $i99, $i100, $i101, $i102, $i103, $i104, i105, $i106, $i108, $i111, $i113, $i114, $i116, $i117, $i119, $i121, $i123, $i125, $i127, $i129, $i131;
+        org.eclipse.jetty.util.log.Logger $r55, $r94;
+        java.lang.String $r38, $r49, $r59, $r79;
+        org.eclipse.jetty.websocket.WebSocketParserRFC6455$State $r4, $r5, $r9, $r15, $r17, $r18, $r19, $r23, $r26, $r27, $r30, $r41, $r51, $r52, $r62, $r72, $r80, $r81, $r95, $r96, $r99, $r100, $r101, $r102, $r103, $r104, $r105, $r106, $r107, $r108, $r109, $r110;
+        java.lang.IllegalStateException $r113;
+        org.eclipse.jetty.io.EndPoint $r2, $r57, $r65, $r67;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9, $z10, $z11, $z12, z13, $z14, $z15, $z16, z17, z18;
+
+        r0 := @this: org.eclipse.jetty.websocket.WebSocketParserRFC6455;
+
+        $r1 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer>;
+
+        if $r1 != null goto label01;
+
+        $r91 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketBuffers _buffers>;
+
+        $r92 = virtualinvoke $r91.<org.eclipse.jetty.websocket.WebSocketBuffers: org.eclipse.jetty.io.Buffer getBuffer()>();
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer> = $r92;
+
+     label01:
+        z13 = 0;
+
+        z18 = 0;
+
+        z17 = 0;
+
+        $i108 = (int) -1;
+
+        i95 = $i108;
+
+     label02:
+        if z17 != 0 goto label59;
+
+        $r2 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.EndPoint _endp>;
+
+        $z0 = interfaceinvoke $r2.<org.eclipse.jetty.io.EndPoint: boolean isInputShutdown()>();
+
+        if $z0 == 0 goto label03;
+
+        $r90 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i94 = interfaceinvoke $r90.<org.eclipse.jetty.io.Buffer: int length()>();
+
+        if $i94 <= 0 goto label59;
+
+     label03:
+        $r3 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer>;
+
+        i96 = interfaceinvoke $r3.<org.eclipse.jetty.io.Buffer: int length()>();
+
+     label04:
+        $i93 = i96;
+
+        $r95 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State _state>;
+
+        $r96 = <org.eclipse.jetty.websocket.WebSocketParserRFC6455$State: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State SKIP>;
+
+        if $r95 != $r96 goto label05;
+
+        $i97 = 1;
+
+        goto label06;
+
+     label05:
+        $i97 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: int _bytesNeeded>;
+
+     label06:
+        if $i93 >= $i97 goto label17;
+
+        $r63 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer>;
+
+        interfaceinvoke $r63.<org.eclipse.jetty.io.Buffer: void compact()>();
+
+        $r64 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i73 = interfaceinvoke $r64.<org.eclipse.jetty.io.Buffer: int space()>();
+
+        if $i73 != 0 goto label11;
+
+        $z11 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: boolean _fragmentFrames>;
+
+        if $z11 == 0 goto label10;
+
+        $r81 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State _state>;
+
+        $r80 = <org.eclipse.jetty.websocket.WebSocketParserRFC6455$State: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State DATA>;
+
+        if $r81 != $r80 goto label10;
+
+        $r82 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i76 = i96 / 4;
+
+        $i77 = 4 * $i76;
+
+        $r83 = interfaceinvoke $r82.<org.eclipse.jetty.io.Buffer: org.eclipse.jetty.io.Buffer get(int)>($i77);
+
+        r97 = $r83;
+
+        $r84 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer>;
+
+        interfaceinvoke $r84.<org.eclipse.jetty.io.Buffer: void compact()>();
+
+        $z12 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: boolean _masked>;
+
+        if $z12 == 0 goto label09;
+
+        $r86 = interfaceinvoke $r83.<org.eclipse.jetty.io.Buffer: byte[] array()>();
+
+        if $r86 != null goto label07;
+
+        $r89 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer>;
+
+        r97 = interfaceinvoke $r89.<org.eclipse.jetty.io.Buffer: org.eclipse.jetty.io.Buffer asMutableBuffer()>();
+
+     label07:
+        $r87 = interfaceinvoke r97.<org.eclipse.jetty.io.Buffer: byte[] array()>();
+
+        $i85 = interfaceinvoke r97.<org.eclipse.jetty.io.Buffer: int putIndex()>();
+
+        i98 = interfaceinvoke r97.<org.eclipse.jetty.io.Buffer: int getIndex()>();
+
+     label08:
+        if i98 >= $i85 goto label09;
+
+        $b88 = $r87[i98];
+
+        $r88 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: byte[] _mask>;
+
+        $i86 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: int _m>;
+
+        $i87 = $i86 + 1;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: int _m> = $i87;
+
+        $i89 = $i86 % 4;
+
+        $b90 = $r88[$i89];
+
+        $b91 = $b88 ^ $b90;
+
+        $b92 = (byte) $b91;
+
+        $r87[i98] = $b92;
+
+        i98 = i98 + 1;
+
+        goto label08;
+
+     label09:
+        $i78 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: int _bytesNeeded>;
+
+        $i79 = interfaceinvoke r97.<org.eclipse.jetty.io.Buffer: int length()>();
+
+        $i80 = $i78 - $i79;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: int _bytesNeeded> = $i80;
+
+        z13 = 1;
+
+        z18 = 1;
+
+        z17 = 1;
+
+        $r85 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketParser$FrameHandler _handler>;
+
+        $b81 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: byte _flags>;
+
+        $s109 = (short) $b81;
+
+        $s82 = $s109 & 247;
+
+        $b84 = (byte) $s82;
+
+        $b83 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: byte _opcode>;
+
+        interfaceinvoke $r85.<org.eclipse.jetty.websocket.WebSocketParser$FrameHandler: void onFrame(byte,byte,org.eclipse.jetty.io.Buffer)>($b84, $b83, r97);
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: byte _opcode> = 0;
+
+     label10:
+        $r98 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i99 = interfaceinvoke $r98.<org.eclipse.jetty.io.Buffer: int space()>();
+
+        if $i99 != 0 goto label11;
+
+        $r113 = new java.lang.IllegalStateException;
+
+        $r112 = new java.lang.StringBuilder;
+
+        specialinvoke $r112.<java.lang.StringBuilder: void <init>()>();
+
+        $r71 = virtualinvoke $r112.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("FULL: ");
+
+        $r72 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State _state>;
+
+        $r73 = virtualinvoke $r71.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r72);
+
+        $r74 = virtualinvoke $r73.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" ");
+
+        $i74 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: int _bytesNeeded>;
+
+        $r75 = virtualinvoke $r74.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i74);
+
+        $r76 = virtualinvoke $r75.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(">");
+
+        $r77 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i75 = interfaceinvoke $r77.<org.eclipse.jetty.io.Buffer: int capacity()>();
+
+        $r78 = virtualinvoke $r76.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i75);
+
+        $r79 = virtualinvoke $r78.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r113.<java.lang.IllegalStateException: void <init>(java.lang.String)>($r79);
+
+        throw $r113;
+
+     label11:
+        $r65 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.EndPoint _endp>;
+
+        $z10 = interfaceinvoke $r65.<org.eclipse.jetty.io.EndPoint: boolean isInputShutdown()>();
+
+        if $z10 == 0 goto label12;
+
+        $i111 = (int) -1;
+
+        $i100 = $i111;
+
+        goto label13;
+
+     label12:
+        $r67 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.EndPoint _endp>;
+
+        $r66 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i100 = interfaceinvoke $r67.<org.eclipse.jetty.io.EndPoint: int fill(org.eclipse.jetty.io.Buffer)>($r66);
+
+     label13:
+        i95 = $i100;
+
+        $r68 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer>;
+
+        i96 = interfaceinvoke $r68.<org.eclipse.jetty.io.Buffer: int length()>();
+
+        if $i100 > 0 goto label15;
+
+     label14:
+        goto label17;
+
+     label15:
+        goto label04;
+
+     label16:
+        $r93 := @caughtexception;
+
+        $r94 = <org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.util.log.Logger LOG>;
+
+        interfaceinvoke $r94.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.Throwable)>($r93);
+
+        $i113 = (int) -1;
+
+        i95 = $i113;
+
+        goto label17;
+
+     label17:
+        $i72 = i96;
+
+        $r99 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State _state>;
+
+        $r100 = <org.eclipse.jetty.websocket.WebSocketParserRFC6455$State: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State SKIP>;
+
+        if $r99 != $r100 goto label18;
+
+        $i101 = 1;
+
+        goto label19;
+
+     label18:
+        $i101 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: int _bytesNeeded>;
+
+     label19:
+        if $i72 >= $i101 goto label20;
+
+        goto label59;
+
+     label20:
+        $r101 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State _state>;
+
+        $r102 = <org.eclipse.jetty.websocket.WebSocketParserRFC6455$State: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State DATA>;
+
+        if $r101 == $r102 goto label53;
+
+        $i71 = i96;
+
+        $r18 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State _state>;
+
+        $r17 = <org.eclipse.jetty.websocket.WebSocketParserRFC6455$State: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State SKIP>;
+
+        if $r18 != $r17 goto label21;
+
+        $i102 = 1;
+
+        goto label22;
+
+     label21:
+        $i102 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: int _bytesNeeded>;
+
+     label22:
+        if $i71 < $i102 goto label53;
+
+        $r20 = <org.eclipse.jetty.websocket.WebSocketParserRFC6455$1: int[] $SwitchMap$org$eclipse$jetty$websocket$WebSocketParserRFC6455$State>;
+
+        $r19 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State _state>;
+
+        $i13 = virtualinvoke $r19.<org.eclipse.jetty.websocket.WebSocketParserRFC6455$State: int ordinal()>();
+
+        $i14 = $r20[$i13];
+
+        tableswitch($i14)
+        {
+            case 1: goto label23;
+            case 2: goto label26;
+            case 3: goto label28;
+            case 4: goto label37;
+            case 5: goto label41;
+            case 6: goto label45;
+            case 7: goto label46;
+            case 8: goto label49;
+            case 9: goto label50;
+            case 10: goto label51;
+            default: goto label52;
+        };
+
+     label23:
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: boolean _skip> = 0;
+
+        $b69 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: byte _opcode>;
+
+        $i114 = (int) $b69;
+
+        if $i114 != 8 goto label24;
+
+        $r103 = <org.eclipse.jetty.websocket.WebSocketParserRFC6455$State: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State SEEK_EOF>;
+
+        goto label25;
+
+     label24:
+        $r103 = <org.eclipse.jetty.websocket.WebSocketParserRFC6455$State: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State OPCODE>;
+
+     label25:
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State _state> = $r103;
+
+        $r62 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State _state>;
+
+        $i70 = virtualinvoke $r62.<org.eclipse.jetty.websocket.WebSocketParserRFC6455$State: int getNeeds()>();
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: int _bytesNeeded> = $i70;
+
+        goto label20;
+
+     label26:
+        $r53 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $b61 = interfaceinvoke $r53.<org.eclipse.jetty.io.Buffer: byte get()>();
+
+        $i116 = (int) -1;
+
+        i96 = i96 + $i116;
+
+        $b62 = $b61 & 15;
+
+        $b63 = (byte) $b62;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: byte _opcode> = $b63;
+
+        $i117 = (int) $b61;
+
+        $i64 = $i117 >> 4;
+
+        $i65 = 15 & $i64;
+
+        $b66 = (byte) $i65;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: byte _flags> = $b66;
+
+        $b67 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: byte _opcode>;
+
+        $z8 = staticinvoke <org.eclipse.jetty.websocket.WebSocketConnectionRFC6455: boolean isControlFrame(byte)>($b67);
+
+        if $z8 == 0 goto label27;
+
+        $b68 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: byte _flags>;
+
+        $z9 = staticinvoke <org.eclipse.jetty.websocket.WebSocketConnectionRFC6455: boolean isLastFrame(byte)>($b68);
+
+        if $z9 != 0 goto label27;
+
+        $r55 = <org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r114 = new java.lang.StringBuilder;
+
+        specialinvoke $r114.<java.lang.StringBuilder: void <init>()>();
+
+        $r56 = virtualinvoke $r114.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Fragmented Control from ");
+
+        $r57 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.EndPoint _endp>;
+
+        $r58 = virtualinvoke $r56.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r57);
+
+        $r59 = virtualinvoke $r58.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r60 = newarray (java.lang.Object)[0];
+
+        interfaceinvoke $r55.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.String,java.lang.Object[])>($r59, $r60);
+
+        $r61 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketParser$FrameHandler _handler>;
+
+        interfaceinvoke $r61.<org.eclipse.jetty.websocket.WebSocketParser$FrameHandler: void close(int,java.lang.String)>(1002, "Fragmented control");
+
+        z13 = 1;
+
+        z18 = 1;
+
+        z17 = 1;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: boolean _skip> = 1;
+
+     label27:
+        $r104 = <org.eclipse.jetty.websocket.WebSocketParserRFC6455$State: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State LENGTH_7>;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State _state> = $r104;
+
+        $r105 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State _state>;
+
+        $i103 = virtualinvoke $r105.<org.eclipse.jetty.websocket.WebSocketParserRFC6455$State: int getNeeds()>();
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: int _bytesNeeded> = $i103;
+
+        goto label20;
+
+     label28:
+        $r50 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $b55 = interfaceinvoke $r50.<org.eclipse.jetty.io.Buffer: byte get()>();
+
+        $i119 = (int) -1;
+
+        i96 = i96 + $i119;
+
+        $s120 = (short) $b55;
+
+        $s56 = $s120 & 128;
+
+        if $s56 == 0 goto label29;
+
+        $z14 = 1;
+
+        goto label30;
+
+     label29:
+        $z14 = 0;
+
+     label30:
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: boolean _masked> = $z14;
+
+        $b57 = 127 & $b55;
+
+        $b60 = (byte) $b57;
+
+        $i121 = (int) $b60;
+
+        lookupswitch($i121)
+        {
+            case 126: goto label32;
+            case 127: goto label31;
+            default: goto label33;
+        };
+
+     label31:
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: long _length> = 0L;
+
+        $r51 = <org.eclipse.jetty.websocket.WebSocketParserRFC6455$State: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State LENGTH_63>;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State _state> = $r51;
+
+        goto label36;
+
+     label32:
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: long _length> = 0L;
+
+        $r52 = <org.eclipse.jetty.websocket.WebSocketParserRFC6455$State: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State LENGTH_16>;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State _state> = $r52;
+
+        goto label36;
+
+     label33:
+        $b58 = 127 & $b60;
+
+        $l59 = (long) $b58;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: long _length> = $l59;
+
+        $z7 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: boolean _masked>;
+
+        if $z7 == 0 goto label34;
+
+        $r106 = <org.eclipse.jetty.websocket.WebSocketParserRFC6455$State: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State MASK>;
+
+        goto label35;
+
+     label34:
+        $r106 = <org.eclipse.jetty.websocket.WebSocketParserRFC6455$State: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State PAYLOAD>;
+
+     label35:
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State _state> = $r106;
+
+     label36:
+        $r107 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State _state>;
+
+        $i104 = virtualinvoke $r107.<org.eclipse.jetty.websocket.WebSocketParserRFC6455$State: int getNeeds()>();
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: int _bytesNeeded> = $i104;
+
+        goto label20;
+
+     label37:
+        $r39 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $b40 = interfaceinvoke $r39.<org.eclipse.jetty.io.Buffer: byte get()>();
+
+        $i123 = (int) -1;
+
+        i96 = i96 + $i123;
+
+        $l41 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: long _length>;
+
+        $l44 = $l41 * 256L;
+
+        $s124 = (short) $b40;
+
+        $s42 = 255 & $s124;
+
+        $l43 = (long) $s42;
+
+        $l45 = $l44 + $l43;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: long _length> = $l45;
+
+        $i46 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: int _bytesNeeded>;
+
+        $i47 = $i46 - 1;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: int _bytesNeeded> = $i47;
+
+        if $i47 != 0 goto label20;
+
+        $l48 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: long _length>;
+
+        $r40 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i49 = interfaceinvoke $r40.<org.eclipse.jetty.io.Buffer: int capacity()>();
+
+        $l50 = (long) $i49;
+
+        $b51 = $l48 cmp $l50;
+
+        $i125 = (int) $b51;
+
+        if $i125 <= 0 goto label38;
+
+        $z6 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: boolean _fragmentFrames>;
+
+        if $z6 != 0 goto label38;
+
+        z13 = 1;
+
+        z18 = 1;
+
+        z17 = 1;
+
+        $r43 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketParser$FrameHandler _handler>;
+
+        $r115 = new java.lang.StringBuilder;
+
+        specialinvoke $r115.<java.lang.StringBuilder: void <init>()>();
+
+        $r44 = virtualinvoke $r115.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("frame size ");
+
+        $l53 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: long _length>;
+
+        $r45 = virtualinvoke $r44.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l53);
+
+        $r46 = virtualinvoke $r45.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(">");
+
+        $r47 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i54 = interfaceinvoke $r47.<org.eclipse.jetty.io.Buffer: int capacity()>();
+
+        $r48 = virtualinvoke $r46.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i54);
+
+        $r49 = virtualinvoke $r48.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r43.<org.eclipse.jetty.websocket.WebSocketParser$FrameHandler: void close(int,java.lang.String)>(1008, $r49);
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: boolean _skip> = 1;
+
+     label38:
+        $z15 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: boolean _masked>;
+
+        if $z15 == 0 goto label39;
+
+        $r108 = <org.eclipse.jetty.websocket.WebSocketParserRFC6455$State: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State MASK>;
+
+        goto label40;
+
+     label39:
+        $r108 = <org.eclipse.jetty.websocket.WebSocketParserRFC6455$State: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State PAYLOAD>;
+
+     label40:
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State _state> = $r108;
+
+        $r41 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State _state>;
+
+        $i52 = virtualinvoke $r41.<org.eclipse.jetty.websocket.WebSocketParserRFC6455$State: int getNeeds()>();
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: int _bytesNeeded> = $i52;
+
+        goto label20;
+
+     label41:
+        $r28 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $b23 = interfaceinvoke $r28.<org.eclipse.jetty.io.Buffer: byte get()>();
+
+        $i127 = (int) -1;
+
+        i96 = i96 + $i127;
+
+        $l24 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: long _length>;
+
+        $l27 = $l24 * 256L;
+
+        $s128 = (short) $b23;
+
+        $s25 = 255 & $s128;
+
+        $l26 = (long) $s25;
+
+        $l28 = $l27 + $l26;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: long _length> = $l28;
+
+        $i29 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: int _bytesNeeded>;
+
+        $i30 = $i29 - 1;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: int _bytesNeeded> = $i30;
+
+        if $i30 != 0 goto label20;
+
+        $l31 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: long _length>;
+
+        $i32 = (int) $l31;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: int _bytesNeeded> = $i32;
+
+        $l33 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: long _length>;
+
+        $r29 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i34 = interfaceinvoke $r29.<org.eclipse.jetty.io.Buffer: int capacity()>();
+
+        $l35 = (long) $i34;
+
+        $b36 = $l33 cmp $l35;
+
+        $i129 = (int) $b36;
+
+        if $i129 < 0 goto label42;
+
+        $z5 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: boolean _fragmentFrames>;
+
+        if $z5 != 0 goto label42;
+
+        z13 = 1;
+
+        z18 = 1;
+
+        z17 = 1;
+
+        $r32 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketParser$FrameHandler _handler>;
+
+        $r116 = new java.lang.StringBuilder;
+
+        specialinvoke $r116.<java.lang.StringBuilder: void <init>()>();
+
+        $r33 = virtualinvoke $r116.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("frame size ");
+
+        $l38 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: long _length>;
+
+        $r34 = virtualinvoke $r33.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l38);
+
+        $r35 = virtualinvoke $r34.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(">");
+
+        $r36 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i39 = interfaceinvoke $r36.<org.eclipse.jetty.io.Buffer: int capacity()>();
+
+        $r37 = virtualinvoke $r35.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i39);
+
+        $r38 = virtualinvoke $r37.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r32.<org.eclipse.jetty.websocket.WebSocketParser$FrameHandler: void close(int,java.lang.String)>(1008, $r38);
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: boolean _skip> = 1;
+
+     label42:
+        $z16 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: boolean _masked>;
+
+        if $z16 == 0 goto label43;
+
+        $r109 = <org.eclipse.jetty.websocket.WebSocketParserRFC6455$State: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State MASK>;
+
+        goto label44;
+
+     label43:
+        $r109 = <org.eclipse.jetty.websocket.WebSocketParserRFC6455$State: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State PAYLOAD>;
+
+     label44:
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State _state> = $r109;
+
+        $r30 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State _state>;
+
+        $i37 = virtualinvoke $r30.<org.eclipse.jetty.websocket.WebSocketParserRFC6455$State: int getNeeds()>();
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: int _bytesNeeded> = $i37;
+
+        goto label20;
+
+     label45:
+        $r25 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $r24 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: byte[] _mask>;
+
+        interfaceinvoke $r25.<org.eclipse.jetty.io.Buffer: int get(byte[],int,int)>($r24, 0, 4);
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: int _m> = 0;
+
+        $i131 = (int) -4;
+
+        i96 = i96 + $i131;
+
+        $r26 = <org.eclipse.jetty.websocket.WebSocketParserRFC6455$State: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State PAYLOAD>;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State _state> = $r26;
+
+        $r27 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State _state>;
+
+        $i22 = virtualinvoke $r27.<org.eclipse.jetty.websocket.WebSocketParserRFC6455$State: int getNeeds()>();
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: int _bytesNeeded> = $i22;
+
+        goto label52;
+
+     label46:
+        $l20 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: long _length>;
+
+        $i21 = (int) $l20;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: int _bytesNeeded> = $i21;
+
+        $z4 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: boolean _skip>;
+
+        if $z4 == 0 goto label47;
+
+        $r110 = <org.eclipse.jetty.websocket.WebSocketParserRFC6455$State: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State SKIP>;
+
+        goto label48;
+
+     label47:
+        $r110 = <org.eclipse.jetty.websocket.WebSocketParserRFC6455$State: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State DATA>;
+
+     label48:
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State _state> = $r110;
+
+        goto label52;
+
+     label49:
+        goto label52;
+
+     label50:
+        $i15 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: int _bytesNeeded>;
+
+        $i16 = staticinvoke <java.lang.Math: int min(int,int)>(i96, $i15);
+
+        z13 = 1;
+
+        z18 = 1;
+
+        z17 = 1;
+
+        $r22 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer>;
+
+        interfaceinvoke $r22.<org.eclipse.jetty.io.Buffer: int skip(int)>($i16);
+
+        i96 = i96 - $i16;
+
+        $i17 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: int _bytesNeeded>;
+
+        $i18 = $i17 - $i16;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: int _bytesNeeded> = $i18;
+
+        $i19 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: int _bytesNeeded>;
+
+        if $i19 != 0 goto label52;
+
+        $r23 = <org.eclipse.jetty.websocket.WebSocketParserRFC6455$State: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State START>;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State _state> = $r23;
+
+        goto label52;
+
+     label51:
+        z13 = 1;
+
+        z18 = 1;
+
+        z17 = 1;
+
+        $r21 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer>;
+
+        interfaceinvoke $r21.<org.eclipse.jetty.io.Buffer: int skip(int)>(i96);
+
+        i96 = 0;
+
+     label52:
+        goto label20;
+
+     label53:
+        $r5 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State _state>;
+
+        $r4 = <org.eclipse.jetty.websocket.WebSocketParserRFC6455$State: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State DATA>;
+
+        if $r5 != $r4 goto label58;
+
+        $i0 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: int _bytesNeeded>;
+
+        if i96 < $i0 goto label58;
+
+        $z2 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: boolean _masked>;
+
+        $z1 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: boolean _shouldBeMasked>;
+
+        if $z2 == $z1 goto label54;
+
+        $r14 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i12 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: int _bytesNeeded>;
+
+        interfaceinvoke $r14.<org.eclipse.jetty.io.Buffer: int skip(int)>($i12);
+
+        $r15 = <org.eclipse.jetty.websocket.WebSocketParserRFC6455$State: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State START>;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State _state> = $r15;
+
+        z13 = 1;
+
+        z18 = 1;
+
+        $r16 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketParser$FrameHandler _handler>;
+
+        interfaceinvoke $r16.<org.eclipse.jetty.websocket.WebSocketParser$FrameHandler: void close(int,java.lang.String)>(1002, "Not masked");
+
+        goto label59;
+
+     label54:
+        $r6 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i1 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: int _bytesNeeded>;
+
+        $r7 = interfaceinvoke $r6.<org.eclipse.jetty.io.Buffer: org.eclipse.jetty.io.Buffer get(int)>($i1);
+
+        r111 = $r7;
+
+        $z3 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: boolean _masked>;
+
+        if $z3 == 0 goto label57;
+
+        $r10 = interfaceinvoke $r7.<org.eclipse.jetty.io.Buffer: byte[] array()>();
+
+        if $r10 != null goto label55;
+
+        $r13 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer>;
+
+        r111 = interfaceinvoke $r13.<org.eclipse.jetty.io.Buffer: org.eclipse.jetty.io.Buffer asMutableBuffer()>();
+
+     label55:
+        $r11 = interfaceinvoke r111.<org.eclipse.jetty.io.Buffer: byte[] array()>();
+
+        $i4 = interfaceinvoke r111.<org.eclipse.jetty.io.Buffer: int putIndex()>();
+
+        i105 = interfaceinvoke r111.<org.eclipse.jetty.io.Buffer: int getIndex()>();
+
+     label56:
+        if i105 >= $i4 goto label57;
+
+        $b7 = $r11[i105];
+
+        $r12 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: byte[] _mask>;
+
+        $i5 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: int _m>;
+
+        $i6 = $i5 + 1;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: int _m> = $i6;
+
+        $i8 = $i5 % 4;
+
+        $b9 = $r12[$i8];
+
+        $b10 = $b7 ^ $b9;
+
+        $b11 = (byte) $b10;
+
+        $r11[i105] = $b11;
+
+        i105 = i105 + 1;
+
+        goto label56;
+
+     label57:
+        z13 = 1;
+
+        z18 = 1;
+
+        $r8 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketParser$FrameHandler _handler>;
+
+        $b3 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: byte _flags>;
+
+        $b2 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: byte _opcode>;
+
+        interfaceinvoke $r8.<org.eclipse.jetty.websocket.WebSocketParser$FrameHandler: void onFrame(byte,byte,org.eclipse.jetty.io.Buffer)>($b3, $b2, r111);
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: int _bytesNeeded> = 0;
+
+        $r9 = <org.eclipse.jetty.websocket.WebSocketParserRFC6455$State: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State START>;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State _state> = $r9;
+
+        goto label59;
+
+     label58:
+        goto label02;
+
+     label59:
+        if z18 == 0 goto label60;
+
+        $i106 = 1;
+
+        goto label61;
+
+     label60:
+        $i106 = i95;
+
+     label61:
+        return $i106;
+
+        catch java.io.IOException from label11 to label14 with label16;
+    }
+
+    public void fill(org.eclipse.jetty.io.Buffer)
+    {
+        org.eclipse.jetty.websocket.WebSocketBuffers $r4;
+        org.eclipse.jetty.websocket.WebSocketParserRFC6455 r1;
+        int $i0;
+        org.eclipse.jetty.io.Buffer r0, $r2, $r3, $r5;
+
+        r1 := @this: org.eclipse.jetty.websocket.WebSocketParserRFC6455;
+
+        r0 := @parameter0: org.eclipse.jetty.io.Buffer;
+
+        if r0 == null goto label2;
+
+        $i0 = interfaceinvoke r0.<org.eclipse.jetty.io.Buffer: int length()>();
+
+        if $i0 <= 0 goto label2;
+
+        $r2 = r1.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer>;
+
+        if $r2 != null goto label1;
+
+        $r4 = r1.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketBuffers _buffers>;
+
+        $r5 = virtualinvoke $r4.<org.eclipse.jetty.websocket.WebSocketBuffers: org.eclipse.jetty.io.Buffer getBuffer()>();
+
+        r1.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer> = $r5;
+
+     label1:
+        $r3 = r1.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer>;
+
+        interfaceinvoke $r3.<org.eclipse.jetty.io.Buffer: int put(org.eclipse.jetty.io.Buffer)>(r0);
+
+        interfaceinvoke r0.<org.eclipse.jetty.io.Buffer: void clear()>();
+
+     label2:
+        return;
+    }
+
+    public void returnBuffer()
+    {
+        org.eclipse.jetty.websocket.WebSocketBuffers $r4;
+        org.eclipse.jetty.websocket.WebSocketParserRFC6455 r0;
+        int $i0;
+        org.eclipse.jetty.io.Buffer $r1, $r2, $r3;
+
+        r0 := @this: org.eclipse.jetty.websocket.WebSocketParserRFC6455;
+
+        $r1 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer>;
+
+        if $r1 == null goto label1;
+
+        $r2 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i0 = interfaceinvoke $r2.<org.eclipse.jetty.io.Buffer: int length()>();
+
+        if $i0 != 0 goto label1;
+
+        $r4 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketBuffers _buffers>;
+
+        $r3 = r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer>;
+
+        virtualinvoke $r4.<org.eclipse.jetty.websocket.WebSocketBuffers: void returnBuffer(org.eclipse.jetty.io.Buffer)>($r3);
+
+        r0.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer> = null;
+
+     label1:
+        return;
+    }
+
+    public java.lang.String toString()
+    {
+        org.eclipse.jetty.websocket.WebSocketParserRFC6455 r1;
+        java.lang.Object[] $r0;
+        java.lang.Integer $r4;
+        int $i0;
+        java.lang.Class $r2;
+        java.lang.String $r3, $r7;
+        org.eclipse.jetty.websocket.WebSocketParserRFC6455$State $r5;
+        org.eclipse.jetty.io.Buffer $r6;
+
+        r1 := @this: org.eclipse.jetty.websocket.WebSocketParserRFC6455;
+
+        $r0 = newarray (java.lang.Object)[4];
+
+        $r2 = virtualinvoke r1.<java.lang.Object: java.lang.Class getClass()>();
+
+        $r3 = virtualinvoke $r2.<java.lang.Class: java.lang.String getSimpleName()>();
+
+        $r0[0] = $r3;
+
+        $i0 = virtualinvoke r1.<java.lang.Object: int hashCode()>();
+
+        $r4 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i0);
+
+        $r0[1] = $r4;
+
+        $r5 = r1.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.websocket.WebSocketParserRFC6455$State _state>;
+
+        $r0[2] = $r5;
+
+        $r6 = r1.<org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $r0[3] = $r6;
+
+        $r7 = staticinvoke <java.lang.String: java.lang.String format(java.lang.String,java.lang.Object[])>("%s@%x state=%s buffer=%s", $r0);
+
+        return $r7;
+    }
+
+    static void <clinit>()
+    {
+        org.eclipse.jetty.util.log.Logger $r0;
+
+        $r0 = staticinvoke <org.eclipse.jetty.util.log.Log: org.eclipse.jetty.util.log.Logger getLogger(java.lang.Class)>(class "Lorg/eclipse/jetty/websocket/WebSocketParserRFC6455;");
+
+        <org.eclipse.jetty.websocket.WebSocketParserRFC6455: org.eclipse.jetty.util.log.Logger LOG> = $r0;
+
+        return;
+    }
+}

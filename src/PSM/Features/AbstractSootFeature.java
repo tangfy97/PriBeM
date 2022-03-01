@@ -35,12 +35,11 @@ public abstract class AbstractSootFeature implements IFeature {
     Options.v().set_include_all(true);
     Options.v().set_soot_classpath(cp);
     Options.v().setPhaseOption("cg.spark", "on");
-    Options.v().set_output_format(Options.output_format_none);
+    Options.v().set_output_format(Options.output_format_jimple);
     Options.v().set_no_bodies_for_excluded(true);
-    
-    Options.v().setPhaseOption("jb", "use-original-names:true");
-
+    //Options.v().setPhaseOption("jb", "use-original-names:true");
     Options.v().set_prepend_classpath(true);
+    Options.v().set_output_dir(System.getProperty("user.dir")+"/sootOutput");
     Scene.v().loadNecessaryClasses();
     SOOT_INITIALIZED = true;
   }

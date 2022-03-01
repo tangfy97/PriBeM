@@ -1,0 +1,1872 @@
+public class com.hp.hpl.jena.tdb.base.block.BlockMgrTracker extends java.lang.Object implements com.hp.hpl.jena.tdb.base.block.BlockMgr
+{
+    private static org.slf4j.Logger loggerDefault;
+    public static boolean verbose;
+    static final java.lang.Long NoId;
+    protected final org.apache.jena.atlas.lib.MultiSet activeReadBlocks;
+    protected final org.apache.jena.atlas.lib.MultiSet activeWriteBlocks;
+    protected final org.apache.jena.atlas.lib.MultiSet activeIterBlocks;
+    protected final java.util.List actions;
+    protected final java.util.List activeIterators;
+    protected final com.hp.hpl.jena.tdb.base.block.BlockMgr blockMgr;
+    private int inRead;
+    private int inIterator;
+    private boolean inUpdate;
+    private final org.slf4j.Logger log;
+    private final java.lang.String label;
+
+    private void clearInternalRW()
+    {
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        java.util.List $r3;
+        org.apache.jena.atlas.lib.MultiSet $r1, $r2;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        $r1 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.apache.jena.atlas.lib.MultiSet activeReadBlocks>;
+
+        virtualinvoke $r1.<org.apache.jena.atlas.lib.MultiSet: void clear()>();
+
+        $r2 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.apache.jena.atlas.lib.MultiSet activeWriteBlocks>;
+
+        virtualinvoke $r2.<org.apache.jena.atlas.lib.MultiSet: void clear()>();
+
+        $r3 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: java.util.List actions>;
+
+        interfaceinvoke $r3.<java.util.List: void clear()>();
+
+        return;
+    }
+
+    private void clearInternalIter()
+    {
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        java.util.List $r1;
+        org.apache.jena.atlas.lib.MultiSet $r2;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void clearInternalRW()>();
+
+        $r1 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: java.util.List activeIterators>;
+
+        interfaceinvoke $r1.<java.util.List: void clear()>();
+
+        $r2 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.apache.jena.atlas.lib.MultiSet activeIterBlocks>;
+
+        virtualinvoke $r2.<org.apache.jena.atlas.lib.MultiSet: void clear()>();
+
+        return;
+    }
+
+    public static com.hp.hpl.jena.tdb.base.block.BlockMgr track(com.hp.hpl.jena.tdb.base.block.BlockMgr)
+    {
+        com.hp.hpl.jena.tdb.base.block.BlockMgr r0, $r2;
+        java.lang.String $r1;
+
+        r0 := @parameter0: com.hp.hpl.jena.tdb.base.block.BlockMgr;
+
+        $r1 = interfaceinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgr: java.lang.String getLabel()>();
+
+        $r2 = staticinvoke <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: com.hp.hpl.jena.tdb.base.block.BlockMgr track(java.lang.String,com.hp.hpl.jena.tdb.base.block.BlockMgr)>($r1, r0);
+
+        return $r2;
+    }
+
+    private static com.hp.hpl.jena.tdb.base.block.BlockMgr track(java.lang.String, com.hp.hpl.jena.tdb.base.block.BlockMgr)
+    {
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker $r0;
+        com.hp.hpl.jena.tdb.base.block.BlockMgr r2;
+        java.lang.String r1;
+
+        r1 := @parameter0: java.lang.String;
+
+        r2 := @parameter1: com.hp.hpl.jena.tdb.base.block.BlockMgr;
+
+        $r0 = new com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        specialinvoke $r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void <init>(java.lang.String,com.hp.hpl.jena.tdb.base.block.BlockMgr)>(r1, r2);
+
+        return $r0;
+    }
+
+    private void <init>(com.hp.hpl.jena.tdb.base.block.BlockMgr)
+    {
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        com.hp.hpl.jena.tdb.base.block.BlockMgr r2;
+        org.slf4j.Logger $r1;
+        java.lang.String $r3;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        r2 := @parameter0: com.hp.hpl.jena.tdb.base.block.BlockMgr;
+
+        $r1 = staticinvoke <org.slf4j.LoggerFactory: org.slf4j.Logger getLogger(java.lang.Class)>(class "Lcom/hp/hpl/jena/tdb/base/block/BlockMgrTracker;");
+
+        $r3 = interfaceinvoke r2.<com.hp.hpl.jena.tdb.base.block.BlockMgr: java.lang.String getLabel()>();
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void <init>(org.slf4j.Logger,java.lang.String,com.hp.hpl.jena.tdb.base.block.BlockMgr)>($r1, $r3, r2);
+
+        return;
+    }
+
+    private void <init>(java.lang.String, com.hp.hpl.jena.tdb.base.block.BlockMgr)
+    {
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        com.hp.hpl.jena.tdb.base.block.BlockMgr r2;
+        org.slf4j.Logger $r3;
+        java.lang.String r1;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        r1 := @parameter0: java.lang.String;
+
+        r2 := @parameter1: com.hp.hpl.jena.tdb.base.block.BlockMgr;
+
+        $r3 = <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.slf4j.Logger loggerDefault>;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void <init>(org.slf4j.Logger,java.lang.String,com.hp.hpl.jena.tdb.base.block.BlockMgr)>($r3, r1, r2);
+
+        return;
+    }
+
+    public void <init>(org.slf4j.Logger, java.lang.String, com.hp.hpl.jena.tdb.base.block.BlockMgr)
+    {
+        org.slf4j.Logger r7;
+        java.util.ArrayList $r4, $r5;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        com.hp.hpl.jena.tdb.base.block.BlockMgr r6;
+        org.apache.jena.atlas.lib.MultiSet $r1, $r2, $r3;
+        java.lang.String $r8, r9;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        r7 := @parameter0: org.slf4j.Logger;
+
+        r9 := @parameter1: java.lang.String;
+
+        r6 := @parameter2: com.hp.hpl.jena.tdb.base.block.BlockMgr;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        $r1 = new org.apache.jena.atlas.lib.MultiSet;
+
+        specialinvoke $r1.<org.apache.jena.atlas.lib.MultiSet: void <init>()>();
+
+        r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.apache.jena.atlas.lib.MultiSet activeReadBlocks> = $r1;
+
+        $r2 = new org.apache.jena.atlas.lib.MultiSet;
+
+        specialinvoke $r2.<org.apache.jena.atlas.lib.MultiSet: void <init>()>();
+
+        r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.apache.jena.atlas.lib.MultiSet activeWriteBlocks> = $r2;
+
+        $r3 = new org.apache.jena.atlas.lib.MultiSet;
+
+        specialinvoke $r3.<org.apache.jena.atlas.lib.MultiSet: void <init>()>();
+
+        r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.apache.jena.atlas.lib.MultiSet activeIterBlocks> = $r3;
+
+        $r4 = new java.util.ArrayList;
+
+        specialinvoke $r4.<java.util.ArrayList: void <init>()>();
+
+        r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: java.util.List actions> = $r4;
+
+        $r5 = new java.util.ArrayList;
+
+        specialinvoke $r5.<java.util.ArrayList: void <init>()>();
+
+        r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: java.util.List activeIterators> = $r5;
+
+        r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: int inRead> = 0;
+
+        r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: int inIterator> = 0;
+
+        r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: boolean inUpdate> = 0;
+
+        r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: com.hp.hpl.jena.tdb.base.block.BlockMgr blockMgr> = r6;
+
+        r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.slf4j.Logger log> = r7;
+
+        $r8 = interfaceinvoke r6.<com.hp.hpl.jena.tdb.base.block.BlockMgr: java.lang.String getLabel()>();
+
+        r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: java.lang.String label> = $r8;
+
+        return;
+    }
+
+    private void add(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action, java.lang.Long)
+    {
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action r2;
+        java.util.List $r4;
+        java.lang.Long r3;
+        org.apache.jena.atlas.lib.Pair $r1;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        r2 := @parameter0: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action;
+
+        r3 := @parameter1: java.lang.Long;
+
+        $r4 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: java.util.List actions>;
+
+        $r1 = new org.apache.jena.atlas.lib.Pair;
+
+        specialinvoke $r1.<org.apache.jena.atlas.lib.Pair: void <init>(java.lang.Object,java.lang.Object)>(r2, r3);
+
+        interfaceinvoke $r4.<java.util.List: boolean add(java.lang.Object)>($r1);
+
+        return;
+    }
+
+    public com.hp.hpl.jena.tdb.base.block.Block allocate(int)
+    {
+        java.lang.Throwable $r7;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action $r1, $r6;
+        com.hp.hpl.jena.tdb.base.block.BlockMgr $r2;
+        org.apache.jena.atlas.lib.MultiSet $r5;
+        java.lang.Long $r4;
+        com.hp.hpl.jena.tdb.base.block.Block $r3;
+        int i0;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        i0 := @parameter0: int;
+
+        entermonitor r0;
+
+     label1:
+        $r1 = <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action Alloc>;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void checkUpdate(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action)>($r1);
+
+        $r2 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: com.hp.hpl.jena.tdb.base.block.BlockMgr blockMgr>;
+
+        $r3 = interfaceinvoke $r2.<com.hp.hpl.jena.tdb.base.block.BlockMgr: com.hp.hpl.jena.tdb.base.block.Block allocate(int)>(i0);
+
+        $r4 = virtualinvoke $r3.<com.hp.hpl.jena.tdb.base.block.Block: java.lang.Long getId()>();
+
+        $r5 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.apache.jena.atlas.lib.MultiSet activeWriteBlocks>;
+
+        virtualinvoke $r5.<org.apache.jena.atlas.lib.MultiSet: void add(java.lang.Object)>($r4);
+
+        $r6 = <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action Alloc>;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void add(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action,java.lang.Long)>($r6, $r4);
+
+        exitmonitor r0;
+
+     label2:
+        goto label5;
+
+     label3:
+        $r7 := @caughtexception;
+
+        exitmonitor r0;
+
+     label4:
+        throw $r7;
+
+     label5:
+        return $r3;
+
+        catch java.lang.Throwable from label1 to label2 with label3;
+        catch java.lang.Throwable from label3 to label4 with label3;
+    }
+
+    public com.hp.hpl.jena.tdb.base.block.Block getRead(long)
+    {
+        java.lang.Throwable $r9;
+        long l0;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action $r1, $r3;
+        com.hp.hpl.jena.tdb.base.block.BlockMgr $r6;
+        org.apache.jena.atlas.lib.MultiSet $r4, $r5, $r8;
+        java.lang.Long $r2;
+        com.hp.hpl.jena.tdb.base.block.Block $r7;
+        boolean $z0;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        l0 := @parameter0: long;
+
+        entermonitor r0;
+
+     label1:
+        $r1 = <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action GetRead>;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void checkRead(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action)>($r1);
+
+        $r2 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>(l0);
+
+        $r3 = <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action GetRead>;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void add(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action,java.lang.Long)>($r3, $r2);
+
+        $r4 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.apache.jena.atlas.lib.MultiSet activeWriteBlocks>;
+
+        $z0 = virtualinvoke $r4.<org.apache.jena.atlas.lib.MultiSet: boolean contains(java.lang.Object)>($r2);
+
+        if $z0 == 0 goto label2;
+
+        $r8 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.apache.jena.atlas.lib.MultiSet activeWriteBlocks>;
+
+        virtualinvoke $r8.<org.apache.jena.atlas.lib.MultiSet: void add(java.lang.Object)>($r2);
+
+        goto label3;
+
+     label2:
+        $r5 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.apache.jena.atlas.lib.MultiSet activeReadBlocks>;
+
+        virtualinvoke $r5.<org.apache.jena.atlas.lib.MultiSet: void add(java.lang.Object)>($r2);
+
+     label3:
+        exitmonitor r0;
+
+     label4:
+        goto label7;
+
+     label5:
+        $r9 := @caughtexception;
+
+        exitmonitor r0;
+
+     label6:
+        throw $r9;
+
+     label7:
+        $r6 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: com.hp.hpl.jena.tdb.base.block.BlockMgr blockMgr>;
+
+        $r7 = interfaceinvoke $r6.<com.hp.hpl.jena.tdb.base.block.BlockMgr: com.hp.hpl.jena.tdb.base.block.Block getRead(long)>(l0);
+
+        return $r7;
+
+        catch java.lang.Throwable from label1 to label4 with label5;
+        catch java.lang.Throwable from label5 to label6 with label5;
+    }
+
+    public com.hp.hpl.jena.tdb.base.block.Block getReadIterator(long)
+    {
+        java.lang.Throwable $r7;
+        long l0;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action $r1, $r3;
+        com.hp.hpl.jena.tdb.base.block.BlockMgr $r5;
+        org.apache.jena.atlas.lib.MultiSet $r4;
+        java.lang.Long $r2;
+        com.hp.hpl.jena.tdb.base.block.Block $r6;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        l0 := @parameter0: long;
+
+        entermonitor r0;
+
+     label1:
+        $r1 = <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action IterRead>;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void checkReadOrIter(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action)>($r1);
+
+        $r2 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>(l0);
+
+        $r3 = <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action IterRead>;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void add(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action,java.lang.Long)>($r3, $r2);
+
+        $r4 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.apache.jena.atlas.lib.MultiSet activeIterBlocks>;
+
+        virtualinvoke $r4.<org.apache.jena.atlas.lib.MultiSet: void add(java.lang.Object)>($r2);
+
+        exitmonitor r0;
+
+     label2:
+        goto label5;
+
+     label3:
+        $r7 := @caughtexception;
+
+        exitmonitor r0;
+
+     label4:
+        throw $r7;
+
+     label5:
+        $r5 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: com.hp.hpl.jena.tdb.base.block.BlockMgr blockMgr>;
+
+        $r6 = interfaceinvoke $r5.<com.hp.hpl.jena.tdb.base.block.BlockMgr: com.hp.hpl.jena.tdb.base.block.Block getReadIterator(long)>(l0);
+
+        return $r6;
+
+        catch java.lang.Throwable from label1 to label2 with label3;
+        catch java.lang.Throwable from label3 to label4 with label3;
+    }
+
+    public com.hp.hpl.jena.tdb.base.block.Block getWrite(long)
+    {
+        java.lang.Throwable $r7;
+        long l0;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action $r1, $r3;
+        com.hp.hpl.jena.tdb.base.block.BlockMgr $r5;
+        org.apache.jena.atlas.lib.MultiSet $r4;
+        java.lang.Long $r2;
+        com.hp.hpl.jena.tdb.base.block.Block $r6;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        l0 := @parameter0: long;
+
+        entermonitor r0;
+
+     label1:
+        $r1 = <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action GetWrite>;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void checkUpdate(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action)>($r1);
+
+        $r2 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>(l0);
+
+        $r3 = <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action GetWrite>;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void add(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action,java.lang.Long)>($r3, $r2);
+
+        $r4 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.apache.jena.atlas.lib.MultiSet activeWriteBlocks>;
+
+        virtualinvoke $r4.<org.apache.jena.atlas.lib.MultiSet: void add(java.lang.Object)>($r2);
+
+        exitmonitor r0;
+
+     label2:
+        goto label5;
+
+     label3:
+        $r7 := @caughtexception;
+
+        exitmonitor r0;
+
+     label4:
+        throw $r7;
+
+     label5:
+        $r5 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: com.hp.hpl.jena.tdb.base.block.BlockMgr blockMgr>;
+
+        $r6 = interfaceinvoke $r5.<com.hp.hpl.jena.tdb.base.block.BlockMgr: com.hp.hpl.jena.tdb.base.block.Block getWrite(long)>(l0);
+
+        return $r6;
+
+        catch java.lang.Throwable from label1 to label2 with label3;
+        catch java.lang.Throwable from label3 to label4 with label3;
+    }
+
+    public com.hp.hpl.jena.tdb.base.block.Block promote(com.hp.hpl.jena.tdb.base.block.Block)
+    {
+        java.lang.Throwable $r17;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action $r1, $r4, $r13;
+        com.hp.hpl.jena.tdb.base.block.BlockMgr $r7;
+        org.apache.jena.atlas.lib.MultiSet $r5, $r6, $r9, $r10, $r11, $r18;
+        java.lang.Long $r3;
+        java.lang.String $r16;
+        boolean $z0, $z1, $z2, $z3;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        com.hp.hpl.jena.tdb.base.block.Block r2, $r8;
+        java.lang.StringBuilder $r12, $r14, $r15;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        r2 := @parameter0: com.hp.hpl.jena.tdb.base.block.Block;
+
+        entermonitor r0;
+
+     label1:
+        $r1 = <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action Promote>;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void checkUpdate(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action)>($r1);
+
+        $r3 = virtualinvoke r2.<com.hp.hpl.jena.tdb.base.block.Block: java.lang.Long getId()>();
+
+        $r4 = <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action Promote>;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void add(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action,java.lang.Long)>($r4, $r3);
+
+        $r5 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.apache.jena.atlas.lib.MultiSet activeWriteBlocks>;
+
+        $z0 = virtualinvoke $r5.<org.apache.jena.atlas.lib.MultiSet: boolean contains(java.lang.Object)>($r3);
+
+        if $z0 != 0 goto label2;
+
+        $r11 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.apache.jena.atlas.lib.MultiSet activeReadBlocks>;
+
+        $z2 = virtualinvoke $r11.<org.apache.jena.atlas.lib.MultiSet: boolean contains(java.lang.Object)>($r3);
+
+        if $z2 != 0 goto label2;
+
+        $r13 = <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action Promote>;
+
+        $r12 = new java.lang.StringBuilder;
+
+        specialinvoke $r12.<java.lang.StringBuilder: void <init>()>();
+
+        $r14 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r3);
+
+        $r15 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" is not an active block");
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void error(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action,java.lang.String)>($r13, $r16);
+
+     label2:
+        $r18 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.apache.jena.atlas.lib.MultiSet activeReadBlocks>;
+
+        $z3 = virtualinvoke $r18.<org.apache.jena.atlas.lib.MultiSet: boolean contains(java.lang.Object)>($r3);
+
+        if $z3 == 0 goto label3;
+
+        $r10 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.apache.jena.atlas.lib.MultiSet activeReadBlocks>;
+
+        virtualinvoke $r10.<org.apache.jena.atlas.lib.MultiSet: void remove(java.lang.Object)>($r3);
+
+     label3:
+        $r6 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.apache.jena.atlas.lib.MultiSet activeWriteBlocks>;
+
+        $z1 = virtualinvoke $r6.<org.apache.jena.atlas.lib.MultiSet: boolean contains(java.lang.Object)>($r3);
+
+        if $z1 != 0 goto label4;
+
+        $r9 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.apache.jena.atlas.lib.MultiSet activeWriteBlocks>;
+
+        virtualinvoke $r9.<org.apache.jena.atlas.lib.MultiSet: void add(java.lang.Object)>($r3);
+
+     label4:
+        exitmonitor r0;
+
+     label5:
+        goto label8;
+
+     label6:
+        $r17 := @caughtexception;
+
+        exitmonitor r0;
+
+     label7:
+        throw $r17;
+
+     label8:
+        $r7 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: com.hp.hpl.jena.tdb.base.block.BlockMgr blockMgr>;
+
+        $r8 = interfaceinvoke $r7.<com.hp.hpl.jena.tdb.base.block.BlockMgr: com.hp.hpl.jena.tdb.base.block.Block promote(com.hp.hpl.jena.tdb.base.block.Block)>(r2);
+
+        return $r8;
+
+        catch java.lang.Throwable from label1 to label5 with label6;
+        catch java.lang.Throwable from label6 to label7 with label6;
+    }
+
+    public void release(com.hp.hpl.jena.tdb.base.block.Block)
+    {
+        java.lang.Throwable $r19;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action $r1, $r4, $r15;
+        com.hp.hpl.jena.tdb.base.block.BlockMgr $r10;
+        org.apache.jena.atlas.lib.MultiSet $r5, $r6, $r8, $r11, $r12, $r13, $r20;
+        java.lang.Long $r3, $r7, $r9;
+        java.lang.String $r18;
+        boolean $z0, $z1, $z2, $z3;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        com.hp.hpl.jena.tdb.base.block.Block r2;
+        java.lang.StringBuilder $r14, $r16, $r17;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        r2 := @parameter0: com.hp.hpl.jena.tdb.base.block.Block;
+
+        entermonitor r0;
+
+     label1:
+        $r1 = <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action Release>;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void checkReadOrIter(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action)>($r1);
+
+        $r3 = virtualinvoke r2.<com.hp.hpl.jena.tdb.base.block.Block: java.lang.Long getId()>();
+
+        $r4 = <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action Release>;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void add(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action,java.lang.Long)>($r4, $r3);
+
+        $r5 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.apache.jena.atlas.lib.MultiSet activeReadBlocks>;
+
+        $z0 = virtualinvoke $r5.<org.apache.jena.atlas.lib.MultiSet: boolean contains(java.lang.Object)>($r3);
+
+        if $z0 != 0 goto label2;
+
+        $r12 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.apache.jena.atlas.lib.MultiSet activeIterBlocks>;
+
+        $z1 = virtualinvoke $r12.<org.apache.jena.atlas.lib.MultiSet: boolean contains(java.lang.Object)>($r3);
+
+        if $z1 != 0 goto label2;
+
+        $r13 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.apache.jena.atlas.lib.MultiSet activeWriteBlocks>;
+
+        $z2 = virtualinvoke $r13.<org.apache.jena.atlas.lib.MultiSet: boolean contains(java.lang.Object)>($r3);
+
+        if $z2 != 0 goto label2;
+
+        $r15 = <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action Release>;
+
+        $r14 = new java.lang.StringBuilder;
+
+        specialinvoke $r14.<java.lang.StringBuilder: void <init>()>();
+
+        $r16 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r3);
+
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" is not an active block");
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void error(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action,java.lang.String)>($r15, $r18);
+
+     label2:
+        $r20 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.apache.jena.atlas.lib.MultiSet activeWriteBlocks>;
+
+        $z3 = virtualinvoke $r20.<org.apache.jena.atlas.lib.MultiSet: boolean contains(java.lang.Object)>($r3);
+
+        if $z3 == 0 goto label3;
+
+        $r11 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.apache.jena.atlas.lib.MultiSet activeWriteBlocks>;
+
+        virtualinvoke $r11.<org.apache.jena.atlas.lib.MultiSet: void remove(java.lang.Object)>($r3);
+
+        goto label4;
+
+     label3:
+        $r6 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.apache.jena.atlas.lib.MultiSet activeReadBlocks>;
+
+        $r7 = virtualinvoke r2.<com.hp.hpl.jena.tdb.base.block.Block: java.lang.Long getId()>();
+
+        virtualinvoke $r6.<org.apache.jena.atlas.lib.MultiSet: void remove(java.lang.Object)>($r7);
+
+     label4:
+        $r8 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.apache.jena.atlas.lib.MultiSet activeIterBlocks>;
+
+        $r9 = virtualinvoke r2.<com.hp.hpl.jena.tdb.base.block.Block: java.lang.Long getId()>();
+
+        virtualinvoke $r8.<org.apache.jena.atlas.lib.MultiSet: void remove(java.lang.Object)>($r9);
+
+        exitmonitor r0;
+
+     label5:
+        goto label8;
+
+     label6:
+        $r19 := @caughtexception;
+
+        exitmonitor r0;
+
+     label7:
+        throw $r19;
+
+     label8:
+        $r10 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: com.hp.hpl.jena.tdb.base.block.BlockMgr blockMgr>;
+
+        interfaceinvoke $r10.<com.hp.hpl.jena.tdb.base.block.BlockMgr: void release(com.hp.hpl.jena.tdb.base.block.Block)>(r2);
+
+        return;
+
+        catch java.lang.Throwable from label1 to label5 with label6;
+        catch java.lang.Throwable from label6 to label7 with label6;
+    }
+
+    public void write(com.hp.hpl.jena.tdb.base.block.Block)
+    {
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        com.hp.hpl.jena.tdb.base.block.BlockMgr $r2;
+        com.hp.hpl.jena.tdb.base.block.Block r1;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        r1 := @parameter0: com.hp.hpl.jena.tdb.base.block.Block;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void writeTracker(com.hp.hpl.jena.tdb.base.block.Block)>(r1);
+
+        $r2 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: com.hp.hpl.jena.tdb.base.block.BlockMgr blockMgr>;
+
+        interfaceinvoke $r2.<com.hp.hpl.jena.tdb.base.block.BlockMgr: void write(com.hp.hpl.jena.tdb.base.block.Block)>(r1);
+
+        return;
+    }
+
+    public synchronized void overwrite(com.hp.hpl.jena.tdb.base.block.Block)
+    {
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        com.hp.hpl.jena.tdb.base.block.BlockMgr $r2;
+        com.hp.hpl.jena.tdb.base.block.Block r1;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        r1 := @parameter0: com.hp.hpl.jena.tdb.base.block.Block;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void writeTracker(com.hp.hpl.jena.tdb.base.block.Block)>(r1);
+
+        $r2 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: com.hp.hpl.jena.tdb.base.block.BlockMgr blockMgr>;
+
+        interfaceinvoke $r2.<com.hp.hpl.jena.tdb.base.block.BlockMgr: void overwrite(com.hp.hpl.jena.tdb.base.block.Block)>(r1);
+
+        return;
+    }
+
+    private void writeTracker(com.hp.hpl.jena.tdb.base.block.Block)
+    {
+        java.lang.Throwable $r11;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action $r1, $r4, $r7;
+        org.apache.jena.atlas.lib.MultiSet $r5;
+        java.lang.Long $r3;
+        com.hp.hpl.jena.tdb.base.block.Block r2;
+        java.lang.StringBuilder $r6, $r8, $r9;
+        java.lang.String $r10;
+        boolean $z0;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        r2 := @parameter0: com.hp.hpl.jena.tdb.base.block.Block;
+
+        entermonitor r0;
+
+     label1:
+        $r1 = <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action Write>;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void checkUpdate(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action)>($r1);
+
+        $r3 = virtualinvoke r2.<com.hp.hpl.jena.tdb.base.block.Block: java.lang.Long getId()>();
+
+        $r4 = <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action Write>;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void add(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action,java.lang.Long)>($r4, $r3);
+
+        $r5 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.apache.jena.atlas.lib.MultiSet activeWriteBlocks>;
+
+        $z0 = virtualinvoke $r5.<org.apache.jena.atlas.lib.MultiSet: boolean contains(java.lang.Object)>($r3);
+
+        if $z0 != 0 goto label2;
+
+        $r7 = <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action Write>;
+
+        $r6 = new java.lang.StringBuilder;
+
+        specialinvoke $r6.<java.lang.StringBuilder: void <init>()>();
+
+        $r8 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r3);
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" is not an active write block");
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void error(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action,java.lang.String)>($r7, $r10);
+
+     label2:
+        exitmonitor r0;
+
+     label3:
+        goto label6;
+
+     label4:
+        $r11 := @caughtexception;
+
+        exitmonitor r0;
+
+     label5:
+        throw $r11;
+
+     label6:
+        return;
+
+        catch java.lang.Throwable from label1 to label3 with label4;
+        catch java.lang.Throwable from label4 to label5 with label4;
+    }
+
+    public void free(com.hp.hpl.jena.tdb.base.block.Block)
+    {
+        java.lang.Throwable $r18;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action $r1, $r4, $r9, $r14;
+        com.hp.hpl.jena.tdb.base.block.BlockMgr $r7;
+        org.apache.jena.atlas.lib.MultiSet $r5, $r6, $r19;
+        java.lang.Long $r3;
+        java.lang.String $r12, $r17;
+        boolean $z0, $z1;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        com.hp.hpl.jena.tdb.base.block.Block r2;
+        java.lang.StringBuilder $r8, $r10, $r11, $r13, $r15, $r16;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        r2 := @parameter0: com.hp.hpl.jena.tdb.base.block.Block;
+
+        entermonitor r0;
+
+     label1:
+        $r1 = <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action Free>;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void checkUpdate(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action)>($r1);
+
+        $r3 = virtualinvoke r2.<com.hp.hpl.jena.tdb.base.block.Block: java.lang.Long getId()>();
+
+        $r4 = <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action Free>;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void add(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action,java.lang.Long)>($r4, $r3);
+
+        $r5 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.apache.jena.atlas.lib.MultiSet activeReadBlocks>;
+
+        $z0 = virtualinvoke $r5.<org.apache.jena.atlas.lib.MultiSet: boolean contains(java.lang.Object)>($r3);
+
+        if $z0 == 0 goto label2;
+
+        $r14 = <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action Free>;
+
+        $r13 = new java.lang.StringBuilder;
+
+        specialinvoke $r13.<java.lang.StringBuilder: void <init>()>();
+
+        $r15 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r3);
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" is a read block");
+
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void error(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action,java.lang.String)>($r14, $r17);
+
+        goto label3;
+
+     label2:
+        $r6 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.apache.jena.atlas.lib.MultiSet activeWriteBlocks>;
+
+        $z1 = virtualinvoke $r6.<org.apache.jena.atlas.lib.MultiSet: boolean contains(java.lang.Object)>($r3);
+
+        if $z1 != 0 goto label3;
+
+        $r9 = <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action Free>;
+
+        $r8 = new java.lang.StringBuilder;
+
+        specialinvoke $r8.<java.lang.StringBuilder: void <init>()>();
+
+        $r10 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r3);
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" is not a write block");
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void error(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action,java.lang.String)>($r9, $r12);
+
+     label3:
+        $r19 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.apache.jena.atlas.lib.MultiSet activeWriteBlocks>;
+
+        virtualinvoke $r19.<org.apache.jena.atlas.lib.MultiSet: void remove(java.lang.Object)>($r3);
+
+        exitmonitor r0;
+
+     label4:
+        goto label7;
+
+     label5:
+        $r18 := @caughtexception;
+
+        exitmonitor r0;
+
+     label6:
+        throw $r18;
+
+     label7:
+        $r7 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: com.hp.hpl.jena.tdb.base.block.BlockMgr blockMgr>;
+
+        interfaceinvoke $r7.<com.hp.hpl.jena.tdb.base.block.BlockMgr: void free(com.hp.hpl.jena.tdb.base.block.Block)>(r2);
+
+        return;
+
+        catch java.lang.Throwable from label1 to label4 with label5;
+        catch java.lang.Throwable from label5 to label6 with label5;
+    }
+
+    public void sync()
+    {
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        com.hp.hpl.jena.tdb.base.block.BlockMgr $r1;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        $r1 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: com.hp.hpl.jena.tdb.base.block.BlockMgr blockMgr>;
+
+        interfaceinvoke $r1.<com.hp.hpl.jena.tdb.base.block.BlockMgr: void sync()>();
+
+        return;
+    }
+
+    public void syncForce()
+    {
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        com.hp.hpl.jena.tdb.base.block.BlockMgr $r1;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        $r1 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: com.hp.hpl.jena.tdb.base.block.BlockMgr blockMgr>;
+
+        interfaceinvoke $r1.<com.hp.hpl.jena.tdb.base.block.BlockMgr: void syncForce()>();
+
+        return;
+    }
+
+    public void close()
+    {
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        com.hp.hpl.jena.tdb.base.block.BlockMgr $r1;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        $r1 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: com.hp.hpl.jena.tdb.base.block.BlockMgr blockMgr>;
+
+        interfaceinvoke $r1.<com.hp.hpl.jena.tdb.base.block.BlockMgr: void close()>();
+
+        return;
+    }
+
+    public boolean isEmpty()
+    {
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        com.hp.hpl.jena.tdb.base.block.BlockMgr $r1;
+        boolean $z0;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        $r1 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: com.hp.hpl.jena.tdb.base.block.BlockMgr blockMgr>;
+
+        $z0 = interfaceinvoke $r1.<com.hp.hpl.jena.tdb.base.block.BlockMgr: boolean isEmpty()>();
+
+        return $z0;
+    }
+
+    public boolean valid(int)
+    {
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        com.hp.hpl.jena.tdb.base.block.BlockMgr $r1;
+        int i0;
+        boolean $z0;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        i0 := @parameter0: int;
+
+        $r1 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: com.hp.hpl.jena.tdb.base.block.BlockMgr blockMgr>;
+
+        $z0 = interfaceinvoke $r1.<com.hp.hpl.jena.tdb.base.block.BlockMgr: boolean valid(int)>(i0);
+
+        return $z0;
+    }
+
+    public boolean isClosed()
+    {
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        com.hp.hpl.jena.tdb.base.block.BlockMgr $r1;
+        boolean $z0;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        $r1 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: com.hp.hpl.jena.tdb.base.block.BlockMgr blockMgr>;
+
+        $z0 = interfaceinvoke $r1.<com.hp.hpl.jena.tdb.base.block.BlockMgr: boolean isClosed()>();
+
+        return $z0;
+    }
+
+    public void beginIterator(java.util.Iterator)
+    {
+        java.lang.Throwable $r10;
+        java.util.Iterator r1;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        com.hp.hpl.jena.tdb.base.block.BlockMgr $r4;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action $r6;
+        java.util.List $r2, $r3;
+        java.lang.StringBuilder $r5, $r7, $r8;
+        java.lang.String $r9;
+        boolean $z0;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        r1 := @parameter0: java.util.Iterator;
+
+        entermonitor r0;
+
+     label1:
+        $r2 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: java.util.List activeIterators>;
+
+        $z0 = interfaceinvoke $r2.<java.util.List: boolean contains(java.lang.Object)>(r1);
+
+        if $z0 == 0 goto label2;
+
+        $r6 = <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action BeginIter>;
+
+        $r5 = new java.lang.StringBuilder;
+
+        specialinvoke $r5.<java.lang.StringBuilder: void <init>()>();
+
+        $r7 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Iterator already active: ");
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r1);
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void error(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action,java.lang.String)>($r6, $r9);
+
+     label2:
+        $r3 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: java.util.List activeIterators>;
+
+        interfaceinvoke $r3.<java.util.List: boolean add(java.lang.Object)>(r1);
+
+        exitmonitor r0;
+
+     label3:
+        goto label6;
+
+     label4:
+        $r10 := @caughtexception;
+
+        exitmonitor r0;
+
+     label5:
+        throw $r10;
+
+     label6:
+        $r4 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: com.hp.hpl.jena.tdb.base.block.BlockMgr blockMgr>;
+
+        interfaceinvoke $r4.<com.hp.hpl.jena.tdb.base.block.BlockMgr: void beginIterator(java.util.Iterator)>(r1);
+
+        return;
+
+        catch java.lang.Throwable from label1 to label3 with label4;
+        catch java.lang.Throwable from label4 to label5 with label4;
+    }
+
+    public void endIterator(java.util.Iterator)
+    {
+        java.lang.Throwable $r12;
+        java.util.Iterator r1;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        com.hp.hpl.jena.tdb.base.block.BlockMgr $r5;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action $r8;
+        java.util.List $r2, $r3, $r4;
+        org.apache.jena.atlas.lib.MultiSet $r6;
+        int $i0;
+        java.lang.StringBuilder $r7, $r9, $r10;
+        java.lang.String $r11;
+        boolean $z0;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        r1 := @parameter0: java.util.Iterator;
+
+        entermonitor r0;
+
+     label1:
+        $r2 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: java.util.List activeIterators>;
+
+        $z0 = interfaceinvoke $r2.<java.util.List: boolean contains(java.lang.Object)>(r1);
+
+        if $z0 != 0 goto label2;
+
+        $r8 = <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action EndIter>;
+
+        $r7 = new java.lang.StringBuilder;
+
+        specialinvoke $r7.<java.lang.StringBuilder: void <init>()>();
+
+        $r9 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Iterator not active: ");
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r1);
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void error(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action,java.lang.String)>($r8, $r11);
+
+     label2:
+        $r3 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: java.util.List activeIterators>;
+
+        interfaceinvoke $r3.<java.util.List: boolean remove(java.lang.Object)>(r1);
+
+        $r4 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: java.util.List activeIterators>;
+
+        $i0 = interfaceinvoke $r4.<java.util.List: int size()>();
+
+        if $i0 != 0 goto label3;
+
+        $r6 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.apache.jena.atlas.lib.MultiSet activeIterBlocks>;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void checkEmpty(java.lang.String,org.apache.jena.atlas.lib.MultiSet)>("Outstanding iterator read blocks", $r6);
+
+     label3:
+        exitmonitor r0;
+
+     label4:
+        goto label7;
+
+     label5:
+        $r12 := @caughtexception;
+
+        exitmonitor r0;
+
+     label6:
+        throw $r12;
+
+     label7:
+        $r5 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: com.hp.hpl.jena.tdb.base.block.BlockMgr blockMgr>;
+
+        interfaceinvoke $r5.<com.hp.hpl.jena.tdb.base.block.BlockMgr: void endIterator(java.util.Iterator)>(r1);
+
+        return;
+
+        catch java.lang.Throwable from label1 to label4 with label5;
+        catch java.lang.Throwable from label5 to label6 with label5;
+    }
+
+    public synchronized void beginRead()
+    {
+        java.lang.Throwable $r3;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        com.hp.hpl.jena.tdb.base.block.BlockMgr $r1;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action $r2;
+        int $i0, $i1;
+        boolean $z0;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        entermonitor r0;
+
+     label1:
+        $z0 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: boolean inUpdate>;
+
+        if $z0 == 0 goto label2;
+
+        $r2 = <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action BeginRead>;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void error(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action,java.lang.String)>($r2, "beginRead when already in update");
+
+     label2:
+        $i0 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: int inRead>;
+
+        $i1 = $i0 + 1;
+
+        r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: int inRead> = $i1;
+
+        r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: boolean inUpdate> = 0;
+
+        exitmonitor r0;
+
+     label3:
+        goto label6;
+
+     label4:
+        $r3 := @caughtexception;
+
+        exitmonitor r0;
+
+     label5:
+        throw $r3;
+
+     label6:
+        $r1 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: com.hp.hpl.jena.tdb.base.block.BlockMgr blockMgr>;
+
+        interfaceinvoke $r1.<com.hp.hpl.jena.tdb.base.block.BlockMgr: void beginRead()>();
+
+        return;
+
+        catch java.lang.Throwable from label1 to label3 with label4;
+        catch java.lang.Throwable from label4 to label5 with label4;
+    }
+
+    public synchronized void endRead()
+    {
+        java.lang.Throwable $r6;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        com.hp.hpl.jena.tdb.base.block.BlockMgr $r2;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action $r4, $r5;
+        org.apache.jena.atlas.lib.MultiSet $r1, $r3;
+        int $i0, $i1, $i2, $i3;
+        boolean $z0;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        entermonitor r0;
+
+     label1:
+        $i0 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: int inRead>;
+
+        if $i0 != 0 goto label2;
+
+        $r5 = <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action EndRead>;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void error(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action,java.lang.String)>($r5, "endRead but not in read");
+
+     label2:
+        $z0 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: boolean inUpdate>;
+
+        if $z0 == 0 goto label3;
+
+        $r4 = <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action EndRead>;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void error(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action,java.lang.String)>($r4, "endRead when in update");
+
+     label3:
+        $r1 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.apache.jena.atlas.lib.MultiSet activeWriteBlocks>;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void checkEmpty(java.lang.String,org.apache.jena.atlas.lib.MultiSet)>("Outstanding write blocks at end of read operations!", $r1);
+
+        $i1 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: int inRead>;
+
+        if $i1 != 0 goto label4;
+
+        $r3 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.apache.jena.atlas.lib.MultiSet activeReadBlocks>;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void checkEmpty(java.lang.String,org.apache.jena.atlas.lib.MultiSet)>("Outstanding read blocks at end of read operations", $r3);
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void clearInternalRW()>();
+
+     label4:
+        r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: boolean inUpdate> = 0;
+
+        $i2 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: int inRead>;
+
+        $i3 = $i2 - 1;
+
+        r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: int inRead> = $i3;
+
+        exitmonitor r0;
+
+     label5:
+        goto label8;
+
+     label6:
+        $r6 := @caughtexception;
+
+        exitmonitor r0;
+
+     label7:
+        throw $r6;
+
+     label8:
+        $r2 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: com.hp.hpl.jena.tdb.base.block.BlockMgr blockMgr>;
+
+        interfaceinvoke $r2.<com.hp.hpl.jena.tdb.base.block.BlockMgr: void endRead()>();
+
+        return;
+
+        catch java.lang.Throwable from label1 to label5 with label6;
+        catch java.lang.Throwable from label6 to label7 with label6;
+    }
+
+    public void beginUpdate()
+    {
+        java.lang.Throwable $r4;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        com.hp.hpl.jena.tdb.base.block.BlockMgr $r1;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action $r2, $r3;
+        int $i0;
+        boolean $z0;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        entermonitor r0;
+
+     label1:
+        $i0 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: int inRead>;
+
+        if $i0 <= 0 goto label2;
+
+        $r3 = <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action BeginUpdate>;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void error(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action,java.lang.String)>($r3, "beginUpdate when already in read");
+
+     label2:
+        $z0 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: boolean inUpdate>;
+
+        if $z0 == 0 goto label3;
+
+        $r2 = <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action BeginUpdate>;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void error(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action,java.lang.String)>($r2, "beginUpdate when already in update");
+
+     label3:
+        r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: boolean inUpdate> = 1;
+
+        exitmonitor r0;
+
+     label4:
+        goto label7;
+
+     label5:
+        $r4 := @caughtexception;
+
+        exitmonitor r0;
+
+     label6:
+        throw $r4;
+
+     label7:
+        $r1 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: com.hp.hpl.jena.tdb.base.block.BlockMgr blockMgr>;
+
+        interfaceinvoke $r1.<com.hp.hpl.jena.tdb.base.block.BlockMgr: void beginUpdate()>();
+
+        return;
+
+        catch java.lang.Throwable from label1 to label4 with label5;
+        catch java.lang.Throwable from label5 to label6 with label5;
+    }
+
+    public void endUpdate()
+    {
+        java.lang.Throwable $r6;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        com.hp.hpl.jena.tdb.base.block.BlockMgr $r3;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action $r4, $r5;
+        org.apache.jena.atlas.lib.MultiSet $r1, $r2;
+        int $i0;
+        boolean $z0;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        entermonitor r0;
+
+     label1:
+        $z0 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: boolean inUpdate>;
+
+        if $z0 != 0 goto label2;
+
+        $r5 = <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action EndUpdate>;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void error(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action,java.lang.String)>($r5, "endUpdate but not in update");
+
+     label2:
+        $i0 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: int inRead>;
+
+        if $i0 <= 0 goto label3;
+
+        $r4 = <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action EndUpdate>;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void error(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action,java.lang.String)>($r4, "endUpdate when in read");
+
+     label3:
+        $r1 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.apache.jena.atlas.lib.MultiSet activeReadBlocks>;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void checkEmpty(java.lang.String,org.apache.jena.atlas.lib.MultiSet)>("Outstanding read blocks at end of update operations", $r1);
+
+        $r2 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.apache.jena.atlas.lib.MultiSet activeWriteBlocks>;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void checkEmpty(java.lang.String,org.apache.jena.atlas.lib.MultiSet)>("Outstanding write blocks at end of update operations", $r2);
+
+        r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: boolean inUpdate> = 0;
+
+        r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: int inRead> = 0;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void clearInternalRW()>();
+
+        exitmonitor r0;
+
+     label4:
+        goto label7;
+
+     label5:
+        $r6 := @caughtexception;
+
+        exitmonitor r0;
+
+     label6:
+        throw $r6;
+
+     label7:
+        $r3 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: com.hp.hpl.jena.tdb.base.block.BlockMgr blockMgr>;
+
+        interfaceinvoke $r3.<com.hp.hpl.jena.tdb.base.block.BlockMgr: void endUpdate()>();
+
+        return;
+
+        catch java.lang.Throwable from label1 to label4 with label5;
+        catch java.lang.Throwable from label5 to label6 with label5;
+    }
+
+    private void checkUpdate(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action)
+    {
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action r1;
+        boolean $z0;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        r1 := @parameter0: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action;
+
+        $z0 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: boolean inUpdate>;
+
+        if $z0 != 0 goto label1;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void error(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action,java.lang.String)>(r1, "called outside update");
+
+     label1:
+        return;
+    }
+
+    private void checkRead(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action)
+    {
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action r1;
+        int $i0;
+        boolean $z0;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        r1 := @parameter0: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action;
+
+        $z0 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: boolean inUpdate>;
+
+        if $z0 != 0 goto label1;
+
+        $i0 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: int inRead>;
+
+        if $i0 != 0 goto label1;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void error(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action,java.lang.String)>(r1, "Called outside update and read");
+
+     label1:
+        return;
+    }
+
+    private void checkReadOrIter(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action)
+    {
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action r2;
+        java.util.List $r1;
+        int $i0, $i1;
+        boolean $z0;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        r2 := @parameter0: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action;
+
+        $z0 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: boolean inUpdate>;
+
+        if $z0 != 0 goto label1;
+
+        $i0 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: int inRead>;
+
+        if $i0 != 0 goto label1;
+
+        $r1 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: java.util.List activeIterators>;
+
+        $i1 = interfaceinvoke $r1.<java.util.List: int size()>();
+
+        if $i1 != 0 goto label1;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void error(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action,java.lang.String)>(r2, "Called outside update, read or an iterator");
+
+     label1:
+        return;
+    }
+
+    private void checkEmpty(java.lang.String, org.apache.jena.atlas.lib.MultiSet)
+    {
+        com.hp.hpl.jena.tdb.TDBException $r4;
+        java.util.Iterator $r3;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r1;
+        org.apache.jena.atlas.lib.MultiSet r0;
+        java.lang.Long r6;
+        java.lang.Object $r5;
+        java.lang.StringBuilder $r7, $r8, $r9;
+        java.lang.String r2, $r10;
+        boolean $z0, $z1;
+
+        r1 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        r2 := @parameter0: java.lang.String;
+
+        r0 := @parameter1: org.apache.jena.atlas.lib.MultiSet;
+
+        $z0 = virtualinvoke r0.<org.apache.jena.atlas.lib.MultiSet: boolean isEmpty()>();
+
+        if $z0 != 0 goto label3;
+
+        specialinvoke r1.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void error(java.lang.String)>(r2);
+
+        $r3 = virtualinvoke r0.<org.apache.jena.atlas.lib.MultiSet: java.util.Iterator iterator()>();
+
+     label1:
+        $z1 = interfaceinvoke $r3.<java.util.Iterator: boolean hasNext()>();
+
+        if $z1 == 0 goto label2;
+
+        $r5 = interfaceinvoke $r3.<java.util.Iterator: java.lang.Object next()>();
+
+        r6 = (java.lang.Long) $r5;
+
+        $r7 = new java.lang.StringBuilder;
+
+        specialinvoke $r7.<java.lang.StringBuilder: void <init>()>();
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("    Block: ");
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r6);
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke r1.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void info(java.lang.String)>($r10);
+
+        goto label1;
+
+     label2:
+        specialinvoke r1.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void history()>();
+
+        $r4 = new com.hp.hpl.jena.tdb.TDBException;
+
+        specialinvoke $r4.<com.hp.hpl.jena.tdb.TDBException: void <init>()>();
+
+        throw $r4;
+
+     label3:
+        return;
+    }
+
+    private java.lang.String msg(java.lang.String)
+    {
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        java.lang.StringBuilder $r2, $r4, $r5, $r7;
+        java.lang.String $r1, $r3, r6, $r8;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        r6 := @parameter0: java.lang.String;
+
+        $r1 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: java.lang.String label>;
+
+        if $r1 != null goto label1;
+
+        return r6;
+
+     label1:
+        $r2 = new java.lang.StringBuilder;
+
+        specialinvoke $r2.<java.lang.StringBuilder: void <init>()>();
+
+        $r3 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: java.lang.String label>;
+
+        $r4 = virtualinvoke $r2.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r3);
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(": ");
+
+        $r7 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r6);
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        return $r8;
+    }
+
+    private void info(java.lang.String)
+    {
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        org.slf4j.Logger $r2;
+        java.lang.String r1, $r3;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        r1 := @parameter0: java.lang.String;
+
+        $r2 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.slf4j.Logger log>;
+
+        $r3 = specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: java.lang.String msg(java.lang.String)>(r1);
+
+        interfaceinvoke $r2.<org.slf4j.Logger: void info(java.lang.String)>($r3);
+
+        return;
+    }
+
+    private void warn(java.lang.String)
+    {
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        org.slf4j.Logger $r2;
+        java.lang.String r1, $r3;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        r1 := @parameter0: java.lang.String;
+
+        $r2 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.slf4j.Logger log>;
+
+        $r3 = specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: java.lang.String msg(java.lang.String)>(r1);
+
+        interfaceinvoke $r2.<org.slf4j.Logger: void warn(java.lang.String)>($r3);
+
+        return;
+    }
+
+    private void warn(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action, java.lang.String)
+    {
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action r2;
+        java.lang.StringBuilder $r1, $r3, $r4, $r6;
+        java.lang.String r5, $r7;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        r2 := @parameter0: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action;
+
+        r5 := @parameter1: java.lang.String;
+
+        $r1 = new java.lang.StringBuilder;
+
+        specialinvoke $r1.<java.lang.StringBuilder: void <init>()>();
+
+        $r3 = virtualinvoke $r1.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r2);
+
+        $r4 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(": ");
+
+        $r6 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r5);
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void warn(java.lang.String)>($r7);
+
+        return;
+    }
+
+    private void error(java.lang.String)
+    {
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        org.slf4j.Logger $r2;
+        java.lang.String r1, $r3;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        r1 := @parameter0: java.lang.String;
+
+        $r2 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.slf4j.Logger log>;
+
+        $r3 = specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: java.lang.String msg(java.lang.String)>(r1);
+
+        interfaceinvoke $r2.<org.slf4j.Logger: void error(java.lang.String)>($r3);
+
+        return;
+    }
+
+    private void error(com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action, java.lang.String)
+    {
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action r3;
+        com.hp.hpl.jena.tdb.base.block.BlockException $r0;
+        java.lang.String r6, $r8, $r9, $r14;
+        boolean $z0;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r1;
+        java.lang.StringBuilder $r2, $r4, $r5, $r7, $r10, $r11, $r12, $r13;
+
+        r1 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        r3 := @parameter0: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker$Action;
+
+        r6 := @parameter1: java.lang.String;
+
+        $z0 = <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: boolean verbose>;
+
+        if $z0 == 0 goto label1;
+
+        $r10 = new java.lang.StringBuilder;
+
+        specialinvoke $r10.<java.lang.StringBuilder: void <init>()>();
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r3);
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(": ");
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r6);
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke r1.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void error(java.lang.String)>($r14);
+
+        specialinvoke r1.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void history()>();
+
+     label1:
+        $r0 = new com.hp.hpl.jena.tdb.base.block.BlockException;
+
+        $r2 = new java.lang.StringBuilder;
+
+        specialinvoke $r2.<java.lang.StringBuilder: void <init>()>();
+
+        $r4 = virtualinvoke $r2.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r3);
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(": ");
+
+        $r7 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r6);
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r9 = specialinvoke r1.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: java.lang.String msg(java.lang.String)>($r8);
+
+        specialinvoke $r0.<com.hp.hpl.jena.tdb.base.block.BlockException: void <init>(java.lang.String)>($r9);
+
+        throw $r0;
+    }
+
+    private void debugPoint()
+    {
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        return;
+    }
+
+    private void history()
+    {
+        java.lang.Object[] $r7, $r12;
+        java.lang.Long $r6;
+        java.lang.String $r8, $r11, $r13, $r17;
+        boolean $z0;
+        org.slf4j.Logger $r9, $r14;
+        java.util.Iterator $r2;
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        java.util.List $r1;
+        org.apache.jena.atlas.lib.Pair r4;
+        java.lang.Object $r3, $r5, $r10, $r15, $r16;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: void info(java.lang.String)>("History");
+
+        $r1 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: java.util.List actions>;
+
+        $r2 = interfaceinvoke $r1.<java.util.List: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r2.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label4;
+
+        $r3 = interfaceinvoke $r2.<java.util.Iterator: java.lang.Object next()>();
+
+        r4 = (org.apache.jena.atlas.lib.Pair) $r3;
+
+        $r5 = virtualinvoke r4.<org.apache.jena.atlas.lib.Pair: java.lang.Object getRight()>();
+
+        $r6 = <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: java.lang.Long NoId>;
+
+        if $r5 == $r6 goto label2;
+
+        $r14 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.slf4j.Logger log>;
+
+        $r12 = newarray (java.lang.Object)[3];
+
+        $r13 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: java.lang.String label>;
+
+        $r12[0] = $r13;
+
+        $r15 = virtualinvoke r4.<org.apache.jena.atlas.lib.Pair: java.lang.Object getLeft()>();
+
+        $r12[1] = $r15;
+
+        $r16 = virtualinvoke r4.<org.apache.jena.atlas.lib.Pair: java.lang.Object getRight()>();
+
+        $r12[2] = $r16;
+
+        $r17 = staticinvoke <java.lang.String: java.lang.String format(java.lang.String,java.lang.Object[])>("%s:     %-12s  %d", $r12);
+
+        interfaceinvoke $r14.<org.slf4j.Logger: void info(java.lang.String)>($r17);
+
+        goto label3;
+
+     label2:
+        $r9 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.slf4j.Logger log>;
+
+        $r7 = newarray (java.lang.Object)[2];
+
+        $r8 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: java.lang.String label>;
+
+        $r7[0] = $r8;
+
+        $r10 = virtualinvoke r4.<org.apache.jena.atlas.lib.Pair: java.lang.Object getLeft()>();
+
+        $r7[1] = $r10;
+
+        $r11 = staticinvoke <java.lang.String: java.lang.String format(java.lang.String,java.lang.Object[])>("%s:     %-12s", $r7);
+
+        interfaceinvoke $r9.<org.slf4j.Logger: void info(java.lang.String)>($r11);
+
+     label3:
+        goto label1;
+
+     label4:
+        return;
+    }
+
+    public java.lang.String toString()
+    {
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r2;
+        java.lang.StringBuilder $r0, $r1, $r4, $r5, $r7, $r8;
+        java.lang.String $r3, $r6, $r9, $r10;
+
+        r2 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        $r0 = new java.lang.StringBuilder;
+
+        specialinvoke $r0.<java.lang.StringBuilder: void <init>()>();
+
+        $r1 = virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("BlockMgrTracker");
+
+        $r3 = r2.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: java.lang.String label>;
+
+        if $r3 != null goto label1;
+
+        $r10 = "";
+
+        goto label2;
+
+     label1:
+        $r4 = new java.lang.StringBuilder;
+
+        specialinvoke $r4.<java.lang.StringBuilder: void <init>()>();
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(": ");
+
+        $r6 = r2.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: java.lang.String label>;
+
+        $r7 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r6);
+
+        $r10 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.String toString()>();
+
+     label2:
+        $r8 = virtualinvoke $r1.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r10);
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        return $r9;
+    }
+
+    public java.lang.String getLabel()
+    {
+        com.hp.hpl.jena.tdb.base.block.BlockMgrTracker r0;
+        java.lang.String $r1;
+
+        r0 := @this: com.hp.hpl.jena.tdb.base.block.BlockMgrTracker;
+
+        $r1 = r0.<com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: java.lang.String label>;
+
+        return $r1;
+    }
+
+    static void <clinit>()
+    {
+        org.slf4j.Logger $r0;
+        java.lang.Long $r1;
+
+        $r0 = staticinvoke <org.slf4j.LoggerFactory: org.slf4j.Logger getLogger(java.lang.Class)>(class "Lcom/hp/hpl/jena/tdb/base/block/BlockMgrTracker;");
+
+        <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: org.slf4j.Logger loggerDefault> = $r0;
+
+        <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: boolean verbose> = 0;
+
+        $r1 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>(-9L);
+
+        <com.hp.hpl.jena.tdb.base.block.BlockMgrTracker: java.lang.Long NoId> = $r1;
+
+        return;
+    }
+}

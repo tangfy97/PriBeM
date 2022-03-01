@@ -1,0 +1,3966 @@
+public class org.eclipse.jetty.http.HttpParser extends java.lang.Object implements org.eclipse.jetty.http.Parser
+{
+    private static final org.eclipse.jetty.util.log.Logger LOG;
+    public static final int STATE_START;
+    public static final int STATE_FIELD0;
+    public static final int STATE_SPACE1;
+    public static final int STATE_STATUS;
+    public static final int STATE_URI;
+    public static final int STATE_SPACE2;
+    public static final int STATE_END0;
+    public static final int STATE_END1;
+    public static final int STATE_FIELD2;
+    public static final int STATE_HEADER;
+    public static final int STATE_HEADER_NAME;
+    public static final int STATE_HEADER_IN_NAME;
+    public static final int STATE_HEADER_VALUE;
+    public static final int STATE_HEADER_IN_VALUE;
+    public static final int STATE_END;
+    public static final int STATE_EOF_CONTENT;
+    public static final int STATE_CONTENT;
+    public static final int STATE_CHUNKED_CONTENT;
+    public static final int STATE_CHUNK_SIZE;
+    public static final int STATE_CHUNK_PARAMS;
+    public static final int STATE_CHUNK;
+    public static final int STATE_SEEKING_EOF;
+    private final org.eclipse.jetty.http.HttpParser$EventHandler _handler;
+    private final org.eclipse.jetty.io.Buffers _buffers;
+    private final org.eclipse.jetty.io.EndPoint _endp;
+    private org.eclipse.jetty.io.Buffer _header;
+    private org.eclipse.jetty.io.Buffer _body;
+    private org.eclipse.jetty.io.Buffer _buffer;
+    private org.eclipse.jetty.io.BufferCache$CachedBuffer _cached;
+    private final org.eclipse.jetty.io.View$CaseInsensitive _tok0;
+    private final org.eclipse.jetty.io.View$CaseInsensitive _tok1;
+    private java.lang.String _multiLineValue;
+    private int _responseStatus;
+    private boolean _forceContentBuffer;
+    private boolean _persistent;
+    protected final org.eclipse.jetty.io.View _contentView;
+    protected int _state;
+    protected byte _eol;
+    protected int _length;
+    protected long _contentLength;
+    protected long _contentPosition;
+    protected int _chunkLength;
+    protected int _chunkPosition;
+    private boolean _headResponse;
+
+    public void <init>(org.eclipse.jetty.io.Buffer, org.eclipse.jetty.http.HttpParser$EventHandler)
+    {
+        org.eclipse.jetty.http.HttpParser r0;
+        org.eclipse.jetty.io.View $r8;
+        int $i1;
+        org.eclipse.jetty.http.HttpParser$EventHandler r3;
+        org.eclipse.jetty.io.View$CaseInsensitive $r9, $r10;
+        org.eclipse.jetty.io.Buffer r2, $r5, $r7;
+
+        r0 := @this: org.eclipse.jetty.http.HttpParser;
+
+        r2 := @parameter0: org.eclipse.jetty.io.Buffer;
+
+        r3 := @parameter1: org.eclipse.jetty.http.HttpParser$EventHandler;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        $r8 = new org.eclipse.jetty.io.View;
+
+        specialinvoke $r8.<org.eclipse.jetty.io.View: void <init>()>();
+
+        r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View _contentView> = $r8;
+
+        $i1 = (int) -14;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = $i1;
+
+        r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.EndPoint _endp> = null;
+
+        r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffers _buffers> = null;
+
+        r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _header> = r2;
+
+        r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer> = r2;
+
+        r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.http.HttpParser$EventHandler _handler> = r3;
+
+        $r9 = new org.eclipse.jetty.io.View$CaseInsensitive;
+
+        $r5 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _header>;
+
+        specialinvoke $r9.<org.eclipse.jetty.io.View$CaseInsensitive: void <init>(org.eclipse.jetty.io.Buffer)>($r5);
+
+        r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok0> = $r9;
+
+        $r10 = new org.eclipse.jetty.io.View$CaseInsensitive;
+
+        $r7 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _header>;
+
+        specialinvoke $r10.<org.eclipse.jetty.io.View$CaseInsensitive: void <init>(org.eclipse.jetty.io.Buffer)>($r7);
+
+        r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok1> = $r10;
+
+        return;
+    }
+
+    public void <init>(org.eclipse.jetty.io.Buffers, org.eclipse.jetty.io.EndPoint, org.eclipse.jetty.http.HttpParser$EventHandler)
+    {
+        org.eclipse.jetty.io.Buffers r2;
+        org.eclipse.jetty.io.EndPoint r3;
+        org.eclipse.jetty.http.HttpParser r0;
+        org.eclipse.jetty.io.View $r7;
+        int $i1;
+        org.eclipse.jetty.http.HttpParser$EventHandler r4;
+        org.eclipse.jetty.io.View$CaseInsensitive $r8, $r9;
+
+        r0 := @this: org.eclipse.jetty.http.HttpParser;
+
+        r2 := @parameter0: org.eclipse.jetty.io.Buffers;
+
+        r3 := @parameter1: org.eclipse.jetty.io.EndPoint;
+
+        r4 := @parameter2: org.eclipse.jetty.http.HttpParser$EventHandler;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        $r7 = new org.eclipse.jetty.io.View;
+
+        specialinvoke $r7.<org.eclipse.jetty.io.View: void <init>()>();
+
+        r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View _contentView> = $r7;
+
+        $i1 = (int) -14;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = $i1;
+
+        r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffers _buffers> = r2;
+
+        r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.EndPoint _endp> = r3;
+
+        r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.http.HttpParser$EventHandler _handler> = r4;
+
+        $r8 = new org.eclipse.jetty.io.View$CaseInsensitive;
+
+        specialinvoke $r8.<org.eclipse.jetty.io.View$CaseInsensitive: void <init>()>();
+
+        r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok0> = $r8;
+
+        $r9 = new org.eclipse.jetty.io.View$CaseInsensitive;
+
+        specialinvoke $r9.<org.eclipse.jetty.io.View$CaseInsensitive: void <init>()>();
+
+        r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok1> = $r9;
+
+        return;
+    }
+
+    public long getContentLength()
+    {
+        long $l0;
+        org.eclipse.jetty.http.HttpParser r0;
+
+        r0 := @this: org.eclipse.jetty.http.HttpParser;
+
+        $l0 = r0.<org.eclipse.jetty.http.HttpParser: long _contentLength>;
+
+        return $l0;
+    }
+
+    public long getContentRead()
+    {
+        long $l0;
+        org.eclipse.jetty.http.HttpParser r0;
+
+        r0 := @this: org.eclipse.jetty.http.HttpParser;
+
+        $l0 = r0.<org.eclipse.jetty.http.HttpParser: long _contentPosition>;
+
+        return $l0;
+    }
+
+    public void setHeadResponse(boolean)
+    {
+        org.eclipse.jetty.http.HttpParser r0;
+        boolean z0;
+
+        r0 := @this: org.eclipse.jetty.http.HttpParser;
+
+        z0 := @parameter0: boolean;
+
+        r0.<org.eclipse.jetty.http.HttpParser: boolean _headResponse> = z0;
+
+        return;
+    }
+
+    public int getState()
+    {
+        int $i0;
+        org.eclipse.jetty.http.HttpParser r0;
+
+        r0 := @this: org.eclipse.jetty.http.HttpParser;
+
+        $i0 = r0.<org.eclipse.jetty.http.HttpParser: int _state>;
+
+        return $i0;
+    }
+
+    public boolean inContentState()
+    {
+        int $i0;
+        org.eclipse.jetty.http.HttpParser r0;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.http.HttpParser;
+
+        $i0 = r0.<org.eclipse.jetty.http.HttpParser: int _state>;
+
+        if $i0 <= 0 goto label1;
+
+        $z0 = 1;
+
+        goto label2;
+
+     label1:
+        $z0 = 0;
+
+     label2:
+        return $z0;
+    }
+
+    public boolean inHeaderState()
+    {
+        int $i0;
+        org.eclipse.jetty.http.HttpParser r0;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.http.HttpParser;
+
+        $i0 = r0.<org.eclipse.jetty.http.HttpParser: int _state>;
+
+        if $i0 >= 0 goto label1;
+
+        $z0 = 1;
+
+        goto label2;
+
+     label1:
+        $z0 = 0;
+
+     label2:
+        return $z0;
+    }
+
+    public boolean isChunking()
+    {
+        byte $b1;
+        long $l0;
+        org.eclipse.jetty.http.HttpParser r0;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.http.HttpParser;
+
+        $l0 = r0.<org.eclipse.jetty.http.HttpParser: long _contentLength>;
+
+        $b1 = $l0 cmp -2L;
+
+        if $b1 != 0 goto label1;
+
+        $z0 = 1;
+
+        goto label2;
+
+     label1:
+        $z0 = 0;
+
+     label2:
+        return $z0;
+    }
+
+    public boolean isIdle()
+    {
+        int $i1;
+        org.eclipse.jetty.http.HttpParser r0;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.http.HttpParser;
+
+        $i1 = (int) -14;
+
+        $z0 = virtualinvoke r0.<org.eclipse.jetty.http.HttpParser: boolean isState(int)>($i1);
+
+        return $z0;
+    }
+
+    public boolean isComplete()
+    {
+        org.eclipse.jetty.http.HttpParser r0;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.http.HttpParser;
+
+        $z0 = virtualinvoke r0.<org.eclipse.jetty.http.HttpParser: boolean isState(int)>(0);
+
+        return $z0;
+    }
+
+    public boolean isMoreInBuffer() throws java.io.IOException
+    {
+        org.eclipse.jetty.http.HttpParser r0;
+        org.eclipse.jetty.io.Buffer $r1, $r2, $r3, $r4;
+        boolean $z0, $z1, $z2;
+
+        r0 := @this: org.eclipse.jetty.http.HttpParser;
+
+        $r1 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _header>;
+
+        if $r1 == null goto label1;
+
+        $r4 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _header>;
+
+        $z1 = interfaceinvoke $r4.<org.eclipse.jetty.io.Buffer: boolean hasContent()>();
+
+        if $z1 != 0 goto label2;
+
+     label1:
+        $r2 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _body>;
+
+        if $r2 == null goto label3;
+
+        $r3 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _body>;
+
+        $z0 = interfaceinvoke $r3.<org.eclipse.jetty.io.Buffer: boolean hasContent()>();
+
+        if $z0 == 0 goto label3;
+
+     label2:
+        $z2 = 1;
+
+        goto label4;
+
+     label3:
+        $z2 = 0;
+
+     label4:
+        return $z2;
+    }
+
+    public boolean isState(int)
+    {
+        int i0, $i1;
+        org.eclipse.jetty.http.HttpParser r0;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.http.HttpParser;
+
+        i0 := @parameter0: int;
+
+        $i1 = r0.<org.eclipse.jetty.http.HttpParser: int _state>;
+
+        if $i1 != i0 goto label1;
+
+        $z0 = 1;
+
+        goto label2;
+
+     label1:
+        $z0 = 0;
+
+     label2:
+        return $z0;
+    }
+
+    public boolean isPersistent()
+    {
+        org.eclipse.jetty.http.HttpParser r0;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.http.HttpParser;
+
+        $z0 = r0.<org.eclipse.jetty.http.HttpParser: boolean _persistent>;
+
+        return $z0;
+    }
+
+    public void setPersistent(boolean)
+    {
+        int $i0, $i1, $i3;
+        org.eclipse.jetty.http.HttpParser r0;
+        boolean z0, $z1;
+
+        r0 := @this: org.eclipse.jetty.http.HttpParser;
+
+        z0 := @parameter0: boolean;
+
+        r0.<org.eclipse.jetty.http.HttpParser: boolean _persistent> = z0;
+
+        $z1 = r0.<org.eclipse.jetty.http.HttpParser: boolean _persistent>;
+
+        if $z1 != 0 goto label2;
+
+        $i0 = r0.<org.eclipse.jetty.http.HttpParser: int _state>;
+
+        if $i0 == 0 goto label1;
+
+        $i1 = r0.<org.eclipse.jetty.http.HttpParser: int _state>;
+
+        $i3 = (int) -14;
+
+        if $i1 != $i3 goto label2;
+
+     label1:
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = 7;
+
+     label2:
+        return;
+    }
+
+    public void parse() throws java.io.IOException
+    {
+        java.lang.IllegalStateException $r2;
+        int $i0, $i1, $i2, $i3, $i5;
+        org.eclipse.jetty.http.HttpParser r0;
+
+        r0 := @this: org.eclipse.jetty.http.HttpParser;
+
+        $i0 = r0.<org.eclipse.jetty.http.HttpParser: int _state>;
+
+        if $i0 != 0 goto label1;
+
+        virtualinvoke r0.<org.eclipse.jetty.http.HttpParser: void reset()>();
+
+     label1:
+        $i1 = r0.<org.eclipse.jetty.http.HttpParser: int _state>;
+
+        $i5 = (int) -14;
+
+        if $i1 == $i5 goto label2;
+
+        $r2 = new java.lang.IllegalStateException;
+
+        specialinvoke $r2.<java.lang.IllegalStateException: void <init>(java.lang.String)>("!START");
+
+        throw $r2;
+
+     label2:
+        $i2 = r0.<org.eclipse.jetty.http.HttpParser: int _state>;
+
+        if $i2 == 0 goto label3;
+
+        $i3 = virtualinvoke r0.<org.eclipse.jetty.http.HttpParser: int parseNext()>();
+
+        if $i3 >= 0 goto label2;
+
+        return;
+
+     label3:
+        return;
+    }
+
+    public boolean parseAvailable() throws java.io.IOException
+    {
+        org.eclipse.jetty.http.HttpParser r0;
+        org.eclipse.jetty.io.View $r3;
+        int $i0, $i1, $i2;
+        org.eclipse.jetty.io.Buffer $r1, $r2;
+        boolean $z0, $z1, $z2, z3, $z4, $z5;
+
+        r0 := @this: org.eclipse.jetty.http.HttpParser;
+
+        $i0 = virtualinvoke r0.<org.eclipse.jetty.http.HttpParser: int parseNext()>();
+
+        if $i0 <= 0 goto label1;
+
+        $z2 = 1;
+
+        goto label2;
+
+     label1:
+        $z2 = 0;
+
+     label2:
+        z3 = $z2;
+
+     label3:
+        $z4 = virtualinvoke r0.<org.eclipse.jetty.http.HttpParser: boolean isComplete()>();
+
+        if $z4 != 0 goto label6;
+
+        $r1 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        if $r1 == null goto label6;
+
+        $r2 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i1 = interfaceinvoke $r2.<org.eclipse.jetty.io.Buffer: int length()>();
+
+        if $i1 <= 0 goto label6;
+
+        $r3 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View _contentView>;
+
+        $z0 = virtualinvoke $r3.<org.eclipse.jetty.io.View: boolean hasContent()>();
+
+        if $z0 != 0 goto label6;
+
+        $z1 = z3;
+
+        $i2 = virtualinvoke r0.<org.eclipse.jetty.http.HttpParser: int parseNext()>();
+
+        if $i2 <= 0 goto label4;
+
+        $z5 = 1;
+
+        goto label5;
+
+     label4:
+        $z5 = 0;
+
+     label5:
+        z3 = $z1 | $z5;
+
+        goto label3;
+
+     label6:
+        return z3;
+    }
+
+    public int parseNext() throws java.io.IOException
+    {
+        java.lang.Integer $r209, $r211;
+        org.eclipse.jetty.io.BufferCache $r139, $r144, $r147, $r153, $r160, $r167, $r175, $r186, $r203;
+        org.eclipse.jetty.io.BufferCache$CachedBuffer $r85, $r92, $r102, $r118, $r119, $r120, $r204, $r236;
+        org.eclipse.jetty.util.log.Logger $r208, $r227, $r230;
+        java.lang.String $r27, $r47, $r52, $r56, $r58, $r60, $r65, $r70, $r74, $r76, $r78, $r105, $r106, $r127, $r130, r132, $r134, $r137, $r231;
+        org.eclipse.jetty.io.View$CaseInsensitive $r46, $r49, $r55, $r59, $r62, $r64, $r67, $r73, $r77, $r80, $r87, $r90, $r94, $r97, $r103, $r135, $r136, $r138, $r143, $r148, $r149, $r150, $r151, $r152, $r159, $r163, $r166, $r170, $r171, $r172, $r173, $r174, $r183, $r185, $r189, $r190, $r191, $r192, $r194, $r200, $r202, $r242, $r243, $r244, $r245;
+        org.eclipse.jetty.io.EndPoint $r6, $r8;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9, $z10, $z11, $z12, $z13, $z14, $z15, $z16;
+        byte[] $r234;
+        byte $b5, $b8, $b18, $b20, $b22, $b23, $b24, $b26, $b28, $b29, $b44, $b45, $b48, $b50, $b57, $b65, $b66, $b71, $b72, $b129, $b133, $b134, $b149, $b152, $b202, $b210, $b214, $b216, $b218, $b220, $b226, $b227, $b228, $b229;
+        org.eclipse.jetty.http.HttpParser$EventHandler $r12, $r14, $r19, $r34, $r35, $r36, $r41, $r108, $r109, $r110, $r111, $r140, $r154, $r161, $r164, $r165, $r168, $r176, $r180, $r181, $r187, $r213, $r215, $r216, $r222, $r223, $r241, $r247, $r248;
+        long $l11, $l13, $l14, $l21, $l27, $l46, $l47, $l49, $l51, $l53, $l54, $l55, $l56, $l58, $l59, $l61, $l63, $l64, $l128, $l130, $l148, $l150, $l151, $l166, $l170, $l192, $l193, $l196, $l198, $l199, $l200, $l201, $l203, $l215, $l219, $l221, l225;
+        java.io.IOException $r229, r232, $r262;
+        org.eclipse.jetty.http.HttpHeaders $r104, $r107, $r117;
+        org.eclipse.jetty.io.Buffer $r1, $r2, $r3, $r4, $r5, $r7, $r9, $r10, $r13, $r15, $r16, $r17, $r18, $r20, $r21, $r22, $r28, $r29, $r30, $r31, $r32, $r37, $r38, $r39, $r42, $r43, $r44, $r45, $r48, $r50, $r61, $r63, $r66, $r68, $r79, $r81, $r82, $r83, $r84, $r86, $r88, $r89, $r91, $r93, $r95, $r96, $r98, $r99, $r100, $r101, $r112, $r113, $r114, $r115, $r116, $r121, $r122, $r123, $r125, $r141, $r142, $r145, $r146, $r155, $r156, $r157, $r158, $r162, $r169, $r177, $r178, $r179, $r182, $r184, $r188, $r193, $r195, $r196, $r199, $r201, $r205, $r210, $r212, $r217, $r218, $r219, $r220, $r224, $r233, r235, $r237, r238, r240, $r246, $r249, $r250, $r251;
+        org.eclipse.jetty.io.EofException $r252;
+        java.lang.String[] $r131;
+        int $i0, $i1, $i2, $i3, $i4, $i6, $i7, $i9, $i10, $i12, $i15, $i16, $i17, $i19, $i25, $i30, $i31, $i32, $i33, $i34, $i35, $i36, $i37, $i38, $i39, $i40, $i41, $i42, $i43, $i52, $i60, $i62, $i67, $i68, $i69, $i70, $i73, $i74, $i75, $i76, $i77, $i78, $i79, $i80, $i81, $i82, $i83, $i84, $i85, $i86, $i87, $i88, $i89, $i90, $i91, $i92, $i93, $i94, $i95, $i96, $i97, $i98, $i99, $i100, $i101, $i102, $i103, $i104, $i105, $i106, $i107, $i108, $i109, $i110, $i111, $i112, $i113, $i114, $i115, $i116, $i117, $i118, $i119, $i120, $i121, $i122, $i123, $i124, $i125, $i126, $i127, $i131, $i132, $i135, $i136, $i137, $i138, $i139, $i140, $i141, $i142, $i143, $i144, $i145, $i146, $i147, $i153, $i154, $i155, i156, $i157, $i158, $i159, $i160, $i161, $i162, $i163, $i164, $i165, $i167, $i168, $i169, $i171, $i172, $i173, $i174, $i175, $i176, $i177, $i178, $i179, $i180, $i181, $i182, $i183, $i184, $i185, $i186, $i187, $i188, $i189, $i190, $i191, $i194, $i195, $i197, i204, i205, i206, $i207, i208, $i209, i211, $i212, $i213, $i217, i222, i223, $i224, i230, $i231, $i233, $i235, $i237, $i238, $i239, $i240, $i241, $i243, $i244, $i246, $i247, $i248, $i249, $i250, $i252, $i253, $i255, $i256, $i257, $i259, $i260, $i261, $i262, $i263, $i264, $i266, $i268, $i270, $i271, $i273, $i274, $i275, $i276, $i277, $i279, $i280, $i282, $i283, $i284, $i286, $i287, $i289, $i291, $i292, $i294, $i295, $i296, $i297, $i298, $i299, $i301, $i302, $i304, $i306, $i308, $i310, $i312, $i313, $i315, $i317, $i319, $i321, $i322, $i324, $i326, $i328, $i329, $i331, $i333, $i334, $i335, $i336, $i337, $i338, $i339, $i340, $i341, $i342, $i343, $i344, $i345, $i346, $i347, $i348, $i349, $i350, $i351, $i352, $i353, $i354, $i355, $i356, $i357, $i358, $i359, $i360;
+        org.eclipse.jetty.http.HttpParser r0;
+        org.eclipse.jetty.io.AbstractBuffer $r239;
+        org.eclipse.jetty.http.HttpHeaderValues $r124, $r126, $r129, $r133;
+        org.eclipse.jetty.io.View $r11, $r33, $r40, $r221;
+        org.eclipse.jetty.http.HttpException $r225, $r253, $r254, $r255, $r257, $r258;
+        java.lang.StringBuilder $r25, $r26, $r53, $r54, $r57, $r71, $r72, $r75, $r259, $r260, $r261;
+        java.lang.Object[] $r207;
+        org.eclipse.jetty.io.ByteArrayBuffer $r256;
+        java.lang.NumberFormatException $r226;
+
+        r0 := @this: org.eclipse.jetty.http.HttpParser;
+
+     label001:
+        i204 = 0;
+
+        $i0 = r0.<org.eclipse.jetty.http.HttpParser: int _state>;
+
+        if $i0 != 0 goto label003;
+
+     label002:
+        return 0;
+
+     label003:
+        $r1 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        if $r1 != null goto label004;
+
+        $r224 = virtualinvoke r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer getHeaderBuffer()>();
+
+        r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer> = $r224;
+
+     label004:
+        $i1 = r0.<org.eclipse.jetty.http.HttpParser: int _state>;
+
+        if $i1 != 2 goto label006;
+
+        $l201 = r0.<org.eclipse.jetty.http.HttpParser: long _contentPosition>;
+
+        $l200 = r0.<org.eclipse.jetty.http.HttpParser: long _contentLength>;
+
+        $b202 = $l201 cmp $l200;
+
+        if $b202 != 0 goto label006;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = 0;
+
+        $r223 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.http.HttpParser$EventHandler _handler>;
+
+        $l203 = r0.<org.eclipse.jetty.http.HttpParser: long _contentPosition>;
+
+        virtualinvoke $r223.<org.eclipse.jetty.http.HttpParser$EventHandler: void messageComplete(long)>($l203);
+
+     label005:
+        return 1;
+
+     label006:
+        $r2 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i2 = interfaceinvoke $r2.<org.eclipse.jetty.io.Buffer: int length()>();
+
+        i205 = $i2;
+
+        if $i2 != 0 goto label021;
+
+        $i233 = (int) -1;
+
+        i206 = $i233;
+
+        r232 = null;
+
+     label007:
+        $i189 = virtualinvoke r0.<org.eclipse.jetty.http.HttpParser: int fill()>();
+
+        i206 = $i189;
+
+        $r208 = <org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r207 = newarray (java.lang.Object)[2];
+
+        $r209 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i189);
+
+        $r207[0] = $r209;
+
+        $r210 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i190 = interfaceinvoke $r210.<org.eclipse.jetty.io.Buffer: int length()>();
+
+        $r211 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i190);
+
+        $r207[1] = $r211;
+
+        interfaceinvoke $r208.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Object[])>("filled {}/{}", $r207);
+
+     label008:
+        goto label010;
+
+     label009:
+        $r229 := @caughtexception;
+
+        $r230 = <org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r231 = virtualinvoke r0.<org.eclipse.jetty.http.HttpParser: java.lang.String toString()>();
+
+        interfaceinvoke $r230.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Throwable)>($r231, $r229);
+
+        r232 = $r229;
+
+     label010:
+        if i206 <= 0 goto label011;
+
+        i204 = 1;
+
+        goto label020;
+
+     label011:
+        if i206 >= 0 goto label020;
+
+        r0.<org.eclipse.jetty.http.HttpParser: boolean _persistent> = 0;
+
+        $i191 = r0.<org.eclipse.jetty.http.HttpParser: int _state>;
+
+        if $i191 <= 0 goto label012;
+
+        $r217 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i194 = interfaceinvoke $r217.<org.eclipse.jetty.io.Buffer: int length()>();
+
+        if $i194 <= 0 goto label012;
+
+        $z13 = r0.<org.eclipse.jetty.http.HttpParser: boolean _headResponse>;
+
+        if $z13 != 0 goto label012;
+
+        $r219 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $r218 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i195 = interfaceinvoke $r218.<org.eclipse.jetty.io.Buffer: int length()>();
+
+        $r220 = interfaceinvoke $r219.<org.eclipse.jetty.io.Buffer: org.eclipse.jetty.io.Buffer get(int)>($i195);
+
+        $l196 = r0.<org.eclipse.jetty.http.HttpParser: long _contentPosition>;
+
+        $i197 = interfaceinvoke $r220.<org.eclipse.jetty.io.Buffer: int length()>();
+
+        $l198 = (long) $i197;
+
+        $l199 = $l196 + $l198;
+
+        r0.<org.eclipse.jetty.http.HttpParser: long _contentPosition> = $l199;
+
+        $r221 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View _contentView>;
+
+        virtualinvoke $r221.<org.eclipse.jetty.io.View: void update(org.eclipse.jetty.io.Buffer)>($r220);
+
+        $r222 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.http.HttpParser$EventHandler _handler>;
+
+        virtualinvoke $r222.<org.eclipse.jetty.http.HttpParser$EventHandler: void content(org.eclipse.jetty.io.Buffer)>($r220);
+
+     label012:
+        $i207 = r0.<org.eclipse.jetty.http.HttpParser: int _state>;
+
+        lookupswitch($i207)
+        {
+            case 0: goto label013;
+            case 1: goto label014;
+            case 7: goto label013;
+            default: goto label015;
+        };
+
+     label013:
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = 0;
+
+        goto label017;
+
+     label014:
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = 0;
+
+        $r213 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.http.HttpParser$EventHandler _handler>;
+
+        $l192 = r0.<org.eclipse.jetty.http.HttpParser: long _contentPosition>;
+
+        virtualinvoke $r213.<org.eclipse.jetty.http.HttpParser$EventHandler: void messageComplete(long)>($l192);
+
+        goto label017;
+
+     label015:
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = 0;
+
+        $z12 = r0.<org.eclipse.jetty.http.HttpParser: boolean _headResponse>;
+
+        if $z12 != 0 goto label016;
+
+        $r216 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.http.HttpParser$EventHandler _handler>;
+
+        virtualinvoke $r216.<org.eclipse.jetty.http.HttpParser$EventHandler: void earlyEOF()>();
+
+     label016:
+        $r215 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.http.HttpParser$EventHandler _handler>;
+
+        $l193 = r0.<org.eclipse.jetty.http.HttpParser: long _contentPosition>;
+
+        virtualinvoke $r215.<org.eclipse.jetty.http.HttpParser$EventHandler: void messageComplete(long)>($l193);
+
+     label017:
+        if r232 == null goto label018;
+
+        throw r232;
+
+     label018:
+        $z10 = virtualinvoke r0.<org.eclipse.jetty.http.HttpParser: boolean isComplete()>();
+
+        if $z10 != 0 goto label019;
+
+        $z11 = virtualinvoke r0.<org.eclipse.jetty.http.HttpParser: boolean isIdle()>();
+
+        if $z11 != 0 goto label019;
+
+        $r252 = new org.eclipse.jetty.io.EofException;
+
+        specialinvoke $r252.<org.eclipse.jetty.io.EofException: void <init>()>();
+
+        throw $r252;
+
+     label019:
+        $i235 = (int) -1;
+
+        return $i235;
+
+     label020:
+        $r212 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        i205 = interfaceinvoke $r212.<org.eclipse.jetty.io.Buffer: int length()>();
+
+     label021:
+        $r233 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $r234 = interfaceinvoke $r233.<org.eclipse.jetty.io.Buffer: byte[] array()>();
+
+        i208 = r0.<org.eclipse.jetty.http.HttpParser: int _state>;
+
+     label022:
+        $i209 = r0.<org.eclipse.jetty.http.HttpParser: int _state>;
+
+        if $i209 >= 0 goto label131;
+
+        $i69 = i205;
+
+        $i237 = (int) -1;
+
+        i205 = i205 + $i237;
+
+        if $i69 <= 0 goto label131;
+
+        $i70 = r0.<org.eclipse.jetty.http.HttpParser: int _state>;
+
+        if i208 == $i70 goto label023;
+
+        i204 = i204 + 1;
+
+        i208 = r0.<org.eclipse.jetty.http.HttpParser: int _state>;
+
+     label023:
+        $r45 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $b71 = interfaceinvoke $r45.<org.eclipse.jetty.io.Buffer: byte get()>();
+
+        $b72 = r0.<org.eclipse.jetty.http.HttpParser: byte _eol>;
+
+        $i238 = (int) $b72;
+
+        if $i238 != 13 goto label025;
+
+        $i239 = (int) $b71;
+
+        if $i239 != 10 goto label024;
+
+        r0.<org.eclipse.jetty.http.HttpParser: byte _eol> = 10;
+
+        goto label022;
+
+     label024:
+        $r253 = new org.eclipse.jetty.http.HttpException;
+
+        specialinvoke $r253.<org.eclipse.jetty.http.HttpException: void <init>(int)>(400);
+
+        throw $r253;
+
+     label025:
+        r0.<org.eclipse.jetty.http.HttpParser: byte _eol> = 0;
+
+        $i73 = r0.<org.eclipse.jetty.http.HttpParser: int _state>;
+
+        tableswitch($i73)
+        {
+            case -14: goto label026;
+            case -13: goto label028;
+            case -12: goto label032;
+            case -11: goto label036;
+            case -10: goto label040;
+            case -9: goto label043;
+            case -8: goto label130;
+            case -7: goto label130;
+            case -6: goto label048;
+            case -5: goto label054;
+            case -4: goto label100;
+            case -3: goto label108;
+            case -2: goto label115;
+            case -1: goto label123;
+            default: goto label130;
+        };
+
+     label026:
+        r0.<org.eclipse.jetty.http.HttpParser: long _contentLength> = -3L;
+
+        r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.BufferCache$CachedBuffer _cached> = null;
+
+        $i240 = (int) $b71;
+
+        if $i240 > 32 goto label027;
+
+        $i241 = (int) $b71;
+
+        if $i241 >= 0 goto label130;
+
+     label027:
+        $r205 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        interfaceinvoke $r205.<org.eclipse.jetty.io.Buffer: void mark()>();
+
+        $i243 = (int) -13;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = $i243;
+
+        goto label130;
+
+     label028:
+        $i244 = (int) $b71;
+
+        if $i244 != 32 goto label031;
+
+        $r200 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok0>;
+
+        $r199 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i186 = interfaceinvoke $r199.<org.eclipse.jetty.io.Buffer: int markIndex()>();
+
+        $r201 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i187 = interfaceinvoke $r201.<org.eclipse.jetty.io.Buffer: int getIndex()>();
+
+        $i188 = $i187 - 1;
+
+        virtualinvoke $r200.<org.eclipse.jetty.io.View$CaseInsensitive: void update(int,int)>($i186, $i188);
+
+        $r203 = <org.eclipse.jetty.http.HttpVersions: org.eclipse.jetty.io.BufferCache CACHE>;
+
+        $r202 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok0>;
+
+        $r204 = virtualinvoke $r203.<org.eclipse.jetty.io.BufferCache: org.eclipse.jetty.io.BufferCache$CachedBuffer get(org.eclipse.jetty.io.Buffer)>($r202);
+
+        if $r204 != null goto label029;
+
+        $b210 = -1;
+
+        goto label030;
+
+     label029:
+        $b210 = 0;
+
+     label030:
+        r0.<org.eclipse.jetty.http.HttpParser: int _responseStatus> = $b210;
+
+        $i246 = (int) -12;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = $i246;
+
+        goto label022;
+
+     label031:
+        $i247 = (int) $b71;
+
+        if $i247 >= 32 goto label130;
+
+        $i248 = (int) $b71;
+
+        if $i248 < 0 goto label130;
+
+        $r254 = new org.eclipse.jetty.http.HttpException;
+
+        specialinvoke $r254.<org.eclipse.jetty.http.HttpException: void <init>(int)>(400);
+
+        throw $r254;
+
+     label032:
+        $i249 = (int) $b71;
+
+        if $i249 > 32 goto label033;
+
+        $i250 = (int) $b71;
+
+        if $i250 >= 0 goto label035;
+
+     label033:
+        $r196 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        interfaceinvoke $r196.<org.eclipse.jetty.io.Buffer: void mark()>();
+
+        $i184 = r0.<org.eclipse.jetty.http.HttpParser: int _responseStatus>;
+
+        if $i184 < 0 goto label034;
+
+        $i252 = (int) -11;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = $i252;
+
+        $i253 = (int) $b71;
+
+        $i185 = $i253 - 48;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _responseStatus> = $i185;
+
+        goto label130;
+
+     label034:
+        $i255 = (int) -10;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = $i255;
+
+        goto label130;
+
+     label035:
+        $i256 = (int) $b71;
+
+        if $i256 >= 32 goto label130;
+
+        $r255 = new org.eclipse.jetty.http.HttpException;
+
+        specialinvoke $r255.<org.eclipse.jetty.http.HttpException: void <init>(int)>(400);
+
+        throw $r255;
+
+     label036:
+        $i257 = (int) $b71;
+
+        if $i257 != 32 goto label037;
+
+        $r194 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok1>;
+
+        $r193 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i181 = interfaceinvoke $r193.<org.eclipse.jetty.io.Buffer: int markIndex()>();
+
+        $r195 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i182 = interfaceinvoke $r195.<org.eclipse.jetty.io.Buffer: int getIndex()>();
+
+        $i183 = $i182 - 1;
+
+        virtualinvoke $r194.<org.eclipse.jetty.io.View$CaseInsensitive: void update(int,int)>($i181, $i183);
+
+        $i259 = (int) -9;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = $i259;
+
+        goto label022;
+
+     label037:
+        $i260 = (int) $b71;
+
+        if $i260 < 48 goto label038;
+
+        $i261 = (int) $b71;
+
+        if $i261 > 57 goto label038;
+
+        $i177 = r0.<org.eclipse.jetty.http.HttpParser: int _responseStatus>;
+
+        $i179 = $i177 * 10;
+
+        $i262 = (int) $b71;
+
+        $i178 = $i262 - 48;
+
+        $i180 = $i179 + $i178;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _responseStatus> = $i180;
+
+        goto label022;
+
+     label038:
+        $i263 = (int) $b71;
+
+        if $i263 >= 32 goto label039;
+
+        $i264 = (int) $b71;
+
+        if $i264 < 0 goto label039;
+
+        $r187 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.http.HttpParser$EventHandler _handler>;
+
+        $r186 = <org.eclipse.jetty.http.HttpMethods: org.eclipse.jetty.io.BufferCache CACHE>;
+
+        $r185 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok0>;
+
+        $r188 = virtualinvoke $r186.<org.eclipse.jetty.io.BufferCache: org.eclipse.jetty.io.Buffer lookup(org.eclipse.jetty.io.Buffer)>($r185);
+
+        $i174 = r0.<org.eclipse.jetty.http.HttpParser: int _responseStatus>;
+
+        virtualinvoke $r187.<org.eclipse.jetty.http.HttpParser$EventHandler: void startResponse(org.eclipse.jetty.io.Buffer,int,org.eclipse.jetty.io.Buffer)>($r188, $i174, null);
+
+        r0.<org.eclipse.jetty.http.HttpParser: byte _eol> = $b71;
+
+        $i266 = (int) -5;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = $i266;
+
+        $r190 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok0>;
+
+        $r189 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok0>;
+
+        $i175 = virtualinvoke $r189.<org.eclipse.jetty.io.View$CaseInsensitive: int getIndex()>();
+
+        virtualinvoke $r190.<org.eclipse.jetty.io.View$CaseInsensitive: void setPutIndex(int)>($i175);
+
+        $r192 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok1>;
+
+        $r191 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok1>;
+
+        $i176 = virtualinvoke $r191.<org.eclipse.jetty.io.View$CaseInsensitive: int getIndex()>();
+
+        virtualinvoke $r192.<org.eclipse.jetty.io.View$CaseInsensitive: void setPutIndex(int)>($i176);
+
+        r0.<org.eclipse.jetty.http.HttpParser: java.lang.String _multiLineValue> = null;
+
+        goto label022;
+
+     label039:
+        $i268 = (int) -10;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = $i268;
+
+        $i270 = (int) -1;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _responseStatus> = $i270;
+
+        goto label130;
+
+     label040:
+        $i271 = (int) $b71;
+
+        if $i271 != 32 goto label041;
+
+        $r183 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok1>;
+
+        $r182 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i171 = interfaceinvoke $r182.<org.eclipse.jetty.io.Buffer: int markIndex()>();
+
+        $r184 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i172 = interfaceinvoke $r184.<org.eclipse.jetty.io.Buffer: int getIndex()>();
+
+        $i173 = $i172 - 1;
+
+        virtualinvoke $r183.<org.eclipse.jetty.io.View$CaseInsensitive: void update(int,int)>($i171, $i173);
+
+        $i273 = (int) -9;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = $i273;
+
+        goto label022;
+
+     label041:
+        $i274 = (int) $b71;
+
+        if $i274 >= 32 goto label130;
+
+        $i275 = (int) $b71;
+
+        if $i275 < 0 goto label130;
+
+        $r176 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.http.HttpParser$EventHandler _handler>;
+
+        $r175 = <org.eclipse.jetty.http.HttpMethods: org.eclipse.jetty.io.BufferCache CACHE>;
+
+        $r174 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok0>;
+
+        $r177 = virtualinvoke $r175.<org.eclipse.jetty.io.BufferCache: org.eclipse.jetty.io.Buffer lookup(org.eclipse.jetty.io.Buffer)>($r174);
+
+        $r178 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $r179 = interfaceinvoke $r178.<org.eclipse.jetty.io.Buffer: org.eclipse.jetty.io.Buffer sliceFromMark()>();
+
+        virtualinvoke $r176.<org.eclipse.jetty.http.HttpParser$EventHandler: void startRequest(org.eclipse.jetty.io.Buffer,org.eclipse.jetty.io.Buffer,org.eclipse.jetty.io.Buffer)>($r177, $r179, null);
+
+        r0.<org.eclipse.jetty.http.HttpParser: boolean _persistent> = 0;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = 7;
+
+        $r180 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.http.HttpParser$EventHandler _handler>;
+
+        virtualinvoke $r180.<org.eclipse.jetty.http.HttpParser$EventHandler: void headerComplete()>();
+
+        $r181 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.http.HttpParser$EventHandler _handler>;
+
+        $l170 = r0.<org.eclipse.jetty.http.HttpParser: long _contentPosition>;
+
+        virtualinvoke $r181.<org.eclipse.jetty.http.HttpParser$EventHandler: void messageComplete(long)>($l170);
+
+     label042:
+        return 1;
+
+     label043:
+        $i276 = (int) $b71;
+
+        if $i276 > 32 goto label044;
+
+        $i277 = (int) $b71;
+
+        if $i277 >= 0 goto label045;
+
+     label044:
+        $r158 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        interfaceinvoke $r158.<org.eclipse.jetty.io.Buffer: void mark()>();
+
+        $i279 = (int) -6;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = $i279;
+
+        goto label130;
+
+     label045:
+        $i280 = (int) $b71;
+
+        if $i280 >= 32 goto label130;
+
+        $i165 = r0.<org.eclipse.jetty.http.HttpParser: int _responseStatus>;
+
+        if $i165 <= 0 goto label046;
+
+        $r168 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.http.HttpParser$EventHandler _handler>;
+
+        $r167 = <org.eclipse.jetty.http.HttpMethods: org.eclipse.jetty.io.BufferCache CACHE>;
+
+        $r166 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok0>;
+
+        $r169 = virtualinvoke $r167.<org.eclipse.jetty.io.BufferCache: org.eclipse.jetty.io.Buffer lookup(org.eclipse.jetty.io.Buffer)>($r166);
+
+        $i167 = r0.<org.eclipse.jetty.http.HttpParser: int _responseStatus>;
+
+        virtualinvoke $r168.<org.eclipse.jetty.http.HttpParser$EventHandler: void startResponse(org.eclipse.jetty.io.Buffer,int,org.eclipse.jetty.io.Buffer)>($r169, $i167, null);
+
+        r0.<org.eclipse.jetty.http.HttpParser: byte _eol> = $b71;
+
+        $i282 = (int) -5;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = $i282;
+
+        $r171 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok0>;
+
+        $r170 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok0>;
+
+        $i168 = virtualinvoke $r170.<org.eclipse.jetty.io.View$CaseInsensitive: int getIndex()>();
+
+        virtualinvoke $r171.<org.eclipse.jetty.io.View$CaseInsensitive: void setPutIndex(int)>($i168);
+
+        $r173 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok1>;
+
+        $r172 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok1>;
+
+        $i169 = virtualinvoke $r172.<org.eclipse.jetty.io.View$CaseInsensitive: int getIndex()>();
+
+        virtualinvoke $r173.<org.eclipse.jetty.io.View$CaseInsensitive: void setPutIndex(int)>($i169);
+
+        r0.<org.eclipse.jetty.http.HttpParser: java.lang.String _multiLineValue> = null;
+
+        goto label130;
+
+     label046:
+        $r161 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.http.HttpParser$EventHandler _handler>;
+
+        $r160 = <org.eclipse.jetty.http.HttpMethods: org.eclipse.jetty.io.BufferCache CACHE>;
+
+        $r159 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok0>;
+
+        $r162 = virtualinvoke $r160.<org.eclipse.jetty.io.BufferCache: org.eclipse.jetty.io.Buffer lookup(org.eclipse.jetty.io.Buffer)>($r159);
+
+        $r163 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok1>;
+
+        virtualinvoke $r161.<org.eclipse.jetty.http.HttpParser$EventHandler: void startRequest(org.eclipse.jetty.io.Buffer,org.eclipse.jetty.io.Buffer,org.eclipse.jetty.io.Buffer)>($r162, $r163, null);
+
+        r0.<org.eclipse.jetty.http.HttpParser: boolean _persistent> = 0;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = 7;
+
+        $r164 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.http.HttpParser$EventHandler _handler>;
+
+        virtualinvoke $r164.<org.eclipse.jetty.http.HttpParser$EventHandler: void headerComplete()>();
+
+        $r165 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.http.HttpParser$EventHandler _handler>;
+
+        $l166 = r0.<org.eclipse.jetty.http.HttpParser: long _contentPosition>;
+
+        virtualinvoke $r165.<org.eclipse.jetty.http.HttpParser$EventHandler: void messageComplete(long)>($l166);
+
+     label047:
+        return 1;
+
+     label048:
+        $i283 = (int) $b71;
+
+        if $i283 == 13 goto label049;
+
+        $i284 = (int) $b71;
+
+        if $i284 != 10 goto label130;
+
+     label049:
+        $i160 = r0.<org.eclipse.jetty.http.HttpParser: int _responseStatus>;
+
+        if $i160 <= 0 goto label050;
+
+        $r154 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.http.HttpParser$EventHandler _handler>;
+
+        $r153 = <org.eclipse.jetty.http.HttpVersions: org.eclipse.jetty.io.BufferCache CACHE>;
+
+        $r152 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok0>;
+
+        $r155 = virtualinvoke $r153.<org.eclipse.jetty.io.BufferCache: org.eclipse.jetty.io.Buffer lookup(org.eclipse.jetty.io.Buffer)>($r152);
+
+        r235 = $r155;
+
+        $i164 = r0.<org.eclipse.jetty.http.HttpParser: int _responseStatus>;
+
+        $r156 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $r157 = interfaceinvoke $r156.<org.eclipse.jetty.io.Buffer: org.eclipse.jetty.io.Buffer sliceFromMark()>();
+
+        virtualinvoke $r154.<org.eclipse.jetty.http.HttpParser$EventHandler: void startResponse(org.eclipse.jetty.io.Buffer,int,org.eclipse.jetty.io.Buffer)>($r155, $i164, $r157);
+
+        goto label051;
+
+     label050:
+        $r140 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.http.HttpParser$EventHandler _handler>;
+
+        $r139 = <org.eclipse.jetty.http.HttpMethods: org.eclipse.jetty.io.BufferCache CACHE>;
+
+        $r138 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok0>;
+
+        $r141 = virtualinvoke $r139.<org.eclipse.jetty.io.BufferCache: org.eclipse.jetty.io.Buffer lookup(org.eclipse.jetty.io.Buffer)>($r138);
+
+        $r143 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok1>;
+
+        $r144 = <org.eclipse.jetty.http.HttpVersions: org.eclipse.jetty.io.BufferCache CACHE>;
+
+        $r142 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $r145 = interfaceinvoke $r142.<org.eclipse.jetty.io.Buffer: org.eclipse.jetty.io.Buffer sliceFromMark()>();
+
+        $r146 = virtualinvoke $r144.<org.eclipse.jetty.io.BufferCache: org.eclipse.jetty.io.Buffer lookup(org.eclipse.jetty.io.Buffer)>($r145);
+
+        r235 = $r146;
+
+        virtualinvoke $r140.<org.eclipse.jetty.http.HttpParser$EventHandler: void startRequest(org.eclipse.jetty.io.Buffer,org.eclipse.jetty.io.Buffer,org.eclipse.jetty.io.Buffer)>($r141, $r143, $r146);
+
+     label051:
+        r0.<org.eclipse.jetty.http.HttpParser: byte _eol> = $b71;
+
+        $r147 = <org.eclipse.jetty.http.HttpVersions: org.eclipse.jetty.io.BufferCache CACHE>;
+
+        $i161 = virtualinvoke $r147.<org.eclipse.jetty.io.BufferCache: int getOrdinal(org.eclipse.jetty.io.Buffer)>(r235);
+
+        if $i161 < 11 goto label052;
+
+        $z14 = 1;
+
+        goto label053;
+
+     label052:
+        $z14 = 0;
+
+     label053:
+        r0.<org.eclipse.jetty.http.HttpParser: boolean _persistent> = $z14;
+
+        $i286 = (int) -5;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = $i286;
+
+        $r149 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok0>;
+
+        $r148 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok0>;
+
+        $i162 = virtualinvoke $r148.<org.eclipse.jetty.io.View$CaseInsensitive: int getIndex()>();
+
+        virtualinvoke $r149.<org.eclipse.jetty.io.View$CaseInsensitive: void setPutIndex(int)>($i162);
+
+        $r151 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok1>;
+
+        $r150 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok1>;
+
+        $i163 = virtualinvoke $r150.<org.eclipse.jetty.io.View$CaseInsensitive: int getIndex()>();
+
+        virtualinvoke $r151.<org.eclipse.jetty.io.View$CaseInsensitive: void setPutIndex(int)>($i163);
+
+        r0.<org.eclipse.jetty.http.HttpParser: java.lang.String _multiLineValue> = null;
+
+        goto label022;
+
+     label054:
+        $i287 = (int) $b71;
+
+        lookupswitch($i287)
+        {
+            case 9: goto label055;
+            case 32: goto label055;
+            case 58: goto label055;
+            default: goto label056;
+        };
+
+     label055:
+        $i289 = (int) -1;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _length> = $i289;
+
+        $i291 = (int) -2;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = $i291;
+
+        goto label130;
+
+     label056:
+        $r102 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.BufferCache$CachedBuffer _cached>;
+
+        if $r102 != null goto label057;
+
+        $r135 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok0>;
+
+        $i158 = virtualinvoke $r135.<org.eclipse.jetty.io.View$CaseInsensitive: int length()>();
+
+        if $i158 > 0 goto label057;
+
+        $r136 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok1>;
+
+        $i159 = virtualinvoke $r136.<org.eclipse.jetty.io.View$CaseInsensitive: int length()>();
+
+        if $i159 > 0 goto label057;
+
+        $r137 = r0.<org.eclipse.jetty.http.HttpParser: java.lang.String _multiLineValue>;
+
+        if $r137 == null goto label080;
+
+     label057:
+        $r236 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.BufferCache$CachedBuffer _cached>;
+
+        if $r236 == null goto label058;
+
+        $r237 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.BufferCache$CachedBuffer _cached>;
+
+        goto label059;
+
+     label058:
+        $r104 = <org.eclipse.jetty.http.HttpHeaders: org.eclipse.jetty.http.HttpHeaders CACHE>;
+
+        $r103 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok0>;
+
+        $r237 = virtualinvoke $r104.<org.eclipse.jetty.http.HttpHeaders: org.eclipse.jetty.io.Buffer lookup(org.eclipse.jetty.io.Buffer)>($r103);
+
+     label059:
+        r238 = $r237;
+
+        r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.BufferCache$CachedBuffer _cached> = null;
+
+        $r105 = r0.<org.eclipse.jetty.http.HttpParser: java.lang.String _multiLineValue>;
+
+        if $r105 != null goto label060;
+
+        $r239 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok1>;
+
+        goto label061;
+
+     label060:
+        $r256 = new org.eclipse.jetty.io.ByteArrayBuffer;
+
+        $r239 = $r256;
+
+        $r106 = r0.<org.eclipse.jetty.http.HttpParser: java.lang.String _multiLineValue>;
+
+        specialinvoke $r256.<org.eclipse.jetty.io.ByteArrayBuffer: void <init>(java.lang.String)>($r106);
+
+     label061:
+        r240 = $r239;
+
+        $r107 = <org.eclipse.jetty.http.HttpHeaders: org.eclipse.jetty.http.HttpHeaders CACHE>;
+
+        $i126 = virtualinvoke $r107.<org.eclipse.jetty.http.HttpHeaders: int getOrdinal(org.eclipse.jetty.io.Buffer)>(r238);
+
+        if $i126 < 0 goto label079;
+
+        lookupswitch($i126)
+        {
+            case 1: goto label071;
+            case 5: goto label067;
+            case 12: goto label062;
+            default: goto label079;
+        };
+
+     label062:
+        $l148 = r0.<org.eclipse.jetty.http.HttpParser: long _contentLength>;
+
+        $b149 = $l148 cmp -2L;
+
+        if $b149 == 0 goto label079;
+
+     label063:
+        $l150 = staticinvoke <org.eclipse.jetty.io.BufferUtil: long toLong(org.eclipse.jetty.io.Buffer)>($r239);
+
+        r0.<org.eclipse.jetty.http.HttpParser: long _contentLength> = $l150;
+
+     label064:
+        goto label066;
+
+     label065:
+        $r226 := @caughtexception;
+
+        $r227 = <org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.util.log.Logger LOG>;
+
+        interfaceinvoke $r227.<org.eclipse.jetty.util.log.Logger: void ignore(java.lang.Throwable)>($r226);
+
+        $r257 = new org.eclipse.jetty.http.HttpException;
+
+        specialinvoke $r257.<org.eclipse.jetty.http.HttpException: void <init>(int)>(400);
+
+        throw $r257;
+
+     label066:
+        $l151 = r0.<org.eclipse.jetty.http.HttpParser: long _contentLength>;
+
+        $b152 = $l151 cmp 0L;
+
+        $i292 = (int) $b152;
+
+        if $i292 > 0 goto label079;
+
+        r0.<org.eclipse.jetty.http.HttpParser: long _contentLength> = 0L;
+
+        goto label079;
+
+     label067:
+        $r124 = <org.eclipse.jetty.http.HttpHeaderValues: org.eclipse.jetty.http.HttpHeaderValues CACHE>;
+
+        $r125 = virtualinvoke $r124.<org.eclipse.jetty.http.HttpHeaderValues: org.eclipse.jetty.io.Buffer lookup(org.eclipse.jetty.io.Buffer)>($r239);
+
+        r240 = $r125;
+
+        $r126 = <org.eclipse.jetty.http.HttpHeaderValues: org.eclipse.jetty.http.HttpHeaderValues CACHE>;
+
+        $i153 = virtualinvoke $r126.<org.eclipse.jetty.http.HttpHeaderValues: int getOrdinal(org.eclipse.jetty.io.Buffer)>($r125);
+
+        if 2 != $i153 goto label068;
+
+        r0.<org.eclipse.jetty.http.HttpParser: long _contentLength> = -2L;
+
+        goto label079;
+
+     label068:
+        $r127 = interfaceinvoke $r125.<org.eclipse.jetty.io.Buffer: java.lang.String toString(java.lang.String)>("ISO-8859-1");
+
+        $z9 = virtualinvoke $r127.<java.lang.String: boolean endsWith(java.lang.String)>("chunked");
+
+        if $z9 == 0 goto label069;
+
+        r0.<org.eclipse.jetty.http.HttpParser: long _contentLength> = -2L;
+
+        goto label070;
+
+     label069:
+        $i154 = virtualinvoke $r127.<java.lang.String: int indexOf(java.lang.String)>("chunked");
+
+        if $i154 < 0 goto label070;
+
+        $r258 = new org.eclipse.jetty.http.HttpException;
+
+        specialinvoke $r258.<org.eclipse.jetty.http.HttpException: void <init>(int,java.lang.String)>(400, null);
+
+        throw $r258;
+
+     label070:
+        goto label079;
+
+     label071:
+        $r129 = <org.eclipse.jetty.http.HttpHeaderValues: org.eclipse.jetty.http.HttpHeaderValues CACHE>;
+
+        $i155 = virtualinvoke $r129.<org.eclipse.jetty.http.HttpHeaderValues: int getOrdinal(org.eclipse.jetty.io.Buffer)>($r239);
+
+        lookupswitch($i155)
+        {
+            case -1: goto label074;
+            case 1: goto label072;
+            case 5: goto label073;
+            default: goto label079;
+        };
+
+     label072:
+        r0.<org.eclipse.jetty.http.HttpParser: boolean _persistent> = 0;
+
+        goto label079;
+
+     label073:
+        r0.<org.eclipse.jetty.http.HttpParser: boolean _persistent> = 1;
+
+        goto label079;
+
+     label074:
+        $r130 = virtualinvoke $r239.<java.lang.Object: java.lang.String toString()>();
+
+        $r131 = virtualinvoke $r130.<java.lang.String: java.lang.String[] split(java.lang.String)>(",");
+
+        i156 = lengthof $r131;
+
+        i211 = 0;
+
+     label075:
+        if i211 >= i156 goto label079;
+
+        r132 = $r131[i211];
+
+        $r133 = <org.eclipse.jetty.http.HttpHeaderValues: org.eclipse.jetty.http.HttpHeaderValues CACHE>;
+
+        $r134 = virtualinvoke r132.<java.lang.String: java.lang.String trim()>();
+
+        $i157 = virtualinvoke $r133.<org.eclipse.jetty.http.HttpHeaderValues: int getOrdinal(java.lang.String)>($r134);
+
+        lookupswitch($i157)
+        {
+            case 1: goto label076;
+            case 5: goto label077;
+            default: goto label078;
+        };
+
+     label076:
+        r0.<org.eclipse.jetty.http.HttpParser: boolean _persistent> = 0;
+
+        goto label078;
+
+     label077:
+        r0.<org.eclipse.jetty.http.HttpParser: boolean _persistent> = 1;
+
+     label078:
+        i211 = i211 + 1;
+
+        goto label075;
+
+     label079:
+        $r241 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.http.HttpParser$EventHandler _handler>;
+
+        virtualinvoke $r241.<org.eclipse.jetty.http.HttpParser$EventHandler: void parsedHeader(org.eclipse.jetty.io.Buffer,org.eclipse.jetty.io.Buffer)>(r238, r240);
+
+        $r242 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok0>;
+
+        $r243 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok0>;
+
+        $i212 = virtualinvoke $r243.<org.eclipse.jetty.io.View$CaseInsensitive: int getIndex()>();
+
+        virtualinvoke $r242.<org.eclipse.jetty.io.View$CaseInsensitive: void setPutIndex(int)>($i212);
+
+        $r244 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok1>;
+
+        $r245 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok1>;
+
+        $i213 = virtualinvoke $r245.<org.eclipse.jetty.io.View$CaseInsensitive: int getIndex()>();
+
+        virtualinvoke $r244.<org.eclipse.jetty.io.View$CaseInsensitive: void setPutIndex(int)>($i213);
+
+        r0.<org.eclipse.jetty.http.HttpParser: java.lang.String _multiLineValue> = null;
+
+     label080:
+        $r246 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i294 = (int) -1;
+
+        interfaceinvoke $r246.<org.eclipse.jetty.io.Buffer: void setMarkIndex(int)>($i294);
+
+        $i295 = (int) $b71;
+
+        if $i295 == 13 goto label081;
+
+        $i296 = (int) $b71;
+
+        if $i296 != 10 goto label099;
+
+     label081:
+        $i127 = r0.<org.eclipse.jetty.http.HttpParser: int _responseStatus>;
+
+        if $i127 <= 0 goto label083;
+
+        $i139 = r0.<org.eclipse.jetty.http.HttpParser: int _responseStatus>;
+
+        if $i139 == 304 goto label082;
+
+        $i140 = r0.<org.eclipse.jetty.http.HttpParser: int _responseStatus>;
+
+        if $i140 == 204 goto label082;
+
+        $i141 = r0.<org.eclipse.jetty.http.HttpParser: int _responseStatus>;
+
+        if $i141 >= 200 goto label083;
+
+     label082:
+        r0.<org.eclipse.jetty.http.HttpParser: long _contentLength> = 0L;
+
+        goto label086;
+
+     label083:
+        $l128 = r0.<org.eclipse.jetty.http.HttpParser: long _contentLength>;
+
+        $b129 = $l128 cmp -3L;
+
+        if $b129 != 0 goto label086;
+
+        $i135 = r0.<org.eclipse.jetty.http.HttpParser: int _responseStatus>;
+
+        if $i135 == 0 goto label084;
+
+        $i136 = r0.<org.eclipse.jetty.http.HttpParser: int _responseStatus>;
+
+        if $i136 == 304 goto label084;
+
+        $i137 = r0.<org.eclipse.jetty.http.HttpParser: int _responseStatus>;
+
+        if $i137 == 204 goto label084;
+
+        $i138 = r0.<org.eclipse.jetty.http.HttpParser: int _responseStatus>;
+
+        if $i138 >= 200 goto label085;
+
+     label084:
+        r0.<org.eclipse.jetty.http.HttpParser: long _contentLength> = 0L;
+
+        goto label086;
+
+     label085:
+        r0.<org.eclipse.jetty.http.HttpParser: long _contentLength> = -1L;
+
+     label086:
+        r0.<org.eclipse.jetty.http.HttpParser: long _contentPosition> = 0L;
+
+        r0.<org.eclipse.jetty.http.HttpParser: byte _eol> = $b71;
+
+        $b214 = r0.<org.eclipse.jetty.http.HttpParser: byte _eol>;
+
+        $i297 = (int) $b214;
+
+        if $i297 != 13 goto label087;
+
+        $r112 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $z8 = interfaceinvoke $r112.<org.eclipse.jetty.io.Buffer: boolean hasContent()>();
+
+        if $z8 == 0 goto label087;
+
+        $r113 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $b133 = interfaceinvoke $r113.<org.eclipse.jetty.io.Buffer: byte peek()>();
+
+        $i298 = (int) $b133;
+
+        if $i298 != 10 goto label087;
+
+        $r114 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $b134 = interfaceinvoke $r114.<org.eclipse.jetty.io.Buffer: byte get()>();
+
+        r0.<org.eclipse.jetty.http.HttpParser: byte _eol> = $b134;
+
+     label087:
+        $l215 = r0.<org.eclipse.jetty.http.HttpParser: long _contentLength>;
+
+        $b216 = $l215 cmp 2147483647L;
+
+        $i299 = (int) $b216;
+
+        if $i299 <= 0 goto label088;
+
+        $i217 = 2147483647;
+
+        goto label089;
+
+     label088:
+        $l130 = r0.<org.eclipse.jetty.http.HttpParser: long _contentLength>;
+
+        $i217 = (int) $l130;
+
+     label089:
+        tableswitch($i217)
+        {
+            case -2: goto label091;
+            case -1: goto label090;
+            case 0: goto label092;
+            default: goto label097;
+        };
+
+     label090:
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = 1;
+
+        $r109 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.http.HttpParser$EventHandler _handler>;
+
+        virtualinvoke $r109.<org.eclipse.jetty.http.HttpParser$EventHandler: void headerComplete()>();
+
+        goto label098;
+
+     label091:
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = 3;
+
+        $r110 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.http.HttpParser$EventHandler _handler>;
+
+        virtualinvoke $r110.<org.eclipse.jetty.http.HttpParser$EventHandler: void headerComplete()>();
+
+        goto label098;
+
+     label092:
+        $r108 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.http.HttpParser$EventHandler _handler>;
+
+        virtualinvoke $r108.<org.eclipse.jetty.http.HttpParser$EventHandler: void headerComplete()>();
+
+        $z7 = r0.<org.eclipse.jetty.http.HttpParser: boolean _persistent>;
+
+        if $z7 != 0 goto label093;
+
+        $i131 = r0.<org.eclipse.jetty.http.HttpParser: int _responseStatus>;
+
+        if $i131 < 100 goto label094;
+
+        $i132 = r0.<org.eclipse.jetty.http.HttpParser: int _responseStatus>;
+
+        if $i132 >= 200 goto label094;
+
+     label093:
+        $b218 = 0;
+
+        goto label095;
+
+     label094:
+        $b218 = 7;
+
+     label095:
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = $b218;
+
+        $r247 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.http.HttpParser$EventHandler _handler>;
+
+        $l219 = r0.<org.eclipse.jetty.http.HttpParser: long _contentPosition>;
+
+        virtualinvoke $r247.<org.eclipse.jetty.http.HttpParser$EventHandler: void messageComplete(long)>($l219);
+
+     label096:
+        return 1;
+
+     label097:
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = 2;
+
+        $r111 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.http.HttpParser$EventHandler _handler>;
+
+        virtualinvoke $r111.<org.eclipse.jetty.http.HttpParser$EventHandler: void headerComplete()>();
+
+     label098:
+        return 1;
+
+     label099:
+        r0.<org.eclipse.jetty.http.HttpParser: int _length> = 1;
+
+        $r115 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        interfaceinvoke $r115.<org.eclipse.jetty.io.Buffer: void mark()>();
+
+        $i301 = (int) -4;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = $i301;
+
+        if $r234 == null goto label130;
+
+        $r117 = <org.eclipse.jetty.http.HttpHeaders: org.eclipse.jetty.http.HttpHeaders CACHE>;
+
+        $r116 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i142 = interfaceinvoke $r116.<org.eclipse.jetty.io.Buffer: int markIndex()>();
+
+        $i143 = i205 + 1;
+
+        $r118 = virtualinvoke $r117.<org.eclipse.jetty.http.HttpHeaders: org.eclipse.jetty.io.BufferCache$CachedBuffer getBest(byte[],int,int)>($r234, $i142, $i143);
+
+        r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.BufferCache$CachedBuffer _cached> = $r118;
+
+        $r119 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.BufferCache$CachedBuffer _cached>;
+
+        if $r119 == null goto label130;
+
+        $r120 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.BufferCache$CachedBuffer _cached>;
+
+        $i144 = virtualinvoke $r120.<org.eclipse.jetty.io.BufferCache$CachedBuffer: int length()>();
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _length> = $i144;
+
+        $r122 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $r121 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i145 = interfaceinvoke $r121.<org.eclipse.jetty.io.Buffer: int markIndex()>();
+
+        $i146 = r0.<org.eclipse.jetty.http.HttpParser: int _length>;
+
+        $i147 = $i145 + $i146;
+
+        interfaceinvoke $r122.<org.eclipse.jetty.io.Buffer: void setGetIndex(int)>($i147);
+
+        $r123 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        i205 = interfaceinvoke $r123.<org.eclipse.jetty.io.Buffer: int length()>();
+
+        goto label130;
+
+     label100:
+        $i302 = (int) $b71;
+
+        lookupswitch($i302)
+        {
+            case 9: goto label105;
+            case 10: goto label101;
+            case 13: goto label101;
+            case 32: goto label105;
+            case 58: goto label103;
+            default: goto label106;
+        };
+
+     label101:
+        $i117 = r0.<org.eclipse.jetty.http.HttpParser: int _length>;
+
+        if $i117 <= 0 goto label102;
+
+        $r97 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok0>;
+
+        $r96 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i118 = interfaceinvoke $r96.<org.eclipse.jetty.io.Buffer: int markIndex()>();
+
+        $r98 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i119 = interfaceinvoke $r98.<org.eclipse.jetty.io.Buffer: int markIndex()>();
+
+        $i120 = r0.<org.eclipse.jetty.http.HttpParser: int _length>;
+
+        $i121 = $i119 + $i120;
+
+        virtualinvoke $r97.<org.eclipse.jetty.io.View$CaseInsensitive: void update(int,int)>($i118, $i121);
+
+     label102:
+        r0.<org.eclipse.jetty.http.HttpParser: byte _eol> = $b71;
+
+        $i304 = (int) -5;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = $i304;
+
+        goto label130;
+
+     label103:
+        $i112 = r0.<org.eclipse.jetty.http.HttpParser: int _length>;
+
+        if $i112 <= 0 goto label104;
+
+        $r92 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.BufferCache$CachedBuffer _cached>;
+
+        if $r92 != null goto label104;
+
+        $r94 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok0>;
+
+        $r93 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i113 = interfaceinvoke $r93.<org.eclipse.jetty.io.Buffer: int markIndex()>();
+
+        $r95 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i114 = interfaceinvoke $r95.<org.eclipse.jetty.io.Buffer: int markIndex()>();
+
+        $i115 = r0.<org.eclipse.jetty.http.HttpParser: int _length>;
+
+        $i116 = $i114 + $i115;
+
+        virtualinvoke $r94.<org.eclipse.jetty.io.View$CaseInsensitive: void update(int,int)>($i113, $i116);
+
+     label104:
+        $i306 = (int) -1;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _length> = $i306;
+
+        $i308 = (int) -2;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = $i308;
+
+        goto label130;
+
+     label105:
+        goto label130;
+
+     label106:
+        r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.BufferCache$CachedBuffer _cached> = null;
+
+        $i122 = r0.<org.eclipse.jetty.http.HttpParser: int _length>;
+
+        $i310 = (int) -1;
+
+        if $i122 != $i310 goto label107;
+
+        $r101 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        interfaceinvoke $r101.<org.eclipse.jetty.io.Buffer: void mark()>();
+
+     label107:
+        $r99 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i123 = interfaceinvoke $r99.<org.eclipse.jetty.io.Buffer: int getIndex()>();
+
+        $r100 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i124 = interfaceinvoke $r100.<org.eclipse.jetty.io.Buffer: int markIndex()>();
+
+        $i125 = $i123 - $i124;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _length> = $i125;
+
+        $i312 = (int) -3;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = $i312;
+
+        goto label130;
+
+     label108:
+        $i313 = (int) $b71;
+
+        lookupswitch($i313)
+        {
+            case 9: goto label113;
+            case 10: goto label109;
+            case 13: goto label109;
+            case 32: goto label113;
+            case 58: goto label111;
+            default: goto label114;
+        };
+
+     label109:
+        $i105 = r0.<org.eclipse.jetty.http.HttpParser: int _length>;
+
+        if $i105 <= 0 goto label110;
+
+        $r90 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok0>;
+
+        $r89 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i106 = interfaceinvoke $r89.<org.eclipse.jetty.io.Buffer: int markIndex()>();
+
+        $r91 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i107 = interfaceinvoke $r91.<org.eclipse.jetty.io.Buffer: int markIndex()>();
+
+        $i108 = r0.<org.eclipse.jetty.http.HttpParser: int _length>;
+
+        $i109 = $i107 + $i108;
+
+        virtualinvoke $r90.<org.eclipse.jetty.io.View$CaseInsensitive: void update(int,int)>($i106, $i109);
+
+     label110:
+        r0.<org.eclipse.jetty.http.HttpParser: byte _eol> = $b71;
+
+        $i315 = (int) -5;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = $i315;
+
+        goto label130;
+
+     label111:
+        $i100 = r0.<org.eclipse.jetty.http.HttpParser: int _length>;
+
+        if $i100 <= 0 goto label112;
+
+        $r85 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.BufferCache$CachedBuffer _cached>;
+
+        if $r85 != null goto label112;
+
+        $r87 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok0>;
+
+        $r86 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i101 = interfaceinvoke $r86.<org.eclipse.jetty.io.Buffer: int markIndex()>();
+
+        $r88 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i102 = interfaceinvoke $r88.<org.eclipse.jetty.io.Buffer: int markIndex()>();
+
+        $i103 = r0.<org.eclipse.jetty.http.HttpParser: int _length>;
+
+        $i104 = $i102 + $i103;
+
+        virtualinvoke $r87.<org.eclipse.jetty.io.View$CaseInsensitive: void update(int,int)>($i101, $i104);
+
+     label112:
+        $i317 = (int) -1;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _length> = $i317;
+
+        $i319 = (int) -2;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = $i319;
+
+        goto label130;
+
+     label113:
+        $i321 = (int) -4;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = $i321;
+
+        goto label130;
+
+     label114:
+        r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.BufferCache$CachedBuffer _cached> = null;
+
+        $i110 = r0.<org.eclipse.jetty.http.HttpParser: int _length>;
+
+        $i111 = $i110 + 1;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _length> = $i111;
+
+        goto label130;
+
+     label115:
+        $i322 = (int) $b71;
+
+        lookupswitch($i322)
+        {
+            case 9: goto label120;
+            case 10: goto label116;
+            case 13: goto label116;
+            case 32: goto label120;
+            default: goto label121;
+        };
+
+     label116:
+        $i86 = r0.<org.eclipse.jetty.http.HttpParser: int _length>;
+
+        if $i86 <= 0 goto label119;
+
+        $r64 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok1>;
+
+        $i87 = virtualinvoke $r64.<org.eclipse.jetty.io.View$CaseInsensitive: int length()>();
+
+        if $i87 != 0 goto label117;
+
+        $r80 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok1>;
+
+        $r79 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i92 = interfaceinvoke $r79.<org.eclipse.jetty.io.Buffer: int markIndex()>();
+
+        $r81 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i93 = interfaceinvoke $r81.<org.eclipse.jetty.io.Buffer: int markIndex()>();
+
+        $i94 = r0.<org.eclipse.jetty.http.HttpParser: int _length>;
+
+        $i95 = $i93 + $i94;
+
+        virtualinvoke $r80.<org.eclipse.jetty.io.View$CaseInsensitive: void update(int,int)>($i92, $i95);
+
+        goto label119;
+
+     label117:
+        $r65 = r0.<org.eclipse.jetty.http.HttpParser: java.lang.String _multiLineValue>;
+
+        if $r65 != null goto label118;
+
+        $r77 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok1>;
+
+        $r78 = virtualinvoke $r77.<org.eclipse.jetty.io.View$CaseInsensitive: java.lang.String toString(java.lang.String)>("ISO-8859-1");
+
+        r0.<org.eclipse.jetty.http.HttpParser: java.lang.String _multiLineValue> = $r78;
+
+     label118:
+        $r67 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok1>;
+
+        $r66 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i88 = interfaceinvoke $r66.<org.eclipse.jetty.io.Buffer: int markIndex()>();
+
+        $r68 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i89 = interfaceinvoke $r68.<org.eclipse.jetty.io.Buffer: int markIndex()>();
+
+        $i90 = r0.<org.eclipse.jetty.http.HttpParser: int _length>;
+
+        $i91 = $i89 + $i90;
+
+        virtualinvoke $r67.<org.eclipse.jetty.io.View$CaseInsensitive: void update(int,int)>($i88, $i91);
+
+        $r259 = new java.lang.StringBuilder;
+
+        specialinvoke $r259.<java.lang.StringBuilder: void <init>()>();
+
+        $r70 = r0.<org.eclipse.jetty.http.HttpParser: java.lang.String _multiLineValue>;
+
+        $r71 = virtualinvoke $r259.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r70);
+
+        $r72 = virtualinvoke $r71.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" ");
+
+        $r73 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok1>;
+
+        $r74 = virtualinvoke $r73.<org.eclipse.jetty.io.View$CaseInsensitive: java.lang.String toString(java.lang.String)>("ISO-8859-1");
+
+        $r75 = virtualinvoke $r72.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r74);
+
+        $r76 = virtualinvoke $r75.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        r0.<org.eclipse.jetty.http.HttpParser: java.lang.String _multiLineValue> = $r76;
+
+     label119:
+        r0.<org.eclipse.jetty.http.HttpParser: byte _eol> = $b71;
+
+        $i324 = (int) -5;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = $i324;
+
+        goto label130;
+
+     label120:
+        goto label130;
+
+     label121:
+        $i96 = r0.<org.eclipse.jetty.http.HttpParser: int _length>;
+
+        $i326 = (int) -1;
+
+        if $i96 != $i326 goto label122;
+
+        $r84 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        interfaceinvoke $r84.<org.eclipse.jetty.io.Buffer: void mark()>();
+
+     label122:
+        $r82 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i97 = interfaceinvoke $r82.<org.eclipse.jetty.io.Buffer: int getIndex()>();
+
+        $r83 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i98 = interfaceinvoke $r83.<org.eclipse.jetty.io.Buffer: int markIndex()>();
+
+        $i99 = $i97 - $i98;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _length> = $i99;
+
+        $i328 = (int) -1;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = $i328;
+
+        goto label130;
+
+     label123:
+        $i329 = (int) $b71;
+
+        lookupswitch($i329)
+        {
+            case 9: goto label128;
+            case 10: goto label124;
+            case 13: goto label124;
+            case 32: goto label128;
+            default: goto label129;
+        };
+
+     label124:
+        $i74 = r0.<org.eclipse.jetty.http.HttpParser: int _length>;
+
+        if $i74 <= 0 goto label127;
+
+        $r46 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok1>;
+
+        $i75 = virtualinvoke $r46.<org.eclipse.jetty.io.View$CaseInsensitive: int length()>();
+
+        if $i75 != 0 goto label125;
+
+        $r62 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok1>;
+
+        $r61 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i80 = interfaceinvoke $r61.<org.eclipse.jetty.io.Buffer: int markIndex()>();
+
+        $r63 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i81 = interfaceinvoke $r63.<org.eclipse.jetty.io.Buffer: int markIndex()>();
+
+        $i82 = r0.<org.eclipse.jetty.http.HttpParser: int _length>;
+
+        $i83 = $i81 + $i82;
+
+        virtualinvoke $r62.<org.eclipse.jetty.io.View$CaseInsensitive: void update(int,int)>($i80, $i83);
+
+        goto label127;
+
+     label125:
+        $r47 = r0.<org.eclipse.jetty.http.HttpParser: java.lang.String _multiLineValue>;
+
+        if $r47 != null goto label126;
+
+        $r59 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok1>;
+
+        $r60 = virtualinvoke $r59.<org.eclipse.jetty.io.View$CaseInsensitive: java.lang.String toString(java.lang.String)>("ISO-8859-1");
+
+        r0.<org.eclipse.jetty.http.HttpParser: java.lang.String _multiLineValue> = $r60;
+
+     label126:
+        $r49 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok1>;
+
+        $r48 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i76 = interfaceinvoke $r48.<org.eclipse.jetty.io.Buffer: int markIndex()>();
+
+        $r50 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i77 = interfaceinvoke $r50.<org.eclipse.jetty.io.Buffer: int markIndex()>();
+
+        $i78 = r0.<org.eclipse.jetty.http.HttpParser: int _length>;
+
+        $i79 = $i77 + $i78;
+
+        virtualinvoke $r49.<org.eclipse.jetty.io.View$CaseInsensitive: void update(int,int)>($i76, $i79);
+
+        $r260 = new java.lang.StringBuilder;
+
+        specialinvoke $r260.<java.lang.StringBuilder: void <init>()>();
+
+        $r52 = r0.<org.eclipse.jetty.http.HttpParser: java.lang.String _multiLineValue>;
+
+        $r53 = virtualinvoke $r260.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r52);
+
+        $r54 = virtualinvoke $r53.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" ");
+
+        $r55 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok1>;
+
+        $r56 = virtualinvoke $r55.<org.eclipse.jetty.io.View$CaseInsensitive: java.lang.String toString(java.lang.String)>("ISO-8859-1");
+
+        $r57 = virtualinvoke $r54.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r56);
+
+        $r58 = virtualinvoke $r57.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        r0.<org.eclipse.jetty.http.HttpParser: java.lang.String _multiLineValue> = $r58;
+
+     label127:
+        r0.<org.eclipse.jetty.http.HttpParser: byte _eol> = $b71;
+
+        $i331 = (int) -5;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = $i331;
+
+        goto label130;
+
+     label128:
+        $i333 = (int) -2;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = $i333;
+
+        goto label130;
+
+     label129:
+        $i84 = r0.<org.eclipse.jetty.http.HttpParser: int _length>;
+
+        $i85 = $i84 + 1;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _length> = $i85;
+
+     label130:
+        goto label022;
+
+     label131:
+        $i3 = r0.<org.eclipse.jetty.http.HttpParser: int _responseStatus>;
+
+        if $i3 <= 0 goto label135;
+
+        $z5 = r0.<org.eclipse.jetty.http.HttpParser: boolean _headResponse>;
+
+        if $z5 == 0 goto label135;
+
+        $z6 = r0.<org.eclipse.jetty.http.HttpParser: boolean _persistent>;
+
+        if $z6 != 0 goto label132;
+
+        $i67 = r0.<org.eclipse.jetty.http.HttpParser: int _responseStatus>;
+
+        if $i67 < 100 goto label133;
+
+        $i68 = r0.<org.eclipse.jetty.http.HttpParser: int _responseStatus>;
+
+        if $i68 >= 200 goto label133;
+
+     label132:
+        $b220 = 0;
+
+        goto label134;
+
+     label133:
+        $b220 = 7;
+
+     label134:
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = $b220;
+
+        $r248 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.http.HttpParser$EventHandler _handler>;
+
+        $l221 = r0.<org.eclipse.jetty.http.HttpParser: long _contentLength>;
+
+        virtualinvoke $r248.<org.eclipse.jetty.http.HttpParser$EventHandler: void messageComplete(long)>($l221);
+
+     label135:
+        $r249 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        i222 = interfaceinvoke $r249.<org.eclipse.jetty.io.Buffer: int length()>();
+
+        i223 = r0.<org.eclipse.jetty.http.HttpParser: int _state>;
+
+     label136:
+        $i224 = r0.<org.eclipse.jetty.http.HttpParser: int _state>;
+
+        if $i224 <= 0 goto label182;
+
+        if i222 <= 0 goto label182;
+
+        $i4 = r0.<org.eclipse.jetty.http.HttpParser: int _state>;
+
+        if i223 == $i4 goto label137;
+
+        i204 = i204 + 1;
+
+        i223 = r0.<org.eclipse.jetty.http.HttpParser: int _state>;
+
+     label137:
+        $b5 = r0.<org.eclipse.jetty.http.HttpParser: byte _eol>;
+
+        $i334 = (int) $b5;
+
+        if $i334 != 13 goto label138;
+
+        $r42 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $b65 = interfaceinvoke $r42.<org.eclipse.jetty.io.Buffer: byte peek()>();
+
+        $i335 = (int) $b65;
+
+        if $i335 != 10 goto label138;
+
+        $r43 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $b66 = interfaceinvoke $r43.<org.eclipse.jetty.io.Buffer: byte get()>();
+
+        r0.<org.eclipse.jetty.http.HttpParser: byte _eol> = $b66;
+
+        $r44 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        i222 = interfaceinvoke $r44.<org.eclipse.jetty.io.Buffer: int length()>();
+
+        goto label136;
+
+     label138:
+        r0.<org.eclipse.jetty.http.HttpParser: byte _eol> = 0;
+
+        $i6 = r0.<org.eclipse.jetty.http.HttpParser: int _state>;
+
+        tableswitch($i6)
+        {
+            case 1: goto label139;
+            case 2: goto label141;
+            case 3: goto label150;
+            case 4: goto label154;
+            case 5: goto label167;
+            case 6: goto label174;
+            case 7: goto label178;
+            default: goto label181;
+        };
+
+     label139:
+        $r38 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $r37 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i60 = interfaceinvoke $r37.<org.eclipse.jetty.io.Buffer: int length()>();
+
+        $r39 = interfaceinvoke $r38.<org.eclipse.jetty.io.Buffer: org.eclipse.jetty.io.Buffer get(int)>($i60);
+
+        $l61 = r0.<org.eclipse.jetty.http.HttpParser: long _contentPosition>;
+
+        $i62 = interfaceinvoke $r39.<org.eclipse.jetty.io.Buffer: int length()>();
+
+        $l63 = (long) $i62;
+
+        $l64 = $l61 + $l63;
+
+        r0.<org.eclipse.jetty.http.HttpParser: long _contentPosition> = $l64;
+
+        $r40 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View _contentView>;
+
+        virtualinvoke $r40.<org.eclipse.jetty.io.View: void update(org.eclipse.jetty.io.Buffer)>($r39);
+
+        $r41 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.http.HttpParser$EventHandler _handler>;
+
+        virtualinvoke $r41.<org.eclipse.jetty.http.HttpParser$EventHandler: void content(org.eclipse.jetty.io.Buffer)>($r39);
+
+     label140:
+        return 1;
+
+     label141:
+        $l47 = r0.<org.eclipse.jetty.http.HttpParser: long _contentLength>;
+
+        $l46 = r0.<org.eclipse.jetty.http.HttpParser: long _contentPosition>;
+
+        l225 = $l47 - $l46;
+
+        $b48 = l225 cmp 0L;
+
+        if $b48 != 0 goto label145;
+
+        $z4 = r0.<org.eclipse.jetty.http.HttpParser: boolean _persistent>;
+
+        if $z4 == 0 goto label142;
+
+        $b226 = 0;
+
+        goto label143;
+
+     label142:
+        $b226 = 7;
+
+     label143:
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = $b226;
+
+        $r36 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.http.HttpParser$EventHandler _handler>;
+
+        $l59 = r0.<org.eclipse.jetty.http.HttpParser: long _contentPosition>;
+
+        virtualinvoke $r36.<org.eclipse.jetty.http.HttpParser$EventHandler: void messageComplete(long)>($l59);
+
+     label144:
+        return 1;
+
+     label145:
+        $l49 = (long) i222;
+
+        $b50 = $l49 cmp l225;
+
+        $i336 = (int) $b50;
+
+        if $i336 <= 0 goto label146;
+
+        i222 = (int) l225;
+
+     label146:
+        $r31 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $r32 = interfaceinvoke $r31.<org.eclipse.jetty.io.Buffer: org.eclipse.jetty.io.Buffer get(int)>(i222);
+
+        $l51 = r0.<org.eclipse.jetty.http.HttpParser: long _contentPosition>;
+
+        $i52 = interfaceinvoke $r32.<org.eclipse.jetty.io.Buffer: int length()>();
+
+        $l53 = (long) $i52;
+
+        $l54 = $l51 + $l53;
+
+        r0.<org.eclipse.jetty.http.HttpParser: long _contentPosition> = $l54;
+
+        $r33 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View _contentView>;
+
+        virtualinvoke $r33.<org.eclipse.jetty.io.View: void update(org.eclipse.jetty.io.Buffer)>($r32);
+
+        $r34 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.http.HttpParser$EventHandler _handler>;
+
+        virtualinvoke $r34.<org.eclipse.jetty.http.HttpParser$EventHandler: void content(org.eclipse.jetty.io.Buffer)>($r32);
+
+        $l56 = r0.<org.eclipse.jetty.http.HttpParser: long _contentPosition>;
+
+        $l55 = r0.<org.eclipse.jetty.http.HttpParser: long _contentLength>;
+
+        $b57 = $l56 cmp $l55;
+
+        if $b57 != 0 goto label149;
+
+        $z3 = r0.<org.eclipse.jetty.http.HttpParser: boolean _persistent>;
+
+        if $z3 == 0 goto label147;
+
+        $b227 = 0;
+
+        goto label148;
+
+     label147:
+        $b227 = 7;
+
+     label148:
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = $b227;
+
+        $r35 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.http.HttpParser$EventHandler _handler>;
+
+        $l58 = r0.<org.eclipse.jetty.http.HttpParser: long _contentPosition>;
+
+        virtualinvoke $r35.<org.eclipse.jetty.http.HttpParser$EventHandler: void messageComplete(long)>($l58);
+
+     label149:
+        return 1;
+
+     label150:
+        $r28 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $b44 = interfaceinvoke $r28.<org.eclipse.jetty.io.Buffer: byte peek()>();
+
+        $i337 = (int) $b44;
+
+        if $i337 == 13 goto label151;
+
+        $i338 = (int) $b44;
+
+        if $i338 != 10 goto label152;
+
+     label151:
+        $r29 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $b45 = interfaceinvoke $r29.<org.eclipse.jetty.io.Buffer: byte get()>();
+
+        r0.<org.eclipse.jetty.http.HttpParser: byte _eol> = $b45;
+
+        goto label181;
+
+     label152:
+        $i339 = (int) $b44;
+
+        if $i339 > 32 goto label153;
+
+        $r30 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        interfaceinvoke $r30.<org.eclipse.jetty.io.Buffer: byte get()>();
+
+        goto label181;
+
+     label153:
+        r0.<org.eclipse.jetty.http.HttpParser: int _chunkLength> = 0;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _chunkPosition> = 0;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = 4;
+
+        goto label181;
+
+     label154:
+        $r18 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $b24 = interfaceinvoke $r18.<org.eclipse.jetty.io.Buffer: byte get()>();
+
+        $i340 = (int) $b24;
+
+        if $i340 == 13 goto label155;
+
+        $i341 = (int) $b24;
+
+        if $i341 != 10 goto label161;
+
+     label155:
+        r0.<org.eclipse.jetty.http.HttpParser: byte _eol> = $b24;
+
+        $i25 = r0.<org.eclipse.jetty.http.HttpParser: int _chunkLength>;
+
+        if $i25 != 0 goto label160;
+
+        $b26 = r0.<org.eclipse.jetty.http.HttpParser: byte _eol>;
+
+        $i342 = (int) $b26;
+
+        if $i342 != 13 goto label156;
+
+        $r20 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $z2 = interfaceinvoke $r20.<org.eclipse.jetty.io.Buffer: boolean hasContent()>();
+
+        if $z2 == 0 goto label156;
+
+        $r21 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $b28 = interfaceinvoke $r21.<org.eclipse.jetty.io.Buffer: byte peek()>();
+
+        $i343 = (int) $b28;
+
+        if $i343 != 10 goto label156;
+
+        $r22 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $b29 = interfaceinvoke $r22.<org.eclipse.jetty.io.Buffer: byte get()>();
+
+        r0.<org.eclipse.jetty.http.HttpParser: byte _eol> = $b29;
+
+     label156:
+        $z15 = r0.<org.eclipse.jetty.http.HttpParser: boolean _persistent>;
+
+        if $z15 == 0 goto label157;
+
+        $b228 = 0;
+
+        goto label158;
+
+     label157:
+        $b228 = 7;
+
+     label158:
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = $b228;
+
+        $r19 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.http.HttpParser$EventHandler _handler>;
+
+        $l27 = r0.<org.eclipse.jetty.http.HttpParser: long _contentPosition>;
+
+        virtualinvoke $r19.<org.eclipse.jetty.http.HttpParser$EventHandler: void messageComplete(long)>($l27);
+
+     label159:
+        return 1;
+
+     label160:
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = 6;
+
+        goto label181;
+
+     label161:
+        $i344 = (int) $b24;
+
+        if $i344 <= 32 goto label162;
+
+        $i345 = (int) $b24;
+
+        if $i345 != 59 goto label163;
+
+     label162:
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = 5;
+
+        goto label181;
+
+     label163:
+        $i346 = (int) $b24;
+
+        if $i346 < 48 goto label164;
+
+        $i347 = (int) $b24;
+
+        if $i347 > 57 goto label164;
+
+        $i40 = r0.<org.eclipse.jetty.http.HttpParser: int _chunkLength>;
+
+        $i42 = $i40 * 16;
+
+        $i348 = (int) $b24;
+
+        $i41 = $i348 - 48;
+
+        $i43 = $i42 + $i41;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _chunkLength> = $i43;
+
+        goto label181;
+
+     label164:
+        $i349 = (int) $b24;
+
+        if $i349 < 97 goto label165;
+
+        $i350 = (int) $b24;
+
+        if $i350 > 102 goto label165;
+
+        $i35 = r0.<org.eclipse.jetty.http.HttpParser: int _chunkLength>;
+
+        $i38 = $i35 * 16;
+
+        $i351 = (int) $b24;
+
+        $i36 = 10 + $i351;
+
+        $i37 = $i36 - 97;
+
+        $i39 = $i38 + $i37;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _chunkLength> = $i39;
+
+        goto label181;
+
+     label165:
+        $i352 = (int) $b24;
+
+        if $i352 < 65 goto label166;
+
+        $i353 = (int) $b24;
+
+        if $i353 > 70 goto label166;
+
+        $i30 = r0.<org.eclipse.jetty.http.HttpParser: int _chunkLength>;
+
+        $i33 = $i30 * 16;
+
+        $i354 = (int) $b24;
+
+        $i31 = 10 + $i354;
+
+        $i32 = $i31 - 65;
+
+        $i34 = $i33 + $i32;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _chunkLength> = $i34;
+
+        goto label181;
+
+     label166:
+        $r262 = new java.io.IOException;
+
+        $r261 = new java.lang.StringBuilder;
+
+        specialinvoke $r261.<java.lang.StringBuilder: void <init>()>();
+
+        $r25 = virtualinvoke $r261.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("bad chunk char: ");
+
+        $i355 = (int) $b24;
+
+        $r26 = virtualinvoke $r25.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i355);
+
+        $r27 = virtualinvoke $r26.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r262.<java.io.IOException: void <init>(java.lang.String)>($r27);
+
+        throw $r262;
+
+     label167:
+        $r13 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $b18 = interfaceinvoke $r13.<org.eclipse.jetty.io.Buffer: byte get()>();
+
+        $i356 = (int) $b18;
+
+        if $i356 == 13 goto label168;
+
+        $i357 = (int) $b18;
+
+        if $i357 != 10 goto label181;
+
+     label168:
+        r0.<org.eclipse.jetty.http.HttpParser: byte _eol> = $b18;
+
+        $i19 = r0.<org.eclipse.jetty.http.HttpParser: int _chunkLength>;
+
+        if $i19 != 0 goto label173;
+
+        $b20 = r0.<org.eclipse.jetty.http.HttpParser: byte _eol>;
+
+        $i358 = (int) $b20;
+
+        if $i358 != 13 goto label169;
+
+        $r15 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $z1 = interfaceinvoke $r15.<org.eclipse.jetty.io.Buffer: boolean hasContent()>();
+
+        if $z1 == 0 goto label169;
+
+        $r16 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $b22 = interfaceinvoke $r16.<org.eclipse.jetty.io.Buffer: byte peek()>();
+
+        $i359 = (int) $b22;
+
+        if $i359 != 10 goto label169;
+
+        $r17 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $b23 = interfaceinvoke $r17.<org.eclipse.jetty.io.Buffer: byte get()>();
+
+        r0.<org.eclipse.jetty.http.HttpParser: byte _eol> = $b23;
+
+     label169:
+        $z16 = r0.<org.eclipse.jetty.http.HttpParser: boolean _persistent>;
+
+        if $z16 == 0 goto label170;
+
+        $b229 = 0;
+
+        goto label171;
+
+     label170:
+        $b229 = 7;
+
+     label171:
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = $b229;
+
+        $r14 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.http.HttpParser$EventHandler _handler>;
+
+        $l21 = r0.<org.eclipse.jetty.http.HttpParser: long _contentPosition>;
+
+        virtualinvoke $r14.<org.eclipse.jetty.http.HttpParser$EventHandler: void messageComplete(long)>($l21);
+
+     label172:
+        return 1;
+
+     label173:
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = 6;
+
+        goto label181;
+
+     label174:
+        $i10 = r0.<org.eclipse.jetty.http.HttpParser: int _chunkLength>;
+
+        $i9 = r0.<org.eclipse.jetty.http.HttpParser: int _chunkPosition>;
+
+        i230 = $i10 - $i9;
+
+        if i230 != 0 goto label175;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = 3;
+
+        goto label181;
+
+     label175:
+        if i222 <= i230 goto label176;
+
+        i222 = i230;
+
+     label176:
+        $r9 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $r10 = interfaceinvoke $r9.<org.eclipse.jetty.io.Buffer: org.eclipse.jetty.io.Buffer get(int)>(i222);
+
+        $l11 = r0.<org.eclipse.jetty.http.HttpParser: long _contentPosition>;
+
+        $i12 = interfaceinvoke $r10.<org.eclipse.jetty.io.Buffer: int length()>();
+
+        $l13 = (long) $i12;
+
+        $l14 = $l11 + $l13;
+
+        r0.<org.eclipse.jetty.http.HttpParser: long _contentPosition> = $l14;
+
+        $i15 = r0.<org.eclipse.jetty.http.HttpParser: int _chunkPosition>;
+
+        $i16 = interfaceinvoke $r10.<org.eclipse.jetty.io.Buffer: int length()>();
+
+        $i17 = $i15 + $i16;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _chunkPosition> = $i17;
+
+        $r11 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View _contentView>;
+
+        virtualinvoke $r11.<org.eclipse.jetty.io.View: void update(org.eclipse.jetty.io.Buffer)>($r10);
+
+        $r12 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.http.HttpParser$EventHandler _handler>;
+
+        virtualinvoke $r12.<org.eclipse.jetty.http.HttpParser$EventHandler: void content(org.eclipse.jetty.io.Buffer)>($r10);
+
+     label177:
+        return 1;
+
+     label178:
+        $r3 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i7 = interfaceinvoke $r3.<org.eclipse.jetty.io.Buffer: int length()>();
+
+        if $i7 <= 2 goto label179;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = 0;
+
+        $r8 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.EndPoint _endp>;
+
+        interfaceinvoke $r8.<org.eclipse.jetty.io.EndPoint: void close()>();
+
+        goto label180;
+
+     label179:
+        $r250 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i231 = interfaceinvoke $r250.<org.eclipse.jetty.io.Buffer: int length()>();
+
+        if $i231 <= 0 goto label180;
+
+        $r5 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $b8 = interfaceinvoke $r5.<org.eclipse.jetty.io.Buffer: byte get()>();
+
+        $i360 = (int) $b8;
+
+        $z0 = staticinvoke <java.lang.Character: boolean isWhitespace(int)>($i360);
+
+        if $z0 != 0 goto label179;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = 0;
+
+        $r6 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.EndPoint _endp>;
+
+        interfaceinvoke $r6.<org.eclipse.jetty.io.EndPoint: void close()>();
+
+        $r7 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        interfaceinvoke $r7.<org.eclipse.jetty.io.Buffer: void clear()>();
+
+        goto label179;
+
+     label180:
+        $r4 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        interfaceinvoke $r4.<org.eclipse.jetty.io.Buffer: void clear()>();
+
+     label181:
+        $r251 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        i222 = interfaceinvoke $r251.<org.eclipse.jetty.io.Buffer: int length()>();
+
+        goto label136;
+
+     label182:
+        return i204;
+
+     label183:
+        $r225 := @caughtexception;
+
+        r0.<org.eclipse.jetty.http.HttpParser: boolean _persistent> = 0;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = 7;
+
+        throw $r225;
+
+        catch java.io.IOException from label007 to label008 with label009;
+        catch java.lang.NumberFormatException from label063 to label064 with label065;
+        catch org.eclipse.jetty.http.HttpException from label001 to label002 with label183;
+        catch org.eclipse.jetty.http.HttpException from label003 to label005 with label183;
+        catch org.eclipse.jetty.http.HttpException from label006 to label019 with label183;
+        catch org.eclipse.jetty.http.HttpException from label020 to label042 with label183;
+        catch org.eclipse.jetty.http.HttpException from label043 to label047 with label183;
+        catch org.eclipse.jetty.http.HttpException from label048 to label096 with label183;
+        catch org.eclipse.jetty.http.HttpException from label097 to label098 with label183;
+        catch org.eclipse.jetty.http.HttpException from label099 to label140 with label183;
+        catch org.eclipse.jetty.http.HttpException from label141 to label144 with label183;
+        catch org.eclipse.jetty.http.HttpException from label145 to label149 with label183;
+        catch org.eclipse.jetty.http.HttpException from label150 to label159 with label183;
+        catch org.eclipse.jetty.http.HttpException from label160 to label172 with label183;
+        catch org.eclipse.jetty.http.HttpException from label173 to label177 with label183;
+        catch org.eclipse.jetty.http.HttpException from label178 to label182 with label183;
+    }
+
+    protected int fill() throws java.io.IOException
+    {
+        org.eclipse.jetty.io.EndPoint $r6, $r8, $r39;
+        org.eclipse.jetty.io.EofException $r45;
+        byte $b10;
+        org.eclipse.jetty.io.Buffer $r1, $r2, $r3, $r4, $r5, $r10, $r14, $r15, $r18, $r19, $r20, $r21, $r23, $r25, $r26, $r27, $r28, $r29, $r30, $r31, $r32, $r33, $r34, $r37, $r38, $r40;
+        boolean $z0, $z1, $z2, $z3;
+        org.eclipse.jetty.http.HttpParser r0;
+        java.lang.StringBuilder $r13, $r16, $r43;
+        org.eclipse.jetty.io.Buffers $r22, $r24;
+        java.lang.Object[] $r7;
+        long $l5, $l6, $l7, $l9;
+        int $i0, $i1, $i2, $i3, $i4, $i8, $i11, $i12, $i13, $i15;
+        java.lang.String $r17, $r41;
+        java.io.IOException $r35, $r42;
+        org.eclipse.jetty.http.HttpException $r44;
+        org.eclipse.jetty.util.log.Logger $r9, $r36;
+
+        r0 := @this: org.eclipse.jetty.http.HttpParser;
+
+        $r1 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        if $r1 != null goto label01;
+
+        $r34 = virtualinvoke r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer getHeaderBuffer()>();
+
+        r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer> = $r34;
+
+     label01:
+        $i0 = r0.<org.eclipse.jetty.http.HttpParser: int _state>;
+
+        if $i0 <= 0 goto label02;
+
+        $r27 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $r26 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _header>;
+
+        if $r27 != $r26 goto label02;
+
+        $r28 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _header>;
+
+        if $r28 == null goto label02;
+
+        $r29 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _header>;
+
+        $z1 = interfaceinvoke $r29.<org.eclipse.jetty.io.Buffer: boolean hasContent()>();
+
+        if $z1 != 0 goto label02;
+
+        $r30 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _body>;
+
+        if $r30 == null goto label02;
+
+        $r31 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _body>;
+
+        $z2 = interfaceinvoke $r31.<org.eclipse.jetty.io.Buffer: boolean hasContent()>();
+
+        if $z2 == 0 goto label02;
+
+        $r32 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _body>;
+
+        r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer> = $r32;
+
+        $r33 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i11 = interfaceinvoke $r33.<org.eclipse.jetty.io.Buffer: int length()>();
+
+        return $i11;
+
+     label02:
+        $r37 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $r38 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _header>;
+
+        if $r37 != $r38 goto label06;
+
+        $i3 = r0.<org.eclipse.jetty.http.HttpParser: int _state>;
+
+        if $i3 <= 0 goto label06;
+
+        $r18 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _header>;
+
+        $i4 = interfaceinvoke $r18.<org.eclipse.jetty.io.Buffer: int length()>();
+
+        if $i4 != 0 goto label06;
+
+        $z0 = r0.<org.eclipse.jetty.http.HttpParser: boolean _forceContentBuffer>;
+
+        if $z0 != 0 goto label03;
+
+        $l6 = r0.<org.eclipse.jetty.http.HttpParser: long _contentLength>;
+
+        $l5 = r0.<org.eclipse.jetty.http.HttpParser: long _contentPosition>;
+
+        $l7 = $l6 - $l5;
+
+        $r25 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _header>;
+
+        $i8 = interfaceinvoke $r25.<org.eclipse.jetty.io.Buffer: int capacity()>();
+
+        $l9 = (long) $i8;
+
+        $b10 = $l7 cmp $l9;
+
+        $i13 = (int) $b10;
+
+        if $i13 <= 0 goto label06;
+
+     label03:
+        $r19 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _body>;
+
+        if $r19 != null goto label04;
+
+        $r24 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffers _buffers>;
+
+        if $r24 == null goto label06;
+
+     label04:
+        $r20 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _body>;
+
+        if $r20 != null goto label05;
+
+        $r22 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffers _buffers>;
+
+        $r23 = interfaceinvoke $r22.<org.eclipse.jetty.io.Buffers: org.eclipse.jetty.io.Buffer getBuffer()>();
+
+        r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _body> = $r23;
+
+     label05:
+        $r21 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _body>;
+
+        r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer> = $r21;
+
+     label06:
+        $r39 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.EndPoint _endp>;
+
+        if $r39 == null goto label16;
+
+        $r3 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $r2 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _body>;
+
+        if $r3 == $r2 goto label07;
+
+        $i2 = r0.<org.eclipse.jetty.http.HttpParser: int _state>;
+
+        if $i2 <= 0 goto label08;
+
+     label07:
+        $r4 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        interfaceinvoke $r4.<org.eclipse.jetty.io.Buffer: void compact()>();
+
+     label08:
+        $r40 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i12 = interfaceinvoke $r40.<org.eclipse.jetty.io.Buffer: int space()>();
+
+        if $i12 != 0 goto label11;
+
+        $r9 = <org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r7 = newarray (java.lang.Object)[1];
+
+        $r8 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.EndPoint _endp>;
+
+        $r7[0] = $r8;
+
+        interfaceinvoke $r9.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.String,java.lang.Object[])>("HttpParser Full for {} ", $r7);
+
+        $r10 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        interfaceinvoke $r10.<org.eclipse.jetty.io.Buffer: void clear()>();
+
+        $r44 = new org.eclipse.jetty.http.HttpException;
+
+        $r43 = new java.lang.StringBuilder;
+
+        specialinvoke $r43.<java.lang.StringBuilder: void <init>()>();
+
+        $r13 = virtualinvoke $r43.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("FULL ");
+
+        $r15 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $r14 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _body>;
+
+        if $r15 != $r14 goto label09;
+
+        $r41 = "body";
+
+        goto label10;
+
+     label09:
+        $r41 = "head";
+
+     label10:
+        $r16 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r41);
+
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r44.<org.eclipse.jetty.http.HttpException: void <init>(int,java.lang.String)>(413, $r17);
+
+        throw $r44;
+
+     label11:
+        $r6 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.EndPoint _endp>;
+
+        $r5 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $i1 = interfaceinvoke $r6.<org.eclipse.jetty.io.EndPoint: int fill(org.eclipse.jetty.io.Buffer)>($r5);
+
+     label12:
+        return $i1;
+
+     label13:
+        $r35 := @caughtexception;
+
+        $r36 = <org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.util.log.Logger LOG>;
+
+        interfaceinvoke $r36.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.Throwable)>($r35);
+
+        $z3 = $r35 instanceof org.eclipse.jetty.io.EofException;
+
+        if $z3 == 0 goto label14;
+
+        $r42 = $r35;
+
+        goto label15;
+
+     label14:
+        $r45 = new org.eclipse.jetty.io.EofException;
+
+        $r42 = $r45;
+
+        specialinvoke $r45.<org.eclipse.jetty.io.EofException: void <init>(java.lang.Throwable)>($r35);
+
+     label15:
+        throw $r42;
+
+     label16:
+        $i15 = (int) -1;
+
+        return $i15;
+
+        catch java.io.IOException from label11 to label12 with label13;
+    }
+
+    public void reset()
+    {
+        org.eclipse.jetty.io.EndPoint $r3;
+        org.eclipse.jetty.io.View $r1, $r2;
+        byte $b6, $b7, $b8, $b9;
+        org.eclipse.jetty.io.Buffer $r4, $r5, $r6, $r7, $r8, $r9, $r10, $r11, $r12, $r13, $r14, $r15, $r16, $r17, $r18, $r19, $r20, $r21, $r22, $r23, $r24, $r25, $r26, $r27, $r28;
+        boolean $z0, $z1, $z2, $z3;
+        org.eclipse.jetty.http.HttpParser r0;
+        int $i0, $i1, $i2, $i3, $i4, $i5, i10, $i11, $i12, $i14, $i16, $i18;
+
+        r0 := @this: org.eclipse.jetty.http.HttpParser;
+
+        $r2 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View _contentView>;
+
+        $r1 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View _contentView>;
+
+        $i0 = virtualinvoke $r1.<org.eclipse.jetty.io.View: int putIndex()>();
+
+        virtualinvoke $r2.<org.eclipse.jetty.io.View: void setGetIndex(int)>($i0);
+
+        $z0 = r0.<org.eclipse.jetty.http.HttpParser: boolean _persistent>;
+
+        if $z0 == 0 goto label01;
+
+        $b8 = -14;
+
+        goto label03;
+
+     label01:
+        $r3 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.EndPoint _endp>;
+
+        $z1 = interfaceinvoke $r3.<org.eclipse.jetty.io.EndPoint: boolean isInputShutdown()>();
+
+        if $z1 == 0 goto label02;
+
+        $b8 = 0;
+
+        goto label03;
+
+     label02:
+        $b8 = 7;
+
+     label03:
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = $b8;
+
+        r0.<org.eclipse.jetty.http.HttpParser: long _contentLength> = -3L;
+
+        r0.<org.eclipse.jetty.http.HttpParser: long _contentPosition> = 0L;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _length> = 0;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _responseStatus> = 0;
+
+        $b9 = r0.<org.eclipse.jetty.http.HttpParser: byte _eol>;
+
+        $i11 = (int) $b9;
+
+        if $i11 != 13 goto label04;
+
+        $r23 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        if $r23 == null goto label04;
+
+        $r24 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $z3 = interfaceinvoke $r24.<org.eclipse.jetty.io.Buffer: boolean hasContent()>();
+
+        if $z3 == 0 goto label04;
+
+        $r25 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $b6 = interfaceinvoke $r25.<org.eclipse.jetty.io.Buffer: byte peek()>();
+
+        $i12 = (int) $b6;
+
+        if $i12 != 10 goto label04;
+
+        $r26 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $b7 = interfaceinvoke $r26.<org.eclipse.jetty.io.Buffer: byte get()>();
+
+        r0.<org.eclipse.jetty.http.HttpParser: byte _eol> = $b7;
+
+     label04:
+        $r27 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _body>;
+
+        if $r27 == null goto label08;
+
+        $r9 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _body>;
+
+        $z2 = interfaceinvoke $r9.<org.eclipse.jetty.io.Buffer: boolean hasContent()>();
+
+        if $z2 == 0 goto label08;
+
+        $r10 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _header>;
+
+        if $r10 != null goto label05;
+
+        virtualinvoke r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer getHeaderBuffer()>();
+
+        goto label06;
+
+     label05:
+        $r11 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _header>;
+
+        $i14 = (int) -1;
+
+        interfaceinvoke $r11.<org.eclipse.jetty.io.Buffer: void setMarkIndex(int)>($i14);
+
+        $r12 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _header>;
+
+        interfaceinvoke $r12.<org.eclipse.jetty.io.Buffer: void compact()>();
+
+     label06:
+        $r13 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _header>;
+
+        $i1 = interfaceinvoke $r13.<org.eclipse.jetty.io.Buffer: int space()>();
+
+        i10 = $i1;
+
+        $r14 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _body>;
+
+        $i2 = interfaceinvoke $r14.<org.eclipse.jetty.io.Buffer: int length()>();
+
+        if $i1 <= $i2 goto label07;
+
+        $r22 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _body>;
+
+        i10 = interfaceinvoke $r22.<org.eclipse.jetty.io.Buffer: int length()>();
+
+     label07:
+        $r16 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _body>;
+
+        $r15 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _body>;
+
+        $i3 = interfaceinvoke $r15.<org.eclipse.jetty.io.Buffer: int getIndex()>();
+
+        interfaceinvoke $r16.<org.eclipse.jetty.io.Buffer: org.eclipse.jetty.io.Buffer peek(int,int)>($i3, i10);
+
+        $r18 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _body>;
+
+        $r19 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _header>;
+
+        $r20 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _body>;
+
+        $r17 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _body>;
+
+        $i4 = interfaceinvoke $r17.<org.eclipse.jetty.io.Buffer: int getIndex()>();
+
+        $r21 = interfaceinvoke $r20.<org.eclipse.jetty.io.Buffer: org.eclipse.jetty.io.Buffer peek(int,int)>($i4, i10);
+
+        $i5 = interfaceinvoke $r19.<org.eclipse.jetty.io.Buffer: int put(org.eclipse.jetty.io.Buffer)>($r21);
+
+        interfaceinvoke $r18.<org.eclipse.jetty.io.Buffer: int skip(int)>($i5);
+
+     label08:
+        $r28 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _header>;
+
+        if $r28 == null goto label09;
+
+        $r7 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _header>;
+
+        $i16 = (int) -1;
+
+        interfaceinvoke $r7.<org.eclipse.jetty.io.Buffer: void setMarkIndex(int)>($i16);
+
+        $r8 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _header>;
+
+        interfaceinvoke $r8.<org.eclipse.jetty.io.Buffer: void compact()>();
+
+     label09:
+        $r4 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _body>;
+
+        if $r4 == null goto label10;
+
+        $r6 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _body>;
+
+        $i18 = (int) -1;
+
+        interfaceinvoke $r6.<org.eclipse.jetty.io.Buffer: void setMarkIndex(int)>($i18);
+
+     label10:
+        $r5 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _header>;
+
+        r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer> = $r5;
+
+        virtualinvoke r0.<org.eclipse.jetty.http.HttpParser: void returnBuffers()>();
+
+        return;
+    }
+
+    public void returnBuffers()
+    {
+        org.eclipse.jetty.io.Buffers $r4, $r8, $r11, $r14, $r16;
+        int $i0, $i1, $i3, $i5;
+        org.eclipse.jetty.io.Buffer $r1, $r2, $r3, $r5, $r6, $r7, $r9, $r10, $r12, $r13, $r15, $r17, $r18;
+        boolean $z0, $z1;
+        org.eclipse.jetty.http.HttpParser r0;
+
+        r0 := @this: org.eclipse.jetty.http.HttpParser;
+
+        $r1 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _body>;
+
+        if $r1 == null goto label3;
+
+        $r9 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _body>;
+
+        $z1 = interfaceinvoke $r9.<org.eclipse.jetty.io.Buffer: boolean hasContent()>();
+
+        if $z1 != 0 goto label3;
+
+        $r10 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _body>;
+
+        $i1 = interfaceinvoke $r10.<org.eclipse.jetty.io.Buffer: int markIndex()>();
+
+        $i3 = (int) -1;
+
+        if $i1 != $i3 goto label3;
+
+        $r11 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffers _buffers>;
+
+        if $r11 == null goto label3;
+
+        $r13 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $r12 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _body>;
+
+        if $r13 != $r12 goto label1;
+
+        $r17 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _header>;
+
+        r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer> = $r17;
+
+     label1:
+        $r14 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffers _buffers>;
+
+        if $r14 == null goto label2;
+
+        $r16 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffers _buffers>;
+
+        $r15 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _body>;
+
+        interfaceinvoke $r16.<org.eclipse.jetty.io.Buffers: void returnBuffer(org.eclipse.jetty.io.Buffer)>($r15);
+
+     label2:
+        r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _body> = null;
+
+     label3:
+        $r18 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _header>;
+
+        if $r18 == null goto label5;
+
+        $r2 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _header>;
+
+        $z0 = interfaceinvoke $r2.<org.eclipse.jetty.io.Buffer: boolean hasContent()>();
+
+        if $z0 != 0 goto label5;
+
+        $r3 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _header>;
+
+        $i0 = interfaceinvoke $r3.<org.eclipse.jetty.io.Buffer: int markIndex()>();
+
+        $i5 = (int) -1;
+
+        if $i0 != $i5 goto label5;
+
+        $r4 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffers _buffers>;
+
+        if $r4 == null goto label5;
+
+        $r6 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer>;
+
+        $r5 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _header>;
+
+        if $r6 != $r5 goto label4;
+
+        r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _buffer> = null;
+
+     label4:
+        $r8 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffers _buffers>;
+
+        $r7 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _header>;
+
+        interfaceinvoke $r8.<org.eclipse.jetty.io.Buffers: void returnBuffer(org.eclipse.jetty.io.Buffer)>($r7);
+
+        r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _header> = null;
+
+     label5:
+        return;
+    }
+
+    public void setState(int)
+    {
+        int i0;
+        org.eclipse.jetty.http.HttpParser r0;
+
+        r0 := @this: org.eclipse.jetty.http.HttpParser;
+
+        i0 := @parameter0: int;
+
+        r0.<org.eclipse.jetty.http.HttpParser: int _state> = i0;
+
+        r0.<org.eclipse.jetty.http.HttpParser: long _contentLength> = -3L;
+
+        return;
+    }
+
+    public java.lang.String toString(org.eclipse.jetty.io.Buffer)
+    {
+        org.eclipse.jetty.http.HttpParser r2;
+        int $i0, $i1, $i2;
+        java.lang.StringBuilder $r0, $r1, $r3, $r4, $r5, $r6, $r8;
+        java.lang.String $r9;
+        org.eclipse.jetty.io.Buffer r7;
+
+        r2 := @this: org.eclipse.jetty.http.HttpParser;
+
+        r7 := @parameter0: org.eclipse.jetty.io.Buffer;
+
+        $r0 = new java.lang.StringBuilder;
+
+        specialinvoke $r0.<java.lang.StringBuilder: void <init>()>();
+
+        $r1 = virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("state=");
+
+        $i0 = r2.<org.eclipse.jetty.http.HttpParser: int _state>;
+
+        $r3 = virtualinvoke $r1.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i0);
+
+        $r4 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" length=");
+
+        $i1 = r2.<org.eclipse.jetty.http.HttpParser: int _length>;
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i1);
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" buf=");
+
+        $i2 = virtualinvoke r7.<java.lang.Object: int hashCode()>();
+
+        $r8 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i2);
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        return $r9;
+    }
+
+    public java.lang.String toString()
+    {
+        java.lang.Object[] $r0;
+        long $l2;
+        org.eclipse.jetty.http.HttpParser r1;
+        java.lang.Integer $r4, $r5;
+        java.lang.Long $r6;
+        int $i0, $i1;
+        java.lang.Class $r2;
+        java.lang.String $r3, $r7;
+
+        r1 := @this: org.eclipse.jetty.http.HttpParser;
+
+        $r0 = newarray (java.lang.Object)[4];
+
+        $r2 = virtualinvoke r1.<java.lang.Object: java.lang.Class getClass()>();
+
+        $r3 = virtualinvoke $r2.<java.lang.Class: java.lang.String getSimpleName()>();
+
+        $r0[0] = $r3;
+
+        $i0 = r1.<org.eclipse.jetty.http.HttpParser: int _state>;
+
+        $r4 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i0);
+
+        $r0[1] = $r4;
+
+        $i1 = r1.<org.eclipse.jetty.http.HttpParser: int _length>;
+
+        $r5 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i1);
+
+        $r0[2] = $r5;
+
+        $l2 = r1.<org.eclipse.jetty.http.HttpParser: long _contentLength>;
+
+        $r6 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l2);
+
+        $r0[3] = $r6;
+
+        $r7 = staticinvoke <java.lang.String: java.lang.String format(java.lang.String,java.lang.Object[])>("%s{s=%d,l=%d,c=%d}", $r0);
+
+        return $r7;
+    }
+
+    public org.eclipse.jetty.io.Buffer getHeaderBuffer()
+    {
+        org.eclipse.jetty.io.Buffers $r3;
+        org.eclipse.jetty.http.HttpParser r0;
+        org.eclipse.jetty.io.View$CaseInsensitive $r6, $r8;
+        org.eclipse.jetty.io.Buffer $r1, $r2, $r4, $r5, $r7;
+
+        r0 := @this: org.eclipse.jetty.http.HttpParser;
+
+        $r1 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _header>;
+
+        if $r1 != null goto label1;
+
+        $r3 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffers _buffers>;
+
+        $r4 = interfaceinvoke $r3.<org.eclipse.jetty.io.Buffers: org.eclipse.jetty.io.Buffer getHeader()>();
+
+        r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _header> = $r4;
+
+        $r6 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok0>;
+
+        $r5 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _header>;
+
+        virtualinvoke $r6.<org.eclipse.jetty.io.View$CaseInsensitive: void update(org.eclipse.jetty.io.Buffer)>($r5);
+
+        $r8 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View$CaseInsensitive _tok1>;
+
+        $r7 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _header>;
+
+        virtualinvoke $r8.<org.eclipse.jetty.io.View$CaseInsensitive: void update(org.eclipse.jetty.io.Buffer)>($r7);
+
+     label1:
+        $r2 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _header>;
+
+        return $r2;
+    }
+
+    public org.eclipse.jetty.io.Buffer getBodyBuffer()
+    {
+        org.eclipse.jetty.http.HttpParser r0;
+        org.eclipse.jetty.io.Buffer $r1;
+
+        r0 := @this: org.eclipse.jetty.http.HttpParser;
+
+        $r1 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.Buffer _body>;
+
+        return $r1;
+    }
+
+    public void setForceContentBuffer(boolean)
+    {
+        org.eclipse.jetty.http.HttpParser r0;
+        boolean z0;
+
+        r0 := @this: org.eclipse.jetty.http.HttpParser;
+
+        z0 := @parameter0: boolean;
+
+        r0.<org.eclipse.jetty.http.HttpParser: boolean _forceContentBuffer> = z0;
+
+        return;
+    }
+
+    public org.eclipse.jetty.io.Buffer blockForContent(long) throws java.io.IOException
+    {
+        org.eclipse.jetty.io.EndPoint $r3, $r4, $r5, $r6, $r7, $r11;
+        long l4;
+        org.eclipse.jetty.io.EofException $r8;
+        org.eclipse.jetty.io.View $r1, $r2, $r9, $r12, $r13;
+        int $i0, $i1, $i2, $i3, $i5;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5;
+        java.io.IOException $r10;
+        org.eclipse.jetty.http.HttpParser r0;
+
+        r0 := @this: org.eclipse.jetty.http.HttpParser;
+
+        l4 := @parameter0: long;
+
+        $r1 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View _contentView>;
+
+        $i0 = virtualinvoke $r1.<org.eclipse.jetty.io.View: int length()>();
+
+        if $i0 <= 0 goto label01;
+
+        $r9 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View _contentView>;
+
+        return $r9;
+
+     label01:
+        $i1 = virtualinvoke r0.<org.eclipse.jetty.http.HttpParser: int getState()>();
+
+        if $i1 <= 0 goto label02;
+
+        $z0 = virtualinvoke r0.<org.eclipse.jetty.http.HttpParser: boolean isState(int)>(7);
+
+        if $z0 == 0 goto label03;
+
+     label02:
+        return null;
+
+     label03:
+        virtualinvoke r0.<org.eclipse.jetty.http.HttpParser: int parseNext()>();
+
+     label04:
+        $r12 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View _contentView>;
+
+        $i5 = virtualinvoke $r12.<org.eclipse.jetty.io.View: int length()>();
+
+        if $i5 != 0 goto label07;
+
+        $z1 = virtualinvoke r0.<org.eclipse.jetty.http.HttpParser: boolean isState(int)>(0);
+
+        if $z1 != 0 goto label07;
+
+        $z2 = virtualinvoke r0.<org.eclipse.jetty.http.HttpParser: boolean isState(int)>(7);
+
+        if $z2 != 0 goto label07;
+
+        $r3 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.EndPoint _endp>;
+
+        if $r3 == null goto label07;
+
+        $r4 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.EndPoint _endp>;
+
+        $z3 = interfaceinvoke $r4.<org.eclipse.jetty.io.EndPoint: boolean isOpen()>();
+
+        if $z3 == 0 goto label07;
+
+        $r5 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.EndPoint _endp>;
+
+        $z4 = interfaceinvoke $r5.<org.eclipse.jetty.io.EndPoint: boolean isBlocking()>();
+
+        if $z4 != 0 goto label06;
+
+        $i3 = virtualinvoke r0.<org.eclipse.jetty.http.HttpParser: int parseNext()>();
+
+        if $i3 <= 0 goto label05;
+
+        goto label04;
+
+     label05:
+        $r6 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.EndPoint _endp>;
+
+        $z5 = interfaceinvoke $r6.<org.eclipse.jetty.io.EndPoint: boolean blockReadable(long)>(l4);
+
+        if $z5 != 0 goto label06;
+
+        $r7 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.EndPoint _endp>;
+
+        interfaceinvoke $r7.<org.eclipse.jetty.io.EndPoint: void close()>();
+
+        $r8 = new org.eclipse.jetty.io.EofException;
+
+        specialinvoke $r8.<org.eclipse.jetty.io.EofException: void <init>(java.lang.String)>("timeout");
+
+        throw $r8;
+
+     label06:
+        virtualinvoke r0.<org.eclipse.jetty.http.HttpParser: int parseNext()>();
+
+        goto label04;
+
+     label07:
+        goto label09;
+
+     label08:
+        $r10 := @caughtexception;
+
+        $r11 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.EndPoint _endp>;
+
+        interfaceinvoke $r11.<org.eclipse.jetty.io.EndPoint: void close()>();
+
+        throw $r10;
+
+     label09:
+        $r2 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View _contentView>;
+
+        $i2 = virtualinvoke $r2.<org.eclipse.jetty.io.View: int length()>();
+
+        if $i2 <= 0 goto label10;
+
+        $r13 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View _contentView>;
+
+        goto label11;
+
+     label10:
+        $r13 = null;
+
+     label11:
+        return $r13;
+
+        catch java.io.IOException from label03 to label07 with label08;
+    }
+
+    public int available() throws java.io.IOException
+    {
+        org.eclipse.jetty.io.EndPoint $r2, $r5, $r6;
+        org.eclipse.jetty.io.View $r1, $r3, $r4, $r9, $r10;
+        byte $b4;
+        int $i0, $i1, $i2, $i3, $i5;
+        org.eclipse.jetty.io.bio.StreamEndPoint $r7;
+        boolean $z0, $z1;
+        org.eclipse.jetty.http.HttpParser r0;
+        java.io.InputStream $r8;
+
+        r0 := @this: org.eclipse.jetty.http.HttpParser;
+
+        $r1 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View _contentView>;
+
+        if $r1 == null goto label1;
+
+        $r9 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View _contentView>;
+
+        $i2 = virtualinvoke $r9.<org.eclipse.jetty.io.View: int length()>();
+
+        if $i2 <= 0 goto label1;
+
+        $r10 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View _contentView>;
+
+        $i3 = virtualinvoke $r10.<org.eclipse.jetty.io.View: int length()>();
+
+        return $i3;
+
+     label1:
+        $r2 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.EndPoint _endp>;
+
+        $z0 = interfaceinvoke $r2.<org.eclipse.jetty.io.EndPoint: boolean isBlocking()>();
+
+        if $z0 == 0 goto label5;
+
+        $i0 = r0.<org.eclipse.jetty.http.HttpParser: int _state>;
+
+        if $i0 <= 0 goto label4;
+
+        $r5 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.EndPoint _endp>;
+
+        $z1 = $r5 instanceof org.eclipse.jetty.io.bio.StreamEndPoint;
+
+        if $z1 == 0 goto label4;
+
+        $r6 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.EndPoint _endp>;
+
+        $r7 = (org.eclipse.jetty.io.bio.StreamEndPoint) $r6;
+
+        $r8 = virtualinvoke $r7.<org.eclipse.jetty.io.bio.StreamEndPoint: java.io.InputStream getInputStream()>();
+
+        $i1 = virtualinvoke $r8.<java.io.InputStream: int available()>();
+
+        if $i1 <= 0 goto label2;
+
+        $b4 = 1;
+
+        goto label3;
+
+     label2:
+        $b4 = 0;
+
+     label3:
+        return $b4;
+
+     label4:
+        return 0;
+
+     label5:
+        virtualinvoke r0.<org.eclipse.jetty.http.HttpParser: int parseNext()>();
+
+        $r3 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View _contentView>;
+
+        if $r3 != null goto label6;
+
+        $i5 = 0;
+
+        goto label7;
+
+     label6:
+        $r4 = r0.<org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.io.View _contentView>;
+
+        $i5 = virtualinvoke $r4.<org.eclipse.jetty.io.View: int length()>();
+
+     label7:
+        return $i5;
+    }
+
+    static void <clinit>()
+    {
+        org.eclipse.jetty.util.log.Logger $r0;
+
+        <org.eclipse.jetty.http.HttpParser: int STATE_SEEKING_EOF> = 7;
+
+        <org.eclipse.jetty.http.HttpParser: int STATE_CHUNK> = 6;
+
+        <org.eclipse.jetty.http.HttpParser: int STATE_CHUNK_PARAMS> = 5;
+
+        <org.eclipse.jetty.http.HttpParser: int STATE_CHUNK_SIZE> = 4;
+
+        <org.eclipse.jetty.http.HttpParser: int STATE_CHUNKED_CONTENT> = 3;
+
+        <org.eclipse.jetty.http.HttpParser: int STATE_CONTENT> = 2;
+
+        <org.eclipse.jetty.http.HttpParser: int STATE_EOF_CONTENT> = 1;
+
+        <org.eclipse.jetty.http.HttpParser: int STATE_END> = 0;
+
+        <org.eclipse.jetty.http.HttpParser: int STATE_HEADER_IN_VALUE> = -1;
+
+        <org.eclipse.jetty.http.HttpParser: int STATE_HEADER_VALUE> = -2;
+
+        <org.eclipse.jetty.http.HttpParser: int STATE_HEADER_IN_NAME> = -3;
+
+        <org.eclipse.jetty.http.HttpParser: int STATE_HEADER_NAME> = -4;
+
+        <org.eclipse.jetty.http.HttpParser: int STATE_HEADER> = -5;
+
+        <org.eclipse.jetty.http.HttpParser: int STATE_FIELD2> = -6;
+
+        <org.eclipse.jetty.http.HttpParser: int STATE_END1> = -7;
+
+        <org.eclipse.jetty.http.HttpParser: int STATE_END0> = -8;
+
+        <org.eclipse.jetty.http.HttpParser: int STATE_SPACE2> = -9;
+
+        <org.eclipse.jetty.http.HttpParser: int STATE_URI> = -10;
+
+        <org.eclipse.jetty.http.HttpParser: int STATE_STATUS> = -11;
+
+        <org.eclipse.jetty.http.HttpParser: int STATE_SPACE1> = -12;
+
+        <org.eclipse.jetty.http.HttpParser: int STATE_FIELD0> = -13;
+
+        <org.eclipse.jetty.http.HttpParser: int STATE_START> = -14;
+
+        $r0 = staticinvoke <org.eclipse.jetty.util.log.Log: org.eclipse.jetty.util.log.Logger getLogger(java.lang.Class)>(class "Lorg/eclipse/jetty/http/HttpParser;");
+
+        <org.eclipse.jetty.http.HttpParser: org.eclipse.jetty.util.log.Logger LOG> = $r0;
+
+        return;
+    }
+}

@@ -1,0 +1,563 @@
+public class org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator extends java.lang.Object implements org.apache.zookeeper.server.persistence.TxnLog$TxnIterator
+{
+    java.io.File logDir;
+    long zxid;
+    org.apache.zookeeper.txn.TxnHeader hdr;
+    org.apache.jute.Record record;
+    java.io.File logFile;
+    org.apache.jute.InputArchive ia;
+    static final java.lang.String CRC_ERROR;
+    org.apache.zookeeper.server.persistence.FileTxnLog$PositionInputStream inputStream;
+    private java.util.ArrayList storedFiles;
+
+    public void <init>(java.io.File, long) throws java.io.IOException
+    {
+        long l0;
+        java.io.File r1;
+        org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator r0;
+
+        r0 := @this: org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator;
+
+        r1 := @parameter0: java.io.File;
+
+        l0 := @parameter1: long;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: org.apache.zookeeper.server.persistence.FileTxnLog$PositionInputStream inputStream> = null;
+
+        r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: java.io.File logDir> = r1;
+
+        r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: long zxid> = l0;
+
+        virtualinvoke r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: void init()>();
+
+        return;
+    }
+
+    void init() throws java.io.IOException
+    {
+        long $l0, $l1, $l3, $l4, $l6, $l7;
+        java.util.ArrayList $r12, $r13, $r14;
+        byte $b2, $b5, $b8;
+        int $i9, $i10, $i11;
+        java.lang.String $r10, $r11;
+        boolean $z0, $z1, $z2;
+        java.util.Iterator $r6;
+        org.apache.zookeeper.txn.TxnHeader $r7;
+        java.io.File $r2, r9;
+        java.util.List $r5;
+        org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator r0;
+        java.lang.Object $r8;
+        java.io.File[] $r3, $r4;
+
+        r0 := @this: org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator;
+
+        $r14 = new java.util.ArrayList;
+
+        specialinvoke $r14.<java.util.ArrayList: void <init>()>();
+
+        r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: java.util.ArrayList storedFiles> = $r14;
+
+        $r2 = r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: java.io.File logDir>;
+
+        $r3 = virtualinvoke $r2.<java.io.File: java.io.File[] listFiles()>();
+
+        $r4 = staticinvoke <org.apache.zookeeper.server.persistence.FileTxnLog: java.io.File[] getLogFiles(java.io.File[],long)>($r3, 0L);
+
+        $r5 = staticinvoke <org.apache.zookeeper.server.persistence.Util: java.util.List sortDataDir(java.io.File[],java.lang.String,boolean)>($r4, "log", 0);
+
+        $r6 = interfaceinvoke $r5.<java.util.List: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r6.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label4;
+
+        $r8 = interfaceinvoke $r6.<java.util.Iterator: java.lang.Object next()>();
+
+        r9 = (java.io.File) $r8;
+
+        $r10 = virtualinvoke r9.<java.io.File: java.lang.String getName()>();
+
+        $l3 = staticinvoke <org.apache.zookeeper.server.persistence.Util: long getZxidFromName(java.lang.String,java.lang.String)>($r10, "log");
+
+        $l4 = r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: long zxid>;
+
+        $b5 = $l3 cmp $l4;
+
+        $i9 = (int) $b5;
+
+        if $i9 < 0 goto label2;
+
+        $r13 = r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: java.util.ArrayList storedFiles>;
+
+        virtualinvoke $r13.<java.util.ArrayList: boolean add(java.lang.Object)>(r9);
+
+        goto label3;
+
+     label2:
+        $r11 = virtualinvoke r9.<java.io.File: java.lang.String getName()>();
+
+        $l6 = staticinvoke <org.apache.zookeeper.server.persistence.Util: long getZxidFromName(java.lang.String,java.lang.String)>($r11, "log");
+
+        $l7 = r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: long zxid>;
+
+        $b8 = $l6 cmp $l7;
+
+        $i10 = (int) $b8;
+
+        if $i10 >= 0 goto label3;
+
+        $r12 = r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: java.util.ArrayList storedFiles>;
+
+        virtualinvoke $r12.<java.util.ArrayList: boolean add(java.lang.Object)>(r9);
+
+        goto label4;
+
+     label3:
+        goto label1;
+
+     label4:
+        specialinvoke r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: boolean goToNextLog()>();
+
+        $z1 = virtualinvoke r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: boolean next()>();
+
+        if $z1 != 0 goto label5;
+
+        return;
+
+     label5:
+        $r7 = r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: org.apache.zookeeper.txn.TxnHeader hdr>;
+
+        $l0 = virtualinvoke $r7.<org.apache.zookeeper.txn.TxnHeader: long getZxid()>();
+
+        $l1 = r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: long zxid>;
+
+        $b2 = $l0 cmp $l1;
+
+        $i11 = (int) $b2;
+
+        if $i11 >= 0 goto label6;
+
+        $z2 = virtualinvoke r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: boolean next()>();
+
+        if $z2 != 0 goto label5;
+
+        return;
+
+     label6:
+        return;
+    }
+
+    private boolean goToNextLog() throws java.io.IOException
+    {
+        org.apache.jute.InputArchive $r7;
+        java.io.File $r5, $r6;
+        java.util.ArrayList $r1, $r2, $r3;
+        org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator r0;
+        int $i0, $i1, $i2;
+        java.lang.Object $r4;
+
+        r0 := @this: org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator;
+
+        $r1 = r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: java.util.ArrayList storedFiles>;
+
+        $i0 = virtualinvoke $r1.<java.util.ArrayList: int size()>();
+
+        if $i0 <= 0 goto label1;
+
+        $r3 = r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: java.util.ArrayList storedFiles>;
+
+        $r2 = r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: java.util.ArrayList storedFiles>;
+
+        $i1 = virtualinvoke $r2.<java.util.ArrayList: int size()>();
+
+        $i2 = $i1 - 1;
+
+        $r4 = virtualinvoke $r3.<java.util.ArrayList: java.lang.Object remove(int)>($i2);
+
+        $r5 = (java.io.File) $r4;
+
+        r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: java.io.File logFile> = $r5;
+
+        $r6 = r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: java.io.File logFile>;
+
+        $r7 = virtualinvoke r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: org.apache.jute.InputArchive createInputArchive(java.io.File)>($r6);
+
+        r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: org.apache.jute.InputArchive ia> = $r7;
+
+        return 1;
+
+     label1:
+        return 0;
+    }
+
+    protected void inStreamCreated(org.apache.jute.InputArchive, java.io.InputStream) throws java.io.IOException
+    {
+        org.apache.jute.InputArchive r1;
+        int $i0, $i1, $i2, $i3;
+        java.lang.String $r12;
+        org.apache.zookeeper.server.persistence.FileHeader $r0;
+        java.io.IOException $r2;
+        java.io.File $r6;
+        org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator r5;
+        java.lang.StringBuilder $r3, $r4, $r7, $r8, $r9, $r10, $r11;
+        java.io.InputStream r13;
+
+        r5 := @this: org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator;
+
+        r1 := @parameter0: org.apache.jute.InputArchive;
+
+        r13 := @parameter1: java.io.InputStream;
+
+        $r0 = new org.apache.zookeeper.server.persistence.FileHeader;
+
+        specialinvoke $r0.<org.apache.zookeeper.server.persistence.FileHeader: void <init>()>();
+
+        virtualinvoke $r0.<org.apache.zookeeper.server.persistence.FileHeader: void deserialize(org.apache.jute.InputArchive,java.lang.String)>(r1, "fileheader");
+
+        $i0 = virtualinvoke $r0.<org.apache.zookeeper.server.persistence.FileHeader: int getMagic()>();
+
+        $i1 = <org.apache.zookeeper.server.persistence.FileTxnLog: int TXNLOG_MAGIC>;
+
+        if $i0 == $i1 goto label1;
+
+        $r2 = new java.io.IOException;
+
+        $r3 = new java.lang.StringBuilder;
+
+        specialinvoke $r3.<java.lang.StringBuilder: void <init>()>();
+
+        $r4 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Transaction log: ");
+
+        $r6 = r5.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: java.io.File logFile>;
+
+        $r7 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r6);
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" has invalid magic number ");
+
+        $i2 = virtualinvoke $r0.<org.apache.zookeeper.server.persistence.FileHeader: int getMagic()>();
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i2);
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" != ");
+
+        $i3 = <org.apache.zookeeper.server.persistence.FileTxnLog: int TXNLOG_MAGIC>;
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i3);
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r2.<java.io.IOException: void <init>(java.lang.String)>($r12);
+
+        throw $r2;
+
+     label1:
+        return;
+    }
+
+    protected org.apache.jute.InputArchive createInputArchive(java.io.File) throws java.io.IOException
+    {
+        java.io.BufferedInputStream $r4;
+        org.apache.jute.InputArchive $r2, $r15;
+        java.lang.String $r11, $r20;
+        org.slf4j.Logger $r7, $r16;
+        java.io.FileInputStream $r5;
+        org.apache.zookeeper.server.persistence.FileTxnLog$PositionInputStream $r1, $r3, $r12, $r14;
+        java.io.File r6;
+        org.apache.jute.BinaryInputArchive $r13;
+        org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator r0;
+        java.lang.StringBuilder $r8, $r9, $r10, $r17, $r18, $r19;
+
+        r0 := @this: org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator;
+
+        r6 := @parameter0: java.io.File;
+
+        $r1 = r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: org.apache.zookeeper.server.persistence.FileTxnLog$PositionInputStream inputStream>;
+
+        if $r1 != null goto label1;
+
+        $r3 = new org.apache.zookeeper.server.persistence.FileTxnLog$PositionInputStream;
+
+        $r4 = new java.io.BufferedInputStream;
+
+        $r5 = new java.io.FileInputStream;
+
+        specialinvoke $r5.<java.io.FileInputStream: void <init>(java.io.File)>(r6);
+
+        specialinvoke $r4.<java.io.BufferedInputStream: void <init>(java.io.InputStream)>($r5);
+
+        specialinvoke $r3.<org.apache.zookeeper.server.persistence.FileTxnLog$PositionInputStream: void <init>(java.io.InputStream)>($r4);
+
+        r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: org.apache.zookeeper.server.persistence.FileTxnLog$PositionInputStream inputStream> = $r3;
+
+        $r7 = staticinvoke <org.apache.zookeeper.server.persistence.FileTxnLog: org.slf4j.Logger access$100()>();
+
+        $r8 = new java.lang.StringBuilder;
+
+        specialinvoke $r8.<java.lang.StringBuilder: void <init>()>();
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Created new input stream ");
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r6);
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r7.<org.slf4j.Logger: void debug(java.lang.String)>($r11);
+
+        $r12 = r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: org.apache.zookeeper.server.persistence.FileTxnLog$PositionInputStream inputStream>;
+
+        $r13 = staticinvoke <org.apache.jute.BinaryInputArchive: org.apache.jute.BinaryInputArchive getArchive(java.io.InputStream)>($r12);
+
+        r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: org.apache.jute.InputArchive ia> = $r13;
+
+        $r15 = r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: org.apache.jute.InputArchive ia>;
+
+        $r14 = r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: org.apache.zookeeper.server.persistence.FileTxnLog$PositionInputStream inputStream>;
+
+        virtualinvoke r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: void inStreamCreated(org.apache.jute.InputArchive,java.io.InputStream)>($r15, $r14);
+
+        $r16 = staticinvoke <org.apache.zookeeper.server.persistence.FileTxnLog: org.slf4j.Logger access$100()>();
+
+        $r17 = new java.lang.StringBuilder;
+
+        specialinvoke $r17.<java.lang.StringBuilder: void <init>()>();
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Created new input archive ");
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r6);
+
+        $r20 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r16.<org.slf4j.Logger: void debug(java.lang.String)>($r20);
+
+     label1:
+        $r2 = r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: org.apache.jute.InputArchive ia>;
+
+        return $r2;
+    }
+
+    protected java.util.zip.Checksum makeChecksumAlgorithm()
+    {
+        java.util.zip.Adler32 $r0;
+        org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator r1;
+
+        r1 := @this: org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator;
+
+        $r0 = new java.util.zip.Adler32;
+
+        specialinvoke $r0.<java.util.zip.Adler32: void <init>()>();
+
+        return $r0;
+    }
+
+    public boolean next() throws java.io.IOException
+    {
+        byte[] $r4;
+        org.apache.jute.InputArchive $r1, $r2, $r3;
+        long $l0, $l3;
+        java.util.zip.Checksum $r11;
+        byte $b4;
+        int $i1, $i2, $i5;
+        java.lang.String $r10, $r21;
+        boolean $z0, $z1;
+        org.slf4j.Logger $r17;
+        org.apache.zookeeper.txn.TxnHeader $r12, $r13;
+        org.apache.jute.Record $r14;
+        java.io.IOException $r15;
+        java.io.EOFException $r5, $r16;
+        org.apache.zookeeper.server.persistence.FileTxnLog$PositionInputStream $r22;
+        java.io.File $r8;
+        org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator r0;
+        java.lang.StringBuilder $r6, $r7, $r9, $r18, $r19, $r20;
+
+        r0 := @this: org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator;
+
+        $r1 = r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: org.apache.jute.InputArchive ia>;
+
+        if $r1 != null goto label01;
+
+        return 0;
+
+     label01:
+        $r2 = r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: org.apache.jute.InputArchive ia>;
+
+        $l0 = interfaceinvoke $r2.<org.apache.jute.InputArchive: long readLong(java.lang.String)>("crcvalue");
+
+        $r3 = r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: org.apache.jute.InputArchive ia>;
+
+        $r4 = staticinvoke <org.apache.zookeeper.server.persistence.Util: byte[] readTxnBytes(org.apache.jute.InputArchive)>($r3);
+
+        if $r4 == null goto label02;
+
+        $i1 = lengthof $r4;
+
+        if $i1 != 0 goto label03;
+
+     label02:
+        $r5 = new java.io.EOFException;
+
+        $r6 = new java.lang.StringBuilder;
+
+        specialinvoke $r6.<java.lang.StringBuilder: void <init>()>();
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Failed to read ");
+
+        $r8 = r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: java.io.File logFile>;
+
+        $r9 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r8);
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r5.<java.io.EOFException: void <init>(java.lang.String)>($r10);
+
+        throw $r5;
+
+     label03:
+        $r11 = virtualinvoke r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: java.util.zip.Checksum makeChecksumAlgorithm()>();
+
+        $i2 = lengthof $r4;
+
+        interfaceinvoke $r11.<java.util.zip.Checksum: void update(byte[],int,int)>($r4, 0, $i2);
+
+        $l3 = interfaceinvoke $r11.<java.util.zip.Checksum: long getValue()>();
+
+        $b4 = $l0 cmp $l3;
+
+        if $b4 == 0 goto label04;
+
+        $r15 = new java.io.IOException;
+
+        specialinvoke $r15.<java.io.IOException: void <init>(java.lang.String)>("CRC check failed");
+
+        throw $r15;
+
+     label04:
+        if $r4 == null goto label05;
+
+        $i5 = lengthof $r4;
+
+        if $i5 != 0 goto label06;
+
+     label05:
+        return 0;
+
+     label06:
+        $r12 = new org.apache.zookeeper.txn.TxnHeader;
+
+        specialinvoke $r12.<org.apache.zookeeper.txn.TxnHeader: void <init>()>();
+
+        r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: org.apache.zookeeper.txn.TxnHeader hdr> = $r12;
+
+        $r13 = r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: org.apache.zookeeper.txn.TxnHeader hdr>;
+
+        $r14 = staticinvoke <org.apache.zookeeper.server.util.SerializeUtils: org.apache.jute.Record deserializeTxn(byte[],org.apache.zookeeper.txn.TxnHeader)>($r4, $r13);
+
+        r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: org.apache.jute.Record record> = $r14;
+
+     label07:
+        goto label10;
+
+     label08:
+        $r16 := @caughtexception;
+
+        $r17 = staticinvoke <org.apache.zookeeper.server.persistence.FileTxnLog: org.slf4j.Logger access$100()>();
+
+        $r18 = new java.lang.StringBuilder;
+
+        specialinvoke $r18.<java.lang.StringBuilder: void <init>()>();
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("EOF excepton ");
+
+        $r20 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r16);
+
+        $r21 = virtualinvoke $r20.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r17.<org.slf4j.Logger: void debug(java.lang.String)>($r21);
+
+        $r22 = r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: org.apache.zookeeper.server.persistence.FileTxnLog$PositionInputStream inputStream>;
+
+        virtualinvoke $r22.<org.apache.zookeeper.server.persistence.FileTxnLog$PositionInputStream: void close()>();
+
+        r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: org.apache.zookeeper.server.persistence.FileTxnLog$PositionInputStream inputStream> = null;
+
+        r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: org.apache.jute.InputArchive ia> = null;
+
+        r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: org.apache.zookeeper.txn.TxnHeader hdr> = null;
+
+        $z0 = specialinvoke r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: boolean goToNextLog()>();
+
+        if $z0 != 0 goto label09;
+
+        return 0;
+
+     label09:
+        $z1 = virtualinvoke r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: boolean next()>();
+
+        return $z1;
+
+     label10:
+        return 1;
+
+        catch java.io.EOFException from label01 to label05 with label08;
+        catch java.io.EOFException from label06 to label07 with label08;
+    }
+
+    public org.apache.zookeeper.txn.TxnHeader getHeader()
+    {
+        org.apache.zookeeper.txn.TxnHeader $r1;
+        org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator r0;
+
+        r0 := @this: org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator;
+
+        $r1 = r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: org.apache.zookeeper.txn.TxnHeader hdr>;
+
+        return $r1;
+    }
+
+    public org.apache.jute.Record getTxn()
+    {
+        org.apache.jute.Record $r1;
+        org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator r0;
+
+        r0 := @this: org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator;
+
+        $r1 = r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: org.apache.jute.Record record>;
+
+        return $r1;
+    }
+
+    public void close() throws java.io.IOException
+    {
+        org.apache.zookeeper.server.persistence.FileTxnLog$PositionInputStream $r1;
+        org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator r0;
+
+        r0 := @this: org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator;
+
+        $r1 = r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: org.apache.zookeeper.server.persistence.FileTxnLog$PositionInputStream inputStream>;
+
+        virtualinvoke $r1.<org.apache.zookeeper.server.persistence.FileTxnLog$PositionInputStream: void close()>();
+
+        return;
+    }
+
+    static boolean access$000(org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator) throws java.io.IOException
+    {
+        org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator r0;
+        boolean $z0;
+
+        r0 := @parameter0: org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator;
+
+        $z0 = specialinvoke r0.<org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: boolean goToNextLog()>();
+
+        return $z0;
+    }
+
+    public static void <clinit>()
+    {
+        <org.apache.zookeeper.server.persistence.FileTxnLog$FileTxnIterator: java.lang.String CRC_ERROR> = "CRC check failed";
+
+        return;
+    }
+}

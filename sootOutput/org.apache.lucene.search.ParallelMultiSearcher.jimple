@@ -1,0 +1,609 @@
+public class org.apache.lucene.search.ParallelMultiSearcher extends org.apache.lucene.search.MultiSearcher
+{
+    private final java.util.concurrent.ExecutorService executor;
+    private final org.apache.lucene.search.Searchable[] searchables;
+    private final int[] starts;
+
+    public transient void <init>(org.apache.lucene.search.Searchable[]) throws java.io.IOException
+    {
+        org.apache.lucene.search.Searchable[] r5;
+        org.apache.lucene.util.NamedThreadFactory $r1;
+        org.apache.lucene.search.ParallelMultiSearcher r0;
+        java.lang.Class $r2;
+        java.lang.String $r3;
+        java.util.concurrent.ExecutorService $r4;
+
+        r0 := @this: org.apache.lucene.search.ParallelMultiSearcher;
+
+        r5 := @parameter0: org.apache.lucene.search.Searchable[];
+
+        $r1 = new org.apache.lucene.util.NamedThreadFactory;
+
+        $r2 = class "Lorg/apache/lucene/search/ParallelMultiSearcher;";
+
+        $r3 = virtualinvoke $r2.<java.lang.Class: java.lang.String getSimpleName()>();
+
+        specialinvoke $r1.<org.apache.lucene.util.NamedThreadFactory: void <init>(java.lang.String)>($r3);
+
+        $r4 = staticinvoke <java.util.concurrent.Executors: java.util.concurrent.ExecutorService newCachedThreadPool(java.util.concurrent.ThreadFactory)>($r1);
+
+        specialinvoke r0.<org.apache.lucene.search.ParallelMultiSearcher: void <init>(java.util.concurrent.ExecutorService,org.apache.lucene.search.Searchable[])>($r4, r5);
+
+        return;
+    }
+
+    public transient void <init>(java.util.concurrent.ExecutorService, org.apache.lucene.search.Searchable[]) throws java.io.IOException
+    {
+        org.apache.lucene.search.Searchable[] r1;
+        int[] $r2;
+        org.apache.lucene.search.ParallelMultiSearcher r0;
+        java.util.concurrent.ExecutorService r3;
+
+        r0 := @this: org.apache.lucene.search.ParallelMultiSearcher;
+
+        r3 := @parameter0: java.util.concurrent.ExecutorService;
+
+        r1 := @parameter1: org.apache.lucene.search.Searchable[];
+
+        specialinvoke r0.<org.apache.lucene.search.MultiSearcher: void <init>(org.apache.lucene.search.Searchable[])>(r1);
+
+        r0.<org.apache.lucene.search.ParallelMultiSearcher: org.apache.lucene.search.Searchable[] searchables> = r1;
+
+        $r2 = virtualinvoke r0.<org.apache.lucene.search.ParallelMultiSearcher: int[] getStarts()>();
+
+        r0.<org.apache.lucene.search.ParallelMultiSearcher: int[] starts> = $r2;
+
+        r0.<org.apache.lucene.search.ParallelMultiSearcher: java.util.concurrent.ExecutorService executor> = r3;
+
+        return;
+    }
+
+    public int docFreq(org.apache.lucene.index.Term) throws java.io.IOException
+    {
+        org.apache.lucene.search.ParallelMultiSearcher$ExecutionHelper $r0;
+        org.apache.lucene.index.Term r9;
+        java.lang.Integer r6;
+        org.apache.lucene.search.ParallelMultiSearcher$1 $r8;
+        int $i0, $i1, i2, i3;
+        java.util.concurrent.ExecutorService $r2;
+        boolean $z0;
+        java.util.Iterator $r4;
+        org.apache.lucene.search.ParallelMultiSearcher r1;
+        org.apache.lucene.search.Searchable r10;
+        org.apache.lucene.search.Searchable[] $r3, $r7;
+        java.lang.Object $r5;
+
+        r1 := @this: org.apache.lucene.search.ParallelMultiSearcher;
+
+        r9 := @parameter0: org.apache.lucene.index.Term;
+
+        $r0 = new org.apache.lucene.search.ParallelMultiSearcher$ExecutionHelper;
+
+        $r2 = r1.<org.apache.lucene.search.ParallelMultiSearcher: java.util.concurrent.ExecutorService executor>;
+
+        specialinvoke $r0.<org.apache.lucene.search.ParallelMultiSearcher$ExecutionHelper: void <init>(java.util.concurrent.Executor)>($r2);
+
+        i2 = 0;
+
+     label1:
+        $r3 = r1.<org.apache.lucene.search.ParallelMultiSearcher: org.apache.lucene.search.Searchable[] searchables>;
+
+        $i0 = lengthof $r3;
+
+        if i2 >= $i0 goto label2;
+
+        $r7 = r1.<org.apache.lucene.search.ParallelMultiSearcher: org.apache.lucene.search.Searchable[] searchables>;
+
+        r10 = $r7[i2];
+
+        $r8 = new org.apache.lucene.search.ParallelMultiSearcher$1;
+
+        specialinvoke $r8.<org.apache.lucene.search.ParallelMultiSearcher$1: void <init>(org.apache.lucene.search.ParallelMultiSearcher,org.apache.lucene.search.Searchable,org.apache.lucene.index.Term)>(r1, r10, r9);
+
+        virtualinvoke $r0.<org.apache.lucene.search.ParallelMultiSearcher$ExecutionHelper: void submit(java.util.concurrent.Callable)>($r8);
+
+        i2 = i2 + 1;
+
+        goto label1;
+
+     label2:
+        i3 = 0;
+
+        $r4 = virtualinvoke $r0.<org.apache.lucene.search.ParallelMultiSearcher$ExecutionHelper: java.util.Iterator iterator()>();
+
+     label3:
+        $z0 = interfaceinvoke $r4.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label4;
+
+        $r5 = interfaceinvoke $r4.<java.util.Iterator: java.lang.Object next()>();
+
+        r6 = (java.lang.Integer) $r5;
+
+        $i1 = virtualinvoke r6.<java.lang.Integer: int intValue()>();
+
+        i3 = i3 + $i1;
+
+        goto label3;
+
+     label4:
+        return i3;
+    }
+
+    public org.apache.lucene.search.TopDocs search(org.apache.lucene.search.Weight, org.apache.lucene.search.Filter, int) throws java.io.IOException
+    {
+        org.apache.lucene.search.ParallelMultiSearcher$ExecutionHelper $r21;
+        org.apache.lucene.search.ScoreDoc $r9;
+        org.apache.lucene.search.MultiSearcher$MultiSearcherCallableNoSort $r22;
+        org.apache.lucene.search.HitQueue $r19;
+        org.apache.lucene.search.Weight r13;
+        int[] $r15;
+        org.apache.lucene.search.ScoreDoc[] r18;
+        int i0, $i1, $i2, $i3, $i4, i5, i6, i7, $i9;
+        java.util.concurrent.ExecutorService $r4;
+        boolean $z0;
+        org.apache.lucene.search.TopDocs r17, $r23;
+        java.util.Iterator $r6;
+        java.util.concurrent.locks.ReentrantLock $r20;
+        org.apache.lucene.search.ParallelMultiSearcher r3;
+        org.apache.lucene.search.Searchable $r16;
+        org.apache.lucene.search.Filter r14;
+        org.apache.lucene.search.Searchable[] $r5, $r12;
+        float $f0, f1;
+        java.lang.Object $r8, $r10;
+
+        r3 := @this: org.apache.lucene.search.ParallelMultiSearcher;
+
+        r13 := @parameter0: org.apache.lucene.search.Weight;
+
+        r14 := @parameter1: org.apache.lucene.search.Filter;
+
+        i0 := @parameter2: int;
+
+        $r19 = new org.apache.lucene.search.HitQueue;
+
+        specialinvoke $r19.<org.apache.lucene.search.HitQueue: void <init>(int,boolean)>(i0, 0);
+
+        $r20 = new java.util.concurrent.locks.ReentrantLock;
+
+        specialinvoke $r20.<java.util.concurrent.locks.ReentrantLock: void <init>()>();
+
+        $r21 = new org.apache.lucene.search.ParallelMultiSearcher$ExecutionHelper;
+
+        $r4 = r3.<org.apache.lucene.search.ParallelMultiSearcher: java.util.concurrent.ExecutorService executor>;
+
+        specialinvoke $r21.<org.apache.lucene.search.ParallelMultiSearcher$ExecutionHelper: void <init>(java.util.concurrent.Executor)>($r4);
+
+        i5 = 0;
+
+     label1:
+        $r5 = r3.<org.apache.lucene.search.ParallelMultiSearcher: org.apache.lucene.search.Searchable[] searchables>;
+
+        $i1 = lengthof $r5;
+
+        if i5 >= $i1 goto label2;
+
+        $r22 = new org.apache.lucene.search.MultiSearcher$MultiSearcherCallableNoSort;
+
+        $r12 = r3.<org.apache.lucene.search.ParallelMultiSearcher: org.apache.lucene.search.Searchable[] searchables>;
+
+        $r16 = $r12[i5];
+
+        $r15 = r3.<org.apache.lucene.search.ParallelMultiSearcher: int[] starts>;
+
+        specialinvoke $r22.<org.apache.lucene.search.MultiSearcher$MultiSearcherCallableNoSort: void <init>(java.util.concurrent.locks.Lock,org.apache.lucene.search.Searchable,org.apache.lucene.search.Weight,org.apache.lucene.search.Filter,int,org.apache.lucene.search.HitQueue,int,int[])>($r20, $r16, r13, r14, i0, $r19, i5, $r15);
+
+        virtualinvoke $r21.<org.apache.lucene.search.ParallelMultiSearcher$ExecutionHelper: void submit(java.util.concurrent.Callable)>($r22);
+
+        i5 = i5 + 1;
+
+        goto label1;
+
+     label2:
+        i6 = 0;
+
+        f1 = #-InfinityF;
+
+        $r6 = virtualinvoke $r21.<org.apache.lucene.search.ParallelMultiSearcher$ExecutionHelper: java.util.Iterator iterator()>();
+
+     label3:
+        $z0 = interfaceinvoke $r6.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label4;
+
+        $r10 = interfaceinvoke $r6.<java.util.Iterator: java.lang.Object next()>();
+
+        r17 = (org.apache.lucene.search.TopDocs) $r10;
+
+        $i4 = r17.<org.apache.lucene.search.TopDocs: int totalHits>;
+
+        i6 = i6 + $i4;
+
+        $f0 = virtualinvoke r17.<org.apache.lucene.search.TopDocs: float getMaxScore()>();
+
+        f1 = staticinvoke <java.lang.Math: float max(float,float)>(f1, $f0);
+
+        goto label3;
+
+     label4:
+        $i2 = virtualinvoke $r19.<org.apache.lucene.search.HitQueue: int size()>();
+
+        r18 = newarray (org.apache.lucene.search.ScoreDoc)[$i2];
+
+        $i3 = virtualinvoke $r19.<org.apache.lucene.search.HitQueue: int size()>();
+
+        i7 = $i3 - 1;
+
+     label5:
+        if i7 < 0 goto label6;
+
+        $r8 = virtualinvoke $r19.<org.apache.lucene.search.HitQueue: java.lang.Object pop()>();
+
+        $r9 = (org.apache.lucene.search.ScoreDoc) $r8;
+
+        r18[i7] = $r9;
+
+        $i9 = (int) -1;
+
+        i7 = i7 + $i9;
+
+        goto label5;
+
+     label6:
+        $r23 = new org.apache.lucene.search.TopDocs;
+
+        specialinvoke $r23.<org.apache.lucene.search.TopDocs: void <init>(int,org.apache.lucene.search.ScoreDoc[],float)>(i6, r18, f1);
+
+        return $r23;
+    }
+
+    public org.apache.lucene.search.TopFieldDocs search(org.apache.lucene.search.Weight, org.apache.lucene.search.Filter, int, org.apache.lucene.search.Sort) throws java.io.IOException
+    {
+        org.apache.lucene.search.ParallelMultiSearcher$ExecutionHelper $r25;
+        org.apache.lucene.search.ScoreDoc $r11;
+        org.apache.lucene.search.SortField[] $r9;
+        java.lang.NullPointerException $r22;
+        int[] $r17;
+        org.apache.lucene.search.ScoreDoc[] r21;
+        boolean $z0;
+        org.apache.lucene.search.Sort r0;
+        org.apache.lucene.search.ParallelMultiSearcher r4;
+        org.apache.lucene.search.Searchable $r18;
+        org.apache.lucene.search.Filter r16;
+        org.apache.lucene.search.MultiSearcher$MultiSearcherCallableWithSort $r26;
+        org.apache.lucene.search.Searchable[] $r6, $r14;
+        float $f0, f1;
+        org.apache.lucene.search.TopFieldDocs r20, $r27;
+        org.apache.lucene.search.Weight r15;
+        int i0, $i1, $i2, $i3, $i4, i5, i6, i7, $i9;
+        java.util.concurrent.ExecutorService $r5;
+        java.util.Iterator $r7;
+        org.apache.lucene.search.FieldDocSortedHitQueue $r23;
+        java.util.concurrent.locks.ReentrantLock $r24;
+        java.lang.Object $r10, $r12;
+
+        r4 := @this: org.apache.lucene.search.ParallelMultiSearcher;
+
+        r15 := @parameter0: org.apache.lucene.search.Weight;
+
+        r16 := @parameter1: org.apache.lucene.search.Filter;
+
+        i0 := @parameter2: int;
+
+        r0 := @parameter3: org.apache.lucene.search.Sort;
+
+        if r0 != null goto label1;
+
+        $r22 = new java.lang.NullPointerException;
+
+        specialinvoke $r22.<java.lang.NullPointerException: void <init>()>();
+
+        throw $r22;
+
+     label1:
+        $r23 = new org.apache.lucene.search.FieldDocSortedHitQueue;
+
+        specialinvoke $r23.<org.apache.lucene.search.FieldDocSortedHitQueue: void <init>(int)>(i0);
+
+        $r24 = new java.util.concurrent.locks.ReentrantLock;
+
+        specialinvoke $r24.<java.util.concurrent.locks.ReentrantLock: void <init>()>();
+
+        $r25 = new org.apache.lucene.search.ParallelMultiSearcher$ExecutionHelper;
+
+        $r5 = r4.<org.apache.lucene.search.ParallelMultiSearcher: java.util.concurrent.ExecutorService executor>;
+
+        specialinvoke $r25.<org.apache.lucene.search.ParallelMultiSearcher$ExecutionHelper: void <init>(java.util.concurrent.Executor)>($r5);
+
+        i5 = 0;
+
+     label2:
+        $r6 = r4.<org.apache.lucene.search.ParallelMultiSearcher: org.apache.lucene.search.Searchable[] searchables>;
+
+        $i1 = lengthof $r6;
+
+        if i5 >= $i1 goto label3;
+
+        $r26 = new org.apache.lucene.search.MultiSearcher$MultiSearcherCallableWithSort;
+
+        $r14 = r4.<org.apache.lucene.search.ParallelMultiSearcher: org.apache.lucene.search.Searchable[] searchables>;
+
+        $r18 = $r14[i5];
+
+        $r17 = r4.<org.apache.lucene.search.ParallelMultiSearcher: int[] starts>;
+
+        specialinvoke $r26.<org.apache.lucene.search.MultiSearcher$MultiSearcherCallableWithSort: void <init>(java.util.concurrent.locks.Lock,org.apache.lucene.search.Searchable,org.apache.lucene.search.Weight,org.apache.lucene.search.Filter,int,org.apache.lucene.search.FieldDocSortedHitQueue,org.apache.lucene.search.Sort,int,int[])>($r24, $r18, r15, r16, i0, $r23, r0, i5, $r17);
+
+        virtualinvoke $r25.<org.apache.lucene.search.ParallelMultiSearcher$ExecutionHelper: void submit(java.util.concurrent.Callable)>($r26);
+
+        i5 = i5 + 1;
+
+        goto label2;
+
+     label3:
+        i6 = 0;
+
+        f1 = #-InfinityF;
+
+        $r7 = virtualinvoke $r25.<org.apache.lucene.search.ParallelMultiSearcher$ExecutionHelper: java.util.Iterator iterator()>();
+
+     label4:
+        $z0 = interfaceinvoke $r7.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label5;
+
+        $r12 = interfaceinvoke $r7.<java.util.Iterator: java.lang.Object next()>();
+
+        r20 = (org.apache.lucene.search.TopFieldDocs) $r12;
+
+        $i4 = r20.<org.apache.lucene.search.TopFieldDocs: int totalHits>;
+
+        i6 = i6 + $i4;
+
+        $f0 = virtualinvoke r20.<org.apache.lucene.search.TopFieldDocs: float getMaxScore()>();
+
+        f1 = staticinvoke <java.lang.Math: float max(float,float)>(f1, $f0);
+
+        goto label4;
+
+     label5:
+        $i2 = virtualinvoke $r23.<org.apache.lucene.search.FieldDocSortedHitQueue: int size()>();
+
+        r21 = newarray (org.apache.lucene.search.ScoreDoc)[$i2];
+
+        $i3 = virtualinvoke $r23.<org.apache.lucene.search.FieldDocSortedHitQueue: int size()>();
+
+        i7 = $i3 - 1;
+
+     label6:
+        if i7 < 0 goto label7;
+
+        $r10 = virtualinvoke $r23.<org.apache.lucene.search.FieldDocSortedHitQueue: java.lang.Object pop()>();
+
+        $r11 = (org.apache.lucene.search.ScoreDoc) $r10;
+
+        r21[i7] = $r11;
+
+        $i9 = (int) -1;
+
+        i7 = i7 + $i9;
+
+        goto label6;
+
+     label7:
+        $r27 = new org.apache.lucene.search.TopFieldDocs;
+
+        $r9 = virtualinvoke $r23.<org.apache.lucene.search.FieldDocSortedHitQueue: org.apache.lucene.search.SortField[] getFields()>();
+
+        specialinvoke $r27.<org.apache.lucene.search.TopFieldDocs: void <init>(int,org.apache.lucene.search.ScoreDoc[],org.apache.lucene.search.SortField[],float)>(i6, r21, $r9, f1);
+
+        return $r27;
+    }
+
+    public void search(org.apache.lucene.search.Weight, org.apache.lucene.search.Filter, org.apache.lucene.search.Collector) throws java.io.IOException
+    {
+        org.apache.lucene.search.ParallelMultiSearcher r0;
+        org.apache.lucene.search.Weight r6;
+        org.apache.lucene.search.Collector r4;
+        org.apache.lucene.search.Searchable $r8;
+        org.apache.lucene.search.Filter r7;
+        org.apache.lucene.search.ParallelMultiSearcher$2 $r3;
+        org.apache.lucene.search.Searchable[] $r1, $r5;
+        int[] $r2;
+        int $i0, i1, i2;
+
+        r0 := @this: org.apache.lucene.search.ParallelMultiSearcher;
+
+        r6 := @parameter0: org.apache.lucene.search.Weight;
+
+        r7 := @parameter1: org.apache.lucene.search.Filter;
+
+        r4 := @parameter2: org.apache.lucene.search.Collector;
+
+        i2 = 0;
+
+     label1:
+        $r1 = r0.<org.apache.lucene.search.ParallelMultiSearcher: org.apache.lucene.search.Searchable[] searchables>;
+
+        $i0 = lengthof $r1;
+
+        if i2 >= $i0 goto label2;
+
+        $r2 = r0.<org.apache.lucene.search.ParallelMultiSearcher: int[] starts>;
+
+        i1 = $r2[i2];
+
+        $r3 = new org.apache.lucene.search.ParallelMultiSearcher$2;
+
+        specialinvoke $r3.<org.apache.lucene.search.ParallelMultiSearcher$2: void <init>(org.apache.lucene.search.ParallelMultiSearcher,org.apache.lucene.search.Collector,int)>(r0, r4, i1);
+
+        $r5 = r0.<org.apache.lucene.search.ParallelMultiSearcher: org.apache.lucene.search.Searchable[] searchables>;
+
+        $r8 = $r5[i2];
+
+        interfaceinvoke $r8.<org.apache.lucene.search.Searchable: void search(org.apache.lucene.search.Weight,org.apache.lucene.search.Filter,org.apache.lucene.search.Collector)>(r6, r7, $r3);
+
+        i2 = i2 + 1;
+
+        goto label1;
+
+     label2:
+        return;
+    }
+
+    public void close() throws java.io.IOException
+    {
+        org.apache.lucene.search.ParallelMultiSearcher r0;
+        java.util.concurrent.ExecutorService $r1;
+
+        r0 := @this: org.apache.lucene.search.ParallelMultiSearcher;
+
+        $r1 = r0.<org.apache.lucene.search.ParallelMultiSearcher: java.util.concurrent.ExecutorService executor>;
+
+        interfaceinvoke $r1.<java.util.concurrent.ExecutorService: void shutdown()>();
+
+        specialinvoke r0.<org.apache.lucene.search.MultiSearcher: void close()>();
+
+        return;
+    }
+
+    java.util.HashMap createDocFrequencyMap(java.util.Set) throws java.io.IOException
+    {
+        org.apache.lucene.search.ParallelMultiSearcher$ExecutionHelper $r5;
+        java.lang.Object[] $r2;
+        org.apache.lucene.index.Term $r10;
+        java.util.HashMap $r9;
+        java.lang.Integer $r11;
+        int[] r4, r16;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, i7, i8, i9, i10, i11;
+        org.apache.lucene.index.Term[] $r1, r3;
+        java.util.concurrent.ExecutorService $r7;
+        boolean $z0;
+        java.util.Iterator $r8;
+        org.apache.lucene.search.ParallelMultiSearcher$DocumentFrequencyCallable $r13;
+        org.apache.lucene.search.ParallelMultiSearcher r6;
+        java.util.Set r0;
+        org.apache.lucene.search.Searchable r15;
+        org.apache.lucene.search.Searchable[] r14;
+        java.lang.Object $r12;
+
+        r6 := @this: org.apache.lucene.search.ParallelMultiSearcher;
+
+        r0 := @parameter0: java.util.Set;
+
+        $i0 = interfaceinvoke r0.<java.util.Set: int size()>();
+
+        $r1 = newarray (org.apache.lucene.index.Term)[$i0];
+
+        $r2 = interfaceinvoke r0.<java.util.Set: java.lang.Object[] toArray(java.lang.Object[])>($r1);
+
+        r3 = (org.apache.lucene.index.Term[]) $r2;
+
+        $i1 = interfaceinvoke r0.<java.util.Set: int size()>();
+
+        r4 = newarray (int)[$i1];
+
+        $r5 = new org.apache.lucene.search.ParallelMultiSearcher$ExecutionHelper;
+
+        $r7 = r6.<org.apache.lucene.search.ParallelMultiSearcher: java.util.concurrent.ExecutorService executor>;
+
+        specialinvoke $r5.<org.apache.lucene.search.ParallelMultiSearcher$ExecutionHelper: void <init>(java.util.concurrent.Executor)>($r7);
+
+        r14 = r6.<org.apache.lucene.search.ParallelMultiSearcher: org.apache.lucene.search.Searchable[] searchables>;
+
+        i7 = lengthof r14;
+
+        i8 = 0;
+
+     label1:
+        if i8 >= i7 goto label2;
+
+        r15 = r14[i8];
+
+        $r13 = new org.apache.lucene.search.ParallelMultiSearcher$DocumentFrequencyCallable;
+
+        specialinvoke $r13.<org.apache.lucene.search.ParallelMultiSearcher$DocumentFrequencyCallable: void <init>(org.apache.lucene.search.Searchable,org.apache.lucene.index.Term[])>(r15, r3);
+
+        virtualinvoke $r5.<org.apache.lucene.search.ParallelMultiSearcher$ExecutionHelper: void submit(java.util.concurrent.Callable)>($r13);
+
+        i8 = i8 + 1;
+
+        goto label1;
+
+     label2:
+        i9 = lengthof r4;
+
+        $r8 = virtualinvoke $r5.<org.apache.lucene.search.ParallelMultiSearcher$ExecutionHelper: java.util.Iterator iterator()>();
+
+     label3:
+        $z0 = interfaceinvoke $r8.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label6;
+
+        $r12 = interfaceinvoke $r8.<java.util.Iterator: java.lang.Object next()>();
+
+        r16 = (int[]) $r12;
+
+        i10 = 0;
+
+     label4:
+        if i10 >= i9 goto label5;
+
+        $i5 = r4[i10];
+
+        $i4 = r16[i10];
+
+        $i6 = $i5 + $i4;
+
+        r4[i10] = $i6;
+
+        i10 = i10 + 1;
+
+        goto label4;
+
+     label5:
+        goto label3;
+
+     label6:
+        $r9 = new java.util.HashMap;
+
+        specialinvoke $r9.<java.util.HashMap: void <init>()>();
+
+        i11 = 0;
+
+     label7:
+        $i2 = lengthof r3;
+
+        if i11 >= $i2 goto label8;
+
+        $r10 = r3[i11];
+
+        $i3 = r4[i11];
+
+        $r11 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i3);
+
+        virtualinvoke $r9.<java.util.HashMap: java.lang.Object put(java.lang.Object,java.lang.Object)>($r10, $r11);
+
+        i11 = i11 + 1;
+
+        goto label7;
+
+     label8:
+        return $r9;
+    }
+
+    volatile java.util.Map createDocFrequencyMap(java.util.Set) throws java.io.IOException
+    {
+        org.apache.lucene.search.ParallelMultiSearcher r0;
+        java.util.Set r1;
+        java.util.HashMap $r2;
+
+        r0 := @this: org.apache.lucene.search.ParallelMultiSearcher;
+
+        r1 := @parameter0: java.util.Set;
+
+        $r2 = virtualinvoke r0.<org.apache.lucene.search.ParallelMultiSearcher: java.util.HashMap createDocFrequencyMap(java.util.Set)>(r1);
+
+        return $r2;
+    }
+}

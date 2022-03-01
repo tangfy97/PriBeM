@@ -1,0 +1,2328 @@
+public class org.eclipse.jetty.client.HttpExchange extends java.lang.Object
+{
+    static final org.eclipse.jetty.util.log.Logger LOG;
+    public static final int STATUS_START;
+    public static final int STATUS_WAITING_FOR_CONNECTION;
+    public static final int STATUS_WAITING_FOR_COMMIT;
+    public static final int STATUS_SENDING_REQUEST;
+    public static final int STATUS_WAITING_FOR_RESPONSE;
+    public static final int STATUS_PARSING_HEADERS;
+    public static final int STATUS_PARSING_CONTENT;
+    public static final int STATUS_COMPLETED;
+    public static final int STATUS_EXPIRED;
+    public static final int STATUS_EXCEPTED;
+    public static final int STATUS_CANCELLING;
+    public static final int STATUS_CANCELLED;
+    private java.lang.String _method;
+    private org.eclipse.jetty.io.Buffer _scheme;
+    private java.lang.String _uri;
+    private int _version;
+    private org.eclipse.jetty.client.Address _address;
+    private final org.eclipse.jetty.http.HttpFields _requestFields;
+    private org.eclipse.jetty.io.Buffer _requestContent;
+    private java.io.InputStream _requestContentSource;
+    private java.util.concurrent.atomic.AtomicInteger _status;
+    private boolean _retryStatus;
+    private boolean _configureListeners;
+    private org.eclipse.jetty.client.HttpEventListener _listener;
+    private volatile org.eclipse.jetty.client.AbstractHttpConnection _connection;
+    private org.eclipse.jetty.client.Address _localAddress;
+    private long _timeout;
+    private volatile org.eclipse.jetty.util.thread.Timeout$Task _timeoutTask;
+    private long _lastStateChange;
+    private long _sent;
+    private int _lastState;
+    private int _lastStatePeriod;
+    boolean _onRequestCompleteDone;
+    boolean _onResponseCompleteDone;
+    boolean _onDone;
+    static final boolean $assertionsDisabled;
+
+    public void <init>()
+    {
+        long $l0;
+        org.eclipse.jetty.client.HttpExchange$Listener $r7;
+        java.util.concurrent.atomic.AtomicInteger $r6;
+        int $i2, $i4;
+        org.eclipse.jetty.http.HttpFields $r5;
+        org.eclipse.jetty.io.Buffer $r1;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        r0.<org.eclipse.jetty.client.HttpExchange: java.lang.String _method> = "GET";
+
+        $r1 = <org.eclipse.jetty.http.HttpSchemes: org.eclipse.jetty.io.Buffer HTTP_BUFFER>;
+
+        r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.io.Buffer _scheme> = $r1;
+
+        r0.<org.eclipse.jetty.client.HttpExchange: int _version> = 11;
+
+        $r5 = new org.eclipse.jetty.http.HttpFields;
+
+        specialinvoke $r5.<org.eclipse.jetty.http.HttpFields: void <init>()>();
+
+        r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.http.HttpFields _requestFields> = $r5;
+
+        $r6 = new java.util.concurrent.atomic.AtomicInteger;
+
+        specialinvoke $r6.<java.util.concurrent.atomic.AtomicInteger: void <init>(int)>(0);
+
+        r0.<org.eclipse.jetty.client.HttpExchange: java.util.concurrent.atomic.AtomicInteger _status> = $r6;
+
+        r0.<org.eclipse.jetty.client.HttpExchange: boolean _retryStatus> = 0;
+
+        r0.<org.eclipse.jetty.client.HttpExchange: boolean _configureListeners> = 1;
+
+        $r7 = new org.eclipse.jetty.client.HttpExchange$Listener;
+
+        specialinvoke $r7.<org.eclipse.jetty.client.HttpExchange$Listener: void <init>(org.eclipse.jetty.client.HttpExchange,org.eclipse.jetty.client.HttpExchange$1)>(r0, null);
+
+        r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.client.HttpEventListener _listener> = $r7;
+
+        r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.client.Address _localAddress> = null;
+
+        r0.<org.eclipse.jetty.client.HttpExchange: long _timeout> = -1L;
+
+        $l0 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        r0.<org.eclipse.jetty.client.HttpExchange: long _lastStateChange> = $l0;
+
+        r0.<org.eclipse.jetty.client.HttpExchange: long _sent> = -1L;
+
+        $i2 = (int) -1;
+
+        r0.<org.eclipse.jetty.client.HttpExchange: int _lastState> = $i2;
+
+        $i4 = (int) -1;
+
+        r0.<org.eclipse.jetty.client.HttpExchange: int _lastStatePeriod> = $i4;
+
+        return;
+    }
+
+    protected void expire(org.eclipse.jetty.client.HttpDestination)
+    {
+        int $i0;
+        org.eclipse.jetty.client.AbstractHttpConnection $r2;
+        org.eclipse.jetty.client.HttpExchange r0;
+        org.eclipse.jetty.client.HttpDestination r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        r1 := @parameter0: org.eclipse.jetty.client.HttpDestination;
+
+        $i0 = virtualinvoke r0.<org.eclipse.jetty.client.HttpExchange: int getStatus()>();
+
+        if $i0 >= 7 goto label1;
+
+        virtualinvoke r0.<org.eclipse.jetty.client.HttpExchange: boolean setStatus(int)>(8);
+
+     label1:
+        virtualinvoke r1.<org.eclipse.jetty.client.HttpDestination: void exchangeExpired(org.eclipse.jetty.client.HttpExchange)>(r0);
+
+        $r2 = r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.client.AbstractHttpConnection _connection>;
+
+        if $r2 == null goto label2;
+
+        virtualinvoke $r2.<org.eclipse.jetty.client.AbstractHttpConnection: void exchangeExpired(org.eclipse.jetty.client.HttpExchange)>(r0);
+
+     label2:
+        return;
+    }
+
+    public int getStatus()
+    {
+        int $i0;
+        java.util.concurrent.atomic.AtomicInteger $r1;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpExchange: java.util.concurrent.atomic.AtomicInteger _status>;
+
+        $i0 = virtualinvoke $r1.<java.util.concurrent.atomic.AtomicInteger: int get()>();
+
+        return $i0;
+    }
+
+    public void waitForStatus(int) throws java.lang.InterruptedException
+    {
+        int i0;
+        java.lang.UnsupportedOperationException $r0;
+        org.eclipse.jetty.client.HttpExchange r1;
+
+        r1 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        i0 := @parameter0: int;
+
+        $r0 = new java.lang.UnsupportedOperationException;
+
+        specialinvoke $r0.<java.lang.UnsupportedOperationException: void <init>()>();
+
+        throw $r0;
+    }
+
+    public int waitForDone() throws java.lang.InterruptedException
+    {
+        java.lang.Throwable $r2;
+        java.util.concurrent.atomic.AtomicInteger $r1;
+        int $i0;
+        org.eclipse.jetty.client.HttpExchange r0;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        entermonitor r0;
+
+     label1:
+        $z0 = virtualinvoke r0.<org.eclipse.jetty.client.HttpExchange: boolean isDone()>();
+
+        if $z0 != 0 goto label2;
+
+        virtualinvoke r0.<java.lang.Object: void wait()>();
+
+        goto label1;
+
+     label2:
+        $r1 = r0.<org.eclipse.jetty.client.HttpExchange: java.util.concurrent.atomic.AtomicInteger _status>;
+
+        $i0 = virtualinvoke $r1.<java.util.concurrent.atomic.AtomicInteger: int get()>();
+
+        exitmonitor r0;
+
+     label3:
+        return $i0;
+
+     label4:
+        $r2 := @caughtexception;
+
+        exitmonitor r0;
+
+     label5:
+        throw $r2;
+
+        catch java.lang.Throwable from label1 to label3 with label4;
+        catch java.lang.Throwable from label4 to label5 with label4;
+    }
+
+    public void reset()
+    {
+        java.lang.Throwable $r1;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        entermonitor r0;
+
+     label1:
+        r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.util.thread.Timeout$Task _timeoutTask> = null;
+
+        r0.<org.eclipse.jetty.client.HttpExchange: boolean _onRequestCompleteDone> = 0;
+
+        r0.<org.eclipse.jetty.client.HttpExchange: boolean _onResponseCompleteDone> = 0;
+
+        r0.<org.eclipse.jetty.client.HttpExchange: boolean _onDone> = 0;
+
+        virtualinvoke r0.<org.eclipse.jetty.client.HttpExchange: boolean setStatus(int)>(0);
+
+        exitmonitor r0;
+
+     label2:
+        goto label5;
+
+     label3:
+        $r1 := @caughtexception;
+
+        exitmonitor r0;
+
+     label4:
+        throw $r1;
+
+     label5:
+        return;
+
+        catch java.lang.Throwable from label1 to label2 with label3;
+        catch java.lang.Throwable from label3 to label4 with label3;
+    }
+
+    boolean setStatus(int)
+    {
+        java.lang.IllegalStateException $r6;
+        java.lang.Integer $r5;
+        java.util.concurrent.atomic.AtomicInteger $r1, $r2, $r14, $r15, $r16, $r17, $r19, $r20, $r22, $r23, $r24, $r26, $r27, $r28;
+        boolean $z0, $z1, $z2, $z3, z4, z5;
+        java.lang.StringBuilder $r7, $r9, $r10, $r12, $r30, $r31, $r32, $r33;
+        org.eclipse.jetty.client.HttpEventListener $r18, $r21, $r25;
+        java.lang.Object[] $r3;
+        long $l2, $l3, $l4, $l6;
+        java.lang.AssertionError $r29;
+        int $i0, i1, $i5;
+        java.lang.String $r8, $r11, $r13, $r34;
+        java.io.IOException $r35;
+        org.eclipse.jetty.util.log.Logger $r4, $r36;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        i1 := @parameter0: int;
+
+        z4 = 0;
+
+     label01:
+        $r1 = r0.<org.eclipse.jetty.client.HttpExchange: java.util.concurrent.atomic.AtomicInteger _status>;
+
+        $i0 = virtualinvoke $r1.<java.util.concurrent.atomic.AtomicInteger: int get()>();
+
+        z5 = 0;
+
+        if $i0 == i1 goto label02;
+
+        $l2 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        $l3 = r0.<org.eclipse.jetty.client.HttpExchange: long _lastStateChange>;
+
+        $l4 = $l2 - $l3;
+
+        $i5 = (int) $l4;
+
+        r0.<org.eclipse.jetty.client.HttpExchange: int _lastStatePeriod> = $i5;
+
+        r0.<org.eclipse.jetty.client.HttpExchange: int _lastState> = $i0;
+
+        r0.<org.eclipse.jetty.client.HttpExchange: long _lastStateChange> = $l2;
+
+        if i1 != 3 goto label02;
+
+        $l6 = r0.<org.eclipse.jetty.client.HttpExchange: long _lastStateChange>;
+
+        r0.<org.eclipse.jetty.client.HttpExchange: long _sent> = $l6;
+
+     label02:
+        tableswitch($i0)
+        {
+            case 0: goto label03;
+            case 1: goto label07;
+            case 2: goto label11;
+            case 3: goto label15;
+            case 4: goto label20;
+            case 5: goto label24;
+            case 6: goto label29;
+            case 7: goto label34;
+            case 8: goto label41;
+            case 9: goto label41;
+            case 10: goto label38;
+            case 11: goto label41;
+            default: goto label45;
+        };
+
+     label03:
+        tableswitch(i1)
+        {
+            case 0: goto label04;
+            case 1: goto label04;
+            case 2: goto label04;
+            case 3: goto label06;
+            case 4: goto label06;
+            case 5: goto label06;
+            case 6: goto label06;
+            case 7: goto label06;
+            case 8: goto label05;
+            case 9: goto label04;
+            case 10: goto label04;
+            default: goto label06;
+        };
+
+     label04:
+        $r28 = r0.<org.eclipse.jetty.client.HttpExchange: java.util.concurrent.atomic.AtomicInteger _status>;
+
+        z4 = virtualinvoke $r28.<java.util.concurrent.atomic.AtomicInteger: boolean compareAndSet(int,int)>($i0, i1);
+
+        goto label06;
+
+     label05:
+        z4 = specialinvoke r0.<org.eclipse.jetty.client.HttpExchange: boolean setStatusExpired(int,int)>(i1, $i0);
+
+     label06:
+        goto label46;
+
+     label07:
+        tableswitch(i1)
+        {
+            case 2: goto label08;
+            case 3: goto label10;
+            case 4: goto label10;
+            case 5: goto label10;
+            case 6: goto label10;
+            case 7: goto label10;
+            case 8: goto label09;
+            case 9: goto label08;
+            case 10: goto label08;
+            default: goto label10;
+        };
+
+     label08:
+        $r27 = r0.<org.eclipse.jetty.client.HttpExchange: java.util.concurrent.atomic.AtomicInteger _status>;
+
+        z4 = virtualinvoke $r27.<java.util.concurrent.atomic.AtomicInteger: boolean compareAndSet(int,int)>($i0, i1);
+
+        goto label10;
+
+     label09:
+        z4 = specialinvoke r0.<org.eclipse.jetty.client.HttpExchange: boolean setStatusExpired(int,int)>(i1, $i0);
+
+     label10:
+        goto label46;
+
+     label11:
+        tableswitch(i1)
+        {
+            case 3: goto label12;
+            case 4: goto label14;
+            case 5: goto label14;
+            case 6: goto label14;
+            case 7: goto label14;
+            case 8: goto label13;
+            case 9: goto label12;
+            case 10: goto label12;
+            default: goto label14;
+        };
+
+     label12:
+        $r26 = r0.<org.eclipse.jetty.client.HttpExchange: java.util.concurrent.atomic.AtomicInteger _status>;
+
+        z4 = virtualinvoke $r26.<java.util.concurrent.atomic.AtomicInteger: boolean compareAndSet(int,int)>($i0, i1);
+
+        goto label14;
+
+     label13:
+        z4 = specialinvoke r0.<org.eclipse.jetty.client.HttpExchange: boolean setStatusExpired(int,int)>(i1, $i0);
+
+     label14:
+        goto label46;
+
+     label15:
+        tableswitch(i1)
+        {
+            case 4: goto label16;
+            case 5: goto label19;
+            case 6: goto label19;
+            case 7: goto label19;
+            case 8: goto label18;
+            case 9: goto label17;
+            case 10: goto label17;
+            default: goto label19;
+        };
+
+     label16:
+        $r24 = r0.<org.eclipse.jetty.client.HttpExchange: java.util.concurrent.atomic.AtomicInteger _status>;
+
+        $z3 = virtualinvoke $r24.<java.util.concurrent.atomic.AtomicInteger: boolean compareAndSet(int,int)>($i0, i1);
+
+        z4 = $z3;
+
+        if $z3 == 0 goto label19;
+
+        $r25 = virtualinvoke r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.client.HttpEventListener getEventListener()>();
+
+        interfaceinvoke $r25.<org.eclipse.jetty.client.HttpEventListener: void onRequestCommitted()>();
+
+        goto label19;
+
+     label17:
+        $r23 = r0.<org.eclipse.jetty.client.HttpExchange: java.util.concurrent.atomic.AtomicInteger _status>;
+
+        z4 = virtualinvoke $r23.<java.util.concurrent.atomic.AtomicInteger: boolean compareAndSet(int,int)>($i0, i1);
+
+        goto label19;
+
+     label18:
+        z4 = specialinvoke r0.<org.eclipse.jetty.client.HttpExchange: boolean setStatusExpired(int,int)>(i1, $i0);
+
+     label19:
+        goto label46;
+
+     label20:
+        tableswitch(i1)
+        {
+            case 5: goto label21;
+            case 6: goto label23;
+            case 7: goto label23;
+            case 8: goto label22;
+            case 9: goto label21;
+            case 10: goto label21;
+            default: goto label23;
+        };
+
+     label21:
+        $r22 = r0.<org.eclipse.jetty.client.HttpExchange: java.util.concurrent.atomic.AtomicInteger _status>;
+
+        z4 = virtualinvoke $r22.<java.util.concurrent.atomic.AtomicInteger: boolean compareAndSet(int,int)>($i0, i1);
+
+        goto label23;
+
+     label22:
+        z4 = specialinvoke r0.<org.eclipse.jetty.client.HttpExchange: boolean setStatusExpired(int,int)>(i1, $i0);
+
+     label23:
+        goto label46;
+
+     label24:
+        tableswitch(i1)
+        {
+            case 6: goto label25;
+            case 7: goto label28;
+            case 8: goto label27;
+            case 9: goto label26;
+            case 10: goto label26;
+            default: goto label28;
+        };
+
+     label25:
+        $r20 = r0.<org.eclipse.jetty.client.HttpExchange: java.util.concurrent.atomic.AtomicInteger _status>;
+
+        $z2 = virtualinvoke $r20.<java.util.concurrent.atomic.AtomicInteger: boolean compareAndSet(int,int)>($i0, i1);
+
+        z4 = $z2;
+
+        if $z2 == 0 goto label28;
+
+        $r21 = virtualinvoke r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.client.HttpEventListener getEventListener()>();
+
+        interfaceinvoke $r21.<org.eclipse.jetty.client.HttpEventListener: void onResponseHeaderComplete()>();
+
+        goto label28;
+
+     label26:
+        $r19 = r0.<org.eclipse.jetty.client.HttpExchange: java.util.concurrent.atomic.AtomicInteger _status>;
+
+        z4 = virtualinvoke $r19.<java.util.concurrent.atomic.AtomicInteger: boolean compareAndSet(int,int)>($i0, i1);
+
+        goto label28;
+
+     label27:
+        z4 = specialinvoke r0.<org.eclipse.jetty.client.HttpExchange: boolean setStatusExpired(int,int)>(i1, $i0);
+
+     label28:
+        goto label46;
+
+     label29:
+        tableswitch(i1)
+        {
+            case 7: goto label30;
+            case 8: goto label32;
+            case 9: goto label31;
+            case 10: goto label31;
+            default: goto label33;
+        };
+
+     label30:
+        $r17 = r0.<org.eclipse.jetty.client.HttpExchange: java.util.concurrent.atomic.AtomicInteger _status>;
+
+        $z1 = virtualinvoke $r17.<java.util.concurrent.atomic.AtomicInteger: boolean compareAndSet(int,int)>($i0, i1);
+
+        z4 = $z1;
+
+        if $z1 == 0 goto label33;
+
+        $r18 = virtualinvoke r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.client.HttpEventListener getEventListener()>();
+
+        interfaceinvoke $r18.<org.eclipse.jetty.client.HttpEventListener: void onResponseComplete()>();
+
+        goto label33;
+
+     label31:
+        $r16 = r0.<org.eclipse.jetty.client.HttpExchange: java.util.concurrent.atomic.AtomicInteger _status>;
+
+        z4 = virtualinvoke $r16.<java.util.concurrent.atomic.AtomicInteger: boolean compareAndSet(int,int)>($i0, i1);
+
+        goto label33;
+
+     label32:
+        z4 = specialinvoke r0.<org.eclipse.jetty.client.HttpExchange: boolean setStatusExpired(int,int)>(i1, $i0);
+
+     label33:
+        goto label46;
+
+     label34:
+        tableswitch(i1)
+        {
+            case 0: goto label35;
+            case 1: goto label37;
+            case 2: goto label37;
+            case 3: goto label37;
+            case 4: goto label35;
+            case 5: goto label37;
+            case 6: goto label37;
+            case 7: goto label37;
+            case 8: goto label36;
+            case 9: goto label35;
+            case 10: goto label36;
+            default: goto label37;
+        };
+
+     label35:
+        $r15 = r0.<org.eclipse.jetty.client.HttpExchange: java.util.concurrent.atomic.AtomicInteger _status>;
+
+        z4 = virtualinvoke $r15.<java.util.concurrent.atomic.AtomicInteger: boolean compareAndSet(int,int)>($i0, i1);
+
+        goto label37;
+
+     label36:
+        z5 = 1;
+
+     label37:
+        goto label46;
+
+     label38:
+        lookupswitch(i1)
+        {
+            case 9: goto label39;
+            case 11: goto label39;
+            default: goto label40;
+        };
+
+     label39:
+        $r2 = r0.<org.eclipse.jetty.client.HttpExchange: java.util.concurrent.atomic.AtomicInteger _status>;
+
+        $z0 = virtualinvoke $r2.<java.util.concurrent.atomic.AtomicInteger: boolean compareAndSet(int,int)>($i0, i1);
+
+        z4 = $z0;
+
+        if $z0 == 0 goto label46;
+
+        specialinvoke r0.<org.eclipse.jetty.client.HttpExchange: void done()>();
+
+        goto label46;
+
+     label40:
+        z5 = 1;
+
+        goto label46;
+
+     label41:
+        lookupswitch(i1)
+        {
+            case 0: goto label42;
+            case 7: goto label43;
+            default: goto label44;
+        };
+
+     label42:
+        $r14 = r0.<org.eclipse.jetty.client.HttpExchange: java.util.concurrent.atomic.AtomicInteger _status>;
+
+        z4 = virtualinvoke $r14.<java.util.concurrent.atomic.AtomicInteger: boolean compareAndSet(int,int)>($i0, i1);
+
+        goto label46;
+
+     label43:
+        z5 = 1;
+
+        specialinvoke r0.<org.eclipse.jetty.client.HttpExchange: void done()>();
+
+        goto label46;
+
+     label44:
+        z5 = 1;
+
+        goto label46;
+
+     label45:
+        $r29 = new java.lang.AssertionError;
+
+        $r30 = new java.lang.StringBuilder;
+
+        specialinvoke $r30.<java.lang.StringBuilder: void <init>()>();
+
+        $r31 = virtualinvoke $r30.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i0);
+
+        $r32 = virtualinvoke $r31.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" => ");
+
+        $r33 = virtualinvoke $r32.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>(i1);
+
+        $r34 = virtualinvoke $r33.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r29.<java.lang.AssertionError: void <init>(java.lang.Object)>($r34);
+
+        throw $r29;
+
+     label46:
+        if z4 != 0 goto label47;
+
+        if z5 != 0 goto label47;
+
+        $r6 = new java.lang.IllegalStateException;
+
+        $r7 = new java.lang.StringBuilder;
+
+        specialinvoke $r7.<java.lang.StringBuilder: void <init>()>();
+
+        $r8 = staticinvoke <org.eclipse.jetty.client.HttpExchange: java.lang.String toState(int)>($i0);
+
+        $r9 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r8);
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" => ");
+
+        $r11 = staticinvoke <org.eclipse.jetty.client.HttpExchange: java.lang.String toState(int)>(i1);
+
+        $r12 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r11);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r6.<java.lang.IllegalStateException: void <init>(java.lang.String)>($r13);
+
+        throw $r6;
+
+     label47:
+        $r4 = <org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r3 = newarray (java.lang.Object)[2];
+
+        $r5 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i1);
+
+        $r3[0] = $r5;
+
+        $r3[1] = r0;
+
+        interfaceinvoke $r4.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Object[])>("setStatus {} {}", $r3);
+
+     label48:
+        goto label50;
+
+     label49:
+        $r35 := @caughtexception;
+
+        $r36 = <org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.util.log.Logger LOG>;
+
+        interfaceinvoke $r36.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.Throwable)>($r35);
+
+     label50:
+        return z4;
+
+        catch java.io.IOException from label01 to label48 with label49;
+    }
+
+    private boolean setStatusExpired(int, int)
+    {
+        java.util.concurrent.atomic.AtomicInteger $r1;
+        int i0, i1;
+        org.eclipse.jetty.client.HttpEventListener $r2;
+        org.eclipse.jetty.client.HttpExchange r0;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        i1 := @parameter0: int;
+
+        i0 := @parameter1: int;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpExchange: java.util.concurrent.atomic.AtomicInteger _status>;
+
+        $z0 = virtualinvoke $r1.<java.util.concurrent.atomic.AtomicInteger: boolean compareAndSet(int,int)>(i0, i1);
+
+        if $z0 == 0 goto label1;
+
+        $r2 = virtualinvoke r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.client.HttpEventListener getEventListener()>();
+
+        interfaceinvoke $r2.<org.eclipse.jetty.client.HttpEventListener: void onExpire()>();
+
+     label1:
+        return $z0;
+    }
+
+    public boolean isDone()
+    {
+        java.lang.Throwable $r1;
+        org.eclipse.jetty.client.HttpExchange r0;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        entermonitor r0;
+
+     label1:
+        $z0 = r0.<org.eclipse.jetty.client.HttpExchange: boolean _onDone>;
+
+        exitmonitor r0;
+
+     label2:
+        return $z0;
+
+     label3:
+        $r1 := @caughtexception;
+
+        exitmonitor r0;
+
+     label4:
+        throw $r1;
+
+        catch java.lang.Throwable from label1 to label2 with label3;
+        catch java.lang.Throwable from label3 to label4 with label3;
+    }
+
+    public boolean isDone(int)
+    {
+        int i0;
+        org.eclipse.jetty.client.HttpExchange r0;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        i0 := @parameter0: int;
+
+        $z0 = virtualinvoke r0.<org.eclipse.jetty.client.HttpExchange: boolean isDone()>();
+
+        return $z0;
+    }
+
+    public org.eclipse.jetty.client.HttpEventListener getEventListener()
+    {
+        org.eclipse.jetty.client.HttpEventListener $r1;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.client.HttpEventListener _listener>;
+
+        return $r1;
+    }
+
+    public void setEventListener(org.eclipse.jetty.client.HttpEventListener)
+    {
+        org.eclipse.jetty.client.HttpEventListener r1;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        r1 := @parameter0: org.eclipse.jetty.client.HttpEventListener;
+
+        r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.client.HttpEventListener _listener> = r1;
+
+        return;
+    }
+
+    public void setTimeout(long)
+    {
+        long l0;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        l0 := @parameter0: long;
+
+        r0.<org.eclipse.jetty.client.HttpExchange: long _timeout> = l0;
+
+        return;
+    }
+
+    public long getTimeout()
+    {
+        long $l0;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        $l0 = r0.<org.eclipse.jetty.client.HttpExchange: long _timeout>;
+
+        return $l0;
+    }
+
+    public void setURL(java.lang.String)
+    {
+        java.lang.String r1;
+        java.net.URI $r2;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        r1 := @parameter0: java.lang.String;
+
+        $r2 = staticinvoke <java.net.URI: java.net.URI create(java.lang.String)>(r1);
+
+        virtualinvoke r0.<org.eclipse.jetty.client.HttpExchange: void setURI(java.net.URI)>($r2);
+
+        return;
+    }
+
+    public void setAddress(org.eclipse.jetty.client.Address)
+    {
+        org.eclipse.jetty.client.HttpExchange r0;
+        org.eclipse.jetty.client.Address r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        r1 := @parameter0: org.eclipse.jetty.client.Address;
+
+        r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.client.Address _address> = r1;
+
+        return;
+    }
+
+    public org.eclipse.jetty.client.Address getAddress()
+    {
+        org.eclipse.jetty.client.HttpExchange r0;
+        org.eclipse.jetty.client.Address $r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.client.Address _address>;
+
+        return $r1;
+    }
+
+    public org.eclipse.jetty.client.Address getLocalAddress()
+    {
+        org.eclipse.jetty.client.HttpExchange r0;
+        org.eclipse.jetty.client.Address $r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.client.Address _localAddress>;
+
+        return $r1;
+    }
+
+    public void setScheme(org.eclipse.jetty.io.Buffer)
+    {
+        org.eclipse.jetty.io.Buffer r1;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        r1 := @parameter0: org.eclipse.jetty.io.Buffer;
+
+        r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.io.Buffer _scheme> = r1;
+
+        return;
+    }
+
+    public void setScheme(java.lang.String)
+    {
+        org.eclipse.jetty.io.ByteArrayBuffer $r4;
+        java.lang.String r0, $r1, $r2;
+        org.eclipse.jetty.io.Buffer $r5, $r6;
+        boolean $z0, $z1;
+        org.eclipse.jetty.client.HttpExchange r3;
+
+        r3 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        r0 := @parameter0: java.lang.String;
+
+        if r0 == null goto label3;
+
+        $r1 = "http";
+
+        $z0 = virtualinvoke $r1.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>(r0);
+
+        if $z0 == 0 goto label1;
+
+        $r6 = <org.eclipse.jetty.http.HttpSchemes: org.eclipse.jetty.io.Buffer HTTP_BUFFER>;
+
+        virtualinvoke r3.<org.eclipse.jetty.client.HttpExchange: void setScheme(org.eclipse.jetty.io.Buffer)>($r6);
+
+        goto label3;
+
+     label1:
+        $r2 = "https";
+
+        $z1 = virtualinvoke $r2.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>(r0);
+
+        if $z1 == 0 goto label2;
+
+        $r5 = <org.eclipse.jetty.http.HttpSchemes: org.eclipse.jetty.io.Buffer HTTPS_BUFFER>;
+
+        virtualinvoke r3.<org.eclipse.jetty.client.HttpExchange: void setScheme(org.eclipse.jetty.io.Buffer)>($r5);
+
+        goto label3;
+
+     label2:
+        $r4 = new org.eclipse.jetty.io.ByteArrayBuffer;
+
+        specialinvoke $r4.<org.eclipse.jetty.io.ByteArrayBuffer: void <init>(java.lang.String)>(r0);
+
+        virtualinvoke r3.<org.eclipse.jetty.client.HttpExchange: void setScheme(org.eclipse.jetty.io.Buffer)>($r4);
+
+     label3:
+        return;
+    }
+
+    public org.eclipse.jetty.io.Buffer getScheme()
+    {
+        org.eclipse.jetty.io.Buffer $r1;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.io.Buffer _scheme>;
+
+        return $r1;
+    }
+
+    public void setVersion(int)
+    {
+        int i0;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        i0 := @parameter0: int;
+
+        r0.<org.eclipse.jetty.client.HttpExchange: int _version> = i0;
+
+        return;
+    }
+
+    public void setVersion(java.lang.String)
+    {
+        org.eclipse.jetty.io.BufferCache $r1;
+        int $i0;
+        java.lang.String r0;
+        org.eclipse.jetty.io.BufferCache$CachedBuffer $r2;
+        org.eclipse.jetty.client.HttpExchange r3;
+
+        r3 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        r0 := @parameter0: java.lang.String;
+
+        $r1 = <org.eclipse.jetty.http.HttpVersions: org.eclipse.jetty.io.BufferCache CACHE>;
+
+        $r2 = virtualinvoke $r1.<org.eclipse.jetty.io.BufferCache: org.eclipse.jetty.io.BufferCache$CachedBuffer get(java.lang.String)>(r0);
+
+        if $r2 != null goto label1;
+
+        r3.<org.eclipse.jetty.client.HttpExchange: int _version> = 10;
+
+        goto label2;
+
+     label1:
+        $i0 = virtualinvoke $r2.<org.eclipse.jetty.io.BufferCache$CachedBuffer: int getOrdinal()>();
+
+        r3.<org.eclipse.jetty.client.HttpExchange: int _version> = $i0;
+
+     label2:
+        return;
+    }
+
+    public int getVersion()
+    {
+        int $i0;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        $i0 = r0.<org.eclipse.jetty.client.HttpExchange: int _version>;
+
+        return $i0;
+    }
+
+    public void setMethod(java.lang.String)
+    {
+        java.lang.String r1;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        r1 := @parameter0: java.lang.String;
+
+        r0.<org.eclipse.jetty.client.HttpExchange: java.lang.String _method> = r1;
+
+        return;
+    }
+
+    public java.lang.String getMethod()
+    {
+        java.lang.String $r1;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpExchange: java.lang.String _method>;
+
+        return $r1;
+    }
+
+    public java.lang.String getURI()
+    {
+        java.lang.String $r1;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        $r1 = virtualinvoke r0.<org.eclipse.jetty.client.HttpExchange: java.lang.String getRequestURI()>();
+
+        return $r1;
+    }
+
+    public java.lang.String getRequestURI()
+    {
+        java.lang.String $r1;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpExchange: java.lang.String _uri>;
+
+        return $r1;
+    }
+
+    public void setURI(java.lang.String)
+    {
+        java.lang.String r1;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        r1 := @parameter0: java.lang.String;
+
+        virtualinvoke r0.<org.eclipse.jetty.client.HttpExchange: void setRequestURI(java.lang.String)>(r1);
+
+        return;
+    }
+
+    public void setRequestURI(java.lang.String)
+    {
+        java.lang.String r1;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        r1 := @parameter0: java.lang.String;
+
+        r0.<org.eclipse.jetty.client.HttpExchange: java.lang.String _uri> = r1;
+
+        return;
+    }
+
+    public void setURI(java.net.URI)
+    {
+        java.lang.Object[] $r5;
+        org.eclipse.jetty.client.Address $r18;
+        short $s2;
+        org.eclipse.jetty.http.HttpURI $r20;
+        int $i0, i1;
+        java.net.URI r0;
+        java.lang.String $r2, $r4, $r7, $r12, $r17, $r19, $r21, $r22;
+        boolean $z0, $z1, $z2, $z3;
+        java.lang.IllegalArgumentException $r8, $r13;
+        java.lang.StringBuilder $r9, $r10, $r11, $r14, $r15, $r16;
+        org.eclipse.jetty.util.log.Logger $r1, $r6;
+        org.eclipse.jetty.client.HttpExchange r3;
+
+        r3 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        r0 := @parameter0: java.net.URI;
+
+        $z0 = virtualinvoke r0.<java.net.URI: boolean isAbsolute()>();
+
+        if $z0 != 0 goto label1;
+
+        $r13 = new java.lang.IllegalArgumentException;
+
+        $r14 = new java.lang.StringBuilder;
+
+        specialinvoke $r14.<java.lang.StringBuilder: void <init>()>();
+
+        $r15 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("!Absolute URI: ");
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r0);
+
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r13.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>($r17);
+
+        throw $r13;
+
+     label1:
+        $z1 = virtualinvoke r0.<java.net.URI: boolean isOpaque()>();
+
+        if $z1 == 0 goto label2;
+
+        $r8 = new java.lang.IllegalArgumentException;
+
+        $r9 = new java.lang.StringBuilder;
+
+        specialinvoke $r9.<java.lang.StringBuilder: void <init>()>();
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Opaque URI: ");
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r0);
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r8.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>($r12);
+
+        throw $r8;
+
+     label2:
+        $r1 = <org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $z2 = interfaceinvoke $r1.<org.eclipse.jetty.util.log.Logger: boolean isDebugEnabled()>();
+
+        if $z2 == 0 goto label3;
+
+        $r6 = <org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r5 = newarray (java.lang.Object)[1];
+
+        $r7 = virtualinvoke r0.<java.net.URI: java.lang.String toASCIIString()>();
+
+        $r5[0] = $r7;
+
+        interfaceinvoke $r6.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Object[])>("URI = {}", $r5);
+
+     label3:
+        $r2 = virtualinvoke r0.<java.net.URI: java.lang.String getScheme()>();
+
+        $i0 = virtualinvoke r0.<java.net.URI: int getPort()>();
+
+        i1 = $i0;
+
+        if $i0 > 0 goto label6;
+
+        $r4 = "https";
+
+        $z3 = virtualinvoke $r4.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>($r2);
+
+        if $z3 == 0 goto label4;
+
+        $s2 = 443;
+
+        goto label5;
+
+     label4:
+        $s2 = 80;
+
+     label5:
+        i1 = $s2;
+
+     label6:
+        virtualinvoke r3.<org.eclipse.jetty.client.HttpExchange: void setScheme(java.lang.String)>($r2);
+
+        $r18 = new org.eclipse.jetty.client.Address;
+
+        $r19 = virtualinvoke r0.<java.net.URI: java.lang.String getHost()>();
+
+        specialinvoke $r18.<org.eclipse.jetty.client.Address: void <init>(java.lang.String,int)>($r19, i1);
+
+        virtualinvoke r3.<org.eclipse.jetty.client.HttpExchange: void setAddress(org.eclipse.jetty.client.Address)>($r18);
+
+        $r20 = new org.eclipse.jetty.http.HttpURI;
+
+        specialinvoke $r20.<org.eclipse.jetty.http.HttpURI: void <init>(java.net.URI)>(r0);
+
+        $r21 = virtualinvoke $r20.<org.eclipse.jetty.http.HttpURI: java.lang.String getCompletePath()>();
+
+        if $r21 != null goto label7;
+
+        $r22 = "/";
+
+        goto label8;
+
+     label7:
+        $r22 = $r21;
+
+     label8:
+        virtualinvoke r3.<org.eclipse.jetty.client.HttpExchange: void setRequestURI(java.lang.String)>($r22);
+
+        return;
+    }
+
+    public void addRequestHeader(java.lang.String, java.lang.String)
+    {
+        java.lang.String r2, r3;
+        org.eclipse.jetty.http.HttpFields $r1;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        r2 := @parameter0: java.lang.String;
+
+        r3 := @parameter1: java.lang.String;
+
+        $r1 = virtualinvoke r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.http.HttpFields getRequestFields()>();
+
+        virtualinvoke $r1.<org.eclipse.jetty.http.HttpFields: void add(java.lang.String,java.lang.String)>(r2, r3);
+
+        return;
+    }
+
+    public void addRequestHeader(org.eclipse.jetty.io.Buffer, org.eclipse.jetty.io.Buffer)
+    {
+        org.eclipse.jetty.http.HttpFields $r1;
+        org.eclipse.jetty.io.Buffer r2, r3;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        r2 := @parameter0: org.eclipse.jetty.io.Buffer;
+
+        r3 := @parameter1: org.eclipse.jetty.io.Buffer;
+
+        $r1 = virtualinvoke r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.http.HttpFields getRequestFields()>();
+
+        virtualinvoke $r1.<org.eclipse.jetty.http.HttpFields: void add(org.eclipse.jetty.io.Buffer,org.eclipse.jetty.io.Buffer)>(r2, r3);
+
+        return;
+    }
+
+    public void setRequestHeader(java.lang.String, java.lang.String)
+    {
+        java.lang.String r2, r3;
+        org.eclipse.jetty.http.HttpFields $r1;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        r2 := @parameter0: java.lang.String;
+
+        r3 := @parameter1: java.lang.String;
+
+        $r1 = virtualinvoke r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.http.HttpFields getRequestFields()>();
+
+        virtualinvoke $r1.<org.eclipse.jetty.http.HttpFields: void put(java.lang.String,java.lang.String)>(r2, r3);
+
+        return;
+    }
+
+    public void setRequestHeader(org.eclipse.jetty.io.Buffer, org.eclipse.jetty.io.Buffer)
+    {
+        org.eclipse.jetty.http.HttpFields $r1;
+        org.eclipse.jetty.io.Buffer r2, r3;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        r2 := @parameter0: org.eclipse.jetty.io.Buffer;
+
+        r3 := @parameter1: org.eclipse.jetty.io.Buffer;
+
+        $r1 = virtualinvoke r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.http.HttpFields getRequestFields()>();
+
+        virtualinvoke $r1.<org.eclipse.jetty.http.HttpFields: void put(org.eclipse.jetty.io.Buffer,org.eclipse.jetty.io.Buffer)>(r2, r3);
+
+        return;
+    }
+
+    public void setRequestContentType(java.lang.String)
+    {
+        java.lang.String r2;
+        org.eclipse.jetty.http.HttpFields $r1;
+        org.eclipse.jetty.io.Buffer $r3;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        r2 := @parameter0: java.lang.String;
+
+        $r1 = virtualinvoke r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.http.HttpFields getRequestFields()>();
+
+        $r3 = <org.eclipse.jetty.http.HttpHeaders: org.eclipse.jetty.io.Buffer CONTENT_TYPE_BUFFER>;
+
+        virtualinvoke $r1.<org.eclipse.jetty.http.HttpFields: void put(org.eclipse.jetty.io.Buffer,java.lang.String)>($r3, r2);
+
+        return;
+    }
+
+    public org.eclipse.jetty.http.HttpFields getRequestFields()
+    {
+        org.eclipse.jetty.http.HttpFields $r1;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.http.HttpFields _requestFields>;
+
+        return $r1;
+    }
+
+    public void setRequestContent(org.eclipse.jetty.io.Buffer)
+    {
+        org.eclipse.jetty.io.Buffer r1;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        r1 := @parameter0: org.eclipse.jetty.io.Buffer;
+
+        r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.io.Buffer _requestContent> = r1;
+
+        return;
+    }
+
+    public void setRequestContentSource(java.io.InputStream)
+    {
+        org.eclipse.jetty.client.HttpExchange r0;
+        java.io.InputStream r1, $r2, $r3, $r4;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        r1 := @parameter0: java.io.InputStream;
+
+        r0.<org.eclipse.jetty.client.HttpExchange: java.io.InputStream _requestContentSource> = r1;
+
+        $r2 = r0.<org.eclipse.jetty.client.HttpExchange: java.io.InputStream _requestContentSource>;
+
+        if $r2 == null goto label1;
+
+        $r3 = r0.<org.eclipse.jetty.client.HttpExchange: java.io.InputStream _requestContentSource>;
+
+        $z0 = virtualinvoke $r3.<java.io.InputStream: boolean markSupported()>();
+
+        if $z0 == 0 goto label1;
+
+        $r4 = r0.<org.eclipse.jetty.client.HttpExchange: java.io.InputStream _requestContentSource>;
+
+        virtualinvoke $r4.<java.io.InputStream: void mark(int)>(2147483647);
+
+     label1:
+        return;
+    }
+
+    public java.io.InputStream getRequestContentSource()
+    {
+        org.eclipse.jetty.client.HttpExchange r0;
+        java.io.InputStream $r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpExchange: java.io.InputStream _requestContentSource>;
+
+        return $r1;
+    }
+
+    public org.eclipse.jetty.io.Buffer getRequestContentChunk(org.eclipse.jetty.io.Buffer) throws java.io.IOException
+    {
+        java.lang.Throwable $r5;
+        byte[] $r3;
+        org.eclipse.jetty.io.ByteArrayBuffer $r4;
+        int $i0, $i1, $i2, $i3, $i4;
+        org.eclipse.jetty.io.Buffer r6;
+        org.eclipse.jetty.client.HttpExchange r0;
+        java.io.InputStream $r1, $r2;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        r6 := @parameter0: org.eclipse.jetty.io.Buffer;
+
+        entermonitor r0;
+
+     label1:
+        $r1 = r0.<org.eclipse.jetty.client.HttpExchange: java.io.InputStream _requestContentSource>;
+
+        if $r1 == null goto label4;
+
+        if r6 != null goto label2;
+
+        $r4 = new org.eclipse.jetty.io.ByteArrayBuffer;
+
+        specialinvoke $r4.<org.eclipse.jetty.io.ByteArrayBuffer: void <init>(int)>(8192);
+
+        r6 = $r4;
+
+     label2:
+        $i0 = interfaceinvoke r6.<org.eclipse.jetty.io.Buffer: int space()>();
+
+        $r2 = r0.<org.eclipse.jetty.client.HttpExchange: java.io.InputStream _requestContentSource>;
+
+        $r3 = interfaceinvoke r6.<org.eclipse.jetty.io.Buffer: byte[] array()>();
+
+        $i1 = interfaceinvoke r6.<org.eclipse.jetty.io.Buffer: int putIndex()>();
+
+        $i2 = virtualinvoke $r2.<java.io.InputStream: int read(byte[],int,int)>($r3, $i1, $i0);
+
+        if $i2 < 0 goto label4;
+
+        $i3 = interfaceinvoke r6.<org.eclipse.jetty.io.Buffer: int putIndex()>();
+
+        $i4 = $i3 + $i2;
+
+        interfaceinvoke r6.<org.eclipse.jetty.io.Buffer: void setPutIndex(int)>($i4);
+
+        exitmonitor r0;
+
+     label3:
+        return r6;
+
+     label4:
+        exitmonitor r0;
+
+     label5:
+        return null;
+
+     label6:
+        $r5 := @caughtexception;
+
+        exitmonitor r0;
+
+     label7:
+        throw $r5;
+
+        catch java.lang.Throwable from label1 to label3 with label6;
+        catch java.lang.Throwable from label4 to label5 with label6;
+        catch java.lang.Throwable from label6 to label7 with label6;
+    }
+
+    public org.eclipse.jetty.io.Buffer getRequestContent()
+    {
+        org.eclipse.jetty.io.Buffer $r1;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.io.Buffer _requestContent>;
+
+        return $r1;
+    }
+
+    public boolean getRetryStatus()
+    {
+        org.eclipse.jetty.client.HttpExchange r0;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        $z0 = r0.<org.eclipse.jetty.client.HttpExchange: boolean _retryStatus>;
+
+        return $z0;
+    }
+
+    public void setRetryStatus(boolean)
+    {
+        org.eclipse.jetty.client.HttpExchange r0;
+        boolean z0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        z0 := @parameter0: boolean;
+
+        r0.<org.eclipse.jetty.client.HttpExchange: boolean _retryStatus> = z0;
+
+        return;
+    }
+
+    public void cancel()
+    {
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        virtualinvoke r0.<org.eclipse.jetty.client.HttpExchange: boolean setStatus(int)>(10);
+
+        specialinvoke r0.<org.eclipse.jetty.client.HttpExchange: void abort()>();
+
+        return;
+    }
+
+    private void done()
+    {
+        java.lang.Throwable $r1;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        entermonitor r0;
+
+     label1:
+        virtualinvoke r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.client.AbstractHttpConnection disassociate()>();
+
+        r0.<org.eclipse.jetty.client.HttpExchange: boolean _onDone> = 1;
+
+        virtualinvoke r0.<java.lang.Object: void notifyAll()>();
+
+        exitmonitor r0;
+
+     label2:
+        goto label5;
+
+     label3:
+        $r1 := @caughtexception;
+
+        exitmonitor r0;
+
+     label4:
+        throw $r1;
+
+     label5:
+        return;
+
+        catch java.lang.Throwable from label1 to label2 with label3;
+        catch java.lang.Throwable from label3 to label4 with label3;
+    }
+
+    private void abort()
+    {
+        java.lang.Throwable $r2;
+        org.eclipse.jetty.client.AbstractHttpConnection r1;
+        java.io.IOException $r3;
+        org.eclipse.jetty.util.log.Logger $r4;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        r1 = r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.client.AbstractHttpConnection _connection>;
+
+        if r1 == null goto label7;
+
+     label1:
+        virtualinvoke r1.<org.eclipse.jetty.client.AbstractHttpConnection: void close()>();
+
+     label2:
+        virtualinvoke r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.client.AbstractHttpConnection disassociate()>();
+
+        goto label7;
+
+     label3:
+        $r3 := @caughtexception;
+
+        $r4 = <org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.util.log.Logger LOG>;
+
+        interfaceinvoke $r4.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.Throwable)>($r3);
+
+     label4:
+        virtualinvoke r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.client.AbstractHttpConnection disassociate()>();
+
+        goto label7;
+
+     label5:
+        $r2 := @caughtexception;
+
+     label6:
+        virtualinvoke r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.client.AbstractHttpConnection disassociate()>();
+
+        throw $r2;
+
+     label7:
+        return;
+
+        catch java.io.IOException from label1 to label2 with label3;
+        catch java.lang.Throwable from label1 to label2 with label5;
+        catch java.lang.Throwable from label3 to label4 with label5;
+        catch java.lang.Throwable from label5 to label6 with label5;
+    }
+
+    void associate(org.eclipse.jetty.client.AbstractHttpConnection)
+    {
+        org.eclipse.jetty.io.EndPoint $r1, $r5, $r7;
+        org.eclipse.jetty.client.Address $r4;
+        org.eclipse.jetty.client.AbstractHttpConnection r0;
+        int $i0, $i1;
+        java.lang.String $r2, $r6;
+        org.eclipse.jetty.client.HttpExchange r3;
+
+        r3 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        r0 := @parameter0: org.eclipse.jetty.client.AbstractHttpConnection;
+
+        $r1 = virtualinvoke r0.<org.eclipse.jetty.client.AbstractHttpConnection: org.eclipse.jetty.io.EndPoint getEndPoint()>();
+
+        $r2 = interfaceinvoke $r1.<org.eclipse.jetty.io.EndPoint: java.lang.String getLocalAddr()>();
+
+        if $r2 == null goto label1;
+
+        $r4 = new org.eclipse.jetty.client.Address;
+
+        $r5 = virtualinvoke r0.<org.eclipse.jetty.client.AbstractHttpConnection: org.eclipse.jetty.io.EndPoint getEndPoint()>();
+
+        $r6 = interfaceinvoke $r5.<org.eclipse.jetty.io.EndPoint: java.lang.String getLocalAddr()>();
+
+        $r7 = virtualinvoke r0.<org.eclipse.jetty.client.AbstractHttpConnection: org.eclipse.jetty.io.EndPoint getEndPoint()>();
+
+        $i1 = interfaceinvoke $r7.<org.eclipse.jetty.io.EndPoint: int getLocalPort()>();
+
+        specialinvoke $r4.<org.eclipse.jetty.client.Address: void <init>(java.lang.String,int)>($r6, $i1);
+
+        r3.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.client.Address _localAddress> = $r4;
+
+     label1:
+        r3.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.client.AbstractHttpConnection _connection> = r0;
+
+        $i0 = virtualinvoke r3.<org.eclipse.jetty.client.HttpExchange: int getStatus()>();
+
+        if $i0 != 10 goto label2;
+
+        specialinvoke r3.<org.eclipse.jetty.client.HttpExchange: void abort()>();
+
+     label2:
+        return;
+    }
+
+    boolean isAssociated()
+    {
+        org.eclipse.jetty.client.AbstractHttpConnection $r1;
+        org.eclipse.jetty.client.HttpExchange r0;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.client.AbstractHttpConnection _connection>;
+
+        if $r1 == null goto label1;
+
+        $z0 = 1;
+
+        goto label2;
+
+     label1:
+        $z0 = 0;
+
+     label2:
+        return $z0;
+    }
+
+    org.eclipse.jetty.client.AbstractHttpConnection disassociate()
+    {
+        int $i0;
+        org.eclipse.jetty.client.AbstractHttpConnection r1;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        r1 = r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.client.AbstractHttpConnection _connection>;
+
+        r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.client.AbstractHttpConnection _connection> = null;
+
+        $i0 = virtualinvoke r0.<org.eclipse.jetty.client.HttpExchange: int getStatus()>();
+
+        if $i0 != 10 goto label1;
+
+        virtualinvoke r0.<org.eclipse.jetty.client.HttpExchange: boolean setStatus(int)>(11);
+
+     label1:
+        return r1;
+    }
+
+    public static java.lang.String toState(int)
+    {
+        int i0;
+        java.lang.String r0;
+
+        i0 := @parameter0: int;
+
+        tableswitch(i0)
+        {
+            case 0: goto label01;
+            case 1: goto label02;
+            case 2: goto label03;
+            case 3: goto label04;
+            case 4: goto label05;
+            case 5: goto label06;
+            case 6: goto label07;
+            case 7: goto label08;
+            case 8: goto label09;
+            case 9: goto label10;
+            case 10: goto label11;
+            case 11: goto label12;
+            default: goto label13;
+        };
+
+     label01:
+        r0 = "START";
+
+        goto label14;
+
+     label02:
+        r0 = "CONNECTING";
+
+        goto label14;
+
+     label03:
+        r0 = "CONNECTED";
+
+        goto label14;
+
+     label04:
+        r0 = "SENDING";
+
+        goto label14;
+
+     label05:
+        r0 = "WAITING";
+
+        goto label14;
+
+     label06:
+        r0 = "HEADERS";
+
+        goto label14;
+
+     label07:
+        r0 = "CONTENT";
+
+        goto label14;
+
+     label08:
+        r0 = "COMPLETED";
+
+        goto label14;
+
+     label09:
+        r0 = "EXPIRED";
+
+        goto label14;
+
+     label10:
+        r0 = "EXCEPTED";
+
+        goto label14;
+
+     label11:
+        r0 = "CANCELLING";
+
+        goto label14;
+
+     label12:
+        r0 = "CANCELLED";
+
+        goto label14;
+
+     label13:
+        r0 = "UNKNOWN";
+
+     label14:
+        return r0;
+    }
+
+    public java.lang.String toString()
+    {
+        java.lang.Integer $r5, $r18, $r23;
+        byte $b8;
+        java.lang.Long $r9, $r24;
+        java.lang.StringBuilder $r11, $r12, $r13, $r14, $r27;
+        java.lang.Object[] $r2, $r15;
+        org.eclipse.jetty.client.Address $r7, $r20;
+        long $l1, $l2, l3, $l7, $l9, $l10;
+        int $i0, $i4, $i5, $i6, $i11, $i12, $i13, $i14;
+        java.lang.String $r1, $r4, $r6, $r8, $r17, $r19, $r21, $r22, $r25, r26;
+        java.lang.Class $r3, $r16;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        $i0 = virtualinvoke r0.<org.eclipse.jetty.client.HttpExchange: int getStatus()>();
+
+        $r1 = staticinvoke <org.eclipse.jetty.client.HttpExchange: java.lang.String toState(int)>($i0);
+
+        $l1 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        $l2 = r0.<org.eclipse.jetty.client.HttpExchange: long _lastStateChange>;
+
+        l3 = $l1 - $l2;
+
+        $i4 = r0.<org.eclipse.jetty.client.HttpExchange: int _lastState>;
+
+        if $i4 < 0 goto label1;
+
+        $r15 = newarray (java.lang.Object)[9];
+
+        $r16 = virtualinvoke r0.<java.lang.Object: java.lang.Class getClass()>();
+
+        $r17 = virtualinvoke $r16.<java.lang.Class: java.lang.String getSimpleName()>();
+
+        $r15[0] = $r17;
+
+        $i11 = virtualinvoke r0.<java.lang.Object: int hashCode()>();
+
+        $r18 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i11);
+
+        $r15[1] = $r18;
+
+        $r19 = r0.<org.eclipse.jetty.client.HttpExchange: java.lang.String _method>;
+
+        $r15[2] = $r19;
+
+        $r20 = r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.client.Address _address>;
+
+        $r15[3] = $r20;
+
+        $r21 = r0.<org.eclipse.jetty.client.HttpExchange: java.lang.String _uri>;
+
+        $r15[4] = $r21;
+
+        $i12 = r0.<org.eclipse.jetty.client.HttpExchange: int _lastState>;
+
+        $r22 = staticinvoke <org.eclipse.jetty.client.HttpExchange: java.lang.String toState(int)>($i12);
+
+        $r15[5] = $r22;
+
+        $i13 = r0.<org.eclipse.jetty.client.HttpExchange: int _lastStatePeriod>;
+
+        $r23 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i13);
+
+        $r15[6] = $r23;
+
+        $r15[7] = $r1;
+
+        $r24 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>(l3);
+
+        $r15[8] = $r24;
+
+        $r25 = staticinvoke <java.lang.String: java.lang.String format(java.lang.String,java.lang.Object[])>("%s@%x=%s//%s%s#%s(%dms)->%s(%dms)", $r15);
+
+        goto label2;
+
+     label1:
+        $r2 = newarray (java.lang.Object)[7];
+
+        $r3 = virtualinvoke r0.<java.lang.Object: java.lang.Class getClass()>();
+
+        $r4 = virtualinvoke $r3.<java.lang.Class: java.lang.String getSimpleName()>();
+
+        $r2[0] = $r4;
+
+        $i5 = virtualinvoke r0.<java.lang.Object: int hashCode()>();
+
+        $r5 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i5);
+
+        $r2[1] = $r5;
+
+        $r6 = r0.<org.eclipse.jetty.client.HttpExchange: java.lang.String _method>;
+
+        $r2[2] = $r6;
+
+        $r7 = r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.client.Address _address>;
+
+        $r2[3] = $r7;
+
+        $r8 = r0.<org.eclipse.jetty.client.HttpExchange: java.lang.String _uri>;
+
+        $r2[4] = $r8;
+
+        $r2[5] = $r1;
+
+        $r9 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>(l3);
+
+        $r2[6] = $r9;
+
+        $r25 = staticinvoke <java.lang.String: java.lang.String format(java.lang.String,java.lang.Object[])>("%s@%x=%s//%s%s#%s(%dms)", $r2);
+
+     label2:
+        r26 = $r25;
+
+        $i6 = virtualinvoke r0.<org.eclipse.jetty.client.HttpExchange: int getStatus()>();
+
+        if $i6 < 3 goto label3;
+
+        $l7 = r0.<org.eclipse.jetty.client.HttpExchange: long _sent>;
+
+        $b8 = $l7 cmp 0L;
+
+        $i14 = (int) $b8;
+
+        if $i14 <= 0 goto label3;
+
+        $r27 = new java.lang.StringBuilder;
+
+        specialinvoke $r27.<java.lang.StringBuilder: void <init>()>();
+
+        $r11 = virtualinvoke $r27.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r25);
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("sent=");
+
+        $l9 = r0.<org.eclipse.jetty.client.HttpExchange: long _sent>;
+
+        $l10 = $l1 - $l9;
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l10);
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("ms");
+
+        r26 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.String toString()>();
+
+     label3:
+        return r26;
+    }
+
+    protected org.eclipse.jetty.io.Connection onSwitchProtocol(org.eclipse.jetty.io.EndPoint) throws java.io.IOException
+    {
+        org.eclipse.jetty.io.EndPoint r1;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        r1 := @parameter0: org.eclipse.jetty.io.EndPoint;
+
+        return null;
+    }
+
+    protected void onRequestCommitted() throws java.io.IOException
+    {
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        return;
+    }
+
+    protected void onRequestComplete() throws java.io.IOException
+    {
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        return;
+    }
+
+    protected void onResponseStatus(org.eclipse.jetty.io.Buffer, int, org.eclipse.jetty.io.Buffer) throws java.io.IOException
+    {
+        int i0;
+        org.eclipse.jetty.io.Buffer r1, r2;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        r1 := @parameter0: org.eclipse.jetty.io.Buffer;
+
+        i0 := @parameter1: int;
+
+        r2 := @parameter2: org.eclipse.jetty.io.Buffer;
+
+        return;
+    }
+
+    protected void onResponseHeader(org.eclipse.jetty.io.Buffer, org.eclipse.jetty.io.Buffer) throws java.io.IOException
+    {
+        org.eclipse.jetty.io.Buffer r1, r2;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        r1 := @parameter0: org.eclipse.jetty.io.Buffer;
+
+        r2 := @parameter1: org.eclipse.jetty.io.Buffer;
+
+        return;
+    }
+
+    protected void onResponseHeaderComplete() throws java.io.IOException
+    {
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        return;
+    }
+
+    protected void onResponseContent(org.eclipse.jetty.io.Buffer) throws java.io.IOException
+    {
+        org.eclipse.jetty.io.Buffer r1;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        r1 := @parameter0: org.eclipse.jetty.io.Buffer;
+
+        return;
+    }
+
+    protected void onResponseComplete() throws java.io.IOException
+    {
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        return;
+    }
+
+    protected void onConnectionFailed(java.lang.Throwable)
+    {
+        java.lang.Throwable r6;
+        java.lang.StringBuilder $r0, $r2, $r4;
+        org.eclipse.jetty.util.log.Logger $r1;
+        java.lang.String $r5;
+        org.eclipse.jetty.client.HttpExchange r3;
+
+        r3 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        r6 := @parameter0: java.lang.Throwable;
+
+        $r1 = <org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r0 = new java.lang.StringBuilder;
+
+        specialinvoke $r0.<java.lang.StringBuilder: void <init>()>();
+
+        $r2 = virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("CONNECTION FAILED ");
+
+        $r4 = virtualinvoke $r2.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r3);
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r1.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.String,java.lang.Throwable)>($r5, r6);
+
+        return;
+    }
+
+    protected void onException(java.lang.Throwable)
+    {
+        java.lang.Throwable r6;
+        java.lang.StringBuilder $r0, $r2, $r4;
+        org.eclipse.jetty.util.log.Logger $r1;
+        java.lang.String $r5;
+        org.eclipse.jetty.client.HttpExchange r3;
+
+        r3 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        r6 := @parameter0: java.lang.Throwable;
+
+        $r1 = <org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r0 = new java.lang.StringBuilder;
+
+        specialinvoke $r0.<java.lang.StringBuilder: void <init>()>();
+
+        $r2 = virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("EXCEPTION ");
+
+        $r4 = virtualinvoke $r2.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r3);
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r1.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.String,java.lang.Throwable)>($r5, r6);
+
+        return;
+    }
+
+    protected void onExpire()
+    {
+        java.lang.Object[] $r6;
+        java.lang.StringBuilder $r0, $r2, $r4;
+        org.eclipse.jetty.util.log.Logger $r1;
+        java.lang.String $r5;
+        org.eclipse.jetty.client.HttpExchange r3;
+
+        r3 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        $r1 = <org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r0 = new java.lang.StringBuilder;
+
+        specialinvoke $r0.<java.lang.StringBuilder: void <init>()>();
+
+        $r2 = virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("EXPIRED ");
+
+        $r4 = virtualinvoke $r2.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r3);
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r6 = newarray (java.lang.Object)[0];
+
+        interfaceinvoke $r1.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.String,java.lang.Object[])>($r5, $r6);
+
+        return;
+    }
+
+    protected void onRetry() throws java.io.IOException
+    {
+        java.io.IOException $r3;
+        org.eclipse.jetty.client.HttpExchange r0;
+        java.io.InputStream $r1, $r2, $r4;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpExchange: java.io.InputStream _requestContentSource>;
+
+        if $r1 == null goto label2;
+
+        $r2 = r0.<org.eclipse.jetty.client.HttpExchange: java.io.InputStream _requestContentSource>;
+
+        $z0 = virtualinvoke $r2.<java.io.InputStream: boolean markSupported()>();
+
+        if $z0 == 0 goto label1;
+
+        r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.io.Buffer _requestContent> = null;
+
+        $r4 = r0.<org.eclipse.jetty.client.HttpExchange: java.io.InputStream _requestContentSource>;
+
+        virtualinvoke $r4.<java.io.InputStream: void reset()>();
+
+        goto label2;
+
+     label1:
+        $r3 = new java.io.IOException;
+
+        specialinvoke $r3.<java.io.IOException: void <init>(java.lang.String)>("Unsupported retry attempt");
+
+        throw $r3;
+
+     label2:
+        return;
+    }
+
+    public boolean configureListeners()
+    {
+        org.eclipse.jetty.client.HttpExchange r0;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        $z0 = r0.<org.eclipse.jetty.client.HttpExchange: boolean _configureListeners>;
+
+        return $z0;
+    }
+
+    public void setConfigureListeners(boolean)
+    {
+        org.eclipse.jetty.client.HttpExchange r0;
+        boolean z0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        z0 := @parameter0: boolean;
+
+        r0.<org.eclipse.jetty.client.HttpExchange: boolean _configureListeners> = z0;
+
+        return;
+    }
+
+    protected void scheduleTimeout(org.eclipse.jetty.client.HttpDestination)
+    {
+        org.eclipse.jetty.client.HttpExchange$1 $r9;
+        long $l0;
+        java.lang.AssertionError $r8;
+        org.eclipse.jetty.client.HttpClient $r3;
+        byte $b1;
+        org.eclipse.jetty.util.thread.Timeout$Task $r4, $r5, $r6;
+        int $i2;
+        boolean $z0;
+        org.eclipse.jetty.client.HttpExchange r0;
+        org.eclipse.jetty.client.HttpDestination r2;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        r2 := @parameter0: org.eclipse.jetty.client.HttpDestination;
+
+        $z0 = <org.eclipse.jetty.client.HttpExchange: boolean $assertionsDisabled>;
+
+        if $z0 != 0 goto label1;
+
+        $r6 = r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.util.thread.Timeout$Task _timeoutTask>;
+
+        if $r6 == null goto label1;
+
+        $r8 = new java.lang.AssertionError;
+
+        specialinvoke $r8.<java.lang.AssertionError: void <init>()>();
+
+        throw $r8;
+
+     label1:
+        $r9 = new org.eclipse.jetty.client.HttpExchange$1;
+
+        specialinvoke $r9.<org.eclipse.jetty.client.HttpExchange$1: void <init>(org.eclipse.jetty.client.HttpExchange,org.eclipse.jetty.client.HttpDestination)>(r0, r2);
+
+        r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.util.thread.Timeout$Task _timeoutTask> = $r9;
+
+        $r3 = virtualinvoke r2.<org.eclipse.jetty.client.HttpDestination: org.eclipse.jetty.client.HttpClient getHttpClient()>();
+
+        $l0 = virtualinvoke r0.<org.eclipse.jetty.client.HttpExchange: long getTimeout()>();
+
+        $b1 = $l0 cmp 0L;
+
+        $i2 = (int) $b1;
+
+        if $i2 <= 0 goto label2;
+
+        $r5 = r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.util.thread.Timeout$Task _timeoutTask>;
+
+        virtualinvoke $r3.<org.eclipse.jetty.client.HttpClient: void schedule(org.eclipse.jetty.util.thread.Timeout$Task,long)>($r5, $l0);
+
+        goto label3;
+
+     label2:
+        $r4 = r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.util.thread.Timeout$Task _timeoutTask>;
+
+        virtualinvoke $r3.<org.eclipse.jetty.client.HttpClient: void schedule(org.eclipse.jetty.util.thread.Timeout$Task)>($r4);
+
+     label3:
+        return;
+    }
+
+    protected void cancelTimeout(org.eclipse.jetty.client.HttpClient)
+    {
+        org.eclipse.jetty.client.HttpClient r2;
+        org.eclipse.jetty.util.thread.Timeout$Task r1;
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpExchange;
+
+        r2 := @parameter0: org.eclipse.jetty.client.HttpClient;
+
+        r1 = r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.util.thread.Timeout$Task _timeoutTask>;
+
+        if r1 == null goto label1;
+
+        virtualinvoke r2.<org.eclipse.jetty.client.HttpClient: void cancel(org.eclipse.jetty.util.thread.Timeout$Task)>(r1);
+
+     label1:
+        r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.util.thread.Timeout$Task _timeoutTask> = null;
+
+        return;
+    }
+
+    static void access$100(org.eclipse.jetty.client.HttpExchange)
+    {
+        org.eclipse.jetty.client.HttpExchange r0;
+
+        r0 := @parameter0: org.eclipse.jetty.client.HttpExchange;
+
+        specialinvoke r0.<org.eclipse.jetty.client.HttpExchange: void done()>();
+
+        return;
+    }
+
+    static void <clinit>()
+    {
+        java.lang.Class $r0;
+        org.eclipse.jetty.util.log.Logger $r1;
+        boolean $z0, $z1;
+
+        <org.eclipse.jetty.client.HttpExchange: int STATUS_CANCELLED> = 11;
+
+        <org.eclipse.jetty.client.HttpExchange: int STATUS_CANCELLING> = 10;
+
+        <org.eclipse.jetty.client.HttpExchange: int STATUS_EXCEPTED> = 9;
+
+        <org.eclipse.jetty.client.HttpExchange: int STATUS_EXPIRED> = 8;
+
+        <org.eclipse.jetty.client.HttpExchange: int STATUS_COMPLETED> = 7;
+
+        <org.eclipse.jetty.client.HttpExchange: int STATUS_PARSING_CONTENT> = 6;
+
+        <org.eclipse.jetty.client.HttpExchange: int STATUS_PARSING_HEADERS> = 5;
+
+        <org.eclipse.jetty.client.HttpExchange: int STATUS_WAITING_FOR_RESPONSE> = 4;
+
+        <org.eclipse.jetty.client.HttpExchange: int STATUS_SENDING_REQUEST> = 3;
+
+        <org.eclipse.jetty.client.HttpExchange: int STATUS_WAITING_FOR_COMMIT> = 2;
+
+        <org.eclipse.jetty.client.HttpExchange: int STATUS_WAITING_FOR_CONNECTION> = 1;
+
+        <org.eclipse.jetty.client.HttpExchange: int STATUS_START> = 0;
+
+        $r0 = class "Lorg/eclipse/jetty/client/HttpExchange;";
+
+        $z0 = virtualinvoke $r0.<java.lang.Class: boolean desiredAssertionStatus()>();
+
+        if $z0 != 0 goto label1;
+
+        $z1 = 1;
+
+        goto label2;
+
+     label1:
+        $z1 = 0;
+
+     label2:
+        <org.eclipse.jetty.client.HttpExchange: boolean $assertionsDisabled> = $z1;
+
+        $r1 = staticinvoke <org.eclipse.jetty.util.log.Log: org.eclipse.jetty.util.log.Logger getLogger(java.lang.Class)>(class "Lorg/eclipse/jetty/client/HttpExchange;");
+
+        <org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.util.log.Logger LOG> = $r1;
+
+        return;
+    }
+}

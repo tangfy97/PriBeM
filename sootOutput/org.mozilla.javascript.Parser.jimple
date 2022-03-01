@@ -1,0 +1,4513 @@
+public class org.mozilla.javascript.Parser extends java.lang.Object
+{
+    static final int CLEAR_TI_MASK;
+    static final int TI_AFTER_EOL;
+    static final int TI_CHECK_LABEL;
+    org.mozilla.javascript.CompilerEnvirons compilerEnv;
+    private org.mozilla.javascript.ErrorReporter errorReporter;
+    private java.lang.String sourceURI;
+    boolean calledByCompileFunction;
+    private org.mozilla.javascript.TokenStream ts;
+    private int currentFlaggedToken;
+    private int syntaxErrorCount;
+    private org.mozilla.javascript.IRFactory nf;
+    private int nestingOfFunction;
+    private org.mozilla.javascript.Decompiler decompiler;
+    private java.lang.String encodedSource;
+    org.mozilla.javascript.ScriptOrFnNode currentScriptOrFn;
+    private int nestingOfWith;
+    private java.util.Hashtable labelSet;
+    private org.mozilla.javascript.ObjArray loopSet;
+    private org.mozilla.javascript.ObjArray loopAndSwitchSet;
+
+    public void <init>(org.mozilla.javascript.CompilerEnvirons, org.mozilla.javascript.ErrorReporter)
+    {
+        org.mozilla.javascript.ErrorReporter r2;
+        org.mozilla.javascript.CompilerEnvirons r1;
+        org.mozilla.javascript.Parser r0;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        r1 := @parameter0: org.mozilla.javascript.CompilerEnvirons;
+
+        r2 := @parameter1: org.mozilla.javascript.ErrorReporter;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.CompilerEnvirons compilerEnv> = r1;
+
+        r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ErrorReporter errorReporter> = r2;
+
+        return;
+    }
+
+    protected org.mozilla.javascript.Decompiler createDecompiler(org.mozilla.javascript.CompilerEnvirons)
+    {
+        org.mozilla.javascript.Decompiler $r0;
+        org.mozilla.javascript.CompilerEnvirons r2;
+        org.mozilla.javascript.Parser r1;
+
+        r1 := @this: org.mozilla.javascript.Parser;
+
+        r2 := @parameter0: org.mozilla.javascript.CompilerEnvirons;
+
+        $r0 = new org.mozilla.javascript.Decompiler;
+
+        specialinvoke $r0.<org.mozilla.javascript.Decompiler: void <init>()>();
+
+        return $r0;
+    }
+
+    void addWarning(java.lang.String, java.lang.String)
+    {
+        org.mozilla.javascript.TokenStream $r4, $r7, $r9;
+        org.mozilla.javascript.ErrorReporter $r5;
+        int $i0, $i1;
+        java.lang.String r0, r1, $r2, $r6, $r8;
+        org.mozilla.javascript.Parser r3;
+
+        r3 := @this: org.mozilla.javascript.Parser;
+
+        r0 := @parameter0: java.lang.String;
+
+        r1 := @parameter1: java.lang.String;
+
+        $r2 = staticinvoke <org.mozilla.javascript.ScriptRuntime: java.lang.String getMessage1(java.lang.String,java.lang.Object)>(r0, r1);
+
+        $r5 = r3.<org.mozilla.javascript.Parser: org.mozilla.javascript.ErrorReporter errorReporter>;
+
+        $r6 = r3.<org.mozilla.javascript.Parser: java.lang.String sourceURI>;
+
+        $r4 = r3.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $i0 = virtualinvoke $r4.<org.mozilla.javascript.TokenStream: int getLineno()>();
+
+        $r7 = r3.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $r8 = virtualinvoke $r7.<org.mozilla.javascript.TokenStream: java.lang.String getLine()>();
+
+        $r9 = r3.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $i1 = virtualinvoke $r9.<org.mozilla.javascript.TokenStream: int getOffset()>();
+
+        interfaceinvoke $r5.<org.mozilla.javascript.ErrorReporter: void warning(java.lang.String,java.lang.String,int,java.lang.String,int)>($r2, $r6, $i0, $r8, $i1);
+
+        return;
+    }
+
+    void addError(java.lang.String)
+    {
+        org.mozilla.javascript.TokenStream $r3, $r6, $r8;
+        org.mozilla.javascript.ErrorReporter $r4;
+        int $i0, $i1, $i2, $i3;
+        java.lang.String r1, $r2, $r5, $r7;
+        org.mozilla.javascript.Parser r0;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        r1 := @parameter0: java.lang.String;
+
+        $i0 = r0.<org.mozilla.javascript.Parser: int syntaxErrorCount>;
+
+        $i1 = $i0 + 1;
+
+        r0.<org.mozilla.javascript.Parser: int syntaxErrorCount> = $i1;
+
+        $r2 = staticinvoke <org.mozilla.javascript.ScriptRuntime: java.lang.String getMessage0(java.lang.String)>(r1);
+
+        $r4 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ErrorReporter errorReporter>;
+
+        $r5 = r0.<org.mozilla.javascript.Parser: java.lang.String sourceURI>;
+
+        $r3 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $i2 = virtualinvoke $r3.<org.mozilla.javascript.TokenStream: int getLineno()>();
+
+        $r6 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $r7 = virtualinvoke $r6.<org.mozilla.javascript.TokenStream: java.lang.String getLine()>();
+
+        $r8 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $i3 = virtualinvoke $r8.<org.mozilla.javascript.TokenStream: int getOffset()>();
+
+        interfaceinvoke $r4.<org.mozilla.javascript.ErrorReporter: void error(java.lang.String,java.lang.String,int,java.lang.String,int)>($r2, $r5, $i2, $r7, $i3);
+
+        return;
+    }
+
+    java.lang.RuntimeException reportError(java.lang.String)
+    {
+        java.lang.String r1;
+        org.mozilla.javascript.Parser$ParserException $r2;
+        org.mozilla.javascript.Parser r0;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        r1 := @parameter0: java.lang.String;
+
+        virtualinvoke r0.<org.mozilla.javascript.Parser: void addError(java.lang.String)>(r1);
+
+        $r2 = new org.mozilla.javascript.Parser$ParserException;
+
+        specialinvoke $r2.<org.mozilla.javascript.Parser$ParserException: void <init>(org.mozilla.javascript.Parser$1)>(null);
+
+        throw $r2;
+    }
+
+    private int peekToken() throws java.io.IOException
+    {
+        org.mozilla.javascript.TokenStream $r1, $r2;
+        int $i0, $i1, i2, $i3, $i5;
+        org.mozilla.javascript.Parser r0;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        i2 = r0.<org.mozilla.javascript.Parser: int currentFlaggedToken>;
+
+        if i2 != 0 goto label3;
+
+        $r1 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $i0 = virtualinvoke $r1.<org.mozilla.javascript.TokenStream: int getToken()>();
+
+        i2 = $i0;
+
+        if $i0 != 1 goto label2;
+
+     label1:
+        $r2 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $i1 = virtualinvoke $r2.<org.mozilla.javascript.TokenStream: int getToken()>();
+
+        if $i1 == 1 goto label1;
+
+        i2 = $i1 | 65536;
+
+     label2:
+        r0.<org.mozilla.javascript.Parser: int currentFlaggedToken> = i2;
+
+     label3:
+        $i5 = (int) 65535;
+
+        $i3 = i2 & $i5;
+
+        return $i3;
+    }
+
+    private int peekFlaggedToken() throws java.io.IOException
+    {
+        int $i0;
+        org.mozilla.javascript.Parser r0;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: int peekToken()>();
+
+        $i0 = r0.<org.mozilla.javascript.Parser: int currentFlaggedToken>;
+
+        return $i0;
+    }
+
+    private void consumeToken()
+    {
+        org.mozilla.javascript.Parser r0;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        r0.<org.mozilla.javascript.Parser: int currentFlaggedToken> = 0;
+
+        return;
+    }
+
+    private int nextToken() throws java.io.IOException
+    {
+        int $i0;
+        org.mozilla.javascript.Parser r0;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        $i0 = specialinvoke r0.<org.mozilla.javascript.Parser: int peekToken()>();
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        return $i0;
+    }
+
+    private int nextFlaggedToken() throws java.io.IOException
+    {
+        int i0;
+        org.mozilla.javascript.Parser r0;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: int peekToken()>();
+
+        i0 = r0.<org.mozilla.javascript.Parser: int currentFlaggedToken>;
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        return i0;
+    }
+
+    private boolean matchToken(int) throws java.io.IOException
+    {
+        int $i0, i1;
+        org.mozilla.javascript.Parser r0;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        i1 := @parameter0: int;
+
+        $i0 = specialinvoke r0.<org.mozilla.javascript.Parser: int peekToken()>();
+
+        if $i0 == i1 goto label1;
+
+        return 0;
+
+     label1:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        return 1;
+    }
+
+    private int peekTokenOrEOL() throws java.io.IOException
+    {
+        int $i0, $i1, i2;
+        org.mozilla.javascript.Parser r0;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        i2 = specialinvoke r0.<org.mozilla.javascript.Parser: int peekToken()>();
+
+        $i0 = r0.<org.mozilla.javascript.Parser: int currentFlaggedToken>;
+
+        $i1 = $i0 & 65536;
+
+        if $i1 == 0 goto label1;
+
+        i2 = 1;
+
+     label1:
+        return i2;
+    }
+
+    private void setCheckForLabel()
+    {
+        int $i0, $i1, $i2, $i3, $i5;
+        java.lang.RuntimeException $r1;
+        org.mozilla.javascript.Parser r0;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        $i0 = r0.<org.mozilla.javascript.Parser: int currentFlaggedToken>;
+
+        $i5 = (int) 65535;
+
+        $i1 = $i0 & $i5;
+
+        if $i1 == 38 goto label1;
+
+        $r1 = staticinvoke <org.mozilla.javascript.Kit: java.lang.RuntimeException codeBug()>();
+
+        throw $r1;
+
+     label1:
+        $i2 = r0.<org.mozilla.javascript.Parser: int currentFlaggedToken>;
+
+        $i3 = $i2 | 131072;
+
+        r0.<org.mozilla.javascript.Parser: int currentFlaggedToken> = $i3;
+
+        return;
+    }
+
+    private void mustMatchToken(int, java.lang.String) throws java.io.IOException, org.mozilla.javascript.Parser$ParserException
+    {
+        int i0;
+        java.lang.String r1;
+        org.mozilla.javascript.Parser r0;
+        boolean $z0;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        i0 := @parameter0: int;
+
+        r1 := @parameter1: java.lang.String;
+
+        $z0 = specialinvoke r0.<org.mozilla.javascript.Parser: boolean matchToken(int)>(i0);
+
+        if $z0 != 0 goto label1;
+
+        virtualinvoke r0.<org.mozilla.javascript.Parser: java.lang.RuntimeException reportError(java.lang.String)>(r1);
+
+     label1:
+        return;
+    }
+
+    private void mustHaveXML()
+    {
+        org.mozilla.javascript.CompilerEnvirons $r1;
+        org.mozilla.javascript.Parser r0;
+        boolean $z0;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        $r1 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.CompilerEnvirons compilerEnv>;
+
+        $z0 = virtualinvoke $r1.<org.mozilla.javascript.CompilerEnvirons: boolean isXmlAvailable()>();
+
+        if $z0 != 0 goto label1;
+
+        virtualinvoke r0.<org.mozilla.javascript.Parser: java.lang.RuntimeException reportError(java.lang.String)>("msg.XML.not.available");
+
+     label1:
+        return;
+    }
+
+    public java.lang.String getEncodedSource()
+    {
+        java.lang.String $r1;
+        org.mozilla.javascript.Parser r0;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        $r1 = r0.<org.mozilla.javascript.Parser: java.lang.String encodedSource>;
+
+        return $r1;
+    }
+
+    public boolean eof()
+    {
+        org.mozilla.javascript.TokenStream $r1;
+        org.mozilla.javascript.Parser r0;
+        boolean $z0;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        $r1 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $z0 = virtualinvoke $r1.<org.mozilla.javascript.TokenStream: boolean eof()>();
+
+        return $z0;
+    }
+
+    boolean insideFunction()
+    {
+        int $i0;
+        org.mozilla.javascript.Parser r0;
+        boolean $z0;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        $i0 = r0.<org.mozilla.javascript.Parser: int nestingOfFunction>;
+
+        if $i0 == 0 goto label1;
+
+        $z0 = 1;
+
+        goto label2;
+
+     label1:
+        $z0 = 0;
+
+     label2:
+        return $z0;
+    }
+
+    private org.mozilla.javascript.Node enterLoop(org.mozilla.javascript.Node)
+    {
+        org.mozilla.javascript.TokenStream $r2;
+        org.mozilla.javascript.Node r1, $r4;
+        org.mozilla.javascript.ObjArray $r5, $r6, $r7, $r8, $r9, $r10;
+        org.mozilla.javascript.IRFactory $r3;
+        int $i0;
+        org.mozilla.javascript.Parser r0;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        r1 := @parameter0: org.mozilla.javascript.Node;
+
+        $r3 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r2 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $i0 = virtualinvoke $r2.<org.mozilla.javascript.TokenStream: int getLineno()>();
+
+        $r4 = virtualinvoke $r3.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createLoopNode(org.mozilla.javascript.Node,int)>(r1, $i0);
+
+        $r5 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ObjArray loopSet>;
+
+        if $r5 != null goto label1;
+
+        $r6 = new org.mozilla.javascript.ObjArray;
+
+        specialinvoke $r6.<org.mozilla.javascript.ObjArray: void <init>()>();
+
+        r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ObjArray loopSet> = $r6;
+
+        $r7 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ObjArray loopAndSwitchSet>;
+
+        if $r7 != null goto label1;
+
+        $r8 = new org.mozilla.javascript.ObjArray;
+
+        specialinvoke $r8.<org.mozilla.javascript.ObjArray: void <init>()>();
+
+        r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ObjArray loopAndSwitchSet> = $r8;
+
+     label1:
+        $r9 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ObjArray loopSet>;
+
+        virtualinvoke $r9.<org.mozilla.javascript.ObjArray: void push(java.lang.Object)>($r4);
+
+        $r10 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ObjArray loopAndSwitchSet>;
+
+        virtualinvoke $r10.<org.mozilla.javascript.ObjArray: void push(java.lang.Object)>($r4);
+
+        return $r4;
+    }
+
+    private void exitLoop()
+    {
+        org.mozilla.javascript.Parser r0;
+        org.mozilla.javascript.ObjArray $r1, $r2;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        $r1 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ObjArray loopSet>;
+
+        virtualinvoke $r1.<org.mozilla.javascript.ObjArray: java.lang.Object pop()>();
+
+        $r2 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ObjArray loopAndSwitchSet>;
+
+        virtualinvoke $r2.<org.mozilla.javascript.ObjArray: java.lang.Object pop()>();
+
+        return;
+    }
+
+    private org.mozilla.javascript.Node enterSwitch(org.mozilla.javascript.Node, int)
+    {
+        org.mozilla.javascript.Node r1, $r3;
+        org.mozilla.javascript.ObjArray $r4, $r5, $r6;
+        int i0;
+        org.mozilla.javascript.IRFactory $r2;
+        org.mozilla.javascript.Parser r0;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        r1 := @parameter0: org.mozilla.javascript.Node;
+
+        i0 := @parameter1: int;
+
+        $r2 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r3 = virtualinvoke $r2.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createSwitch(org.mozilla.javascript.Node,int)>(r1, i0);
+
+        $r4 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ObjArray loopAndSwitchSet>;
+
+        if $r4 != null goto label1;
+
+        $r6 = new org.mozilla.javascript.ObjArray;
+
+        specialinvoke $r6.<org.mozilla.javascript.ObjArray: void <init>()>();
+
+        r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ObjArray loopAndSwitchSet> = $r6;
+
+     label1:
+        $r5 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ObjArray loopAndSwitchSet>;
+
+        virtualinvoke $r5.<org.mozilla.javascript.ObjArray: void push(java.lang.Object)>($r3);
+
+        return $r3;
+    }
+
+    private void exitSwitch()
+    {
+        org.mozilla.javascript.Parser r0;
+        org.mozilla.javascript.ObjArray $r1;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        $r1 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ObjArray loopAndSwitchSet>;
+
+        virtualinvoke $r1.<org.mozilla.javascript.ObjArray: java.lang.Object pop()>();
+
+        return;
+    }
+
+    public org.mozilla.javascript.ScriptOrFnNode parse(java.lang.String, java.lang.String, int)
+    {
+        java.lang.IllegalStateException $r6;
+        org.mozilla.javascript.TokenStream $r2;
+        java.io.IOException $r5;
+        int i0;
+        org.mozilla.javascript.ScriptOrFnNode $r4;
+        java.lang.String r1, r3;
+        org.mozilla.javascript.Parser r0;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        r3 := @parameter0: java.lang.String;
+
+        r1 := @parameter1: java.lang.String;
+
+        i0 := @parameter2: int;
+
+        r0.<org.mozilla.javascript.Parser: java.lang.String sourceURI> = r1;
+
+        $r2 = new org.mozilla.javascript.TokenStream;
+
+        specialinvoke $r2.<org.mozilla.javascript.TokenStream: void <init>(org.mozilla.javascript.Parser,java.io.Reader,java.lang.String,int)>(r0, null, r3, i0);
+
+        r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts> = $r2;
+
+     label1:
+        $r4 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ScriptOrFnNode parse()>();
+
+     label2:
+        return $r4;
+
+     label3:
+        $r5 := @caughtexception;
+
+        $r6 = new java.lang.IllegalStateException;
+
+        specialinvoke $r6.<java.lang.IllegalStateException: void <init>()>();
+
+        throw $r6;
+
+        catch java.io.IOException from label1 to label2 with label3;
+    }
+
+    public org.mozilla.javascript.ScriptOrFnNode parse(java.io.Reader, java.lang.String, int) throws java.io.IOException
+    {
+        org.mozilla.javascript.TokenStream $r2;
+        int i0;
+        org.mozilla.javascript.ScriptOrFnNode $r4;
+        java.lang.String r1;
+        java.io.Reader r3;
+        org.mozilla.javascript.Parser r0;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        r3 := @parameter0: java.io.Reader;
+
+        r1 := @parameter1: java.lang.String;
+
+        i0 := @parameter2: int;
+
+        r0.<org.mozilla.javascript.Parser: java.lang.String sourceURI> = r1;
+
+        $r2 = new org.mozilla.javascript.TokenStream;
+
+        specialinvoke $r2.<org.mozilla.javascript.TokenStream: void <init>(org.mozilla.javascript.Parser,java.io.Reader,java.lang.String,int)>(r0, r3, null, i0);
+
+        r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts> = $r2;
+
+        $r4 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ScriptOrFnNode parse()>();
+
+        return $r4;
+    }
+
+    private org.mozilla.javascript.ScriptOrFnNode parse() throws java.io.IOException
+    {
+        byte $b8;
+        org.mozilla.javascript.Node $r10, r36;
+        org.mozilla.javascript.ScriptOrFnNode $r5, $r13, $r14, $r16, $r18, $r19, $r22;
+        boolean $z0, $z1;
+        org.mozilla.javascript.Parser r0;
+        java.lang.StackOverflowError $r30;
+        org.mozilla.javascript.Decompiler $r2, $r6, $r7, $r17, $r23;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7;
+        java.lang.String $r12, $r24, $r25, $r26, $r27, $r31, $r33;
+        org.mozilla.javascript.TokenStream $r8, $r15, $r32;
+        org.mozilla.javascript.EvaluatorException $r29, $r34;
+        org.mozilla.javascript.Parser$ParserException $r35;
+        org.mozilla.javascript.ErrorReporter $r28;
+        org.mozilla.javascript.CompilerEnvirons $r1, $r21;
+        org.mozilla.javascript.IRFactory $r3, $r4, $r9, $r11, $r20;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        $r1 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.CompilerEnvirons compilerEnv>;
+
+        $r2 = virtualinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler createDecompiler(org.mozilla.javascript.CompilerEnvirons)>($r1);
+
+        r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler> = $r2;
+
+        $r3 = new org.mozilla.javascript.IRFactory;
+
+        specialinvoke $r3.<org.mozilla.javascript.IRFactory: void <init>(org.mozilla.javascript.Parser)>(r0);
+
+        r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf> = $r3;
+
+        $r4 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r5 = virtualinvoke $r4.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.ScriptOrFnNode createScript()>();
+
+        r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ScriptOrFnNode currentScriptOrFn> = $r5;
+
+        $r6 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        $i0 = virtualinvoke $r6.<org.mozilla.javascript.Decompiler: int getCurrentOffset()>();
+
+        r0.<org.mozilla.javascript.Parser: java.lang.String encodedSource> = null;
+
+        $r7 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r7.<org.mozilla.javascript.Decompiler: void addToken(int)>(132);
+
+        r0.<org.mozilla.javascript.Parser: int currentFlaggedToken> = 0;
+
+        r0.<org.mozilla.javascript.Parser: int syntaxErrorCount> = 0;
+
+        $r8 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $i1 = virtualinvoke $r8.<org.mozilla.javascript.TokenStream: int getLineno()>();
+
+        $r9 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r10 = virtualinvoke $r9.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createLeaf(int)>(125);
+
+     label01:
+        $i2 = specialinvoke r0.<org.mozilla.javascript.Parser: int peekToken()>();
+
+        if $i2 > 0 goto label02;
+
+        goto label10;
+
+     label02:
+        if $i2 != 105 goto label08;
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+     label03:
+        $z0 = r0.<org.mozilla.javascript.Parser: boolean calledByCompileFunction>;
+
+        if $z0 == 0 goto label04;
+
+        $b8 = 2;
+
+        goto label05;
+
+     label04:
+        $b8 = 1;
+
+     label05:
+        r36 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node function(int)>($b8);
+
+     label06:
+        goto label09;
+
+     label07:
+        $r35 := @caughtexception;
+
+        goto label10;
+
+     label08:
+        r36 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node statement()>();
+
+     label09:
+        $r11 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        virtualinvoke $r11.<org.mozilla.javascript.IRFactory: void addChildToBack(org.mozilla.javascript.Node,org.mozilla.javascript.Node)>($r10, r36);
+
+        goto label01;
+
+     label10:
+        goto label12;
+
+     label11:
+        $r30 := @caughtexception;
+
+        $r31 = staticinvoke <org.mozilla.javascript.ScriptRuntime: java.lang.String getMessage0(java.lang.String)>("mag.too.deep.parser.recursion");
+
+        $r33 = r0.<org.mozilla.javascript.Parser: java.lang.String sourceURI>;
+
+        $r32 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $i7 = virtualinvoke $r32.<org.mozilla.javascript.TokenStream: int getLineno()>();
+
+        $r34 = staticinvoke <org.mozilla.javascript.Context: org.mozilla.javascript.EvaluatorException reportRuntimeError(java.lang.String,java.lang.String,int,java.lang.String,int)>($r31, $r33, $i7, null, 0);
+
+        throw $r34;
+
+     label12:
+        $i3 = r0.<org.mozilla.javascript.Parser: int syntaxErrorCount>;
+
+        if $i3 == 0 goto label13;
+
+        $i6 = r0.<org.mozilla.javascript.Parser: int syntaxErrorCount>;
+
+        $r25 = staticinvoke <java.lang.String: java.lang.String valueOf(int)>($i6);
+
+        $r26 = staticinvoke <org.mozilla.javascript.ScriptRuntime: java.lang.String getMessage1(java.lang.String,java.lang.Object)>("msg.got.syntax.errors", $r25);
+
+        $r28 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ErrorReporter errorReporter>;
+
+        $r27 = r0.<org.mozilla.javascript.Parser: java.lang.String sourceURI>;
+
+        $r29 = interfaceinvoke $r28.<org.mozilla.javascript.ErrorReporter: org.mozilla.javascript.EvaluatorException runtimeError(java.lang.String,java.lang.String,int,java.lang.String,int)>($r26, $r27, $i1, null, 0);
+
+        throw $r29;
+
+     label13:
+        $r13 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ScriptOrFnNode currentScriptOrFn>;
+
+        $r12 = r0.<org.mozilla.javascript.Parser: java.lang.String sourceURI>;
+
+        virtualinvoke $r13.<org.mozilla.javascript.ScriptOrFnNode: void setSourceName(java.lang.String)>($r12);
+
+        $r14 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ScriptOrFnNode currentScriptOrFn>;
+
+        virtualinvoke $r14.<org.mozilla.javascript.ScriptOrFnNode: void setBaseLineno(int)>($i1);
+
+        $r16 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ScriptOrFnNode currentScriptOrFn>;
+
+        $r15 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $i4 = virtualinvoke $r15.<org.mozilla.javascript.TokenStream: int getLineno()>();
+
+        virtualinvoke $r16.<org.mozilla.javascript.ScriptOrFnNode: void setEndLineno(int)>($i4);
+
+        $r17 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        $i5 = virtualinvoke $r17.<org.mozilla.javascript.Decompiler: int getCurrentOffset()>();
+
+        $r18 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ScriptOrFnNode currentScriptOrFn>;
+
+        virtualinvoke $r18.<org.mozilla.javascript.ScriptOrFnNode: void setEncodedSourceBounds(int,int)>($i0, $i5);
+
+        $r20 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r19 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ScriptOrFnNode currentScriptOrFn>;
+
+        virtualinvoke $r20.<org.mozilla.javascript.IRFactory: void initScript(org.mozilla.javascript.ScriptOrFnNode,org.mozilla.javascript.Node)>($r19, $r10);
+
+        $r21 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.CompilerEnvirons compilerEnv>;
+
+        $z1 = virtualinvoke $r21.<org.mozilla.javascript.CompilerEnvirons: boolean isGeneratingSource()>();
+
+        if $z1 == 0 goto label14;
+
+        $r23 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        $r24 = virtualinvoke $r23.<org.mozilla.javascript.Decompiler: java.lang.String getEncodedSource()>();
+
+        r0.<org.mozilla.javascript.Parser: java.lang.String encodedSource> = $r24;
+
+     label14:
+        r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler> = null;
+
+        $r22 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ScriptOrFnNode currentScriptOrFn>;
+
+        return $r22;
+
+        catch org.mozilla.javascript.Parser$ParserException from label03 to label06 with label07;
+        catch java.lang.StackOverflowError from label01 to label10 with label11;
+    }
+
+    private org.mozilla.javascript.Node parseFunctionBody() throws java.io.IOException
+    {
+        java.lang.Throwable $r5;
+        org.mozilla.javascript.Node $r3, r7;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9;
+        org.mozilla.javascript.TokenStream $r1;
+        org.mozilla.javascript.Parser$ParserException $r6;
+        org.mozilla.javascript.IRFactory $r2, $r4;
+        org.mozilla.javascript.Parser r0;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        $i0 = r0.<org.mozilla.javascript.Parser: int nestingOfFunction>;
+
+        $i1 = $i0 + 1;
+
+        r0.<org.mozilla.javascript.Parser: int nestingOfFunction> = $i1;
+
+        $r2 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r1 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $i2 = virtualinvoke $r1.<org.mozilla.javascript.TokenStream: int getLineno()>();
+
+        $r3 = virtualinvoke $r2.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createBlock(int)>($i2);
+
+     label01:
+        $i3 = specialinvoke r0.<org.mozilla.javascript.Parser: int peekToken()>();
+
+        lookupswitch($i3)
+        {
+            case -1: goto label02;
+            case 0: goto label02;
+            case 82: goto label02;
+            case 105: goto label03;
+            default: goto label04;
+        };
+
+     label02:
+        goto label06;
+
+     label03:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        r7 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node function(int)>(1);
+
+        goto label05;
+
+     label04:
+        r7 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node statement()>();
+
+     label05:
+        $r4 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        virtualinvoke $r4.<org.mozilla.javascript.IRFactory: void addChildToBack(org.mozilla.javascript.Node,org.mozilla.javascript.Node)>($r3, r7);
+
+        goto label01;
+
+     label06:
+        $i4 = r0.<org.mozilla.javascript.Parser: int nestingOfFunction>;
+
+        $i5 = $i4 - 1;
+
+        r0.<org.mozilla.javascript.Parser: int nestingOfFunction> = $i5;
+
+        goto label11;
+
+     label07:
+        $r6 := @caughtexception;
+
+     label08:
+        $i8 = r0.<org.mozilla.javascript.Parser: int nestingOfFunction>;
+
+        $i9 = $i8 - 1;
+
+        r0.<org.mozilla.javascript.Parser: int nestingOfFunction> = $i9;
+
+        goto label11;
+
+     label09:
+        $r5 := @caughtexception;
+
+     label10:
+        $i6 = r0.<org.mozilla.javascript.Parser: int nestingOfFunction>;
+
+        $i7 = $i6 - 1;
+
+        r0.<org.mozilla.javascript.Parser: int nestingOfFunction> = $i7;
+
+        throw $r5;
+
+     label11:
+        return $r3;
+
+        catch org.mozilla.javascript.Parser$ParserException from label01 to label06 with label07;
+        catch java.lang.Throwable from label01 to label06 with label09;
+        catch java.lang.Throwable from label07 to label08 with label09;
+        catch java.lang.Throwable from label09 to label10 with label09;
+    }
+
+    private org.mozilla.javascript.Node function(int) throws java.io.IOException, org.mozilla.javascript.Parser$ParserException
+    {
+        org.mozilla.javascript.Node $r8, $r14, $r16, $r28, r30, r39;
+        org.mozilla.javascript.ScriptOrFnNode $r32, $r33;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, z9;
+        org.mozilla.javascript.ObjArray $r35, $r36;
+        org.mozilla.javascript.Parser r0;
+        java.lang.Throwable $r29;
+        org.mozilla.javascript.Decompiler $r2, $r6, $r7, $r9, $r10, $r21, $r22, $r25, $r37, $r38;
+        int i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, i8, $i9, $i10;
+        java.lang.String $r11, $r20, $r24, r31;
+        java.util.Hashtable $r34;
+        org.mozilla.javascript.TokenStream $r1, $r12, $r19, $r23;
+        org.mozilla.javascript.CompilerEnvirons $r3, $r18, $r26;
+        org.mozilla.javascript.IRFactory $r4, $r13, $r15, $r17, $r27;
+        org.mozilla.javascript.FunctionNode $r5;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        i0 := @parameter0: int;
+
+        i8 = i0;
+
+        $r1 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $i1 = virtualinvoke $r1.<org.mozilla.javascript.TokenStream: int getLineno()>();
+
+        $r2 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        $i2 = virtualinvoke $r2.<org.mozilla.javascript.Decompiler: int markFunctionStart(int)>(i0);
+
+        r30 = null;
+
+        $z0 = specialinvoke r0.<org.mozilla.javascript.Parser: boolean matchToken(int)>(38);
+
+        if $z0 == 0 goto label02;
+
+        $r23 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $r24 = virtualinvoke $r23.<org.mozilla.javascript.TokenStream: java.lang.String getString()>();
+
+        r31 = $r24;
+
+        $r25 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r25.<org.mozilla.javascript.Decompiler: void addName(java.lang.String)>($r24);
+
+        $z6 = specialinvoke r0.<org.mozilla.javascript.Parser: boolean matchToken(int)>(83);
+
+        if $z6 != 0 goto label05;
+
+        $r26 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.CompilerEnvirons compilerEnv>;
+
+        $z7 = virtualinvoke $r26.<org.mozilla.javascript.CompilerEnvirons: boolean isAllowMemberExprAsFunctionName()>();
+
+        if $z7 == 0 goto label01;
+
+        $r27 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r28 = virtualinvoke $r27.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createName(java.lang.String)>($r24);
+
+        r31 = "";
+
+        r30 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node memberExprTail(boolean,org.mozilla.javascript.Node)>(0, $r28);
+
+     label01:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(83, "msg.no.paren.parms");
+
+        goto label05;
+
+     label02:
+        $z1 = specialinvoke r0.<org.mozilla.javascript.Parser: boolean matchToken(int)>(83);
+
+        if $z1 == 0 goto label03;
+
+        r31 = "";
+
+        goto label05;
+
+     label03:
+        r31 = "";
+
+        $r3 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.CompilerEnvirons compilerEnv>;
+
+        $z2 = virtualinvoke $r3.<org.mozilla.javascript.CompilerEnvirons: boolean isAllowMemberExprAsFunctionName()>();
+
+        if $z2 == 0 goto label04;
+
+        r30 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node memberExpr(boolean)>(0);
+
+     label04:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(83, "msg.no.paren.parms");
+
+     label05:
+        if r30 == null goto label06;
+
+        i8 = 2;
+
+     label06:
+        $z3 = virtualinvoke r0.<org.mozilla.javascript.Parser: boolean insideFunction()>();
+
+        $r4 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r5 = virtualinvoke $r4.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.FunctionNode createFunction(java.lang.String)>(r31);
+
+        if $z3 != 0 goto label07;
+
+        $i7 = r0.<org.mozilla.javascript.Parser: int nestingOfWith>;
+
+        if $i7 <= 0 goto label08;
+
+     label07:
+        $r5.<org.mozilla.javascript.FunctionNode: boolean itsIgnoreDynamicScope> = 1;
+
+     label08:
+        $r32 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ScriptOrFnNode currentScriptOrFn>;
+
+        $i9 = virtualinvoke $r32.<org.mozilla.javascript.ScriptOrFnNode: int addFunction(org.mozilla.javascript.FunctionNode)>($r5);
+
+        $r33 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ScriptOrFnNode currentScriptOrFn>;
+
+        r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ScriptOrFnNode currentScriptOrFn> = $r5;
+
+        $i10 = r0.<org.mozilla.javascript.Parser: int nestingOfWith>;
+
+        r0.<org.mozilla.javascript.Parser: int nestingOfWith> = 0;
+
+        $r34 = r0.<org.mozilla.javascript.Parser: java.util.Hashtable labelSet>;
+
+        r0.<org.mozilla.javascript.Parser: java.util.Hashtable labelSet> = null;
+
+        $r35 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ObjArray loopSet>;
+
+        r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ObjArray loopSet> = null;
+
+        $r36 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ObjArray loopAndSwitchSet>;
+
+        r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ObjArray loopAndSwitchSet> = null;
+
+     label09:
+        $r37 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r37.<org.mozilla.javascript.Decompiler: void addToken(int)>(83);
+
+        $z8 = specialinvoke r0.<org.mozilla.javascript.Parser: boolean matchToken(int)>(84);
+
+        if $z8 != 0 goto label13;
+
+        z9 = 1;
+
+     label10:
+        if z9 != 0 goto label11;
+
+        $r22 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r22.<org.mozilla.javascript.Decompiler: void addToken(int)>(85);
+
+     label11:
+        z9 = 0;
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(38, "msg.no.parm");
+
+        $r19 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $r20 = virtualinvoke $r19.<org.mozilla.javascript.TokenStream: java.lang.String getString()>();
+
+        $z4 = virtualinvoke $r5.<org.mozilla.javascript.FunctionNode: boolean hasParamOrVar(java.lang.String)>($r20);
+
+        if $z4 == 0 goto label12;
+
+        virtualinvoke r0.<org.mozilla.javascript.Parser: void addWarning(java.lang.String,java.lang.String)>("msg.dup.parms", $r20);
+
+     label12:
+        virtualinvoke $r5.<org.mozilla.javascript.FunctionNode: void addParam(java.lang.String)>($r20);
+
+        $r21 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r21.<org.mozilla.javascript.Decompiler: void addName(java.lang.String)>($r20);
+
+        $z5 = specialinvoke r0.<org.mozilla.javascript.Parser: boolean matchToken(int)>(85);
+
+        if $z5 != 0 goto label10;
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(84, "msg.no.paren.after.parms");
+
+     label13:
+        $r6 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r6.<org.mozilla.javascript.Decompiler: void addToken(int)>(84);
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(81, "msg.no.brace.body");
+
+        $r7 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r7.<org.mozilla.javascript.Decompiler: void addEOL(int)>(81);
+
+        $r8 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node parseFunctionBody()>();
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(82, "msg.no.brace.after.body");
+
+        $r9 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r9.<org.mozilla.javascript.Decompiler: void addToken(int)>(82);
+
+        $r10 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        $i3 = virtualinvoke $r10.<org.mozilla.javascript.Decompiler: int markFunctionEnd(int)>($i2);
+
+        if i0 == 2 goto label15;
+
+        $r18 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.CompilerEnvirons compilerEnv>;
+
+        $i5 = virtualinvoke $r18.<org.mozilla.javascript.CompilerEnvirons: int getLanguageVersion()>();
+
+        if $i5 < 120 goto label14;
+
+        $i6 = specialinvoke r0.<org.mozilla.javascript.Parser: int peekTokenOrEOL()>();
+
+        if $i6 != 105 goto label14;
+
+        virtualinvoke r0.<org.mozilla.javascript.Parser: java.lang.RuntimeException reportError(java.lang.String)>("msg.no.semi.stmt");
+
+     label14:
+        $r38 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r38.<org.mozilla.javascript.Decompiler: void addToken(int)>(1);
+
+     label15:
+        goto label21;
+
+     label16:
+        goto label19;
+
+     label17:
+        $r29 := @caughtexception;
+
+        goto label22;
+
+     label18:
+        throw $r29;
+
+     label19:
+        virtualinvoke $r5.<org.mozilla.javascript.FunctionNode: void setEncodedSourceBounds(int,int)>($i2, $i3);
+
+        $r11 = r0.<org.mozilla.javascript.Parser: java.lang.String sourceURI>;
+
+        virtualinvoke $r5.<org.mozilla.javascript.FunctionNode: void setSourceName(java.lang.String)>($r11);
+
+        virtualinvoke $r5.<org.mozilla.javascript.FunctionNode: void setBaseLineno(int)>($i1);
+
+        $r12 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $i4 = virtualinvoke $r12.<org.mozilla.javascript.TokenStream: int getLineno()>();
+
+        virtualinvoke $r5.<org.mozilla.javascript.FunctionNode: void setEndLineno(int)>($i4);
+
+        $r13 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r14 = virtualinvoke $r13.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node initFunction(org.mozilla.javascript.FunctionNode,int,org.mozilla.javascript.Node,int)>($r5, $i9, $r8, i8);
+
+        r39 = $r14;
+
+        if r30 == null goto label20;
+
+        $r15 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r16 = virtualinvoke $r15.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createAssignment(int,org.mozilla.javascript.Node,org.mozilla.javascript.Node)>(86, r30, $r14);
+
+        r39 = $r16;
+
+        if i0 == 2 goto label20;
+
+        $r17 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        r39 = virtualinvoke $r17.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createExprStatementNoReturn(org.mozilla.javascript.Node,int)>($r16, $i1);
+
+     label20:
+        return r39;
+
+     label21:
+        r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ObjArray loopAndSwitchSet> = $r36;
+
+        r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ObjArray loopSet> = $r35;
+
+        r0.<org.mozilla.javascript.Parser: java.util.Hashtable labelSet> = $r34;
+
+        r0.<org.mozilla.javascript.Parser: int nestingOfWith> = $i10;
+
+        r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ScriptOrFnNode currentScriptOrFn> = $r33;
+
+        goto label16;
+
+     label22:
+        r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ObjArray loopAndSwitchSet> = $r36;
+
+        r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ObjArray loopSet> = $r35;
+
+        r0.<org.mozilla.javascript.Parser: java.util.Hashtable labelSet> = $r34;
+
+        r0.<org.mozilla.javascript.Parser: int nestingOfWith> = $i10;
+
+        r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ScriptOrFnNode currentScriptOrFn> = $r33;
+
+        goto label18;
+
+        catch java.lang.Throwable from label09 to label16 with label17;
+        catch java.lang.Throwable from label17 to label18 with label17;
+    }
+
+    private org.mozilla.javascript.Node statements() throws java.io.IOException
+    {
+        org.mozilla.javascript.TokenStream $r1;
+        org.mozilla.javascript.Node $r3, $r5;
+        org.mozilla.javascript.IRFactory $r2, $r4;
+        int $i0, $i1;
+        org.mozilla.javascript.Parser r0;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        $r2 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r1 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $i0 = virtualinvoke $r1.<org.mozilla.javascript.TokenStream: int getLineno()>();
+
+        $r3 = virtualinvoke $r2.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createBlock(int)>($i0);
+
+     label1:
+        $i1 = specialinvoke r0.<org.mozilla.javascript.Parser: int peekToken()>();
+
+        if $i1 <= 0 goto label2;
+
+        if $i1 == 82 goto label2;
+
+        $r4 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r5 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node statement()>();
+
+        virtualinvoke $r4.<org.mozilla.javascript.IRFactory: void addChildToBack(org.mozilla.javascript.Node,org.mozilla.javascript.Node)>($r3, $r5);
+
+        goto label1;
+
+     label2:
+        return $r3;
+    }
+
+    private org.mozilla.javascript.Node condition() throws java.io.IOException, org.mozilla.javascript.Parser$ParserException
+    {
+        org.mozilla.javascript.Decompiler $r1, $r3;
+        org.mozilla.javascript.Node $r2;
+        org.mozilla.javascript.Parser r0;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(83, "msg.no.paren.cond");
+
+        $r1 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r1.<org.mozilla.javascript.Decompiler: void addToken(int)>(83);
+
+        $r2 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node expr(boolean)>(0);
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(84, "msg.no.paren.after.cond");
+
+        $r3 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r3.<org.mozilla.javascript.Decompiler: void addToken(int)>(84);
+
+        return $r2;
+    }
+
+    private org.mozilla.javascript.Node matchJumpLabelName() throws java.io.IOException, org.mozilla.javascript.Parser$ParserException
+    {
+        org.mozilla.javascript.TokenStream $r1;
+        org.mozilla.javascript.Decompiler $r3;
+        org.mozilla.javascript.Node r7;
+        int $i0;
+        java.lang.Object $r6;
+        java.lang.String $r2;
+        org.mozilla.javascript.Parser r0;
+        java.util.Hashtable $r4, $r5;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        r7 = null;
+
+        $i0 = specialinvoke r0.<org.mozilla.javascript.Parser: int peekTokenOrEOL()>();
+
+        if $i0 != 38 goto label2;
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        $r1 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $r2 = virtualinvoke $r1.<org.mozilla.javascript.TokenStream: java.lang.String getString()>();
+
+        $r3 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r3.<org.mozilla.javascript.Decompiler: void addName(java.lang.String)>($r2);
+
+        $r4 = r0.<org.mozilla.javascript.Parser: java.util.Hashtable labelSet>;
+
+        if $r4 == null goto label1;
+
+        $r5 = r0.<org.mozilla.javascript.Parser: java.util.Hashtable labelSet>;
+
+        $r6 = virtualinvoke $r5.<java.util.Hashtable: java.lang.Object get(java.lang.Object)>($r2);
+
+        r7 = (org.mozilla.javascript.Node) $r6;
+
+     label1:
+        if r7 != null goto label2;
+
+        virtualinvoke r0.<org.mozilla.javascript.Parser: java.lang.RuntimeException reportError(java.lang.String)>("msg.undef.label");
+
+     label2:
+        return r7;
+    }
+
+    private org.mozilla.javascript.Node statement() throws java.io.IOException
+    {
+        org.mozilla.javascript.TokenStream $r2;
+        org.mozilla.javascript.Parser$ParserException $r7;
+        org.mozilla.javascript.Node $r1, $r5, $r6;
+        int $i0, $i1;
+        org.mozilla.javascript.IRFactory $r3, $r4;
+        org.mozilla.javascript.Parser r0;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+     label1:
+        $r1 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node statementHelper(org.mozilla.javascript.Node)>(null);
+
+        if $r1 == null goto label3;
+
+     label2:
+        return $r1;
+
+     label3:
+        goto label5;
+
+     label4:
+        $r7 := @caughtexception;
+
+     label5:
+        $r2 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $i0 = virtualinvoke $r2.<org.mozilla.javascript.TokenStream: int getLineno()>();
+
+     label6:
+        $i1 = specialinvoke r0.<org.mozilla.javascript.Parser: int peekTokenOrEOL()>();
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        lookupswitch($i1)
+        {
+            case -1: goto label7;
+            case 0: goto label7;
+            case 1: goto label7;
+            case 78: goto label7;
+            default: goto label8;
+        };
+
+     label7:
+        goto label9;
+
+     label8:
+        goto label6;
+
+     label9:
+        $r4 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r3 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r5 = virtualinvoke $r3.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createName(java.lang.String)>("error");
+
+        $r6 = virtualinvoke $r4.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createExprStatement(org.mozilla.javascript.Node,int)>($r5, $i0);
+
+        return $r6;
+
+        catch org.mozilla.javascript.Parser$ParserException from label1 to label2 with label4;
+    }
+
+    private org.mozilla.javascript.Node statementHelper(org.mozilla.javascript.Node) throws java.io.IOException, org.mozilla.javascript.Parser$ParserException
+    {
+        org.mozilla.javascript.ObjArray $r17, $r18, $r19, $r25, $r26, $r27;
+        org.mozilla.javascript.Decompiler $r1, $r3, $r5, $r6, $r8, $r12, $r22, $r29, $r31, $r32, $r37, $r40, $r44, $r45, $r48, $r49, $r53, $r54, $r57, $r59, $r62, $r64, $r71, $r73, $r76, $r77, $r78, $r79, $r84, $r85, $r86, $r88, $r91, $r93, $r96, $r97, $r98, $r101, $r102, $r104, $r105, $r107, $r112, $r113, $r114, $r115, $r116, $r119, $r120, $r121, $r127, $r128, $r130, $r137, $r138, $r147, $r167, $r170, $r171, $r173, $r181, $r184, $r188;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i10, $i11, $i12, $i13, $i14, $i15, $i16, $i17, $i18, $i19, $i20, $i21, $i22, $i23, $i24, $i25, $i26, $i27, $i28, $i29, $i30, $i31, $i32, $i33, $i35;
+        org.mozilla.javascript.TokenStream $r2, $r11, $r21, $r39, $r42, $r63, $r67, $r69, $r72, $r89, $r103, $r117, $r125, $r129, $r133, $r134, $r148, $r152, $r182, $r185;
+        java.lang.Object $r20, $r28;
+        org.mozilla.javascript.Node $r4, $r7, $r10, $r13, $r15, $r23, $r30, $r46, $r47, $r50, $r52, $r55, $r56, $r58, $r61, $r65, $r74, $r75, $r81, $r83, $r90, $r92, $r95, $r99, $r100, $r106, $r109, $r111, $r124, $r126, $r132, $r136, $r142, $r151, $r153, r162, r163, r164, r166, r168, r169, $r172, r174, r175, r176, r177, r178, r179, r180, r187;
+        java.lang.Throwable $r155, $r157, $r158, $r159, $r160, $r161;
+        java.lang.String $r41, $r43, $r68, $r70, $r118, $r135, $r183, $r186;
+        org.mozilla.javascript.IRFactory $r9, $r14, $r16, $r24, $r33, $r34, $r35, $r36, $r38, $r51, $r60, $r66, $r80, $r82, $r87, $r94, $r108, $r110, $r122, $r123, $r131, $r144, $r146, $r149, $r150, $r154, $r165;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9, z10, z11, $z12, z13, $z14, $z15, $z16, z17;
+        org.mozilla.javascript.Parser r0;
+        java.util.Hashtable $r139, $r140, $r141, $r143, $r156, $r189;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        r162 := @parameter0: org.mozilla.javascript.Node;
+
+        $i0 = specialinvoke r0.<org.mozilla.javascript.Parser: int peekToken()>();
+
+        lookupswitch($i0)
+        {
+            case -1: goto label082;
+            case 4: goto label074;
+            case 38: goto label090;
+            case 49: goto label056;
+            case 77: goto label048;
+            case 78: goto label082;
+            case 81: goto label079;
+            case 105: goto label083;
+            case 108: goto label001;
+            case 110: goto label003;
+            case 112: goto label084;
+            case 113: goto label019;
+            case 114: goto label025;
+            case 115: goto label031;
+            case 116: goto label058;
+            case 117: goto label062;
+            case 118: goto label073;
+            case 119: goto label067;
+            default: goto label103;
+        };
+
+     label001:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        $r88 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r88.<org.mozilla.javascript.Decompiler: void addToken(int)>(108);
+
+        $r89 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $i16 = virtualinvoke $r89.<org.mozilla.javascript.TokenStream: int getLineno()>();
+
+        $r90 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node condition()>();
+
+        $r91 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r91.<org.mozilla.javascript.Decompiler: void addEOL(int)>(81);
+
+        $r92 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node statement()>();
+
+        r163 = null;
+
+        $z5 = specialinvoke r0.<org.mozilla.javascript.Parser: boolean matchToken(int)>(109);
+
+        if $z5 == 0 goto label002;
+
+        $r96 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r96.<org.mozilla.javascript.Decompiler: void addToken(int)>(82);
+
+        $r97 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r97.<org.mozilla.javascript.Decompiler: void addToken(int)>(109);
+
+        $r98 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r98.<org.mozilla.javascript.Decompiler: void addEOL(int)>(81);
+
+        r163 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node statement()>();
+
+     label002:
+        $r93 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r93.<org.mozilla.javascript.Decompiler: void addEOL(int)>(82);
+
+        $r94 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r95 = virtualinvoke $r94.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createIf(org.mozilla.javascript.Node,org.mozilla.javascript.Node,org.mozilla.javascript.Node,int)>($r90, $r92, r163, $i16);
+
+        return $r95;
+
+     label003:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        $r71 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r71.<org.mozilla.javascript.Decompiler: void addToken(int)>(110);
+
+        $r72 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $i14 = virtualinvoke $r72.<org.mozilla.javascript.TokenStream: int getLineno()>();
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(83, "msg.no.paren.switch");
+
+        $r73 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r73.<org.mozilla.javascript.Decompiler: void addToken(int)>(83);
+
+        $r74 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node expr(boolean)>(0);
+
+        $r75 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node enterSwitch(org.mozilla.javascript.Node,int)>($r74, $i14);
+
+     label004:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(84, "msg.no.paren.after.switch");
+
+        $r76 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r76.<org.mozilla.javascript.Decompiler: void addToken(int)>(84);
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(81, "msg.no.brace.switch");
+
+        $r77 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r77.<org.mozilla.javascript.Decompiler: void addEOL(int)>(81);
+
+        z10 = 0;
+
+     label005:
+        $i15 = specialinvoke r0.<org.mozilla.javascript.Parser: int nextToken()>();
+
+        lookupswitch($i15)
+        {
+            case 82: goto label006;
+            case 111: goto label007;
+            case 112: goto label008;
+            default: goto label010;
+        };
+
+     label006:
+        goto label014;
+
+     label007:
+        $r84 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r84.<org.mozilla.javascript.Decompiler: void addToken(int)>(111);
+
+        r164 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node expr(boolean)>(0);
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(99, "msg.no.colon.case");
+
+        $r85 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r85.<org.mozilla.javascript.Decompiler: void addEOL(int)>(99);
+
+        goto label011;
+
+     label008:
+        if z10 == 0 goto label009;
+
+        virtualinvoke r0.<org.mozilla.javascript.Parser: java.lang.RuntimeException reportError(java.lang.String)>("msg.double.switch.default");
+
+     label009:
+        $r78 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r78.<org.mozilla.javascript.Decompiler: void addToken(int)>(112);
+
+        z10 = 1;
+
+        r164 = null;
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(99, "msg.no.colon.case");
+
+        $r79 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r79.<org.mozilla.javascript.Decompiler: void addEOL(int)>(99);
+
+        goto label011;
+
+     label010:
+        virtualinvoke r0.<org.mozilla.javascript.Parser: java.lang.RuntimeException reportError(java.lang.String)>("msg.bad.switch");
+
+        goto label014;
+
+     label011:
+        $r80 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r81 = virtualinvoke $r80.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createLeaf(int)>(125);
+
+     label012:
+        $i30 = specialinvoke r0.<org.mozilla.javascript.Parser: int peekToken()>();
+
+        if $i30 == 82 goto label013;
+
+        if $i30 == 111 goto label013;
+
+        if $i30 == 112 goto label013;
+
+        if $i30 == 0 goto label013;
+
+        $r82 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r83 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node statement()>();
+
+        virtualinvoke $r82.<org.mozilla.javascript.IRFactory: void addChildToBack(org.mozilla.javascript.Node,org.mozilla.javascript.Node)>($r81, $r83);
+
+        goto label012;
+
+     label013:
+        $r165 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        virtualinvoke $r165.<org.mozilla.javascript.IRFactory: void addSwitchCase(org.mozilla.javascript.Node,org.mozilla.javascript.Node,org.mozilla.javascript.Node)>($r75, r164, $r81);
+
+        goto label005;
+
+     label014:
+        $r86 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r86.<org.mozilla.javascript.Decompiler: void addEOL(int)>(82);
+
+        $r87 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        virtualinvoke $r87.<org.mozilla.javascript.IRFactory: void closeSwitch(org.mozilla.javascript.Node)>($r75);
+
+     label015:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void exitSwitch()>();
+
+        goto label018;
+
+     label016:
+        $r161 := @caughtexception;
+
+     label017:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void exitSwitch()>();
+
+        throw $r161;
+
+     label018:
+        return $r75;
+
+     label019:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        $r54 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r54.<org.mozilla.javascript.Decompiler: void addToken(int)>(113);
+
+        $r55 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node enterLoop(org.mozilla.javascript.Node)>(r162);
+
+     label020:
+        $r56 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node condition()>();
+
+        $r57 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r57.<org.mozilla.javascript.Decompiler: void addEOL(int)>(81);
+
+        $r58 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node statement()>();
+
+        $r59 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r59.<org.mozilla.javascript.Decompiler: void addEOL(int)>(82);
+
+        $r60 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r61 = virtualinvoke $r60.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createWhile(org.mozilla.javascript.Node,org.mozilla.javascript.Node,org.mozilla.javascript.Node)>($r55, $r56, $r58);
+
+     label021:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void exitLoop()>();
+
+        goto label024;
+
+     label022:
+        $r160 := @caughtexception;
+
+     label023:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void exitLoop()>();
+
+        throw $r160;
+
+     label024:
+        return $r61;
+
+     label025:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        $r44 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r44.<org.mozilla.javascript.Decompiler: void addToken(int)>(114);
+
+        $r45 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r45.<org.mozilla.javascript.Decompiler: void addEOL(int)>(81);
+
+        $r46 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node enterLoop(org.mozilla.javascript.Node)>(r162);
+
+     label026:
+        $r47 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node statement()>();
+
+        $r48 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r48.<org.mozilla.javascript.Decompiler: void addToken(int)>(82);
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(113, "msg.no.while.do");
+
+        $r49 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r49.<org.mozilla.javascript.Decompiler: void addToken(int)>(113);
+
+        $r50 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node condition()>();
+
+        $r51 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r52 = virtualinvoke $r51.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createDoWhile(org.mozilla.javascript.Node,org.mozilla.javascript.Node,org.mozilla.javascript.Node)>($r46, $r47, $r50);
+
+     label027:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void exitLoop()>();
+
+        goto label030;
+
+     label028:
+        $r159 := @caughtexception;
+
+     label029:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void exitLoop()>();
+
+        throw $r159;
+
+     label030:
+        specialinvoke r0.<org.mozilla.javascript.Parser: boolean matchToken(int)>(78);
+
+        $r53 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r53.<org.mozilla.javascript.Decompiler: void addEOL(int)>(78);
+
+        return $r52;
+
+     label031:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        z11 = 0;
+
+        $r29 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r29.<org.mozilla.javascript.Decompiler: void addToken(int)>(115);
+
+        $r30 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node enterLoop(org.mozilla.javascript.Node)>(r162);
+
+     label032:
+        r166 = null;
+
+        $z0 = specialinvoke r0.<org.mozilla.javascript.Parser: boolean matchToken(int)>(38);
+
+        if $z0 == 0 goto label034;
+
+        $r40 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        $r39 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $r41 = virtualinvoke $r39.<org.mozilla.javascript.TokenStream: java.lang.String getString()>();
+
+        virtualinvoke $r40.<org.mozilla.javascript.Decompiler: void addName(java.lang.String)>($r41);
+
+        $r42 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $r43 = virtualinvoke $r42.<org.mozilla.javascript.TokenStream: java.lang.String getString()>();
+
+        $z1 = virtualinvoke $r43.<java.lang.String: boolean equals(java.lang.Object)>("each");
+
+        if $z1 == 0 goto label033;
+
+        z11 = 1;
+
+        goto label034;
+
+     label033:
+        virtualinvoke r0.<org.mozilla.javascript.Parser: java.lang.RuntimeException reportError(java.lang.String)>("msg.no.paren.for");
+
+     label034:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(83, "msg.no.paren.for");
+
+        $r167 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r167.<org.mozilla.javascript.Decompiler: void addToken(int)>(83);
+
+        $i31 = specialinvoke r0.<org.mozilla.javascript.Parser: int peekToken()>();
+
+        if $i31 != 78 goto label035;
+
+        $r38 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        r168 = virtualinvoke $r38.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createLeaf(int)>(124);
+
+        goto label037;
+
+     label035:
+        if $i31 != 118 goto label036;
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        r168 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node variables(boolean)>(1);
+
+        goto label037;
+
+     label036:
+        r168 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node expr(boolean)>(1);
+
+     label037:
+        $z12 = specialinvoke r0.<org.mozilla.javascript.Parser: boolean matchToken(int)>(51);
+
+        if $z12 == 0 goto label038;
+
+        $r37 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r37.<org.mozilla.javascript.Decompiler: void addToken(int)>(51);
+
+        r169 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node expr(boolean)>(0);
+
+        goto label042;
+
+     label038:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(78, "msg.no.semi.for");
+
+        $r31 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r31.<org.mozilla.javascript.Decompiler: void addToken(int)>(78);
+
+        $i11 = specialinvoke r0.<org.mozilla.javascript.Parser: int peekToken()>();
+
+        if $i11 != 78 goto label039;
+
+        $r36 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        r169 = virtualinvoke $r36.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createLeaf(int)>(124);
+
+        goto label040;
+
+     label039:
+        r169 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node expr(boolean)>(0);
+
+     label040:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(78, "msg.no.semi.for.cond");
+
+        $r32 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r32.<org.mozilla.javascript.Decompiler: void addToken(int)>(78);
+
+        $i12 = specialinvoke r0.<org.mozilla.javascript.Parser: int peekToken()>();
+
+        if $i12 != 84 goto label041;
+
+        $r35 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        r166 = virtualinvoke $r35.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createLeaf(int)>(124);
+
+        goto label042;
+
+     label041:
+        r166 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node expr(boolean)>(0);
+
+     label042:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(84, "msg.no.paren.for.ctrl");
+
+        $r170 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r170.<org.mozilla.javascript.Decompiler: void addToken(int)>(84);
+
+        $r171 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r171.<org.mozilla.javascript.Decompiler: void addEOL(int)>(81);
+
+        $r172 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node statement()>();
+
+        $r173 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r173.<org.mozilla.javascript.Decompiler: void addEOL(int)>(82);
+
+        if r166 != null goto label043;
+
+        $r34 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        r174 = virtualinvoke $r34.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createForIn(org.mozilla.javascript.Node,org.mozilla.javascript.Node,org.mozilla.javascript.Node,org.mozilla.javascript.Node,boolean)>($r30, r168, r169, $r172, z11);
+
+        goto label044;
+
+     label043:
+        $r33 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        r174 = virtualinvoke $r33.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createFor(org.mozilla.javascript.Node,org.mozilla.javascript.Node,org.mozilla.javascript.Node,org.mozilla.javascript.Node,org.mozilla.javascript.Node)>($r30, r168, r169, r166, $r172);
+
+     label044:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void exitLoop()>();
+
+        goto label047;
+
+     label045:
+        $r158 := @caughtexception;
+
+     label046:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void exitLoop()>();
+
+        throw $r158;
+
+     label047:
+        return r174;
+
+     label048:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        $r103 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $i17 = virtualinvoke $r103.<org.mozilla.javascript.TokenStream: int getLineno()>();
+
+        r175 = null;
+
+        $r104 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r104.<org.mozilla.javascript.Decompiler: void addToken(int)>(77);
+
+        $r105 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r105.<org.mozilla.javascript.Decompiler: void addEOL(int)>(81);
+
+        $r106 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node statement()>();
+
+        $r107 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r107.<org.mozilla.javascript.Decompiler: void addEOL(int)>(82);
+
+        $r108 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r109 = virtualinvoke $r108.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createLeaf(int)>(125);
+
+        z13 = 0;
+
+        $i18 = specialinvoke r0.<org.mozilla.javascript.Parser: int peekToken()>();
+
+        if $i18 != 120 goto label053;
+
+     label049:
+        $z6 = specialinvoke r0.<org.mozilla.javascript.Parser: boolean matchToken(int)>(120);
+
+        if $z6 == 0 goto label054;
+
+        if z13 == 0 goto label050;
+
+        virtualinvoke r0.<org.mozilla.javascript.Parser: java.lang.RuntimeException reportError(java.lang.String)>("msg.catch.unreachable");
+
+     label050:
+        $r115 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r115.<org.mozilla.javascript.Decompiler: void addToken(int)>(120);
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(83, "msg.no.paren.catch");
+
+        $r116 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r116.<org.mozilla.javascript.Decompiler: void addToken(int)>(83);
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(38, "msg.bad.catchcond");
+
+        $r117 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $r118 = virtualinvoke $r117.<org.mozilla.javascript.TokenStream: java.lang.String getString()>();
+
+        $r119 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r119.<org.mozilla.javascript.Decompiler: void addName(java.lang.String)>($r118);
+
+        r176 = null;
+
+        $z7 = specialinvoke r0.<org.mozilla.javascript.Parser: boolean matchToken(int)>(108);
+
+        if $z7 == 0 goto label051;
+
+        $r128 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r128.<org.mozilla.javascript.Decompiler: void addToken(int)>(108);
+
+        r176 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node expr(boolean)>(0);
+
+        goto label052;
+
+     label051:
+        z13 = 1;
+
+     label052:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(84, "msg.bad.catchcond");
+
+        $r120 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r120.<org.mozilla.javascript.Decompiler: void addToken(int)>(84);
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(81, "msg.no.brace.catchblock");
+
+        $r121 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r121.<org.mozilla.javascript.Decompiler: void addEOL(int)>(81);
+
+        $r122 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r123 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r124 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node statements()>();
+
+        $r125 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $i19 = virtualinvoke $r125.<org.mozilla.javascript.TokenStream: int getLineno()>();
+
+        $r126 = virtualinvoke $r123.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createCatch(java.lang.String,org.mozilla.javascript.Node,org.mozilla.javascript.Node,int)>($r118, r176, $r124, $i19);
+
+        virtualinvoke $r122.<org.mozilla.javascript.IRFactory: void addChildToBack(org.mozilla.javascript.Node,org.mozilla.javascript.Node)>($r109, $r126);
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(82, "msg.no.brace.after.body");
+
+        $r127 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r127.<org.mozilla.javascript.Decompiler: void addEOL(int)>(82);
+
+        goto label049;
+
+     label053:
+        if $i18 == 121 goto label054;
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(121, "msg.try.no.catchfinally");
+
+     label054:
+        $z14 = specialinvoke r0.<org.mozilla.javascript.Parser: boolean matchToken(int)>(121);
+
+        if $z14 == 0 goto label055;
+
+        $r112 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r112.<org.mozilla.javascript.Decompiler: void addToken(int)>(121);
+
+        $r113 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r113.<org.mozilla.javascript.Decompiler: void addEOL(int)>(81);
+
+        r175 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node statement()>();
+
+        $r114 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r114.<org.mozilla.javascript.Decompiler: void addEOL(int)>(82);
+
+     label055:
+        $r110 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r111 = virtualinvoke $r110.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createTryCatchFinally(org.mozilla.javascript.Node,org.mozilla.javascript.Node,org.mozilla.javascript.Node,int)>($r106, $r109, r175, $i17);
+
+        return $r111;
+
+     label056:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        $i20 = specialinvoke r0.<org.mozilla.javascript.Parser: int peekTokenOrEOL()>();
+
+        if $i20 != 1 goto label057;
+
+        virtualinvoke r0.<org.mozilla.javascript.Parser: java.lang.RuntimeException reportError(java.lang.String)>("msg.bad.throw.eol");
+
+     label057:
+        $r129 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $i21 = virtualinvoke $r129.<org.mozilla.javascript.TokenStream: int getLineno()>();
+
+        $r130 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r130.<org.mozilla.javascript.Decompiler: void addToken(int)>(49);
+
+        $r131 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r132 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node expr(boolean)>(0);
+
+        r177 = virtualinvoke $r131.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createThrow(org.mozilla.javascript.Node,int)>($r132, $i21);
+
+        goto label104;
+
+     label058:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        $r21 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $i9 = virtualinvoke $r21.<org.mozilla.javascript.TokenStream: int getLineno()>();
+
+        $r22 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r22.<org.mozilla.javascript.Decompiler: void addToken(int)>(116);
+
+        $r23 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node matchJumpLabelName()>();
+
+        r178 = $r23;
+
+        if $r23 != null goto label061;
+
+        $r25 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ObjArray loopAndSwitchSet>;
+
+        if $r25 == null goto label059;
+
+        $r26 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ObjArray loopAndSwitchSet>;
+
+        $i10 = virtualinvoke $r26.<org.mozilla.javascript.ObjArray: int size()>();
+
+        if $i10 != 0 goto label060;
+
+     label059:
+        virtualinvoke r0.<org.mozilla.javascript.Parser: java.lang.RuntimeException reportError(java.lang.String)>("msg.bad.break");
+
+        return null;
+
+     label060:
+        $r27 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ObjArray loopAndSwitchSet>;
+
+        $r28 = virtualinvoke $r27.<org.mozilla.javascript.ObjArray: java.lang.Object peek()>();
+
+        r178 = (org.mozilla.javascript.Node) $r28;
+
+     label061:
+        $r24 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        r177 = virtualinvoke $r24.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createBreak(org.mozilla.javascript.Node,int)>(r178, $i9);
+
+        goto label104;
+
+     label062:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        $r11 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $i7 = virtualinvoke $r11.<org.mozilla.javascript.TokenStream: int getLineno()>();
+
+        $r12 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r12.<org.mozilla.javascript.Decompiler: void addToken(int)>(117);
+
+        $r13 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node matchJumpLabelName()>();
+
+        if $r13 != null goto label065;
+
+        $r17 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ObjArray loopSet>;
+
+        if $r17 == null goto label063;
+
+        $r18 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ObjArray loopSet>;
+
+        $i8 = virtualinvoke $r18.<org.mozilla.javascript.ObjArray: int size()>();
+
+        if $i8 != 0 goto label064;
+
+     label063:
+        virtualinvoke r0.<org.mozilla.javascript.Parser: java.lang.RuntimeException reportError(java.lang.String)>("msg.continue.outside");
+
+        return null;
+
+     label064:
+        $r19 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ObjArray loopSet>;
+
+        $r20 = virtualinvoke $r19.<org.mozilla.javascript.ObjArray: java.lang.Object peek()>();
+
+        r179 = (org.mozilla.javascript.Node) $r20;
+
+        goto label066;
+
+     label065:
+        $r14 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r15 = virtualinvoke $r14.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node getLabelLoop(org.mozilla.javascript.Node)>($r13);
+
+        r179 = $r15;
+
+        if $r15 != null goto label066;
+
+        virtualinvoke r0.<org.mozilla.javascript.Parser: java.lang.RuntimeException reportError(java.lang.String)>("msg.continue.nonloop");
+
+        return null;
+
+     label066:
+        $r16 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        r177 = virtualinvoke $r16.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createContinue(org.mozilla.javascript.Node,int)>(r179, $i7);
+
+        goto label104;
+
+     label067:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        $r1 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r1.<org.mozilla.javascript.Decompiler: void addToken(int)>(119);
+
+        $r2 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $i1 = virtualinvoke $r2.<org.mozilla.javascript.TokenStream: int getLineno()>();
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(83, "msg.no.paren.with");
+
+        $r3 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r3.<org.mozilla.javascript.Decompiler: void addToken(int)>(83);
+
+        $r4 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node expr(boolean)>(0);
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(84, "msg.no.paren.after.with");
+
+        $r5 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r5.<org.mozilla.javascript.Decompiler: void addToken(int)>(84);
+
+        $r6 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r6.<org.mozilla.javascript.Decompiler: void addEOL(int)>(81);
+
+        $i2 = r0.<org.mozilla.javascript.Parser: int nestingOfWith>;
+
+        $i3 = $i2 + 1;
+
+        r0.<org.mozilla.javascript.Parser: int nestingOfWith> = $i3;
+
+     label068:
+        $r7 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node statement()>();
+
+     label069:
+        $i4 = r0.<org.mozilla.javascript.Parser: int nestingOfWith>;
+
+        $i5 = $i4 - 1;
+
+        r0.<org.mozilla.javascript.Parser: int nestingOfWith> = $i5;
+
+        goto label072;
+
+     label070:
+        $r157 := @caughtexception;
+
+     label071:
+        $i28 = r0.<org.mozilla.javascript.Parser: int nestingOfWith>;
+
+        $i29 = $i28 - 1;
+
+        r0.<org.mozilla.javascript.Parser: int nestingOfWith> = $i29;
+
+        throw $r157;
+
+     label072:
+        $r8 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r8.<org.mozilla.javascript.Decompiler: void addEOL(int)>(82);
+
+        $r9 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r10 = virtualinvoke $r9.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createWith(org.mozilla.javascript.Node,org.mozilla.javascript.Node,int)>($r4, $r7, $i1);
+
+        return $r10;
+
+     label073:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        r177 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node variables(boolean)>(0);
+
+        goto label104;
+
+     label074:
+        $z9 = virtualinvoke r0.<org.mozilla.javascript.Parser: boolean insideFunction()>();
+
+        if $z9 != 0 goto label075;
+
+        virtualinvoke r0.<org.mozilla.javascript.Parser: java.lang.RuntimeException reportError(java.lang.String)>("msg.bad.return");
+
+     label075:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        $r147 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r147.<org.mozilla.javascript.Decompiler: void addToken(int)>(4);
+
+        $r148 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $i25 = virtualinvoke $r148.<org.mozilla.javascript.TokenStream: int getLineno()>();
+
+        $i26 = specialinvoke r0.<org.mozilla.javascript.Parser: int peekTokenOrEOL()>();
+
+        lookupswitch($i26)
+        {
+            case -1: goto label076;
+            case 0: goto label076;
+            case 1: goto label076;
+            case 78: goto label076;
+            case 82: goto label076;
+            default: goto label077;
+        };
+
+     label076:
+        r180 = null;
+
+        goto label078;
+
+     label077:
+        r180 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node expr(boolean)>(0);
+
+     label078:
+        $r149 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        r177 = virtualinvoke $r149.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createReturn(org.mozilla.javascript.Node,int)>(r180, $i25);
+
+        goto label104;
+
+     label079:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        if r162 == null goto label080;
+
+        $r102 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r102.<org.mozilla.javascript.Decompiler: void addToken(int)>(81);
+
+     label080:
+        $r100 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node statements()>();
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(82, "msg.no.brace.block");
+
+        if r162 == null goto label081;
+
+        $r101 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r101.<org.mozilla.javascript.Decompiler: void addEOL(int)>(82);
+
+     label081:
+        return $r100;
+
+     label082:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        $r150 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r151 = virtualinvoke $r150.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createLeaf(int)>(124);
+
+        return $r151;
+
+     label083:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        $r99 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node function(int)>(3);
+
+        return $r99;
+
+     label084:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustHaveXML()>();
+
+        $r62 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r62.<org.mozilla.javascript.Decompiler: void addToken(int)>(112);
+
+        $r63 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $i13 = virtualinvoke $r63.<org.mozilla.javascript.TokenStream: int getLineno()>();
+
+        $z2 = specialinvoke r0.<org.mozilla.javascript.Parser: boolean matchToken(int)>(38);
+
+        if $z2 == 0 goto label085;
+
+        $r69 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $r70 = virtualinvoke $r69.<org.mozilla.javascript.TokenStream: java.lang.String getString()>();
+
+        $z4 = virtualinvoke $r70.<java.lang.String: boolean equals(java.lang.Object)>("xml");
+
+        if $z4 != 0 goto label086;
+
+     label085:
+        virtualinvoke r0.<org.mozilla.javascript.Parser: java.lang.RuntimeException reportError(java.lang.String)>("msg.bad.namespace");
+
+     label086:
+        $r181 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        $r182 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $r183 = virtualinvoke $r182.<org.mozilla.javascript.TokenStream: java.lang.String getString()>();
+
+        virtualinvoke $r181.<org.mozilla.javascript.Decompiler: void addName(java.lang.String)>($r183);
+
+        $z15 = specialinvoke r0.<org.mozilla.javascript.Parser: boolean matchToken(int)>(38);
+
+        if $z15 == 0 goto label087;
+
+        $r67 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $r68 = virtualinvoke $r67.<org.mozilla.javascript.TokenStream: java.lang.String getString()>();
+
+        $z3 = virtualinvoke $r68.<java.lang.String: boolean equals(java.lang.Object)>("namespace");
+
+        if $z3 != 0 goto label088;
+
+     label087:
+        virtualinvoke r0.<org.mozilla.javascript.Parser: java.lang.RuntimeException reportError(java.lang.String)>("msg.bad.namespace");
+
+     label088:
+        $r184 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        $r185 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $r186 = virtualinvoke $r185.<org.mozilla.javascript.TokenStream: java.lang.String getString()>();
+
+        virtualinvoke $r184.<org.mozilla.javascript.Decompiler: void addName(java.lang.String)>($r186);
+
+        $z16 = specialinvoke r0.<org.mozilla.javascript.Parser: boolean matchToken(int)>(86);
+
+        if $z16 != 0 goto label089;
+
+        virtualinvoke r0.<org.mozilla.javascript.Parser: java.lang.RuntimeException reportError(java.lang.String)>("msg.bad.namespace");
+
+     label089:
+        $r64 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r64.<org.mozilla.javascript.Decompiler: void addToken(int)>(86);
+
+        $r65 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node expr(boolean)>(0);
+
+        $r66 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        r177 = virtualinvoke $r66.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createDefaultNamespace(org.mozilla.javascript.Node,int)>($r65, $i13);
+
+        goto label104;
+
+     label090:
+        $r133 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $i22 = virtualinvoke $r133.<org.mozilla.javascript.TokenStream: int getLineno()>();
+
+        $r134 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $r135 = virtualinvoke $r134.<org.mozilla.javascript.TokenStream: java.lang.String getString()>();
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void setCheckForLabel()>();
+
+        $r136 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node expr(boolean)>(0);
+
+        $i23 = virtualinvoke $r136.<org.mozilla.javascript.Node: int getType()>();
+
+        if $i23 == 126 goto label091;
+
+        $r146 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        r177 = virtualinvoke $r146.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createExprStatement(org.mozilla.javascript.Node,int)>($r136, $i22);
+
+        goto label104;
+
+     label091:
+        $i24 = specialinvoke r0.<org.mozilla.javascript.Parser: int peekToken()>();
+
+        if $i24 == 99 goto label092;
+
+        staticinvoke <org.mozilla.javascript.Kit: java.lang.RuntimeException codeBug()>();
+
+     label092:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        $r137 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r137.<org.mozilla.javascript.Decompiler: void addName(java.lang.String)>($r135);
+
+        $r138 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r138.<org.mozilla.javascript.Decompiler: void addEOL(int)>(99);
+
+        $r139 = r0.<org.mozilla.javascript.Parser: java.util.Hashtable labelSet>;
+
+        if $r139 != null goto label093;
+
+        $r189 = new java.util.Hashtable;
+
+        specialinvoke $r189.<java.util.Hashtable: void <init>()>();
+
+        r0.<org.mozilla.javascript.Parser: java.util.Hashtable labelSet> = $r189;
+
+        goto label094;
+
+     label093:
+        $r140 = r0.<org.mozilla.javascript.Parser: java.util.Hashtable labelSet>;
+
+        $z8 = virtualinvoke $r140.<java.util.Hashtable: boolean containsKey(java.lang.Object)>($r135);
+
+        if $z8 == 0 goto label094;
+
+        virtualinvoke r0.<org.mozilla.javascript.Parser: java.lang.RuntimeException reportError(java.lang.String)>("msg.dup.label");
+
+     label094:
+        if r162 != null goto label095;
+
+        z17 = 1;
+
+        r162 = $r136;
+
+        goto label096;
+
+     label095:
+        z17 = 0;
+
+     label096:
+        $r141 = r0.<org.mozilla.javascript.Parser: java.util.Hashtable labelSet>;
+
+        virtualinvoke $r141.<java.util.Hashtable: java.lang.Object put(java.lang.Object,java.lang.Object)>($r135, r162);
+
+     label097:
+        $r142 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node statementHelper(org.mozilla.javascript.Node)>(r162);
+
+        r187 = $r142;
+
+     label098:
+        $r143 = r0.<org.mozilla.javascript.Parser: java.util.Hashtable labelSet>;
+
+        virtualinvoke $r143.<java.util.Hashtable: java.lang.Object remove(java.lang.Object)>($r135);
+
+        goto label101;
+
+     label099:
+        $r155 := @caughtexception;
+
+     label100:
+        $r156 = r0.<org.mozilla.javascript.Parser: java.util.Hashtable labelSet>;
+
+        virtualinvoke $r156.<java.util.Hashtable: java.lang.Object remove(java.lang.Object)>($r135);
+
+        throw $r155;
+
+     label101:
+        if z17 == 0 goto label102;
+
+        $r144 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        r187 = virtualinvoke $r144.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createLabeledStatement(org.mozilla.javascript.Node,org.mozilla.javascript.Node)>(r162, $r142);
+
+     label102:
+        return r187;
+
+     label103:
+        $r152 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $i27 = virtualinvoke $r152.<org.mozilla.javascript.TokenStream: int getLineno()>();
+
+        $r153 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node expr(boolean)>(0);
+
+        $r154 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        r177 = virtualinvoke $r154.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createExprStatement(org.mozilla.javascript.Node,int)>($r153, $i27);
+
+     label104:
+        $i32 = specialinvoke r0.<org.mozilla.javascript.Parser: int peekFlaggedToken()>();
+
+        $i35 = (int) 65535;
+
+        $i33 = $i32 & $i35;
+
+        lookupswitch($i33)
+        {
+            case -1: goto label106;
+            case 0: goto label106;
+            case 78: goto label105;
+            case 82: goto label106;
+            default: goto label107;
+        };
+
+     label105:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        goto label108;
+
+     label106:
+        goto label108;
+
+     label107:
+        $i6 = $i32 & 65536;
+
+        if $i6 != 0 goto label108;
+
+        virtualinvoke r0.<org.mozilla.javascript.Parser: java.lang.RuntimeException reportError(java.lang.String)>("msg.no.semi.stmt");
+
+     label108:
+        $r188 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r188.<org.mozilla.javascript.Decompiler: void addEOL(int)>(78);
+
+        return r177;
+
+        catch java.lang.Throwable from label004 to label015 with label016;
+        catch java.lang.Throwable from label016 to label017 with label016;
+        catch java.lang.Throwable from label020 to label021 with label022;
+        catch java.lang.Throwable from label022 to label023 with label022;
+        catch java.lang.Throwable from label026 to label027 with label028;
+        catch java.lang.Throwable from label028 to label029 with label028;
+        catch java.lang.Throwable from label032 to label044 with label045;
+        catch java.lang.Throwable from label045 to label046 with label045;
+        catch java.lang.Throwable from label068 to label069 with label070;
+        catch java.lang.Throwable from label070 to label071 with label070;
+        catch java.lang.Throwable from label097 to label098 with label099;
+        catch java.lang.Throwable from label099 to label100 with label099;
+    }
+
+    private org.mozilla.javascript.Node variables(boolean) throws java.io.IOException, org.mozilla.javascript.Parser$ParserException
+    {
+        org.mozilla.javascript.Decompiler $r4, $r7, $r12, $r15;
+        org.mozilla.javascript.Node $r3, $r10, $r13;
+        int $i0;
+        org.mozilla.javascript.ScriptOrFnNode $r8;
+        java.lang.String $r6;
+        boolean $z0, $z1, z2, z3;
+        org.mozilla.javascript.TokenStream $r1, $r5;
+        org.mozilla.javascript.IRFactory $r2, $r9, $r11, $r14;
+        org.mozilla.javascript.Parser r0;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        z2 := @parameter0: boolean;
+
+        $r2 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r1 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $i0 = virtualinvoke $r1.<org.mozilla.javascript.TokenStream: int getLineno()>();
+
+        $r3 = virtualinvoke $r2.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createVariables(int)>($i0);
+
+        z3 = 1;
+
+        $r4 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r4.<org.mozilla.javascript.Decompiler: void addToken(int)>(118);
+
+     label1:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(38, "msg.bad.var");
+
+        $r5 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $r6 = virtualinvoke $r5.<org.mozilla.javascript.TokenStream: java.lang.String getString()>();
+
+        if z3 != 0 goto label2;
+
+        $r15 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r15.<org.mozilla.javascript.Decompiler: void addToken(int)>(85);
+
+     label2:
+        z3 = 0;
+
+        $r7 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r7.<org.mozilla.javascript.Decompiler: void addName(java.lang.String)>($r6);
+
+        $r8 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ScriptOrFnNode currentScriptOrFn>;
+
+        virtualinvoke $r8.<org.mozilla.javascript.ScriptOrFnNode: void addVar(java.lang.String)>($r6);
+
+        $r9 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r10 = virtualinvoke $r9.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createName(java.lang.String)>($r6);
+
+        $z0 = specialinvoke r0.<org.mozilla.javascript.Parser: boolean matchToken(int)>(86);
+
+        if $z0 == 0 goto label3;
+
+        $r12 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r12.<org.mozilla.javascript.Decompiler: void addToken(int)>(86);
+
+        $r13 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node assignExpr(boolean)>(z2);
+
+        $r14 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        virtualinvoke $r14.<org.mozilla.javascript.IRFactory: void addChildToBack(org.mozilla.javascript.Node,org.mozilla.javascript.Node)>($r10, $r13);
+
+     label3:
+        $r11 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        virtualinvoke $r11.<org.mozilla.javascript.IRFactory: void addChildToBack(org.mozilla.javascript.Node,org.mozilla.javascript.Node)>($r3, $r10);
+
+        $z1 = specialinvoke r0.<org.mozilla.javascript.Parser: boolean matchToken(int)>(85);
+
+        if $z1 != 0 goto label1;
+
+        goto label4;
+
+     label4:
+        return $r3;
+    }
+
+    private org.mozilla.javascript.Node expr(boolean) throws java.io.IOException, org.mozilla.javascript.Parser$ParserException
+    {
+        org.mozilla.javascript.Decompiler $r1;
+        org.mozilla.javascript.Node $r3, r4;
+        org.mozilla.javascript.IRFactory $r2;
+        org.mozilla.javascript.Parser r0;
+        boolean z0, $z1;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        z0 := @parameter0: boolean;
+
+        r4 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node assignExpr(boolean)>(z0);
+
+     label1:
+        $z1 = specialinvoke r0.<org.mozilla.javascript.Parser: boolean matchToken(int)>(85);
+
+        if $z1 == 0 goto label2;
+
+        $r1 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r1.<org.mozilla.javascript.Decompiler: void addToken(int)>(85);
+
+        $r2 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r3 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node assignExpr(boolean)>(z0);
+
+        r4 = virtualinvoke $r2.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createBinary(int,org.mozilla.javascript.Node,org.mozilla.javascript.Node)>(85, r4, $r3);
+
+        goto label1;
+
+     label2:
+        return r4;
+    }
+
+    private org.mozilla.javascript.Node assignExpr(boolean) throws java.io.IOException, org.mozilla.javascript.Parser$ParserException
+    {
+        org.mozilla.javascript.Decompiler $r2;
+        org.mozilla.javascript.Node $r1, $r4, r5;
+        int $i0;
+        org.mozilla.javascript.IRFactory $r3;
+        org.mozilla.javascript.Parser r0;
+        boolean z0;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        z0 := @parameter0: boolean;
+
+        $r1 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node condExpr(boolean)>(z0);
+
+        r5 = $r1;
+
+        $i0 = specialinvoke r0.<org.mozilla.javascript.Parser: int peekToken()>();
+
+        if 86 > $i0 goto label1;
+
+        if $i0 > 97 goto label1;
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        $r2 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r2.<org.mozilla.javascript.Decompiler: void addToken(int)>($i0);
+
+        $r3 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r4 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node assignExpr(boolean)>(z0);
+
+        r5 = virtualinvoke $r3.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createAssignment(int,org.mozilla.javascript.Node,org.mozilla.javascript.Node)>($i0, $r1, $r4);
+
+     label1:
+        return r5;
+    }
+
+    private org.mozilla.javascript.Node condExpr(boolean) throws java.io.IOException, org.mozilla.javascript.Parser$ParserException
+    {
+        org.mozilla.javascript.Decompiler $r2, $r4;
+        org.mozilla.javascript.Node $r1, $r3, $r5, $r7;
+        org.mozilla.javascript.IRFactory $r6;
+        org.mozilla.javascript.Parser r0;
+        boolean z0, $z1;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        z0 := @parameter0: boolean;
+
+        $r1 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node orExpr(boolean)>(z0);
+
+        $z1 = specialinvoke r0.<org.mozilla.javascript.Parser: boolean matchToken(int)>(98);
+
+        if $z1 == 0 goto label1;
+
+        $r2 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r2.<org.mozilla.javascript.Decompiler: void addToken(int)>(98);
+
+        $r3 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node assignExpr(boolean)>(0);
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(99, "msg.no.colon.cond");
+
+        $r4 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r4.<org.mozilla.javascript.Decompiler: void addToken(int)>(99);
+
+        $r5 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node assignExpr(boolean)>(z0);
+
+        $r6 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r7 = virtualinvoke $r6.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createCondExpr(org.mozilla.javascript.Node,org.mozilla.javascript.Node,org.mozilla.javascript.Node)>($r1, $r3, $r5);
+
+        return $r7;
+
+     label1:
+        return $r1;
+    }
+
+    private org.mozilla.javascript.Node orExpr(boolean) throws java.io.IOException, org.mozilla.javascript.Parser$ParserException
+    {
+        org.mozilla.javascript.Decompiler $r2;
+        org.mozilla.javascript.Node $r1, $r4, r5;
+        org.mozilla.javascript.IRFactory $r3;
+        org.mozilla.javascript.Parser r0;
+        boolean z0, $z1;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        z0 := @parameter0: boolean;
+
+        $r1 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node andExpr(boolean)>(z0);
+
+        r5 = $r1;
+
+        $z1 = specialinvoke r0.<org.mozilla.javascript.Parser: boolean matchToken(int)>(100);
+
+        if $z1 == 0 goto label1;
+
+        $r2 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r2.<org.mozilla.javascript.Decompiler: void addToken(int)>(100);
+
+        $r3 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r4 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node orExpr(boolean)>(z0);
+
+        r5 = virtualinvoke $r3.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createBinary(int,org.mozilla.javascript.Node,org.mozilla.javascript.Node)>(100, $r1, $r4);
+
+     label1:
+        return r5;
+    }
+
+    private org.mozilla.javascript.Node andExpr(boolean) throws java.io.IOException, org.mozilla.javascript.Parser$ParserException
+    {
+        org.mozilla.javascript.Decompiler $r2;
+        org.mozilla.javascript.Node $r1, $r4, r5;
+        org.mozilla.javascript.IRFactory $r3;
+        org.mozilla.javascript.Parser r0;
+        boolean z0, $z1;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        z0 := @parameter0: boolean;
+
+        $r1 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node bitOrExpr(boolean)>(z0);
+
+        r5 = $r1;
+
+        $z1 = specialinvoke r0.<org.mozilla.javascript.Parser: boolean matchToken(int)>(101);
+
+        if $z1 == 0 goto label1;
+
+        $r2 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r2.<org.mozilla.javascript.Decompiler: void addToken(int)>(101);
+
+        $r3 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r4 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node andExpr(boolean)>(z0);
+
+        r5 = virtualinvoke $r3.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createBinary(int,org.mozilla.javascript.Node,org.mozilla.javascript.Node)>(101, $r1, $r4);
+
+     label1:
+        return r5;
+    }
+
+    private org.mozilla.javascript.Node bitOrExpr(boolean) throws java.io.IOException, org.mozilla.javascript.Parser$ParserException
+    {
+        org.mozilla.javascript.Decompiler $r1;
+        org.mozilla.javascript.Node $r3, r4;
+        org.mozilla.javascript.IRFactory $r2;
+        org.mozilla.javascript.Parser r0;
+        boolean z0, $z1;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        z0 := @parameter0: boolean;
+
+        r4 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node bitXorExpr(boolean)>(z0);
+
+     label1:
+        $z1 = specialinvoke r0.<org.mozilla.javascript.Parser: boolean matchToken(int)>(9);
+
+        if $z1 == 0 goto label2;
+
+        $r1 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r1.<org.mozilla.javascript.Decompiler: void addToken(int)>(9);
+
+        $r2 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r3 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node bitXorExpr(boolean)>(z0);
+
+        r4 = virtualinvoke $r2.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createBinary(int,org.mozilla.javascript.Node,org.mozilla.javascript.Node)>(9, r4, $r3);
+
+        goto label1;
+
+     label2:
+        return r4;
+    }
+
+    private org.mozilla.javascript.Node bitXorExpr(boolean) throws java.io.IOException, org.mozilla.javascript.Parser$ParserException
+    {
+        org.mozilla.javascript.Decompiler $r1;
+        org.mozilla.javascript.Node $r3, r4;
+        org.mozilla.javascript.IRFactory $r2;
+        org.mozilla.javascript.Parser r0;
+        boolean z0, $z1;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        z0 := @parameter0: boolean;
+
+        r4 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node bitAndExpr(boolean)>(z0);
+
+     label1:
+        $z1 = specialinvoke r0.<org.mozilla.javascript.Parser: boolean matchToken(int)>(10);
+
+        if $z1 == 0 goto label2;
+
+        $r1 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r1.<org.mozilla.javascript.Decompiler: void addToken(int)>(10);
+
+        $r2 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r3 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node bitAndExpr(boolean)>(z0);
+
+        r4 = virtualinvoke $r2.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createBinary(int,org.mozilla.javascript.Node,org.mozilla.javascript.Node)>(10, r4, $r3);
+
+        goto label1;
+
+     label2:
+        return r4;
+    }
+
+    private org.mozilla.javascript.Node bitAndExpr(boolean) throws java.io.IOException, org.mozilla.javascript.Parser$ParserException
+    {
+        org.mozilla.javascript.Decompiler $r1;
+        org.mozilla.javascript.Node $r3, r4;
+        org.mozilla.javascript.IRFactory $r2;
+        org.mozilla.javascript.Parser r0;
+        boolean z0, $z1;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        z0 := @parameter0: boolean;
+
+        r4 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node eqExpr(boolean)>(z0);
+
+     label1:
+        $z1 = specialinvoke r0.<org.mozilla.javascript.Parser: boolean matchToken(int)>(11);
+
+        if $z1 == 0 goto label2;
+
+        $r1 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r1.<org.mozilla.javascript.Decompiler: void addToken(int)>(11);
+
+        $r2 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r3 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node eqExpr(boolean)>(z0);
+
+        r4 = virtualinvoke $r2.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createBinary(int,org.mozilla.javascript.Node,org.mozilla.javascript.Node)>(11, r4, $r3);
+
+        goto label1;
+
+     label2:
+        return r4;
+    }
+
+    private org.mozilla.javascript.Node eqExpr(boolean) throws java.io.IOException, org.mozilla.javascript.Parser$ParserException
+    {
+        org.mozilla.javascript.Decompiler $r3;
+        org.mozilla.javascript.CompilerEnvirons $r1;
+        org.mozilla.javascript.Node r2, $r5;
+        int $i0, $i1, i2, i3;
+        org.mozilla.javascript.IRFactory $r4;
+        org.mozilla.javascript.Parser r0;
+        boolean z0;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        z0 := @parameter0: boolean;
+
+        r2 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node relExpr(boolean)>(z0);
+
+     label1:
+        $i0 = specialinvoke r0.<org.mozilla.javascript.Parser: int peekToken()>();
+
+        lookupswitch($i0)
+        {
+            case 12: goto label2;
+            case 13: goto label2;
+            case 45: goto label2;
+            case 46: goto label2;
+            default: goto label8;
+        };
+
+     label2:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        i2 = $i0;
+
+        i3 = $i0;
+
+        $r1 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.CompilerEnvirons compilerEnv>;
+
+        $i1 = virtualinvoke $r1.<org.mozilla.javascript.CompilerEnvirons: int getLanguageVersion()>();
+
+        if $i1 != 120 goto label7;
+
+        lookupswitch($i0)
+        {
+            case 12: goto label3;
+            case 13: goto label4;
+            case 45: goto label5;
+            case 46: goto label6;
+            default: goto label7;
+        };
+
+     label3:
+        i3 = 45;
+
+        goto label7;
+
+     label4:
+        i3 = 46;
+
+        goto label7;
+
+     label5:
+        i2 = 12;
+
+        goto label7;
+
+     label6:
+        i2 = 13;
+
+     label7:
+        $r3 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r3.<org.mozilla.javascript.Decompiler: void addToken(int)>(i2);
+
+        $r4 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r5 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node relExpr(boolean)>(z0);
+
+        r2 = virtualinvoke $r4.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createBinary(int,org.mozilla.javascript.Node,org.mozilla.javascript.Node)>(i3, r2, $r5);
+
+        goto label1;
+
+     label8:
+        goto label9;
+
+     label9:
+        return r2;
+    }
+
+    private org.mozilla.javascript.Node relExpr(boolean) throws java.io.IOException, org.mozilla.javascript.Parser$ParserException
+    {
+        org.mozilla.javascript.Decompiler $r1;
+        org.mozilla.javascript.Node $r3, r4;
+        int $i0;
+        org.mozilla.javascript.IRFactory $r2;
+        org.mozilla.javascript.Parser r0;
+        boolean z0;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        z0 := @parameter0: boolean;
+
+        r4 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node shiftExpr()>();
+
+     label1:
+        $i0 = specialinvoke r0.<org.mozilla.javascript.Parser: int peekToken()>();
+
+        lookupswitch($i0)
+        {
+            case 14: goto label3;
+            case 15: goto label3;
+            case 16: goto label3;
+            case 17: goto label3;
+            case 51: goto label2;
+            case 52: goto label3;
+            default: goto label4;
+        };
+
+     label2:
+        if z0 == 0 goto label3;
+
+        goto label4;
+
+     label3:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        $r1 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r1.<org.mozilla.javascript.Decompiler: void addToken(int)>($i0);
+
+        $r2 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r3 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node shiftExpr()>();
+
+        r4 = virtualinvoke $r2.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createBinary(int,org.mozilla.javascript.Node,org.mozilla.javascript.Node)>($i0, r4, $r3);
+
+        goto label1;
+
+     label4:
+        goto label5;
+
+     label5:
+        return r4;
+    }
+
+    private org.mozilla.javascript.Node shiftExpr() throws java.io.IOException, org.mozilla.javascript.Parser$ParserException
+    {
+        org.mozilla.javascript.Decompiler $r1;
+        org.mozilla.javascript.Node $r3, r4;
+        int $i0;
+        org.mozilla.javascript.IRFactory $r2;
+        org.mozilla.javascript.Parser r0;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        r4 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node addExpr()>();
+
+     label1:
+        $i0 = specialinvoke r0.<org.mozilla.javascript.Parser: int peekToken()>();
+
+        tableswitch($i0)
+        {
+            case 18: goto label2;
+            case 19: goto label2;
+            case 20: goto label2;
+            default: goto label3;
+        };
+
+     label2:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        $r1 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r1.<org.mozilla.javascript.Decompiler: void addToken(int)>($i0);
+
+        $r2 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r3 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node addExpr()>();
+
+        r4 = virtualinvoke $r2.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createBinary(int,org.mozilla.javascript.Node,org.mozilla.javascript.Node)>($i0, r4, $r3);
+
+        goto label1;
+
+     label3:
+        goto label4;
+
+     label4:
+        return r4;
+    }
+
+    private org.mozilla.javascript.Node addExpr() throws java.io.IOException, org.mozilla.javascript.Parser$ParserException
+    {
+        org.mozilla.javascript.Decompiler $r1;
+        org.mozilla.javascript.Node $r3, r4;
+        int $i0;
+        org.mozilla.javascript.IRFactory $r2;
+        org.mozilla.javascript.Parser r0;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        r4 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node mulExpr()>();
+
+     label1:
+        $i0 = specialinvoke r0.<org.mozilla.javascript.Parser: int peekToken()>();
+
+        if $i0 == 21 goto label2;
+
+        if $i0 != 22 goto label3;
+
+     label2:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        $r1 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r1.<org.mozilla.javascript.Decompiler: void addToken(int)>($i0);
+
+        $r2 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r3 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node mulExpr()>();
+
+        r4 = virtualinvoke $r2.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createBinary(int,org.mozilla.javascript.Node,org.mozilla.javascript.Node)>($i0, r4, $r3);
+
+        goto label1;
+
+     label3:
+        return r4;
+    }
+
+    private org.mozilla.javascript.Node mulExpr() throws java.io.IOException, org.mozilla.javascript.Parser$ParserException
+    {
+        org.mozilla.javascript.Decompiler $r1;
+        org.mozilla.javascript.Node $r3, r4;
+        int $i0;
+        org.mozilla.javascript.IRFactory $r2;
+        org.mozilla.javascript.Parser r0;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        r4 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node unaryExpr()>();
+
+     label1:
+        $i0 = specialinvoke r0.<org.mozilla.javascript.Parser: int peekToken()>();
+
+        tableswitch($i0)
+        {
+            case 23: goto label2;
+            case 24: goto label2;
+            case 25: goto label2;
+            default: goto label3;
+        };
+
+     label2:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        $r1 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r1.<org.mozilla.javascript.Decompiler: void addToken(int)>($i0);
+
+        $r2 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r3 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node unaryExpr()>();
+
+        r4 = virtualinvoke $r2.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createBinary(int,org.mozilla.javascript.Node,org.mozilla.javascript.Node)>($i0, r4, $r3);
+
+        goto label1;
+
+     label3:
+        goto label4;
+
+     label4:
+        return r4;
+    }
+
+    private org.mozilla.javascript.Node unaryExpr() throws java.io.IOException, org.mozilla.javascript.Parser$ParserException
+    {
+        org.mozilla.javascript.Node $r3, $r4, $r7, $r8, $r11, $r12, $r15, $r16, $r19, $r20, $r22, $r25, $r26, $r27, $r29;
+        boolean $z0;
+        org.mozilla.javascript.Parser r0;
+        org.mozilla.javascript.Decompiler $r1, $r5, $r9, $r13, $r17, $r23;
+        int $i0, $i1;
+        org.mozilla.javascript.CompilerEnvirons $r21;
+        org.mozilla.javascript.IRFactory $r2, $r6, $r10, $r14, $r18, $r24, $r28;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        $i0 = specialinvoke r0.<org.mozilla.javascript.Parser: int peekToken()>();
+
+        lookupswitch($i0)
+        {
+            case -1: goto label06;
+            case 14: goto label07;
+            case 21: goto label02;
+            case 22: goto label03;
+            case 26: goto label01;
+            case 27: goto label01;
+            case 31: goto label05;
+            case 32: goto label01;
+            case 102: goto label04;
+            case 103: goto label04;
+            case 122: goto label01;
+            default: goto label08;
+        };
+
+     label01:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        $r9 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r9.<org.mozilla.javascript.Decompiler: void addToken(int)>($i0);
+
+        $r10 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r11 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node unaryExpr()>();
+
+        $r12 = virtualinvoke $r10.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createUnary(int,org.mozilla.javascript.Node)>($i0, $r11);
+
+        return $r12;
+
+     label02:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        $r17 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r17.<org.mozilla.javascript.Decompiler: void addToken(int)>(28);
+
+        $r18 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r19 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node unaryExpr()>();
+
+        $r20 = virtualinvoke $r18.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createUnary(int,org.mozilla.javascript.Node)>(28, $r19);
+
+        return $r20;
+
+     label03:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        $r13 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r13.<org.mozilla.javascript.Decompiler: void addToken(int)>(29);
+
+        $r14 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r15 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node unaryExpr()>();
+
+        $r16 = virtualinvoke $r14.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createUnary(int,org.mozilla.javascript.Node)>(29, $r15);
+
+        return $r16;
+
+     label04:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        $r1 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r1.<org.mozilla.javascript.Decompiler: void addToken(int)>($i0);
+
+        $r2 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r3 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node memberExpr(boolean)>(1);
+
+        $r4 = virtualinvoke $r2.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createIncDec(int,boolean,org.mozilla.javascript.Node)>($i0, 0, $r3);
+
+        return $r4;
+
+     label05:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        $r5 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r5.<org.mozilla.javascript.Decompiler: void addToken(int)>(31);
+
+        $r6 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r7 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node unaryExpr()>();
+
+        $r8 = virtualinvoke $r6.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createUnary(int,org.mozilla.javascript.Node)>(31, $r7);
+
+        return $r8;
+
+     label06:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        goto label11;
+
+     label07:
+        $r21 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.CompilerEnvirons compilerEnv>;
+
+        $z0 = virtualinvoke $r21.<org.mozilla.javascript.CompilerEnvirons: boolean isXmlAvailable()>();
+
+        if $z0 == 0 goto label08;
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        $r26 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node xmlInitializer()>();
+
+        $r27 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node memberExprTail(boolean,org.mozilla.javascript.Node)>(1, $r26);
+
+        return $r27;
+
+     label08:
+        $r22 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node memberExpr(boolean)>(1);
+
+        $i1 = specialinvoke r0.<org.mozilla.javascript.Parser: int peekTokenOrEOL()>();
+
+        if $i1 == 102 goto label09;
+
+        if $i1 != 103 goto label10;
+
+     label09:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        $r23 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r23.<org.mozilla.javascript.Decompiler: void addToken(int)>($i1);
+
+        $r24 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r25 = virtualinvoke $r24.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createIncDec(int,boolean,org.mozilla.javascript.Node)>($i1, 1, $r22);
+
+        return $r25;
+
+     label10:
+        return $r22;
+
+     label11:
+        $r28 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r29 = virtualinvoke $r28.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createName(java.lang.String)>("err");
+
+        return $r29;
+    }
+
+    private org.mozilla.javascript.Node xmlInitializer() throws java.io.IOException
+    {
+        byte b3;
+        org.mozilla.javascript.Node $r3, $r8, $r15, $r25, $r28, r34, $r35, r36, r37, r38;
+        boolean $z0, $z1;
+        org.mozilla.javascript.Parser r0;
+        org.mozilla.javascript.Decompiler $r12, $r20, $r21, $r22;
+        int $i0, $i1, i2;
+        java.lang.String $r5, $r6, $r11, $r19, $r33;
+        org.mozilla.javascript.TokenStream $r1, $r4, $r10, $r18, $r26, $r30;
+        org.mozilla.javascript.IRFactory $r2, $r7, $r9, $r13, $r14, $r16, $r17, $r23, $r24, $r27, $r29, $r31, $r32;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        $r1 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $i0 = virtualinvoke $r1.<org.mozilla.javascript.TokenStream: int getFirstXMLToken()>();
+
+        i2 = $i0;
+
+        if $i0 == 141 goto label01;
+
+        if $i0 == 144 goto label01;
+
+        virtualinvoke r0.<org.mozilla.javascript.Parser: java.lang.RuntimeException reportError(java.lang.String)>("msg.syntax");
+
+        return null;
+
+     label01:
+        $r2 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r3 = virtualinvoke $r2.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createLeaf(int)>(30);
+
+        $r4 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $r5 = virtualinvoke $r4.<org.mozilla.javascript.TokenStream: java.lang.String getString()>();
+
+        $r6 = virtualinvoke $r5.<java.lang.String: java.lang.String trim()>();
+
+        $z0 = virtualinvoke $r6.<java.lang.String: boolean startsWith(java.lang.String)>("<>");
+
+        $r7 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        if $z0 == 0 goto label02;
+
+        $r33 = "XMLList";
+
+        goto label03;
+
+     label02:
+        $r33 = "XML";
+
+     label03:
+        $r8 = virtualinvoke $r7.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createName(java.lang.String)>($r33);
+
+        $r9 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        virtualinvoke $r9.<org.mozilla.javascript.IRFactory: void addChildToBack(org.mozilla.javascript.Node,org.mozilla.javascript.Node)>($r3, $r8);
+
+        r34 = null;
+
+     label04:
+        lookupswitch(i2)
+        {
+            case 141: goto label05;
+            case 144: goto label12;
+            default: goto label15;
+        };
+
+     label05:
+        $r18 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $r19 = virtualinvoke $r18.<org.mozilla.javascript.TokenStream: java.lang.String getString()>();
+
+        $r20 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r20.<org.mozilla.javascript.Decompiler: void addName(java.lang.String)>($r19);
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(81, "msg.syntax");
+
+        $r21 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r21.<org.mozilla.javascript.Decompiler: void addToken(int)>(81);
+
+        $i1 = specialinvoke r0.<org.mozilla.javascript.Parser: int peekToken()>();
+
+        if $i1 != 82 goto label06;
+
+        $r32 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r35 = virtualinvoke $r32.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createString(java.lang.String)>("");
+
+        goto label07;
+
+     label06:
+        $r35 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node expr(boolean)>(0);
+
+     label07:
+        r36 = $r35;
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(82, "msg.syntax");
+
+        $r22 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r22.<org.mozilla.javascript.Decompiler: void addToken(int)>(82);
+
+        if r34 != null goto label08;
+
+        $r31 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        r37 = virtualinvoke $r31.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createString(java.lang.String)>($r19);
+
+        goto label09;
+
+     label08:
+        $r24 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r23 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r25 = virtualinvoke $r23.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createString(java.lang.String)>($r19);
+
+        r37 = virtualinvoke $r24.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createBinary(int,org.mozilla.javascript.Node,org.mozilla.javascript.Node)>(21, r34, $r25);
+
+     label09:
+        $r26 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $z1 = virtualinvoke $r26.<org.mozilla.javascript.TokenStream: boolean isXMLAttribute()>();
+
+        if $z1 == 0 goto label10;
+
+        b3 = 71;
+
+        goto label11;
+
+     label10:
+        b3 = 72;
+
+     label11:
+        $r27 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r28 = virtualinvoke $r27.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createUnary(int,org.mozilla.javascript.Node)>(b3, r36);
+
+        $r29 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        r34 = virtualinvoke $r29.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createBinary(int,org.mozilla.javascript.Node,org.mozilla.javascript.Node)>(21, r37, $r28);
+
+        goto label16;
+
+     label12:
+        $r10 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $r11 = virtualinvoke $r10.<org.mozilla.javascript.TokenStream: java.lang.String getString()>();
+
+        $r12 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r12.<org.mozilla.javascript.Decompiler: void addName(java.lang.String)>($r11);
+
+        if r34 != null goto label13;
+
+        $r17 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        r38 = virtualinvoke $r17.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createString(java.lang.String)>($r11);
+
+        goto label14;
+
+     label13:
+        $r14 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r13 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r15 = virtualinvoke $r13.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createString(java.lang.String)>($r11);
+
+        r38 = virtualinvoke $r14.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createBinary(int,org.mozilla.javascript.Node,org.mozilla.javascript.Node)>(21, r34, $r15);
+
+     label14:
+        $r16 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        virtualinvoke $r16.<org.mozilla.javascript.IRFactory: void addChildToBack(org.mozilla.javascript.Node,org.mozilla.javascript.Node)>($r3, r38);
+
+        return $r3;
+
+     label15:
+        virtualinvoke r0.<org.mozilla.javascript.Parser: java.lang.RuntimeException reportError(java.lang.String)>("msg.syntax");
+
+        return null;
+
+     label16:
+        $r30 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        i2 = virtualinvoke $r30.<org.mozilla.javascript.TokenStream: int getNextXMLToken()>();
+
+        goto label04;
+    }
+
+    private void argumentList(org.mozilla.javascript.Node) throws java.io.IOException, org.mozilla.javascript.Parser$ParserException
+    {
+        org.mozilla.javascript.Decompiler $r1, $r5;
+        org.mozilla.javascript.Node r2, $r4;
+        org.mozilla.javascript.IRFactory $r3;
+        org.mozilla.javascript.Parser r0;
+        boolean $z0, $z1, z2;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        r2 := @parameter0: org.mozilla.javascript.Node;
+
+        $z0 = specialinvoke r0.<org.mozilla.javascript.Parser: boolean matchToken(int)>(84);
+
+        if $z0 != 0 goto label3;
+
+        z2 = 1;
+
+     label1:
+        if z2 != 0 goto label2;
+
+        $r5 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r5.<org.mozilla.javascript.Decompiler: void addToken(int)>(85);
+
+     label2:
+        z2 = 0;
+
+        $r3 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r4 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node assignExpr(boolean)>(0);
+
+        virtualinvoke $r3.<org.mozilla.javascript.IRFactory: void addChildToBack(org.mozilla.javascript.Node,org.mozilla.javascript.Node)>(r2, $r4);
+
+        $z1 = specialinvoke r0.<org.mozilla.javascript.Parser: boolean matchToken(int)>(85);
+
+        if $z1 != 0 goto label1;
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(84, "msg.no.paren.arg");
+
+     label3:
+        $r1 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r1.<org.mozilla.javascript.Decompiler: void addToken(int)>(84);
+
+        return;
+    }
+
+    private org.mozilla.javascript.Node memberExpr(boolean) throws java.io.IOException, org.mozilla.javascript.Parser$ParserException
+    {
+        org.mozilla.javascript.Decompiler $r1, $r7;
+        org.mozilla.javascript.Node $r3, $r4, $r6, r8, $r9;
+        int $i0, $i1;
+        org.mozilla.javascript.IRFactory $r2, $r5;
+        org.mozilla.javascript.Parser r0;
+        boolean z0, $z1;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        z0 := @parameter0: boolean;
+
+        $i0 = specialinvoke r0.<org.mozilla.javascript.Parser: int peekToken()>();
+
+        if $i0 != 30 goto label2;
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        $r1 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r1.<org.mozilla.javascript.Decompiler: void addToken(int)>(30);
+
+        $r2 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r3 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node memberExpr(boolean)>(0);
+
+        $r4 = virtualinvoke $r2.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createCallOrNew(int,org.mozilla.javascript.Node)>(30, $r3);
+
+        r8 = $r4;
+
+        $z1 = specialinvoke r0.<org.mozilla.javascript.Parser: boolean matchToken(int)>(83);
+
+        if $z1 == 0 goto label1;
+
+        $r7 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r7.<org.mozilla.javascript.Decompiler: void addToken(int)>(83);
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void argumentList(org.mozilla.javascript.Node)>($r4);
+
+     label1:
+        $i1 = specialinvoke r0.<org.mozilla.javascript.Parser: int peekToken()>();
+
+        if $i1 != 81 goto label3;
+
+        $r5 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r6 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node primaryExpr()>();
+
+        virtualinvoke $r5.<org.mozilla.javascript.IRFactory: void addChildToBack(org.mozilla.javascript.Node,org.mozilla.javascript.Node)>($r4, $r6);
+
+        goto label3;
+
+     label2:
+        r8 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node primaryExpr()>();
+
+     label3:
+        $r9 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node memberExprTail(boolean,org.mozilla.javascript.Node)>(z0, r8);
+
+        return $r9;
+    }
+
+    private org.mozilla.javascript.Node memberExprTail(boolean, org.mozilla.javascript.Node) throws java.io.IOException, org.mozilla.javascript.Parser$ParserException
+    {
+        byte b3, b4, b5, b6, b7;
+        org.mozilla.javascript.Node $r3, $r19, $r22, r24;
+        boolean $z0, z1;
+        org.mozilla.javascript.Parser r0;
+        org.mozilla.javascript.Decompiler $r1, $r5, $r6, $r8, $r11, $r12, $r15, $r17, $r20, $r23;
+        int $i0, $i1, $i2;
+        java.lang.String $r10, $r14;
+        org.mozilla.javascript.TokenStream $r4, $r9, $r13;
+        org.mozilla.javascript.CompilerEnvirons $r7;
+        org.mozilla.javascript.IRFactory $r2, $r16, $r18, $r21;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        z1 := @parameter0: boolean;
+
+        r24 := @parameter1: org.mozilla.javascript.Node;
+
+     label01:
+        $i2 = specialinvoke r0.<org.mozilla.javascript.Parser: int peekToken()>();
+
+        lookupswitch($i2)
+        {
+            case 79: goto label10;
+            case 83: goto label11;
+            case 104: goto label02;
+            case 139: goto label02;
+            case 142: goto label09;
+            default: goto label13;
+        };
+
+     label02:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        $r6 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r6.<org.mozilla.javascript.Decompiler: void addToken(int)>($i2);
+
+        b3 = 0;
+
+        b7 = 0;
+
+        b6 = 0;
+
+        b5 = 0;
+
+        b4 = 0;
+
+        if $i2 != 139 goto label03;
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustHaveXML()>();
+
+        b3 = 4;
+
+        b7 = 4;
+
+        b6 = 4;
+
+        b5 = 4;
+
+        b4 = 4;
+
+     label03:
+        $r7 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.CompilerEnvirons compilerEnv>;
+
+        $z0 = virtualinvoke $r7.<org.mozilla.javascript.CompilerEnvirons: boolean isXmlAvailable()>();
+
+        if $z0 != 0 goto label04;
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(38, "msg.no.name.after.dot");
+
+        $r13 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $r14 = virtualinvoke $r13.<org.mozilla.javascript.TokenStream: java.lang.String getString()>();
+
+        $r15 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r15.<org.mozilla.javascript.Decompiler: void addName(java.lang.String)>($r14);
+
+        $r16 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        r24 = virtualinvoke $r16.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createPropertyGet(org.mozilla.javascript.Node,java.lang.String,java.lang.String,int)>(r24, null, $r14, b4);
+
+        goto label01;
+
+     label04:
+        $i1 = specialinvoke r0.<org.mozilla.javascript.Parser: int nextToken()>();
+
+        lookupswitch($i1)
+        {
+            case 23: goto label06;
+            case 38: goto label05;
+            case 143: goto label07;
+            default: goto label08;
+        };
+
+     label05:
+        $r9 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $r10 = virtualinvoke $r9.<org.mozilla.javascript.TokenStream: java.lang.String getString()>();
+
+        $r11 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r11.<org.mozilla.javascript.Decompiler: void addName(java.lang.String)>($r10);
+
+        r24 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node propertyName(org.mozilla.javascript.Node,java.lang.String,int)>(r24, $r10, b5);
+
+        goto label01;
+
+     label06:
+        $r12 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r12.<org.mozilla.javascript.Decompiler: void addName(java.lang.String)>("*");
+
+        r24 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node propertyName(org.mozilla.javascript.Node,java.lang.String,int)>(r24, "*", b6);
+
+        goto label01;
+
+     label07:
+        $r8 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r8.<org.mozilla.javascript.Decompiler: void addToken(int)>(143);
+
+        r24 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node attributeAccess(org.mozilla.javascript.Node,int)>(r24, b7);
+
+        goto label01;
+
+     label08:
+        virtualinvoke r0.<org.mozilla.javascript.Parser: java.lang.RuntimeException reportError(java.lang.String)>("msg.no.name.after.dot");
+
+        goto label01;
+
+     label09:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustHaveXML()>();
+
+        $r1 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r1.<org.mozilla.javascript.Decompiler: void addToken(int)>(142);
+
+        $r2 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r3 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node expr(boolean)>(0);
+
+        $r4 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $i0 = virtualinvoke $r4.<org.mozilla.javascript.TokenStream: int getLineno()>();
+
+        r24 = virtualinvoke $r2.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createDotQuery(org.mozilla.javascript.Node,org.mozilla.javascript.Node,int)>(r24, $r3, $i0);
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(84, "msg.no.paren");
+
+        $r5 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r5.<org.mozilla.javascript.Decompiler: void addToken(int)>(84);
+
+        goto label01;
+
+     label10:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        $r20 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r20.<org.mozilla.javascript.Decompiler: void addToken(int)>(79);
+
+        $r21 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r22 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node expr(boolean)>(0);
+
+        r24 = virtualinvoke $r21.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createElementGet(org.mozilla.javascript.Node,java.lang.String,org.mozilla.javascript.Node,int)>(r24, null, $r22, 0);
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(80, "msg.no.bracket.index");
+
+        $r23 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r23.<org.mozilla.javascript.Decompiler: void addToken(int)>(80);
+
+        goto label01;
+
+     label11:
+        if z1 != 0 goto label12;
+
+        goto label14;
+
+     label12:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        $r17 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r17.<org.mozilla.javascript.Decompiler: void addToken(int)>(83);
+
+        $r18 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r19 = virtualinvoke $r18.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createCallOrNew(int,org.mozilla.javascript.Node)>(37, r24);
+
+        r24 = $r19;
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void argumentList(org.mozilla.javascript.Node)>($r19);
+
+        goto label01;
+
+     label13:
+        goto label14;
+
+     label14:
+        return r24;
+    }
+
+    private org.mozilla.javascript.Node attributeAccess(org.mozilla.javascript.Node, int) throws java.io.IOException
+    {
+        org.mozilla.javascript.TokenStream $r5;
+        org.mozilla.javascript.Decompiler $r1, $r4, $r7, $r8;
+        org.mozilla.javascript.Node $r3, r10, r11;
+        int $i0, i1, i2;
+        org.mozilla.javascript.IRFactory $r2, $r9;
+        java.lang.String $r6;
+        org.mozilla.javascript.Parser r0;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        r10 := @parameter0: org.mozilla.javascript.Node;
+
+        i1 := @parameter1: int;
+
+        i2 = i1 | 2;
+
+        $i0 = specialinvoke r0.<org.mozilla.javascript.Parser: int nextToken()>();
+
+        lookupswitch($i0)
+        {
+            case 23: goto label2;
+            case 38: goto label1;
+            case 79: goto label3;
+            default: goto label4;
+        };
+
+     label1:
+        $r5 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $r6 = virtualinvoke $r5.<org.mozilla.javascript.TokenStream: java.lang.String getString()>();
+
+        $r7 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r7.<org.mozilla.javascript.Decompiler: void addName(java.lang.String)>($r6);
+
+        r11 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node propertyName(org.mozilla.javascript.Node,java.lang.String,int)>(r10, $r6, i2);
+
+        goto label5;
+
+     label2:
+        $r8 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r8.<org.mozilla.javascript.Decompiler: void addName(java.lang.String)>("*");
+
+        r11 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node propertyName(org.mozilla.javascript.Node,java.lang.String,int)>(r10, "*", i2);
+
+        goto label5;
+
+     label3:
+        $r1 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r1.<org.mozilla.javascript.Decompiler: void addToken(int)>(79);
+
+        $r2 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r3 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node expr(boolean)>(0);
+
+        r11 = virtualinvoke $r2.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createElementGet(org.mozilla.javascript.Node,java.lang.String,org.mozilla.javascript.Node,int)>(r10, null, $r3, i2);
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(80, "msg.no.bracket.index");
+
+        $r4 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r4.<org.mozilla.javascript.Decompiler: void addToken(int)>(80);
+
+        goto label5;
+
+     label4:
+        virtualinvoke r0.<org.mozilla.javascript.Parser: java.lang.RuntimeException reportError(java.lang.String)>("msg.no.name.after.xmlAttr");
+
+        $r9 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        r11 = virtualinvoke $r9.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createPropertyGet(org.mozilla.javascript.Node,java.lang.String,java.lang.String,int)>(r10, null, "?", i2);
+
+     label5:
+        return r11;
+    }
+
+    private org.mozilla.javascript.Node propertyName(org.mozilla.javascript.Node, java.lang.String, int) throws java.io.IOException, org.mozilla.javascript.Parser$ParserException
+    {
+        org.mozilla.javascript.Decompiler $r1, $r2, $r6, $r9, $r10;
+        org.mozilla.javascript.Node $r4, $r5, r11, $r15;
+        int i0, $i1;
+        java.lang.String $r8, r12, r13;
+        boolean $z0;
+        org.mozilla.javascript.TokenStream $r7;
+        org.mozilla.javascript.IRFactory $r3, $r14;
+        org.mozilla.javascript.Parser r0;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        r11 := @parameter0: org.mozilla.javascript.Node;
+
+        r12 := @parameter1: java.lang.String;
+
+        i0 := @parameter2: int;
+
+        r13 = null;
+
+        $z0 = specialinvoke r0.<org.mozilla.javascript.Parser: boolean matchToken(int)>(140);
+
+        if $z0 == 0 goto label5;
+
+        $r1 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r1.<org.mozilla.javascript.Decompiler: void addToken(int)>(140);
+
+        r13 = r12;
+
+        $i1 = specialinvoke r0.<org.mozilla.javascript.Parser: int nextToken()>();
+
+        lookupswitch($i1)
+        {
+            case 23: goto label2;
+            case 38: goto label1;
+            case 79: goto label3;
+            default: goto label4;
+        };
+
+     label1:
+        $r7 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $r8 = virtualinvoke $r7.<org.mozilla.javascript.TokenStream: java.lang.String getString()>();
+
+        r12 = $r8;
+
+        $r9 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r9.<org.mozilla.javascript.Decompiler: void addName(java.lang.String)>($r8);
+
+        goto label5;
+
+     label2:
+        $r10 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r10.<org.mozilla.javascript.Decompiler: void addName(java.lang.String)>("*");
+
+        r12 = "*";
+
+        goto label5;
+
+     label3:
+        $r2 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r2.<org.mozilla.javascript.Decompiler: void addToken(int)>(79);
+
+        $r3 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r4 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node expr(boolean)>(0);
+
+        $r5 = virtualinvoke $r3.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createElementGet(org.mozilla.javascript.Node,java.lang.String,org.mozilla.javascript.Node,int)>(r11, r12, $r4, i0);
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(80, "msg.no.bracket.index");
+
+        $r6 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r6.<org.mozilla.javascript.Decompiler: void addToken(int)>(80);
+
+        return $r5;
+
+     label4:
+        virtualinvoke r0.<org.mozilla.javascript.Parser: java.lang.RuntimeException reportError(java.lang.String)>("msg.no.name.after.coloncolon");
+
+        r12 = "?";
+
+     label5:
+        $r14 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r15 = virtualinvoke $r14.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createPropertyGet(org.mozilla.javascript.Node,java.lang.String,java.lang.String,int)>(r11, r13, r12, i0);
+
+        return $r15;
+    }
+
+    private org.mozilla.javascript.Node primaryExpr() throws java.io.IOException, org.mozilla.javascript.Parser$ParserException
+    {
+        org.mozilla.javascript.Node $r2, $r3, $r5, $r12, $r20, $r23, $r27, $r32, $r36, $r44, $r53, $r57, r58;
+        org.mozilla.javascript.ScriptOrFnNode $r51;
+        org.mozilla.javascript.ObjArray $r60, $r61;
+        java.lang.String $r14, $r29, $r38, $r49, r59;
+        org.mozilla.javascript.IRFactory $r22, $r26, $r31, $r35, $r41, $r43, $r52, $r56;
+        boolean $z0, $z1, $z2, z3, z4, z5, z6;
+        org.mozilla.javascript.Parser r0;
+        org.mozilla.javascript.Decompiler $r1, $r4, $r6, $r8, $r10, $r11, $r15, $r16, $r17, $r19, $r21, $r24, $r25, $r30, $r34, $r39, $r50, $r55;
+        int $i0, $i1, $i2, $i3, $i4, $i5, i6, i7, $i8, $i10;
+        double $d0, $d1;
+        org.mozilla.javascript.TokenStream $r9, $r13, $r28, $r33, $r37, $r42, $r45, $r46, $r47, $r48;
+        org.mozilla.javascript.CompilerEnvirons $r40;
+        java.lang.Object r54;
+
+        r0 := @this: org.mozilla.javascript.Parser;
+
+        $i0 = specialinvoke r0.<org.mozilla.javascript.Parser: int nextFlaggedToken()>();
+
+        $i10 = (int) 65535;
+
+        i6 = $i0 & $i10;
+
+        lookupswitch(i6)
+        {
+            case -1: goto label33;
+            case 0: goto label34;
+            case 24: goto label30;
+            case 38: goto label24;
+            case 39: goto label28;
+            case 40: goto label29;
+            case 41: goto label31;
+            case 42: goto label31;
+            case 43: goto label31;
+            case 44: goto label31;
+            case 79: goto label02;
+            case 81: goto label09;
+            case 83: goto label22;
+            case 96: goto label30;
+            case 105: goto label01;
+            case 123: goto label32;
+            case 143: goto label23;
+            default: goto label35;
+        };
+
+     label01:
+        $r3 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node function(int)>(2);
+
+        return $r3;
+
+     label02:
+        $r60 = new org.mozilla.javascript.ObjArray;
+
+        specialinvoke $r60.<org.mozilla.javascript.ObjArray: void <init>()>();
+
+        i7 = 0;
+
+        $r19 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r19.<org.mozilla.javascript.Decompiler: void addToken(int)>(79);
+
+        z3 = 1;
+
+        z6 = 1;
+
+        z5 = 1;
+
+     label03:
+        $i8 = specialinvoke r0.<org.mozilla.javascript.Parser: int peekToken()>();
+
+        if $i8 != 85 goto label05;
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        $r24 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r24.<org.mozilla.javascript.Decompiler: void addToken(int)>(85);
+
+        if z5 != 0 goto label04;
+
+        z3 = 1;
+
+        z6 = 1;
+
+        z5 = 1;
+
+        goto label03;
+
+     label04:
+        virtualinvoke $r60.<org.mozilla.javascript.ObjArray: void add(java.lang.Object)>(null);
+
+        i7 = i7 + 1;
+
+        goto label03;
+
+     label05:
+        if $i8 != 80 goto label06;
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        $r21 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r21.<org.mozilla.javascript.Decompiler: void addToken(int)>(80);
+
+        goto label08;
+
+     label06:
+        if z6 != 0 goto label07;
+
+        virtualinvoke r0.<org.mozilla.javascript.Parser: java.lang.RuntimeException reportError(java.lang.String)>("msg.no.bracket.arg");
+
+     label07:
+        $r20 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node assignExpr(boolean)>(0);
+
+        virtualinvoke $r60.<org.mozilla.javascript.ObjArray: void add(java.lang.Object)>($r20);
+
+        z3 = 0;
+
+        z6 = 0;
+
+        z5 = 0;
+
+        goto label03;
+
+     label08:
+        $r22 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r23 = virtualinvoke $r22.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createArrayLiteral(org.mozilla.javascript.ObjArray,int)>($r60, i7);
+
+        return $r23;
+
+     label09:
+        $r61 = new org.mozilla.javascript.ObjArray;
+
+        specialinvoke $r61.<org.mozilla.javascript.ObjArray: void <init>()>();
+
+        $r8 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r8.<org.mozilla.javascript.Decompiler: void addToken(int)>(81);
+
+        $z0 = specialinvoke r0.<org.mozilla.javascript.Parser: boolean matchToken(int)>(82);
+
+        if $z0 != 0 goto label21;
+
+        z4 = 1;
+
+     label10:
+        if z4 != 0 goto label11;
+
+        $r17 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r17.<org.mozilla.javascript.Decompiler: void addToken(int)>(85);
+
+        goto label12;
+
+     label11:
+        z4 = 0;
+
+     label12:
+        $i1 = specialinvoke r0.<org.mozilla.javascript.Parser: int peekToken()>();
+
+        lookupswitch($i1)
+        {
+            case 38: goto label13;
+            case 39: goto label16;
+            case 40: goto label13;
+            case 82: goto label17;
+            default: goto label18;
+        };
+
+     label13:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        $r13 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $r14 = virtualinvoke $r13.<org.mozilla.javascript.TokenStream: java.lang.String getString()>();
+
+        if $i1 != 38 goto label14;
+
+        $r16 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r16.<org.mozilla.javascript.Decompiler: void addName(java.lang.String)>($r14);
+
+        goto label15;
+
+     label14:
+        $r15 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r15.<org.mozilla.javascript.Decompiler: void addString(java.lang.String)>($r14);
+
+     label15:
+        r54 = staticinvoke <org.mozilla.javascript.ScriptRuntime: java.lang.Object getIndexObject(java.lang.String)>($r14);
+
+        goto label19;
+
+     label16:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void consumeToken()>();
+
+        $r9 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $d0 = virtualinvoke $r9.<org.mozilla.javascript.TokenStream: double getNumber()>();
+
+        $r10 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r10.<org.mozilla.javascript.Decompiler: void addNumber(double)>($d0);
+
+        r54 = staticinvoke <org.mozilla.javascript.ScriptRuntime: java.lang.Object getIndexObject(double)>($d0);
+
+        goto label19;
+
+     label17:
+        goto label20;
+
+     label18:
+        virtualinvoke r0.<org.mozilla.javascript.Parser: java.lang.RuntimeException reportError(java.lang.String)>("msg.bad.prop");
+
+        goto label20;
+
+     label19:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(99, "msg.no.colon.prop");
+
+        $r11 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r11.<org.mozilla.javascript.Decompiler: void addToken(int)>(64);
+
+        virtualinvoke $r61.<org.mozilla.javascript.ObjArray: void add(java.lang.Object)>(r54);
+
+        $r12 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node assignExpr(boolean)>(0);
+
+        virtualinvoke $r61.<org.mozilla.javascript.ObjArray: void add(java.lang.Object)>($r12);
+
+        $z1 = specialinvoke r0.<org.mozilla.javascript.Parser: boolean matchToken(int)>(85);
+
+        if $z1 != 0 goto label10;
+
+     label20:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(82, "msg.no.brace.prop");
+
+     label21:
+        $r55 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r55.<org.mozilla.javascript.Decompiler: void addToken(int)>(82);
+
+        $r56 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r57 = virtualinvoke $r56.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createObjectLiteral(org.mozilla.javascript.ObjArray)>($r61);
+
+        return $r57;
+
+     label22:
+        $r4 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r4.<org.mozilla.javascript.Decompiler: void addToken(int)>(83);
+
+        $r5 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node expr(boolean)>(0);
+
+        $r6 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r6.<org.mozilla.javascript.Decompiler: void addToken(int)>(84);
+
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustMatchToken(int,java.lang.String)>(84, "msg.no.paren");
+
+        return $r5;
+
+     label23:
+        specialinvoke r0.<org.mozilla.javascript.Parser: void mustHaveXML()>();
+
+        $r1 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r1.<org.mozilla.javascript.Decompiler: void addToken(int)>(143);
+
+        $r2 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node attributeAccess(org.mozilla.javascript.Node,int)>(null, 0);
+
+        return $r2;
+
+     label24:
+        $r37 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $r38 = virtualinvoke $r37.<org.mozilla.javascript.TokenStream: java.lang.String getString()>();
+
+        $i2 = $i0 & 131072;
+
+        if $i2 == 0 goto label25;
+
+        $i3 = specialinvoke r0.<org.mozilla.javascript.Parser: int peekToken()>();
+
+        if $i3 != 99 goto label25;
+
+        $r43 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r42 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $i4 = virtualinvoke $r42.<org.mozilla.javascript.TokenStream: int getLineno()>();
+
+        $r44 = virtualinvoke $r43.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createLabel(int)>($i4);
+
+        return $r44;
+
+     label25:
+        $r39 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r39.<org.mozilla.javascript.Decompiler: void addName(java.lang.String)>($r38);
+
+        $r40 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.CompilerEnvirons compilerEnv>;
+
+        $z2 = virtualinvoke $r40.<org.mozilla.javascript.CompilerEnvirons: boolean isXmlAvailable()>();
+
+        if $z2 == 0 goto label26;
+
+        r58 = specialinvoke r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Node propertyName(org.mozilla.javascript.Node,java.lang.String,int)>(null, $r38, 0);
+
+        goto label27;
+
+     label26:
+        $r41 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        r58 = virtualinvoke $r41.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createName(java.lang.String)>($r38);
+
+     label27:
+        return r58;
+
+     label28:
+        $r33 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $d1 = virtualinvoke $r33.<org.mozilla.javascript.TokenStream: double getNumber()>();
+
+        $r34 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r34.<org.mozilla.javascript.Decompiler: void addNumber(double)>($d1);
+
+        $r35 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r36 = virtualinvoke $r35.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createNumber(double)>($d1);
+
+        return $r36;
+
+     label29:
+        $r28 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $r29 = virtualinvoke $r28.<org.mozilla.javascript.TokenStream: java.lang.String getString()>();
+
+        $r30 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r30.<org.mozilla.javascript.Decompiler: void addString(java.lang.String)>($r29);
+
+        $r31 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r32 = virtualinvoke $r31.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createString(java.lang.String)>($r29);
+
+        return $r32;
+
+     label30:
+        $r45 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        virtualinvoke $r45.<org.mozilla.javascript.TokenStream: void readRegExp(int)>(i6);
+
+        $r46 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        r59 = $r46.<org.mozilla.javascript.TokenStream: java.lang.String regExpFlags>;
+
+        $r47 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $r47.<org.mozilla.javascript.TokenStream: java.lang.String regExpFlags> = null;
+
+        $r48 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.TokenStream ts>;
+
+        $r49 = virtualinvoke $r48.<org.mozilla.javascript.TokenStream: java.lang.String getString()>();
+
+        $r50 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r50.<org.mozilla.javascript.Decompiler: void addRegexp(java.lang.String,java.lang.String)>($r49, r59);
+
+        $r51 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.ScriptOrFnNode currentScriptOrFn>;
+
+        $i5 = virtualinvoke $r51.<org.mozilla.javascript.ScriptOrFnNode: int addRegexp(java.lang.String,java.lang.String)>($r49, r59);
+
+        $r52 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r53 = virtualinvoke $r52.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createRegExp(int)>($i5);
+
+        return $r53;
+
+     label31:
+        $r25 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.Decompiler decompiler>;
+
+        virtualinvoke $r25.<org.mozilla.javascript.Decompiler: void addToken(int)>(i6);
+
+        $r26 = r0.<org.mozilla.javascript.Parser: org.mozilla.javascript.IRFactory nf>;
+
+        $r27 = virtualinvoke $r26.<org.mozilla.javascript.IRFactory: org.mozilla.javascript.Node createLeaf(int)>(i6);
+
+        return $r27;
+
+     label32:
+        virtualinvoke r0.<org.mozilla.javascript.Parser: java.lang.RuntimeException reportError(java.lang.String)>("msg.reserved.id");
+
+        goto label36;
+
+     label33:
+        goto label36;
+
+     label34:
+        virtualinvoke r0.<org.mozilla.javascript.Parser: java.lang.RuntimeException reportError(java.lang.String)>("msg.unexpected.eof");
+
+        goto label36;
+
+     label35:
+        virtualinvoke r0.<org.mozilla.javascript.Parser: java.lang.RuntimeException reportError(java.lang.String)>("msg.syntax");
+
+     label36:
+        return null;
+    }
+
+    public static void <clinit>()
+    {
+        <org.mozilla.javascript.Parser: int TI_CHECK_LABEL> = 131072;
+
+        <org.mozilla.javascript.Parser: int TI_AFTER_EOL> = 65536;
+
+        <org.mozilla.javascript.Parser: int CLEAR_TI_MASK> = 65535;
+
+        return;
+    }
+}

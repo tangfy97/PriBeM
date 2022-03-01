@@ -1,0 +1,745 @@
+public class com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl extends com.googlecode.mp4parser.authoring.AbstractTrack
+{
+    private static final int MPEG_V1;
+    private static final int MPEG_L3;
+    private static final int[] SAMPLE_RATE;
+    private static final int[] BIT_RATE;
+    private static final int SAMPLES_PER_FRAME;
+    private static final int ES_OBJECT_TYPE_INDICATION;
+    private static final int ES_STREAM_TYPE;
+    com.googlecode.mp4parser.authoring.TrackMetaData trackMetaData;
+    com.coremedia.iso.boxes.SampleDescriptionBox sampleDescriptionBox;
+    com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header firstHeader;
+    long maxBitRate;
+    long avgBitRate;
+    private java.util.List samples;
+    private long[] durations;
+    private java.lang.String lang;
+
+    static void <clinit>()
+    {
+        int[] $r0, $r1;
+        int $i1, $i3, $i5, $i7, $i9, $i11;
+
+        <com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: int ES_STREAM_TYPE> = 5;
+
+        <com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: int ES_OBJECT_TYPE_INDICATION> = 107;
+
+        <com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: int SAMPLES_PER_FRAME> = 1152;
+
+        <com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: int MPEG_L3> = 1;
+
+        <com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: int MPEG_V1> = 3;
+
+        $r0 = newarray (int)[4];
+
+        $i1 = (int) 44100;
+
+        $r0[0] = $i1;
+
+        $i3 = (int) 48000;
+
+        $r0[1] = $i3;
+
+        $r0[2] = 32000;
+
+        <com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: int[] SAMPLE_RATE> = $r0;
+
+        $r1 = newarray (int)[16];
+
+        $r1[1] = 32000;
+
+        $i5 = (int) 40000;
+
+        $r1[2] = $i5;
+
+        $i7 = (int) 48000;
+
+        $r1[3] = $i7;
+
+        $i9 = (int) 56000;
+
+        $r1[4] = $i9;
+
+        $i11 = (int) 64000;
+
+        $r1[5] = $i11;
+
+        $r1[6] = 80000;
+
+        $r1[7] = 96000;
+
+        $r1[8] = 112000;
+
+        $r1[9] = 128000;
+
+        $r1[10] = 160000;
+
+        $r1[11] = 192000;
+
+        $r1[12] = 224000;
+
+        $r1[13] = 256000;
+
+        $r1[14] = 320000;
+
+        <com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: int[] BIT_RATE> = $r1;
+
+        return;
+    }
+
+    public void <init>(com.googlecode.mp4parser.DataSource, java.lang.String) throws java.io.IOException
+    {
+        com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl r0;
+        com.googlecode.mp4parser.DataSource r3;
+        com.googlecode.mp4parser.authoring.TrackMetaData $r1;
+        java.lang.String r2;
+
+        r0 := @this: com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl;
+
+        r3 := @parameter0: com.googlecode.mp4parser.DataSource;
+
+        r2 := @parameter1: java.lang.String;
+
+        specialinvoke r0.<com.googlecode.mp4parser.authoring.AbstractTrack: void <init>()>();
+
+        $r1 = new com.googlecode.mp4parser.authoring.TrackMetaData;
+
+        specialinvoke $r1.<com.googlecode.mp4parser.authoring.TrackMetaData: void <init>()>();
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: com.googlecode.mp4parser.authoring.TrackMetaData trackMetaData> = $r1;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: java.lang.String lang> = "eng";
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: java.lang.String lang> = r2;
+
+        specialinvoke r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: void parse(com.googlecode.mp4parser.DataSource)>(r3);
+
+        return;
+    }
+
+    public void <init>(com.googlecode.mp4parser.DataSource) throws java.io.IOException
+    {
+        com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl r0;
+        com.googlecode.mp4parser.DataSource r2;
+        com.googlecode.mp4parser.authoring.TrackMetaData $r1;
+
+        r0 := @this: com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl;
+
+        r2 := @parameter0: com.googlecode.mp4parser.DataSource;
+
+        specialinvoke r0.<com.googlecode.mp4parser.authoring.AbstractTrack: void <init>()>();
+
+        $r1 = new com.googlecode.mp4parser.authoring.TrackMetaData;
+
+        specialinvoke $r1.<com.googlecode.mp4parser.authoring.TrackMetaData: void <init>()>();
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: com.googlecode.mp4parser.authoring.TrackMetaData trackMetaData> = $r1;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: java.lang.String lang> = "eng";
+
+        specialinvoke r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: void parse(com.googlecode.mp4parser.DataSource)>(r2);
+
+        return;
+    }
+
+    private void parse(com.googlecode.mp4parser.DataSource) throws java.io.IOException
+    {
+        java.lang.Integer $r10, r36;
+        byte $b5, $b11;
+        com.googlecode.mp4parser.authoring.Sample r35;
+        com.googlecode.mp4parser.boxes.mp4.ESDescriptorBox $r41;
+        long $l2, $l3, $l10, $l13, $l14, $l16, $l19, $l20, $l21, $l23, l25;
+        java.lang.String $r27;
+        com.googlecode.mp4parser.DataSource r2;
+        com.coremedia.iso.boxes.SampleDescriptionBox $r22, $r39;
+        com.googlecode.mp4parser.boxes.mp4.objectdescriptors.ESDescriptor $r42;
+        com.googlecode.mp4parser.authoring.TrackMetaData $r24, $r26, $r28, $r29, $r31;
+        java.util.Date $r45, $r46;
+        java.nio.ByteBuffer $r21;
+        boolean $z0, $z1;
+        com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl r0;
+        java.util.List $r5, $r7, $r32;
+        com.coremedia.iso.boxes.sampleentry.AudioSampleEntry $r40;
+        long[] $r33, $r34;
+        com.googlecode.mp4parser.boxes.mp4.objectdescriptors.SLConfigDescriptor $r43;
+        int $i0, $i1, $i4, $i6, $i7, $i8, $i9, $i12, $i15, $i17, $i18, $i22, $i24, i26, i27, $i28, $i29;
+        java.util.LinkedList $r37, $r38;
+        com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header $r3, $r4, $r15, $r16, $r30;
+        double $d0, d1, $d2, d3, $d4, $d5, $d6, $d7, $d8, $d9, $d10, $d11, d12;
+        java.util.Iterator $r8, $r11;
+        com.googlecode.mp4parser.boxes.mp4.objectdescriptors.DecoderConfigDescriptor $r44;
+        java.lang.Object $r9, $r12;
+
+        r0 := @this: com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl;
+
+        r2 := @parameter0: com.googlecode.mp4parser.DataSource;
+
+        $r37 = new java.util.LinkedList;
+
+        specialinvoke $r37.<java.util.LinkedList: void <init>()>();
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: java.util.List samples> = $r37;
+
+        $r3 = specialinvoke r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header readSamples(com.googlecode.mp4parser.DataSource)>(r2);
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header firstHeader> = $r3;
+
+        $r4 = r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header firstHeader>;
+
+        $i0 = $r4.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header: int sampleRate>;
+
+        $d0 = (double) $i0;
+
+        d1 = $d0 / 1152.0;
+
+        $r5 = r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: java.util.List samples>;
+
+        $i1 = interfaceinvoke $r5.<java.util.List: int size()>();
+
+        $d2 = (double) $i1;
+
+        d3 = $d2 / d1;
+
+        l25 = 0L;
+
+        $r38 = new java.util.LinkedList;
+
+        specialinvoke $r38.<java.util.LinkedList: void <init>()>();
+
+        $r7 = r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: java.util.List samples>;
+
+        $r8 = interfaceinvoke $r7.<java.util.List: java.util.Iterator iterator()>();
+
+        goto label6;
+
+     label1:
+        $r9 = interfaceinvoke $r8.<java.util.Iterator: java.lang.Object next()>();
+
+        r35 = (com.googlecode.mp4parser.authoring.Sample) $r9;
+
+        $l2 = interfaceinvoke r35.<com.googlecode.mp4parser.authoring.Sample: long getSize()>();
+
+        i26 = (int) $l2;
+
+        $l3 = (long) i26;
+
+        l25 = l25 + $l3;
+
+        $r10 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i26);
+
+        virtualinvoke $r38.<java.util.LinkedList: boolean add(java.lang.Object)>($r10);
+
+        goto label3;
+
+     label2:
+        virtualinvoke $r38.<java.util.LinkedList: java.lang.Object pop()>();
+
+     label3:
+        $i4 = virtualinvoke $r38.<java.util.LinkedList: int size()>();
+
+        $d4 = (double) $i4;
+
+        $b5 = $d4 cmpl d1;
+
+        $i28 = (int) $b5;
+
+        if $i28 > 0 goto label2;
+
+        $i6 = virtualinvoke $r38.<java.util.LinkedList: int size()>();
+
+        $i7 = (int) d1;
+
+        if $i6 != $i7 goto label6;
+
+        i27 = 0;
+
+        $r11 = virtualinvoke $r38.<java.util.LinkedList: java.util.Iterator iterator()>();
+
+        goto label5;
+
+     label4:
+        $r12 = interfaceinvoke $r11.<java.util.Iterator: java.lang.Object next()>();
+
+        r36 = (java.lang.Integer) $r12;
+
+        $i8 = virtualinvoke r36.<java.lang.Integer: int intValue()>();
+
+        i27 = i27 + $i8;
+
+     label5:
+        $z0 = interfaceinvoke $r11.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 != 0 goto label4;
+
+        $d5 = (double) i27;
+
+        $d6 = 8.0 * $d5;
+
+        $i9 = virtualinvoke $r38.<java.util.LinkedList: int size()>();
+
+        $d7 = (double) $i9;
+
+        $d8 = $d6 / $d7;
+
+        d12 = $d8 * d1;
+
+        $l10 = r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: long maxBitRate>;
+
+        $d9 = (double) $l10;
+
+        $b11 = d12 cmpl $d9;
+
+        $i29 = (int) $b11;
+
+        if $i29 <= 0 goto label6;
+
+        $i12 = (int) d12;
+
+        $l13 = (long) $i12;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: long maxBitRate> = $l13;
+
+     label6:
+        $z1 = interfaceinvoke $r8.<java.util.Iterator: boolean hasNext()>();
+
+        if $z1 != 0 goto label1;
+
+        $l14 = 8L * l25;
+
+        $d10 = (double) $l14;
+
+        $d11 = $d10 / d3;
+
+        $i15 = (int) $d11;
+
+        $l16 = (long) $i15;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: long avgBitRate> = $l16;
+
+        $r39 = new com.coremedia.iso.boxes.SampleDescriptionBox;
+
+        specialinvoke $r39.<com.coremedia.iso.boxes.SampleDescriptionBox: void <init>()>();
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: com.coremedia.iso.boxes.SampleDescriptionBox sampleDescriptionBox> = $r39;
+
+        $r40 = new com.coremedia.iso.boxes.sampleentry.AudioSampleEntry;
+
+        specialinvoke $r40.<com.coremedia.iso.boxes.sampleentry.AudioSampleEntry: void <init>(java.lang.String)>("mp4a");
+
+        $r15 = r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header firstHeader>;
+
+        $i17 = $r15.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header: int channelCount>;
+
+        virtualinvoke $r40.<com.coremedia.iso.boxes.sampleentry.AudioSampleEntry: void setChannelCount(int)>($i17);
+
+        $r16 = r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header firstHeader>;
+
+        $i18 = $r16.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header: int sampleRate>;
+
+        $l19 = (long) $i18;
+
+        virtualinvoke $r40.<com.coremedia.iso.boxes.sampleentry.AudioSampleEntry: void setSampleRate(long)>($l19);
+
+        virtualinvoke $r40.<com.coremedia.iso.boxes.sampleentry.AudioSampleEntry: void setDataReferenceIndex(int)>(1);
+
+        virtualinvoke $r40.<com.coremedia.iso.boxes.sampleentry.AudioSampleEntry: void setSampleSize(int)>(16);
+
+        $r41 = new com.googlecode.mp4parser.boxes.mp4.ESDescriptorBox;
+
+        specialinvoke $r41.<com.googlecode.mp4parser.boxes.mp4.ESDescriptorBox: void <init>()>();
+
+        $r42 = new com.googlecode.mp4parser.boxes.mp4.objectdescriptors.ESDescriptor;
+
+        specialinvoke $r42.<com.googlecode.mp4parser.boxes.mp4.objectdescriptors.ESDescriptor: void <init>()>();
+
+        virtualinvoke $r42.<com.googlecode.mp4parser.boxes.mp4.objectdescriptors.ESDescriptor: void setEsId(int)>(0);
+
+        $r43 = new com.googlecode.mp4parser.boxes.mp4.objectdescriptors.SLConfigDescriptor;
+
+        specialinvoke $r43.<com.googlecode.mp4parser.boxes.mp4.objectdescriptors.SLConfigDescriptor: void <init>()>();
+
+        virtualinvoke $r43.<com.googlecode.mp4parser.boxes.mp4.objectdescriptors.SLConfigDescriptor: void setPredefined(int)>(2);
+
+        virtualinvoke $r42.<com.googlecode.mp4parser.boxes.mp4.objectdescriptors.ESDescriptor: void setSlConfigDescriptor(com.googlecode.mp4parser.boxes.mp4.objectdescriptors.SLConfigDescriptor)>($r43);
+
+        $r44 = new com.googlecode.mp4parser.boxes.mp4.objectdescriptors.DecoderConfigDescriptor;
+
+        specialinvoke $r44.<com.googlecode.mp4parser.boxes.mp4.objectdescriptors.DecoderConfigDescriptor: void <init>()>();
+
+        virtualinvoke $r44.<com.googlecode.mp4parser.boxes.mp4.objectdescriptors.DecoderConfigDescriptor: void setObjectTypeIndication(int)>(107);
+
+        virtualinvoke $r44.<com.googlecode.mp4parser.boxes.mp4.objectdescriptors.DecoderConfigDescriptor: void setStreamType(int)>(5);
+
+        $l20 = r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: long maxBitRate>;
+
+        virtualinvoke $r44.<com.googlecode.mp4parser.boxes.mp4.objectdescriptors.DecoderConfigDescriptor: void setMaxBitRate(long)>($l20);
+
+        $l21 = r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: long avgBitRate>;
+
+        virtualinvoke $r44.<com.googlecode.mp4parser.boxes.mp4.objectdescriptors.DecoderConfigDescriptor: void setAvgBitRate(long)>($l21);
+
+        virtualinvoke $r42.<com.googlecode.mp4parser.boxes.mp4.objectdescriptors.ESDescriptor: void setDecoderConfigDescriptor(com.googlecode.mp4parser.boxes.mp4.objectdescriptors.DecoderConfigDescriptor)>($r44);
+
+        $r21 = virtualinvoke $r42.<com.googlecode.mp4parser.boxes.mp4.objectdescriptors.ESDescriptor: java.nio.ByteBuffer serialize()>();
+
+        virtualinvoke $r41.<com.googlecode.mp4parser.boxes.mp4.ESDescriptorBox: void setData(java.nio.ByteBuffer)>($r21);
+
+        virtualinvoke $r40.<com.coremedia.iso.boxes.sampleentry.AudioSampleEntry: void addBox(com.coremedia.iso.boxes.Box)>($r41);
+
+        $r22 = r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: com.coremedia.iso.boxes.SampleDescriptionBox sampleDescriptionBox>;
+
+        virtualinvoke $r22.<com.coremedia.iso.boxes.SampleDescriptionBox: void addBox(com.coremedia.iso.boxes.Box)>($r40);
+
+        $r24 = r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: com.googlecode.mp4parser.authoring.TrackMetaData trackMetaData>;
+
+        $r45 = new java.util.Date;
+
+        specialinvoke $r45.<java.util.Date: void <init>()>();
+
+        virtualinvoke $r24.<com.googlecode.mp4parser.authoring.TrackMetaData: void setCreationTime(java.util.Date)>($r45);
+
+        $r26 = r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: com.googlecode.mp4parser.authoring.TrackMetaData trackMetaData>;
+
+        $r46 = new java.util.Date;
+
+        specialinvoke $r46.<java.util.Date: void <init>()>();
+
+        virtualinvoke $r26.<com.googlecode.mp4parser.authoring.TrackMetaData: void setModificationTime(java.util.Date)>($r46);
+
+        $r28 = r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: com.googlecode.mp4parser.authoring.TrackMetaData trackMetaData>;
+
+        $r27 = r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: java.lang.String lang>;
+
+        virtualinvoke $r28.<com.googlecode.mp4parser.authoring.TrackMetaData: void setLanguage(java.lang.String)>($r27);
+
+        $r29 = r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: com.googlecode.mp4parser.authoring.TrackMetaData trackMetaData>;
+
+        virtualinvoke $r29.<com.googlecode.mp4parser.authoring.TrackMetaData: void setVolume(float)>(1.0F);
+
+        $r31 = r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: com.googlecode.mp4parser.authoring.TrackMetaData trackMetaData>;
+
+        $r30 = r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header firstHeader>;
+
+        $i22 = $r30.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header: int sampleRate>;
+
+        $l23 = (long) $i22;
+
+        virtualinvoke $r31.<com.googlecode.mp4parser.authoring.TrackMetaData: void setTimescale(long)>($l23);
+
+        $r32 = r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: java.util.List samples>;
+
+        $i24 = interfaceinvoke $r32.<java.util.List: int size()>();
+
+        $r33 = newarray (long)[$i24];
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: long[] durations> = $r33;
+
+        $r34 = r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: long[] durations>;
+
+        staticinvoke <java.util.Arrays: void fill(long[],long)>($r34, 1152L);
+
+        return;
+    }
+
+    public com.coremedia.iso.boxes.SampleDescriptionBox getSampleDescriptionBox()
+    {
+        com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl r0;
+        com.coremedia.iso.boxes.SampleDescriptionBox $r1;
+
+        r0 := @this: com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl;
+
+        $r1 = r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: com.coremedia.iso.boxes.SampleDescriptionBox sampleDescriptionBox>;
+
+        return $r1;
+    }
+
+    public long[] getSampleDurations()
+    {
+        com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl r0;
+        long[] $r1;
+
+        r0 := @this: com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl;
+
+        $r1 = r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: long[] durations>;
+
+        return $r1;
+    }
+
+    public com.googlecode.mp4parser.authoring.TrackMetaData getTrackMetaData()
+    {
+        com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl r0;
+        com.googlecode.mp4parser.authoring.TrackMetaData $r1;
+
+        r0 := @this: com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl;
+
+        $r1 = r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: com.googlecode.mp4parser.authoring.TrackMetaData trackMetaData>;
+
+        return $r1;
+    }
+
+    public java.lang.String getHandler()
+    {
+        com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl r0;
+
+        r0 := @this: com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl;
+
+        return "soun";
+    }
+
+    public java.util.List getSamples()
+    {
+        com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl r0;
+        java.util.List $r1;
+
+        r0 := @this: com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl;
+
+        $r1 = r0.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: java.util.List samples>;
+
+        return $r1;
+    }
+
+    public com.coremedia.iso.boxes.Box getMediaHeaderBox()
+    {
+        com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl r1;
+        com.coremedia.iso.boxes.SoundMediaHeaderBox $r0;
+
+        r1 := @this: com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl;
+
+        $r0 = new com.coremedia.iso.boxes.SoundMediaHeaderBox;
+
+        specialinvoke $r0.<com.coremedia.iso.boxes.SoundMediaHeaderBox: void <init>()>();
+
+        return $r0;
+    }
+
+    private com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header readSamples(com.googlecode.mp4parser.DataSource) throws java.io.IOException
+    {
+        com.googlecode.mp4parser.DataSource r0;
+        long $l0;
+        java.nio.ByteBuffer $r3;
+        com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl r1;
+        java.util.List $r5;
+        int $i1;
+        com.googlecode.mp4parser.authoring.SampleImpl $r4;
+        com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header $r2, r6;
+
+        r1 := @this: com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl;
+
+        r0 := @parameter0: com.googlecode.mp4parser.DataSource;
+
+        r6 = null;
+
+     label1:
+        $l0 = interfaceinvoke r0.<com.googlecode.mp4parser.DataSource: long position()>();
+
+        $r2 = specialinvoke r1.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header readMP3Header(com.googlecode.mp4parser.DataSource)>(r0);
+
+        if $r2 != null goto label2;
+
+        goto label4;
+
+     label2:
+        if r6 != null goto label3;
+
+        r6 = $r2;
+
+     label3:
+        interfaceinvoke r0.<com.googlecode.mp4parser.DataSource: void position(long)>($l0);
+
+        $i1 = virtualinvoke $r2.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header: int getFrameLength()>();
+
+        $r3 = staticinvoke <java.nio.ByteBuffer: java.nio.ByteBuffer allocate(int)>($i1);
+
+        interfaceinvoke r0.<com.googlecode.mp4parser.DataSource: int read(java.nio.ByteBuffer)>($r3);
+
+        virtualinvoke $r3.<java.nio.ByteBuffer: java.nio.Buffer rewind()>();
+
+        $r5 = r1.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: java.util.List samples>;
+
+        $r4 = new com.googlecode.mp4parser.authoring.SampleImpl;
+
+        specialinvoke $r4.<com.googlecode.mp4parser.authoring.SampleImpl: void <init>(java.nio.ByteBuffer)>($r3);
+
+        interfaceinvoke $r5.<java.util.List: boolean add(java.lang.Object)>($r4);
+
+        goto label1;
+
+     label4:
+        return r6;
+    }
+
+    private com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header readMP3Header(com.googlecode.mp4parser.DataSource) throws java.io.IOException
+    {
+        java.nio.ByteBuffer $r2, $r6;
+        byte $b19;
+        int[] $r7, $r8;
+        com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl r1;
+        java.nio.Buffer $r5;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i10, $i11, $i12, $i13, $i14, $i15, $i16, $i17, $i18, $i21;
+        com.googlecode.mp4parser.boxes.mp4.objectdescriptors.BitReaderBuffer $r15;
+        com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header $r14;
+        com.googlecode.mp4parser.DataSource r3;
+        java.io.IOException $r16, $r17, $r18, $r19, $r20;
+
+        r1 := @this: com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl;
+
+        r3 := @parameter0: com.googlecode.mp4parser.DataSource;
+
+        $r14 = new com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header;
+
+        specialinvoke $r14.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header: void <init>(com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl)>(r1);
+
+        $r2 = staticinvoke <java.nio.ByteBuffer: java.nio.ByteBuffer allocate(int)>(4);
+
+        goto label2;
+
+     label1:
+        $i1 = interfaceinvoke r3.<com.googlecode.mp4parser.DataSource: int read(java.nio.ByteBuffer)>($r2);
+
+        $i21 = (int) -1;
+
+        if $i1 != $i21 goto label2;
+
+        return null;
+
+     label2:
+        $i0 = virtualinvoke $r2.<java.nio.ByteBuffer: int position()>();
+
+        if $i0 < 4 goto label1;
+
+        $r15 = new com.googlecode.mp4parser.boxes.mp4.objectdescriptors.BitReaderBuffer;
+
+        $r5 = virtualinvoke $r2.<java.nio.ByteBuffer: java.nio.Buffer rewind()>();
+
+        $r6 = (java.nio.ByteBuffer) $r5;
+
+        specialinvoke $r15.<com.googlecode.mp4parser.boxes.mp4.objectdescriptors.BitReaderBuffer: void <init>(java.nio.ByteBuffer)>($r6);
+
+        $i2 = virtualinvoke $r15.<com.googlecode.mp4parser.boxes.mp4.objectdescriptors.BitReaderBuffer: int readBits(int)>(11);
+
+        if $i2 == 2047 goto label3;
+
+        $r16 = new java.io.IOException;
+
+        specialinvoke $r16.<java.io.IOException: void <init>(java.lang.String)>("Expected Start Word 0x7ff");
+
+        throw $r16;
+
+     label3:
+        $i3 = virtualinvoke $r15.<com.googlecode.mp4parser.boxes.mp4.objectdescriptors.BitReaderBuffer: int readBits(int)>(2);
+
+        $r14.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header: int mpegVersion> = $i3;
+
+        $i4 = $r14.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header: int mpegVersion>;
+
+        if $i4 == 3 goto label4;
+
+        $r17 = new java.io.IOException;
+
+        specialinvoke $r17.<java.io.IOException: void <init>(java.lang.String)>("Expected MPEG Version 1 (ISO/IEC 11172-3)");
+
+        throw $r17;
+
+     label4:
+        $i5 = virtualinvoke $r15.<com.googlecode.mp4parser.boxes.mp4.objectdescriptors.BitReaderBuffer: int readBits(int)>(2);
+
+        $r14.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header: int layer> = $i5;
+
+        $i6 = $r14.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header: int layer>;
+
+        if $i6 == 1 goto label5;
+
+        $r18 = new java.io.IOException;
+
+        specialinvoke $r18.<java.io.IOException: void <init>(java.lang.String)>("Expected Layer III");
+
+        throw $r18;
+
+     label5:
+        $i7 = virtualinvoke $r15.<com.googlecode.mp4parser.boxes.mp4.objectdescriptors.BitReaderBuffer: int readBits(int)>(1);
+
+        $r14.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header: int protectionAbsent> = $i7;
+
+        $i8 = virtualinvoke $r15.<com.googlecode.mp4parser.boxes.mp4.objectdescriptors.BitReaderBuffer: int readBits(int)>(4);
+
+        $r14.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header: int bitRateIndex> = $i8;
+
+        $r7 = <com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: int[] BIT_RATE>;
+
+        $i9 = $r14.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header: int bitRateIndex>;
+
+        $i10 = $r7[$i9];
+
+        $r14.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header: int bitRate> = $i10;
+
+        $i11 = $r14.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header: int bitRate>;
+
+        if $i11 != 0 goto label6;
+
+        $r19 = new java.io.IOException;
+
+        specialinvoke $r19.<java.io.IOException: void <init>(java.lang.String)>("Unexpected (free/bad) bit rate");
+
+        throw $r19;
+
+     label6:
+        $i12 = virtualinvoke $r15.<com.googlecode.mp4parser.boxes.mp4.objectdescriptors.BitReaderBuffer: int readBits(int)>(2);
+
+        $r14.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header: int sampleFrequencyIndex> = $i12;
+
+        $r8 = <com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl: int[] SAMPLE_RATE>;
+
+        $i13 = $r14.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header: int sampleFrequencyIndex>;
+
+        $i14 = $r8[$i13];
+
+        $r14.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header: int sampleRate> = $i14;
+
+        $i15 = $r14.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header: int sampleRate>;
+
+        if $i15 != 0 goto label7;
+
+        $r20 = new java.io.IOException;
+
+        specialinvoke $r20.<java.io.IOException: void <init>(java.lang.String)>("Unexpected (reserved) sample rate frequency");
+
+        throw $r20;
+
+     label7:
+        $i16 = virtualinvoke $r15.<com.googlecode.mp4parser.boxes.mp4.objectdescriptors.BitReaderBuffer: int readBits(int)>(1);
+
+        $r14.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header: int padding> = $i16;
+
+        virtualinvoke $r15.<com.googlecode.mp4parser.boxes.mp4.objectdescriptors.BitReaderBuffer: int readBits(int)>(1);
+
+        $i17 = virtualinvoke $r15.<com.googlecode.mp4parser.boxes.mp4.objectdescriptors.BitReaderBuffer: int readBits(int)>(2);
+
+        $r14.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header: int channelMode> = $i17;
+
+        $i18 = $r14.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header: int channelMode>;
+
+        if $i18 != 3 goto label8;
+
+        $b19 = 1;
+
+        goto label9;
+
+     label8:
+        $b19 = 2;
+
+     label9:
+        $r14.<com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl$MP3Header: int channelCount> = $b19;
+
+        return $r14;
+    }
+
+    public java.lang.String toString()
+    {
+        com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl r0;
+
+        r0 := @this: com.googlecode.mp4parser.authoring.tracks.MP3TrackImpl;
+
+        return "MP3TrackImpl";
+    }
+}

@@ -1,0 +1,1064 @@
+public class com.google.gxp.compiler.java.JavaUtil extends com.google.gxp.compiler.codegen.OutputLanguageUtil
+{
+    private static final java.util.Set FORBIDDEN_OPS;
+    private static final java.lang.String NOT_IN_CAST_LOOKAHEAD;
+    private static final java.util.regex.Pattern OPS_FINDER;
+    private static final java.util.Set RESERVED_WORDS;
+    private static final java.util.Set TYPE_ARGUMENT_QUALIFIERS;
+    private static final java.util.regex.Pattern IDENTIFIER_REGEX;
+    private static final java.util.regex.Pattern TYPE_TOKEN_REGEX;
+    private static final java.util.Map PRIMITIVE_TO_BOXED_MAP;
+    private static final java.util.Set PRIMITIVE_TYPES;
+    private static final com.google.gxp.com.google.common.base.Predicate ISVALID_BOOLEAN;
+    private static final com.google.gxp.com.google.common.base.Predicate ISVALID_BYTE;
+    private static final com.google.gxp.com.google.common.base.Predicate ISVALID_CHAR;
+    private static final com.google.gxp.com.google.common.base.Predicate ISVALID_DOUBLE;
+    private static final com.google.gxp.com.google.common.base.Predicate ISVALID_FLOAT;
+    private static final com.google.gxp.com.google.common.base.Predicate ISVALID_INT;
+    private static final com.google.gxp.com.google.common.base.Predicate ISVALID_LONG;
+    private static final com.google.gxp.com.google.common.base.Predicate ISVALID_SHORT;
+    private static final java.util.Map PRIMITIVE_TO_VALIDATOR;
+    public static final com.google.gxp.compiler.java.JavaUtil INSTANCE;
+
+    private void <init>()
+    {
+        com.google.gxp.com.google.common.base.CharEscaper $r4, $r5;
+        com.google.gxp.compiler.java.JavaUtil r0;
+        java.util.Set $r1, $r2;
+        java.util.regex.Pattern $r3;
+
+        r0 := @this: com.google.gxp.compiler.java.JavaUtil;
+
+        $r1 = <com.google.gxp.compiler.java.JavaUtil: java.util.Set RESERVED_WORDS>;
+
+        $r2 = <com.google.gxp.compiler.java.JavaUtil: java.util.Set FORBIDDEN_OPS>;
+
+        $r3 = <com.google.gxp.compiler.java.JavaUtil: java.util.regex.Pattern OPS_FINDER>;
+
+        $r4 = staticinvoke <com.google.gxp.com.google.common.base.CharEscapers: com.google.gxp.com.google.common.base.CharEscaper javaStringUnicodeEscaper()>();
+
+        $r5 = staticinvoke <com.google.gxp.com.google.common.base.CharEscapers: com.google.gxp.com.google.common.base.CharEscaper javaStringEscaper()>();
+
+        specialinvoke r0.<com.google.gxp.compiler.codegen.OutputLanguageUtil: void <init>(java.lang.Iterable,java.lang.Iterable,java.util.regex.Pattern,com.google.gxp.com.google.common.base.CharEscaper,com.google.gxp.com.google.common.base.CharEscaper)>($r1, $r2, $r3, $r4, $r5);
+
+        return;
+    }
+
+    public static final boolean isPrimitiveType(java.lang.String)
+    {
+        java.util.Set $r1;
+        java.lang.String r0;
+        boolean $z0;
+
+        r0 := @parameter0: java.lang.String;
+
+        $r1 = <com.google.gxp.compiler.java.JavaUtil: java.util.Set PRIMITIVE_TYPES>;
+
+        $z0 = interfaceinvoke $r1.<java.util.Set: boolean contains(java.lang.Object)>(r0);
+
+        return $z0;
+    }
+
+    private static boolean isIdentifier(java.lang.String)
+    {
+        java.util.regex.Matcher $r3;
+        java.util.Set $r1;
+        java.lang.String r0;
+        java.util.regex.Pattern $r2;
+        boolean $z0, $z1, $z2;
+
+        r0 := @parameter0: java.lang.String;
+
+        if r0 == null goto label1;
+
+        $r1 = <com.google.gxp.compiler.java.JavaUtil: java.util.Set RESERVED_WORDS>;
+
+        $z0 = interfaceinvoke $r1.<java.util.Set: boolean contains(java.lang.Object)>(r0);
+
+        if $z0 != 0 goto label1;
+
+        $r2 = <com.google.gxp.compiler.java.JavaUtil: java.util.regex.Pattern IDENTIFIER_REGEX>;
+
+        $r3 = virtualinvoke $r2.<java.util.regex.Pattern: java.util.regex.Matcher matcher(java.lang.CharSequence)>(r0);
+
+        $z1 = virtualinvoke $r3.<java.util.regex.Matcher: boolean matches()>();
+
+        if $z1 == 0 goto label1;
+
+        $z2 = 1;
+
+        goto label2;
+
+     label1:
+        $z2 = 0;
+
+     label2:
+        return $z2;
+    }
+
+    public static java.lang.String validateType(com.google.gxp.compiler.alerts.AlertSink, com.google.gxp.compiler.base.NativeType)
+    {
+        com.google.gxp.compiler.java.IllegalJavaTypeError $r10, $r13;
+        com.google.gxp.compiler.alerts.common.MissingTypeError $r16;
+        java.util.regex.Matcher $r12;
+        com.google.gxp.compiler.alerts.AlertSink r9;
+        int $i0;
+        java.lang.String $r2, $r3, $r4, $r5, $r8, $r14, $r15, r18;
+        com.google.gxp.compiler.base.NativeType r0;
+        java.util.LinkedList $r6;
+        boolean $z0, $z1, $z2;
+        com.google.gxp.compiler.base.OutputLanguage $r1, $r7, $r17;
+        java.util.regex.Pattern $r11;
+
+        r9 := @parameter0: com.google.gxp.compiler.alerts.AlertSink;
+
+        r0 := @parameter1: com.google.gxp.compiler.base.NativeType;
+
+        $r1 = <com.google.gxp.compiler.base.OutputLanguage: com.google.gxp.compiler.base.OutputLanguage JAVA>;
+
+        $r2 = virtualinvoke r0.<com.google.gxp.compiler.base.NativeType: java.lang.String getNativeType(com.google.gxp.compiler.base.OutputLanguage)>($r1);
+
+        if $r2 != null goto label1;
+
+        $r16 = new com.google.gxp.compiler.alerts.common.MissingTypeError;
+
+        $r17 = <com.google.gxp.compiler.base.OutputLanguage: com.google.gxp.compiler.base.OutputLanguage JAVA>;
+
+        specialinvoke $r16.<com.google.gxp.compiler.alerts.common.MissingTypeError: void <init>(com.google.gxp.compiler.base.NativeType,com.google.gxp.compiler.base.OutputLanguage)>(r0, $r17);
+
+        interfaceinvoke r9.<com.google.gxp.compiler.alerts.AlertSink: void add(com.google.gxp.compiler.alerts.Alert)>($r16);
+
+        return $r2;
+
+     label1:
+        $r3 = virtualinvoke $r2.<java.lang.String: java.lang.String replace(char,char)>(123, 60);
+
+        $r4 = virtualinvoke $r3.<java.lang.String: java.lang.String replace(char,char)>(125, 62);
+
+        $r5 = virtualinvoke $r4.<java.lang.String: java.lang.String trim()>();
+
+        $r6 = new java.util.LinkedList;
+
+        specialinvoke $r6.<java.util.LinkedList: void <init>()>();
+
+        $r7 = <com.google.gxp.compiler.base.OutputLanguage: com.google.gxp.compiler.base.OutputLanguage JAVA>;
+
+        $r8 = virtualinvoke r0.<com.google.gxp.compiler.base.NativeType: java.lang.String getNativeType(com.google.gxp.compiler.base.OutputLanguage)>($r7);
+
+        r18 = virtualinvoke $r8.<java.lang.String: java.lang.String trim()>();
+
+     label2:
+        $i0 = virtualinvoke r18.<java.lang.String: int length()>();
+
+        if $i0 == 0 goto label5;
+
+        $r11 = <com.google.gxp.compiler.java.JavaUtil: java.util.regex.Pattern TYPE_TOKEN_REGEX>;
+
+        $r12 = virtualinvoke $r11.<java.util.regex.Pattern: java.util.regex.Matcher matcher(java.lang.CharSequence)>(r18);
+
+        $z2 = virtualinvoke $r12.<java.util.regex.Matcher: boolean find()>();
+
+        if $z2 == 0 goto label3;
+
+        $r14 = virtualinvoke $r12.<java.util.regex.Matcher: java.lang.String group(int)>(1);
+
+        interfaceinvoke $r6.<java.util.Queue: boolean add(java.lang.Object)>($r14);
+
+        $r15 = virtualinvoke $r12.<java.util.regex.Matcher: java.lang.String group(int)>(2);
+
+        r18 = virtualinvoke $r15.<java.lang.String: java.lang.String trim()>();
+
+        goto label4;
+
+     label3:
+        $r13 = new com.google.gxp.compiler.java.IllegalJavaTypeError;
+
+        specialinvoke $r13.<com.google.gxp.compiler.java.IllegalJavaTypeError: void <init>(com.google.gxp.compiler.base.NativeType)>(r0);
+
+        interfaceinvoke r9.<com.google.gxp.compiler.alerts.AlertSink: void add(com.google.gxp.compiler.alerts.Alert)>($r13);
+
+        return $r5;
+
+     label4:
+        goto label2;
+
+     label5:
+        $z0 = staticinvoke <com.google.gxp.compiler.java.JavaUtil: boolean parseType(java.util.Queue)>($r6);
+
+        if $z0 == 0 goto label6;
+
+        $z1 = interfaceinvoke $r6.<java.util.Queue: boolean isEmpty()>();
+
+        if $z1 != 0 goto label7;
+
+     label6:
+        $r10 = new com.google.gxp.compiler.java.IllegalJavaTypeError;
+
+        specialinvoke $r10.<com.google.gxp.compiler.java.IllegalJavaTypeError: void <init>(com.google.gxp.compiler.base.NativeType)>(r0);
+
+        interfaceinvoke r9.<com.google.gxp.compiler.alerts.AlertSink: void add(com.google.gxp.compiler.alerts.Alert)>($r10);
+
+     label7:
+        return $r5;
+    }
+
+    public static java.lang.String validateConjunctiveType(com.google.gxp.compiler.alerts.AlertSink, com.google.gxp.compiler.base.NativeType)
+    {
+        java.lang.String[] $r4;
+        java.util.ArrayList $r0;
+        com.google.gxp.compiler.base.OutputLanguage $r2;
+        com.google.gxp.compiler.alerts.AlertSink r7;
+        int i0, i1;
+        java.lang.String $r3, $r5, r6, $r9;
+        com.google.gxp.compiler.base.NativeType r1, $r8;
+
+        r7 := @parameter0: com.google.gxp.compiler.alerts.AlertSink;
+
+        r1 := @parameter1: com.google.gxp.compiler.base.NativeType;
+
+        $r0 = staticinvoke <com.google.gxp.com.google.common.collect.Lists: java.util.ArrayList newArrayList()>();
+
+        $r2 = <com.google.gxp.compiler.base.OutputLanguage: com.google.gxp.compiler.base.OutputLanguage JAVA>;
+
+        $r3 = virtualinvoke r1.<com.google.gxp.compiler.base.NativeType: java.lang.String getNativeType(com.google.gxp.compiler.base.OutputLanguage)>($r2);
+
+        $r4 = virtualinvoke $r3.<java.lang.String: java.lang.String[] split(java.lang.String)>("&");
+
+        i0 = lengthof $r4;
+
+        i1 = 0;
+
+     label1:
+        if i1 >= i0 goto label2;
+
+        r6 = $r4[i1];
+
+        $r8 = new com.google.gxp.compiler.base.NativeType;
+
+        specialinvoke $r8.<com.google.gxp.compiler.base.NativeType: void <init>(com.google.gxp.compiler.base.Node,java.lang.String)>(r1, r6);
+
+        $r9 = staticinvoke <com.google.gxp.compiler.java.JavaUtil: java.lang.String validateType(com.google.gxp.compiler.alerts.AlertSink,com.google.gxp.compiler.base.NativeType)>(r7, $r8);
+
+        interfaceinvoke $r0.<java.util.List: boolean add(java.lang.Object)>($r9);
+
+        i1 = i1 + 1;
+
+        goto label1;
+
+     label2:
+        $r5 = staticinvoke <com.google.gxp.com.google.common.base.Join: java.lang.String join(java.lang.String,java.lang.Iterable)>(" & ", $r0);
+
+        return $r5;
+    }
+
+    public static java.lang.String validateAnnotation(com.google.gxp.compiler.alerts.AlertSink, com.google.gxp.compiler.base.JavaAnnotation)
+    {
+        java.lang.String $r1;
+        com.google.gxp.compiler.alerts.AlertSink r2;
+        com.google.gxp.compiler.base.JavaAnnotation r0;
+
+        r2 := @parameter0: com.google.gxp.compiler.alerts.AlertSink;
+
+        r0 := @parameter1: com.google.gxp.compiler.base.JavaAnnotation;
+
+        $r1 = virtualinvoke r0.<com.google.gxp.compiler.base.JavaAnnotation: java.lang.String getWith()>();
+
+        return $r1;
+    }
+
+    private static boolean parseType(java.util.Queue)
+    {
+        java.lang.String $r2, $r4, $r5, $r7, $r9, $r11, $r13;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8;
+        java.lang.Object $r1, $r3, $r6, $r8, $r10, $r12, $r14;
+        java.util.Queue r0;
+
+        r0 := @parameter0: java.util.Queue;
+
+        $r1 = interfaceinvoke r0.<java.util.Queue: java.lang.Object peek()>();
+
+        $r2 = (java.lang.String) $r1;
+
+        $z0 = staticinvoke <com.google.gxp.compiler.java.JavaUtil: boolean isPrimitiveType(java.lang.String)>($r2);
+
+        if $z0 == 0 goto label1;
+
+        interfaceinvoke r0.<java.util.Queue: java.lang.Object poll()>();
+
+        goto label5;
+
+     label1:
+        $r3 = interfaceinvoke r0.<java.util.Queue: java.lang.Object poll()>();
+
+        $r4 = (java.lang.String) $r3;
+
+        $z1 = staticinvoke <com.google.gxp.compiler.java.JavaUtil: boolean isIdentifier(java.lang.String)>($r4);
+
+        if $z1 != 0 goto label2;
+
+        return 0;
+
+     label2:
+        $r5 = "<";
+
+        $r6 = interfaceinvoke r0.<java.util.Queue: java.lang.Object peek()>();
+
+        $z2 = virtualinvoke $r5.<java.lang.String: boolean equals(java.lang.Object)>($r6);
+
+        if $z2 == 0 goto label3;
+
+        $z7 = staticinvoke <com.google.gxp.compiler.java.JavaUtil: boolean parseTypeArguments(java.util.Queue,java.lang.String,java.lang.String)>(r0, "<", ">");
+
+        if $z7 != 0 goto label3;
+
+        return 0;
+
+     label3:
+        $r7 = "{";
+
+        $r8 = interfaceinvoke r0.<java.util.Queue: java.lang.Object peek()>();
+
+        $z3 = virtualinvoke $r7.<java.lang.String: boolean equals(java.lang.Object)>($r8);
+
+        if $z3 == 0 goto label4;
+
+        $z6 = staticinvoke <com.google.gxp.compiler.java.JavaUtil: boolean parseTypeArguments(java.util.Queue,java.lang.String,java.lang.String)>(r0, "{", "}");
+
+        if $z6 != 0 goto label4;
+
+        return 0;
+
+     label4:
+        $r9 = ".";
+
+        $r10 = interfaceinvoke r0.<java.util.Queue: java.lang.Object peek()>();
+
+        $z4 = virtualinvoke $r9.<java.lang.String: boolean equals(java.lang.Object)>($r10);
+
+        if $z4 == 0 goto label5;
+
+        interfaceinvoke r0.<java.util.Queue: java.lang.Object poll()>();
+
+        goto label1;
+
+     label5:
+        $r13 = "[";
+
+        $r14 = interfaceinvoke r0.<java.util.Queue: java.lang.Object peek()>();
+
+        $z8 = virtualinvoke $r13.<java.lang.String: boolean equals(java.lang.Object)>($r14);
+
+        if $z8 == 0 goto label6;
+
+        interfaceinvoke r0.<java.util.Queue: java.lang.Object poll()>();
+
+        $r11 = "]";
+
+        $r12 = interfaceinvoke r0.<java.util.Queue: java.lang.Object poll()>();
+
+        $z5 = virtualinvoke $r11.<java.lang.String: boolean equals(java.lang.Object)>($r12);
+
+        if $z5 != 0 goto label5;
+
+        return 0;
+
+     label6:
+        return 1;
+    }
+
+    private static boolean parseTypeArguments(java.util.Queue, java.lang.String, java.lang.String)
+    {
+        java.lang.Object $r1, $r5, $r7;
+        java.util.Queue r0;
+        java.lang.String r2, $r3, $r4, r6;
+        boolean $z0, $z1, $z2, $z3;
+
+        r0 := @parameter0: java.util.Queue;
+
+        r2 := @parameter1: java.lang.String;
+
+        r6 := @parameter2: java.lang.String;
+
+        $r1 = interfaceinvoke r0.<java.util.Queue: java.lang.Object poll()>();
+
+        $r3 = (java.lang.String) $r1;
+
+        $z0 = virtualinvoke $r3.<java.lang.String: boolean equals(java.lang.Object)>(r2);
+
+        if $z0 != 0 goto label1;
+
+        return 0;
+
+     label1:
+        $z1 = staticinvoke <com.google.gxp.compiler.java.JavaUtil: boolean parseTypeArgument(java.util.Queue)>(r0);
+
+        if $z1 != 0 goto label2;
+
+        return 0;
+
+     label2:
+        $r4 = ",";
+
+        $r5 = interfaceinvoke r0.<java.util.Queue: java.lang.Object peek()>();
+
+        $z2 = virtualinvoke $r4.<java.lang.String: boolean equals(java.lang.Object)>($r5);
+
+        if $z2 == 0 goto label3;
+
+        interfaceinvoke r0.<java.util.Queue: java.lang.Object poll()>();
+
+        goto label1;
+
+     label3:
+        $r7 = interfaceinvoke r0.<java.util.Queue: java.lang.Object poll()>();
+
+        $z3 = virtualinvoke r6.<java.lang.String: boolean equals(java.lang.Object)>($r7);
+
+        return $z3;
+    }
+
+    private static boolean parseTypeArgument(java.util.Queue)
+    {
+        java.util.Set $r3;
+        java.lang.Object $r2, $r4;
+        java.util.Queue r0;
+        java.lang.String $r1;
+        boolean $z0, $z1, $z2, $z3;
+
+        r0 := @parameter0: java.util.Queue;
+
+        $r1 = "?";
+
+        $r2 = interfaceinvoke r0.<java.util.Queue: java.lang.Object peek()>();
+
+        $z0 = virtualinvoke $r1.<java.lang.String: boolean equals(java.lang.Object)>($r2);
+
+        if $z0 == 0 goto label1;
+
+        interfaceinvoke r0.<java.util.Queue: java.lang.Object poll()>();
+
+        $r3 = <com.google.gxp.compiler.java.JavaUtil: java.util.Set TYPE_ARGUMENT_QUALIFIERS>;
+
+        $r4 = interfaceinvoke r0.<java.util.Queue: java.lang.Object peek()>();
+
+        $z2 = interfaceinvoke $r3.<java.util.Set: boolean contains(java.lang.Object)>($r4);
+
+        if $z2 == 0 goto label2;
+
+        interfaceinvoke r0.<java.util.Queue: java.lang.Object poll()>();
+
+        $z3 = staticinvoke <com.google.gxp.compiler.java.JavaUtil: boolean parseType(java.util.Queue)>(r0);
+
+        return $z3;
+
+     label1:
+        $z1 = staticinvoke <com.google.gxp.compiler.java.JavaUtil: boolean parseType(java.util.Queue)>(r0);
+
+        return $z1;
+
+     label2:
+        return 1;
+    }
+
+    public static java.lang.String toReferenceType(java.lang.String)
+    {
+        java.util.Map $r1;
+        java.lang.Object $r2;
+        java.lang.String r0, r3, $r4;
+
+        r0 := @parameter0: java.lang.String;
+
+        $r1 = <com.google.gxp.compiler.java.JavaUtil: java.util.Map PRIMITIVE_TO_BOXED_MAP>;
+
+        $r2 = interfaceinvoke $r1.<java.util.Map: java.lang.Object get(java.lang.Object)>(r0);
+
+        r3 = (java.lang.String) $r2;
+
+        if r3 != null goto label1;
+
+        $r4 = r0;
+
+        goto label2;
+
+     label1:
+        $r4 = r3;
+
+     label2:
+        return $r4;
+    }
+
+    public static java.lang.String unbox(java.lang.String, java.lang.String)
+    {
+        java.util.Map $r1;
+        java.lang.StringBuilder $r3, $r4, $r5, $r6, $r7, $r8;
+        java.lang.String r0, r2, $r9;
+        boolean $z0;
+
+        r2 := @parameter0: java.lang.String;
+
+        r0 := @parameter1: java.lang.String;
+
+        $r1 = <com.google.gxp.compiler.java.JavaUtil: java.util.Map PRIMITIVE_TO_BOXED_MAP>;
+
+        $z0 = interfaceinvoke $r1.<java.util.Map: boolean containsKey(java.lang.Object)>(r0);
+
+        if $z0 == 0 goto label1;
+
+        $r3 = new java.lang.StringBuilder;
+
+        specialinvoke $r3.<java.lang.StringBuilder: void <init>()>();
+
+        $r4 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("(");
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r2);
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(").");
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r0);
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Value()");
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        return $r9;
+
+     label1:
+        return r2;
+    }
+
+    public static final boolean isValidPrimitive(java.lang.String, java.lang.String)
+    {
+        java.util.Map $r1;
+        java.lang.Object $r2;
+        java.lang.NumberFormatException $r5;
+        java.lang.String r0, r3;
+        com.google.gxp.com.google.common.base.Predicate $r4;
+        boolean $z0;
+
+        r3 := @parameter0: java.lang.String;
+
+        r0 := @parameter1: java.lang.String;
+
+     label1:
+        $r1 = <com.google.gxp.compiler.java.JavaUtil: java.util.Map PRIMITIVE_TO_VALIDATOR>;
+
+        $r2 = interfaceinvoke $r1.<java.util.Map: java.lang.Object get(java.lang.Object)>(r0);
+
+        $r4 = (com.google.gxp.com.google.common.base.Predicate) $r2;
+
+        $z0 = interfaceinvoke $r4.<com.google.gxp.com.google.common.base.Predicate: boolean apply(java.lang.Object)>(r3);
+
+     label2:
+        return $z0;
+
+     label3:
+        $r5 := @caughtexception;
+
+        return 0;
+
+        catch java.lang.NumberFormatException from label1 to label2 with label3;
+    }
+
+    static void <clinit>()
+    {
+        java.util.Map $r64;
+        java.util.Set $r65;
+        java.lang.StringBuilder $r6, $r8, $r9, $r26, $r28, $r29;
+        com.google.gxp.compiler.java.JavaUtil $r93;
+        com.google.gxp.com.google.common.collect.ImmutableMap$Builder $r54, $r55, $r56, $r57, $r58, $r59, $r60, $r61, $r62, $r75, $r77, $r79, $r81, $r83, $r85, $r87, $r89, $r91;
+        java.lang.String $r3, $r4, $r5, $r7, $r10, $r11, $r12, $r13, $r14, $r15, $r16, $r17, $r18, $r19, $r20, $r21, $r22, $r23, $r24, $r25, $r27, $r30, $r31, $r32, $r33, $r34, $r35, $r36, $r37, $r38, $r39, $r40, $r41, $r42, $r43, $r44, $r45, $r46;
+        com.google.gxp.com.google.common.base.Predicate $r76, $r78, $r80, $r82, $r84, $r86, $r88, $r90;
+        com.google.gxp.compiler.java.JavaUtil$1 $r67;
+        com.google.gxp.compiler.java.JavaUtil$2 $r68;
+        com.google.gxp.compiler.java.JavaUtil$3 $r69;
+        com.google.gxp.compiler.java.JavaUtil$4 $r70;
+        com.google.gxp.compiler.java.JavaUtil$5 $r71;
+        com.google.gxp.compiler.java.JavaUtil$6 $r72;
+        com.google.gxp.compiler.java.JavaUtil$7 $r73;
+        com.google.gxp.compiler.java.JavaUtil$8 $r74;
+        com.google.gxp.com.google.common.collect.ImmutableSet $r1, $r49, $r51, $r66;
+        com.google.gxp.com.google.common.collect.ImmutableMap $r63, $r92;
+        java.util.regex.Pattern $r47, $r52, $r53;
+        java.lang.String[] $r0, $r2, $r48, $r50;
+
+        <com.google.gxp.compiler.java.JavaUtil: java.lang.String NOT_IN_CAST_LOOKAHEAD> = "(?!\\s*[,)>])";
+
+        $r0 = newarray (java.lang.String)[22];
+
+        $r0[0] = "instanceof";
+
+        $r0[1] = "^";
+
+        $r0[2] = "~";
+
+        $r0[3] = "&";
+
+        $r0[4] = "<<";
+
+        $r0[5] = ">>";
+
+        $r0[6] = ">>>";
+
+        $r0[7] = "|";
+
+        $r0[8] = "--";
+
+        $r0[9] = "-=";
+
+        $r0[10] = "/=";
+
+        $r0[11] = "*=";
+
+        $r0[12] = "&=";
+
+        $r0[13] = "%=";
+
+        $r0[14] = "++";
+
+        $r0[15] = "+=";
+
+        $r0[16] = "<<=";
+
+        $r0[17] = "=";
+
+        $r0[18] = ">>=";
+
+        $r0[19] = ">>>=";
+
+        $r0[20] = "|=";
+
+        $r0[21] = "^=";
+
+        $r1 = staticinvoke <com.google.gxp.com.google.common.collect.ImmutableSet: com.google.gxp.com.google.common.collect.ImmutableSet of(java.lang.Object[])>($r0);
+
+        <com.google.gxp.compiler.java.JavaUtil: java.util.Set FORBIDDEN_OPS> = $r1;
+
+        $r2 = newarray (java.lang.String)[38];
+
+        $r2[0] = "\\binstanceof\\b";
+
+        $r3 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>(">>>=");
+
+        $r2[1] = $r3;
+
+        $r4 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>("<<=");
+
+        $r2[2] = $r4;
+
+        $r5 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>(">>=");
+
+        $r2[3] = $r5;
+
+        $r6 = new java.lang.StringBuilder;
+
+        specialinvoke $r6.<java.lang.StringBuilder: void <init>()>();
+
+        $r7 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>(">>>");
+
+        $r8 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r7);
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("(?!\\s*[,)>])");
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r2[4] = $r10;
+
+        $r11 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>("--");
+
+        $r2[5] = $r11;
+
+        $r12 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>("-=");
+
+        $r2[6] = $r12;
+
+        $r13 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>("!=");
+
+        $r2[7] = $r13;
+
+        $r14 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>("/=");
+
+        $r2[8] = $r14;
+
+        $r15 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>("^=");
+
+        $r2[9] = $r15;
+
+        $r16 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>("*=");
+
+        $r2[10] = $r16;
+
+        $r17 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>("&&");
+
+        $r2[11] = $r17;
+
+        $r18 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>("&=");
+
+        $r2[12] = $r18;
+
+        $r19 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>("%=");
+
+        $r2[13] = $r19;
+
+        $r20 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>("++");
+
+        $r2[14] = $r20;
+
+        $r21 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>("+=");
+
+        $r2[15] = $r21;
+
+        $r22 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>("<<");
+
+        $r2[16] = $r22;
+
+        $r23 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>("<=");
+
+        $r2[17] = $r23;
+
+        $r24 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>("==");
+
+        $r2[18] = $r24;
+
+        $r25 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>(">=");
+
+        $r2[19] = $r25;
+
+        $r26 = new java.lang.StringBuilder;
+
+        specialinvoke $r26.<java.lang.StringBuilder: void <init>()>();
+
+        $r27 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>(">>");
+
+        $r28 = virtualinvoke $r26.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r27);
+
+        $r29 = virtualinvoke $r28.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("(?!\\s*[,)>])");
+
+        $r30 = virtualinvoke $r29.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r2[20] = $r30;
+
+        $r31 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>("|=");
+
+        $r2[21] = $r31;
+
+        $r32 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>("||");
+
+        $r2[22] = $r32;
+
+        $r2[23] = "\\bnew\\b";
+
+        $r33 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>("-");
+
+        $r2[24] = $r33;
+
+        $r34 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>("!");
+
+        $r2[25] = $r34;
+
+        $r35 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>("/");
+
+        $r2[26] = $r35;
+
+        $r36 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>("^");
+
+        $r2[27] = $r36;
+
+        $r37 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>("~");
+
+        $r2[28] = $r37;
+
+        $r38 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>("*");
+
+        $r2[29] = $r38;
+
+        $r39 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>("&");
+
+        $r2[30] = $r39;
+
+        $r40 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>("%");
+
+        $r2[31] = $r40;
+
+        $r41 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>("+");
+
+        $r2[32] = $r41;
+
+        $r42 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>("<");
+
+        $r2[33] = $r42;
+
+        $r43 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>("=");
+
+        $r2[34] = $r43;
+
+        $r44 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>(">");
+
+        $r2[35] = $r44;
+
+        $r45 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>("|");
+
+        $r2[36] = $r45;
+
+        $r46 = staticinvoke <java.util.regex.Pattern: java.lang.String quote(java.lang.String)>("?");
+
+        $r2[37] = $r46;
+
+        $r47 = staticinvoke <com.google.gxp.compiler.java.JavaUtil: java.util.regex.Pattern compileUnionPattern(java.lang.String[])>($r2);
+
+        <com.google.gxp.compiler.java.JavaUtil: java.util.regex.Pattern OPS_FINDER> = $r47;
+
+        $r48 = newarray (java.lang.String)[53];
+
+        $r48[0] = "abstract";
+
+        $r48[1] = "assert";
+
+        $r48[2] = "boolean";
+
+        $r48[3] = "break";
+
+        $r48[4] = "byte";
+
+        $r48[5] = "case";
+
+        $r48[6] = "catch";
+
+        $r48[7] = "char";
+
+        $r48[8] = "class";
+
+        $r48[9] = "const";
+
+        $r48[10] = "continue";
+
+        $r48[11] = "default";
+
+        $r48[12] = "do";
+
+        $r48[13] = "double";
+
+        $r48[14] = "else";
+
+        $r48[15] = "enum";
+
+        $r48[16] = "extends";
+
+        $r48[17] = "final";
+
+        $r48[18] = "finally";
+
+        $r48[19] = "float";
+
+        $r48[20] = "for";
+
+        $r48[21] = "goto";
+
+        $r48[22] = "if";
+
+        $r48[23] = "implements";
+
+        $r48[24] = "import";
+
+        $r48[25] = "instanceof";
+
+        $r48[26] = "int";
+
+        $r48[27] = "interface";
+
+        $r48[28] = "long";
+
+        $r48[29] = "native";
+
+        $r48[30] = "new";
+
+        $r48[31] = "package";
+
+        $r48[32] = "private";
+
+        $r48[33] = "protected";
+
+        $r48[34] = "public";
+
+        $r48[35] = "return";
+
+        $r48[36] = "short";
+
+        $r48[37] = "static";
+
+        $r48[38] = "strictfp";
+
+        $r48[39] = "super";
+
+        $r48[40] = "switch";
+
+        $r48[41] = "synchronized";
+
+        $r48[42] = "this";
+
+        $r48[43] = "throw";
+
+        $r48[44] = "throws";
+
+        $r48[45] = "transient";
+
+        $r48[46] = "try";
+
+        $r48[47] = "void";
+
+        $r48[48] = "volatile";
+
+        $r48[49] = "while";
+
+        $r48[50] = "true";
+
+        $r48[51] = "false";
+
+        $r48[52] = "null";
+
+        $r49 = staticinvoke <com.google.gxp.com.google.common.collect.ImmutableSet: com.google.gxp.com.google.common.collect.ImmutableSet of(java.lang.Object[])>($r48);
+
+        <com.google.gxp.compiler.java.JavaUtil: java.util.Set RESERVED_WORDS> = $r49;
+
+        $r50 = newarray (java.lang.String)[2];
+
+        $r50[0] = "extends";
+
+        $r50[1] = "super";
+
+        $r51 = staticinvoke <com.google.gxp.com.google.common.collect.ImmutableSet: com.google.gxp.com.google.common.collect.ImmutableSet of(java.lang.Object[])>($r50);
+
+        <com.google.gxp.compiler.java.JavaUtil: java.util.Set TYPE_ARGUMENT_QUALIFIERS> = $r51;
+
+        $r52 = staticinvoke <java.util.regex.Pattern: java.util.regex.Pattern compile(java.lang.String)>("^[A-Za-z_][A-Za-z0-9_]*$");
+
+        <com.google.gxp.compiler.java.JavaUtil: java.util.regex.Pattern IDENTIFIER_REGEX> = $r52;
+
+        $r53 = staticinvoke <java.util.regex.Pattern: java.util.regex.Pattern compile(java.lang.String,int)>("^([A-Za-z_][A-Za-z0-9_]*|[\\?\\[\\]<>{},\\.])(.*)", 32);
+
+        <com.google.gxp.compiler.java.JavaUtil: java.util.regex.Pattern TYPE_TOKEN_REGEX> = $r53;
+
+        $r54 = staticinvoke <com.google.gxp.com.google.common.collect.ImmutableMap: com.google.gxp.com.google.common.collect.ImmutableMap$Builder builder()>();
+
+        $r55 = virtualinvoke $r54.<com.google.gxp.com.google.common.collect.ImmutableMap$Builder: com.google.gxp.com.google.common.collect.ImmutableMap$Builder put(java.lang.Object,java.lang.Object)>("boolean", "Boolean");
+
+        $r56 = virtualinvoke $r55.<com.google.gxp.com.google.common.collect.ImmutableMap$Builder: com.google.gxp.com.google.common.collect.ImmutableMap$Builder put(java.lang.Object,java.lang.Object)>("byte", "Number");
+
+        $r57 = virtualinvoke $r56.<com.google.gxp.com.google.common.collect.ImmutableMap$Builder: com.google.gxp.com.google.common.collect.ImmutableMap$Builder put(java.lang.Object,java.lang.Object)>("char", "Character");
+
+        $r58 = virtualinvoke $r57.<com.google.gxp.com.google.common.collect.ImmutableMap$Builder: com.google.gxp.com.google.common.collect.ImmutableMap$Builder put(java.lang.Object,java.lang.Object)>("double", "Number");
+
+        $r59 = virtualinvoke $r58.<com.google.gxp.com.google.common.collect.ImmutableMap$Builder: com.google.gxp.com.google.common.collect.ImmutableMap$Builder put(java.lang.Object,java.lang.Object)>("float", "Number");
+
+        $r60 = virtualinvoke $r59.<com.google.gxp.com.google.common.collect.ImmutableMap$Builder: com.google.gxp.com.google.common.collect.ImmutableMap$Builder put(java.lang.Object,java.lang.Object)>("int", "Number");
+
+        $r61 = virtualinvoke $r60.<com.google.gxp.com.google.common.collect.ImmutableMap$Builder: com.google.gxp.com.google.common.collect.ImmutableMap$Builder put(java.lang.Object,java.lang.Object)>("long", "Number");
+
+        $r62 = virtualinvoke $r61.<com.google.gxp.com.google.common.collect.ImmutableMap$Builder: com.google.gxp.com.google.common.collect.ImmutableMap$Builder put(java.lang.Object,java.lang.Object)>("short", "Number");
+
+        $r63 = virtualinvoke $r62.<com.google.gxp.com.google.common.collect.ImmutableMap$Builder: com.google.gxp.com.google.common.collect.ImmutableMap build()>();
+
+        <com.google.gxp.compiler.java.JavaUtil: java.util.Map PRIMITIVE_TO_BOXED_MAP> = $r63;
+
+        $r64 = <com.google.gxp.compiler.java.JavaUtil: java.util.Map PRIMITIVE_TO_BOXED_MAP>;
+
+        $r65 = interfaceinvoke $r64.<java.util.Map: java.util.Set keySet()>();
+
+        $r66 = staticinvoke <com.google.gxp.com.google.common.collect.ImmutableSet: com.google.gxp.com.google.common.collect.ImmutableSet copyOf(java.lang.Iterable)>($r65);
+
+        <com.google.gxp.compiler.java.JavaUtil: java.util.Set PRIMITIVE_TYPES> = $r66;
+
+        $r67 = new com.google.gxp.compiler.java.JavaUtil$1;
+
+        specialinvoke $r67.<com.google.gxp.compiler.java.JavaUtil$1: void <init>()>();
+
+        <com.google.gxp.compiler.java.JavaUtil: com.google.gxp.com.google.common.base.Predicate ISVALID_BOOLEAN> = $r67;
+
+        $r68 = new com.google.gxp.compiler.java.JavaUtil$2;
+
+        specialinvoke $r68.<com.google.gxp.compiler.java.JavaUtil$2: void <init>()>();
+
+        <com.google.gxp.compiler.java.JavaUtil: com.google.gxp.com.google.common.base.Predicate ISVALID_BYTE> = $r68;
+
+        $r69 = new com.google.gxp.compiler.java.JavaUtil$3;
+
+        specialinvoke $r69.<com.google.gxp.compiler.java.JavaUtil$3: void <init>()>();
+
+        <com.google.gxp.compiler.java.JavaUtil: com.google.gxp.com.google.common.base.Predicate ISVALID_CHAR> = $r69;
+
+        $r70 = new com.google.gxp.compiler.java.JavaUtil$4;
+
+        specialinvoke $r70.<com.google.gxp.compiler.java.JavaUtil$4: void <init>()>();
+
+        <com.google.gxp.compiler.java.JavaUtil: com.google.gxp.com.google.common.base.Predicate ISVALID_DOUBLE> = $r70;
+
+        $r71 = new com.google.gxp.compiler.java.JavaUtil$5;
+
+        specialinvoke $r71.<com.google.gxp.compiler.java.JavaUtil$5: void <init>()>();
+
+        <com.google.gxp.compiler.java.JavaUtil: com.google.gxp.com.google.common.base.Predicate ISVALID_FLOAT> = $r71;
+
+        $r72 = new com.google.gxp.compiler.java.JavaUtil$6;
+
+        specialinvoke $r72.<com.google.gxp.compiler.java.JavaUtil$6: void <init>()>();
+
+        <com.google.gxp.compiler.java.JavaUtil: com.google.gxp.com.google.common.base.Predicate ISVALID_INT> = $r72;
+
+        $r73 = new com.google.gxp.compiler.java.JavaUtil$7;
+
+        specialinvoke $r73.<com.google.gxp.compiler.java.JavaUtil$7: void <init>()>();
+
+        <com.google.gxp.compiler.java.JavaUtil: com.google.gxp.com.google.common.base.Predicate ISVALID_LONG> = $r73;
+
+        $r74 = new com.google.gxp.compiler.java.JavaUtil$8;
+
+        specialinvoke $r74.<com.google.gxp.compiler.java.JavaUtil$8: void <init>()>();
+
+        <com.google.gxp.compiler.java.JavaUtil: com.google.gxp.com.google.common.base.Predicate ISVALID_SHORT> = $r74;
+
+        $r75 = staticinvoke <com.google.gxp.com.google.common.collect.ImmutableMap: com.google.gxp.com.google.common.collect.ImmutableMap$Builder builder()>();
+
+        $r76 = <com.google.gxp.compiler.java.JavaUtil: com.google.gxp.com.google.common.base.Predicate ISVALID_BOOLEAN>;
+
+        $r77 = virtualinvoke $r75.<com.google.gxp.com.google.common.collect.ImmutableMap$Builder: com.google.gxp.com.google.common.collect.ImmutableMap$Builder put(java.lang.Object,java.lang.Object)>("boolean", $r76);
+
+        $r78 = <com.google.gxp.compiler.java.JavaUtil: com.google.gxp.com.google.common.base.Predicate ISVALID_BYTE>;
+
+        $r79 = virtualinvoke $r77.<com.google.gxp.com.google.common.collect.ImmutableMap$Builder: com.google.gxp.com.google.common.collect.ImmutableMap$Builder put(java.lang.Object,java.lang.Object)>("byte", $r78);
+
+        $r80 = <com.google.gxp.compiler.java.JavaUtil: com.google.gxp.com.google.common.base.Predicate ISVALID_CHAR>;
+
+        $r81 = virtualinvoke $r79.<com.google.gxp.com.google.common.collect.ImmutableMap$Builder: com.google.gxp.com.google.common.collect.ImmutableMap$Builder put(java.lang.Object,java.lang.Object)>("char", $r80);
+
+        $r82 = <com.google.gxp.compiler.java.JavaUtil: com.google.gxp.com.google.common.base.Predicate ISVALID_DOUBLE>;
+
+        $r83 = virtualinvoke $r81.<com.google.gxp.com.google.common.collect.ImmutableMap$Builder: com.google.gxp.com.google.common.collect.ImmutableMap$Builder put(java.lang.Object,java.lang.Object)>("double", $r82);
+
+        $r84 = <com.google.gxp.compiler.java.JavaUtil: com.google.gxp.com.google.common.base.Predicate ISVALID_FLOAT>;
+
+        $r85 = virtualinvoke $r83.<com.google.gxp.com.google.common.collect.ImmutableMap$Builder: com.google.gxp.com.google.common.collect.ImmutableMap$Builder put(java.lang.Object,java.lang.Object)>("float", $r84);
+
+        $r86 = <com.google.gxp.compiler.java.JavaUtil: com.google.gxp.com.google.common.base.Predicate ISVALID_INT>;
+
+        $r87 = virtualinvoke $r85.<com.google.gxp.com.google.common.collect.ImmutableMap$Builder: com.google.gxp.com.google.common.collect.ImmutableMap$Builder put(java.lang.Object,java.lang.Object)>("int", $r86);
+
+        $r88 = <com.google.gxp.compiler.java.JavaUtil: com.google.gxp.com.google.common.base.Predicate ISVALID_LONG>;
+
+        $r89 = virtualinvoke $r87.<com.google.gxp.com.google.common.collect.ImmutableMap$Builder: com.google.gxp.com.google.common.collect.ImmutableMap$Builder put(java.lang.Object,java.lang.Object)>("long", $r88);
+
+        $r90 = <com.google.gxp.compiler.java.JavaUtil: com.google.gxp.com.google.common.base.Predicate ISVALID_SHORT>;
+
+        $r91 = virtualinvoke $r89.<com.google.gxp.com.google.common.collect.ImmutableMap$Builder: com.google.gxp.com.google.common.collect.ImmutableMap$Builder put(java.lang.Object,java.lang.Object)>("short", $r90);
+
+        $r92 = virtualinvoke $r91.<com.google.gxp.com.google.common.collect.ImmutableMap$Builder: com.google.gxp.com.google.common.collect.ImmutableMap build()>();
+
+        <com.google.gxp.compiler.java.JavaUtil: java.util.Map PRIMITIVE_TO_VALIDATOR> = $r92;
+
+        $r93 = new com.google.gxp.compiler.java.JavaUtil;
+
+        specialinvoke $r93.<com.google.gxp.compiler.java.JavaUtil: void <init>()>();
+
+        <com.google.gxp.compiler.java.JavaUtil: com.google.gxp.compiler.java.JavaUtil INSTANCE> = $r93;
+
+        return;
+    }
+}

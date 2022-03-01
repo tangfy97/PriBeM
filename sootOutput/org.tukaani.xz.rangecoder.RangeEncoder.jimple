@@ -1,0 +1,692 @@
+public final class org.tukaani.xz.rangecoder.RangeEncoder extends org.tukaani.xz.rangecoder.RangeCoder
+{
+    private static final int MOVE_REDUCING_BITS;
+    private static final int BIT_PRICE_SHIFT_BITS;
+    private static final int[] prices;
+    private long low;
+    private int range;
+    private int cacheSize;
+    private byte cache;
+    private final byte[] buf;
+    private int bufPos;
+    static final boolean $assertionsDisabled;
+    static java.lang.Class class$org$tukaani$xz$rangecoder$RangeEncoder;
+
+    public void <init>(int)
+    {
+        int i0;
+        byte[] $r1;
+        org.tukaani.xz.rangecoder.RangeEncoder r0;
+
+        r0 := @this: org.tukaani.xz.rangecoder.RangeEncoder;
+
+        i0 := @parameter0: int;
+
+        specialinvoke r0.<org.tukaani.xz.rangecoder.RangeCoder: void <init>()>();
+
+        $r1 = newarray (byte)[i0];
+
+        r0.<org.tukaani.xz.rangecoder.RangeEncoder: byte[] buf> = $r1;
+
+        virtualinvoke r0.<org.tukaani.xz.rangecoder.RangeEncoder: void reset()>();
+
+        return;
+    }
+
+    public void reset()
+    {
+        int $i1;
+        org.tukaani.xz.rangecoder.RangeEncoder r0;
+
+        r0 := @this: org.tukaani.xz.rangecoder.RangeEncoder;
+
+        r0.<org.tukaani.xz.rangecoder.RangeEncoder: long low> = 0L;
+
+        $i1 = (int) -1;
+
+        r0.<org.tukaani.xz.rangecoder.RangeEncoder: int range> = $i1;
+
+        r0.<org.tukaani.xz.rangecoder.RangeEncoder: byte cache> = 0;
+
+        r0.<org.tukaani.xz.rangecoder.RangeEncoder: int cacheSize> = 1;
+
+        r0.<org.tukaani.xz.rangecoder.RangeEncoder: int bufPos> = 0;
+
+        return;
+    }
+
+    public int getPendingSize()
+    {
+        org.tukaani.xz.rangecoder.RangeEncoder r0;
+        int $i0, $i1, $i2, $i3, $i4;
+
+        r0 := @this: org.tukaani.xz.rangecoder.RangeEncoder;
+
+        $i1 = r0.<org.tukaani.xz.rangecoder.RangeEncoder: int bufPos>;
+
+        $i0 = r0.<org.tukaani.xz.rangecoder.RangeEncoder: int cacheSize>;
+
+        $i2 = $i1 + $i0;
+
+        $i3 = $i2 + 5;
+
+        $i4 = $i3 - 1;
+
+        return $i4;
+    }
+
+    public int finish()
+    {
+        int $i0, i1;
+        org.tukaani.xz.rangecoder.RangeEncoder r0;
+
+        r0 := @this: org.tukaani.xz.rangecoder.RangeEncoder;
+
+        i1 = 0;
+
+     label1:
+        if i1 >= 5 goto label2;
+
+        specialinvoke r0.<org.tukaani.xz.rangecoder.RangeEncoder: void shiftLow()>();
+
+        i1 = i1 + 1;
+
+        goto label1;
+
+     label2:
+        $i0 = r0.<org.tukaani.xz.rangecoder.RangeEncoder: int bufPos>;
+
+        return $i0;
+    }
+
+    public void write(java.io.OutputStream) throws java.io.IOException
+    {
+        java.io.OutputStream r0;
+        byte[] $r2;
+        org.tukaani.xz.rangecoder.RangeEncoder r1;
+        int $i0;
+
+        r1 := @this: org.tukaani.xz.rangecoder.RangeEncoder;
+
+        r0 := @parameter0: java.io.OutputStream;
+
+        $r2 = r1.<org.tukaani.xz.rangecoder.RangeEncoder: byte[] buf>;
+
+        $i0 = r1.<org.tukaani.xz.rangecoder.RangeEncoder: int bufPos>;
+
+        virtualinvoke r0.<java.io.OutputStream: void write(byte[],int,int)>($r2, 0, $i0);
+
+        return;
+    }
+
+    private void shiftLow()
+    {
+        byte[] $r1;
+        org.tukaani.xz.rangecoder.RangeEncoder r0;
+        long $l0, $l1, $l3, $l4, $l9, $l10, $l11, $l12;
+        short s14;
+        byte $b6, $b13, $b18;
+        int i2, $i5, $i7, $i8, $i15, $i16, $i17, $i19, $i20, $i21;
+
+        r0 := @this: org.tukaani.xz.rangecoder.RangeEncoder;
+
+        $l0 = r0.<org.tukaani.xz.rangecoder.RangeEncoder: long low>;
+
+        $l1 = $l0 >>> 32;
+
+        i2 = (int) $l1;
+
+        if i2 != 0 goto label1;
+
+        $l12 = r0.<org.tukaani.xz.rangecoder.RangeEncoder: long low>;
+
+        $b13 = $l12 cmp 4278190080L;
+
+        $i21 = (int) $b13;
+
+        if $i21 >= 0 goto label3;
+
+     label1:
+        s14 = r0.<org.tukaani.xz.rangecoder.RangeEncoder: byte cache>;
+
+     label2:
+        $r1 = r0.<org.tukaani.xz.rangecoder.RangeEncoder: byte[] buf>;
+
+        $i15 = r0.<org.tukaani.xz.rangecoder.RangeEncoder: int bufPos>;
+
+        $i16 = $i15 + 1;
+
+        r0.<org.tukaani.xz.rangecoder.RangeEncoder: int bufPos> = $i16;
+
+        $i17 = s14 + i2;
+
+        $b18 = (byte) $i17;
+
+        $r1[$i15] = $b18;
+
+        s14 = 255;
+
+        $i19 = r0.<org.tukaani.xz.rangecoder.RangeEncoder: int cacheSize>;
+
+        $i20 = $i19 - 1;
+
+        r0.<org.tukaani.xz.rangecoder.RangeEncoder: int cacheSize> = $i20;
+
+        if $i20 != 0 goto label2;
+
+        $l3 = r0.<org.tukaani.xz.rangecoder.RangeEncoder: long low>;
+
+        $l4 = $l3 >>> 24;
+
+        $i5 = (int) $l4;
+
+        $b6 = (byte) $i5;
+
+        r0.<org.tukaani.xz.rangecoder.RangeEncoder: byte cache> = $b6;
+
+     label3:
+        $i7 = r0.<org.tukaani.xz.rangecoder.RangeEncoder: int cacheSize>;
+
+        $i8 = $i7 + 1;
+
+        r0.<org.tukaani.xz.rangecoder.RangeEncoder: int cacheSize> = $i8;
+
+        $l9 = r0.<org.tukaani.xz.rangecoder.RangeEncoder: long low>;
+
+        $l10 = $l9 & 16777215L;
+
+        $l11 = $l10 << 8;
+
+        r0.<org.tukaani.xz.rangecoder.RangeEncoder: long low> = $l11;
+
+        return;
+    }
+
+    public void encodeBit(short[], int, int)
+    {
+        org.tukaani.xz.rangecoder.RangeEncoder r1;
+        long $l6, $l7, $l8, $l9;
+        short s1, $s14, $s22;
+        int i0, $i2, $i3, i4, i5, $i10, $i11, $i12, $i13, $i15, $i16, $i17, $i18, $i19, $i20, $i21, $i23, $i24, $i25, $i26, $i27;
+        short[] r0;
+
+        r1 := @this: org.tukaani.xz.rangecoder.RangeEncoder;
+
+        r0 := @parameter0: short[];
+
+        i0 := @parameter1: int;
+
+        i5 := @parameter2: int;
+
+        s1 = r0[i0];
+
+        $i2 = r1.<org.tukaani.xz.rangecoder.RangeEncoder: int range>;
+
+        $i3 = $i2 >>> 11;
+
+        $i23 = (int) s1;
+
+        i4 = $i3 * $i23;
+
+        if i5 != 0 goto label1;
+
+        r1.<org.tukaani.xz.rangecoder.RangeEncoder: int range> = i4;
+
+        $i24 = (int) s1;
+
+        $i19 = 2048 - $i24;
+
+        $i20 = $i19 >>> 5;
+
+        $i25 = (int) s1;
+
+        $i21 = $i25 + $i20;
+
+        $s22 = (short) $i21;
+
+        r0[i0] = $s22;
+
+        goto label2;
+
+     label1:
+        $l8 = r1.<org.tukaani.xz.rangecoder.RangeEncoder: long low>;
+
+        $l6 = (long) i4;
+
+        $l7 = $l6 & 4294967295L;
+
+        $l9 = $l8 + $l7;
+
+        r1.<org.tukaani.xz.rangecoder.RangeEncoder: long low> = $l9;
+
+        $i10 = r1.<org.tukaani.xz.rangecoder.RangeEncoder: int range>;
+
+        $i11 = $i10 - i4;
+
+        r1.<org.tukaani.xz.rangecoder.RangeEncoder: int range> = $i11;
+
+        $i26 = (int) s1;
+
+        $i12 = $i26 >>> 5;
+
+        $i27 = (int) s1;
+
+        $i13 = $i27 - $i12;
+
+        $s14 = (short) $i13;
+
+        r0[i0] = $s14;
+
+     label2:
+        $i15 = r1.<org.tukaani.xz.rangecoder.RangeEncoder: int range>;
+
+        $i16 = $i15 & -16777216;
+
+        if $i16 != 0 goto label3;
+
+        $i17 = r1.<org.tukaani.xz.rangecoder.RangeEncoder: int range>;
+
+        $i18 = $i17 << 8;
+
+        r1.<org.tukaani.xz.rangecoder.RangeEncoder: int range> = $i18;
+
+        specialinvoke r1.<org.tukaani.xz.rangecoder.RangeEncoder: void shiftLow()>();
+
+     label3:
+        return;
+    }
+
+    public static int getBitPrice(int, int)
+    {
+        java.lang.AssertionError $r0;
+        int[] $r1;
+        int i0, i1, $i2, $i3, $i4, $i5, $i6;
+        boolean $z0;
+
+        i0 := @parameter0: int;
+
+        i1 := @parameter1: int;
+
+        $z0 = <org.tukaani.xz.rangecoder.RangeEncoder: boolean $assertionsDisabled>;
+
+        if $z0 != 0 goto label1;
+
+        if i1 == 0 goto label1;
+
+        if i1 == 1 goto label1;
+
+        $r0 = new java.lang.AssertionError;
+
+        specialinvoke $r0.<java.lang.AssertionError: void <init>()>();
+
+        throw $r0;
+
+     label1:
+        $r1 = <org.tukaani.xz.rangecoder.RangeEncoder: int[] prices>;
+
+        $i2 = neg i1;
+
+        $i3 = $i2 & 2047;
+
+        $i4 = i0 ^ $i3;
+
+        $i5 = $i4 >>> 4;
+
+        $i6 = $r1[$i5];
+
+        return $i6;
+    }
+
+    public void encodeBitTree(short[], int)
+    {
+        org.tukaani.xz.rangecoder.RangeEncoder r1;
+        int i0, $i1, $i2, $i3, i4, i5;
+        short[] r0;
+
+        r1 := @this: org.tukaani.xz.rangecoder.RangeEncoder;
+
+        r0 := @parameter0: short[];
+
+        i0 := @parameter1: int;
+
+        i4 = 1;
+
+        i5 = lengthof r0;
+
+     label1:
+        $i1 = i5 >>> 1;
+
+        i5 = $i1;
+
+        $i2 = i0 & $i1;
+
+        virtualinvoke r1.<org.tukaani.xz.rangecoder.RangeEncoder: void encodeBit(short[],int,int)>(r0, i4, $i2);
+
+        $i3 = i4 << 1;
+
+        i4 = $i3;
+
+        if $i2 == 0 goto label2;
+
+        i4 = $i3 | 1;
+
+     label2:
+        if $i1 != 1 goto label1;
+
+        return;
+    }
+
+    public static int getBitTreePrice(short[], int)
+    {
+        short $s1;
+        int $i0, $i2, $i3, $i4, $i5, i6, i7, i8, $i9;
+        short[] r0;
+
+        r0 := @parameter0: short[];
+
+        i6 := @parameter1: int;
+
+        i7 = 0;
+
+        $i0 = lengthof r0;
+
+        i8 = i6 | $i0;
+
+     label1:
+        $i3 = i8 & 1;
+
+        $i4 = i8 >>> 1;
+
+        i8 = $i4;
+
+        $s1 = r0[$i4];
+
+        $i9 = (int) $s1;
+
+        $i2 = staticinvoke <org.tukaani.xz.rangecoder.RangeEncoder: int getBitPrice(int,int)>($i9, $i3);
+
+        $i5 = i7 + $i2;
+
+        i7 = $i5;
+
+        if $i4 != 1 goto label1;
+
+        return $i5;
+    }
+
+    public void encodeReverseBitTree(short[], int)
+    {
+        org.tukaani.xz.rangecoder.RangeEncoder r1;
+        int $i0, $i1, $i2, $i3, i4, i5, i6;
+        short[] r0;
+
+        r1 := @this: org.tukaani.xz.rangecoder.RangeEncoder;
+
+        r0 := @parameter0: short[];
+
+        i4 := @parameter1: int;
+
+        i5 = 1;
+
+        $i0 = lengthof r0;
+
+        i6 = i4 | $i0;
+
+     label1:
+        $i2 = i6 & 1;
+
+        $i3 = i6 >>> 1;
+
+        i6 = $i3;
+
+        virtualinvoke r1.<org.tukaani.xz.rangecoder.RangeEncoder: void encodeBit(short[],int,int)>(r0, i5, $i2);
+
+        $i1 = i5 << 1;
+
+        i5 = $i1 | $i2;
+
+        if $i3 != 1 goto label1;
+
+        return;
+    }
+
+    public static int getReverseBitTreePrice(short[], int)
+    {
+        short $s1;
+        int $i0, $i2, $i3, $i4, $i5, $i6, i7, i8, i9, i10, $i11;
+        short[] r0;
+
+        r0 := @parameter0: short[];
+
+        i7 := @parameter1: int;
+
+        i8 = 0;
+
+        i9 = 1;
+
+        $i0 = lengthof r0;
+
+        i10 = i7 | $i0;
+
+     label1:
+        $i4 = i10 & 1;
+
+        $i5 = i10 >>> 1;
+
+        i10 = $i5;
+
+        $s1 = r0[i9];
+
+        $i11 = (int) $s1;
+
+        $i2 = staticinvoke <org.tukaani.xz.rangecoder.RangeEncoder: int getBitPrice(int,int)>($i11, $i4);
+
+        $i6 = i8 + $i2;
+
+        i8 = $i6;
+
+        $i3 = i9 << 1;
+
+        i9 = $i3 | $i4;
+
+        if $i5 != 1 goto label1;
+
+        return $i6;
+    }
+
+    public void encodeDirectBits(int, int)
+    {
+        org.tukaani.xz.rangecoder.RangeEncoder r0;
+        long $l8, $l9, $l10;
+        int $i0, $i1, i2, $i3, $i4, $i5, $i6, $i7, $i11, $i12, $i13, $i14, i15, $i17;
+
+        r0 := @this: org.tukaani.xz.rangecoder.RangeEncoder;
+
+        i2 := @parameter0: int;
+
+        i15 := @parameter1: int;
+
+     label1:
+        $i0 = r0.<org.tukaani.xz.rangecoder.RangeEncoder: int range>;
+
+        $i1 = $i0 >>> 1;
+
+        r0.<org.tukaani.xz.rangecoder.RangeEncoder: int range> = $i1;
+
+        $l9 = r0.<org.tukaani.xz.rangecoder.RangeEncoder: long low>;
+
+        $i6 = r0.<org.tukaani.xz.rangecoder.RangeEncoder: int range>;
+
+        $i17 = (int) -1;
+
+        i15 = i15 + $i17;
+
+        $i3 = i2 >>> i15;
+
+        $i4 = $i3 & 1;
+
+        $i5 = 0 - $i4;
+
+        $i7 = $i6 & $i5;
+
+        $l8 = (long) $i7;
+
+        $l10 = $l9 + $l8;
+
+        r0.<org.tukaani.xz.rangecoder.RangeEncoder: long low> = $l10;
+
+        $i11 = r0.<org.tukaani.xz.rangecoder.RangeEncoder: int range>;
+
+        $i12 = $i11 & -16777216;
+
+        if $i12 != 0 goto label2;
+
+        $i13 = r0.<org.tukaani.xz.rangecoder.RangeEncoder: int range>;
+
+        $i14 = $i13 << 8;
+
+        r0.<org.tukaani.xz.rangecoder.RangeEncoder: int range> = $i14;
+
+        specialinvoke r0.<org.tukaani.xz.rangecoder.RangeEncoder: void shiftLow()>();
+
+     label2:
+        if i15 != 0 goto label1;
+
+        return;
+    }
+
+    public static int getDirectBitsPrice(int)
+    {
+        int i0, $i1;
+
+        i0 := @parameter0: int;
+
+        $i1 = i0 << 4;
+
+        return $i1;
+    }
+
+    static java.lang.Class class$(java.lang.String)
+    {
+        java.lang.Throwable $r4;
+        java.lang.Class $r1;
+        java.lang.ClassNotFoundException $r2;
+        java.lang.String r0;
+        java.lang.NoClassDefFoundError $r3;
+
+        r0 := @parameter0: java.lang.String;
+
+     label1:
+        $r1 = staticinvoke <java.lang.Class: java.lang.Class forName(java.lang.String)>(r0);
+
+     label2:
+        return $r1;
+
+     label3:
+        $r2 := @caughtexception;
+
+        $r3 = new java.lang.NoClassDefFoundError;
+
+        specialinvoke $r3.<java.lang.NoClassDefFoundError: void <init>()>();
+
+        $r4 = virtualinvoke $r3.<java.lang.NoClassDefFoundError: java.lang.Throwable initCause(java.lang.Throwable)>($r2);
+
+        throw $r4;
+
+        catch java.lang.ClassNotFoundException from label1 to label2 with label3;
+    }
+
+    static void <clinit>()
+    {
+        int[] $r1, $r2;
+        int $i0, $i1, $i2, i3, i4, i5, i6;
+        java.lang.Class $r0, $r3;
+        boolean $z0, $z1;
+
+        <org.tukaani.xz.rangecoder.RangeEncoder: int BIT_PRICE_SHIFT_BITS> = 4;
+
+        <org.tukaani.xz.rangecoder.RangeEncoder: int MOVE_REDUCING_BITS> = 4;
+
+        $r0 = <org.tukaani.xz.rangecoder.RangeEncoder: java.lang.Class class$org$tukaani$xz$rangecoder$RangeEncoder>;
+
+        if $r0 != null goto label01;
+
+        $r3 = staticinvoke <org.tukaani.xz.rangecoder.RangeEncoder: java.lang.Class class$(java.lang.String)>("org.tukaani.xz.rangecoder.RangeEncoder");
+
+        <org.tukaani.xz.rangecoder.RangeEncoder: java.lang.Class class$org$tukaani$xz$rangecoder$RangeEncoder> = $r3;
+
+        goto label02;
+
+     label01:
+        $r3 = <org.tukaani.xz.rangecoder.RangeEncoder: java.lang.Class class$org$tukaani$xz$rangecoder$RangeEncoder>;
+
+     label02:
+        $z0 = virtualinvoke $r3.<java.lang.Class: boolean desiredAssertionStatus()>();
+
+        if $z0 != 0 goto label03;
+
+        $z1 = 1;
+
+        goto label04;
+
+     label03:
+        $z1 = 0;
+
+     label04:
+        <org.tukaani.xz.rangecoder.RangeEncoder: boolean $assertionsDisabled> = $z1;
+
+        $r1 = newarray (int)[128];
+
+        <org.tukaani.xz.rangecoder.RangeEncoder: int[] prices> = $r1;
+
+        i3 = 8;
+
+     label05:
+        if i3 >= 2048 goto label10;
+
+        i4 = i3;
+
+        i5 = 0;
+
+        i6 = 0;
+
+     label06:
+        if i6 >= 4 goto label09;
+
+        i4 = i4 * i4;
+
+        i5 = i5 << 1;
+
+     label07:
+        $i2 = i4 & -65536;
+
+        if $i2 == 0 goto label08;
+
+        i4 = i4 >>> 1;
+
+        i5 = i5 + 1;
+
+        goto label07;
+
+     label08:
+        i6 = i6 + 1;
+
+        goto label06;
+
+     label09:
+        $r2 = <org.tukaani.xz.rangecoder.RangeEncoder: int[] prices>;
+
+        $i1 = i3 >> 4;
+
+        $i0 = 161 - i5;
+
+        $r2[$i1] = $i0;
+
+        i3 = i3 + 16;
+
+        goto label05;
+
+     label10:
+        return;
+    }
+}

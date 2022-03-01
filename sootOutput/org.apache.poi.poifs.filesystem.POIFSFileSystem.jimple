@@ -1,0 +1,928 @@
+public class org.apache.poi.poifs.filesystem.POIFSFileSystem extends java.lang.Object implements org.apache.poi.poifs.dev.POIFSViewable
+{
+    private static final org.apache.poi.util.POILogger _logger;
+    private org.apache.poi.poifs.property.PropertyTable _property_table;
+    private java.util.List _documents;
+    private org.apache.poi.poifs.filesystem.DirectoryNode _root;
+    private org.apache.poi.poifs.common.POIFSBigBlockSize bigBlockSize;
+
+    public static java.io.InputStream createNonClosingInputStream(java.io.InputStream)
+    {
+        org.apache.poi.util.CloseIgnoringInputStream $r0;
+        java.io.InputStream r1;
+
+        r1 := @parameter0: java.io.InputStream;
+
+        $r0 = new org.apache.poi.util.CloseIgnoringInputStream;
+
+        specialinvoke $r0.<org.apache.poi.util.CloseIgnoringInputStream: void <init>(java.io.InputStream)>(r1);
+
+        return $r0;
+    }
+
+    public void <init>()
+    {
+        org.apache.poi.poifs.property.PropertyTable $r4;
+        org.apache.poi.poifs.filesystem.POIFSFileSystem r0;
+        org.apache.poi.poifs.common.POIFSBigBlockSize $r1, $r3;
+        org.apache.poi.poifs.storage.HeaderBlock $r2;
+        java.util.ArrayList $r5;
+
+        r0 := @this: org.apache.poi.poifs.filesystem.POIFSFileSystem;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        $r1 = <org.apache.poi.poifs.common.POIFSConstants: org.apache.poi.poifs.common.POIFSBigBlockSize SMALLER_BIG_BLOCK_SIZE_DETAILS>;
+
+        r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.poifs.common.POIFSBigBlockSize bigBlockSize> = $r1;
+
+        $r2 = new org.apache.poi.poifs.storage.HeaderBlock;
+
+        $r3 = r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.poifs.common.POIFSBigBlockSize bigBlockSize>;
+
+        specialinvoke $r2.<org.apache.poi.poifs.storage.HeaderBlock: void <init>(org.apache.poi.poifs.common.POIFSBigBlockSize)>($r3);
+
+        $r4 = new org.apache.poi.poifs.property.PropertyTable;
+
+        specialinvoke $r4.<org.apache.poi.poifs.property.PropertyTable: void <init>(org.apache.poi.poifs.storage.HeaderBlock)>($r2);
+
+        r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.poifs.property.PropertyTable _property_table> = $r4;
+
+        $r5 = new java.util.ArrayList;
+
+        specialinvoke $r5.<java.util.ArrayList: void <init>()>();
+
+        r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: java.util.List _documents> = $r5;
+
+        r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.poifs.filesystem.DirectoryNode _root> = null;
+
+        return;
+    }
+
+    public void <init>(java.io.InputStream) throws java.io.IOException
+    {
+        java.lang.Throwable $r18;
+        org.apache.poi.poifs.property.PropertyTable $r9;
+        org.apache.poi.poifs.filesystem.POIFSFileSystem r0;
+        org.apache.poi.hpsf.ClassID $r17;
+        int[] $r8;
+        int $i0, $i1, $i2, $i3, $i4;
+        org.apache.poi.poifs.storage.HeaderBlock $r1;
+        org.apache.poi.poifs.storage.BlockAllocationTableReader $r6;
+        java.util.Iterator $r14;
+        org.apache.poi.poifs.filesystem.DirectoryNode $r15;
+        org.apache.poi.poifs.storage.RawDataBlockList $r4;
+        org.apache.poi.poifs.common.POIFSBigBlockSize $r3, $r5, $r7, $r10;
+        org.apache.poi.poifs.storage.BlockList $r12;
+        java.io.InputStream r2;
+        org.apache.poi.poifs.property.RootProperty $r11, $r13, $r16;
+
+        r0 := @this: org.apache.poi.poifs.filesystem.POIFSFileSystem;
+
+        r2 := @parameter0: java.io.InputStream;
+
+        specialinvoke r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: void <init>()>();
+
+     label1:
+        $r1 = new org.apache.poi.poifs.storage.HeaderBlock;
+
+        specialinvoke $r1.<org.apache.poi.poifs.storage.HeaderBlock: void <init>(java.io.InputStream)>(r2);
+
+        $r3 = virtualinvoke $r1.<org.apache.poi.poifs.storage.HeaderBlock: org.apache.poi.poifs.common.POIFSBigBlockSize getBigBlockSize()>();
+
+        r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.poifs.common.POIFSBigBlockSize bigBlockSize> = $r3;
+
+        $r4 = new org.apache.poi.poifs.storage.RawDataBlockList;
+
+        $r5 = r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.poifs.common.POIFSBigBlockSize bigBlockSize>;
+
+        specialinvoke $r4.<org.apache.poi.poifs.storage.RawDataBlockList: void <init>(java.io.InputStream,org.apache.poi.poifs.common.POIFSBigBlockSize)>(r2, $r5);
+
+     label2:
+        specialinvoke r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: void closeInputStream(java.io.InputStream,boolean)>(r2, 1);
+
+        goto label5;
+
+     label3:
+        $r18 := @caughtexception;
+
+     label4:
+        specialinvoke r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: void closeInputStream(java.io.InputStream,boolean)>(r2, 0);
+
+        throw $r18;
+
+     label5:
+        $r6 = new org.apache.poi.poifs.storage.BlockAllocationTableReader;
+
+        $r7 = virtualinvoke $r1.<org.apache.poi.poifs.storage.HeaderBlock: org.apache.poi.poifs.common.POIFSBigBlockSize getBigBlockSize()>();
+
+        $i0 = virtualinvoke $r1.<org.apache.poi.poifs.storage.HeaderBlock: int getBATCount()>();
+
+        $r8 = virtualinvoke $r1.<org.apache.poi.poifs.storage.HeaderBlock: int[] getBATArray()>();
+
+        $i1 = virtualinvoke $r1.<org.apache.poi.poifs.storage.HeaderBlock: int getXBATCount()>();
+
+        $i2 = virtualinvoke $r1.<org.apache.poi.poifs.storage.HeaderBlock: int getXBATIndex()>();
+
+        specialinvoke $r6.<org.apache.poi.poifs.storage.BlockAllocationTableReader: void <init>(org.apache.poi.poifs.common.POIFSBigBlockSize,int,int[],int,int,org.apache.poi.poifs.storage.BlockList)>($r7, $i0, $r8, $i1, $i2, $r4);
+
+        $r9 = new org.apache.poi.poifs.property.PropertyTable;
+
+        specialinvoke $r9.<org.apache.poi.poifs.property.PropertyTable: void <init>(org.apache.poi.poifs.storage.HeaderBlock,org.apache.poi.poifs.storage.RawDataBlockList)>($r1, $r4);
+
+        $r10 = r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.poifs.common.POIFSBigBlockSize bigBlockSize>;
+
+        $r11 = virtualinvoke $r9.<org.apache.poi.poifs.property.PropertyTable: org.apache.poi.poifs.property.RootProperty getRoot()>();
+
+        $i3 = virtualinvoke $r1.<org.apache.poi.poifs.storage.HeaderBlock: int getSBATStart()>();
+
+        $r12 = staticinvoke <org.apache.poi.poifs.storage.SmallBlockTableReader: org.apache.poi.poifs.storage.BlockList getSmallDocumentBlocks(org.apache.poi.poifs.common.POIFSBigBlockSize,org.apache.poi.poifs.storage.RawDataBlockList,org.apache.poi.poifs.property.RootProperty,int)>($r10, $r4, $r11, $i3);
+
+        $r13 = virtualinvoke $r9.<org.apache.poi.poifs.property.PropertyTable: org.apache.poi.poifs.property.RootProperty getRoot()>();
+
+        $r14 = virtualinvoke $r13.<org.apache.poi.poifs.property.RootProperty: java.util.Iterator getChildren()>();
+
+        $i4 = virtualinvoke $r1.<org.apache.poi.poifs.storage.HeaderBlock: int getPropertyStart()>();
+
+        specialinvoke r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: void processProperties(org.apache.poi.poifs.storage.BlockList,org.apache.poi.poifs.storage.BlockList,java.util.Iterator,org.apache.poi.poifs.filesystem.DirectoryNode,int)>($r12, $r4, $r14, null, $i4);
+
+        $r15 = virtualinvoke r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.poifs.filesystem.DirectoryNode getRoot()>();
+
+        $r16 = virtualinvoke $r9.<org.apache.poi.poifs.property.PropertyTable: org.apache.poi.poifs.property.RootProperty getRoot()>();
+
+        $r17 = virtualinvoke $r16.<org.apache.poi.poifs.property.RootProperty: org.apache.poi.hpsf.ClassID getStorageClsid()>();
+
+        virtualinvoke $r15.<org.apache.poi.poifs.filesystem.DirectoryNode: void setStorageClsid(org.apache.poi.hpsf.ClassID)>($r17);
+
+        return;
+
+        catch java.lang.Throwable from label1 to label2 with label3;
+        catch java.lang.Throwable from label3 to label4 with label3;
+    }
+
+    private void closeInputStream(java.io.InputStream, boolean)
+    {
+        org.apache.poi.poifs.filesystem.POIFSFileSystem r14;
+        java.lang.String $r4, $r10;
+        boolean $z0, $z1, z2;
+        org.apache.poi.util.POILogger $r11;
+        java.io.IOException $r12;
+        java.lang.RuntimeException $r13;
+        java.lang.StringBuilder $r1, $r2, $r5, $r6, $r7, $r8, $r9;
+        java.lang.Class $r3;
+        java.io.InputStream r0;
+
+        r14 := @this: org.apache.poi.poifs.filesystem.POIFSFileSystem;
+
+        r0 := @parameter0: java.io.InputStream;
+
+        z2 := @parameter1: boolean;
+
+        $z0 = virtualinvoke r0.<java.io.InputStream: boolean markSupported()>();
+
+        if $z0 == 0 goto label1;
+
+        $z1 = r0 instanceof java.io.ByteArrayInputStream;
+
+        if $z1 != 0 goto label1;
+
+        $r1 = new java.lang.StringBuilder;
+
+        specialinvoke $r1.<java.lang.StringBuilder: void <init>()>();
+
+        $r2 = virtualinvoke $r1.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("POIFS is closing the supplied input stream of type (");
+
+        $r3 = virtualinvoke r0.<java.lang.Object: java.lang.Class getClass()>();
+
+        $r4 = virtualinvoke $r3.<java.lang.Class: java.lang.String getName()>();
+
+        $r5 = virtualinvoke $r2.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r4);
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(") which supports mark/reset.  ");
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("This will be a problem for the caller if the stream will still be used.  ");
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("If that is the case the caller should wrap the input stream to avoid this close logic.  ");
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("This warning is only temporary and will not be present in future versions of POI.");
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r11 = <org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.util.POILogger _logger>;
+
+        virtualinvoke $r11.<org.apache.poi.util.POILogger: void log(int,java.lang.Object)>(5, $r10);
+
+     label1:
+        virtualinvoke r0.<java.io.InputStream: void close()>();
+
+     label2:
+        goto label5;
+
+     label3:
+        $r12 := @caughtexception;
+
+        if z2 == 0 goto label4;
+
+        $r13 = new java.lang.RuntimeException;
+
+        specialinvoke $r13.<java.lang.RuntimeException: void <init>(java.lang.Throwable)>($r12);
+
+        throw $r13;
+
+     label4:
+        virtualinvoke $r12.<java.io.IOException: void printStackTrace()>();
+
+     label5:
+        return;
+
+        catch java.io.IOException from label1 to label2 with label3;
+    }
+
+    public static boolean hasPOIFSHeader(java.io.InputStream) throws java.io.IOException
+    {
+        byte[] r1;
+        org.apache.poi.util.LongField $r2;
+        java.io.PushbackInputStream r3;
+        long $l0;
+        byte $b1;
+        java.io.InputStream r0;
+        boolean $z0, $z1;
+
+        r0 := @parameter0: java.io.InputStream;
+
+        virtualinvoke r0.<java.io.InputStream: void mark(int)>(8);
+
+        r1 = newarray (byte)[8];
+
+        staticinvoke <org.apache.poi.util.IOUtils: int readFully(java.io.InputStream,byte[])>(r0, r1);
+
+        $r2 = new org.apache.poi.util.LongField;
+
+        specialinvoke $r2.<org.apache.poi.util.LongField: void <init>(int,byte[])>(0, r1);
+
+        $z0 = r0 instanceof java.io.PushbackInputStream;
+
+        if $z0 == 0 goto label1;
+
+        r3 = (java.io.PushbackInputStream) r0;
+
+        virtualinvoke r3.<java.io.PushbackInputStream: void unread(byte[])>(r1);
+
+        goto label2;
+
+     label1:
+        virtualinvoke r0.<java.io.InputStream: void reset()>();
+
+     label2:
+        $l0 = virtualinvoke $r2.<org.apache.poi.util.LongField: long get()>();
+
+        $b1 = $l0 cmp -2226271756974174256L;
+
+        if $b1 != 0 goto label3;
+
+        $z1 = 1;
+
+        goto label4;
+
+     label3:
+        $z1 = 0;
+
+     label4:
+        return $z1;
+    }
+
+    public org.apache.poi.poifs.filesystem.DocumentEntry createDocument(java.io.InputStream, java.lang.String) throws java.io.IOException
+    {
+        org.apache.poi.poifs.filesystem.DirectoryNode $r1;
+        org.apache.poi.poifs.filesystem.POIFSFileSystem r0;
+        java.lang.String r2;
+        org.apache.poi.poifs.filesystem.DocumentEntry $r4;
+        java.io.InputStream r3;
+
+        r0 := @this: org.apache.poi.poifs.filesystem.POIFSFileSystem;
+
+        r3 := @parameter0: java.io.InputStream;
+
+        r2 := @parameter1: java.lang.String;
+
+        $r1 = virtualinvoke r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.poifs.filesystem.DirectoryNode getRoot()>();
+
+        $r4 = virtualinvoke $r1.<org.apache.poi.poifs.filesystem.DirectoryNode: org.apache.poi.poifs.filesystem.DocumentEntry createDocument(java.lang.String,java.io.InputStream)>(r2, r3);
+
+        return $r4;
+    }
+
+    public org.apache.poi.poifs.filesystem.DocumentEntry createDocument(java.lang.String, int, org.apache.poi.poifs.filesystem.POIFSWriterListener) throws java.io.IOException
+    {
+        org.apache.poi.poifs.filesystem.DirectoryNode $r1;
+        org.apache.poi.poifs.filesystem.POIFSFileSystem r0;
+        org.apache.poi.poifs.filesystem.POIFSWriterListener r3;
+        int i0;
+        java.lang.String r2;
+        org.apache.poi.poifs.filesystem.DocumentEntry $r4;
+
+        r0 := @this: org.apache.poi.poifs.filesystem.POIFSFileSystem;
+
+        r2 := @parameter0: java.lang.String;
+
+        i0 := @parameter1: int;
+
+        r3 := @parameter2: org.apache.poi.poifs.filesystem.POIFSWriterListener;
+
+        $r1 = virtualinvoke r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.poifs.filesystem.DirectoryNode getRoot()>();
+
+        $r4 = virtualinvoke $r1.<org.apache.poi.poifs.filesystem.DirectoryNode: org.apache.poi.poifs.filesystem.DocumentEntry createDocument(java.lang.String,int,org.apache.poi.poifs.filesystem.POIFSWriterListener)>(r2, i0, r3);
+
+        return $r4;
+    }
+
+    public org.apache.poi.poifs.filesystem.DirectoryEntry createDirectory(java.lang.String) throws java.io.IOException
+    {
+        org.apache.poi.poifs.filesystem.DirectoryNode $r1;
+        org.apache.poi.poifs.filesystem.POIFSFileSystem r0;
+        org.apache.poi.poifs.filesystem.DirectoryEntry $r3;
+        java.lang.String r2;
+
+        r0 := @this: org.apache.poi.poifs.filesystem.POIFSFileSystem;
+
+        r2 := @parameter0: java.lang.String;
+
+        $r1 = virtualinvoke r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.poifs.filesystem.DirectoryNode getRoot()>();
+
+        $r3 = virtualinvoke $r1.<org.apache.poi.poifs.filesystem.DirectoryNode: org.apache.poi.poifs.filesystem.DirectoryEntry createDirectory(java.lang.String)>(r2);
+
+        return $r3;
+    }
+
+    public void writeFilesystem(java.io.OutputStream) throws java.io.IOException
+    {
+        org.apache.poi.poifs.property.PropertyTable $r1, $r3, $r11, $r17, $r21;
+        org.apache.poi.poifs.storage.SmallBlockTableWriter $r2;
+        boolean $z0, $z1;
+        org.apache.poi.poifs.storage.BlockAllocationTableWriter $r7, $r12, $r18, $r22;
+        org.apache.poi.poifs.filesystem.BATManaged r28;
+        java.util.List $r5, $r10, $r20;
+        org.apache.poi.poifs.storage.BATBlock $r26;
+        org.apache.poi.poifs.storage.BlockWritable r29;
+        java.util.ArrayList $r9, $r19;
+        org.apache.poi.poifs.storage.BATBlock[] $r16;
+        org.apache.poi.poifs.filesystem.POIFSFileSystem r0;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, i8;
+        java.io.OutputStream r25;
+        java.util.Iterator $r13, $r23;
+        org.apache.poi.poifs.storage.HeaderBlockWriter $r14;
+        org.apache.poi.poifs.common.POIFSBigBlockSize $r4, $r8, $r15;
+        java.lang.Object $r24, $r27;
+        org.apache.poi.poifs.property.RootProperty $r6;
+
+        r0 := @this: org.apache.poi.poifs.filesystem.POIFSFileSystem;
+
+        r25 := @parameter0: java.io.OutputStream;
+
+        $r1 = r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.poifs.property.PropertyTable _property_table>;
+
+        virtualinvoke $r1.<org.apache.poi.poifs.property.PropertyTable: void preWrite()>();
+
+        $r2 = new org.apache.poi.poifs.storage.SmallBlockTableWriter;
+
+        $r4 = r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.poifs.common.POIFSBigBlockSize bigBlockSize>;
+
+        $r5 = r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: java.util.List _documents>;
+
+        $r3 = r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.poifs.property.PropertyTable _property_table>;
+
+        $r6 = virtualinvoke $r3.<org.apache.poi.poifs.property.PropertyTable: org.apache.poi.poifs.property.RootProperty getRoot()>();
+
+        specialinvoke $r2.<org.apache.poi.poifs.storage.SmallBlockTableWriter: void <init>(org.apache.poi.poifs.common.POIFSBigBlockSize,java.util.List,org.apache.poi.poifs.property.RootProperty)>($r4, $r5, $r6);
+
+        $r7 = new org.apache.poi.poifs.storage.BlockAllocationTableWriter;
+
+        $r8 = r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.poifs.common.POIFSBigBlockSize bigBlockSize>;
+
+        specialinvoke $r7.<org.apache.poi.poifs.storage.BlockAllocationTableWriter: void <init>(org.apache.poi.poifs.common.POIFSBigBlockSize)>($r8);
+
+        $r9 = new java.util.ArrayList;
+
+        specialinvoke $r9.<java.util.ArrayList: void <init>()>();
+
+        $r10 = r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: java.util.List _documents>;
+
+        interfaceinvoke $r9.<java.util.List: boolean addAll(java.util.Collection)>($r10);
+
+        $r11 = r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.poifs.property.PropertyTable _property_table>;
+
+        interfaceinvoke $r9.<java.util.List: boolean add(java.lang.Object)>($r11);
+
+        interfaceinvoke $r9.<java.util.List: boolean add(java.lang.Object)>($r2);
+
+        $r12 = virtualinvoke $r2.<org.apache.poi.poifs.storage.SmallBlockTableWriter: org.apache.poi.poifs.storage.BlockAllocationTableWriter getSBAT()>();
+
+        interfaceinvoke $r9.<java.util.List: boolean add(java.lang.Object)>($r12);
+
+        $r13 = interfaceinvoke $r9.<java.util.List: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r13.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label3;
+
+        $r27 = interfaceinvoke $r13.<java.util.Iterator: java.lang.Object next()>();
+
+        r28 = (org.apache.poi.poifs.filesystem.BATManaged) $r27;
+
+        $i6 = interfaceinvoke r28.<org.apache.poi.poifs.filesystem.BATManaged: int countBlocks()>();
+
+        if $i6 == 0 goto label2;
+
+        $i7 = virtualinvoke $r7.<org.apache.poi.poifs.storage.BlockAllocationTableWriter: int allocateSpace(int)>($i6);
+
+        interfaceinvoke r28.<org.apache.poi.poifs.filesystem.BATManaged: void setStartBlock(int)>($i7);
+
+     label2:
+        goto label1;
+
+     label3:
+        $i0 = virtualinvoke $r7.<org.apache.poi.poifs.storage.BlockAllocationTableWriter: int createBlocks()>();
+
+        $r14 = new org.apache.poi.poifs.storage.HeaderBlockWriter;
+
+        $r15 = r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.poifs.common.POIFSBigBlockSize bigBlockSize>;
+
+        specialinvoke $r14.<org.apache.poi.poifs.storage.HeaderBlockWriter: void <init>(org.apache.poi.poifs.common.POIFSBigBlockSize)>($r15);
+
+        $i1 = virtualinvoke $r7.<org.apache.poi.poifs.storage.BlockAllocationTableWriter: int countBlocks()>();
+
+        $r16 = virtualinvoke $r14.<org.apache.poi.poifs.storage.HeaderBlockWriter: org.apache.poi.poifs.storage.BATBlock[] setBATBlocks(int,int)>($i1, $i0);
+
+        $r17 = r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.poifs.property.PropertyTable _property_table>;
+
+        $i2 = virtualinvoke $r17.<org.apache.poi.poifs.property.PropertyTable: int getStartBlock()>();
+
+        virtualinvoke $r14.<org.apache.poi.poifs.storage.HeaderBlockWriter: void setPropertyStart(int)>($i2);
+
+        $r18 = virtualinvoke $r2.<org.apache.poi.poifs.storage.SmallBlockTableWriter: org.apache.poi.poifs.storage.BlockAllocationTableWriter getSBAT()>();
+
+        $i3 = virtualinvoke $r18.<org.apache.poi.poifs.storage.BlockAllocationTableWriter: int getStartBlock()>();
+
+        virtualinvoke $r14.<org.apache.poi.poifs.storage.HeaderBlockWriter: void setSBATStart(int)>($i3);
+
+        $i4 = virtualinvoke $r2.<org.apache.poi.poifs.storage.SmallBlockTableWriter: int getSBATBlockCount()>();
+
+        virtualinvoke $r14.<org.apache.poi.poifs.storage.HeaderBlockWriter: void setSBATBlockCount(int)>($i4);
+
+        $r19 = new java.util.ArrayList;
+
+        specialinvoke $r19.<java.util.ArrayList: void <init>()>();
+
+        interfaceinvoke $r19.<java.util.List: boolean add(java.lang.Object)>($r14);
+
+        $r20 = r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: java.util.List _documents>;
+
+        interfaceinvoke $r19.<java.util.List: boolean addAll(java.util.Collection)>($r20);
+
+        $r21 = r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.poifs.property.PropertyTable _property_table>;
+
+        interfaceinvoke $r19.<java.util.List: boolean add(java.lang.Object)>($r21);
+
+        interfaceinvoke $r19.<java.util.List: boolean add(java.lang.Object)>($r2);
+
+        $r22 = virtualinvoke $r2.<org.apache.poi.poifs.storage.SmallBlockTableWriter: org.apache.poi.poifs.storage.BlockAllocationTableWriter getSBAT()>();
+
+        interfaceinvoke $r19.<java.util.List: boolean add(java.lang.Object)>($r22);
+
+        interfaceinvoke $r19.<java.util.List: boolean add(java.lang.Object)>($r7);
+
+        i8 = 0;
+
+     label4:
+        $i5 = lengthof $r16;
+
+        if i8 >= $i5 goto label5;
+
+        $r26 = $r16[i8];
+
+        interfaceinvoke $r19.<java.util.List: boolean add(java.lang.Object)>($r26);
+
+        i8 = i8 + 1;
+
+        goto label4;
+
+     label5:
+        $r23 = interfaceinvoke $r19.<java.util.List: java.util.Iterator iterator()>();
+
+     label6:
+        $z1 = interfaceinvoke $r23.<java.util.Iterator: boolean hasNext()>();
+
+        if $z1 == 0 goto label7;
+
+        $r24 = interfaceinvoke $r23.<java.util.Iterator: java.lang.Object next()>();
+
+        r29 = (org.apache.poi.poifs.storage.BlockWritable) $r24;
+
+        interfaceinvoke r29.<org.apache.poi.poifs.storage.BlockWritable: void writeBlocks(java.io.OutputStream)>(r25);
+
+        goto label6;
+
+     label7:
+        return;
+    }
+
+    public static void main(java.lang.String[]) throws java.io.IOException
+    {
+        java.io.PrintStream $r6;
+        java.io.FileOutputStream $r3;
+        java.lang.String[] r0;
+        java.io.FileInputStream $r1;
+        org.apache.poi.poifs.filesystem.POIFSFileSystem $r5;
+        int $i0;
+        java.lang.String $r2, $r4;
+
+        r0 := @parameter0: java.lang.String[];
+
+        $i0 = lengthof r0;
+
+        if $i0 == 2 goto label1;
+
+        $r6 = <java.lang.System: java.io.PrintStream err>;
+
+        virtualinvoke $r6.<java.io.PrintStream: void println(java.lang.String)>("two arguments required: input filename and output filename");
+
+        staticinvoke <java.lang.System: void exit(int)>(1);
+
+     label1:
+        $r1 = new java.io.FileInputStream;
+
+        $r2 = r0[0];
+
+        specialinvoke $r1.<java.io.FileInputStream: void <init>(java.lang.String)>($r2);
+
+        $r3 = new java.io.FileOutputStream;
+
+        $r4 = r0[1];
+
+        specialinvoke $r3.<java.io.FileOutputStream: void <init>(java.lang.String)>($r4);
+
+        $r5 = new org.apache.poi.poifs.filesystem.POIFSFileSystem;
+
+        specialinvoke $r5.<org.apache.poi.poifs.filesystem.POIFSFileSystem: void <init>(java.io.InputStream)>($r1);
+
+        virtualinvoke $r5.<org.apache.poi.poifs.filesystem.POIFSFileSystem: void writeFilesystem(java.io.OutputStream)>($r3);
+
+        virtualinvoke $r1.<java.io.FileInputStream: void close()>();
+
+        virtualinvoke $r3.<java.io.FileOutputStream: void close()>();
+
+        return;
+    }
+
+    public org.apache.poi.poifs.filesystem.DirectoryNode getRoot()
+    {
+        org.apache.poi.poifs.filesystem.DirectoryNode $r1, $r2, $r3;
+        org.apache.poi.poifs.property.PropertyTable $r4;
+        org.apache.poi.poifs.filesystem.POIFSFileSystem r0;
+        org.apache.poi.poifs.property.RootProperty $r5;
+
+        r0 := @this: org.apache.poi.poifs.filesystem.POIFSFileSystem;
+
+        $r1 = r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.poifs.filesystem.DirectoryNode _root>;
+
+        if $r1 != null goto label1;
+
+        $r3 = new org.apache.poi.poifs.filesystem.DirectoryNode;
+
+        $r4 = r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.poifs.property.PropertyTable _property_table>;
+
+        $r5 = virtualinvoke $r4.<org.apache.poi.poifs.property.PropertyTable: org.apache.poi.poifs.property.RootProperty getRoot()>();
+
+        specialinvoke $r3.<org.apache.poi.poifs.filesystem.DirectoryNode: void <init>(org.apache.poi.poifs.property.DirectoryProperty,org.apache.poi.poifs.filesystem.POIFSFileSystem,org.apache.poi.poifs.filesystem.DirectoryNode)>($r5, r0, null);
+
+        r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.poifs.filesystem.DirectoryNode _root> = $r3;
+
+     label1:
+        $r2 = r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.poifs.filesystem.DirectoryNode _root>;
+
+        return $r2;
+    }
+
+    public org.apache.poi.poifs.filesystem.DocumentInputStream createDocumentInputStream(java.lang.String) throws java.io.IOException
+    {
+        org.apache.poi.poifs.filesystem.DirectoryNode $r1;
+        org.apache.poi.poifs.filesystem.POIFSFileSystem r0;
+        java.lang.String r2;
+        org.apache.poi.poifs.filesystem.DocumentInputStream $r3;
+
+        r0 := @this: org.apache.poi.poifs.filesystem.POIFSFileSystem;
+
+        r2 := @parameter0: java.lang.String;
+
+        $r1 = virtualinvoke r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.poifs.filesystem.DirectoryNode getRoot()>();
+
+        $r3 = virtualinvoke $r1.<org.apache.poi.poifs.filesystem.DirectoryNode: org.apache.poi.poifs.filesystem.DocumentInputStream createDocumentInputStream(java.lang.String)>(r2);
+
+        return $r3;
+    }
+
+    void addDocument(org.apache.poi.poifs.filesystem.POIFSDocument)
+    {
+        java.util.List $r2;
+        org.apache.poi.poifs.property.PropertyTable $r3;
+        org.apache.poi.poifs.filesystem.POIFSFileSystem r0;
+        org.apache.poi.poifs.property.DocumentProperty $r4;
+        org.apache.poi.poifs.filesystem.POIFSDocument r1;
+
+        r0 := @this: org.apache.poi.poifs.filesystem.POIFSFileSystem;
+
+        r1 := @parameter0: org.apache.poi.poifs.filesystem.POIFSDocument;
+
+        $r2 = r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: java.util.List _documents>;
+
+        interfaceinvoke $r2.<java.util.List: boolean add(java.lang.Object)>(r1);
+
+        $r3 = r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.poifs.property.PropertyTable _property_table>;
+
+        $r4 = virtualinvoke r1.<org.apache.poi.poifs.filesystem.POIFSDocument: org.apache.poi.poifs.property.DocumentProperty getDocumentProperty()>();
+
+        virtualinvoke $r3.<org.apache.poi.poifs.property.PropertyTable: void addProperty(org.apache.poi.poifs.property.Property)>($r4);
+
+        return;
+    }
+
+    void addDirectory(org.apache.poi.poifs.property.DirectoryProperty)
+    {
+        org.apache.poi.poifs.property.PropertyTable $r2;
+        org.apache.poi.poifs.filesystem.POIFSFileSystem r0;
+        org.apache.poi.poifs.property.DirectoryProperty r1;
+
+        r0 := @this: org.apache.poi.poifs.filesystem.POIFSFileSystem;
+
+        r1 := @parameter0: org.apache.poi.poifs.property.DirectoryProperty;
+
+        $r2 = r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.poifs.property.PropertyTable _property_table>;
+
+        virtualinvoke $r2.<org.apache.poi.poifs.property.PropertyTable: void addProperty(org.apache.poi.poifs.property.Property)>(r1);
+
+        return;
+    }
+
+    void remove(org.apache.poi.poifs.filesystem.EntryNode)
+    {
+        org.apache.poi.poifs.property.Property $r3;
+        org.apache.poi.poifs.filesystem.DocumentNode $r4;
+        org.apache.poi.poifs.property.PropertyTable $r2;
+        java.util.List $r5;
+        org.apache.poi.poifs.filesystem.POIFSFileSystem r0;
+        org.apache.poi.poifs.filesystem.EntryNode r1;
+        boolean $z0;
+        org.apache.poi.poifs.filesystem.POIFSDocument $r6;
+
+        r0 := @this: org.apache.poi.poifs.filesystem.POIFSFileSystem;
+
+        r1 := @parameter0: org.apache.poi.poifs.filesystem.EntryNode;
+
+        $r2 = r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.poifs.property.PropertyTable _property_table>;
+
+        $r3 = virtualinvoke r1.<org.apache.poi.poifs.filesystem.EntryNode: org.apache.poi.poifs.property.Property getProperty()>();
+
+        virtualinvoke $r2.<org.apache.poi.poifs.property.PropertyTable: void removeProperty(org.apache.poi.poifs.property.Property)>($r3);
+
+        $z0 = virtualinvoke r1.<org.apache.poi.poifs.filesystem.EntryNode: boolean isDocumentEntry()>();
+
+        if $z0 == 0 goto label1;
+
+        $r5 = r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: java.util.List _documents>;
+
+        $r4 = (org.apache.poi.poifs.filesystem.DocumentNode) r1;
+
+        $r6 = virtualinvoke $r4.<org.apache.poi.poifs.filesystem.DocumentNode: org.apache.poi.poifs.filesystem.POIFSDocument getDocument()>();
+
+        interfaceinvoke $r5.<java.util.List: boolean remove(java.lang.Object)>($r6);
+
+     label1:
+        return;
+    }
+
+    private void processProperties(org.apache.poi.poifs.storage.BlockList, org.apache.poi.poifs.storage.BlockList, java.util.Iterator, org.apache.poi.poifs.filesystem.DirectoryNode, int) throws java.io.IOException
+    {
+        org.apache.poi.poifs.property.Property r2;
+        org.apache.poi.hpsf.ClassID $r13;
+        org.apache.poi.poifs.filesystem.POIFSFileSystem r14;
+        org.apache.poi.poifs.property.DirectoryProperty $r15;
+        int $i0, $i1, i2;
+        java.lang.String $r3;
+        boolean $z0, $z1, $z2;
+        org.apache.poi.poifs.filesystem.POIFSDocument $r6, $r9, r19;
+        java.util.Iterator r0, $r16;
+        org.apache.poi.poifs.filesystem.DirectoryEntry $r12;
+        org.apache.poi.poifs.filesystem.DirectoryNode r4, r5, $r17, r18;
+        java.lang.Object $r1;
+        org.apache.poi.poifs.storage.BlockList r7, r10;
+        org.apache.poi.poifs.storage.ListManagedBlock[] $r8, $r11;
+
+        r14 := @this: org.apache.poi.poifs.filesystem.POIFSFileSystem;
+
+        r10 := @parameter0: org.apache.poi.poifs.storage.BlockList;
+
+        r7 := @parameter1: org.apache.poi.poifs.storage.BlockList;
+
+        r0 := @parameter2: java.util.Iterator;
+
+        r4 := @parameter3: org.apache.poi.poifs.filesystem.DirectoryNode;
+
+        i2 := @parameter4: int;
+
+     label1:
+        $z0 = interfaceinvoke r0.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label8;
+
+        $r1 = interfaceinvoke r0.<java.util.Iterator: java.lang.Object next()>();
+
+        r2 = (org.apache.poi.poifs.property.Property) $r1;
+
+        $r3 = virtualinvoke r2.<org.apache.poi.poifs.property.Property: java.lang.String getName()>();
+
+        if r4 != null goto label2;
+
+        $r17 = virtualinvoke r14.<org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.poifs.filesystem.DirectoryNode getRoot()>();
+
+        goto label3;
+
+     label2:
+        $r17 = r4;
+
+     label3:
+        r5 = $r17;
+
+        $z1 = virtualinvoke r2.<org.apache.poi.poifs.property.Property: boolean isDirectory()>();
+
+        if $z1 == 0 goto label4;
+
+        $r12 = virtualinvoke $r17.<org.apache.poi.poifs.filesystem.DirectoryNode: org.apache.poi.poifs.filesystem.DirectoryEntry createDirectory(java.lang.String)>($r3);
+
+        r18 = (org.apache.poi.poifs.filesystem.DirectoryNode) $r12;
+
+        $r13 = virtualinvoke r2.<org.apache.poi.poifs.property.Property: org.apache.poi.hpsf.ClassID getStorageClsid()>();
+
+        virtualinvoke r18.<org.apache.poi.poifs.filesystem.DirectoryNode: void setStorageClsid(org.apache.poi.hpsf.ClassID)>($r13);
+
+        $r15 = (org.apache.poi.poifs.property.DirectoryProperty) r2;
+
+        $r16 = virtualinvoke $r15.<org.apache.poi.poifs.property.DirectoryProperty: java.util.Iterator getChildren()>();
+
+        specialinvoke r14.<org.apache.poi.poifs.filesystem.POIFSFileSystem: void processProperties(org.apache.poi.poifs.storage.BlockList,org.apache.poi.poifs.storage.BlockList,java.util.Iterator,org.apache.poi.poifs.filesystem.DirectoryNode,int)>(r10, r7, $r16, r18, i2);
+
+        goto label7;
+
+     label4:
+        $i0 = virtualinvoke r2.<org.apache.poi.poifs.property.Property: int getStartBlock()>();
+
+        $i1 = virtualinvoke r2.<org.apache.poi.poifs.property.Property: int getSize()>();
+
+        $z2 = virtualinvoke r2.<org.apache.poi.poifs.property.Property: boolean shouldUseSmallBlocks()>();
+
+        if $z2 == 0 goto label5;
+
+        $r9 = new org.apache.poi.poifs.filesystem.POIFSDocument;
+
+        $r11 = interfaceinvoke r10.<org.apache.poi.poifs.storage.BlockList: org.apache.poi.poifs.storage.ListManagedBlock[] fetchBlocks(int,int)>($i0, i2);
+
+        specialinvoke $r9.<org.apache.poi.poifs.filesystem.POIFSDocument: void <init>(java.lang.String,org.apache.poi.poifs.storage.ListManagedBlock[],int)>($r3, $r11, $i1);
+
+        r19 = $r9;
+
+        goto label6;
+
+     label5:
+        $r6 = new org.apache.poi.poifs.filesystem.POIFSDocument;
+
+        $r8 = interfaceinvoke r7.<org.apache.poi.poifs.storage.BlockList: org.apache.poi.poifs.storage.ListManagedBlock[] fetchBlocks(int,int)>($i0, i2);
+
+        specialinvoke $r6.<org.apache.poi.poifs.filesystem.POIFSDocument: void <init>(java.lang.String,org.apache.poi.poifs.storage.ListManagedBlock[],int)>($r3, $r8, $i1);
+
+        r19 = $r6;
+
+     label6:
+        virtualinvoke r5.<org.apache.poi.poifs.filesystem.DirectoryNode: org.apache.poi.poifs.filesystem.DocumentEntry createDocument(org.apache.poi.poifs.filesystem.POIFSDocument)>(r19);
+
+     label7:
+        goto label1;
+
+     label8:
+        return;
+    }
+
+    public java.lang.Object[] getViewableArray()
+    {
+        org.apache.poi.poifs.filesystem.DirectoryNode $r2;
+        org.apache.poi.poifs.filesystem.POIFSFileSystem r0;
+        java.lang.Object[] $r1, $r3;
+        boolean $z0;
+
+        r0 := @this: org.apache.poi.poifs.filesystem.POIFSFileSystem;
+
+        $z0 = virtualinvoke r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: boolean preferArray()>();
+
+        if $z0 == 0 goto label1;
+
+        $r2 = virtualinvoke r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.poifs.filesystem.DirectoryNode getRoot()>();
+
+        $r3 = interfaceinvoke $r2.<org.apache.poi.poifs.dev.POIFSViewable: java.lang.Object[] getViewableArray()>();
+
+        return $r3;
+
+     label1:
+        $r1 = newarray (java.lang.Object)[0];
+
+        return $r1;
+    }
+
+    public java.util.Iterator getViewableIterator()
+    {
+        org.apache.poi.poifs.filesystem.DirectoryNode $r3;
+        java.util.List $r1;
+        org.apache.poi.poifs.filesystem.POIFSFileSystem r0;
+        java.util.Iterator $r2, $r4;
+        boolean $z0;
+
+        r0 := @this: org.apache.poi.poifs.filesystem.POIFSFileSystem;
+
+        $z0 = virtualinvoke r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: boolean preferArray()>();
+
+        if $z0 != 0 goto label1;
+
+        $r3 = virtualinvoke r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.poifs.filesystem.DirectoryNode getRoot()>();
+
+        $r4 = interfaceinvoke $r3.<org.apache.poi.poifs.dev.POIFSViewable: java.util.Iterator getViewableIterator()>();
+
+        return $r4;
+
+     label1:
+        $r1 = staticinvoke <java.util.Collections: java.util.List emptyList()>();
+
+        $r2 = interfaceinvoke $r1.<java.util.List: java.util.Iterator iterator()>();
+
+        return $r2;
+    }
+
+    public boolean preferArray()
+    {
+        org.apache.poi.poifs.filesystem.DirectoryNode $r1;
+        org.apache.poi.poifs.filesystem.POIFSFileSystem r0;
+        boolean $z0;
+
+        r0 := @this: org.apache.poi.poifs.filesystem.POIFSFileSystem;
+
+        $r1 = virtualinvoke r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.poifs.filesystem.DirectoryNode getRoot()>();
+
+        $z0 = interfaceinvoke $r1.<org.apache.poi.poifs.dev.POIFSViewable: boolean preferArray()>();
+
+        return $z0;
+    }
+
+    public java.lang.String getShortDescription()
+    {
+        org.apache.poi.poifs.filesystem.POIFSFileSystem r0;
+
+        r0 := @this: org.apache.poi.poifs.filesystem.POIFSFileSystem;
+
+        return "POIFS FileSystem";
+    }
+
+    public int getBigBlockSize()
+    {
+        int $i0;
+        org.apache.poi.poifs.filesystem.POIFSFileSystem r0;
+        org.apache.poi.poifs.common.POIFSBigBlockSize $r1;
+
+        r0 := @this: org.apache.poi.poifs.filesystem.POIFSFileSystem;
+
+        $r1 = r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.poifs.common.POIFSBigBlockSize bigBlockSize>;
+
+        $i0 = virtualinvoke $r1.<org.apache.poi.poifs.common.POIFSBigBlockSize: int getBigBlockSize()>();
+
+        return $i0;
+    }
+
+    public org.apache.poi.poifs.common.POIFSBigBlockSize getBigBlockSizeDetails()
+    {
+        org.apache.poi.poifs.filesystem.POIFSFileSystem r0;
+        org.apache.poi.poifs.common.POIFSBigBlockSize $r1;
+
+        r0 := @this: org.apache.poi.poifs.filesystem.POIFSFileSystem;
+
+        $r1 = r0.<org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.poifs.common.POIFSBigBlockSize bigBlockSize>;
+
+        return $r1;
+    }
+
+    static void <clinit>()
+    {
+        org.apache.poi.util.POILogger $r0;
+
+        $r0 = staticinvoke <org.apache.poi.util.POILogFactory: org.apache.poi.util.POILogger getLogger(java.lang.Class)>(class "Lorg/apache/poi/poifs/filesystem/POIFSFileSystem;");
+
+        <org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.util.POILogger _logger> = $r0;
+
+        return;
+    }
+}

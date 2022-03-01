@@ -1,0 +1,2475 @@
+public class org.apache.zookeeper.server.PrepRequestProcessor extends java.lang.Thread implements org.apache.zookeeper.server.RequestProcessor
+{
+    private static final org.slf4j.Logger LOG;
+    static boolean skipACL;
+    private static boolean failCreate;
+    java.util.concurrent.LinkedBlockingQueue submittedRequests;
+    org.apache.zookeeper.server.RequestProcessor nextProcessor;
+    org.apache.zookeeper.server.ZooKeeperServer zks;
+
+    public void <init>(org.apache.zookeeper.server.ZooKeeperServer, org.apache.zookeeper.server.RequestProcessor)
+    {
+        long $l0;
+        java.util.concurrent.LinkedBlockingQueue $r9;
+        org.apache.zookeeper.server.PrepRequestProcessor r0;
+        org.apache.zookeeper.server.ZooKeeperServer r3;
+        int $i1;
+        java.lang.StringBuilder $r1, $r2, $r4, $r5, $r6, $r7;
+        java.lang.String $r8;
+        org.apache.zookeeper.server.RequestProcessor r10;
+
+        r0 := @this: org.apache.zookeeper.server.PrepRequestProcessor;
+
+        r3 := @parameter0: org.apache.zookeeper.server.ZooKeeperServer;
+
+        r10 := @parameter1: org.apache.zookeeper.server.RequestProcessor;
+
+        $r1 = new java.lang.StringBuilder;
+
+        specialinvoke $r1.<java.lang.StringBuilder: void <init>()>();
+
+        $r2 = virtualinvoke $r1.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("ProcessThread(sid:");
+
+        $l0 = virtualinvoke r3.<org.apache.zookeeper.server.ZooKeeperServer: long getServerId()>();
+
+        $r4 = virtualinvoke $r2.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l0);
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" cport:");
+
+        $i1 = virtualinvoke r3.<org.apache.zookeeper.server.ZooKeeperServer: int getClientPort()>();
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i1);
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("):");
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke r0.<java.lang.Thread: void <init>(java.lang.String)>($r8);
+
+        $r9 = new java.util.concurrent.LinkedBlockingQueue;
+
+        specialinvoke $r9.<java.util.concurrent.LinkedBlockingQueue: void <init>()>();
+
+        r0.<org.apache.zookeeper.server.PrepRequestProcessor: java.util.concurrent.LinkedBlockingQueue submittedRequests> = $r9;
+
+        r0.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.RequestProcessor nextProcessor> = r10;
+
+        r0.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks> = r3;
+
+        return;
+    }
+
+    public static void setFailCreate(boolean)
+    {
+        boolean z0;
+
+        z0 := @parameter0: boolean;
+
+        <org.apache.zookeeper.server.PrepRequestProcessor: boolean failCreate> = z0;
+
+        return;
+    }
+
+    public void run()
+    {
+        java.lang.Throwable $r10, $r13;
+        long l1;
+        int $i0;
+        org.apache.zookeeper.server.RequestProcessor$RequestProcessorException $r9;
+        java.lang.String $r14;
+        boolean $z0, $z1;
+        org.slf4j.Logger $r3, $r6, $r8, $r11, $r12, $r16, $r17;
+        java.util.concurrent.LinkedBlockingQueue $r1;
+        java.lang.Exception $r7;
+        org.apache.zookeeper.server.PrepRequestProcessor r0;
+        org.apache.zookeeper.server.Request $r4, $r5;
+        java.lang.InterruptedException $r15;
+        java.lang.Object $r2;
+
+        r0 := @this: org.apache.zookeeper.server.PrepRequestProcessor;
+
+     label01:
+        $r1 = r0.<org.apache.zookeeper.server.PrepRequestProcessor: java.util.concurrent.LinkedBlockingQueue submittedRequests>;
+
+        $r2 = virtualinvoke $r1.<java.util.concurrent.LinkedBlockingQueue: java.lang.Object take()>();
+
+        $r5 = (org.apache.zookeeper.server.Request) $r2;
+
+        l1 = 2L;
+
+        $i0 = $r5.<org.apache.zookeeper.server.Request: int type>;
+
+        if $i0 != 11 goto label02;
+
+        l1 = 8L;
+
+     label02:
+        $r3 = <org.apache.zookeeper.server.PrepRequestProcessor: org.slf4j.Logger LOG>;
+
+        $z0 = interfaceinvoke $r3.<org.slf4j.Logger: boolean isTraceEnabled()>();
+
+        if $z0 == 0 goto label03;
+
+        $r6 = <org.apache.zookeeper.server.PrepRequestProcessor: org.slf4j.Logger LOG>;
+
+        staticinvoke <org.apache.zookeeper.server.ZooTrace: void logRequest(org.slf4j.Logger,long,char,org.apache.zookeeper.server.Request,java.lang.String)>($r6, l1, 80, $r5, "");
+
+     label03:
+        $r4 = <org.apache.zookeeper.server.Request: org.apache.zookeeper.server.Request requestOfDeath>;
+
+        if $r4 != $r5 goto label04;
+
+        goto label05;
+
+     label04:
+        virtualinvoke r0.<org.apache.zookeeper.server.PrepRequestProcessor: void pRequest(org.apache.zookeeper.server.Request)>($r5);
+
+        goto label01;
+
+     label05:
+        goto label10;
+
+     label06:
+        $r15 := @caughtexception;
+
+        $r16 = <org.apache.zookeeper.server.PrepRequestProcessor: org.slf4j.Logger LOG>;
+
+        interfaceinvoke $r16.<org.slf4j.Logger: void error(java.lang.String,java.lang.Throwable)>("Unexpected interruption", $r15);
+
+        goto label10;
+
+     label07:
+        $r9 := @caughtexception;
+
+        $r10 = virtualinvoke $r9.<org.apache.zookeeper.server.RequestProcessor$RequestProcessorException: java.lang.Throwable getCause()>();
+
+        $z1 = $r10 instanceof org.apache.zookeeper.server.quorum.Leader$XidRolloverException;
+
+        if $z1 == 0 goto label08;
+
+        $r12 = <org.apache.zookeeper.server.PrepRequestProcessor: org.slf4j.Logger LOG>;
+
+        $r13 = virtualinvoke $r9.<org.apache.zookeeper.server.RequestProcessor$RequestProcessorException: java.lang.Throwable getCause()>();
+
+        $r14 = virtualinvoke $r13.<java.lang.Throwable: java.lang.String getMessage()>();
+
+        interfaceinvoke $r12.<org.slf4j.Logger: void info(java.lang.String)>($r14);
+
+     label08:
+        $r11 = <org.apache.zookeeper.server.PrepRequestProcessor: org.slf4j.Logger LOG>;
+
+        interfaceinvoke $r11.<org.slf4j.Logger: void error(java.lang.String,java.lang.Throwable)>("Unexpected exception", $r9);
+
+        goto label10;
+
+     label09:
+        $r7 := @caughtexception;
+
+        $r8 = <org.apache.zookeeper.server.PrepRequestProcessor: org.slf4j.Logger LOG>;
+
+        interfaceinvoke $r8.<org.slf4j.Logger: void error(java.lang.String,java.lang.Throwable)>("Unexpected exception", $r7);
+
+     label10:
+        $r17 = <org.apache.zookeeper.server.PrepRequestProcessor: org.slf4j.Logger LOG>;
+
+        interfaceinvoke $r17.<org.slf4j.Logger: void info(java.lang.String)>("PrepRequestProcessor exited loop!");
+
+        return;
+
+        catch java.lang.InterruptedException from label01 to label05 with label06;
+        catch org.apache.zookeeper.server.RequestProcessor$RequestProcessorException from label01 to label05 with label07;
+        catch java.lang.Exception from label01 to label05 with label09;
+    }
+
+    org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord getRecordForPath(java.lang.String) throws org.apache.zookeeper.KeeperException$NoNodeException
+    {
+        java.lang.Throwable $r19, $r20;
+        org.apache.zookeeper.server.ZKDatabase $r10, $r17;
+        java.util.HashMap $r5;
+        org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord $r14, r21;
+        org.apache.zookeeper.KeeperException$NoNodeException $r7;
+        java.lang.Long r12;
+        org.apache.zookeeper.data.StatPersisted $r8, $r16;
+        int $i0;
+        java.lang.String r4;
+        org.apache.zookeeper.server.DataNode $r11;
+        java.util.Set $r13;
+        org.apache.zookeeper.server.PrepRequestProcessor r0;
+        org.apache.zookeeper.server.ZooKeeperServer $r1, $r3, $r9, $r15;
+        java.util.List $r2, $r18;
+        java.lang.Object $r6;
+
+        r0 := @this: org.apache.zookeeper.server.PrepRequestProcessor;
+
+        r4 := @parameter0: java.lang.String;
+
+        $r1 = r0.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $r2 = $r1.<org.apache.zookeeper.server.ZooKeeperServer: java.util.List outstandingChanges>;
+
+        entermonitor $r2;
+
+     label01:
+        $r3 = r0.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $r5 = $r3.<org.apache.zookeeper.server.ZooKeeperServer: java.util.HashMap outstandingChangesForPath>;
+
+        $r6 = virtualinvoke $r5.<java.util.HashMap: java.lang.Object get(java.lang.Object)>(r4);
+
+        r21 = (org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord) $r6;
+
+        if r21 != null goto label09;
+
+        $r9 = r0.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $r10 = virtualinvoke $r9.<org.apache.zookeeper.server.ZooKeeperServer: org.apache.zookeeper.server.ZKDatabase getZKDatabase()>();
+
+        $r11 = virtualinvoke $r10.<org.apache.zookeeper.server.ZKDatabase: org.apache.zookeeper.server.DataNode getNode(java.lang.String)>(r4);
+
+        if $r11 == null goto label09;
+
+        entermonitor $r11;
+
+     label02:
+        r12 = $r11.<org.apache.zookeeper.server.DataNode: java.lang.Long acl>;
+
+        $r13 = virtualinvoke $r11.<org.apache.zookeeper.server.DataNode: java.util.Set getChildren()>();
+
+        exitmonitor $r11;
+
+     label03:
+        goto label06;
+
+     label04:
+        $r20 := @caughtexception;
+
+        exitmonitor $r11;
+
+     label05:
+        throw $r20;
+
+     label06:
+        $r14 = new org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord;
+
+        $r16 = $r11.<org.apache.zookeeper.server.DataNode: org.apache.zookeeper.data.StatPersisted stat>;
+
+        if $r13 == null goto label07;
+
+        $i0 = interfaceinvoke $r13.<java.util.Set: int size()>();
+
+        goto label08;
+
+     label07:
+        $i0 = 0;
+
+     label08:
+        $r15 = r0.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $r17 = virtualinvoke $r15.<org.apache.zookeeper.server.ZooKeeperServer: org.apache.zookeeper.server.ZKDatabase getZKDatabase()>();
+
+        $r18 = virtualinvoke $r17.<org.apache.zookeeper.server.ZKDatabase: java.util.List convertLong(java.lang.Long)>(r12);
+
+        specialinvoke $r14.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: void <init>(long,java.lang.String,org.apache.zookeeper.data.StatPersisted,int,java.util.List)>(-1L, r4, $r16, $i0, $r18);
+
+        r21 = $r14;
+
+     label09:
+        exitmonitor $r2;
+
+     label10:
+        goto label13;
+
+     label11:
+        $r19 := @caughtexception;
+
+        exitmonitor $r2;
+
+     label12:
+        throw $r19;
+
+     label13:
+        if r21 == null goto label14;
+
+        $r8 = r21.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: org.apache.zookeeper.data.StatPersisted stat>;
+
+        if $r8 != null goto label15;
+
+     label14:
+        $r7 = new org.apache.zookeeper.KeeperException$NoNodeException;
+
+        specialinvoke $r7.<org.apache.zookeeper.KeeperException$NoNodeException: void <init>(java.lang.String)>(r4);
+
+        throw $r7;
+
+     label15:
+        return r21;
+
+        catch java.lang.Throwable from label02 to label03 with label04;
+        catch java.lang.Throwable from label04 to label05 with label04;
+        catch java.lang.Throwable from label01 to label10 with label11;
+        catch java.lang.Throwable from label11 to label12 with label11;
+    }
+
+    void addChangeRecord(org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord)
+    {
+        java.lang.Throwable $r9;
+        java.util.HashMap $r8;
+        org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord r4;
+        org.apache.zookeeper.server.PrepRequestProcessor r0;
+        org.apache.zookeeper.server.ZooKeeperServer $r1, $r3, $r6;
+        java.util.List $r2, $r5;
+        java.lang.String $r7;
+
+        r0 := @this: org.apache.zookeeper.server.PrepRequestProcessor;
+
+        r4 := @parameter0: org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord;
+
+        $r1 = r0.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $r2 = $r1.<org.apache.zookeeper.server.ZooKeeperServer: java.util.List outstandingChanges>;
+
+        entermonitor $r2;
+
+     label1:
+        $r3 = r0.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $r5 = $r3.<org.apache.zookeeper.server.ZooKeeperServer: java.util.List outstandingChanges>;
+
+        interfaceinvoke $r5.<java.util.List: boolean add(java.lang.Object)>(r4);
+
+        $r6 = r0.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $r8 = $r6.<org.apache.zookeeper.server.ZooKeeperServer: java.util.HashMap outstandingChangesForPath>;
+
+        $r7 = r4.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: java.lang.String path>;
+
+        virtualinvoke $r8.<java.util.HashMap: java.lang.Object put(java.lang.Object,java.lang.Object)>($r7, r4);
+
+        exitmonitor $r2;
+
+     label2:
+        goto label5;
+
+     label3:
+        $r9 := @caughtexception;
+
+        exitmonitor $r2;
+
+     label4:
+        throw $r9;
+
+     label5:
+        return;
+
+        catch java.lang.Throwable from label1 to label2 with label3;
+        catch java.lang.Throwable from label3 to label4 with label3;
+    }
+
+    java.util.HashMap getPendingChanges(org.apache.zookeeper.MultiTransactionRecord)
+    {
+        org.apache.zookeeper.MultiTransactionRecord r1;
+        org.apache.zookeeper.Op r4;
+        java.util.Iterator $r2;
+        java.util.HashMap $r0;
+        org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord $r7;
+        org.apache.zookeeper.KeeperException$NoNodeException $r8;
+        org.apache.zookeeper.server.PrepRequestProcessor r6;
+        java.lang.Object $r3;
+        java.lang.String $r5;
+        boolean $z0;
+
+        r6 := @this: org.apache.zookeeper.server.PrepRequestProcessor;
+
+        r1 := @parameter0: org.apache.zookeeper.MultiTransactionRecord;
+
+        $r0 = new java.util.HashMap;
+
+        specialinvoke $r0.<java.util.HashMap: void <init>()>();
+
+        $r2 = virtualinvoke r1.<org.apache.zookeeper.MultiTransactionRecord: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r2.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label6;
+
+        $r3 = interfaceinvoke $r2.<java.util.Iterator: java.lang.Object next()>();
+
+        r4 = (org.apache.zookeeper.Op) $r3;
+
+        $r5 = virtualinvoke r4.<org.apache.zookeeper.Op: java.lang.String getPath()>();
+
+     label2:
+        $r7 = virtualinvoke r6.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord getRecordForPath(java.lang.String)>($r5);
+
+        if $r7 == null goto label3;
+
+        virtualinvoke $r0.<java.util.HashMap: java.lang.Object put(java.lang.Object,java.lang.Object)>($r5, $r7);
+
+     label3:
+        goto label5;
+
+     label4:
+        $r8 := @caughtexception;
+
+     label5:
+        goto label1;
+
+     label6:
+        return $r0;
+
+        catch org.apache.zookeeper.KeeperException$NoNodeException from label2 to label3 with label4;
+    }
+
+    void rollbackPendingChanges(long, java.util.HashMap)
+    {
+        java.util.ListIterator $r7;
+        byte $b2, $b5;
+        boolean $z0, $z1, $z2;
+        java.util.Collection $r11;
+        org.apache.zookeeper.server.PrepRequestProcessor r0;
+        java.util.List $r2, $r5, $r6, $r9, $r19;
+        java.lang.Throwable $r26;
+        java.util.HashMap r10, $r17, $r25;
+        long $l1, l3, $l4, l6;
+        org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord r14, $r21, r27;
+        int $i0, $i7;
+        java.lang.String $r16, $r24;
+        java.util.Iterator $r12;
+        org.apache.zookeeper.server.ZooKeeperServer $r1, $r3, $r4, $r8, $r15, $r18, $r23;
+        java.lang.Object $r13, $r20, $r22;
+
+        r0 := @this: org.apache.zookeeper.server.PrepRequestProcessor;
+
+        l3 := @parameter0: long;
+
+        r10 := @parameter1: java.util.HashMap;
+
+        $r1 = r0.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $r2 = $r1.<org.apache.zookeeper.server.ZooKeeperServer: java.util.List outstandingChanges>;
+
+        entermonitor $r2;
+
+     label01:
+        $r3 = r0.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $r6 = $r3.<org.apache.zookeeper.server.ZooKeeperServer: java.util.List outstandingChanges>;
+
+        $r4 = r0.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $r5 = $r4.<org.apache.zookeeper.server.ZooKeeperServer: java.util.List outstandingChanges>;
+
+        $i0 = interfaceinvoke $r5.<java.util.List: int size()>();
+
+        $r7 = interfaceinvoke $r6.<java.util.List: java.util.ListIterator listIterator(int)>($i0);
+
+     label02:
+        $z0 = interfaceinvoke $r7.<java.util.ListIterator: boolean hasPrevious()>();
+
+        if $z0 == 0 goto label03;
+
+        $r22 = interfaceinvoke $r7.<java.util.ListIterator: java.lang.Object previous()>();
+
+        r27 = (org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord) $r22;
+
+        $l4 = r27.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: long zxid>;
+
+        $b5 = $l4 cmp l3;
+
+        if $b5 != 0 goto label03;
+
+        interfaceinvoke $r7.<java.util.ListIterator: void remove()>();
+
+        $r23 = r0.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $r25 = $r23.<org.apache.zookeeper.server.ZooKeeperServer: java.util.HashMap outstandingChangesForPath>;
+
+        $r24 = r27.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: java.lang.String path>;
+
+        virtualinvoke $r25.<java.util.HashMap: java.lang.Object remove(java.lang.Object)>($r24);
+
+        goto label02;
+
+     label03:
+        $r8 = r0.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $r9 = $r8.<org.apache.zookeeper.server.ZooKeeperServer: java.util.List outstandingChanges>;
+
+        $z1 = interfaceinvoke $r9.<java.util.List: boolean isEmpty()>();
+
+        l6 = 0L;
+
+        if $z1 != 0 goto label04;
+
+        $r18 = r0.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $r19 = $r18.<org.apache.zookeeper.server.ZooKeeperServer: java.util.List outstandingChanges>;
+
+        $r20 = interfaceinvoke $r19.<java.util.List: java.lang.Object get(int)>(0);
+
+        $r21 = (org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord) $r20;
+
+        l6 = $r21.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: long zxid>;
+
+     label04:
+        $r11 = virtualinvoke r10.<java.util.HashMap: java.util.Collection values()>();
+
+        $r12 = interfaceinvoke $r11.<java.util.Collection: java.util.Iterator iterator()>();
+
+     label05:
+        $z2 = interfaceinvoke $r12.<java.util.Iterator: boolean hasNext()>();
+
+        if $z2 == 0 goto label07;
+
+        $r13 = interfaceinvoke $r12.<java.util.Iterator: java.lang.Object next()>();
+
+        r14 = (org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord) $r13;
+
+        if $z1 != 0 goto label06;
+
+        $l1 = r14.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: long zxid>;
+
+        $b2 = $l1 cmp l6;
+
+        $i7 = (int) $b2;
+
+        if $i7 >= 0 goto label06;
+
+        goto label05;
+
+     label06:
+        $r15 = r0.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $r17 = $r15.<org.apache.zookeeper.server.ZooKeeperServer: java.util.HashMap outstandingChangesForPath>;
+
+        $r16 = r14.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: java.lang.String path>;
+
+        virtualinvoke $r17.<java.util.HashMap: java.lang.Object put(java.lang.Object,java.lang.Object)>($r16, r14);
+
+        goto label05;
+
+     label07:
+        exitmonitor $r2;
+
+     label08:
+        goto label11;
+
+     label09:
+        $r26 := @caughtexception;
+
+        exitmonitor $r2;
+
+     label10:
+        throw $r26;
+
+     label11:
+        return;
+
+        catch java.lang.Throwable from label01 to label08 with label09;
+        catch java.lang.Throwable from label09 to label10 with label09;
+    }
+
+    static void checkACL(org.apache.zookeeper.server.ZooKeeperServer, java.util.List, int, java.util.List) throws org.apache.zookeeper.KeeperException$NoAuthException
+    {
+        org.apache.zookeeper.KeeperException$NoAuthException $r4;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8;
+        org.apache.zookeeper.server.auth.AuthenticationProvider $r9;
+        java.util.List r0, r1;
+        org.apache.zookeeper.data.ACL r22;
+        int $i0, $i1, i2, $i3;
+        java.lang.String $r7, $r8, $r13, $r14, $r15, $r16, $r17, $r19;
+        java.util.Iterator $r2, $r3, $r10;
+        org.apache.zookeeper.server.ZooKeeperServer r20;
+        org.apache.zookeeper.data.Id $r6, r12, r21;
+        java.lang.Object $r5, $r11, $r18;
+
+        r20 := @parameter0: org.apache.zookeeper.server.ZooKeeperServer;
+
+        r0 := @parameter1: java.util.List;
+
+        i2 := @parameter2: int;
+
+        r1 := @parameter3: java.util.List;
+
+        $z0 = <org.apache.zookeeper.server.PrepRequestProcessor: boolean skipACL>;
+
+        if $z0 == 0 goto label01;
+
+        return;
+
+     label01:
+        if r0 == null goto label02;
+
+        $i0 = interfaceinvoke r0.<java.util.List: int size()>();
+
+        if $i0 != 0 goto label03;
+
+     label02:
+        return;
+
+     label03:
+        $r2 = interfaceinvoke r1.<java.util.List: java.util.Iterator iterator()>();
+
+     label04:
+        $z1 = interfaceinvoke $r2.<java.util.Iterator: boolean hasNext()>();
+
+        if $z1 == 0 goto label06;
+
+        $r18 = interfaceinvoke $r2.<java.util.Iterator: java.lang.Object next()>();
+
+        r21 = (org.apache.zookeeper.data.Id) $r18;
+
+        $r19 = virtualinvoke r21.<org.apache.zookeeper.data.Id: java.lang.String getScheme()>();
+
+        $z8 = virtualinvoke $r19.<java.lang.String: boolean equals(java.lang.Object)>("super");
+
+        if $z8 == 0 goto label05;
+
+        return;
+
+     label05:
+        goto label04;
+
+     label06:
+        $r3 = interfaceinvoke r0.<java.util.List: java.util.Iterator iterator()>();
+
+     label07:
+        $z2 = interfaceinvoke $r3.<java.util.Iterator: boolean hasNext()>();
+
+        if $z2 == 0 goto label12;
+
+        $r5 = interfaceinvoke $r3.<java.util.Iterator: java.lang.Object next()>();
+
+        r22 = (org.apache.zookeeper.data.ACL) $r5;
+
+        $r6 = virtualinvoke r22.<org.apache.zookeeper.data.ACL: org.apache.zookeeper.data.Id getId()>();
+
+        $i1 = virtualinvoke r22.<org.apache.zookeeper.data.ACL: int getPerms()>();
+
+        $i3 = $i1 & i2;
+
+        if $i3 == 0 goto label11;
+
+        $r7 = virtualinvoke $r6.<org.apache.zookeeper.data.Id: java.lang.String getScheme()>();
+
+        $z3 = virtualinvoke $r7.<java.lang.String: boolean equals(java.lang.Object)>("world");
+
+        if $z3 == 0 goto label08;
+
+        $r17 = virtualinvoke $r6.<org.apache.zookeeper.data.Id: java.lang.String getId()>();
+
+        $z7 = virtualinvoke $r17.<java.lang.String: boolean equals(java.lang.Object)>("anyone");
+
+        if $z7 == 0 goto label08;
+
+        return;
+
+     label08:
+        $r8 = virtualinvoke $r6.<org.apache.zookeeper.data.Id: java.lang.String getScheme()>();
+
+        $r9 = staticinvoke <org.apache.zookeeper.server.auth.ProviderRegistry: org.apache.zookeeper.server.auth.AuthenticationProvider getProvider(java.lang.String)>($r8);
+
+        if $r9 == null goto label11;
+
+        $r10 = interfaceinvoke r1.<java.util.List: java.util.Iterator iterator()>();
+
+     label09:
+        $z4 = interfaceinvoke $r10.<java.util.Iterator: boolean hasNext()>();
+
+        if $z4 == 0 goto label11;
+
+        $r11 = interfaceinvoke $r10.<java.util.Iterator: java.lang.Object next()>();
+
+        r12 = (org.apache.zookeeper.data.Id) $r11;
+
+        $r13 = virtualinvoke r12.<org.apache.zookeeper.data.Id: java.lang.String getScheme()>();
+
+        $r14 = virtualinvoke $r6.<org.apache.zookeeper.data.Id: java.lang.String getScheme()>();
+
+        $z5 = virtualinvoke $r13.<java.lang.String: boolean equals(java.lang.Object)>($r14);
+
+        if $z5 == 0 goto label10;
+
+        $r15 = virtualinvoke r12.<org.apache.zookeeper.data.Id: java.lang.String getId()>();
+
+        $r16 = virtualinvoke $r6.<org.apache.zookeeper.data.Id: java.lang.String getId()>();
+
+        $z6 = interfaceinvoke $r9.<org.apache.zookeeper.server.auth.AuthenticationProvider: boolean matches(java.lang.String,java.lang.String)>($r15, $r16);
+
+        if $z6 == 0 goto label10;
+
+        return;
+
+     label10:
+        goto label09;
+
+     label11:
+        goto label07;
+
+     label12:
+        $r4 = new org.apache.zookeeper.KeeperException$NoAuthException;
+
+        specialinvoke $r4.<org.apache.zookeeper.KeeperException$NoAuthException: void <init>()>();
+
+        throw $r4;
+    }
+
+    protected void pRequest2Txn(int, long, org.apache.zookeeper.server.Request, org.apache.jute.Record, boolean) throws org.apache.zookeeper.KeeperException, java.io.IOException, org.apache.zookeeper.server.RequestProcessor$RequestProcessorException
+    {
+        byte[] $r48, $r95;
+        java.lang.Integer $r108;
+        org.apache.zookeeper.txn.CreateSessionTxn $r194;
+        byte $b35, $b52;
+        org.apache.zookeeper.txn.CreateTxn $r181;
+        org.apache.jute.Record r7;
+        java.lang.StringBuilder $r105, $r110, $r134, $r136, $r151, $r152, $r153, $r155, $r161, $r162, $r163, $r165, $r173, $r176, $r177, $r196;
+        org.apache.zookeeper.txn.DeleteTxn $r187;
+        org.apache.zookeeper.KeeperException$InvalidACLException $r175, $r191;
+        java.lang.Object[] $r106;
+        long l0, $l1, $l3, $l5, $l9, $l12, $l14, $l17, $l19, $l24, $l27, $l29, $l34, $l38, $l41, $l42, $l44, $l45, $l46, $l47, $l48, $l49, $l50, $l51, $l53, $l54;
+        org.apache.zookeeper.proto.SetACLRequest r20;
+        org.apache.zookeeper.server.ZooKeeperServer $r3, $r4, $r12, $r17, $r28, $r37, $r45, $r54, $r59, $r66, $r76, $r88, $r117, $r119, $r121, $r124, $r126, $r130;
+        org.apache.zookeeper.KeeperException$NoChildrenForEphemeralsException $r180;
+        org.apache.zookeeper.KeeperException$BadVersionException $r185, $r189, $r192, $r197;
+        org.apache.zookeeper.txn.SetDataTxn $r190;
+        org.apache.zookeeper.KeeperException$NoNodeException $r147;
+        java.util.Locale $r107;
+        org.apache.zookeeper.proto.DeleteRequest r57;
+        org.apache.zookeeper.txn.CheckVersionTxn $r198;
+        java.util.HashSet $r123;
+        int $i2, i4, $i6, $i7, $i8, $i10, $i11, $i13, $i15, $i16, $i18, $i20, $i21, $i22, $i23, $i25, $i26, $i28, $i30, $i31, $i32, $i33, $i36, i37, $i39, $i40, $i43, $i56, $i58, $i60, $i62, $i64, $i66, $i68, $i70, $i72;
+        org.slf4j.Logger $r133, $r150, $r159;
+        org.apache.zookeeper.proto.SetDataRequest r40;
+        java.lang.Object $r6, $r19, $r39, $r56, $r78, $r120, $r138, $r141;
+        org.apache.zookeeper.CreateMode $r90;
+        org.apache.zookeeper.server.SessionTracker $r5, $r18, $r38, $r55, $r77, $r118, $r131;
+        org.apache.zookeeper.server.PrepRequestProcessor r2;
+        java.lang.Throwable $r146;
+        org.apache.zookeeper.server.ZKDatabase $r60, $r122;
+        org.apache.zookeeper.proto.CreateRequest r79;
+        org.apache.zookeeper.data.StatPersisted $r13, $r29, $r33, $r46, $r51, $r73, $r89, $r92, $r93, $r99, $r142, $r143, $r182;
+        java.lang.String $r8, $r21, $r41, $r58, $r61, $r80, $r84, $r109, $r135, $r137, $r144, $r145, $r154, $r156, r158, $r164, $r166, r170;
+        org.apache.zookeeper.txn.TxnHeader $r31, $r49, $r68, $r71, $r97, $r101, $r140, $r172;
+        org.apache.zookeeper.proto.CheckVersionRequest r171;
+        java.nio.ByteBuffer $r16, $r36, $r53, $r75, $r112, $r113, $r114, $r116;
+        org.apache.zookeeper.KeeperException$BadArgumentsException $r174, $r178, $r184;
+        boolean z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9, $z10;
+        org.apache.zookeeper.server.Request r0;
+        java.util.List $r10, $r11, $r22, $r23, $r24, $r26, $r27, $r43, $r44, $r64, $r65, $r81, $r82, $r83, $r86, $r87, $r125, $r127;
+        org.apache.zookeeper.txn.SetACLTxn $r193;
+        org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord $r9, $r25, $r32, $r42, $r50, $r62, $r63, $r69, $r85, $r91, $r98, r169, $r183, $r188, $r195;
+        org.apache.zookeeper.KeeperException$NotEmptyException $r186;
+        java.util.Iterator $r128, $r129;
+        java.lang.IllegalArgumentException $r148;
+        org.apache.zookeeper.KeeperException$NodeExistsException $r179;
+
+        r2 := @this: org.apache.zookeeper.server.PrepRequestProcessor;
+
+        i4 := @parameter0: int;
+
+        l0 := @parameter1: long;
+
+        r0 := @parameter2: org.apache.zookeeper.server.Request;
+
+        r7 := @parameter3: org.apache.jute.Record;
+
+        z0 := @parameter4: boolean;
+
+        $r172 = new org.apache.zookeeper.txn.TxnHeader;
+
+        $l1 = r0.<org.apache.zookeeper.server.Request: long sessionId>;
+
+        $i2 = r0.<org.apache.zookeeper.server.Request: int cxid>;
+
+        $r3 = r2.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $l3 = virtualinvoke $r3.<org.apache.zookeeper.server.ZooKeeperServer: long getTime()>();
+
+        specialinvoke $r172.<org.apache.zookeeper.txn.TxnHeader: void <init>(long,int,long,long,int)>($l1, $i2, l0, $l3, i4);
+
+        r0.<org.apache.zookeeper.server.Request: org.apache.zookeeper.txn.TxnHeader hdr> = $r172;
+
+        tableswitch(i4)
+        {
+            case -11: goto label31;
+            case -10: goto label30;
+            case -9: goto label46;
+            case -8: goto label46;
+            case -7: goto label46;
+            case -6: goto label46;
+            case -5: goto label46;
+            case -4: goto label46;
+            case -3: goto label46;
+            case -2: goto label46;
+            case -1: goto label46;
+            case 0: goto label46;
+            case 1: goto label01;
+            case 2: goto label17;
+            case 3: goto label46;
+            case 4: goto label46;
+            case 5: goto label23;
+            case 6: goto label46;
+            case 7: goto label26;
+            case 8: goto label46;
+            case 9: goto label46;
+            case 10: goto label46;
+            case 11: goto label46;
+            case 12: goto label46;
+            case 13: goto label43;
+            default: goto label46;
+        };
+
+     label01:
+        $r76 = r2.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $r77 = $r76.<org.apache.zookeeper.server.ZooKeeperServer: org.apache.zookeeper.server.SessionTracker sessionTracker>;
+
+        $l29 = r0.<org.apache.zookeeper.server.Request: long sessionId>;
+
+        $r78 = virtualinvoke r0.<org.apache.zookeeper.server.Request: java.lang.Object getOwner()>();
+
+        interfaceinvoke $r77.<org.apache.zookeeper.server.SessionTracker: void checkSession(long,java.lang.Object)>($l29, $r78);
+
+        r79 = (org.apache.zookeeper.proto.CreateRequest) r7;
+
+        if z0 == 0 goto label02;
+
+        $r112 = r0.<org.apache.zookeeper.server.Request: java.nio.ByteBuffer request>;
+
+        staticinvoke <org.apache.zookeeper.server.ByteBufferInputStream: void byteBuffer2Record(java.nio.ByteBuffer,org.apache.jute.Record)>($r112, r79);
+
+     label02:
+        $r80 = virtualinvoke r79.<org.apache.zookeeper.proto.CreateRequest: java.lang.String getPath()>();
+
+        r158 = $r80;
+
+        $i30 = virtualinvoke $r80.<java.lang.String: int lastIndexOf(int)>(47);
+
+        $i56 = (int) -1;
+
+        if $i30 == $i56 goto label03;
+
+        $i31 = virtualinvoke $r80.<java.lang.String: int indexOf(int)>(0);
+
+        $i58 = (int) -1;
+
+        if $i31 != $i58 goto label03;
+
+        $z3 = <org.apache.zookeeper.server.PrepRequestProcessor: boolean failCreate>;
+
+        if $z3 == 0 goto label04;
+
+     label03:
+        $r159 = <org.apache.zookeeper.server.PrepRequestProcessor: org.slf4j.Logger LOG>;
+
+        $r173 = new java.lang.StringBuilder;
+
+        specialinvoke $r173.<java.lang.StringBuilder: void <init>()>();
+
+        $r161 = virtualinvoke $r173.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Invalid path ");
+
+        $r162 = virtualinvoke $r161.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r80);
+
+        $r163 = virtualinvoke $r162.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" with session 0x");
+
+        $l54 = r0.<org.apache.zookeeper.server.Request: long sessionId>;
+
+        $r164 = staticinvoke <java.lang.Long: java.lang.String toHexString(long)>($l54);
+
+        $r165 = virtualinvoke $r163.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r164);
+
+        $r166 = virtualinvoke $r165.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r159.<org.slf4j.Logger: void info(java.lang.String)>($r166);
+
+        $r174 = new org.apache.zookeeper.KeeperException$BadArgumentsException;
+
+        specialinvoke $r174.<org.apache.zookeeper.KeeperException$BadArgumentsException: void <init>(java.lang.String)>($r80);
+
+        throw $r174;
+
+     label04:
+        $r81 = virtualinvoke r79.<org.apache.zookeeper.proto.CreateRequest: java.util.List getAcl()>();
+
+        $r82 = specialinvoke r2.<org.apache.zookeeper.server.PrepRequestProcessor: java.util.List removeDuplicates(java.util.List)>($r81);
+
+        $r83 = r0.<org.apache.zookeeper.server.Request: java.util.List authInfo>;
+
+        $z4 = specialinvoke r2.<org.apache.zookeeper.server.PrepRequestProcessor: boolean fixupACL(java.util.List,java.util.List)>($r83, $r82);
+
+        if $z4 != 0 goto label05;
+
+        $r175 = new org.apache.zookeeper.KeeperException$InvalidACLException;
+
+        specialinvoke $r175.<org.apache.zookeeper.KeeperException$InvalidACLException: void <init>(java.lang.String)>($r80);
+
+        throw $r175;
+
+     label05:
+        $r84 = virtualinvoke $r80.<java.lang.String: java.lang.String substring(int,int)>(0, $i30);
+
+        $r85 = virtualinvoke r2.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord getRecordForPath(java.lang.String)>($r84);
+
+        $r88 = r2.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $r87 = $r85.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: java.util.List acl>;
+
+        $r86 = r0.<org.apache.zookeeper.server.Request: java.util.List authInfo>;
+
+        staticinvoke <org.apache.zookeeper.server.PrepRequestProcessor: void checkACL(org.apache.zookeeper.server.ZooKeeperServer,java.util.List,int,java.util.List)>($r88, $r87, 4, $r86);
+
+        $r89 = $r85.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: org.apache.zookeeper.data.StatPersisted stat>;
+
+        $i32 = virtualinvoke $r89.<org.apache.zookeeper.data.StatPersisted: int getCversion()>();
+
+        $i33 = virtualinvoke r79.<org.apache.zookeeper.proto.CreateRequest: int getFlags()>();
+
+        $r90 = staticinvoke <org.apache.zookeeper.CreateMode: org.apache.zookeeper.CreateMode fromFlag(int)>($i33);
+
+        $z5 = virtualinvoke $r90.<org.apache.zookeeper.CreateMode: boolean isSequential()>();
+
+        if $z5 == 0 goto label06;
+
+        $r176 = new java.lang.StringBuilder;
+
+        specialinvoke $r176.<java.lang.StringBuilder: void <init>()>();
+
+        $r105 = virtualinvoke $r176.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r80);
+
+        $r107 = <java.util.Locale: java.util.Locale ENGLISH>;
+
+        $r106 = newarray (java.lang.Object)[1];
+
+        $r108 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i32);
+
+        $r106[0] = $r108;
+
+        $r109 = staticinvoke <java.lang.String: java.lang.String format(java.util.Locale,java.lang.String,java.lang.Object[])>($r107, "%010d", $r106);
+
+        $r110 = virtualinvoke $r105.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r109);
+
+        r158 = virtualinvoke $r110.<java.lang.StringBuilder: java.lang.String toString()>();
+
+     label06:
+        staticinvoke <org.apache.zookeeper.common.PathUtils: void validatePath(java.lang.String)>(r158);
+
+     label07:
+        goto label09;
+
+     label08:
+        $r148 := @caughtexception;
+
+        $r150 = <org.apache.zookeeper.server.PrepRequestProcessor: org.slf4j.Logger LOG>;
+
+        $r177 = new java.lang.StringBuilder;
+
+        specialinvoke $r177.<java.lang.StringBuilder: void <init>()>();
+
+        $r151 = virtualinvoke $r177.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Invalid path ");
+
+        $r152 = virtualinvoke $r151.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r158);
+
+        $r153 = virtualinvoke $r152.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" with session 0x");
+
+        $l53 = r0.<org.apache.zookeeper.server.Request: long sessionId>;
+
+        $r154 = staticinvoke <java.lang.Long: java.lang.String toHexString(long)>($l53);
+
+        $r155 = virtualinvoke $r153.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r154);
+
+        $r156 = virtualinvoke $r155.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r150.<org.slf4j.Logger: void info(java.lang.String)>($r156);
+
+        $r178 = new org.apache.zookeeper.KeeperException$BadArgumentsException;
+
+        specialinvoke $r178.<org.apache.zookeeper.KeeperException$BadArgumentsException: void <init>(java.lang.String)>(r158);
+
+        throw $r178;
+
+     label09:
+        $r91 = virtualinvoke r2.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord getRecordForPath(java.lang.String)>(r158);
+
+        if $r91 == null goto label10;
+
+        $r179 = new org.apache.zookeeper.KeeperException$NodeExistsException;
+
+        specialinvoke $r179.<org.apache.zookeeper.KeeperException$NodeExistsException: void <init>(java.lang.String)>(r158);
+
+        throw $r179;
+
+     label10:
+        goto label12;
+
+     label11:
+        $r147 := @caughtexception;
+
+     label12:
+        $r92 = $r85.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: org.apache.zookeeper.data.StatPersisted stat>;
+
+        $l34 = virtualinvoke $r92.<org.apache.zookeeper.data.StatPersisted: long getEphemeralOwner()>();
+
+        $b35 = $l34 cmp 0L;
+
+        if $b35 == 0 goto label13;
+
+        $z10 = 1;
+
+        goto label14;
+
+     label13:
+        $z10 = 0;
+
+     label14:
+        if $z10 == 0 goto label15;
+
+        $r180 = new org.apache.zookeeper.KeeperException$NoChildrenForEphemeralsException;
+
+        specialinvoke $r180.<org.apache.zookeeper.KeeperException$NoChildrenForEphemeralsException: void <init>(java.lang.String)>(r158);
+
+        throw $r180;
+
+     label15:
+        $r93 = $r85.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: org.apache.zookeeper.data.StatPersisted stat>;
+
+        $i36 = virtualinvoke $r93.<org.apache.zookeeper.data.StatPersisted: int getCversion()>();
+
+        i37 = $i36 + 1;
+
+        $r181 = new org.apache.zookeeper.txn.CreateTxn;
+
+        $r95 = virtualinvoke r79.<org.apache.zookeeper.proto.CreateRequest: byte[] getData()>();
+
+        $z6 = virtualinvoke $r90.<org.apache.zookeeper.CreateMode: boolean isEphemeral()>();
+
+        specialinvoke $r181.<org.apache.zookeeper.txn.CreateTxn: void <init>(java.lang.String,byte[],java.util.List,boolean,int)>(r158, $r95, $r82, $z6, i37);
+
+        r0.<org.apache.zookeeper.server.Request: org.apache.jute.Record txn> = $r181;
+
+        $r182 = new org.apache.zookeeper.data.StatPersisted;
+
+        specialinvoke $r182.<org.apache.zookeeper.data.StatPersisted: void <init>()>();
+
+        $z7 = virtualinvoke $r90.<org.apache.zookeeper.CreateMode: boolean isEphemeral()>();
+
+        if $z7 == 0 goto label16;
+
+        $l42 = r0.<org.apache.zookeeper.server.Request: long sessionId>;
+
+        virtualinvoke $r182.<org.apache.zookeeper.data.StatPersisted: void setEphemeralOwner(long)>($l42);
+
+     label16:
+        $r97 = r0.<org.apache.zookeeper.server.Request: org.apache.zookeeper.txn.TxnHeader hdr>;
+
+        $l38 = virtualinvoke $r97.<org.apache.zookeeper.txn.TxnHeader: long getZxid()>();
+
+        $r98 = virtualinvoke $r85.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord duplicate(long)>($l38);
+
+        $i39 = $r98.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: int childCount>;
+
+        $i40 = $i39 + 1;
+
+        $r98.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: int childCount> = $i40;
+
+        $r99 = $r98.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: org.apache.zookeeper.data.StatPersisted stat>;
+
+        virtualinvoke $r99.<org.apache.zookeeper.data.StatPersisted: void setCversion(int)>(i37);
+
+        virtualinvoke r2.<org.apache.zookeeper.server.PrepRequestProcessor: void addChangeRecord(org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord)>($r98);
+
+        $r183 = new org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord;
+
+        $r101 = r0.<org.apache.zookeeper.server.Request: org.apache.zookeeper.txn.TxnHeader hdr>;
+
+        $l41 = virtualinvoke $r101.<org.apache.zookeeper.txn.TxnHeader: long getZxid()>();
+
+        specialinvoke $r183.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: void <init>(long,java.lang.String,org.apache.zookeeper.data.StatPersisted,int,java.util.List)>($l41, r158, $r182, 0, $r82);
+
+        virtualinvoke r2.<org.apache.zookeeper.server.PrepRequestProcessor: void addChangeRecord(org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord)>($r183);
+
+        goto label46;
+
+     label17:
+        $r54 = r2.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $r55 = $r54.<org.apache.zookeeper.server.ZooKeeperServer: org.apache.zookeeper.server.SessionTracker sessionTracker>;
+
+        $l19 = r0.<org.apache.zookeeper.server.Request: long sessionId>;
+
+        $r56 = virtualinvoke r0.<org.apache.zookeeper.server.Request: java.lang.Object getOwner()>();
+
+        interfaceinvoke $r55.<org.apache.zookeeper.server.SessionTracker: void checkSession(long,java.lang.Object)>($l19, $r56);
+
+        r57 = (org.apache.zookeeper.proto.DeleteRequest) r7;
+
+        if z0 == 0 goto label18;
+
+        $r75 = r0.<org.apache.zookeeper.server.Request: java.nio.ByteBuffer request>;
+
+        staticinvoke <org.apache.zookeeper.server.ByteBufferInputStream: void byteBuffer2Record(java.nio.ByteBuffer,org.apache.jute.Record)>($r75, r57);
+
+     label18:
+        $r58 = virtualinvoke r57.<org.apache.zookeeper.proto.DeleteRequest: java.lang.String getPath()>();
+
+        $i20 = virtualinvoke $r58.<java.lang.String: int lastIndexOf(int)>(47);
+
+        $i60 = (int) -1;
+
+        if $i20 == $i60 goto label19;
+
+        $i21 = virtualinvoke $r58.<java.lang.String: int indexOf(int)>(0);
+
+        $i62 = (int) -1;
+
+        if $i21 != $i62 goto label19;
+
+        $r59 = r2.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $r60 = virtualinvoke $r59.<org.apache.zookeeper.server.ZooKeeperServer: org.apache.zookeeper.server.ZKDatabase getZKDatabase()>();
+
+        $z2 = virtualinvoke $r60.<org.apache.zookeeper.server.ZKDatabase: boolean isSpecialPath(java.lang.String)>($r58);
+
+        if $z2 == 0 goto label20;
+
+     label19:
+        $r184 = new org.apache.zookeeper.KeeperException$BadArgumentsException;
+
+        specialinvoke $r184.<org.apache.zookeeper.KeeperException$BadArgumentsException: void <init>(java.lang.String)>($r58);
+
+        throw $r184;
+
+     label20:
+        $r61 = virtualinvoke $r58.<java.lang.String: java.lang.String substring(int,int)>(0, $i20);
+
+        $r62 = virtualinvoke r2.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord getRecordForPath(java.lang.String)>($r61);
+
+        $r63 = virtualinvoke r2.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord getRecordForPath(java.lang.String)>($r58);
+
+        $r66 = r2.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $r65 = $r62.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: java.util.List acl>;
+
+        $r64 = r0.<org.apache.zookeeper.server.Request: java.util.List authInfo>;
+
+        staticinvoke <org.apache.zookeeper.server.PrepRequestProcessor: void checkACL(org.apache.zookeeper.server.ZooKeeperServer,java.util.List,int,java.util.List)>($r66, $r65, 8, $r64);
+
+        $i22 = virtualinvoke r57.<org.apache.zookeeper.proto.DeleteRequest: int getVersion()>();
+
+        $i64 = (int) -1;
+
+        if $i22 == $i64 goto label21;
+
+        $r73 = $r63.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: org.apache.zookeeper.data.StatPersisted stat>;
+
+        $i28 = virtualinvoke $r73.<org.apache.zookeeper.data.StatPersisted: int getVersion()>();
+
+        if $i28 == $i22 goto label21;
+
+        $r185 = new org.apache.zookeeper.KeeperException$BadVersionException;
+
+        specialinvoke $r185.<org.apache.zookeeper.KeeperException$BadVersionException: void <init>(java.lang.String)>($r58);
+
+        throw $r185;
+
+     label21:
+        $i23 = $r63.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: int childCount>;
+
+        if $i23 <= 0 goto label22;
+
+        $r186 = new org.apache.zookeeper.KeeperException$NotEmptyException;
+
+        specialinvoke $r186.<org.apache.zookeeper.KeeperException$NotEmptyException: void <init>(java.lang.String)>($r58);
+
+        throw $r186;
+
+     label22:
+        $r187 = new org.apache.zookeeper.txn.DeleteTxn;
+
+        specialinvoke $r187.<org.apache.zookeeper.txn.DeleteTxn: void <init>(java.lang.String)>($r58);
+
+        r0.<org.apache.zookeeper.server.Request: org.apache.jute.Record txn> = $r187;
+
+        $r68 = r0.<org.apache.zookeeper.server.Request: org.apache.zookeeper.txn.TxnHeader hdr>;
+
+        $l24 = virtualinvoke $r68.<org.apache.zookeeper.txn.TxnHeader: long getZxid()>();
+
+        $r69 = virtualinvoke $r62.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord duplicate(long)>($l24);
+
+        $i25 = $r69.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: int childCount>;
+
+        $i26 = $i25 - 1;
+
+        $r69.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: int childCount> = $i26;
+
+        virtualinvoke r2.<org.apache.zookeeper.server.PrepRequestProcessor: void addChangeRecord(org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord)>($r69);
+
+        $r188 = new org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord;
+
+        $r71 = r0.<org.apache.zookeeper.server.Request: org.apache.zookeeper.txn.TxnHeader hdr>;
+
+        $l27 = virtualinvoke $r71.<org.apache.zookeeper.txn.TxnHeader: long getZxid()>();
+
+        $i66 = (int) -1;
+
+        specialinvoke $r188.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: void <init>(long,java.lang.String,org.apache.zookeeper.data.StatPersisted,int,java.util.List)>($l27, $r58, null, $i66, null);
+
+        virtualinvoke r2.<org.apache.zookeeper.server.PrepRequestProcessor: void addChangeRecord(org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord)>($r188);
+
+        goto label46;
+
+     label23:
+        $r37 = r2.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $r38 = $r37.<org.apache.zookeeper.server.ZooKeeperServer: org.apache.zookeeper.server.SessionTracker sessionTracker>;
+
+        $l14 = r0.<org.apache.zookeeper.server.Request: long sessionId>;
+
+        $r39 = virtualinvoke r0.<org.apache.zookeeper.server.Request: java.lang.Object getOwner()>();
+
+        interfaceinvoke $r38.<org.apache.zookeeper.server.SessionTracker: void checkSession(long,java.lang.Object)>($l14, $r39);
+
+        r40 = (org.apache.zookeeper.proto.SetDataRequest) r7;
+
+        if z0 == 0 goto label24;
+
+        $r53 = r0.<org.apache.zookeeper.server.Request: java.nio.ByteBuffer request>;
+
+        staticinvoke <org.apache.zookeeper.server.ByteBufferInputStream: void byteBuffer2Record(java.nio.ByteBuffer,org.apache.jute.Record)>($r53, r40);
+
+     label24:
+        $r41 = virtualinvoke r40.<org.apache.zookeeper.proto.SetDataRequest: java.lang.String getPath()>();
+
+        $r42 = virtualinvoke r2.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord getRecordForPath(java.lang.String)>($r41);
+
+        $r45 = r2.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $r44 = $r42.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: java.util.List acl>;
+
+        $r43 = r0.<org.apache.zookeeper.server.Request: java.util.List authInfo>;
+
+        staticinvoke <org.apache.zookeeper.server.PrepRequestProcessor: void checkACL(org.apache.zookeeper.server.ZooKeeperServer,java.util.List,int,java.util.List)>($r45, $r44, 2, $r43);
+
+        $i15 = virtualinvoke r40.<org.apache.zookeeper.proto.SetDataRequest: int getVersion()>();
+
+        $r46 = $r42.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: org.apache.zookeeper.data.StatPersisted stat>;
+
+        $i16 = virtualinvoke $r46.<org.apache.zookeeper.data.StatPersisted: int getVersion()>();
+
+        $i68 = (int) -1;
+
+        if $i15 == $i68 goto label25;
+
+        if $i15 == $i16 goto label25;
+
+        $r189 = new org.apache.zookeeper.KeeperException$BadVersionException;
+
+        specialinvoke $r189.<org.apache.zookeeper.KeeperException$BadVersionException: void <init>(java.lang.String)>($r41);
+
+        throw $r189;
+
+     label25:
+        $i18 = $i16 + 1;
+
+        $r190 = new org.apache.zookeeper.txn.SetDataTxn;
+
+        $r48 = virtualinvoke r40.<org.apache.zookeeper.proto.SetDataRequest: byte[] getData()>();
+
+        specialinvoke $r190.<org.apache.zookeeper.txn.SetDataTxn: void <init>(java.lang.String,byte[],int)>($r41, $r48, $i18);
+
+        r0.<org.apache.zookeeper.server.Request: org.apache.jute.Record txn> = $r190;
+
+        $r49 = r0.<org.apache.zookeeper.server.Request: org.apache.zookeeper.txn.TxnHeader hdr>;
+
+        $l17 = virtualinvoke $r49.<org.apache.zookeeper.txn.TxnHeader: long getZxid()>();
+
+        $r50 = virtualinvoke $r42.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord duplicate(long)>($l17);
+
+        $r51 = $r50.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: org.apache.zookeeper.data.StatPersisted stat>;
+
+        virtualinvoke $r51.<org.apache.zookeeper.data.StatPersisted: void setVersion(int)>($i18);
+
+        virtualinvoke r2.<org.apache.zookeeper.server.PrepRequestProcessor: void addChangeRecord(org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord)>($r50);
+
+        goto label46;
+
+     label26:
+        $r17 = r2.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $r18 = $r17.<org.apache.zookeeper.server.ZooKeeperServer: org.apache.zookeeper.server.SessionTracker sessionTracker>;
+
+        $l9 = r0.<org.apache.zookeeper.server.Request: long sessionId>;
+
+        $r19 = virtualinvoke r0.<org.apache.zookeeper.server.Request: java.lang.Object getOwner()>();
+
+        interfaceinvoke $r18.<org.apache.zookeeper.server.SessionTracker: void checkSession(long,java.lang.Object)>($l9, $r19);
+
+        r20 = (org.apache.zookeeper.proto.SetACLRequest) r7;
+
+        if z0 == 0 goto label27;
+
+        $r36 = r0.<org.apache.zookeeper.server.Request: java.nio.ByteBuffer request>;
+
+        staticinvoke <org.apache.zookeeper.server.ByteBufferInputStream: void byteBuffer2Record(java.nio.ByteBuffer,org.apache.jute.Record)>($r36, r20);
+
+     label27:
+        $r21 = virtualinvoke r20.<org.apache.zookeeper.proto.SetACLRequest: java.lang.String getPath()>();
+
+        $r22 = virtualinvoke r20.<org.apache.zookeeper.proto.SetACLRequest: java.util.List getAcl()>();
+
+        $r23 = specialinvoke r2.<org.apache.zookeeper.server.PrepRequestProcessor: java.util.List removeDuplicates(java.util.List)>($r22);
+
+        $r24 = r0.<org.apache.zookeeper.server.Request: java.util.List authInfo>;
+
+        $z1 = specialinvoke r2.<org.apache.zookeeper.server.PrepRequestProcessor: boolean fixupACL(java.util.List,java.util.List)>($r24, $r23);
+
+        if $z1 != 0 goto label28;
+
+        $r191 = new org.apache.zookeeper.KeeperException$InvalidACLException;
+
+        specialinvoke $r191.<org.apache.zookeeper.KeeperException$InvalidACLException: void <init>(java.lang.String)>($r21);
+
+        throw $r191;
+
+     label28:
+        $r25 = virtualinvoke r2.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord getRecordForPath(java.lang.String)>($r21);
+
+        $r28 = r2.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $r27 = $r25.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: java.util.List acl>;
+
+        $r26 = r0.<org.apache.zookeeper.server.Request: java.util.List authInfo>;
+
+        staticinvoke <org.apache.zookeeper.server.PrepRequestProcessor: void checkACL(org.apache.zookeeper.server.ZooKeeperServer,java.util.List,int,java.util.List)>($r28, $r27, 16, $r26);
+
+        $i10 = virtualinvoke r20.<org.apache.zookeeper.proto.SetACLRequest: int getVersion()>();
+
+        $r29 = $r25.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: org.apache.zookeeper.data.StatPersisted stat>;
+
+        $i11 = virtualinvoke $r29.<org.apache.zookeeper.data.StatPersisted: int getAversion()>();
+
+        $i70 = (int) -1;
+
+        if $i10 == $i70 goto label29;
+
+        if $i10 == $i11 goto label29;
+
+        $r192 = new org.apache.zookeeper.KeeperException$BadVersionException;
+
+        specialinvoke $r192.<org.apache.zookeeper.KeeperException$BadVersionException: void <init>(java.lang.String)>($r21);
+
+        throw $r192;
+
+     label29:
+        $i13 = $i11 + 1;
+
+        $r193 = new org.apache.zookeeper.txn.SetACLTxn;
+
+        specialinvoke $r193.<org.apache.zookeeper.txn.SetACLTxn: void <init>(java.lang.String,java.util.List,int)>($r21, $r23, $i13);
+
+        r0.<org.apache.zookeeper.server.Request: org.apache.jute.Record txn> = $r193;
+
+        $r31 = r0.<org.apache.zookeeper.server.Request: org.apache.zookeeper.txn.TxnHeader hdr>;
+
+        $l12 = virtualinvoke $r31.<org.apache.zookeeper.txn.TxnHeader: long getZxid()>();
+
+        $r32 = virtualinvoke $r25.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord duplicate(long)>($l12);
+
+        $r33 = $r32.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: org.apache.zookeeper.data.StatPersisted stat>;
+
+        virtualinvoke $r33.<org.apache.zookeeper.data.StatPersisted: void setAversion(int)>($i13);
+
+        virtualinvoke r2.<org.apache.zookeeper.server.PrepRequestProcessor: void addChangeRecord(org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord)>($r32);
+
+        goto label46;
+
+     label30:
+        $r113 = r0.<org.apache.zookeeper.server.Request: java.nio.ByteBuffer request>;
+
+        virtualinvoke $r113.<java.nio.ByteBuffer: java.nio.Buffer rewind()>();
+
+        $r114 = r0.<org.apache.zookeeper.server.Request: java.nio.ByteBuffer request>;
+
+        $i43 = virtualinvoke $r114.<java.nio.ByteBuffer: int getInt()>();
+
+        $r194 = new org.apache.zookeeper.txn.CreateSessionTxn;
+
+        specialinvoke $r194.<org.apache.zookeeper.txn.CreateSessionTxn: void <init>(int)>($i43);
+
+        r0.<org.apache.zookeeper.server.Request: org.apache.jute.Record txn> = $r194;
+
+        $r116 = r0.<org.apache.zookeeper.server.Request: java.nio.ByteBuffer request>;
+
+        virtualinvoke $r116.<java.nio.ByteBuffer: java.nio.Buffer rewind()>();
+
+        $r117 = r2.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $r118 = $r117.<org.apache.zookeeper.server.ZooKeeperServer: org.apache.zookeeper.server.SessionTracker sessionTracker>;
+
+        $l44 = r0.<org.apache.zookeeper.server.Request: long sessionId>;
+
+        interfaceinvoke $r118.<org.apache.zookeeper.server.SessionTracker: void addSession(long,int)>($l44, $i43);
+
+        $r119 = r2.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $l45 = r0.<org.apache.zookeeper.server.Request: long sessionId>;
+
+        $r120 = virtualinvoke r0.<org.apache.zookeeper.server.Request: java.lang.Object getOwner()>();
+
+        virtualinvoke $r119.<org.apache.zookeeper.server.ZooKeeperServer: void setOwner(long,java.lang.Object)>($l45, $r120);
+
+        goto label46;
+
+     label31:
+        $r121 = r2.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $r122 = virtualinvoke $r121.<org.apache.zookeeper.server.ZooKeeperServer: org.apache.zookeeper.server.ZKDatabase getZKDatabase()>();
+
+        $l46 = r0.<org.apache.zookeeper.server.Request: long sessionId>;
+
+        $r123 = virtualinvoke $r122.<org.apache.zookeeper.server.ZKDatabase: java.util.HashSet getEphemerals(long)>($l46);
+
+        $r124 = r2.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $r125 = $r124.<org.apache.zookeeper.server.ZooKeeperServer: java.util.List outstandingChanges>;
+
+        entermonitor $r125;
+
+     label32:
+        $r126 = r2.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $r127 = $r126.<org.apache.zookeeper.server.ZooKeeperServer: java.util.List outstandingChanges>;
+
+        $r128 = interfaceinvoke $r127.<java.util.List: java.util.Iterator iterator()>();
+
+     label33:
+        $z8 = interfaceinvoke $r128.<java.util.Iterator: boolean hasNext()>();
+
+        if $z8 == 0 goto label36;
+
+        $r141 = interfaceinvoke $r128.<java.util.Iterator: java.lang.Object next()>();
+
+        r169 = (org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord) $r141;
+
+        $r142 = r169.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: org.apache.zookeeper.data.StatPersisted stat>;
+
+        if $r142 != null goto label34;
+
+        $r145 = r169.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: java.lang.String path>;
+
+        virtualinvoke $r123.<java.util.HashSet: boolean remove(java.lang.Object)>($r145);
+
+        goto label35;
+
+     label34:
+        $r143 = r169.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: org.apache.zookeeper.data.StatPersisted stat>;
+
+        $l50 = virtualinvoke $r143.<org.apache.zookeeper.data.StatPersisted: long getEphemeralOwner()>();
+
+        $l51 = r0.<org.apache.zookeeper.server.Request: long sessionId>;
+
+        $b52 = $l50 cmp $l51;
+
+        if $b52 != 0 goto label35;
+
+        $r144 = r169.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: java.lang.String path>;
+
+        virtualinvoke $r123.<java.util.HashSet: boolean add(java.lang.Object)>($r144);
+
+     label35:
+        goto label33;
+
+     label36:
+        $r129 = virtualinvoke $r123.<java.util.HashSet: java.util.Iterator iterator()>();
+
+     label37:
+        $z9 = interfaceinvoke $r129.<java.util.Iterator: boolean hasNext()>();
+
+        if $z9 == 0 goto label38;
+
+        $r138 = interfaceinvoke $r129.<java.util.Iterator: java.lang.Object next()>();
+
+        r170 = (java.lang.String) $r138;
+
+        $r195 = new org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord;
+
+        $r140 = r0.<org.apache.zookeeper.server.Request: org.apache.zookeeper.txn.TxnHeader hdr>;
+
+        $l49 = virtualinvoke $r140.<org.apache.zookeeper.txn.TxnHeader: long getZxid()>();
+
+        specialinvoke $r195.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: void <init>(long,java.lang.String,org.apache.zookeeper.data.StatPersisted,int,java.util.List)>($l49, r170, null, 0, null);
+
+        virtualinvoke r2.<org.apache.zookeeper.server.PrepRequestProcessor: void addChangeRecord(org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord)>($r195);
+
+        goto label37;
+
+     label38:
+        $r130 = r2.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $r131 = $r130.<org.apache.zookeeper.server.ZooKeeperServer: org.apache.zookeeper.server.SessionTracker sessionTracker>;
+
+        $l47 = r0.<org.apache.zookeeper.server.Request: long sessionId>;
+
+        interfaceinvoke $r131.<org.apache.zookeeper.server.SessionTracker: void setSessionClosing(long)>($l47);
+
+        exitmonitor $r125;
+
+     label39:
+        goto label42;
+
+     label40:
+        $r146 := @caughtexception;
+
+        exitmonitor $r125;
+
+     label41:
+        throw $r146;
+
+     label42:
+        $r133 = <org.apache.zookeeper.server.PrepRequestProcessor: org.slf4j.Logger LOG>;
+
+        $r196 = new java.lang.StringBuilder;
+
+        specialinvoke $r196.<java.lang.StringBuilder: void <init>()>();
+
+        $r134 = virtualinvoke $r196.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Processed session termination for sessionid: 0x");
+
+        $l48 = r0.<org.apache.zookeeper.server.Request: long sessionId>;
+
+        $r135 = staticinvoke <java.lang.Long: java.lang.String toHexString(long)>($l48);
+
+        $r136 = virtualinvoke $r134.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r135);
+
+        $r137 = virtualinvoke $r136.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r133.<org.slf4j.Logger: void info(java.lang.String)>($r137);
+
+        goto label46;
+
+     label43:
+        $r4 = r2.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $r5 = $r4.<org.apache.zookeeper.server.ZooKeeperServer: org.apache.zookeeper.server.SessionTracker sessionTracker>;
+
+        $l5 = r0.<org.apache.zookeeper.server.Request: long sessionId>;
+
+        $r6 = virtualinvoke r0.<org.apache.zookeeper.server.Request: java.lang.Object getOwner()>();
+
+        interfaceinvoke $r5.<org.apache.zookeeper.server.SessionTracker: void checkSession(long,java.lang.Object)>($l5, $r6);
+
+        r171 = (org.apache.zookeeper.proto.CheckVersionRequest) r7;
+
+        if z0 == 0 goto label44;
+
+        $r16 = r0.<org.apache.zookeeper.server.Request: java.nio.ByteBuffer request>;
+
+        staticinvoke <org.apache.zookeeper.server.ByteBufferInputStream: void byteBuffer2Record(java.nio.ByteBuffer,org.apache.jute.Record)>($r16, r171);
+
+     label44:
+        $r8 = virtualinvoke r171.<org.apache.zookeeper.proto.CheckVersionRequest: java.lang.String getPath()>();
+
+        $r9 = virtualinvoke r2.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord getRecordForPath(java.lang.String)>($r8);
+
+        $r12 = r2.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $r11 = $r9.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: java.util.List acl>;
+
+        $r10 = r0.<org.apache.zookeeper.server.Request: java.util.List authInfo>;
+
+        staticinvoke <org.apache.zookeeper.server.PrepRequestProcessor: void checkACL(org.apache.zookeeper.server.ZooKeeperServer,java.util.List,int,java.util.List)>($r12, $r11, 1, $r10);
+
+        $i6 = virtualinvoke r171.<org.apache.zookeeper.proto.CheckVersionRequest: int getVersion()>();
+
+        $r13 = $r9.<org.apache.zookeeper.server.ZooKeeperServer$ChangeRecord: org.apache.zookeeper.data.StatPersisted stat>;
+
+        $i7 = virtualinvoke $r13.<org.apache.zookeeper.data.StatPersisted: int getVersion()>();
+
+        $i72 = (int) -1;
+
+        if $i6 == $i72 goto label45;
+
+        if $i6 == $i7 goto label45;
+
+        $r197 = new org.apache.zookeeper.KeeperException$BadVersionException;
+
+        specialinvoke $r197.<org.apache.zookeeper.KeeperException$BadVersionException: void <init>(java.lang.String)>($r8);
+
+        throw $r197;
+
+     label45:
+        $i8 = $i7 + 1;
+
+        $r198 = new org.apache.zookeeper.txn.CheckVersionTxn;
+
+        specialinvoke $r198.<org.apache.zookeeper.txn.CheckVersionTxn: void <init>(java.lang.String,int)>($r8, $i8);
+
+        r0.<org.apache.zookeeper.server.Request: org.apache.jute.Record txn> = $r198;
+
+     label46:
+        return;
+
+        catch java.lang.IllegalArgumentException from label06 to label07 with label08;
+        catch org.apache.zookeeper.KeeperException$NoNodeException from label09 to label10 with label11;
+        catch java.lang.Throwable from label32 to label39 with label40;
+        catch java.lang.Throwable from label40 to label41 with label40;
+    }
+
+    protected void pRequest(org.apache.zookeeper.server.Request) throws org.apache.zookeeper.server.RequestProcessor$RequestProcessorException
+    {
+        byte[] $r91, $r95;
+        byte $b22;
+        org.apache.jute.Record $r13, $r90;
+        java.lang.StringBuilder $r34, $r35, $r40, $r42, $r53, $r55, $r56, $r58, $r59, $r61, $r72, $r74, $r75, $r76, $r78, $r79, $r81, $r109, $r115, $r116, $r117, $r118;
+        java.io.ByteArrayOutputStream $r110;
+        long $l1, $l2, $l4, $l9, $l11, $l13, $l14, $l16, $l18, $l20, $l26, $l28, $l29, $l31;
+        short $s23, $s38;
+        org.apache.zookeeper.MultiTransactionRecord $r104;
+        org.apache.zookeeper.proto.SetACLRequest $r102;
+        org.apache.zookeeper.txn.Txn $r111;
+        java.io.IOException $r83;
+        org.apache.zookeeper.server.ZooKeeperServer $r5, $r9, $r18, $r20, $r22, $r23, $r27, $r29, $r30, $r85, $r86, $r97;
+        org.apache.jute.BinaryOutputArchive $r89;
+        org.apache.zookeeper.proto.DeleteRequest $r100;
+        int $i0, $i3, $i5, $i6, $i7, $i8, $i10, $i12, $i15, $i17, $i19, $i21, $i24, $i25, $i27, $i30, $i33, $i35, $i37, $i39, $i41;
+        org.slf4j.Logger $r33, $r39, $r52, $r71;
+        org.apache.zookeeper.KeeperException $r49, $r66, r87;
+        org.apache.zookeeper.proto.SetDataRequest $r101;
+        java.lang.Object $r11, $r25;
+        org.apache.zookeeper.server.SessionTracker $r24;
+        org.apache.zookeeper.server.RequestProcessor $r98;
+        java.lang.Exception $r31;
+        org.apache.zookeeper.server.PrepRequestProcessor r4;
+        org.apache.zookeeper.proto.CreateRequest $r99;
+        java.util.ArrayList $r106;
+        java.lang.String $r36, $r41, $r43, $r48, $r54, $r57, $r60, $r62, $r73, $r77, $r80, $r82;
+        org.apache.zookeeper.txn.MultiTxn $r113;
+        org.apache.zookeeper.txn.TxnHeader $r14, $r44, $r45, $r50, $r63, $r67, $r94, $r105, $r112;
+        org.apache.zookeeper.proto.CheckVersionRequest $r103;
+        org.apache.zookeeper.txn.ErrorTxn $r107, $r108, $r114, $r119;
+        java.nio.ByteBuffer $r2, $r92, r96;
+        boolean $z0, $z1;
+        org.apache.zookeeper.Op r12;
+        org.apache.zookeeper.server.Request r0;
+        java.util.HashMap $r6;
+        org.apache.zookeeper.KeeperException$Code $r16, $r47, $r65, $r69;
+        java.util.Iterator $r7;
+
+        r4 := @this: org.apache.zookeeper.server.PrepRequestProcessor;
+
+        r0 := @parameter0: org.apache.zookeeper.server.Request;
+
+        r0.<org.apache.zookeeper.server.Request: org.apache.zookeeper.txn.TxnHeader hdr> = null;
+
+        r0.<org.apache.zookeeper.server.Request: org.apache.jute.Record txn> = null;
+
+     label01:
+        $i0 = r0.<org.apache.zookeeper.server.Request: int type>;
+
+        lookupswitch($i0)
+        {
+            case -11: goto label19;
+            case -10: goto label19;
+            case 1: goto label02;
+            case 2: goto label03;
+            case 3: goto label20;
+            case 4: goto label20;
+            case 5: goto label04;
+            case 6: goto label20;
+            case 7: goto label05;
+            case 8: goto label20;
+            case 9: goto label20;
+            case 11: goto label20;
+            case 12: goto label20;
+            case 13: goto label06;
+            case 14: goto label07;
+            case 101: goto label20;
+            default: goto label21;
+        };
+
+     label02:
+        $r99 = new org.apache.zookeeper.proto.CreateRequest;
+
+        specialinvoke $r99.<org.apache.zookeeper.proto.CreateRequest: void <init>()>();
+
+        $i17 = r0.<org.apache.zookeeper.server.Request: int type>;
+
+        $r29 = r4.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $l18 = virtualinvoke $r29.<org.apache.zookeeper.server.ZooKeeperServer: long getNextZxid()>();
+
+        virtualinvoke r4.<org.apache.zookeeper.server.PrepRequestProcessor: void pRequest2Txn(int,long,org.apache.zookeeper.server.Request,org.apache.jute.Record,boolean)>($i17, $l18, r0, $r99, 1);
+
+        goto label21;
+
+     label03:
+        $r100 = new org.apache.zookeeper.proto.DeleteRequest;
+
+        specialinvoke $r100.<org.apache.zookeeper.proto.DeleteRequest: void <init>()>();
+
+        $i15 = r0.<org.apache.zookeeper.server.Request: int type>;
+
+        $r27 = r4.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $l16 = virtualinvoke $r27.<org.apache.zookeeper.server.ZooKeeperServer: long getNextZxid()>();
+
+        virtualinvoke r4.<org.apache.zookeeper.server.PrepRequestProcessor: void pRequest2Txn(int,long,org.apache.zookeeper.server.Request,org.apache.jute.Record,boolean)>($i15, $l16, r0, $r100, 1);
+
+        goto label21;
+
+     label04:
+        $r101 = new org.apache.zookeeper.proto.SetDataRequest;
+
+        specialinvoke $r101.<org.apache.zookeeper.proto.SetDataRequest: void <init>()>();
+
+        $i12 = r0.<org.apache.zookeeper.server.Request: int type>;
+
+        $r22 = r4.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $l13 = virtualinvoke $r22.<org.apache.zookeeper.server.ZooKeeperServer: long getNextZxid()>();
+
+        virtualinvoke r4.<org.apache.zookeeper.server.PrepRequestProcessor: void pRequest2Txn(int,long,org.apache.zookeeper.server.Request,org.apache.jute.Record,boolean)>($i12, $l13, r0, $r101, 1);
+
+        goto label21;
+
+     label05:
+        $r102 = new org.apache.zookeeper.proto.SetACLRequest;
+
+        specialinvoke $r102.<org.apache.zookeeper.proto.SetACLRequest: void <init>()>();
+
+        $i10 = r0.<org.apache.zookeeper.server.Request: int type>;
+
+        $r20 = r4.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $l11 = virtualinvoke $r20.<org.apache.zookeeper.server.ZooKeeperServer: long getNextZxid()>();
+
+        virtualinvoke r4.<org.apache.zookeeper.server.PrepRequestProcessor: void pRequest2Txn(int,long,org.apache.zookeeper.server.Request,org.apache.jute.Record,boolean)>($i10, $l11, r0, $r102, 1);
+
+        goto label21;
+
+     label06:
+        $r103 = new org.apache.zookeeper.proto.CheckVersionRequest;
+
+        specialinvoke $r103.<org.apache.zookeeper.proto.CheckVersionRequest: void <init>()>();
+
+        $i8 = r0.<org.apache.zookeeper.server.Request: int type>;
+
+        $r18 = r4.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $l9 = virtualinvoke $r18.<org.apache.zookeeper.server.ZooKeeperServer: long getNextZxid()>();
+
+        virtualinvoke r4.<org.apache.zookeeper.server.PrepRequestProcessor: void pRequest2Txn(int,long,org.apache.zookeeper.server.Request,org.apache.jute.Record,boolean)>($i8, $l9, r0, $r103, 1);
+
+        goto label21;
+
+     label07:
+        $r104 = new org.apache.zookeeper.MultiTransactionRecord;
+
+        specialinvoke $r104.<org.apache.zookeeper.MultiTransactionRecord: void <init>()>();
+
+     label08:
+        $r2 = r0.<org.apache.zookeeper.server.Request: java.nio.ByteBuffer request>;
+
+        staticinvoke <org.apache.zookeeper.server.ByteBufferInputStream: void byteBuffer2Record(java.nio.ByteBuffer,org.apache.jute.Record)>($r2, $r104);
+
+     label09:
+        goto label11;
+
+     label10:
+        $r83 := @caughtexception;
+
+        $r105 = new org.apache.zookeeper.txn.TxnHeader;
+
+        $l26 = r0.<org.apache.zookeeper.server.Request: long sessionId>;
+
+        $i27 = r0.<org.apache.zookeeper.server.Request: int cxid>;
+
+        $r85 = r4.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $l28 = virtualinvoke $r85.<org.apache.zookeeper.server.ZooKeeperServer: long getNextZxid()>();
+
+        $r86 = r4.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $l29 = virtualinvoke $r86.<org.apache.zookeeper.server.ZooKeeperServer: long getTime()>();
+
+        specialinvoke $r105.<org.apache.zookeeper.txn.TxnHeader: void <init>(long,int,long,long,int)>($l26, $i27, $l28, $l29, 14);
+
+        r0.<org.apache.zookeeper.server.Request: org.apache.zookeeper.txn.TxnHeader hdr> = $r105;
+
+        throw $r83;
+
+     label11:
+        $r106 = new java.util.ArrayList;
+
+        specialinvoke $r106.<java.util.ArrayList: void <init>()>();
+
+        $r5 = r4.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $l1 = virtualinvoke $r5.<org.apache.zookeeper.server.ZooKeeperServer: long getNextZxid()>();
+
+        r87 = null;
+
+        $r6 = virtualinvoke r4.<org.apache.zookeeper.server.PrepRequestProcessor: java.util.HashMap getPendingChanges(org.apache.zookeeper.MultiTransactionRecord)>($r104);
+
+        $r7 = virtualinvoke $r104.<org.apache.zookeeper.MultiTransactionRecord: java.util.Iterator iterator()>();
+
+     label12:
+        $z0 = interfaceinvoke $r7.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label18;
+
+        $r11 = interfaceinvoke $r7.<java.util.Iterator: java.lang.Object next()>();
+
+        r12 = (org.apache.zookeeper.Op) $r11;
+
+        $r13 = virtualinvoke r12.<org.apache.zookeeper.Op: org.apache.jute.Record toRequestRecord()>();
+
+        if r87 == null goto label13;
+
+        $r14 = r0.<org.apache.zookeeper.server.Request: org.apache.zookeeper.txn.TxnHeader hdr>;
+
+        $i33 = (int) -1;
+
+        virtualinvoke $r14.<org.apache.zookeeper.txn.TxnHeader: void setType(int)>($i33);
+
+        $r107 = new org.apache.zookeeper.txn.ErrorTxn;
+
+        $r16 = <org.apache.zookeeper.KeeperException$Code: org.apache.zookeeper.KeeperException$Code RUNTIMEINCONSISTENCY>;
+
+        $i7 = virtualinvoke $r16.<org.apache.zookeeper.KeeperException$Code: int intValue()>();
+
+        specialinvoke $r107.<org.apache.zookeeper.txn.ErrorTxn: void <init>(int)>($i7);
+
+        r0.<org.apache.zookeeper.server.Request: org.apache.jute.Record txn> = $r107;
+
+        goto label17;
+
+     label13:
+        $i6 = virtualinvoke r12.<org.apache.zookeeper.Op: int getType()>();
+
+        virtualinvoke r4.<org.apache.zookeeper.server.PrepRequestProcessor: void pRequest2Txn(int,long,org.apache.zookeeper.server.Request,org.apache.jute.Record,boolean)>($i6, $l1, r0, $r13, 0);
+
+     label14:
+        goto label17;
+
+     label15:
+        $r66 := @caughtexception;
+
+        if r87 != null goto label16;
+
+        r87 = $r66;
+
+     label16:
+        $r67 = r0.<org.apache.zookeeper.server.Request: org.apache.zookeeper.txn.TxnHeader hdr>;
+
+        $i35 = (int) -1;
+
+        virtualinvoke $r67.<org.apache.zookeeper.txn.TxnHeader: void setType(int)>($i35);
+
+        $r108 = new org.apache.zookeeper.txn.ErrorTxn;
+
+        $r69 = virtualinvoke $r66.<org.apache.zookeeper.KeeperException: org.apache.zookeeper.KeeperException$Code code()>();
+
+        $i25 = virtualinvoke $r69.<org.apache.zookeeper.KeeperException$Code: int intValue()>();
+
+        specialinvoke $r108.<org.apache.zookeeper.txn.ErrorTxn: void <init>(int)>($i25);
+
+        r0.<org.apache.zookeeper.server.Request: org.apache.jute.Record txn> = $r108;
+
+        $r71 = <org.apache.zookeeper.server.PrepRequestProcessor: org.slf4j.Logger LOG>;
+
+        $r109 = new java.lang.StringBuilder;
+
+        specialinvoke $r109.<java.lang.StringBuilder: void <init>()>();
+
+        $r72 = virtualinvoke $r109.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Got user-level KeeperException when processing ");
+
+        $r73 = virtualinvoke r0.<org.apache.zookeeper.server.Request: java.lang.String toString()>();
+
+        $r74 = virtualinvoke $r72.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r73);
+
+        $r75 = virtualinvoke $r74.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" aborting remaining multi ops.");
+
+        $r76 = virtualinvoke $r75.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" Error Path:");
+
+        $r77 = virtualinvoke $r66.<org.apache.zookeeper.KeeperException: java.lang.String getPath()>();
+
+        $r78 = virtualinvoke $r76.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r77);
+
+        $r79 = virtualinvoke $r78.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" Error:");
+
+        $r80 = virtualinvoke $r66.<org.apache.zookeeper.KeeperException: java.lang.String getMessage()>();
+
+        $r81 = virtualinvoke $r79.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r80);
+
+        $r82 = virtualinvoke $r81.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r71.<org.slf4j.Logger: void info(java.lang.String)>($r82);
+
+        virtualinvoke r0.<org.apache.zookeeper.server.Request: void setException(org.apache.zookeeper.KeeperException)>($r66);
+
+        virtualinvoke r4.<org.apache.zookeeper.server.PrepRequestProcessor: void rollbackPendingChanges(long,java.util.HashMap)>($l1, $r6);
+
+     label17:
+        $r110 = new java.io.ByteArrayOutputStream;
+
+        specialinvoke $r110.<java.io.ByteArrayOutputStream: void <init>()>();
+
+        $r89 = staticinvoke <org.apache.jute.BinaryOutputArchive: org.apache.jute.BinaryOutputArchive getArchive(java.io.OutputStream)>($r110);
+
+        $r90 = r0.<org.apache.zookeeper.server.Request: org.apache.jute.Record txn>;
+
+        interfaceinvoke $r90.<org.apache.jute.Record: void serialize(org.apache.jute.OutputArchive,java.lang.String)>($r89, "request");
+
+        $r91 = virtualinvoke $r110.<java.io.ByteArrayOutputStream: byte[] toByteArray()>();
+
+        $r92 = staticinvoke <java.nio.ByteBuffer: java.nio.ByteBuffer wrap(byte[])>($r91);
+
+        $r111 = new org.apache.zookeeper.txn.Txn;
+
+        $r94 = r0.<org.apache.zookeeper.server.Request: org.apache.zookeeper.txn.TxnHeader hdr>;
+
+        $i30 = virtualinvoke $r94.<org.apache.zookeeper.txn.TxnHeader: int getType()>();
+
+        $r95 = virtualinvoke $r92.<java.nio.ByteBuffer: byte[] array()>();
+
+        specialinvoke $r111.<org.apache.zookeeper.txn.Txn: void <init>(int,byte[])>($i30, $r95);
+
+        interfaceinvoke $r106.<java.util.List: boolean add(java.lang.Object)>($r111);
+
+        goto label12;
+
+     label18:
+        $r112 = new org.apache.zookeeper.txn.TxnHeader;
+
+        $l2 = r0.<org.apache.zookeeper.server.Request: long sessionId>;
+
+        $i3 = r0.<org.apache.zookeeper.server.Request: int cxid>;
+
+        $r9 = r4.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $l4 = virtualinvoke $r9.<org.apache.zookeeper.server.ZooKeeperServer: long getTime()>();
+
+        $i5 = r0.<org.apache.zookeeper.server.Request: int type>;
+
+        specialinvoke $r112.<org.apache.zookeeper.txn.TxnHeader: void <init>(long,int,long,long,int)>($l2, $i3, $l1, $l4, $i5);
+
+        r0.<org.apache.zookeeper.server.Request: org.apache.zookeeper.txn.TxnHeader hdr> = $r112;
+
+        $r113 = new org.apache.zookeeper.txn.MultiTxn;
+
+        specialinvoke $r113.<org.apache.zookeeper.txn.MultiTxn: void <init>(java.util.List)>($r106);
+
+        r0.<org.apache.zookeeper.server.Request: org.apache.jute.Record txn> = $r113;
+
+        goto label21;
+
+     label19:
+        $i19 = r0.<org.apache.zookeeper.server.Request: int type>;
+
+        $r30 = r4.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $l20 = virtualinvoke $r30.<org.apache.zookeeper.server.ZooKeeperServer: long getNextZxid()>();
+
+        virtualinvoke r4.<org.apache.zookeeper.server.PrepRequestProcessor: void pRequest2Txn(int,long,org.apache.zookeeper.server.Request,org.apache.jute.Record,boolean)>($i19, $l20, r0, null, 1);
+
+        goto label21;
+
+     label20:
+        $r23 = r4.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $r24 = $r23.<org.apache.zookeeper.server.ZooKeeperServer: org.apache.zookeeper.server.SessionTracker sessionTracker>;
+
+        $l14 = r0.<org.apache.zookeeper.server.Request: long sessionId>;
+
+        $r25 = virtualinvoke r0.<org.apache.zookeeper.server.Request: java.lang.Object getOwner()>();
+
+        interfaceinvoke $r24.<org.apache.zookeeper.server.SessionTracker: void checkSession(long,java.lang.Object)>($l14, $r25);
+
+     label21:
+        goto label28;
+
+     label22:
+        $r49 := @caughtexception;
+
+        $r50 = r0.<org.apache.zookeeper.server.Request: org.apache.zookeeper.txn.TxnHeader hdr>;
+
+        if $r50 == null goto label23;
+
+        $r63 = r0.<org.apache.zookeeper.server.Request: org.apache.zookeeper.txn.TxnHeader hdr>;
+
+        $i37 = (int) -1;
+
+        virtualinvoke $r63.<org.apache.zookeeper.txn.TxnHeader: void setType(int)>($i37);
+
+        $r114 = new org.apache.zookeeper.txn.ErrorTxn;
+
+        $r65 = virtualinvoke $r49.<org.apache.zookeeper.KeeperException: org.apache.zookeeper.KeeperException$Code code()>();
+
+        $i24 = virtualinvoke $r65.<org.apache.zookeeper.KeeperException$Code: int intValue()>();
+
+        specialinvoke $r114.<org.apache.zookeeper.txn.ErrorTxn: void <init>(int)>($i24);
+
+        r0.<org.apache.zookeeper.server.Request: org.apache.jute.Record txn> = $r114;
+
+     label23:
+        $r52 = <org.apache.zookeeper.server.PrepRequestProcessor: org.slf4j.Logger LOG>;
+
+        $r115 = new java.lang.StringBuilder;
+
+        specialinvoke $r115.<java.lang.StringBuilder: void <init>()>();
+
+        $r53 = virtualinvoke $r115.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Got user-level KeeperException when processing ");
+
+        $r54 = virtualinvoke r0.<org.apache.zookeeper.server.Request: java.lang.String toString()>();
+
+        $r55 = virtualinvoke $r53.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r54);
+
+        $r56 = virtualinvoke $r55.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" Error Path:");
+
+        $r57 = virtualinvoke $r49.<org.apache.zookeeper.KeeperException: java.lang.String getPath()>();
+
+        $r58 = virtualinvoke $r56.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r57);
+
+        $r59 = virtualinvoke $r58.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" Error:");
+
+        $r60 = virtualinvoke $r49.<org.apache.zookeeper.KeeperException: java.lang.String getMessage()>();
+
+        $r61 = virtualinvoke $r59.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r60);
+
+        $r62 = virtualinvoke $r61.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r52.<org.slf4j.Logger: void info(java.lang.String)>($r62);
+
+        virtualinvoke r0.<org.apache.zookeeper.server.Request: void setException(org.apache.zookeeper.KeeperException)>($r49);
+
+        goto label28;
+
+     label24:
+        $r31 := @caughtexception;
+
+        $r33 = <org.apache.zookeeper.server.PrepRequestProcessor: org.slf4j.Logger LOG>;
+
+        $r116 = new java.lang.StringBuilder;
+
+        specialinvoke $r116.<java.lang.StringBuilder: void <init>()>();
+
+        $r34 = virtualinvoke $r116.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Failed to process ");
+
+        $r35 = virtualinvoke $r34.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r0);
+
+        $r36 = virtualinvoke $r35.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r33.<org.slf4j.Logger: void error(java.lang.String,java.lang.Throwable)>($r36, $r31);
+
+        $r117 = new java.lang.StringBuilder;
+
+        specialinvoke $r117.<java.lang.StringBuilder: void <init>()>();
+
+        r96 = r0.<org.apache.zookeeper.server.Request: java.nio.ByteBuffer request>;
+
+        if r96 == null goto label26;
+
+        virtualinvoke r96.<java.nio.ByteBuffer: java.nio.Buffer rewind()>();
+
+     label25:
+        $z1 = virtualinvoke r96.<java.nio.ByteBuffer: boolean hasRemaining()>();
+
+        if $z1 == 0 goto label27;
+
+        $b22 = virtualinvoke r96.<java.nio.ByteBuffer: byte get()>();
+
+        $s38 = (short) $b22;
+
+        $s23 = $s38 & 255;
+
+        $i39 = (int) $s23;
+
+        $r48 = staticinvoke <java.lang.Integer: java.lang.String toHexString(int)>($i39);
+
+        virtualinvoke $r117.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r48);
+
+        goto label25;
+
+     label26:
+        virtualinvoke $r117.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("request buffer is null");
+
+     label27:
+        $r39 = <org.apache.zookeeper.server.PrepRequestProcessor: org.slf4j.Logger LOG>;
+
+        $r118 = new java.lang.StringBuilder;
+
+        specialinvoke $r118.<java.lang.StringBuilder: void <init>()>();
+
+        $r40 = virtualinvoke $r118.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Dumping request buffer: 0x");
+
+        $r41 = virtualinvoke $r117.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r42 = virtualinvoke $r40.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r41);
+
+        $r43 = virtualinvoke $r42.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r39.<org.slf4j.Logger: void error(java.lang.String)>($r43);
+
+        $r44 = r0.<org.apache.zookeeper.server.Request: org.apache.zookeeper.txn.TxnHeader hdr>;
+
+        if $r44 == null goto label28;
+
+        $r45 = r0.<org.apache.zookeeper.server.Request: org.apache.zookeeper.txn.TxnHeader hdr>;
+
+        $i41 = (int) -1;
+
+        virtualinvoke $r45.<org.apache.zookeeper.txn.TxnHeader: void setType(int)>($i41);
+
+        $r119 = new org.apache.zookeeper.txn.ErrorTxn;
+
+        $r47 = <org.apache.zookeeper.KeeperException$Code: org.apache.zookeeper.KeeperException$Code MARSHALLINGERROR>;
+
+        $i21 = virtualinvoke $r47.<org.apache.zookeeper.KeeperException$Code: int intValue()>();
+
+        specialinvoke $r119.<org.apache.zookeeper.txn.ErrorTxn: void <init>(int)>($i21);
+
+        r0.<org.apache.zookeeper.server.Request: org.apache.jute.Record txn> = $r119;
+
+     label28:
+        $r97 = r4.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.ZooKeeperServer zks>;
+
+        $l31 = virtualinvoke $r97.<org.apache.zookeeper.server.ZooKeeperServer: long getZxid()>();
+
+        r0.<org.apache.zookeeper.server.Request: long zxid> = $l31;
+
+        $r98 = r4.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.RequestProcessor nextProcessor>;
+
+        interfaceinvoke $r98.<org.apache.zookeeper.server.RequestProcessor: void processRequest(org.apache.zookeeper.server.Request)>(r0);
+
+        return;
+
+        catch java.io.IOException from label08 to label09 with label10;
+        catch org.apache.zookeeper.KeeperException from label13 to label14 with label15;
+        catch org.apache.zookeeper.KeeperException from label01 to label21 with label22;
+        catch java.lang.Exception from label01 to label21 with label24;
+    }
+
+    private java.util.List removeDuplicates(java.util.List)
+    {
+        java.util.Iterator $r2;
+        org.apache.zookeeper.data.ACL r4;
+        java.util.ArrayList $r0;
+        org.apache.zookeeper.server.PrepRequestProcessor r5;
+        java.util.List r1;
+        java.lang.Object $r3;
+        boolean $z0, $z1;
+
+        r5 := @this: org.apache.zookeeper.server.PrepRequestProcessor;
+
+        r1 := @parameter0: java.util.List;
+
+        $r0 = new java.util.ArrayList;
+
+        specialinvoke $r0.<java.util.ArrayList: void <init>()>();
+
+        $r2 = interfaceinvoke r1.<java.util.List: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r2.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label3;
+
+        $r3 = interfaceinvoke $r2.<java.util.Iterator: java.lang.Object next()>();
+
+        r4 = (org.apache.zookeeper.data.ACL) $r3;
+
+        $z1 = virtualinvoke $r0.<java.util.ArrayList: boolean contains(java.lang.Object)>(r4);
+
+        if $z1 != 0 goto label2;
+
+        virtualinvoke $r0.<java.util.ArrayList: boolean add(java.lang.Object)>(r4);
+
+     label2:
+        goto label1;
+
+     label3:
+        return $r0;
+    }
+
+    private boolean fixupACL(java.util.List, java.util.List)
+    {
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, z8, $z9, $z10;
+        org.apache.zookeeper.server.auth.AuthenticationProvider $r9, $r16;
+        org.apache.zookeeper.server.PrepRequestProcessor r26;
+        java.util.List r0, r11;
+        java.lang.StringBuilder $r18, $r20, $r22;
+        org.apache.zookeeper.data.ACL $r17, r28, r29;
+        int $i0, $i1, $i2;
+        java.lang.String $r6, $r7, $r8, $r10, $r15, $r21, $r23, $r25;
+        java.util.LinkedList $r24, r27;
+        org.slf4j.Logger $r19;
+        java.util.Iterator $r1, $r2, $r12;
+        org.apache.zookeeper.data.Id $r5, r14;
+        java.lang.Object $r3, $r4, $r13;
+
+        r26 := @this: org.apache.zookeeper.server.PrepRequestProcessor;
+
+        r11 := @parameter0: java.util.List;
+
+        r0 := @parameter1: java.util.List;
+
+        $z0 = <org.apache.zookeeper.server.PrepRequestProcessor: boolean skipACL>;
+
+        if $z0 == 0 goto label01;
+
+        return 1;
+
+     label01:
+        if r0 == null goto label02;
+
+        $i0 = interfaceinvoke r0.<java.util.List: int size()>();
+
+        if $i0 != 0 goto label03;
+
+     label02:
+        return 0;
+
+     label03:
+        $r1 = interfaceinvoke r0.<java.util.List: java.util.Iterator iterator()>();
+
+        r27 = null;
+
+     label04:
+        $z1 = interfaceinvoke $r1.<java.util.Iterator: boolean hasNext()>();
+
+        if $z1 == 0 goto label15;
+
+        $r4 = interfaceinvoke $r1.<java.util.Iterator: java.lang.Object next()>();
+
+        r28 = (org.apache.zookeeper.data.ACL) $r4;
+
+        $r5 = virtualinvoke r28.<org.apache.zookeeper.data.ACL: org.apache.zookeeper.data.Id getId()>();
+
+        $r6 = virtualinvoke $r5.<org.apache.zookeeper.data.Id: java.lang.String getScheme()>();
+
+        $z3 = virtualinvoke $r6.<java.lang.String: boolean equals(java.lang.Object)>("world");
+
+        if $z3 == 0 goto label05;
+
+        $r25 = virtualinvoke $r5.<org.apache.zookeeper.data.Id: java.lang.String getId()>();
+
+        $z7 = virtualinvoke $r25.<java.lang.String: boolean equals(java.lang.Object)>("anyone");
+
+        if $z7 == 0 goto label05;
+
+        goto label14;
+
+     label05:
+        $r7 = virtualinvoke $r5.<org.apache.zookeeper.data.Id: java.lang.String getScheme()>();
+
+        $z4 = virtualinvoke $r7.<java.lang.String: boolean equals(java.lang.Object)>("auth");
+
+        if $z4 == 0 goto label12;
+
+        interfaceinvoke $r1.<java.util.Iterator: void remove()>();
+
+        if r27 != null goto label06;
+
+        $r24 = new java.util.LinkedList;
+
+        specialinvoke $r24.<java.util.LinkedList: void <init>()>();
+
+        r27 = $r24;
+
+     label06:
+        z8 = 0;
+
+        $r12 = interfaceinvoke r11.<java.util.List: java.util.Iterator iterator()>();
+
+     label07:
+        $z9 = interfaceinvoke $r12.<java.util.Iterator: boolean hasNext()>();
+
+        if $z9 == 0 goto label10;
+
+        $r13 = interfaceinvoke $r12.<java.util.Iterator: java.lang.Object next()>();
+
+        r14 = (org.apache.zookeeper.data.Id) $r13;
+
+        $r15 = virtualinvoke r14.<org.apache.zookeeper.data.Id: java.lang.String getScheme()>();
+
+        $r16 = staticinvoke <org.apache.zookeeper.server.auth.ProviderRegistry: org.apache.zookeeper.server.auth.AuthenticationProvider getProvider(java.lang.String)>($r15);
+
+        if $r16 != null goto label08;
+
+        $r19 = <org.apache.zookeeper.server.PrepRequestProcessor: org.slf4j.Logger LOG>;
+
+        $r18 = new java.lang.StringBuilder;
+
+        specialinvoke $r18.<java.lang.StringBuilder: void <init>()>();
+
+        $r20 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Missing AuthenticationProvider for ");
+
+        $r21 = virtualinvoke r14.<org.apache.zookeeper.data.Id: java.lang.String getScheme()>();
+
+        $r22 = virtualinvoke $r20.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r21);
+
+        $r23 = virtualinvoke $r22.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r19.<org.slf4j.Logger: void error(java.lang.String)>($r23);
+
+        goto label09;
+
+     label08:
+        $z6 = interfaceinvoke $r16.<org.apache.zookeeper.server.auth.AuthenticationProvider: boolean isAuthenticated()>();
+
+        if $z6 == 0 goto label09;
+
+        z8 = 1;
+
+        $r17 = new org.apache.zookeeper.data.ACL;
+
+        $i2 = virtualinvoke r28.<org.apache.zookeeper.data.ACL: int getPerms()>();
+
+        specialinvoke $r17.<org.apache.zookeeper.data.ACL: void <init>(int,org.apache.zookeeper.data.Id)>($i2, r14);
+
+        virtualinvoke r27.<java.util.LinkedList: boolean add(java.lang.Object)>($r17);
+
+     label09:
+        goto label07;
+
+     label10:
+        if z8 != 0 goto label11;
+
+        return 0;
+
+     label11:
+        goto label14;
+
+     label12:
+        $r8 = virtualinvoke $r5.<org.apache.zookeeper.data.Id: java.lang.String getScheme()>();
+
+        $r9 = staticinvoke <org.apache.zookeeper.server.auth.ProviderRegistry: org.apache.zookeeper.server.auth.AuthenticationProvider getProvider(java.lang.String)>($r8);
+
+        if $r9 != null goto label13;
+
+        return 0;
+
+     label13:
+        $r10 = virtualinvoke $r5.<org.apache.zookeeper.data.Id: java.lang.String getId()>();
+
+        $z5 = interfaceinvoke $r9.<org.apache.zookeeper.server.auth.AuthenticationProvider: boolean isValid(java.lang.String)>($r10);
+
+        if $z5 != 0 goto label14;
+
+        return 0;
+
+     label14:
+        goto label04;
+
+     label15:
+        if r27 == null goto label17;
+
+        $r2 = virtualinvoke r27.<java.util.LinkedList: java.util.Iterator iterator()>();
+
+     label16:
+        $z2 = interfaceinvoke $r2.<java.util.Iterator: boolean hasNext()>();
+
+        if $z2 == 0 goto label17;
+
+        $r3 = interfaceinvoke $r2.<java.util.Iterator: java.lang.Object next()>();
+
+        r29 = (org.apache.zookeeper.data.ACL) $r3;
+
+        interfaceinvoke r0.<java.util.List: boolean add(java.lang.Object)>(r29);
+
+        goto label16;
+
+     label17:
+        $i1 = interfaceinvoke r0.<java.util.List: int size()>();
+
+        if $i1 <= 0 goto label18;
+
+        $z10 = 1;
+
+        goto label19;
+
+     label18:
+        $z10 = 0;
+
+     label19:
+        return $z10;
+    }
+
+    public void processRequest(org.apache.zookeeper.server.Request)
+    {
+        org.apache.zookeeper.server.PrepRequestProcessor r0;
+        org.apache.zookeeper.server.Request r1;
+        java.util.concurrent.LinkedBlockingQueue $r2;
+
+        r0 := @this: org.apache.zookeeper.server.PrepRequestProcessor;
+
+        r1 := @parameter0: org.apache.zookeeper.server.Request;
+
+        $r2 = r0.<org.apache.zookeeper.server.PrepRequestProcessor: java.util.concurrent.LinkedBlockingQueue submittedRequests>;
+
+        virtualinvoke $r2.<java.util.concurrent.LinkedBlockingQueue: boolean add(java.lang.Object)>(r1);
+
+        return;
+    }
+
+    public void shutdown()
+    {
+        org.apache.zookeeper.server.PrepRequestProcessor r1;
+        org.apache.zookeeper.server.Request $r3;
+        org.slf4j.Logger $r0;
+        org.apache.zookeeper.server.RequestProcessor $r5;
+        java.util.concurrent.LinkedBlockingQueue $r2, $r4;
+
+        r1 := @this: org.apache.zookeeper.server.PrepRequestProcessor;
+
+        $r0 = <org.apache.zookeeper.server.PrepRequestProcessor: org.slf4j.Logger LOG>;
+
+        interfaceinvoke $r0.<org.slf4j.Logger: void info(java.lang.String)>("Shutting down");
+
+        $r2 = r1.<org.apache.zookeeper.server.PrepRequestProcessor: java.util.concurrent.LinkedBlockingQueue submittedRequests>;
+
+        virtualinvoke $r2.<java.util.concurrent.LinkedBlockingQueue: void clear()>();
+
+        $r4 = r1.<org.apache.zookeeper.server.PrepRequestProcessor: java.util.concurrent.LinkedBlockingQueue submittedRequests>;
+
+        $r3 = <org.apache.zookeeper.server.Request: org.apache.zookeeper.server.Request requestOfDeath>;
+
+        virtualinvoke $r4.<java.util.concurrent.LinkedBlockingQueue: boolean add(java.lang.Object)>($r3);
+
+        $r5 = r1.<org.apache.zookeeper.server.PrepRequestProcessor: org.apache.zookeeper.server.RequestProcessor nextProcessor>;
+
+        interfaceinvoke $r5.<org.apache.zookeeper.server.RequestProcessor: void shutdown()>();
+
+        return;
+    }
+
+    static void <clinit>()
+    {
+        org.slf4j.Logger $r0, $r2;
+        java.lang.String $r1;
+        boolean $z0, $z1;
+
+        $r0 = staticinvoke <org.slf4j.LoggerFactory: org.slf4j.Logger getLogger(java.lang.Class)>(class "Lorg/apache/zookeeper/server/PrepRequestProcessor;");
+
+        <org.apache.zookeeper.server.PrepRequestProcessor: org.slf4j.Logger LOG> = $r0;
+
+        $r1 = staticinvoke <java.lang.System: java.lang.String getProperty(java.lang.String,java.lang.String)>("zookeeper.skipACL", "no");
+
+        $z0 = virtualinvoke $r1.<java.lang.String: boolean equals(java.lang.Object)>("yes");
+
+        <org.apache.zookeeper.server.PrepRequestProcessor: boolean skipACL> = $z0;
+
+        $z1 = <org.apache.zookeeper.server.PrepRequestProcessor: boolean skipACL>;
+
+        if $z1 == 0 goto label1;
+
+        $r2 = <org.apache.zookeeper.server.PrepRequestProcessor: org.slf4j.Logger LOG>;
+
+        interfaceinvoke $r2.<org.slf4j.Logger: void info(java.lang.String)>("zookeeper.skipACL==\"yes\", ACL checks will be skipped");
+
+     label1:
+        <org.apache.zookeeper.server.PrepRequestProcessor: boolean failCreate> = 0;
+
+        return;
+    }
+}

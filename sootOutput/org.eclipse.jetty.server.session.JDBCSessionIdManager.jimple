@@ -1,0 +1,2543 @@
+public class org.eclipse.jetty.server.session.JDBCSessionIdManager extends org.eclipse.jetty.server.session.AbstractSessionIdManager
+{
+    static final org.eclipse.jetty.util.log.Logger LOG;
+    protected final java.util.HashSet _sessionIds;
+    protected org.eclipse.jetty.server.Server _server;
+    protected java.sql.Driver _driver;
+    protected java.lang.String _driverClassName;
+    protected java.lang.String _connectionUrl;
+    protected javax.sql.DataSource _datasource;
+    protected java.lang.String _jndiName;
+    protected java.lang.String _sessionIdTable;
+    protected java.lang.String _sessionTable;
+    protected java.lang.String _sessionTableRowId;
+    protected java.util.Timer _timer;
+    protected java.util.TimerTask _task;
+    protected long _lastScavengeTime;
+    protected long _scavengeIntervalMs;
+    protected java.lang.String _blobType;
+    protected java.lang.String _longType;
+    protected java.lang.String _createSessionIdTable;
+    protected java.lang.String _createSessionTable;
+    protected java.lang.String _selectBoundedExpiredSessions;
+    protected java.lang.String _deleteOldExpiredSessions;
+    protected java.lang.String _insertId;
+    protected java.lang.String _deleteId;
+    protected java.lang.String _queryId;
+    protected java.lang.String _insertSession;
+    protected java.lang.String _deleteSession;
+    protected java.lang.String _updateSession;
+    protected java.lang.String _updateSessionNode;
+    protected java.lang.String _updateSessionAccessTime;
+    protected org.eclipse.jetty.server.session.JDBCSessionIdManager$DatabaseAdaptor _dbAdaptor;
+    private java.lang.String _selectExpiredSessions;
+
+    public void <init>(org.eclipse.jetty.server.Server)
+    {
+        org.eclipse.jetty.server.session.JDBCSessionIdManager r0;
+        java.util.HashSet $r1;
+        org.eclipse.jetty.server.Server r2;
+
+        r0 := @this: org.eclipse.jetty.server.session.JDBCSessionIdManager;
+
+        r2 := @parameter0: org.eclipse.jetty.server.Server;
+
+        specialinvoke r0.<org.eclipse.jetty.server.session.AbstractSessionIdManager: void <init>()>();
+
+        $r1 = new java.util.HashSet;
+
+        specialinvoke $r1.<java.util.HashSet: void <init>()>();
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.util.HashSet _sessionIds> = $r1;
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _sessionIdTable> = "JettySessionIds";
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _sessionTable> = "JettySessions";
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _sessionTableRowId> = "rowId";
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: long _scavengeIntervalMs> = 600000L;
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.server.Server _server> = r2;
+
+        return;
+    }
+
+    public void <init>(org.eclipse.jetty.server.Server, java.util.Random)
+    {
+        org.eclipse.jetty.server.session.JDBCSessionIdManager r0;
+        java.util.HashSet $r2;
+        java.util.Random r1;
+        org.eclipse.jetty.server.Server r3;
+
+        r0 := @this: org.eclipse.jetty.server.session.JDBCSessionIdManager;
+
+        r3 := @parameter0: org.eclipse.jetty.server.Server;
+
+        r1 := @parameter1: java.util.Random;
+
+        specialinvoke r0.<org.eclipse.jetty.server.session.AbstractSessionIdManager: void <init>(java.util.Random)>(r1);
+
+        $r2 = new java.util.HashSet;
+
+        specialinvoke $r2.<java.util.HashSet: void <init>()>();
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.util.HashSet _sessionIds> = $r2;
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _sessionIdTable> = "JettySessionIds";
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _sessionTable> = "JettySessions";
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _sessionTableRowId> = "rowId";
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: long _scavengeIntervalMs> = 600000L;
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.server.Server _server> = r3;
+
+        return;
+    }
+
+    public void setDriverInfo(java.lang.String, java.lang.String)
+    {
+        org.eclipse.jetty.server.session.JDBCSessionIdManager r0;
+        java.lang.String r1, r2;
+
+        r0 := @this: org.eclipse.jetty.server.session.JDBCSessionIdManager;
+
+        r1 := @parameter0: java.lang.String;
+
+        r2 := @parameter1: java.lang.String;
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _driverClassName> = r1;
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _connectionUrl> = r2;
+
+        return;
+    }
+
+    public void setDriverInfo(java.sql.Driver, java.lang.String)
+    {
+        org.eclipse.jetty.server.session.JDBCSessionIdManager r0;
+        java.lang.String r2;
+        java.sql.Driver r1;
+
+        r0 := @this: org.eclipse.jetty.server.session.JDBCSessionIdManager;
+
+        r1 := @parameter0: java.sql.Driver;
+
+        r2 := @parameter1: java.lang.String;
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.sql.Driver _driver> = r1;
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _connectionUrl> = r2;
+
+        return;
+    }
+
+    public void setDatasource(javax.sql.DataSource)
+    {
+        org.eclipse.jetty.server.session.JDBCSessionIdManager r0;
+        javax.sql.DataSource r1;
+
+        r0 := @this: org.eclipse.jetty.server.session.JDBCSessionIdManager;
+
+        r1 := @parameter0: javax.sql.DataSource;
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: javax.sql.DataSource _datasource> = r1;
+
+        return;
+    }
+
+    public javax.sql.DataSource getDataSource()
+    {
+        org.eclipse.jetty.server.session.JDBCSessionIdManager r0;
+        javax.sql.DataSource $r1;
+
+        r0 := @this: org.eclipse.jetty.server.session.JDBCSessionIdManager;
+
+        $r1 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: javax.sql.DataSource _datasource>;
+
+        return $r1;
+    }
+
+    public java.lang.String getDriverClassName()
+    {
+        org.eclipse.jetty.server.session.JDBCSessionIdManager r0;
+        java.lang.String $r1;
+
+        r0 := @this: org.eclipse.jetty.server.session.JDBCSessionIdManager;
+
+        $r1 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _driverClassName>;
+
+        return $r1;
+    }
+
+    public java.lang.String getConnectionUrl()
+    {
+        org.eclipse.jetty.server.session.JDBCSessionIdManager r0;
+        java.lang.String $r1;
+
+        r0 := @this: org.eclipse.jetty.server.session.JDBCSessionIdManager;
+
+        $r1 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _connectionUrl>;
+
+        return $r1;
+    }
+
+    public void setDatasourceName(java.lang.String)
+    {
+        org.eclipse.jetty.server.session.JDBCSessionIdManager r0;
+        java.lang.String r1;
+
+        r0 := @this: org.eclipse.jetty.server.session.JDBCSessionIdManager;
+
+        r1 := @parameter0: java.lang.String;
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _jndiName> = r1;
+
+        return;
+    }
+
+    public java.lang.String getDatasourceName()
+    {
+        org.eclipse.jetty.server.session.JDBCSessionIdManager r0;
+        java.lang.String $r1;
+
+        r0 := @this: org.eclipse.jetty.server.session.JDBCSessionIdManager;
+
+        $r1 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _jndiName>;
+
+        return $r1;
+    }
+
+    public void setBlobType(java.lang.String)
+    {
+        org.eclipse.jetty.server.session.JDBCSessionIdManager r0;
+        java.lang.String r1;
+
+        r0 := @this: org.eclipse.jetty.server.session.JDBCSessionIdManager;
+
+        r1 := @parameter0: java.lang.String;
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _blobType> = r1;
+
+        return;
+    }
+
+    public java.lang.String getBlobType()
+    {
+        org.eclipse.jetty.server.session.JDBCSessionIdManager r0;
+        java.lang.String $r1;
+
+        r0 := @this: org.eclipse.jetty.server.session.JDBCSessionIdManager;
+
+        $r1 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _blobType>;
+
+        return $r1;
+    }
+
+    public java.lang.String getLongType()
+    {
+        org.eclipse.jetty.server.session.JDBCSessionIdManager r0;
+        java.lang.String $r1;
+
+        r0 := @this: org.eclipse.jetty.server.session.JDBCSessionIdManager;
+
+        $r1 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _longType>;
+
+        return $r1;
+    }
+
+    public void setLongType(java.lang.String)
+    {
+        org.eclipse.jetty.server.session.JDBCSessionIdManager r0;
+        java.lang.String r1;
+
+        r0 := @this: org.eclipse.jetty.server.session.JDBCSessionIdManager;
+
+        r1 := @parameter0: java.lang.String;
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _longType> = r1;
+
+        return;
+    }
+
+    public void setScavengeInterval(long)
+    {
+        java.util.Timer $r2, $r6;
+        byte $b0, $b4, $b5;
+        org.eclipse.jetty.server.session.JDBCSessionIdManager$1 $r18;
+        java.util.TimerTask $r3, $r5, $r7, $r8;
+        boolean $z0;
+        org.eclipse.jetty.server.session.JDBCSessionIdManager r0;
+        java.lang.StringBuilder $r11, $r12, $r13, $r17;
+        java.lang.Throwable $r16;
+        java.lang.Object[] $r15;
+        long $l1, $l2, $l3, $l6, $l7, $l8, $l9, $l10, $l11, $l12, $l13, l14;
+        int $i15;
+        java.lang.String $r14;
+        org.eclipse.jetty.util.log.Logger $r1, $r10;
+
+        r0 := @this: org.eclipse.jetty.server.session.JDBCSessionIdManager;
+
+        l14 := @parameter0: long;
+
+        $b0 = l14 cmp 0L;
+
+        $i15 = (int) $b0;
+
+        if $i15 > 0 goto label01;
+
+        l14 = 60L;
+
+     label01:
+        $l11 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: long _scavengeIntervalMs>;
+
+        $l12 = l14 * 1000L;
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: long _scavengeIntervalMs> = $l12;
+
+        $l1 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: long _scavengeIntervalMs>;
+
+        $l13 = $l1 / 10L;
+
+        $l2 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        $l3 = $l2 % 2L;
+
+        $b4 = $l3 cmp 0L;
+
+        if $b4 != 0 goto label02;
+
+        $l9 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: long _scavengeIntervalMs>;
+
+        $l10 = $l9 + $l13;
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: long _scavengeIntervalMs> = $l10;
+
+     label02:
+        $r1 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $z0 = interfaceinvoke $r1.<org.eclipse.jetty.util.log.Logger: boolean isDebugEnabled()>();
+
+        if $z0 == 0 goto label03;
+
+        $r10 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r17 = new java.lang.StringBuilder;
+
+        specialinvoke $r17.<java.lang.StringBuilder: void <init>()>();
+
+        $r11 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Scavenging every ");
+
+        $l8 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: long _scavengeIntervalMs>;
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l8);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" ms");
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r15 = newarray (java.lang.Object)[0];
+
+        interfaceinvoke $r10.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Object[])>($r14, $r15);
+
+     label03:
+        $r2 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.util.Timer _timer>;
+
+        if $r2 == null goto label10;
+
+        $b5 = $l12 cmp $l11;
+
+        if $b5 != 0 goto label04;
+
+        $r8 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.util.TimerTask _task>;
+
+        if $r8 != null goto label10;
+
+     label04:
+        entermonitor r0;
+
+     label05:
+        $r3 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.util.TimerTask _task>;
+
+        if $r3 == null goto label06;
+
+        $r7 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.util.TimerTask _task>;
+
+        virtualinvoke $r7.<java.util.TimerTask: boolean cancel()>();
+
+     label06:
+        $r18 = new org.eclipse.jetty.server.session.JDBCSessionIdManager$1;
+
+        specialinvoke $r18.<org.eclipse.jetty.server.session.JDBCSessionIdManager$1: void <init>(org.eclipse.jetty.server.session.JDBCSessionIdManager)>(r0);
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.util.TimerTask _task> = $r18;
+
+        $r6 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.util.Timer _timer>;
+
+        $r5 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.util.TimerTask _task>;
+
+        $l7 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: long _scavengeIntervalMs>;
+
+        $l6 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: long _scavengeIntervalMs>;
+
+        virtualinvoke $r6.<java.util.Timer: void schedule(java.util.TimerTask,long,long)>($r5, $l7, $l6);
+
+        exitmonitor r0;
+
+     label07:
+        goto label10;
+
+     label08:
+        $r16 := @caughtexception;
+
+        exitmonitor r0;
+
+     label09:
+        throw $r16;
+
+     label10:
+        return;
+
+        catch java.lang.Throwable from label05 to label07 with label08;
+        catch java.lang.Throwable from label08 to label09 with label08;
+    }
+
+    public long getScavengeInterval()
+    {
+        org.eclipse.jetty.server.session.JDBCSessionIdManager r0;
+        long $l0, $l1;
+
+        r0 := @this: org.eclipse.jetty.server.session.JDBCSessionIdManager;
+
+        $l0 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: long _scavengeIntervalMs>;
+
+        $l1 = $l0 / 1000L;
+
+        return $l1;
+    }
+
+    public void addSession(javax.servlet.http.HttpSession)
+    {
+        javax.servlet.http.HttpSession r0;
+        java.lang.Throwable $r6;
+        java.lang.Exception $r7;
+        org.eclipse.jetty.server.session.JDBCSessionIdManager r1;
+        java.util.HashSet $r2, $r5;
+        java.lang.StringBuilder $r8, $r10, $r11;
+        java.lang.String $r4, $r12;
+        org.eclipse.jetty.util.log.Logger $r9;
+        org.eclipse.jetty.server.session.JDBCSessionManager$Session $r3;
+
+        r1 := @this: org.eclipse.jetty.server.session.JDBCSessionIdManager;
+
+        r0 := @parameter0: javax.servlet.http.HttpSession;
+
+        if r0 != null goto label01;
+
+        return;
+
+     label01:
+        $r2 = r1.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.util.HashSet _sessionIds>;
+
+        entermonitor $r2;
+
+     label02:
+        $r3 = (org.eclipse.jetty.server.session.JDBCSessionManager$Session) r0;
+
+        $r4 = virtualinvoke $r3.<org.eclipse.jetty.server.session.JDBCSessionManager$Session: java.lang.String getClusterId()>();
+
+     label03:
+        specialinvoke r1.<org.eclipse.jetty.server.session.JDBCSessionIdManager: void insert(java.lang.String)>($r4);
+
+        $r5 = r1.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.util.HashSet _sessionIds>;
+
+        virtualinvoke $r5.<java.util.HashSet: boolean add(java.lang.Object)>($r4);
+
+     label04:
+        goto label06;
+
+     label05:
+        $r7 := @caughtexception;
+
+        $r9 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r8 = new java.lang.StringBuilder;
+
+        specialinvoke $r8.<java.lang.StringBuilder: void <init>()>();
+
+        $r10 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Problem storing session id=");
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r4);
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r9.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.String,java.lang.Throwable)>($r12, $r7);
+
+     label06:
+        exitmonitor $r2;
+
+     label07:
+        goto label10;
+
+     label08:
+        $r6 := @caughtexception;
+
+        exitmonitor $r2;
+
+     label09:
+        throw $r6;
+
+     label10:
+        return;
+
+        catch java.lang.Exception from label03 to label04 with label05;
+        catch java.lang.Throwable from label02 to label07 with label08;
+        catch java.lang.Throwable from label08 to label09 with label08;
+    }
+
+    public void removeSession(javax.servlet.http.HttpSession)
+    {
+        javax.servlet.http.HttpSession r0;
+        org.eclipse.jetty.server.session.JDBCSessionIdManager r1;
+        java.lang.String $r3;
+        org.eclipse.jetty.server.session.JDBCSessionManager$Session $r2;
+
+        r1 := @this: org.eclipse.jetty.server.session.JDBCSessionIdManager;
+
+        r0 := @parameter0: javax.servlet.http.HttpSession;
+
+        if r0 != null goto label1;
+
+        return;
+
+     label1:
+        $r2 = (org.eclipse.jetty.server.session.JDBCSessionManager$Session) r0;
+
+        $r3 = virtualinvoke $r2.<org.eclipse.jetty.server.session.JDBCSessionManager$Session: java.lang.String getClusterId()>();
+
+        virtualinvoke r1.<org.eclipse.jetty.server.session.JDBCSessionIdManager: void removeSession(java.lang.String)>($r3);
+
+        return;
+    }
+
+    public void removeSession(java.lang.String)
+    {
+        java.lang.Throwable $r11;
+        java.lang.Object[] $r10;
+        java.util.HashSet $r2, $r4;
+        java.lang.String r0, $r9, $r17;
+        boolean $z0;
+        java.lang.Exception $r12;
+        org.eclipse.jetty.server.session.JDBCSessionIdManager r1;
+        java.lang.StringBuilder $r5, $r7, $r8, $r13, $r15, $r16;
+        org.eclipse.jetty.util.log.Logger $r3, $r6, $r14;
+
+        r1 := @this: org.eclipse.jetty.server.session.JDBCSessionIdManager;
+
+        r0 := @parameter0: java.lang.String;
+
+        if r0 != null goto label01;
+
+        return;
+
+     label01:
+        $r2 = r1.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.util.HashSet _sessionIds>;
+
+        entermonitor $r2;
+
+     label02:
+        $r3 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $z0 = interfaceinvoke $r3.<org.eclipse.jetty.util.log.Logger: boolean isDebugEnabled()>();
+
+        if $z0 == 0 goto label03;
+
+        $r6 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r5 = new java.lang.StringBuilder;
+
+        specialinvoke $r5.<java.lang.StringBuilder: void <init>()>();
+
+        $r7 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Removing session id=");
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r0);
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r10 = newarray (java.lang.Object)[0];
+
+        interfaceinvoke $r6.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Object[])>($r9, $r10);
+
+     label03:
+        $r4 = r1.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.util.HashSet _sessionIds>;
+
+        virtualinvoke $r4.<java.util.HashSet: boolean remove(java.lang.Object)>(r0);
+
+        specialinvoke r1.<org.eclipse.jetty.server.session.JDBCSessionIdManager: void delete(java.lang.String)>(r0);
+
+     label04:
+        goto label06;
+
+     label05:
+        $r12 := @caughtexception;
+
+        $r14 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r13 = new java.lang.StringBuilder;
+
+        specialinvoke $r13.<java.lang.StringBuilder: void <init>()>();
+
+        $r15 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Problem removing session id=");
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r0);
+
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r14.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.String,java.lang.Throwable)>($r17, $r12);
+
+     label06:
+        exitmonitor $r2;
+
+     label07:
+        goto label10;
+
+     label08:
+        $r11 := @caughtexception;
+
+        exitmonitor $r2;
+
+     label09:
+        throw $r11;
+
+     label10:
+        return;
+
+        catch java.lang.Exception from label03 to label04 with label05;
+        catch java.lang.Throwable from label02 to label07 with label08;
+        catch java.lang.Throwable from label08 to label09 with label08;
+    }
+
+    public java.lang.String getClusterId(java.lang.String)
+    {
+        org.eclipse.jetty.server.session.JDBCSessionIdManager r1;
+        int $i0;
+        java.lang.String r0, $r2;
+
+        r1 := @this: org.eclipse.jetty.server.session.JDBCSessionIdManager;
+
+        r0 := @parameter0: java.lang.String;
+
+        $i0 = virtualinvoke r0.<java.lang.String: int lastIndexOf(int)>(46);
+
+        if $i0 <= 0 goto label1;
+
+        $r2 = virtualinvoke r0.<java.lang.String: java.lang.String substring(int,int)>(0, $i0);
+
+        goto label2;
+
+     label1:
+        $r2 = r0;
+
+     label2:
+        return $r2;
+    }
+
+    public java.lang.String getNodeId(java.lang.String, javax.servlet.http.HttpServletRequest)
+    {
+        org.eclipse.jetty.server.session.JDBCSessionIdManager r0;
+        javax.servlet.http.HttpServletRequest r9;
+        java.lang.StringBuilder $r3, $r4, $r5, $r7;
+        java.lang.String $r1, r2, $r6, $r8;
+
+        r0 := @this: org.eclipse.jetty.server.session.JDBCSessionIdManager;
+
+        r2 := @parameter0: java.lang.String;
+
+        r9 := @parameter1: javax.servlet.http.HttpServletRequest;
+
+        $r1 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _workerName>;
+
+        if $r1 == null goto label1;
+
+        $r3 = new java.lang.StringBuilder;
+
+        specialinvoke $r3.<java.lang.StringBuilder: void <init>()>();
+
+        $r4 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r2);
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(char)>(46);
+
+        $r6 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _workerName>;
+
+        $r7 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r6);
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        return $r8;
+
+     label1:
+        return r2;
+    }
+
+    public boolean idInUse(java.lang.String)
+    {
+        java.lang.Throwable $r11;
+        java.lang.Exception $r5;
+        org.eclipse.jetty.server.session.JDBCSessionIdManager r1;
+        java.util.HashSet $r3, $r4;
+        java.lang.StringBuilder $r6, $r8, $r9;
+        java.lang.String r0, $r2, $r10;
+        org.eclipse.jetty.util.log.Logger $r7;
+        boolean $z0, $z1;
+
+        r1 := @this: org.eclipse.jetty.server.session.JDBCSessionIdManager;
+
+        r0 := @parameter0: java.lang.String;
+
+        if r0 != null goto label1;
+
+        return 0;
+
+     label1:
+        $r2 = virtualinvoke r1.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String getClusterId(java.lang.String)>(r0);
+
+        $r3 = r1.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.util.HashSet _sessionIds>;
+
+        entermonitor $r3;
+
+     label2:
+        $r4 = r1.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.util.HashSet _sessionIds>;
+
+        $z0 = virtualinvoke $r4.<java.util.HashSet: boolean contains(java.lang.Object)>($r2);
+
+        exitmonitor $r3;
+
+     label3:
+        goto label6;
+
+     label4:
+        $r11 := @caughtexception;
+
+        exitmonitor $r3;
+
+     label5:
+        throw $r11;
+
+     label6:
+        if $z0 == 0 goto label7;
+
+        return 1;
+
+     label7:
+        $z1 = specialinvoke r1.<org.eclipse.jetty.server.session.JDBCSessionIdManager: boolean exists(java.lang.String)>($r2);
+
+     label8:
+        return $z1;
+
+     label9:
+        $r5 := @caughtexception;
+
+        $r7 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r6 = new java.lang.StringBuilder;
+
+        specialinvoke $r6.<java.lang.StringBuilder: void <init>()>();
+
+        $r8 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Problem checking inUse for id=");
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r2);
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r7.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.String,java.lang.Throwable)>($r10, $r5);
+
+        return 0;
+
+        catch java.lang.Throwable from label2 to label3 with label4;
+        catch java.lang.Throwable from label4 to label5 with label4;
+        catch java.lang.Exception from label7 to label8 with label9;
+    }
+
+    public void invalidateAll(java.lang.String)
+    {
+        java.lang.Throwable $r11;
+        org.eclipse.jetty.server.Handler $r5, $r7;
+        org.eclipse.jetty.server.handler.ContextHandler $r6;
+        org.eclipse.jetty.server.Handler[] $r4;
+        org.eclipse.jetty.server.session.SessionHandler r8;
+        org.eclipse.jetty.server.session.JDBCSessionManager $r10;
+        org.eclipse.jetty.server.session.JDBCSessionIdManager r0;
+        java.util.HashSet $r2;
+        org.eclipse.jetty.server.SessionManager $r9;
+        int $i0, i1;
+        java.lang.String r1;
+        org.eclipse.jetty.server.Server $r3;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.server.session.JDBCSessionIdManager;
+
+        r1 := @parameter0: java.lang.String;
+
+        virtualinvoke r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: void removeSession(java.lang.String)>(r1);
+
+        $r2 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.util.HashSet _sessionIds>;
+
+        entermonitor $r2;
+
+     label1:
+        $r3 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.server.Server _server>;
+
+        $r4 = virtualinvoke $r3.<org.eclipse.jetty.server.Server: org.eclipse.jetty.server.Handler[] getChildHandlersByClass(java.lang.Class)>(class "Lorg/eclipse/jetty/server/handler/ContextHandler;");
+
+        i1 = 0;
+
+     label2:
+        if $r4 == null goto label4;
+
+        $i0 = lengthof $r4;
+
+        if i1 >= $i0 goto label4;
+
+        $r5 = $r4[i1];
+
+        $r6 = (org.eclipse.jetty.server.handler.ContextHandler) $r5;
+
+        $r7 = virtualinvoke $r6.<org.eclipse.jetty.server.handler.ContextHandler: org.eclipse.jetty.server.Handler getChildHandlerByClass(java.lang.Class)>(class "Lorg/eclipse/jetty/server/session/SessionHandler;");
+
+        r8 = (org.eclipse.jetty.server.session.SessionHandler) $r7;
+
+        if r8 == null goto label3;
+
+        $r9 = virtualinvoke r8.<org.eclipse.jetty.server.session.SessionHandler: org.eclipse.jetty.server.SessionManager getSessionManager()>();
+
+        if $r9 == null goto label3;
+
+        $z0 = $r9 instanceof org.eclipse.jetty.server.session.JDBCSessionManager;
+
+        if $z0 == 0 goto label3;
+
+        $r10 = (org.eclipse.jetty.server.session.JDBCSessionManager) $r9;
+
+        virtualinvoke $r10.<org.eclipse.jetty.server.session.JDBCSessionManager: void invalidateSession(java.lang.String)>(r1);
+
+     label3:
+        i1 = i1 + 1;
+
+        goto label2;
+
+     label4:
+        exitmonitor $r2;
+
+     label5:
+        goto label8;
+
+     label6:
+        $r11 := @caughtexception;
+
+        exitmonitor $r2;
+
+     label7:
+        throw $r11;
+
+     label8:
+        return;
+
+        catch java.lang.Throwable from label1 to label5 with label6;
+        catch java.lang.Throwable from label6 to label7 with label6;
+    }
+
+    public void doStart() throws java.lang.Exception
+    {
+        java.lang.Object[] $r9;
+        java.util.Timer $r2;
+        long $l0, $l1;
+        org.eclipse.jetty.server.session.JDBCSessionIdManager r0;
+        java.lang.StringBuilder $r3, $r5, $r6, $r7;
+        org.eclipse.jetty.util.log.Logger $r1, $r4;
+        java.lang.String $r8;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.server.session.JDBCSessionIdManager;
+
+        specialinvoke r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: void initializeDatabase()>();
+
+        specialinvoke r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: void prepareTables()>();
+
+        specialinvoke r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: void cleanExpiredSessions()>();
+
+        specialinvoke r0.<org.eclipse.jetty.server.session.AbstractSessionIdManager: void doStart()>();
+
+        $r1 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $z0 = interfaceinvoke $r1.<org.eclipse.jetty.util.log.Logger: boolean isDebugEnabled()>();
+
+        if $z0 == 0 goto label1;
+
+        $r4 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r3 = new java.lang.StringBuilder;
+
+        specialinvoke $r3.<java.lang.StringBuilder: void <init>()>();
+
+        $r5 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Scavenging interval = ");
+
+        $l1 = virtualinvoke r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: long getScavengeInterval()>();
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l1);
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" sec");
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r9 = newarray (java.lang.Object)[0];
+
+        interfaceinvoke $r4.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Object[])>($r8, $r9);
+
+     label1:
+        $r2 = new java.util.Timer;
+
+        specialinvoke $r2.<java.util.Timer: void <init>(java.lang.String,boolean)>("JDBCSessionScavenger", 1);
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.util.Timer _timer> = $r2;
+
+        $l0 = virtualinvoke r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: long getScavengeInterval()>();
+
+        virtualinvoke r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: void setScavengeInterval(long)>($l0);
+
+        return;
+    }
+
+    public void doStop() throws java.lang.Exception
+    {
+        org.eclipse.jetty.server.session.JDBCSessionIdManager r0;
+        java.util.HashSet $r3;
+        java.lang.Throwable $r6;
+        java.util.Timer $r2, $r4;
+        java.util.TimerTask $r1, $r5;
+
+        r0 := @this: org.eclipse.jetty.server.session.JDBCSessionIdManager;
+
+        entermonitor r0;
+
+     label1:
+        $r1 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.util.TimerTask _task>;
+
+        if $r1 == null goto label2;
+
+        $r5 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.util.TimerTask _task>;
+
+        virtualinvoke $r5.<java.util.TimerTask: boolean cancel()>();
+
+     label2:
+        $r2 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.util.Timer _timer>;
+
+        if $r2 == null goto label3;
+
+        $r4 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.util.Timer _timer>;
+
+        virtualinvoke $r4.<java.util.Timer: void cancel()>();
+
+     label3:
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.util.Timer _timer> = null;
+
+        exitmonitor r0;
+
+     label4:
+        goto label7;
+
+     label5:
+        $r6 := @caughtexception;
+
+        exitmonitor r0;
+
+     label6:
+        throw $r6;
+
+     label7:
+        $r3 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.util.HashSet _sessionIds>;
+
+        virtualinvoke $r3.<java.util.HashSet: void clear()>();
+
+        specialinvoke r0.<org.eclipse.jetty.server.session.AbstractSessionIdManager: void doStop()>();
+
+        return;
+
+        catch java.lang.Throwable from label1 to label4 with label5;
+        catch java.lang.Throwable from label5 to label6 with label5;
+    }
+
+    protected java.sql.Connection getConnection() throws java.sql.SQLException
+    {
+        org.eclipse.jetty.server.session.JDBCSessionIdManager r0;
+        java.sql.Connection $r3, $r5;
+        javax.sql.DataSource $r1, $r4;
+        java.lang.String $r2;
+
+        r0 := @this: org.eclipse.jetty.server.session.JDBCSessionIdManager;
+
+        $r1 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: javax.sql.DataSource _datasource>;
+
+        if $r1 == null goto label1;
+
+        $r4 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: javax.sql.DataSource _datasource>;
+
+        $r5 = interfaceinvoke $r4.<javax.sql.DataSource: java.sql.Connection getConnection()>();
+
+        return $r5;
+
+     label1:
+        $r2 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _connectionUrl>;
+
+        $r3 = staticinvoke <java.sql.DriverManager: java.sql.Connection getConnection(java.lang.String)>($r2);
+
+        return $r3;
+    }
+
+    private void prepareTables() throws java.sql.SQLException
+    {
+        org.eclipse.jetty.server.session.JDBCSessionIdManager r0;
+        java.lang.StringBuilder $r1, $r2, $r4, $r5, $r7, $r8, $r10, $r11, $r13, $r14, $r16, $r17, $r19, $r20, $r22, $r23, $r25, $r26, $r28, $r29, $r31, $r32, $r34, $r35, $r37, $r38, $r40, $r41, $r56, $r57, $r59, $r60, $r62, $r63, $r65, $r66, $r70, $r71, $r72, $r73, $r75, $r76, $r78, $r79, $r80, $r81, $r83, $r84, $r91, $r92, $r94, $r95, $r97, $r98, $r99, $r100, $r101, $r102, $r103, $r104, $r105, $r106, $r107, $r108, $r109, $r110, $r111, $r112, $r113, $r114, $r115, $r117, $r118, $r126, $r127, $r129, $r130, $r132, $r133, $r134, $r136, $r137, $r139, $r140, $r142, $r143, $r145, $r146, $r148, $r149, $r151, $r152, $r154, $r155, $r157, $r158, $r160, $r161, $r163, $r164, $r166, $r167, $r169, $r170;
+        java.sql.DatabaseMetaData $r44;
+        java.sql.Connection $r43, r125;
+        org.eclipse.jetty.server.session.JDBCSessionIdManager$DatabaseAdaptor $r45, $r46, $r49, $r53, $r87, $r89;
+        java.sql.ResultSet $r51, $r55, $r68;
+        java.lang.Throwable $r124;
+        java.lang.String $r3, $r6, $r9, $r12, $r15, $r18, $r21, $r24, $r27, $r30, $r33, $r36, $r39, $r42, $r47, $r48, $r50, $r52, $r54, $r58, $r61, $r64, $r67, $r74, $r77, $r82, $r85, $r86, $r88, $r90, $r93, $r96, $r116, $r119, $r121, $r123, $r128, $r131, $r135, $r138, $r141, $r144, $r147, $r150, $r153, $r156, $r159, $r162, $r165, $r168, $r171;
+        java.sql.Statement $r69, $r120, $r122;
+        boolean $z0, $z1, $z2, $z3, z4, z5, $z6, z7, z8, z9, z10;
+
+        r0 := @this: org.eclipse.jetty.server.session.JDBCSessionIdManager;
+
+        $r1 = new java.lang.StringBuilder;
+
+        specialinvoke $r1.<java.lang.StringBuilder: void <init>()>();
+
+        $r2 = virtualinvoke $r1.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("create table ");
+
+        $r3 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _sessionIdTable>;
+
+        $r4 = virtualinvoke $r2.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r3);
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" (id varchar(120), primary key(id))");
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _createSessionIdTable> = $r6;
+
+        $r7 = new java.lang.StringBuilder;
+
+        specialinvoke $r7.<java.lang.StringBuilder: void <init>()>();
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("select * from ");
+
+        $r9 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _sessionTable>;
+
+        $r10 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r9);
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" where expiryTime >= ? and expiryTime <= ?");
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _selectBoundedExpiredSessions> = $r12;
+
+        $r13 = new java.lang.StringBuilder;
+
+        specialinvoke $r13.<java.lang.StringBuilder: void <init>()>();
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("select * from ");
+
+        $r15 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _sessionTable>;
+
+        $r16 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r15);
+
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" where expiryTime >0 and expiryTime <= ?");
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _selectExpiredSessions> = $r18;
+
+        $r19 = new java.lang.StringBuilder;
+
+        specialinvoke $r19.<java.lang.StringBuilder: void <init>()>();
+
+        $r20 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("delete from ");
+
+        $r21 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _sessionTable>;
+
+        $r22 = virtualinvoke $r20.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r21);
+
+        $r23 = virtualinvoke $r22.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" where expiryTime >0 and expiryTime <= ?");
+
+        $r24 = virtualinvoke $r23.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _deleteOldExpiredSessions> = $r24;
+
+        $r25 = new java.lang.StringBuilder;
+
+        specialinvoke $r25.<java.lang.StringBuilder: void <init>()>();
+
+        $r26 = virtualinvoke $r25.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("insert into ");
+
+        $r27 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _sessionIdTable>;
+
+        $r28 = virtualinvoke $r26.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r27);
+
+        $r29 = virtualinvoke $r28.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" (id)  values (?)");
+
+        $r30 = virtualinvoke $r29.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _insertId> = $r30;
+
+        $r31 = new java.lang.StringBuilder;
+
+        specialinvoke $r31.<java.lang.StringBuilder: void <init>()>();
+
+        $r32 = virtualinvoke $r31.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("delete from ");
+
+        $r33 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _sessionIdTable>;
+
+        $r34 = virtualinvoke $r32.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r33);
+
+        $r35 = virtualinvoke $r34.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" where id = ?");
+
+        $r36 = virtualinvoke $r35.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _deleteId> = $r36;
+
+        $r37 = new java.lang.StringBuilder;
+
+        specialinvoke $r37.<java.lang.StringBuilder: void <init>()>();
+
+        $r38 = virtualinvoke $r37.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("select * from ");
+
+        $r39 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _sessionIdTable>;
+
+        $r40 = virtualinvoke $r38.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r39);
+
+        $r41 = virtualinvoke $r40.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" where id = ?");
+
+        $r42 = virtualinvoke $r41.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _queryId> = $r42;
+
+        r125 = null;
+
+     label01:
+        $r43 = virtualinvoke r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.sql.Connection getConnection()>();
+
+        r125 = $r43;
+
+        interfaceinvoke $r43.<java.sql.Connection: void setAutoCommit(boolean)>(1);
+
+        $r44 = interfaceinvoke $r43.<java.sql.Connection: java.sql.DatabaseMetaData getMetaData()>();
+
+        $r45 = new org.eclipse.jetty.server.session.JDBCSessionIdManager$DatabaseAdaptor;
+
+        specialinvoke $r45.<org.eclipse.jetty.server.session.JDBCSessionIdManager$DatabaseAdaptor: void <init>(org.eclipse.jetty.server.session.JDBCSessionIdManager,java.sql.DatabaseMetaData)>(r0, $r44);
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.server.session.JDBCSessionIdManager$DatabaseAdaptor _dbAdaptor> = $r45;
+
+        $r46 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.server.session.JDBCSessionIdManager$DatabaseAdaptor _dbAdaptor>;
+
+        $r47 = virtualinvoke $r46.<org.eclipse.jetty.server.session.JDBCSessionIdManager$DatabaseAdaptor: java.lang.String getRowIdColumnName()>();
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _sessionTableRowId> = $r47;
+
+        $r49 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.server.session.JDBCSessionIdManager$DatabaseAdaptor _dbAdaptor>;
+
+        $r48 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _sessionIdTable>;
+
+        $r50 = virtualinvoke $r49.<org.eclipse.jetty.server.session.JDBCSessionIdManager$DatabaseAdaptor: java.lang.String convertIdentifier(java.lang.String)>($r48);
+
+        $r51 = interfaceinvoke $r44.<java.sql.DatabaseMetaData: java.sql.ResultSet getTables(java.lang.String,java.lang.String,java.lang.String,java.lang.String[])>(null, null, $r50, null);
+
+        $z0 = interfaceinvoke $r51.<java.sql.ResultSet: boolean next()>();
+
+        if $z0 != 0 goto label02;
+
+        $r122 = interfaceinvoke $r43.<java.sql.Connection: java.sql.Statement createStatement()>();
+
+        $r123 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _createSessionIdTable>;
+
+        interfaceinvoke $r122.<java.sql.Statement: int executeUpdate(java.lang.String)>($r123);
+
+     label02:
+        $r53 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.server.session.JDBCSessionIdManager$DatabaseAdaptor _dbAdaptor>;
+
+        $r52 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _sessionTable>;
+
+        $r54 = virtualinvoke $r53.<org.eclipse.jetty.server.session.JDBCSessionIdManager$DatabaseAdaptor: java.lang.String convertIdentifier(java.lang.String)>($r52);
+
+        $r55 = interfaceinvoke $r44.<java.sql.DatabaseMetaData: java.sql.ResultSet getTables(java.lang.String,java.lang.String,java.lang.String,java.lang.String[])>(null, null, $r54, null);
+
+        $z1 = interfaceinvoke $r55.<java.sql.ResultSet: boolean next()>();
+
+        if $z1 != 0 goto label03;
+
+        $r87 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.server.session.JDBCSessionIdManager$DatabaseAdaptor _dbAdaptor>;
+
+        $r88 = virtualinvoke $r87.<org.eclipse.jetty.server.session.JDBCSessionIdManager$DatabaseAdaptor: java.lang.String getBlobType()>();
+
+        $r89 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.server.session.JDBCSessionIdManager$DatabaseAdaptor _dbAdaptor>;
+
+        $r90 = virtualinvoke $r89.<org.eclipse.jetty.server.session.JDBCSessionIdManager$DatabaseAdaptor: java.lang.String getLongType()>();
+
+        $r91 = new java.lang.StringBuilder;
+
+        specialinvoke $r91.<java.lang.StringBuilder: void <init>()>();
+
+        $r92 = virtualinvoke $r91.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("create table ");
+
+        $r93 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _sessionTable>;
+
+        $r94 = virtualinvoke $r92.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r93);
+
+        $r95 = virtualinvoke $r94.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" (");
+
+        $r96 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _sessionTableRowId>;
+
+        $r97 = virtualinvoke $r95.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r96);
+
+        $r98 = virtualinvoke $r97.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" varchar(120), sessionId varchar(120), ");
+
+        $r99 = virtualinvoke $r98.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" contextPath varchar(60), virtualHost varchar(60), lastNode varchar(60), accessTime ");
+
+        $r100 = virtualinvoke $r99.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r90);
+
+        $r101 = virtualinvoke $r100.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(", ");
+
+        $r102 = virtualinvoke $r101.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" lastAccessTime ");
+
+        $r103 = virtualinvoke $r102.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r90);
+
+        $r104 = virtualinvoke $r103.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(", createTime ");
+
+        $r105 = virtualinvoke $r104.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r90);
+
+        $r106 = virtualinvoke $r105.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(", cookieTime ");
+
+        $r107 = virtualinvoke $r106.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r90);
+
+        $r108 = virtualinvoke $r107.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(", ");
+
+        $r109 = virtualinvoke $r108.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" lastSavedTime ");
+
+        $r110 = virtualinvoke $r109.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r90);
+
+        $r111 = virtualinvoke $r110.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(", expiryTime ");
+
+        $r112 = virtualinvoke $r111.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r90);
+
+        $r113 = virtualinvoke $r112.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(", map ");
+
+        $r114 = virtualinvoke $r113.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r88);
+
+        $r115 = virtualinvoke $r114.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(", primary key(");
+
+        $r116 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _sessionTableRowId>;
+
+        $r117 = virtualinvoke $r115.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r116);
+
+        $r118 = virtualinvoke $r117.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("))");
+
+        $r119 = virtualinvoke $r118.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _createSessionTable> = $r119;
+
+        $r120 = interfaceinvoke $r43.<java.sql.Connection: java.sql.Statement createStatement()>();
+
+        $r121 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _createSessionTable>;
+
+        interfaceinvoke $r120.<java.sql.Statement: int executeUpdate(java.lang.String)>($r121);
+
+     label03:
+        $r56 = new java.lang.StringBuilder;
+
+        specialinvoke $r56.<java.lang.StringBuilder: void <init>()>();
+
+        $r57 = virtualinvoke $r56.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("idx_");
+
+        $r58 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _sessionTable>;
+
+        $r59 = virtualinvoke $r57.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r58);
+
+        $r60 = virtualinvoke $r59.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("_expiry");
+
+        $r61 = virtualinvoke $r60.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r62 = new java.lang.StringBuilder;
+
+        specialinvoke $r62.<java.lang.StringBuilder: void <init>()>();
+
+        $r63 = virtualinvoke $r62.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("idx_");
+
+        $r64 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _sessionTable>;
+
+        $r65 = virtualinvoke $r63.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r64);
+
+        $r66 = virtualinvoke $r65.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("_session");
+
+        $r67 = virtualinvoke $r66.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r68 = interfaceinvoke $r44.<java.sql.DatabaseMetaData: java.sql.ResultSet getIndexInfo(java.lang.String,java.lang.String,java.lang.String,boolean,boolean)>(null, null, $r54, 0, 0);
+
+        z4 = 0;
+
+        z8 = 0;
+
+        z7 = 0;
+
+        z5 = 0;
+
+        z10 = 0;
+
+        z9 = 0;
+
+     label04:
+        $z6 = interfaceinvoke $r68.<java.sql.ResultSet: boolean next()>();
+
+        if $z6 == 0 goto label07;
+
+        $r86 = interfaceinvoke $r68.<java.sql.ResultSet: java.lang.String getString(java.lang.String)>("INDEX_NAME");
+
+        $z2 = virtualinvoke $r61.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>($r86);
+
+        if $z2 == 0 goto label05;
+
+        z4 = 1;
+
+        z8 = 1;
+
+        z7 = 1;
+
+        goto label06;
+
+     label05:
+        $z3 = virtualinvoke $r67.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>($r86);
+
+        if $z3 == 0 goto label06;
+
+        z5 = 1;
+
+        z10 = 1;
+
+        z9 = 1;
+
+     label06:
+        goto label04;
+
+     label07:
+        if z7 == 0 goto label08;
+
+        if z9 != 0 goto label10;
+
+     label08:
+        $r69 = interfaceinvoke $r43.<java.sql.Connection: java.sql.Statement createStatement()>();
+
+        if z8 != 0 goto label09;
+
+        $r78 = new java.lang.StringBuilder;
+
+        specialinvoke $r78.<java.lang.StringBuilder: void <init>()>();
+
+        $r79 = virtualinvoke $r78.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("create index ");
+
+        $r80 = virtualinvoke $r79.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r61);
+
+        $r81 = virtualinvoke $r80.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" on ");
+
+        $r82 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _sessionTable>;
+
+        $r83 = virtualinvoke $r81.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r82);
+
+        $r84 = virtualinvoke $r83.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" (expiryTime)");
+
+        $r85 = virtualinvoke $r84.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r69.<java.sql.Statement: int executeUpdate(java.lang.String)>($r85);
+
+     label09:
+        if z10 != 0 goto label10;
+
+        $r70 = new java.lang.StringBuilder;
+
+        specialinvoke $r70.<java.lang.StringBuilder: void <init>()>();
+
+        $r71 = virtualinvoke $r70.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("create index ");
+
+        $r72 = virtualinvoke $r71.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r67);
+
+        $r73 = virtualinvoke $r72.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" on ");
+
+        $r74 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _sessionTable>;
+
+        $r75 = virtualinvoke $r73.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r74);
+
+        $r76 = virtualinvoke $r75.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" (sessionId, contextPath)");
+
+        $r77 = virtualinvoke $r76.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r69.<java.sql.Statement: int executeUpdate(java.lang.String)>($r77);
+
+     label10:
+        $r126 = new java.lang.StringBuilder;
+
+        specialinvoke $r126.<java.lang.StringBuilder: void <init>()>();
+
+        $r127 = virtualinvoke $r126.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("insert into ");
+
+        $r128 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _sessionTable>;
+
+        $r129 = virtualinvoke $r127.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r128);
+
+        $r130 = virtualinvoke $r129.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" (");
+
+        $r131 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _sessionTableRowId>;
+
+        $r132 = virtualinvoke $r130.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r131);
+
+        $r133 = virtualinvoke $r132.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(", sessionId, contextPath, virtualHost, lastNode, accessTime, lastAccessTime, createTime, cookieTime, lastSavedTime, expiryTime, map) ");
+
+        $r134 = virtualinvoke $r133.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+        $r135 = virtualinvoke $r134.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _insertSession> = $r135;
+
+        $r136 = new java.lang.StringBuilder;
+
+        specialinvoke $r136.<java.lang.StringBuilder: void <init>()>();
+
+        $r137 = virtualinvoke $r136.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("delete from ");
+
+        $r138 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _sessionTable>;
+
+        $r139 = virtualinvoke $r137.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r138);
+
+        $r140 = virtualinvoke $r139.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" where ");
+
+        $r141 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _sessionTableRowId>;
+
+        $r142 = virtualinvoke $r140.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r141);
+
+        $r143 = virtualinvoke $r142.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" = ?");
+
+        $r144 = virtualinvoke $r143.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _deleteSession> = $r144;
+
+        $r145 = new java.lang.StringBuilder;
+
+        specialinvoke $r145.<java.lang.StringBuilder: void <init>()>();
+
+        $r146 = virtualinvoke $r145.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("update ");
+
+        $r147 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _sessionTable>;
+
+        $r148 = virtualinvoke $r146.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r147);
+
+        $r149 = virtualinvoke $r148.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" set lastNode = ?, accessTime = ?, lastAccessTime = ?, lastSavedTime = ?, expiryTime = ?, map = ? where ");
+
+        $r150 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _sessionTableRowId>;
+
+        $r151 = virtualinvoke $r149.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r150);
+
+        $r152 = virtualinvoke $r151.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" = ?");
+
+        $r153 = virtualinvoke $r152.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _updateSession> = $r153;
+
+        $r154 = new java.lang.StringBuilder;
+
+        specialinvoke $r154.<java.lang.StringBuilder: void <init>()>();
+
+        $r155 = virtualinvoke $r154.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("update ");
+
+        $r156 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _sessionTable>;
+
+        $r157 = virtualinvoke $r155.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r156);
+
+        $r158 = virtualinvoke $r157.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" set lastNode = ? where ");
+
+        $r159 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _sessionTableRowId>;
+
+        $r160 = virtualinvoke $r158.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r159);
+
+        $r161 = virtualinvoke $r160.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" = ?");
+
+        $r162 = virtualinvoke $r161.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _updateSessionNode> = $r162;
+
+        $r163 = new java.lang.StringBuilder;
+
+        specialinvoke $r163.<java.lang.StringBuilder: void <init>()>();
+
+        $r164 = virtualinvoke $r163.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("update ");
+
+        $r165 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _sessionTable>;
+
+        $r166 = virtualinvoke $r164.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r165);
+
+        $r167 = virtualinvoke $r166.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" set lastNode = ?, accessTime = ?, lastAccessTime = ?, lastSavedTime = ?, expiryTime = ? where ");
+
+        $r168 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _sessionTableRowId>;
+
+        $r169 = virtualinvoke $r167.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r168);
+
+        $r170 = virtualinvoke $r169.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" = ?");
+
+        $r171 = virtualinvoke $r170.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _updateSessionAccessTime> = $r171;
+
+     label11:
+        if $r43 == null goto label15;
+
+        interfaceinvoke $r43.<java.sql.Connection: void close()>();
+
+        goto label15;
+
+     label12:
+        $r124 := @caughtexception;
+
+     label13:
+        if r125 == null goto label14;
+
+        interfaceinvoke r125.<java.sql.Connection: void close()>();
+
+     label14:
+        throw $r124;
+
+     label15:
+        return;
+
+        catch java.lang.Throwable from label01 to label11 with label12;
+        catch java.lang.Throwable from label12 to label13 with label12;
+    }
+
+    private void insert(java.lang.String) throws java.sql.SQLException
+    {
+        java.lang.Throwable $r8;
+        java.sql.Connection $r1, r9;
+        java.sql.PreparedStatement $r3, $r7;
+        org.eclipse.jetty.server.session.JDBCSessionIdManager r0;
+        java.sql.ResultSet $r5;
+        java.lang.String $r2, r4, $r6;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.server.session.JDBCSessionIdManager;
+
+        r4 := @parameter0: java.lang.String;
+
+        r9 = null;
+
+     label1:
+        $r1 = virtualinvoke r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.sql.Connection getConnection()>();
+
+        r9 = $r1;
+
+        interfaceinvoke $r1.<java.sql.Connection: void setAutoCommit(boolean)>(1);
+
+        $r2 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _queryId>;
+
+        $r3 = interfaceinvoke $r1.<java.sql.Connection: java.sql.PreparedStatement prepareStatement(java.lang.String)>($r2);
+
+        interfaceinvoke $r3.<java.sql.PreparedStatement: void setString(int,java.lang.String)>(1, r4);
+
+        $r5 = interfaceinvoke $r3.<java.sql.PreparedStatement: java.sql.ResultSet executeQuery()>();
+
+        $z0 = interfaceinvoke $r5.<java.sql.ResultSet: boolean next()>();
+
+        if $z0 != 0 goto label2;
+
+        $r6 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _insertId>;
+
+        $r7 = interfaceinvoke $r1.<java.sql.Connection: java.sql.PreparedStatement prepareStatement(java.lang.String)>($r6);
+
+        interfaceinvoke $r7.<java.sql.PreparedStatement: void setString(int,java.lang.String)>(1, r4);
+
+        interfaceinvoke $r7.<java.sql.PreparedStatement: int executeUpdate()>();
+
+     label2:
+        if $r1 == null goto label6;
+
+        interfaceinvoke $r1.<java.sql.Connection: void close()>();
+
+        goto label6;
+
+     label3:
+        $r8 := @caughtexception;
+
+     label4:
+        if r9 == null goto label5;
+
+        interfaceinvoke r9.<java.sql.Connection: void close()>();
+
+     label5:
+        throw $r8;
+
+     label6:
+        return;
+
+        catch java.lang.Throwable from label1 to label2 with label3;
+        catch java.lang.Throwable from label3 to label4 with label3;
+    }
+
+    private void delete(java.lang.String) throws java.sql.SQLException
+    {
+        org.eclipse.jetty.server.session.JDBCSessionIdManager r0;
+        java.lang.Throwable $r5;
+        java.sql.Connection $r1, r6;
+        java.lang.String $r2, r4;
+        java.sql.PreparedStatement $r3;
+
+        r0 := @this: org.eclipse.jetty.server.session.JDBCSessionIdManager;
+
+        r4 := @parameter0: java.lang.String;
+
+        r6 = null;
+
+     label1:
+        $r1 = virtualinvoke r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.sql.Connection getConnection()>();
+
+        r6 = $r1;
+
+        interfaceinvoke $r1.<java.sql.Connection: void setAutoCommit(boolean)>(1);
+
+        $r2 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _deleteId>;
+
+        $r3 = interfaceinvoke $r1.<java.sql.Connection: java.sql.PreparedStatement prepareStatement(java.lang.String)>($r2);
+
+        interfaceinvoke $r3.<java.sql.PreparedStatement: void setString(int,java.lang.String)>(1, r4);
+
+        interfaceinvoke $r3.<java.sql.PreparedStatement: int executeUpdate()>();
+
+     label2:
+        if $r1 == null goto label6;
+
+        interfaceinvoke $r1.<java.sql.Connection: void close()>();
+
+        goto label6;
+
+     label3:
+        $r5 := @caughtexception;
+
+     label4:
+        if r6 == null goto label5;
+
+        interfaceinvoke r6.<java.sql.Connection: void close()>();
+
+     label5:
+        throw $r5;
+
+     label6:
+        return;
+
+        catch java.lang.Throwable from label1 to label2 with label3;
+        catch java.lang.Throwable from label3 to label4 with label3;
+    }
+
+    private boolean exists(java.lang.String) throws java.sql.SQLException
+    {
+        java.lang.Throwable $r6;
+        java.sql.Connection $r1, r7;
+        java.sql.PreparedStatement $r3;
+        org.eclipse.jetty.server.session.JDBCSessionIdManager r0;
+        java.sql.ResultSet $r5;
+        java.lang.String $r2, r4;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.server.session.JDBCSessionIdManager;
+
+        r4 := @parameter0: java.lang.String;
+
+        r7 = null;
+
+     label1:
+        $r1 = virtualinvoke r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.sql.Connection getConnection()>();
+
+        r7 = $r1;
+
+        interfaceinvoke $r1.<java.sql.Connection: void setAutoCommit(boolean)>(1);
+
+        $r2 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _queryId>;
+
+        $r3 = interfaceinvoke $r1.<java.sql.Connection: java.sql.PreparedStatement prepareStatement(java.lang.String)>($r2);
+
+        interfaceinvoke $r3.<java.sql.PreparedStatement: void setString(int,java.lang.String)>(1, r4);
+
+        $r5 = interfaceinvoke $r3.<java.sql.PreparedStatement: java.sql.ResultSet executeQuery()>();
+
+        $z0 = interfaceinvoke $r5.<java.sql.ResultSet: boolean next()>();
+
+     label2:
+        if $r1 == null goto label3;
+
+        interfaceinvoke $r1.<java.sql.Connection: void close()>();
+
+     label3:
+        return $z0;
+
+     label4:
+        $r6 := @caughtexception;
+
+     label5:
+        if r7 == null goto label6;
+
+        interfaceinvoke r7.<java.sql.Connection: void close()>();
+
+     label6:
+        throw $r6;
+
+        catch java.lang.Throwable from label1 to label2 with label4;
+        catch java.lang.Throwable from label4 to label5 with label4;
+    }
+
+    private void scavenge()
+    {
+        byte $b1, $b9;
+        java.sql.ResultSet $r13;
+        org.eclipse.jetty.server.Server $r14;
+        java.sql.PreparedStatement $r11, $r18;
+        java.lang.Exception $r74;
+        org.eclipse.jetty.server.session.JDBCSessionIdManager r2;
+        java.lang.StringBuilder $r5, $r6, $r22, $r23, $r24, $r25, $r30, $r31, $r44, $r45, $r50, $r51, $r52, $r53, $r58, $r59, $r68, $r69, $r79, $r80, $r89, $r90, $r91, $r92, $r93, $r94, $r95, $r96;
+        java.lang.Throwable $r64;
+        org.eclipse.jetty.server.Handler $r34, $r36;
+        java.lang.Object[] $r8, $r27, $r33, $r47, $r55, $r61, $r71, $r82;
+        long $l0, $l2, $l3, $l4, l5, $l6, $l7, $l8, $l12, $l13, $l14, $l15, $l16, $l17, l18, $l20;
+        java.util.ArrayList $r88;
+        java.sql.SQLException $r62, $r72, $r84;
+        java.lang.String $r7, $r10, $r17, $r26, $r32, $r40, $r46, $r54, $r60, $r70, $r81;
+        org.eclipse.jetty.server.SessionManager $r38;
+        java.sql.Connection $r9, r86;
+        org.eclipse.jetty.server.session.JDBCSessionManager $r39;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9, $z10;
+        int $i10, $i11, i19, $i21, $i22;
+        org.eclipse.jetty.server.handler.ContextHandler $r35;
+        org.eclipse.jetty.server.Handler[] $r15;
+        org.eclipse.jetty.server.session.SessionHandler r37;
+        org.eclipse.jetty.util.log.Logger $r1, $r4, $r12, $r16, $r19, $r21, $r29, $r41, $r43, $r49, $r57, $r63, $r65, $r67, $r73, $r75, $r76, $r78, $r83, $r85, $r87;
+
+        r2 := @this: org.eclipse.jetty.server.session.JDBCSessionIdManager;
+
+        r86 = null;
+
+        $r88 = new java.util.ArrayList;
+
+        specialinvoke $r88.<java.util.ArrayList: void <init>()>();
+
+     label01:
+        $r1 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $z0 = interfaceinvoke $r1.<org.eclipse.jetty.util.log.Logger: boolean isDebugEnabled()>();
+
+        if $z0 == 0 goto label02;
+
+        $r57 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r89 = new java.lang.StringBuilder;
+
+        specialinvoke $r89.<java.lang.StringBuilder: void <init>()>();
+
+        $r58 = virtualinvoke $r89.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Scavenge sweep started at ");
+
+        $l13 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        $r59 = virtualinvoke $r58.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l13);
+
+        $r60 = virtualinvoke $r59.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r61 = newarray (java.lang.Object)[0];
+
+        interfaceinvoke $r57.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Object[])>($r60, $r61);
+
+     label02:
+        $l0 = r2.<org.eclipse.jetty.server.session.JDBCSessionIdManager: long _lastScavengeTime>;
+
+        $b1 = $l0 cmp 0L;
+
+        $i21 = (int) $b1;
+
+        if $i21 <= 0 goto label11;
+
+        $r9 = virtualinvoke r2.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.sql.Connection getConnection()>();
+
+        r86 = $r9;
+
+        interfaceinvoke $r9.<java.sql.Connection: void setAutoCommit(boolean)>(1);
+
+        $r10 = r2.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _selectBoundedExpiredSessions>;
+
+        $r11 = interfaceinvoke $r9.<java.sql.Connection: java.sql.PreparedStatement prepareStatement(java.lang.String)>($r10);
+
+        $l4 = r2.<org.eclipse.jetty.server.session.JDBCSessionIdManager: long _lastScavengeTime>;
+
+        $l3 = r2.<org.eclipse.jetty.server.session.JDBCSessionIdManager: long _scavengeIntervalMs>;
+
+        l5 = $l4 - $l3;
+
+        l18 = r2.<org.eclipse.jetty.server.session.JDBCSessionIdManager: long _lastScavengeTime>;
+
+        $r12 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $z1 = interfaceinvoke $r12.<org.eclipse.jetty.util.log.Logger: boolean isDebugEnabled()>();
+
+        if $z1 == 0 goto label03;
+
+        $r49 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r90 = new java.lang.StringBuilder;
+
+        specialinvoke $r90.<java.lang.StringBuilder: void <init>()>();
+
+        $r50 = virtualinvoke $r90.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" Searching for sessions expired between ");
+
+        $r51 = virtualinvoke $r50.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>(l5);
+
+        $r52 = virtualinvoke $r51.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" and ");
+
+        $r53 = virtualinvoke $r52.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>(l18);
+
+        $r54 = virtualinvoke $r53.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r55 = newarray (java.lang.Object)[0];
+
+        interfaceinvoke $r49.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Object[])>($r54, $r55);
+
+     label03:
+        interfaceinvoke $r11.<java.sql.PreparedStatement: void setLong(int,long)>(1, l5);
+
+        interfaceinvoke $r11.<java.sql.PreparedStatement: void setLong(int,long)>(2, l18);
+
+        $r13 = interfaceinvoke $r11.<java.sql.PreparedStatement: java.sql.ResultSet executeQuery()>();
+
+     label04:
+        $z9 = interfaceinvoke $r13.<java.sql.ResultSet: boolean next()>();
+
+        if $z9 == 0 goto label06;
+
+        $r40 = interfaceinvoke $r13.<java.sql.ResultSet: java.lang.String getString(java.lang.String)>("sessionId");
+
+        interfaceinvoke $r88.<java.util.List: boolean add(java.lang.Object)>($r40);
+
+        $r41 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $z5 = interfaceinvoke $r41.<org.eclipse.jetty.util.log.Logger: boolean isDebugEnabled()>();
+
+        if $z5 == 0 goto label05;
+
+        $r43 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r91 = new java.lang.StringBuilder;
+
+        specialinvoke $r91.<java.lang.StringBuilder: void <init>()>();
+
+        $r44 = virtualinvoke $r91.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" Found expired sessionId=");
+
+        $r45 = virtualinvoke $r44.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r40);
+
+        $r46 = virtualinvoke $r45.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r47 = newarray (java.lang.Object)[0];
+
+        interfaceinvoke $r43.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Object[])>($r46, $r47);
+
+     label05:
+        goto label04;
+
+     label06:
+        $r14 = r2.<org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.server.Server _server>;
+
+        $r15 = virtualinvoke $r14.<org.eclipse.jetty.server.Server: org.eclipse.jetty.server.Handler[] getChildHandlersByClass(java.lang.Class)>(class "Lorg/eclipse/jetty/server/handler/ContextHandler;");
+
+        i19 = 0;
+
+     label07:
+        if $r15 == null goto label09;
+
+        $i11 = lengthof $r15;
+
+        if i19 >= $i11 goto label09;
+
+        $r34 = $r15[i19];
+
+        $r35 = (org.eclipse.jetty.server.handler.ContextHandler) $r34;
+
+        $r36 = virtualinvoke $r35.<org.eclipse.jetty.server.handler.ContextHandler: org.eclipse.jetty.server.Handler getChildHandlerByClass(java.lang.Class)>(class "Lorg/eclipse/jetty/server/session/SessionHandler;");
+
+        r37 = (org.eclipse.jetty.server.session.SessionHandler) $r36;
+
+        if r37 == null goto label08;
+
+        $r38 = virtualinvoke r37.<org.eclipse.jetty.server.session.SessionHandler: org.eclipse.jetty.server.SessionManager getSessionManager()>();
+
+        if $r38 == null goto label08;
+
+        $z4 = $r38 instanceof org.eclipse.jetty.server.session.JDBCSessionManager;
+
+        if $z4 == 0 goto label08;
+
+        $r39 = (org.eclipse.jetty.server.session.JDBCSessionManager) $r38;
+
+        virtualinvoke $r39.<org.eclipse.jetty.server.session.JDBCSessionManager: void expire(java.util.List)>($r88);
+
+     label08:
+        i19 = i19 + 1;
+
+        goto label07;
+
+     label09:
+        $l8 = r2.<org.eclipse.jetty.server.session.JDBCSessionIdManager: long _lastScavengeTime>;
+
+        $l6 = r2.<org.eclipse.jetty.server.session.JDBCSessionIdManager: long _scavengeIntervalMs>;
+
+        $l7 = 2L * $l6;
+
+        $l12 = $l8 - $l7;
+
+        $b9 = $l12 cmp 0L;
+
+        $i22 = (int) $b9;
+
+        if $i22 <= 0 goto label11;
+
+        $r16 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $z2 = interfaceinvoke $r16.<org.eclipse.jetty.util.log.Logger: boolean isDebugEnabled()>();
+
+        if $z2 == 0 goto label10;
+
+        $r29 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r92 = new java.lang.StringBuilder;
+
+        specialinvoke $r92.<java.lang.StringBuilder: void <init>()>();
+
+        $r30 = virtualinvoke $r92.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Deleting old expired sessions expired before ");
+
+        $r31 = virtualinvoke $r30.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l12);
+
+        $r32 = virtualinvoke $r31.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r33 = newarray (java.lang.Object)[0];
+
+        interfaceinvoke $r29.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Object[])>($r32, $r33);
+
+     label10:
+        $r17 = r2.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _deleteOldExpiredSessions>;
+
+        $r18 = interfaceinvoke $r9.<java.sql.Connection: java.sql.PreparedStatement prepareStatement(java.lang.String)>($r17);
+
+        interfaceinvoke $r18.<java.sql.PreparedStatement: void setLong(int,long)>(1, $l12);
+
+        $i10 = interfaceinvoke $r18.<java.sql.PreparedStatement: int executeUpdate()>();
+
+        $r19 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $z3 = interfaceinvoke $r19.<org.eclipse.jetty.util.log.Logger: boolean isDebugEnabled()>();
+
+        if $z3 == 0 goto label11;
+
+        $r21 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r93 = new java.lang.StringBuilder;
+
+        specialinvoke $r93.<java.lang.StringBuilder: void <init>()>();
+
+        $r22 = virtualinvoke $r93.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Deleted ");
+
+        $r23 = virtualinvoke $r22.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i10);
+
+        $r24 = virtualinvoke $r23.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" rows of old sessions expired before ");
+
+        $r25 = virtualinvoke $r24.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l12);
+
+        $r26 = virtualinvoke $r25.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r27 = newarray (java.lang.Object)[0];
+
+        interfaceinvoke $r21.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Object[])>($r26, $r27);
+
+     label11:
+        $l20 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        r2.<org.eclipse.jetty.server.session.JDBCSessionIdManager: long _lastScavengeTime> = $l20;
+
+        $r87 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $z10 = interfaceinvoke $r87.<org.eclipse.jetty.util.log.Logger: boolean isDebugEnabled()>();
+
+        if $z10 == 0 goto label12;
+
+        $r4 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r94 = new java.lang.StringBuilder;
+
+        specialinvoke $r94.<java.lang.StringBuilder: void <init>()>();
+
+        $r5 = virtualinvoke $r94.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Scavenge sweep ended at ");
+
+        $l2 = r2.<org.eclipse.jetty.server.session.JDBCSessionIdManager: long _lastScavengeTime>;
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l2);
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r8 = newarray (java.lang.Object)[0];
+
+        interfaceinvoke $r4.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Object[])>($r7, $r8);
+
+     label12:
+        if r86 == null goto label30;
+
+     label13:
+        interfaceinvoke r86.<java.sql.Connection: void close()>();
+
+     label14:
+        goto label30;
+
+     label15:
+        $r84 := @caughtexception;
+
+        $r85 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        interfaceinvoke $r85.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.Throwable)>($r84);
+
+        goto label30;
+
+     label16:
+        $r74 := @caughtexception;
+
+        $z7 = virtualinvoke r2.<org.eclipse.jetty.server.session.JDBCSessionIdManager: boolean isRunning()>();
+
+        if $z7 == 0 goto label17;
+
+        $r83 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        interfaceinvoke $r83.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.String,java.lang.Throwable)>("Problem selecting expired sessions", $r74);
+
+        goto label18;
+
+     label17:
+        $r75 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        interfaceinvoke $r75.<org.eclipse.jetty.util.log.Logger: void ignore(java.lang.Throwable)>($r74);
+
+     label18:
+        $l16 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        r2.<org.eclipse.jetty.server.session.JDBCSessionIdManager: long _lastScavengeTime> = $l16;
+
+        $r76 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $z8 = interfaceinvoke $r76.<org.eclipse.jetty.util.log.Logger: boolean isDebugEnabled()>();
+
+        if $z8 == 0 goto label19;
+
+        $r78 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r95 = new java.lang.StringBuilder;
+
+        specialinvoke $r95.<java.lang.StringBuilder: void <init>()>();
+
+        $r79 = virtualinvoke $r95.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Scavenge sweep ended at ");
+
+        $l17 = r2.<org.eclipse.jetty.server.session.JDBCSessionIdManager: long _lastScavengeTime>;
+
+        $r80 = virtualinvoke $r79.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l17);
+
+        $r81 = virtualinvoke $r80.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r82 = newarray (java.lang.Object)[0];
+
+        interfaceinvoke $r78.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Object[])>($r81, $r82);
+
+     label19:
+        if r86 == null goto label30;
+
+     label20:
+        interfaceinvoke r86.<java.sql.Connection: void close()>();
+
+     label21:
+        goto label30;
+
+     label22:
+        $r72 := @caughtexception;
+
+        $r73 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        interfaceinvoke $r73.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.Throwable)>($r72);
+
+        goto label30;
+
+     label23:
+        $r64 := @caughtexception;
+
+     label24:
+        $l14 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        r2.<org.eclipse.jetty.server.session.JDBCSessionIdManager: long _lastScavengeTime> = $l14;
+
+        $r65 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $z6 = interfaceinvoke $r65.<org.eclipse.jetty.util.log.Logger: boolean isDebugEnabled()>();
+
+        if $z6 == 0 goto label25;
+
+        $r67 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r96 = new java.lang.StringBuilder;
+
+        specialinvoke $r96.<java.lang.StringBuilder: void <init>()>();
+
+        $r68 = virtualinvoke $r96.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Scavenge sweep ended at ");
+
+        $l15 = r2.<org.eclipse.jetty.server.session.JDBCSessionIdManager: long _lastScavengeTime>;
+
+        $r69 = virtualinvoke $r68.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l15);
+
+        $r70 = virtualinvoke $r69.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r71 = newarray (java.lang.Object)[0];
+
+        interfaceinvoke $r67.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Object[])>($r70, $r71);
+
+     label25:
+        if r86 == null goto label29;
+
+     label26:
+        interfaceinvoke r86.<java.sql.Connection: void close()>();
+
+     label27:
+        goto label29;
+
+     label28:
+        $r62 := @caughtexception;
+
+        $r63 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        interfaceinvoke $r63.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.Throwable)>($r62);
+
+     label29:
+        throw $r64;
+
+     label30:
+        return;
+
+        catch java.sql.SQLException from label13 to label14 with label15;
+        catch java.lang.Exception from label01 to label11 with label16;
+        catch java.sql.SQLException from label20 to label21 with label22;
+        catch java.lang.Throwable from label01 to label11 with label23;
+        catch java.lang.Throwable from label16 to label18 with label23;
+        catch java.sql.SQLException from label26 to label27 with label28;
+        catch java.lang.Throwable from label23 to label24 with label23;
+    }
+
+    private void cleanExpiredSessions() throws java.lang.Exception
+    {
+        java.sql.Connection $r2, r39;
+        java.lang.Long $r31;
+        java.sql.ResultSet $r6;
+        boolean $z0, $z1, $z2, $z3;
+        java.sql.PreparedStatement $r4;
+        java.lang.Exception $r35;
+        org.eclipse.jetty.server.session.JDBCSessionIdManager r1;
+        java.lang.StringBuilder $r10, $r11, $r13, $r14, $r18, $r19, $r21, $r22;
+        java.lang.Throwable $r34, $r38;
+        java.lang.Object[] $r27, $r29;
+        long $l0;
+        java.util.ArrayList $r0;
+        java.util.HashSet $r7, $r8;
+        java.sql.SQLException $r32, $r36;
+        java.lang.String $r3, $r12, $r15, $r16, $r20, $r23, $r24, $r25;
+        java.sql.Statement $r9, $r17;
+        org.eclipse.jetty.util.log.Logger $r5, $r26, $r28, $r30, $r33, $r37;
+
+        r1 := @this: org.eclipse.jetty.server.session.JDBCSessionIdManager;
+
+        r39 = null;
+
+        $r0 = new java.util.ArrayList;
+
+        specialinvoke $r0.<java.util.ArrayList: void <init>()>();
+
+     label01:
+        $r2 = virtualinvoke r1.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.sql.Connection getConnection()>();
+
+        r39 = $r2;
+
+        interfaceinvoke $r2.<java.sql.Connection: void setTransactionIsolation(int)>(8);
+
+        interfaceinvoke $r2.<java.sql.Connection: void setAutoCommit(boolean)>(0);
+
+        $r3 = r1.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _selectExpiredSessions>;
+
+        $r4 = interfaceinvoke $r2.<java.sql.Connection: java.sql.PreparedStatement prepareStatement(java.lang.String)>($r3);
+
+        $l0 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        $r5 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $z0 = interfaceinvoke $r5.<org.eclipse.jetty.util.log.Logger: boolean isDebugEnabled()>();
+
+        if $z0 == 0 goto label02;
+
+        $r30 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r29 = newarray (java.lang.Object)[1];
+
+        $r31 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l0);
+
+        $r29[0] = $r31;
+
+        interfaceinvoke $r30.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Object[])>("Searching for sessions expired before {}", $r29);
+
+     label02:
+        interfaceinvoke $r4.<java.sql.PreparedStatement: void setLong(int,long)>(1, $l0);
+
+        $r6 = interfaceinvoke $r4.<java.sql.PreparedStatement: java.sql.ResultSet executeQuery()>();
+
+     label03:
+        $z3 = interfaceinvoke $r6.<java.sql.ResultSet: boolean next()>();
+
+        if $z3 == 0 goto label05;
+
+        $r25 = interfaceinvoke $r6.<java.sql.ResultSet: java.lang.String getString(java.lang.String)>("sessionId");
+
+        interfaceinvoke $r0.<java.util.List: boolean add(java.lang.Object)>($r25);
+
+        $r26 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $z2 = interfaceinvoke $r26.<org.eclipse.jetty.util.log.Logger: boolean isDebugEnabled()>();
+
+        if $z2 == 0 goto label04;
+
+        $r28 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r27 = newarray (java.lang.Object)[1];
+
+        $r27[0] = $r25;
+
+        interfaceinvoke $r28.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Object[])>("Found expired sessionId={}", $r27);
+
+     label04:
+        goto label03;
+
+     label05:
+        $z1 = interfaceinvoke $r0.<java.util.List: boolean isEmpty()>();
+
+        if $z1 != 0 goto label06;
+
+        $r9 = interfaceinvoke $r2.<java.sql.Connection: java.sql.Statement createStatement()>();
+
+        $r10 = new java.lang.StringBuilder;
+
+        specialinvoke $r10.<java.lang.StringBuilder: void <init>()>();
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("delete from ");
+
+        $r12 = r1.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _sessionTable>;
+
+        $r13 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r12);
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" where sessionId in ");
+
+        $r15 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r16 = specialinvoke r1.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String createCleanExpiredSessionsSql(java.lang.String,java.util.Collection)>($r15, $r0);
+
+        interfaceinvoke $r9.<java.sql.Statement: int executeUpdate(java.lang.String)>($r16);
+
+        $r17 = interfaceinvoke $r2.<java.sql.Connection: java.sql.Statement createStatement()>();
+
+        $r18 = new java.lang.StringBuilder;
+
+        specialinvoke $r18.<java.lang.StringBuilder: void <init>()>();
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("delete from ");
+
+        $r20 = r1.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _sessionIdTable>;
+
+        $r21 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r20);
+
+        $r22 = virtualinvoke $r21.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" where id in ");
+
+        $r23 = virtualinvoke $r22.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r24 = specialinvoke r1.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String createCleanExpiredSessionsSql(java.lang.String,java.util.Collection)>($r23, $r0);
+
+        interfaceinvoke $r17.<java.sql.Statement: int executeUpdate(java.lang.String)>($r24);
+
+     label06:
+        interfaceinvoke $r2.<java.sql.Connection: void commit()>();
+
+        $r7 = r1.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.util.HashSet _sessionIds>;
+
+        entermonitor $r7;
+
+     label07:
+        $r8 = r1.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.util.HashSet _sessionIds>;
+
+        virtualinvoke $r8.<java.util.HashSet: boolean removeAll(java.util.Collection)>($r0);
+
+        exitmonitor $r7;
+
+     label08:
+        goto label11;
+
+     label09:
+        $r38 := @caughtexception;
+
+        exitmonitor $r7;
+
+     label10:
+        throw $r38;
+
+     label11:
+        if $r2 == null goto label12;
+
+        interfaceinvoke $r2.<java.sql.Connection: void close()>();
+
+     label12:
+        goto label21;
+
+     label13:
+        $r36 := @caughtexception;
+
+        $r37 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        interfaceinvoke $r37.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.Throwable)>($r36);
+
+        goto label21;
+
+     label14:
+        $r35 := @caughtexception;
+
+        if r39 == null goto label15;
+
+        interfaceinvoke r39.<java.sql.Connection: void rollback()>();
+
+     label15:
+        throw $r35;
+
+     label16:
+        $r34 := @caughtexception;
+
+     label17:
+        if r39 == null goto label18;
+
+        interfaceinvoke r39.<java.sql.Connection: void close()>();
+
+     label18:
+        goto label20;
+
+     label19:
+        $r32 := @caughtexception;
+
+        $r33 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        interfaceinvoke $r33.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.Throwable)>($r32);
+
+     label20:
+        throw $r34;
+
+     label21:
+        return;
+
+        catch java.lang.Throwable from label07 to label08 with label09;
+        catch java.lang.Throwable from label09 to label10 with label09;
+        catch java.sql.SQLException from label11 to label12 with label13;
+        catch java.lang.Exception from label01 to label11 with label14;
+        catch java.lang.Throwable from label01 to label11 with label16;
+        catch java.sql.SQLException from label17 to label18 with label19;
+        catch java.lang.Throwable from label14 to label17 with label16;
+    }
+
+    private java.lang.String createCleanExpiredSessionsSql(java.lang.String, java.util.Collection) throws java.lang.Exception
+    {
+        java.lang.Object[] $r6;
+        java.lang.StringBuffer $r0;
+        java.lang.String r1, $r5, $r11, $r14;
+        boolean $z0, $z1, $z2;
+        java.util.Iterator $r3;
+        java.util.Collection r2;
+        org.eclipse.jetty.server.session.JDBCSessionIdManager r15;
+        java.lang.StringBuilder $r8, $r9, $r12, $r13;
+        java.lang.Object $r10;
+        org.eclipse.jetty.util.log.Logger $r4, $r7;
+
+        r15 := @this: org.eclipse.jetty.server.session.JDBCSessionIdManager;
+
+        r1 := @parameter0: java.lang.String;
+
+        r2 := @parameter1: java.util.Collection;
+
+        $r0 = new java.lang.StringBuffer;
+
+        specialinvoke $r0.<java.lang.StringBuffer: void <init>()>();
+
+        virtualinvoke $r0.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>(r1);
+
+        virtualinvoke $r0.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>("(");
+
+        $r3 = interfaceinvoke r2.<java.util.Collection: java.util.Iterator iterator()>();
+
+     label1:
+        $z2 = interfaceinvoke $r3.<java.util.Iterator: boolean hasNext()>();
+
+        if $z2 == 0 goto label2;
+
+        $r8 = new java.lang.StringBuilder;
+
+        specialinvoke $r8.<java.lang.StringBuilder: void <init>()>();
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("\'");
+
+        $r10 = interfaceinvoke $r3.<java.util.Iterator: java.lang.Object next()>();
+
+        $r11 = (java.lang.String) $r10;
+
+        $r12 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r11);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("\'");
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r0.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>($r14);
+
+        $z1 = interfaceinvoke $r3.<java.util.Iterator: boolean hasNext()>();
+
+        if $z1 == 0 goto label1;
+
+        virtualinvoke $r0.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>(",");
+
+        goto label1;
+
+     label2:
+        virtualinvoke $r0.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>(")");
+
+        $r4 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $z0 = interfaceinvoke $r4.<org.eclipse.jetty.util.log.Logger: boolean isDebugEnabled()>();
+
+        if $z0 == 0 goto label3;
+
+        $r7 = <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r6 = newarray (java.lang.Object)[1];
+
+        $r6[0] = $r0;
+
+        interfaceinvoke $r7.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Object[])>("Cleaning expired sessions with: {}", $r6);
+
+     label3:
+        $r5 = virtualinvoke $r0.<java.lang.StringBuffer: java.lang.String toString()>();
+
+        return $r5;
+    }
+
+    private void initializeDatabase() throws java.lang.Exception
+    {
+        java.lang.IllegalStateException $r5;
+        javax.naming.InitialContext $r10;
+        org.eclipse.jetty.server.session.JDBCSessionIdManager r0;
+        java.sql.Driver $r3, $r9;
+        javax.sql.DataSource $r1, $r13;
+        java.lang.Object $r12;
+        java.lang.String $r2, $r4, $r6, $r7, $r8, $r11;
+
+        r0 := @this: org.eclipse.jetty.server.session.JDBCSessionIdManager;
+
+        $r1 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: javax.sql.DataSource _datasource>;
+
+        if $r1 == null goto label1;
+
+        return;
+
+     label1:
+        $r2 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _jndiName>;
+
+        if $r2 == null goto label2;
+
+        $r10 = new javax.naming.InitialContext;
+
+        specialinvoke $r10.<javax.naming.InitialContext: void <init>()>();
+
+        $r11 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _jndiName>;
+
+        $r12 = virtualinvoke $r10.<javax.naming.InitialContext: java.lang.Object lookup(java.lang.String)>($r11);
+
+        $r13 = (javax.sql.DataSource) $r12;
+
+        r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: javax.sql.DataSource _datasource> = $r13;
+
+        goto label5;
+
+     label2:
+        $r3 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.sql.Driver _driver>;
+
+        if $r3 == null goto label3;
+
+        $r8 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _connectionUrl>;
+
+        if $r8 == null goto label3;
+
+        $r9 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.sql.Driver _driver>;
+
+        staticinvoke <java.sql.DriverManager: void registerDriver(java.sql.Driver)>($r9);
+
+        goto label5;
+
+     label3:
+        $r4 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _driverClassName>;
+
+        if $r4 == null goto label4;
+
+        $r6 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _connectionUrl>;
+
+        if $r6 == null goto label4;
+
+        $r7 = r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: java.lang.String _driverClassName>;
+
+        staticinvoke <java.lang.Class: java.lang.Class forName(java.lang.String)>($r7);
+
+        goto label5;
+
+     label4:
+        $r5 = new java.lang.IllegalStateException;
+
+        specialinvoke $r5.<java.lang.IllegalStateException: void <init>(java.lang.String)>("No database configured for sessions");
+
+        throw $r5;
+
+     label5:
+        return;
+    }
+
+    static void access$000(org.eclipse.jetty.server.session.JDBCSessionIdManager)
+    {
+        org.eclipse.jetty.server.session.JDBCSessionIdManager r0;
+
+        r0 := @parameter0: org.eclipse.jetty.server.session.JDBCSessionIdManager;
+
+        specialinvoke r0.<org.eclipse.jetty.server.session.JDBCSessionIdManager: void scavenge()>();
+
+        return;
+    }
+
+    static void <clinit>()
+    {
+        org.eclipse.jetty.util.log.Logger $r0;
+
+        $r0 = <org.eclipse.jetty.server.session.SessionHandler: org.eclipse.jetty.util.log.Logger LOG>;
+
+        <org.eclipse.jetty.server.session.JDBCSessionIdManager: org.eclipse.jetty.util.log.Logger LOG> = $r0;
+
+        return;
+    }
+}

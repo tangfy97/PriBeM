@@ -1,0 +1,2664 @@
+public class org.waveprotocol.wave.client.editor.harness.EditorHarness extends com.google.gwt.user.client.ui.Composite implements org.waveprotocol.wave.client.common.util.KeySignalListener
+{
+    private static final java.lang.String TOPLEVEL_CONTAINER_TAGNAME;
+    org.waveprotocol.wave.common.logging.LoggerBundle logger;
+    org.waveprotocol.wave.client.editor.content.ContentDocument doc1;
+    org.waveprotocol.wave.client.editor.content.ContentDocument doc2;
+    org.waveprotocol.wave.client.editor.Editor editor1;
+    org.waveprotocol.wave.client.editor.harness.EditorHarness$EditorBundle editorBundle1;
+    org.waveprotocol.wave.client.editor.Editor editor2;
+    org.waveprotocol.wave.client.editor.harness.EditorHarness$EditorBundle editorBundle2;
+    org.waveprotocol.wave.client.common.util.LogicalPanel$Impl displayDoc1;
+    public boolean sendOps;
+    boolean quiet;
+    private com.google.gwt.user.client.ui.HTML prettyContent1;
+    private com.google.gwt.user.client.ui.HTML prettyHtml1;
+    private com.google.gwt.user.client.ui.HTML prettyContent2;
+    private com.google.gwt.user.client.ui.HTML prettyHtml2;
+    com.google.gwt.user.client.ui.MultiWordSuggestOracle contentOracle;
+    private com.google.gwt.user.client.ui.TextArea contentBox;
+    private com.google.gwt.user.client.ui.SuggestBox contentSuggestBox;
+    private final com.google.gwt.user.client.ui.Button setContentButton;
+    private final com.google.gwt.user.client.ui.HTML operationOutput;
+    private com.google.gwt.user.client.ui.HTML error;
+    private com.google.gwt.user.client.ui.HTML fatal;
+    private com.google.gwt.user.client.ui.HTML log;
+    private final org.waveprotocol.wave.client.editor.content.Registries testEditorRegistries;
+    private com.google.gwt.user.client.ui.CheckBox toggleEditCheck1;
+    private com.google.gwt.user.client.ui.CheckBox toggleEditCheck2;
+    private final com.google.gwt.user.client.ui.Button clearLogButton;
+    private final com.google.gwt.user.client.ui.Button quietButton;
+    private final com.google.gwt.user.client.ui.Button loudButton;
+    private final com.google.gwt.user.client.ui.CheckBox createEditor2DocDetached;
+    java.util.ArrayList queue;
+    private final com.google.gwt.user.client.ui.CheckBox queuingCheck;
+    private final com.google.gwt.event.dom.client.ClickHandler queuingCheckHandler;
+    private final com.google.gwt.user.client.ui.Button playButton;
+    private final com.google.gwt.user.client.ui.Button clearAnnotationsButton;
+    private final com.google.gwt.user.client.ui.CheckBox diffCheck;
+    private final com.google.gwt.event.dom.client.ClickHandler diffCheckHandler;
+    private final com.google.gwt.user.client.ui.CheckBox disabledCheck;
+    private final com.google.gwt.event.dom.client.ClickHandler disabledCheckHandler;
+    private final com.google.gwt.user.client.ui.ListBox documentModeSelect;
+    private final com.google.gwt.user.client.ui.Button clearEditorsButton;
+    private final com.google.gwt.user.client.ui.FlowPanel widgetRow;
+    private int randomTestCounter;
+    org.waveprotocol.wave.client.scheduler.Scheduler$IncrementalTask randomTestProcess;
+    private final org.waveprotocol.wave.model.operation.SilentOperationSink editor1Sink;
+    private final org.waveprotocol.wave.model.operation.SilentOperationSink editor2Sink;
+    static final boolean $assertionsDisabled;
+
+    private com.google.gwt.user.client.ui.CheckBox createEditToggleCheckBox(org.waveprotocol.wave.client.editor.Editor)
+    {
+        org.waveprotocol.wave.client.editor.Editor r3;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness$3 $r1;
+        com.google.gwt.user.client.ui.CheckBox $r0;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r2;
+
+        r2 := @this: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        r3 := @parameter0: org.waveprotocol.wave.client.editor.Editor;
+
+        $r0 = new com.google.gwt.user.client.ui.CheckBox;
+
+        specialinvoke $r0.<com.google.gwt.user.client.ui.CheckBox: void <init>(java.lang.String)>("Toggle edit");
+
+        $r1 = new org.waveprotocol.wave.client.editor.harness.EditorHarness$3;
+
+        specialinvoke $r1.<org.waveprotocol.wave.client.editor.harness.EditorHarness$3: void <init>(org.waveprotocol.wave.client.editor.harness.EditorHarness,org.waveprotocol.wave.client.editor.Editor)>(r2, r3);
+
+        virtualinvoke $r0.<com.google.gwt.user.client.ui.CheckBox: com.google.gwt.event.shared.HandlerRegistration addValueChangeHandler(com.google.gwt.event.logical.shared.ValueChangeHandler)>($r1);
+
+        return $r0;
+    }
+
+    private void setEditing(org.waveprotocol.wave.client.editor.Editor, boolean)
+    {
+        org.waveprotocol.wave.client.editor.Editor r0;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r1;
+        boolean z0, $z1;
+
+        r1 := @this: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        r0 := @parameter0: org.waveprotocol.wave.client.editor.Editor;
+
+        z0 := @parameter1: boolean;
+
+        interfaceinvoke r0.<org.waveprotocol.wave.client.editor.Editor: void setEditing(boolean)>(z0);
+
+        $z1 = interfaceinvoke r0.<org.waveprotocol.wave.client.editor.Editor: boolean isEditing()>();
+
+        if $z1 == 0 goto label1;
+
+        interfaceinvoke r0.<org.waveprotocol.wave.client.editor.Editor: void focus(boolean)>(1);
+
+     label1:
+        return;
+    }
+
+    private void syncEditors(java.lang.String)
+    {
+        com.google.gwt.user.client.Element $r52;
+        org.waveprotocol.wave.model.document.indexed.IndexedDocProvider $r1;
+        org.waveprotocol.wave.client.editor.Editor $r13, $r29, $r50;
+        org.waveprotocol.wave.client.editor.content.ContentView $r46;
+        com.google.gwt.dom.client.Element $r49, $r54, $r71;
+        java.lang.StringBuilder $r18, $r19, $r20, $r21, $r22, $r23, $r35, $r36, $r37, $r38, $r39, $r40, $r67, $r70;
+        org.waveprotocol.wave.model.document.indexed.IndexedDocument $r2;
+        java.lang.Throwable $r59, $r64;
+        java.lang.Object[] $r14, $r31;
+        org.waveprotocol.wave.common.logging.Logger $r57, $r61, $r63;
+        java.lang.AssertionError $r69;
+        com.google.gwt.user.client.ui.CheckBox $r8;
+        org.waveprotocol.wave.client.editor.content.ContentElement $r48;
+        java.lang.String r0, $r24, $r41;
+        org.waveprotocol.wave.model.document.operation.automaton.DocOpAutomaton$ViolationCollector $r65;
+        org.waveprotocol.wave.model.document.operation.automaton.DocOpAutomaton$ValidationResult $r7;
+        com.google.gwt.dom.client.Node $r72;
+        org.waveprotocol.wave.client.editor.content.Registries $r11, $r26;
+        org.waveprotocol.wave.common.logging.AbstractLogger$Level $r17, $r34;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r4;
+        org.waveprotocol.wave.client.editor.content.ContentDocument $r12, $r27, $r28, $r30, $r42, $r45, $r53, $r66, $r68;
+        boolean $z0, $z1, $z2, $z3;
+        org.waveprotocol.wave.common.logging.LoggerBundle $r16, $r33, $r56, $r60, $r62;
+        com.google.gwt.user.client.ui.Widget $r51;
+        int $i0;
+        java.lang.Boolean $r9;
+        double $d0, $d1, $d2, $d3, $d4, $d5, $d6, $d7, $d8, $d9, $d10, d11, d12;
+        org.waveprotocol.wave.client.editor.content.ContentDocument$Level $r44;
+        org.waveprotocol.wave.model.document.operation.automaton.DocumentSchema $r5;
+        org.waveprotocol.wave.model.document.operation.DocInitialization $r3;
+        java.lang.IllegalArgumentException $r58;
+        java.lang.Object $r47;
+        com.google.gwt.user.client.ui.ListBox $r43;
+
+        r4 := @this: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        r0 := @parameter0: java.lang.String;
+
+     label01:
+        $r1 = <org.waveprotocol.wave.model.document.util.DocProviders: org.waveprotocol.wave.model.document.indexed.IndexedDocProvider POJO>;
+
+        $r2 = virtualinvoke $r1.<org.waveprotocol.wave.model.document.indexed.IndexedDocProvider: org.waveprotocol.wave.model.document.indexed.IndexedDocument parse(java.lang.String)>(r0);
+
+        $r3 = interfaceinvoke $r2.<org.waveprotocol.wave.model.document.indexed.IndexedDocument: org.waveprotocol.wave.model.document.operation.DocInitialization asOperation()>();
+
+     label02:
+        goto label06;
+
+     label03:
+        $r58 := @caughtexception;
+
+        $r59 = virtualinvoke $r58.<java.lang.IllegalArgumentException: java.lang.Throwable getCause()>();
+
+        $z3 = $r59 instanceof org.waveprotocol.wave.model.document.parser.XmlParseException;
+
+        if $z3 == 0 goto label04;
+
+        $r62 = r4.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.common.logging.LoggerBundle logger>;
+
+        $r63 = interfaceinvoke $r62.<org.waveprotocol.wave.common.logging.LoggerBundle: org.waveprotocol.wave.common.logging.Logger error()>();
+
+        $r64 = virtualinvoke $r58.<java.lang.IllegalArgumentException: java.lang.Throwable getCause()>();
+
+        interfaceinvoke $r63.<org.waveprotocol.wave.common.logging.Logger: void log(java.lang.String,java.lang.Throwable)>("Ill-formed XML string ", $r64);
+
+        goto label05;
+
+     label04:
+        $r60 = r4.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.common.logging.LoggerBundle logger>;
+
+        $r61 = interfaceinvoke $r60.<org.waveprotocol.wave.common.logging.LoggerBundle: org.waveprotocol.wave.common.logging.Logger error()>();
+
+        interfaceinvoke $r61.<org.waveprotocol.wave.common.logging.Logger: void log(java.lang.String,java.lang.Throwable)>("Error", $r58);
+
+     label05:
+        return;
+
+     label06:
+        $r5 = virtualinvoke r4.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.model.document.operation.automaton.DocumentSchema getSchema()>();
+
+        $r65 = new org.waveprotocol.wave.model.document.operation.automaton.DocOpAutomaton$ViolationCollector;
+
+        specialinvoke $r65.<org.waveprotocol.wave.model.document.operation.automaton.DocOpAutomaton$ViolationCollector: void <init>()>();
+
+        $r7 = staticinvoke <org.waveprotocol.wave.model.document.operation.impl.DocOpValidator: org.waveprotocol.wave.model.document.operation.automaton.DocOpAutomaton$ValidationResult validate(org.waveprotocol.wave.model.document.operation.automaton.DocOpAutomaton$ViolationCollector,org.waveprotocol.wave.model.document.operation.automaton.DocumentSchema,org.waveprotocol.wave.model.document.operation.DocInitialization)>($r65, $r5, $r3);
+
+        $z0 = virtualinvoke $r7.<org.waveprotocol.wave.model.document.operation.automaton.DocOpAutomaton$ValidationResult: boolean isValid()>();
+
+        if $z0 != 0 goto label07;
+
+        $r56 = r4.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.common.logging.LoggerBundle logger>;
+
+        $r57 = interfaceinvoke $r56.<org.waveprotocol.wave.common.logging.LoggerBundle: org.waveprotocol.wave.common.logging.Logger error()>();
+
+        interfaceinvoke $r57.<org.waveprotocol.wave.common.logging.Logger: void log(java.lang.String,java.lang.Object)>("That content does not conform to the schema", $r65);
+
+        return;
+
+     label07:
+        $r8 = r4.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.CheckBox createEditor2DocDetached>;
+
+        $r9 = virtualinvoke $r8.<com.google.gwt.user.client.ui.CheckBox: java.lang.Boolean getValue()>();
+
+        $z1 = virtualinvoke $r9.<java.lang.Boolean: boolean booleanValue()>();
+
+        $d0 = staticinvoke <com.google.gwt.core.client.Duration: double currentTimeMillis()>();
+
+        $r66 = new org.waveprotocol.wave.client.editor.content.ContentDocument;
+
+        $r11 = r4.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.content.Registries testEditorRegistries>;
+
+        specialinvoke $r66.<org.waveprotocol.wave.client.editor.content.ContentDocument: void <init>(org.waveprotocol.wave.client.editor.content.Registries,org.waveprotocol.wave.model.document.operation.DocInitialization,org.waveprotocol.wave.model.document.operation.automaton.DocumentSchema)>($r11, $r3, $r5);
+
+        r4.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.content.ContentDocument doc1> = $r66;
+
+        $d1 = staticinvoke <com.google.gwt.core.client.Duration: double currentTimeMillis()>();
+
+        $r13 = r4.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.Editor editor1>;
+
+        $r12 = r4.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.content.ContentDocument doc1>;
+
+        interfaceinvoke $r13.<org.waveprotocol.wave.client.editor.Editor: void setContent(org.waveprotocol.wave.client.editor.content.ContentDocument)>($r12);
+
+        $d2 = staticinvoke <com.google.gwt.core.client.Duration: double currentTimeMillis()>();
+
+        $r16 = r4.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.common.logging.LoggerBundle logger>;
+
+        $r17 = <org.waveprotocol.wave.common.logging.AbstractLogger$Level: org.waveprotocol.wave.common.logging.AbstractLogger$Level TRACE>;
+
+        $r14 = newarray (java.lang.Object)[1];
+
+        $r67 = new java.lang.StringBuilder;
+
+        specialinvoke $r67.<java.lang.StringBuilder: void <init>()>();
+
+        $r18 = virtualinvoke $r67.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Set content1 took: ");
+
+        $d3 = $d2 - $d0;
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.StringBuilder append(double)>($d3);
+
+        $r20 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" (Pojo creation: ");
+
+        $d4 = $d1 - $d0;
+
+        $r21 = virtualinvoke $r20.<java.lang.StringBuilder: java.lang.StringBuilder append(double)>($d4);
+
+        $r22 = virtualinvoke $r21.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(", rendering: ");
+
+        $d5 = $d2 - $d1;
+
+        $r23 = virtualinvoke $r22.<java.lang.StringBuilder: java.lang.StringBuilder append(double)>($d5);
+
+        $r24 = virtualinvoke $r23.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r14[0] = $r24;
+
+        interfaceinvoke $r16.<org.waveprotocol.wave.common.logging.LoggerBundle: void log(org.waveprotocol.wave.common.logging.AbstractLogger$Level,java.lang.Object[])>($r17, $r14);
+
+        $d6 = staticinvoke <com.google.gwt.core.client.Duration: double currentTimeMillis()>();
+
+        $r68 = new org.waveprotocol.wave.client.editor.content.ContentDocument;
+
+        specialinvoke $r68.<org.waveprotocol.wave.client.editor.content.ContentDocument: void <init>(org.waveprotocol.wave.model.document.operation.automaton.DocumentSchema)>($r5);
+
+        r4.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.content.ContentDocument doc2> = $r68;
+
+        $r27 = r4.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.content.ContentDocument doc2>;
+
+        $r26 = r4.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.content.Registries testEditorRegistries>;
+
+        virtualinvoke $r27.<org.waveprotocol.wave.client.editor.content.ContentDocument: void setRegistries(org.waveprotocol.wave.client.editor.content.Registries)>($r26);
+
+        $r29 = r4.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.Editor editor2>;
+
+        $r28 = r4.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.content.ContentDocument doc2>;
+
+        interfaceinvoke $r29.<org.waveprotocol.wave.client.editor.Editor: void setContent(org.waveprotocol.wave.client.editor.content.ContentDocument)>($r28);
+
+        if $z1 == 0 goto label09;
+
+        $r45 = r4.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.content.ContentDocument doc2>;
+
+        $r46 = virtualinvoke $r45.<org.waveprotocol.wave.client.editor.content.ContentDocument: org.waveprotocol.wave.client.editor.content.ContentView getFullContentView()>();
+
+        $r47 = interfaceinvoke $r46.<org.waveprotocol.wave.client.editor.content.ContentView: java.lang.Object getDocumentElement()>();
+
+        $r48 = (org.waveprotocol.wave.client.editor.content.ContentElement) $r47;
+
+        $r49 = virtualinvoke $r48.<org.waveprotocol.wave.client.editor.content.ContentElement: com.google.gwt.dom.client.Element getImplNodelet()>();
+
+        $r50 = r4.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.Editor editor2>;
+
+        $r51 = interfaceinvoke $r50.<org.waveprotocol.wave.client.editor.Editor: com.google.gwt.user.client.ui.Widget getWidget()>();
+
+        $r52 = virtualinvoke $r51.<com.google.gwt.user.client.ui.Widget: com.google.gwt.user.client.Element getElement()>();
+
+        $z2 = <org.waveprotocol.wave.client.editor.harness.EditorHarness: boolean $assertionsDisabled>;
+
+        if $z2 != 0 goto label08;
+
+        $r54 = virtualinvoke $r49.<com.google.gwt.dom.client.Element: com.google.gwt.dom.client.Element getParentElement()>();
+
+        if $r54 == $r52 goto label08;
+
+        $r69 = new java.lang.AssertionError;
+
+        specialinvoke $r69.<java.lang.AssertionError: void <init>()>();
+
+        throw $r69;
+
+     label08:
+        virtualinvoke $r49.<com.google.gwt.dom.client.Element: void removeFromParent()>();
+
+        d11 = staticinvoke <com.google.gwt.core.client.Duration: double currentTimeMillis()>();
+
+        $r53 = r4.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.content.ContentDocument doc2>;
+
+        virtualinvoke $r53.<org.waveprotocol.wave.client.editor.content.ContentDocument: void consume(org.waveprotocol.wave.model.document.operation.DocOp)>($r3);
+
+        d12 = staticinvoke <com.google.gwt.core.client.Duration: double currentTimeMillis()>();
+
+        $r71 = (com.google.gwt.dom.client.Element) $r52;
+
+        $r72 = (com.google.gwt.dom.client.Node) $r49;
+
+        virtualinvoke $r71.<com.google.gwt.dom.client.Element: com.google.gwt.dom.client.Node appendChild(com.google.gwt.dom.client.Node)>($r72);
+
+        goto label10;
+
+     label09:
+        d11 = staticinvoke <com.google.gwt.core.client.Duration: double currentTimeMillis()>();
+
+        $r30 = r4.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.content.ContentDocument doc2>;
+
+        virtualinvoke $r30.<org.waveprotocol.wave.client.editor.content.ContentDocument: void consume(org.waveprotocol.wave.model.document.operation.DocOp)>($r3);
+
+        d12 = staticinvoke <com.google.gwt.core.client.Duration: double currentTimeMillis()>();
+
+     label10:
+        $d7 = staticinvoke <com.google.gwt.core.client.Duration: double currentTimeMillis()>();
+
+        $r33 = r4.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.common.logging.LoggerBundle logger>;
+
+        $r34 = <org.waveprotocol.wave.common.logging.AbstractLogger$Level: org.waveprotocol.wave.common.logging.AbstractLogger$Level TRACE>;
+
+        $r31 = newarray (java.lang.Object)[1];
+
+        $r70 = new java.lang.StringBuilder;
+
+        specialinvoke $r70.<java.lang.StringBuilder: void <init>()>();
+
+        $r35 = virtualinvoke $r70.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Set content2 took: ");
+
+        $d8 = $d7 - $d6;
+
+        $r36 = virtualinvoke $r35.<java.lang.StringBuilder: java.lang.StringBuilder append(double)>($d8);
+
+        $r37 = virtualinvoke $r36.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" Just the op: ");
+
+        $d9 = d12 - d11;
+
+        $r38 = virtualinvoke $r37.<java.lang.StringBuilder: java.lang.StringBuilder append(double)>($d9);
+
+        $r39 = virtualinvoke $r38.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" Op + appendChild: ");
+
+        $d10 = $d7 - d11;
+
+        $r40 = virtualinvoke $r39.<java.lang.StringBuilder: java.lang.StringBuilder append(double)>($d10);
+
+        $r41 = virtualinvoke $r40.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r31[0] = $r41;
+
+        interfaceinvoke $r33.<org.waveprotocol.wave.common.logging.LoggerBundle: void log(org.waveprotocol.wave.common.logging.AbstractLogger$Level,java.lang.Object[])>($r34, $r31);
+
+        $r43 = r4.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.ListBox documentModeSelect>;
+
+        $r42 = r4.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.content.ContentDocument doc1>;
+
+        $r44 = virtualinvoke $r42.<org.waveprotocol.wave.client.editor.content.ContentDocument: org.waveprotocol.wave.client.editor.content.ContentDocument$Level getLevel()>();
+
+        $i0 = virtualinvoke $r44.<org.waveprotocol.wave.client.editor.content.ContentDocument$Level: int ordinal()>();
+
+        virtualinvoke $r43.<com.google.gwt.user.client.ui.ListBox: void setSelectedIndex(int)>($i0);
+
+        specialinvoke r4.<org.waveprotocol.wave.client.editor.harness.EditorHarness: void outputBothEditorStates()>();
+
+        return;
+
+        catch java.lang.IllegalArgumentException from label01 to label02 with label03;
+    }
+
+    private void showRedErrorIndicator()
+    {
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+        com.google.gwt.user.client.ui.HTML $r1;
+
+        r0 := @this: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        $r1 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML error>;
+
+        virtualinvoke $r1.<com.google.gwt.user.client.ui.HTML: void setText(java.lang.String)>("ERROR!");
+
+        return;
+    }
+
+    private void showRedFatalIndicator()
+    {
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+        com.google.gwt.user.client.ui.HTML $r1;
+
+        r0 := @this: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        $r1 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML fatal>;
+
+        virtualinvoke $r1.<com.google.gwt.user.client.ui.HTML: void setText(java.lang.String)>("FATAL!");
+
+        return;
+    }
+
+    private void logUncaughtExceptions(java.lang.Throwable)
+    {
+        java.lang.Throwable r3;
+        java.io.PrintStream $r5;
+        org.waveprotocol.wave.common.logging.Logger $r2;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+        org.waveprotocol.wave.common.logging.LoggerBundle $r1, $r4;
+
+        r0 := @this: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        r3 := @parameter0: java.lang.Throwable;
+
+        specialinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: void showRedFatalIndicator()>();
+
+        $r1 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.common.logging.LoggerBundle logger>;
+
+        $r2 = interfaceinvoke $r1.<org.waveprotocol.wave.common.logging.LoggerBundle: org.waveprotocol.wave.common.logging.Logger fatal()>();
+
+        interfaceinvoke $r2.<org.waveprotocol.wave.common.logging.Logger: void log(java.lang.Throwable)>(r3);
+
+        $r4 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.common.logging.LoggerBundle logger>;
+
+        interfaceinvoke $r4.<org.waveprotocol.wave.common.logging.LoggerBundle: org.waveprotocol.wave.common.logging.Logger trace()>();
+
+        staticinvoke <com.google.gwt.core.client.GWT: void log(java.lang.String,java.lang.Throwable)>("Uncaught Exception", r3);
+
+        $r5 = <java.lang.System: java.io.PrintStream err>;
+
+        virtualinvoke r3.<java.lang.Throwable: void printStackTrace(java.io.PrintStream)>($r5);
+
+        return;
+    }
+
+    private void setEditorLevel()
+    {
+        com.google.gwt.user.client.Element $r21;
+        org.waveprotocol.wave.client.editor.content.ContentView $r23, $r34, $r36;
+        org.waveprotocol.wave.client.editor.Editor $r52, $r55, $r58;
+        org.waveprotocol.wave.model.operation.SilentOperationSink $r56;
+        com.google.gwt.dom.client.Element $r26;
+        java.lang.StringBuilder $r10, $r11, $r61;
+        org.waveprotocol.wave.client.common.util.LogicalPanel$Impl $r15, $r20;
+        java.lang.Object[] $r6;
+        java.lang.AssertionError $r62, $r63, $r64;
+        org.waveprotocol.wave.client.editor.content.ContentDocument$Level[] $r0;
+        org.waveprotocol.wave.client.editor.content.ContentElement $r25;
+        java.lang.String $r12;
+        org.waveprotocol.wave.client.common.util.LogicalPanel $r65;
+        com.google.gwt.dom.client.Node $r42, $r66;
+        org.waveprotocol.wave.client.editor.content.ContentNode r41;
+        org.waveprotocol.wave.common.logging.AbstractLogger$Level $r9;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r1;
+        org.waveprotocol.wave.client.editor.content.ContentDocument $r4, $r16, $r17, $r22, $r27, $r30, $r33, $r35, $r44, $r47, $r51, $r53, $r57;
+        boolean $z0, $z1, $z2, $z3;
+        org.waveprotocol.wave.common.logging.LoggerBundle $r8;
+        java.lang.Iterable $r38;
+        int $i0;
+        org.waveprotocol.wave.client.editor.content.ContentDocument$Level r3, $r5, $r13, $r14, $r18, $r19, $r28, $r29, $r31, $r32, $r45, $r48, $r49, $r54, $r59, $r60;
+        java.util.Iterator $r39;
+        java.lang.Object $r24, $r37, $r40;
+        com.google.gwt.user.client.ui.ListBox $r2;
+
+        r1 := @this: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        $r0 = staticinvoke <org.waveprotocol.wave.client.editor.content.ContentDocument$Level: org.waveprotocol.wave.client.editor.content.ContentDocument$Level[] values()>();
+
+        $r2 = r1.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.ListBox documentModeSelect>;
+
+        $i0 = virtualinvoke $r2.<com.google.gwt.user.client.ui.ListBox: int getSelectedIndex()>();
+
+        r3 = $r0[$i0];
+
+        $r4 = r1.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.content.ContentDocument doc1>;
+
+        $r5 = virtualinvoke $r4.<org.waveprotocol.wave.client.editor.content.ContentDocument: org.waveprotocol.wave.client.editor.content.ContentDocument$Level getLevel()>();
+
+        $r8 = r1.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.common.logging.LoggerBundle logger>;
+
+        $r9 = <org.waveprotocol.wave.common.logging.AbstractLogger$Level: org.waveprotocol.wave.common.logging.AbstractLogger$Level TRACE>;
+
+        $r6 = newarray (java.lang.Object)[1];
+
+        $r61 = new java.lang.StringBuilder;
+
+        specialinvoke $r61.<java.lang.StringBuilder: void <init>()>();
+
+        $r10 = virtualinvoke $r61.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Switching to ");
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r3);
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r6[0] = $r12;
+
+        interfaceinvoke $r8.<org.waveprotocol.wave.common.logging.LoggerBundle: void log(org.waveprotocol.wave.common.logging.AbstractLogger$Level,java.lang.Object[])>($r9, $r6);
+
+        if $r5 != r3 goto label01;
+
+        return;
+
+     label01:
+        $r13 = <org.waveprotocol.wave.client.editor.content.ContentDocument$Level: org.waveprotocol.wave.client.editor.content.ContentDocument$Level EDITING>;
+
+        if $r5 != $r13 goto label04;
+
+        $r54 = <org.waveprotocol.wave.client.editor.content.ContentDocument$Level: org.waveprotocol.wave.client.editor.content.ContentDocument$Level SHELVED>;
+
+        if r3 != $r54 goto label02;
+
+        $r58 = r1.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.Editor editor1>;
+
+        interfaceinvoke $r58.<org.waveprotocol.wave.client.editor.Editor: org.waveprotocol.wave.client.editor.content.ContentDocument removeContentAndUnrender()>();
+
+        goto label03;
+
+     label02:
+        $r55 = r1.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.Editor editor1>;
+
+        interfaceinvoke $r55.<org.waveprotocol.wave.client.editor.Editor: org.waveprotocol.wave.client.editor.content.ContentDocument removeContent()>();
+
+     label03:
+        $r57 = r1.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.content.ContentDocument doc1>;
+
+        $r56 = r1.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.model.operation.SilentOperationSink editor1Sink>;
+
+        virtualinvoke $r57.<org.waveprotocol.wave.client.editor.content.ContentDocument: org.waveprotocol.wave.model.operation.SilentOperationSink replaceOutgoingSink(org.waveprotocol.wave.model.operation.SilentOperationSink)>($r56);
+
+     label04:
+        $r59 = <org.waveprotocol.wave.client.editor.content.ContentDocument$Level: org.waveprotocol.wave.client.editor.content.ContentDocument$Level SHELVED>;
+
+        if r3 != $r59 goto label05;
+
+        $r53 = r1.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.content.ContentDocument doc1>;
+
+        virtualinvoke $r53.<org.waveprotocol.wave.client.editor.content.ContentDocument: void setShelved()>();
+
+        goto label09;
+
+     label05:
+        $r14 = <org.waveprotocol.wave.client.editor.content.ContentDocument$Level: org.waveprotocol.wave.client.editor.content.ContentDocument$Level EDITING>;
+
+        if r3 != $r14 goto label06;
+
+        $r52 = r1.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.Editor editor1>;
+
+        $r51 = r1.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.content.ContentDocument doc1>;
+
+        interfaceinvoke $r52.<org.waveprotocol.wave.client.editor.Editor: void setContent(org.waveprotocol.wave.client.editor.content.ContentDocument)>($r51);
+
+        goto label09;
+
+     label06:
+        $z0 = <org.waveprotocol.wave.client.editor.harness.EditorHarness: boolean $assertionsDisabled>;
+
+        if $z0 != 0 goto label07;
+
+        $r48 = <org.waveprotocol.wave.client.editor.content.ContentDocument$Level: org.waveprotocol.wave.client.editor.content.ContentDocument$Level RENDERED>;
+
+        if r3 == $r48 goto label07;
+
+        $r49 = <org.waveprotocol.wave.client.editor.content.ContentDocument$Level: org.waveprotocol.wave.client.editor.content.ContentDocument$Level INTERACTIVE>;
+
+        if r3 == $r49 goto label07;
+
+        $r62 = new java.lang.AssertionError;
+
+        specialinvoke $r62.<java.lang.AssertionError: void <init>()>();
+
+        throw $r62;
+
+     label07:
+        $r60 = <org.waveprotocol.wave.client.editor.content.ContentDocument$Level: org.waveprotocol.wave.client.editor.content.ContentDocument$Level RENDERED>;
+
+        if r3 != $r60 goto label08;
+
+        $r47 = r1.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.content.ContentDocument doc1>;
+
+        virtualinvoke $r47.<org.waveprotocol.wave.client.editor.content.ContentDocument: void setRendering()>();
+
+        goto label09;
+
+     label08:
+        $r16 = r1.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.content.ContentDocument doc1>;
+
+        $r15 = r1.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.common.util.LogicalPanel$Impl displayDoc1>;
+
+        $r65 = (org.waveprotocol.wave.client.common.util.LogicalPanel) $r15;
+
+        virtualinvoke $r16.<org.waveprotocol.wave.client.editor.content.ContentDocument: void setInteractive(org.waveprotocol.wave.client.common.util.LogicalPanel)>($r65);
+
+     label09:
+        $z3 = <org.waveprotocol.wave.client.editor.harness.EditorHarness: boolean $assertionsDisabled>;
+
+        if $z3 != 0 goto label10;
+
+        $r44 = r1.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.content.ContentDocument doc1>;
+
+        $r45 = virtualinvoke $r44.<org.waveprotocol.wave.client.editor.content.ContentDocument: org.waveprotocol.wave.client.editor.content.ContentDocument$Level getLevel()>();
+
+        if $r45 == r3 goto label10;
+
+        $r63 = new java.lang.AssertionError;
+
+        specialinvoke $r63.<java.lang.AssertionError: void <init>()>();
+
+        throw $r63;
+
+     label10:
+        $r17 = r1.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.content.ContentDocument doc1>;
+
+        $r18 = virtualinvoke $r17.<org.waveprotocol.wave.client.editor.content.ContentDocument: org.waveprotocol.wave.client.editor.content.ContentDocument$Level getLevel()>();
+
+        $r19 = <org.waveprotocol.wave.client.editor.content.ContentDocument$Level: org.waveprotocol.wave.client.editor.content.ContentDocument$Level RENDERED>;
+
+        if $r18 == $r19 goto label11;
+
+        $r27 = r1.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.content.ContentDocument doc1>;
+
+        $r28 = virtualinvoke $r27.<org.waveprotocol.wave.client.editor.content.ContentDocument: org.waveprotocol.wave.client.editor.content.ContentDocument$Level getLevel()>();
+
+        $r29 = <org.waveprotocol.wave.client.editor.content.ContentDocument$Level: org.waveprotocol.wave.client.editor.content.ContentDocument$Level INTERACTIVE>;
+
+        if $r28 != $r29 goto label12;
+
+     label11:
+        $r20 = r1.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.common.util.LogicalPanel$Impl displayDoc1>;
+
+        $r21 = virtualinvoke $r20.<org.waveprotocol.wave.client.common.util.LogicalPanel$Impl: com.google.gwt.user.client.Element getElement()>();
+
+        $r22 = r1.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.content.ContentDocument doc1>;
+
+        $r23 = virtualinvoke $r22.<org.waveprotocol.wave.client.editor.content.ContentDocument: org.waveprotocol.wave.client.editor.content.ContentView getFullContentView()>();
+
+        $r24 = interfaceinvoke $r23.<org.waveprotocol.wave.client.editor.content.ContentView: java.lang.Object getDocumentElement()>();
+
+        $r25 = (org.waveprotocol.wave.client.editor.content.ContentElement) $r24;
+
+        $r26 = virtualinvoke $r25.<org.waveprotocol.wave.client.editor.content.ContentElement: com.google.gwt.dom.client.Element getImplNodelet()>();
+
+        $r66 = (com.google.gwt.dom.client.Node) $r26;
+
+        virtualinvoke $r21.<com.google.gwt.user.client.Element: com.google.gwt.dom.client.Node appendChild(com.google.gwt.dom.client.Node)>($r66);
+
+        goto label15;
+
+     label12:
+        $r30 = r1.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.content.ContentDocument doc1>;
+
+        $r31 = virtualinvoke $r30.<org.waveprotocol.wave.client.editor.content.ContentDocument: org.waveprotocol.wave.client.editor.content.ContentDocument$Level getLevel()>();
+
+        $r32 = <org.waveprotocol.wave.client.editor.content.ContentDocument$Level: org.waveprotocol.wave.client.editor.content.ContentDocument$Level SHELVED>;
+
+        if $r31 != $r32 goto label15;
+
+        $r33 = r1.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.content.ContentDocument doc1>;
+
+        $r34 = virtualinvoke $r33.<org.waveprotocol.wave.client.editor.content.ContentDocument: org.waveprotocol.wave.client.editor.content.ContentView getFullContentView()>();
+
+        $r35 = r1.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.content.ContentDocument doc1>;
+
+        $r36 = virtualinvoke $r35.<org.waveprotocol.wave.client.editor.content.ContentDocument: org.waveprotocol.wave.client.editor.content.ContentView getFullContentView()>();
+
+        $r37 = interfaceinvoke $r36.<org.waveprotocol.wave.client.editor.content.ContentView: java.lang.Object getDocumentElement()>();
+
+        $r38 = staticinvoke <org.waveprotocol.wave.model.document.util.DocIterate: java.lang.Iterable deep(org.waveprotocol.wave.model.document.ReadableDocument,java.lang.Object,java.lang.Object)>($r34, $r37, null);
+
+        $r39 = interfaceinvoke $r38.<java.lang.Iterable: java.util.Iterator iterator()>();
+
+     label13:
+        $z1 = interfaceinvoke $r39.<java.util.Iterator: boolean hasNext()>();
+
+        if $z1 == 0 goto label15;
+
+        $r40 = interfaceinvoke $r39.<java.util.Iterator: java.lang.Object next()>();
+
+        r41 = (org.waveprotocol.wave.client.editor.content.ContentNode) $r40;
+
+        $z2 = <org.waveprotocol.wave.client.editor.harness.EditorHarness: boolean $assertionsDisabled>;
+
+        if $z2 != 0 goto label14;
+
+        $r42 = virtualinvoke r41.<org.waveprotocol.wave.client.editor.content.ContentNode: com.google.gwt.dom.client.Node getImplNodelet()>();
+
+        if $r42 == null goto label14;
+
+        $r64 = new java.lang.AssertionError;
+
+        specialinvoke $r64.<java.lang.AssertionError: void <init>()>();
+
+        throw $r64;
+
+     label14:
+        goto label13;
+
+     label15:
+        return;
+    }
+
+    public void clearEditors()
+    {
+        org.waveprotocol.wave.client.editor.Editor $r1;
+        org.waveprotocol.wave.client.editor.EditorImpl $r2;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+        org.waveprotocol.wave.client.editor.content.CMutableDocument $r3;
+
+        r0 := @this: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        specialinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: void syncEditors(java.lang.String)>("");
+
+        $r1 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.Editor editor2>;
+
+        $r2 = (org.waveprotocol.wave.client.editor.EditorImpl) $r1;
+
+        $r3 = virtualinvoke $r2.<org.waveprotocol.wave.client.editor.EditorImpl: org.waveprotocol.wave.client.editor.content.CMutableDocument mutable()>();
+
+        staticinvoke <org.waveprotocol.wave.model.document.util.LineContainers: java.lang.Object appendLine(org.waveprotocol.wave.model.document.MutableDocument,org.waveprotocol.wave.model.document.util.XmlStringBuilder)>($r3, null);
+
+        return;
+    }
+
+    private void playOne()
+    {
+        java.lang.Throwable $r9;
+        org.waveprotocol.wave.client.editor.Editor $r8;
+        com.google.gwt.core.client.GWT$UncaughtExceptionHandler $r10;
+        org.waveprotocol.wave.model.document.operation.DocOp r4;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+        com.google.gwt.user.client.ui.HTML $r6, $r7;
+        java.util.ArrayList $r1, $r2;
+        int $i0;
+        java.lang.Object $r3;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness$EditorBundle $r5;
+
+        r0 := @this: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        $r1 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: java.util.ArrayList queue>;
+
+        $i0 = virtualinvoke $r1.<java.util.ArrayList: int size()>();
+
+        if $i0 <= 0 goto label4;
+
+        $r2 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: java.util.ArrayList queue>;
+
+        $r3 = virtualinvoke $r2.<java.util.ArrayList: java.lang.Object remove(int)>(0);
+
+        r4 = (org.waveprotocol.wave.model.document.operation.DocOp) $r3;
+
+     label1:
+        specialinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: void outputOperation(org.waveprotocol.wave.model.document.operation.DocOp)>(r4);
+
+        $r5 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.harness.EditorHarness$EditorBundle editorBundle2>;
+
+        virtualinvoke $r5.<org.waveprotocol.wave.client.editor.harness.EditorHarness$EditorBundle: void execute(org.waveprotocol.wave.model.document.operation.DocOp)>(r4);
+
+        $r8 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.Editor editor2>;
+
+        $r7 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML prettyContent2>;
+
+        $r6 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML prettyHtml2>;
+
+        specialinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: void outputEditorState(org.waveprotocol.wave.client.editor.Editor,com.google.gwt.user.client.ui.HTML,com.google.gwt.user.client.ui.HTML)>($r8, $r7, $r6);
+
+     label2:
+        goto label4;
+
+     label3:
+        $r9 := @caughtexception;
+
+        $r10 = staticinvoke <com.google.gwt.core.client.GWT: com.google.gwt.core.client.GWT$UncaughtExceptionHandler getUncaughtExceptionHandler()>();
+
+        interfaceinvoke $r10.<com.google.gwt.core.client.GWT$UncaughtExceptionHandler: void onUncaughtException(java.lang.Throwable)>($r9);
+
+     label4:
+        specialinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: void setPlayButtonState()>();
+
+        return;
+
+        catch java.lang.Throwable from label1 to label2 with label3;
+    }
+
+    private void setPlayButtonState()
+    {
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+        java.util.ArrayList $r1, $r6, $r11;
+        int $i0, $i1, $i2;
+        java.lang.String $r8, $r14;
+        boolean $z0;
+        com.google.gwt.user.client.ui.Button $r2, $r4;
+        java.lang.StringBuilder $r3, $r5, $r7, $r9, $r10, $r12, $r13;
+
+        r0 := @this: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        $r2 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.Button playButton>;
+
+        $r1 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: java.util.ArrayList queue>;
+
+        $i0 = virtualinvoke $r1.<java.util.ArrayList: int size()>();
+
+        if $i0 <= 0 goto label1;
+
+        $z0 = 1;
+
+        goto label2;
+
+     label1:
+        $z0 = 0;
+
+     label2:
+        virtualinvoke $r2.<com.google.gwt.user.client.ui.Button: void setEnabled(boolean)>($z0);
+
+        $r4 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.Button playButton>;
+
+        $r3 = new java.lang.StringBuilder;
+
+        specialinvoke $r3.<java.lang.StringBuilder: void <init>()>();
+
+        $r5 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Play");
+
+        $r6 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: java.util.ArrayList queue>;
+
+        $i1 = virtualinvoke $r6.<java.util.ArrayList: int size()>();
+
+        if $i1 <= 0 goto label3;
+
+        $r9 = new java.lang.StringBuilder;
+
+        specialinvoke $r9.<java.lang.StringBuilder: void <init>()>();
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" (");
+
+        $r11 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: java.util.ArrayList queue>;
+
+        $i2 = virtualinvoke $r11.<java.util.ArrayList: int size()>();
+
+        $r12 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i2);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(")");
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        goto label4;
+
+     label3:
+        $r14 = "";
+
+     label4:
+        $r7 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r14);
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r4.<com.google.gwt.user.client.ui.Button: void setHTML(java.lang.String)>($r8);
+
+        return;
+    }
+
+    private void outputBothEditorStates()
+    {
+        org.waveprotocol.wave.client.editor.Editor $r3, $r6;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+        com.google.gwt.user.client.ui.HTML $r1, $r2, $r4, $r5;
+
+        r0 := @this: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        $r3 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.Editor editor1>;
+
+        $r2 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML prettyContent1>;
+
+        $r1 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML prettyHtml1>;
+
+        specialinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: void outputEditorState(org.waveprotocol.wave.client.editor.Editor,com.google.gwt.user.client.ui.HTML,com.google.gwt.user.client.ui.HTML)>($r3, $r2, $r1);
+
+        $r6 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.Editor editor2>;
+
+        $r5 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML prettyContent2>;
+
+        $r4 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML prettyHtml2>;
+
+        specialinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: void outputEditorState(org.waveprotocol.wave.client.editor.Editor,com.google.gwt.user.client.ui.HTML,com.google.gwt.user.client.ui.HTML)>($r6, $r5, $r4);
+
+        return;
+    }
+
+    private void outputEditorState(org.waveprotocol.wave.client.editor.Editor, com.google.gwt.user.client.ui.HTML, com.google.gwt.user.client.ui.HTML)
+    {
+        org.waveprotocol.wave.client.editor.Editor r2;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness$15 $r0;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r1;
+        org.waveprotocol.wave.client.editor.content.ContentDocument $r5;
+        com.google.gwt.user.client.ui.HTML r3, r4;
+        boolean $z0, $z1;
+
+        r1 := @this: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        r2 := @parameter0: org.waveprotocol.wave.client.editor.Editor;
+
+        r3 := @parameter1: com.google.gwt.user.client.ui.HTML;
+
+        r4 := @parameter2: com.google.gwt.user.client.ui.HTML;
+
+        $r0 = new org.waveprotocol.wave.client.editor.harness.EditorHarness$15;
+
+        specialinvoke $r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness$15: void <init>(org.waveprotocol.wave.client.editor.harness.EditorHarness,org.waveprotocol.wave.client.editor.Editor,com.google.gwt.user.client.ui.HTML,com.google.gwt.user.client.ui.HTML)>(r1, r2, r3, r4);
+
+        $z0 = staticinvoke <org.waveprotocol.wave.client.debug.logger.LogLevel: boolean showDebug()>();
+
+        if $z0 == 0 goto label1;
+
+        $r5 = interfaceinvoke r2.<org.waveprotocol.wave.client.editor.Editor: org.waveprotocol.wave.client.editor.content.ContentDocument getContent()>();
+
+        $z1 = virtualinvoke $r5.<org.waveprotocol.wave.client.editor.content.ContentDocument: boolean flush(java.lang.Runnable)>($r0);
+
+        if $z1 == 0 goto label1;
+
+        interfaceinvoke $r0.<java.lang.Runnable: void run()>();
+
+     label1:
+        return;
+    }
+
+    private void outputOperation(org.waveprotocol.wave.model.document.operation.DocOp)
+    {
+        org.waveprotocol.wave.model.document.operation.DocOp r1;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+        java.lang.String $r3;
+        com.google.gwt.user.client.ui.HTML $r2;
+        boolean $z0;
+
+        r0 := @this: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        r1 := @parameter0: org.waveprotocol.wave.model.document.operation.DocOp;
+
+        $z0 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: boolean quiet>;
+
+        if $z0 != 0 goto label3;
+
+        $r2 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML operationOutput>;
+
+        if r1 == null goto label1;
+
+        $r3 = virtualinvoke r1.<java.lang.Object: java.lang.String toString()>();
+
+        goto label2;
+
+     label1:
+        $r3 = "";
+
+     label2:
+        virtualinvoke $r2.<com.google.gwt.user.client.ui.HTML: void setText(java.lang.String)>($r3);
+
+     label3:
+        return;
+    }
+
+    private void setFromContentBox()
+    {
+        org.waveprotocol.wave.client.editor.Editor $r6;
+        com.google.gwt.user.client.ui.MultiWordSuggestOracle $r4, $r7;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+        com.google.gwt.user.client.ui.SuggestBox $r2;
+        java.lang.String r3, $r5, $r9;
+        com.google.gwt.user.client.ui.TextArea $r1, $r8;
+
+        r0 := @this: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        $r1 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.TextArea contentBox>;
+
+        if $r1 == null goto label1;
+
+        $r8 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.TextArea contentBox>;
+
+        $r9 = virtualinvoke $r8.<com.google.gwt.user.client.ui.TextArea: java.lang.String getText()>();
+
+        goto label2;
+
+     label1:
+        $r2 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.SuggestBox contentSuggestBox>;
+
+        $r9 = virtualinvoke $r2.<com.google.gwt.user.client.ui.SuggestBox: java.lang.String getText()>();
+
+     label2:
+        r3 = $r9;
+
+        $r4 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.MultiWordSuggestOracle contentOracle>;
+
+        if $r4 == null goto label3;
+
+        $r7 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.MultiWordSuggestOracle contentOracle>;
+
+        virtualinvoke $r7.<com.google.gwt.user.client.ui.MultiWordSuggestOracle: void add(java.lang.String)>($r9);
+
+     label3:
+        $r5 = virtualinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: java.lang.String bodyWrap(java.lang.String)>(r3);
+
+        specialinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: void syncEditors(java.lang.String)>($r5);
+
+        $r6 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.Editor editor1>;
+
+        interfaceinvoke $r6.<org.waveprotocol.wave.client.editor.Editor: void focus(boolean)>(1);
+
+        return;
+    }
+
+    public static org.waveprotocol.wave.client.editor.harness.EditorHarness createTestPage()
+    {
+        org.waveprotocol.wave.client.editor.harness.EditorHarness $r2;
+        com.google.gwt.user.client.ui.Widget $r3;
+        com.google.gwt.user.client.ui.RootPanel $r1;
+
+        $r2 = new org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        specialinvoke $r2.<org.waveprotocol.wave.client.editor.harness.EditorHarness: void <init>()>();
+
+        $r1 = staticinvoke <com.google.gwt.user.client.ui.RootPanel: com.google.gwt.user.client.ui.RootPanel get()>();
+
+        $r3 = (com.google.gwt.user.client.ui.Widget) $r2;
+
+        virtualinvoke $r1.<com.google.gwt.user.client.ui.RootPanel: void add(com.google.gwt.user.client.ui.Widget,int,int)>($r3, 0, 0);
+
+        return $r2;
+    }
+
+    void initContentText()
+    {
+        com.google.gwt.user.client.Element $r3;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+        com.google.gwt.user.client.ui.TextArea $r1, $r2;
+
+        r0 := @this: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        $r1 = new com.google.gwt.user.client.ui.TextArea;
+
+        specialinvoke $r1.<com.google.gwt.user.client.ui.TextArea: void <init>()>();
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.TextArea contentBox> = $r1;
+
+        $r2 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.TextArea contentBox>;
+
+        $r3 = virtualinvoke $r2.<com.google.gwt.user.client.ui.TextArea: com.google.gwt.user.client.Element getElement()>();
+
+        virtualinvoke $r3.<com.google.gwt.user.client.Element: void setId(java.lang.String)>("content-box");
+
+        return;
+    }
+
+    void initContentOracle()
+    {
+        com.google.gwt.user.client.Element $r5;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness$16 $r15;
+        com.google.gwt.user.client.ui.SuggestOracle $r16;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+        java.lang.String[] $r10;
+        int i0, i1;
+        java.lang.String r11;
+        com.google.gwt.user.client.ui.MultiWordSuggestOracle $r3, $r6, $r7, $r12, $r13;
+        com.google.gwt.user.client.ui.SuggestBox $r4, $r9, $r14;
+
+        r0 := @this: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        $r13 = new com.google.gwt.user.client.ui.MultiWordSuggestOracle;
+
+        specialinvoke $r13.<com.google.gwt.user.client.ui.MultiWordSuggestOracle: void <init>()>();
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.MultiWordSuggestOracle contentOracle> = $r13;
+
+        $r14 = new com.google.gwt.user.client.ui.SuggestBox;
+
+        $r3 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.MultiWordSuggestOracle contentOracle>;
+
+        $r16 = (com.google.gwt.user.client.ui.SuggestOracle) $r3;
+
+        specialinvoke $r14.<com.google.gwt.user.client.ui.SuggestBox: void <init>(com.google.gwt.user.client.ui.SuggestOracle)>($r16);
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.SuggestBox contentSuggestBox> = $r14;
+
+        $r4 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.SuggestBox contentSuggestBox>;
+
+        $r5 = virtualinvoke $r4.<com.google.gwt.user.client.ui.SuggestBox: com.google.gwt.user.client.Element getElement()>();
+
+        virtualinvoke $r5.<com.google.gwt.user.client.Element: void setId(java.lang.String)>("content-box");
+
+        $r6 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.MultiWordSuggestOracle contentOracle>;
+
+        virtualinvoke $r6.<com.google.gwt.user.client.ui.MultiWordSuggestOracle: void add(java.lang.String)>("");
+
+        $r7 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.MultiWordSuggestOracle contentOracle>;
+
+        virtualinvoke $r7.<com.google.gwt.user.client.ui.MultiWordSuggestOracle: void add(java.lang.String)>("abcd");
+
+        $r9 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.SuggestBox contentSuggestBox>;
+
+        $r15 = new org.waveprotocol.wave.client.editor.harness.EditorHarness$16;
+
+        specialinvoke $r15.<org.waveprotocol.wave.client.editor.harness.EditorHarness$16: void <init>(org.waveprotocol.wave.client.editor.harness.EditorHarness)>(r0);
+
+        virtualinvoke $r9.<com.google.gwt.user.client.ui.SuggestBox: com.google.gwt.event.shared.HandlerRegistration addSelectionHandler(com.google.gwt.event.logical.shared.SelectionHandler)>($r15);
+
+        $r10 = virtualinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: java.lang.String[] extendSampleContent()>();
+
+        if $r10 == null goto label2;
+
+        i0 = lengthof $r10;
+
+        i1 = 0;
+
+     label1:
+        if i1 >= i0 goto label2;
+
+        r11 = $r10[i1];
+
+        $r12 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.MultiWordSuggestOracle contentOracle>;
+
+        virtualinvoke $r12.<com.google.gwt.user.client.ui.MultiWordSuggestOracle: void add(java.lang.String)>(r11);
+
+        i1 = i1 + 1;
+
+        goto label1;
+
+     label2:
+        return;
+    }
+
+    public java.lang.String[] extendSampleContent()
+    {
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+
+        r0 := @this: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        return null;
+    }
+
+    public java.lang.String bodyWrap(java.lang.String)
+    {
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r6;
+        java.lang.StringBuilder $r0, $r1, $r3, $r4;
+        java.lang.String r2, $r5;
+
+        r6 := @this: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        r2 := @parameter0: java.lang.String;
+
+        $r0 = new java.lang.StringBuilder;
+
+        specialinvoke $r0.<java.lang.StringBuilder: void <init>()>();
+
+        $r1 = virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("<body><line/> ");
+
+        $r3 = virtualinvoke $r1.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r2);
+
+        $r4 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("</body>");
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        return $r5;
+    }
+
+    public void <init>()
+    {
+        com.google.gwt.user.client.Element $r90, $r114, $r142, $r145, $r149;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness$17 $r193;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness$18 $r209;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness$19 $r212;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness$12 $r184;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness$13 $r185;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness$14 $r187;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness$20 $r215;
+        com.google.gwt.user.client.ui.TextArea $r84;
+        com.google.gwt.user.client.ui.InlineLabel $r207, $r208;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness$23 $r188;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness$24 $r189;
+        org.waveprotocol.wave.client.common.util.LogicalPanel$Impl $r55;
+        com.google.gwt.event.dom.client.ClickHandler $r66, $r68, $r70;
+        com.google.gwt.user.client.ui.HorizontalPanel $r201, $r204;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness$10 $r180;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness$11 $r182;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness$EditorBundle $r198, $r199;
+        com.google.gwt.core.client.GWT$UncaughtExceptionHandler $r155;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+        org.waveprotocol.wave.common.logging.LoggerBundle $r156, $r216;
+        com.google.gwt.user.client.ui.HasVerticalAlignment$VerticalAlignmentConstant $r65;
+        int i0, i1;
+        java.lang.Boolean $r35, $r110, $r112;
+        org.waveprotocol.wave.client.editor.keys.KeyBindingRegistry $r214;
+        org.waveprotocol.wave.client.editor.content.ContentDocument$Level r158;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness$1 $r161;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness$2 $r162;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness$4 $r165;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness$5 $r167;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness$6 $r169;
+        org.waveprotocol.wave.model.document.operation.automaton.DocumentSchema $r36;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness$7 $r174;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness$8 $r175;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness$9 $r177;
+        java.lang.Object $r159;
+        com.google.gwt.user.client.ui.HTML $r48, $r76, $r113, $r115, $r116, $r117, $r127, $r128, $r129, $r130, $r132, $r134, $r136, $r138, $r140, $r141, $r144, $r146, $r148, $r150, $r164, $r190, $r191, $r192, $r194, $r195, $r196, $r197, $r213;
+        org.waveprotocol.wave.client.editor.Editor $r38, $r40, $r41, $r43, $r44, $r46, $r53, $r59, $r97, $r100, $r102, $r104, $r106, $r107, $r108;
+        org.waveprotocol.wave.model.operation.SilentOperationSink $r103, $r105;
+        com.google.gwt.user.client.ui.FlowPanel $r79, $r81, $r83, $r85, $r87, $r91, $r92, $r120, $r122, $r124, $r126, $r200, $r202, $r203, $r206, $r211;
+        com.google.gwt.dom.client.Element $r253;
+        org.waveprotocol.wave.common.logging.Logger $r157;
+        org.waveprotocol.wave.client.editor.content.ContentDocument$Level[] $r26;
+        java.util.ArrayList $r172;
+        com.google.gwt.user.client.ui.CheckBox $r34, $r45, $r47, $r56, $r57, $r61, $r62, $r63, $r67, $r69, $r71, $r73, $r109, $r111, $r171, $r173, $r179, $r181;
+        java.lang.String $r153;
+        java.lang.RuntimeException $r154;
+        org.waveprotocol.wave.client.editor.content.Registries $r6, $r37, $r96, $r99;
+        com.google.gwt.user.client.ui.Label $r205;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8;
+        org.waveprotocol.wave.client.debug.logger.DomLogger $r160;
+        com.google.gwt.user.client.ui.Widget $r54, $r60, $r217, $r218, $r219, $r220, $r221, $r222, $r223, $r224, $r225, $r226, $r227, $r228, $r229, $r230, $r231, $r232, $r233, $r234, $r235, $r236, $r237, $r238, $r239, $r240, $r241, $r242, $r243, $r244, $r245, $r246, $r247, $r248, $r249, $r250, $r251, $r252;
+        org.waveprotocol.wave.client.editor.EditorSettings $r95, $r98;
+        com.google.gwt.user.client.ui.Button $r72, $r74, $r78, $r80, $r121, $r123, $r125, $r163, $r166, $r168, $r170, $r176, $r178, $r186, $r210;
+        com.google.gwt.user.client.ui.ListBox $r28, $r58, $r152, $r183;
+
+        r0 := @this: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        specialinvoke r0.<com.google.gwt.user.client.ui.Composite: void <init>()>();
+
+        $r160 = new org.waveprotocol.wave.client.debug.logger.DomLogger;
+
+        specialinvoke $r160.<org.waveprotocol.wave.client.debug.logger.DomLogger: void <init>(java.lang.String)>("test");
+
+        $r216 = (org.waveprotocol.wave.common.logging.LoggerBundle) $r160;
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.common.logging.LoggerBundle logger> = $r216;
+
+        $r161 = new org.waveprotocol.wave.client.editor.harness.EditorHarness$1;
+
+        specialinvoke $r161.<org.waveprotocol.wave.client.editor.harness.EditorHarness$1: void <init>(org.waveprotocol.wave.client.editor.harness.EditorHarness)>(r0);
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.common.util.LogicalPanel$Impl displayDoc1> = $r161;
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: boolean sendOps> = 1;
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: boolean quiet> = 0;
+
+        $r163 = new com.google.gwt.user.client.ui.Button;
+
+        $r162 = new org.waveprotocol.wave.client.editor.harness.EditorHarness$2;
+
+        specialinvoke $r162.<org.waveprotocol.wave.client.editor.harness.EditorHarness$2: void <init>(org.waveprotocol.wave.client.editor.harness.EditorHarness)>(r0);
+
+        specialinvoke $r163.<com.google.gwt.user.client.ui.Button: void <init>(java.lang.String,com.google.gwt.event.dom.client.ClickHandler)>("Set content:", $r162);
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.Button setContentButton> = $r163;
+
+        $r164 = new com.google.gwt.user.client.ui.HTML;
+
+        specialinvoke $r164.<com.google.gwt.user.client.ui.HTML: void <init>()>();
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML operationOutput> = $r164;
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML error> = null;
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML fatal> = null;
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML log> = null;
+
+        $r6 = <org.waveprotocol.wave.client.editor.Editor: org.waveprotocol.wave.client.editor.content.Registries ROOT_REGISTRIES>;
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.content.Registries testEditorRegistries> = $r6;
+
+        $r166 = new com.google.gwt.user.client.ui.Button;
+
+        $r165 = new org.waveprotocol.wave.client.editor.harness.EditorHarness$4;
+
+        specialinvoke $r165.<org.waveprotocol.wave.client.editor.harness.EditorHarness$4: void <init>(org.waveprotocol.wave.client.editor.harness.EditorHarness)>(r0);
+
+        specialinvoke $r166.<com.google.gwt.user.client.ui.Button: void <init>(java.lang.String,com.google.gwt.event.dom.client.ClickHandler)>("Clear log", $r165);
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.Button clearLogButton> = $r166;
+
+        $r168 = new com.google.gwt.user.client.ui.Button;
+
+        $r167 = new org.waveprotocol.wave.client.editor.harness.EditorHarness$5;
+
+        specialinvoke $r167.<org.waveprotocol.wave.client.editor.harness.EditorHarness$5: void <init>(org.waveprotocol.wave.client.editor.harness.EditorHarness)>(r0);
+
+        specialinvoke $r168.<com.google.gwt.user.client.ui.Button: void <init>(java.lang.String,com.google.gwt.event.dom.client.ClickHandler)>("Quiet (app runs faster)", $r167);
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.Button quietButton> = $r168;
+
+        $r170 = new com.google.gwt.user.client.ui.Button;
+
+        $r169 = new org.waveprotocol.wave.client.editor.harness.EditorHarness$6;
+
+        specialinvoke $r169.<org.waveprotocol.wave.client.editor.harness.EditorHarness$6: void <init>(org.waveprotocol.wave.client.editor.harness.EditorHarness)>(r0);
+
+        specialinvoke $r170.<com.google.gwt.user.client.ui.Button: void <init>(java.lang.String,com.google.gwt.event.dom.client.ClickHandler)>("Loud (more info)", $r169);
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.Button loudButton> = $r170;
+
+        $r171 = new com.google.gwt.user.client.ui.CheckBox;
+
+        specialinvoke $r171.<com.google.gwt.user.client.ui.CheckBox: void <init>(java.lang.String)>("Create detached");
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.CheckBox createEditor2DocDetached> = $r171;
+
+        $r172 = new java.util.ArrayList;
+
+        specialinvoke $r172.<java.util.ArrayList: void <init>()>();
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: java.util.ArrayList queue> = $r172;
+
+        $r173 = new com.google.gwt.user.client.ui.CheckBox;
+
+        specialinvoke $r173.<com.google.gwt.user.client.ui.CheckBox: void <init>(java.lang.String)>("Queue");
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.CheckBox queuingCheck> = $r173;
+
+        $r174 = new org.waveprotocol.wave.client.editor.harness.EditorHarness$7;
+
+        specialinvoke $r174.<org.waveprotocol.wave.client.editor.harness.EditorHarness$7: void <init>(org.waveprotocol.wave.client.editor.harness.EditorHarness)>(r0);
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.event.dom.client.ClickHandler queuingCheckHandler> = $r174;
+
+        $r176 = new com.google.gwt.user.client.ui.Button;
+
+        $r175 = new org.waveprotocol.wave.client.editor.harness.EditorHarness$8;
+
+        specialinvoke $r175.<org.waveprotocol.wave.client.editor.harness.EditorHarness$8: void <init>(org.waveprotocol.wave.client.editor.harness.EditorHarness)>(r0);
+
+        specialinvoke $r176.<com.google.gwt.user.client.ui.Button: void <init>(java.lang.String,com.google.gwt.event.dom.client.ClickHandler)>("Play", $r175);
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.Button playButton> = $r176;
+
+        $r178 = new com.google.gwt.user.client.ui.Button;
+
+        $r177 = new org.waveprotocol.wave.client.editor.harness.EditorHarness$9;
+
+        specialinvoke $r177.<org.waveprotocol.wave.client.editor.harness.EditorHarness$9: void <init>(org.waveprotocol.wave.client.editor.harness.EditorHarness)>(r0);
+
+        specialinvoke $r178.<com.google.gwt.user.client.ui.Button: void <init>(java.lang.String,com.google.gwt.event.dom.client.ClickHandler)>("Clear Annotations", $r177);
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.Button clearAnnotationsButton> = $r178;
+
+        $r179 = new com.google.gwt.user.client.ui.CheckBox;
+
+        specialinvoke $r179.<com.google.gwt.user.client.ui.CheckBox: void <init>(java.lang.String)>("Diffs");
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.CheckBox diffCheck> = $r179;
+
+        $r180 = new org.waveprotocol.wave.client.editor.harness.EditorHarness$10;
+
+        specialinvoke $r180.<org.waveprotocol.wave.client.editor.harness.EditorHarness$10: void <init>(org.waveprotocol.wave.client.editor.harness.EditorHarness)>(r0);
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.event.dom.client.ClickHandler diffCheckHandler> = $r180;
+
+        $r181 = new com.google.gwt.user.client.ui.CheckBox;
+
+        specialinvoke $r181.<com.google.gwt.user.client.ui.CheckBox: void <init>(java.lang.String)>("Disable");
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.CheckBox disabledCheck> = $r181;
+
+        $r182 = new org.waveprotocol.wave.client.editor.harness.EditorHarness$11;
+
+        specialinvoke $r182.<org.waveprotocol.wave.client.editor.harness.EditorHarness$11: void <init>(org.waveprotocol.wave.client.editor.harness.EditorHarness)>(r0);
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.event.dom.client.ClickHandler disabledCheckHandler> = $r182;
+
+        $r183 = new com.google.gwt.user.client.ui.ListBox;
+
+        specialinvoke $r183.<com.google.gwt.user.client.ui.ListBox: void <init>()>();
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.ListBox documentModeSelect> = $r183;
+
+        $r26 = staticinvoke <org.waveprotocol.wave.client.editor.content.ContentDocument$Level: org.waveprotocol.wave.client.editor.content.ContentDocument$Level[] values()>();
+
+        i0 = lengthof $r26;
+
+        i1 = 0;
+
+     label01:
+        if i1 >= i0 goto label02;
+
+        r158 = $r26[i1];
+
+        $r152 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.ListBox documentModeSelect>;
+
+        $r153 = virtualinvoke r158.<org.waveprotocol.wave.client.editor.content.ContentDocument$Level: java.lang.String name()>();
+
+        virtualinvoke $r152.<com.google.gwt.user.client.ui.ListBox: void addItem(java.lang.String)>($r153);
+
+        i1 = i1 + 1;
+
+        goto label01;
+
+     label02:
+        $r28 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.ListBox documentModeSelect>;
+
+        $r184 = new org.waveprotocol.wave.client.editor.harness.EditorHarness$12;
+
+        specialinvoke $r184.<org.waveprotocol.wave.client.editor.harness.EditorHarness$12: void <init>(org.waveprotocol.wave.client.editor.harness.EditorHarness)>(r0);
+
+        virtualinvoke $r28.<com.google.gwt.user.client.ui.ListBox: com.google.gwt.event.shared.HandlerRegistration addChangeHandler(com.google.gwt.event.dom.client.ChangeHandler)>($r184);
+
+        $r186 = new com.google.gwt.user.client.ui.Button;
+
+        $r185 = new org.waveprotocol.wave.client.editor.harness.EditorHarness$13;
+
+        specialinvoke $r185.<org.waveprotocol.wave.client.editor.harness.EditorHarness$13: void <init>(org.waveprotocol.wave.client.editor.harness.EditorHarness)>(r0);
+
+        specialinvoke $r186.<com.google.gwt.user.client.ui.Button: void <init>(java.lang.String,com.google.gwt.event.dom.client.ClickHandler)>("Clear", $r185);
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.Button clearEditorsButton> = $r186;
+
+        $r187 = new org.waveprotocol.wave.client.editor.harness.EditorHarness$14;
+
+        specialinvoke $r187.<org.waveprotocol.wave.client.editor.harness.EditorHarness$14: void <init>(org.waveprotocol.wave.client.editor.harness.EditorHarness)>(r0);
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.scheduler.Scheduler$IncrementalTask randomTestProcess> = $r187;
+
+        $r188 = new org.waveprotocol.wave.client.editor.harness.EditorHarness$23;
+
+        specialinvoke $r188.<org.waveprotocol.wave.client.editor.harness.EditorHarness$23: void <init>(org.waveprotocol.wave.client.editor.harness.EditorHarness)>(r0);
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.model.operation.SilentOperationSink editor1Sink> = $r188;
+
+        $r189 = new org.waveprotocol.wave.client.editor.harness.EditorHarness$24;
+
+        specialinvoke $r189.<org.waveprotocol.wave.client.editor.harness.EditorHarness$24: void <init>(org.waveprotocol.wave.client.editor.harness.EditorHarness)>(r0);
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.model.operation.SilentOperationSink editor2Sink> = $r189;
+
+     label03:
+        $r34 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.CheckBox queuingCheck>;
+
+        $r35 = staticinvoke <java.lang.Boolean: java.lang.Boolean valueOf(boolean)>(0);
+
+        virtualinvoke $r34.<com.google.gwt.user.client.ui.CheckBox: void setValue(java.lang.Boolean)>($r35);
+
+        specialinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: void setPlayButtonState()>();
+
+        $z0 = staticinvoke <org.waveprotocol.wave.client.debug.logger.LogLevel: boolean showDebug()>();
+
+        if $z0 == 0 goto label04;
+
+        $r190 = new com.google.gwt.user.client.ui.HTML;
+
+        specialinvoke $r190.<com.google.gwt.user.client.ui.HTML: void <init>()>();
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML log> = $r190;
+
+        $r140 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML log>;
+
+        virtualinvoke $r140.<com.google.gwt.user.client.ui.HTML: void setStyleName(java.lang.String)>("log");
+
+        $r141 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML log>;
+
+        $r142 = virtualinvoke $r141.<com.google.gwt.user.client.ui.HTML: com.google.gwt.user.client.Element getElement()>();
+
+        virtualinvoke $r142.<com.google.gwt.user.client.Element: void setId(java.lang.String)>("log1");
+
+        $r191 = new com.google.gwt.user.client.ui.HTML;
+
+        specialinvoke $r191.<com.google.gwt.user.client.ui.HTML: void <init>()>();
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML error> = $r191;
+
+        $r144 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML error>;
+
+        $r145 = virtualinvoke $r144.<com.google.gwt.user.client.ui.HTML: com.google.gwt.user.client.Element getElement()>();
+
+        virtualinvoke $r145.<com.google.gwt.user.client.Element: void setId(java.lang.String)>("error1");
+
+        $r146 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML error>;
+
+        virtualinvoke $r146.<com.google.gwt.user.client.ui.HTML: void setStyleName(java.lang.String)>("redIndicator");
+
+        $r192 = new com.google.gwt.user.client.ui.HTML;
+
+        specialinvoke $r192.<com.google.gwt.user.client.ui.HTML: void <init>()>();
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML fatal> = $r192;
+
+        $r148 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML fatal>;
+
+        $r149 = virtualinvoke $r148.<com.google.gwt.user.client.ui.HTML: com.google.gwt.user.client.Element getElement()>();
+
+        virtualinvoke $r149.<com.google.gwt.user.client.Element: void setId(java.lang.String)>("fatal1");
+
+        $r150 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML fatal>;
+
+        virtualinvoke $r150.<com.google.gwt.user.client.ui.HTML: void setStyleName(java.lang.String)>("redIndicator");
+
+        $r193 = new org.waveprotocol.wave.client.editor.harness.EditorHarness$17;
+
+        specialinvoke $r193.<org.waveprotocol.wave.client.editor.harness.EditorHarness$17: void <init>(org.waveprotocol.wave.client.editor.harness.EditorHarness)>(r0);
+
+        staticinvoke <org.waveprotocol.wave.client.debug.logger.DomLogger: void addLoggerListener(org.waveprotocol.wave.client.debug.logger.LoggerListener)>($r193);
+
+     label04:
+        $z1 = staticinvoke <org.waveprotocol.wave.client.debug.logger.LogLevel: boolean showDebug()>();
+
+        if $z1 == 0 goto label05;
+
+        $r194 = new com.google.gwt.user.client.ui.HTML;
+
+        specialinvoke $r194.<com.google.gwt.user.client.ui.HTML: void <init>()>();
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML prettyContent1> = $r194;
+
+        $r132 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML prettyContent1>;
+
+        virtualinvoke $r132.<com.google.gwt.user.client.ui.HTML: void addStyleName(java.lang.String)>("content");
+
+        $r195 = new com.google.gwt.user.client.ui.HTML;
+
+        specialinvoke $r195.<com.google.gwt.user.client.ui.HTML: void <init>()>();
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML prettyContent2> = $r195;
+
+        $r134 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML prettyContent2>;
+
+        virtualinvoke $r134.<com.google.gwt.user.client.ui.HTML: void addStyleName(java.lang.String)>("content");
+
+        $r196 = new com.google.gwt.user.client.ui.HTML;
+
+        specialinvoke $r196.<com.google.gwt.user.client.ui.HTML: void <init>()>();
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML prettyHtml1> = $r196;
+
+        $r136 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML prettyHtml1>;
+
+        virtualinvoke $r136.<com.google.gwt.user.client.ui.HTML: void addStyleName(java.lang.String)>("html");
+
+        $r197 = new com.google.gwt.user.client.ui.HTML;
+
+        specialinvoke $r197.<com.google.gwt.user.client.ui.HTML: void <init>()>();
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML prettyHtml2> = $r197;
+
+        $r138 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML prettyHtml2>;
+
+        virtualinvoke $r138.<com.google.gwt.user.client.ui.HTML: void addStyleName(java.lang.String)>("html");
+
+     label05:
+        $r36 = virtualinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.model.document.operation.automaton.DocumentSchema getSchema()>();
+
+        staticinvoke <org.waveprotocol.wave.client.editor.webdriver.EditorWebDriverUtil: void setDocumentSchema(org.waveprotocol.wave.model.document.operation.automaton.DocumentSchema)>($r36);
+
+        $r37 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.content.Registries testEditorRegistries>;
+
+        virtualinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: void registerDoodads(org.waveprotocol.wave.client.editor.content.Registries)>($r37);
+
+        $r38 = specialinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.Editor createEditor(java.lang.String)>("editor1");
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.Editor editor1> = $r38;
+
+        $r198 = new org.waveprotocol.wave.client.editor.harness.EditorHarness$EditorBundle;
+
+        $r40 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.Editor editor1>;
+
+        specialinvoke $r198.<org.waveprotocol.wave.client.editor.harness.EditorHarness$EditorBundle: void <init>(org.waveprotocol.wave.client.editor.harness.EditorHarness,org.waveprotocol.wave.client.editor.Editor,boolean)>(r0, $r40, 1);
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.harness.EditorHarness$EditorBundle editorBundle1> = $r198;
+
+        $r41 = specialinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.Editor createEditor(java.lang.String)>("editor2");
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.Editor editor2> = $r41;
+
+        $r199 = new org.waveprotocol.wave.client.editor.harness.EditorHarness$EditorBundle;
+
+        $r43 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.Editor editor2>;
+
+        specialinvoke $r199.<org.waveprotocol.wave.client.editor.harness.EditorHarness$EditorBundle: void <init>(org.waveprotocol.wave.client.editor.harness.EditorHarness,org.waveprotocol.wave.client.editor.Editor,boolean)>(r0, $r43, 0);
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.harness.EditorHarness$EditorBundle editorBundle2> = $r199;
+
+        $r44 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.Editor editor1>;
+
+        $r45 = specialinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.CheckBox createEditToggleCheckBox(org.waveprotocol.wave.client.editor.Editor)>($r44);
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.CheckBox toggleEditCheck1> = $r45;
+
+        $r46 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.Editor editor2>;
+
+        $r47 = specialinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.CheckBox createEditToggleCheckBox(org.waveprotocol.wave.client.editor.Editor)>($r46);
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.CheckBox toggleEditCheck2> = $r47;
+
+        $r48 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML operationOutput>;
+
+        virtualinvoke $r48.<com.google.gwt.user.client.ui.HTML: void setStyleName(java.lang.String)>("operation");
+
+        $r200 = new com.google.gwt.user.client.ui.FlowPanel;
+
+        specialinvoke $r200.<com.google.gwt.user.client.ui.FlowPanel: void <init>()>();
+
+        virtualinvoke $r200.<com.google.gwt.user.client.ui.FlowPanel: void setStyleName(java.lang.String)>("main");
+
+        $r201 = new com.google.gwt.user.client.ui.HorizontalPanel;
+
+        specialinvoke $r201.<com.google.gwt.user.client.ui.HorizontalPanel: void <init>()>();
+
+        $r202 = new com.google.gwt.user.client.ui.FlowPanel;
+
+        specialinvoke $r202.<com.google.gwt.user.client.ui.FlowPanel: void <init>()>();
+
+        $r203 = new com.google.gwt.user.client.ui.FlowPanel;
+
+        specialinvoke $r203.<com.google.gwt.user.client.ui.FlowPanel: void <init>()>();
+
+        $r53 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.Editor editor1>;
+
+        $r54 = interfaceinvoke $r53.<org.waveprotocol.wave.client.editor.Editor: com.google.gwt.user.client.ui.Widget getWidget()>();
+
+        virtualinvoke $r202.<com.google.gwt.user.client.ui.FlowPanel: void add(com.google.gwt.user.client.ui.Widget)>($r54);
+
+        $r55 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.common.util.LogicalPanel$Impl displayDoc1>;
+
+        $r217 = (com.google.gwt.user.client.ui.Widget) $r55;
+
+        virtualinvoke $r202.<com.google.gwt.user.client.ui.FlowPanel: void add(com.google.gwt.user.client.ui.Widget)>($r217);
+
+        $r56 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.CheckBox toggleEditCheck1>;
+
+        $r218 = (com.google.gwt.user.client.ui.Widget) $r56;
+
+        virtualinvoke $r202.<com.google.gwt.user.client.ui.FlowPanel: void add(com.google.gwt.user.client.ui.Widget)>($r218);
+
+        $r57 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.CheckBox disabledCheck>;
+
+        $r219 = (com.google.gwt.user.client.ui.Widget) $r57;
+
+        virtualinvoke $r202.<com.google.gwt.user.client.ui.FlowPanel: void add(com.google.gwt.user.client.ui.Widget)>($r219);
+
+        $r58 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.ListBox documentModeSelect>;
+
+        $r220 = (com.google.gwt.user.client.ui.Widget) $r58;
+
+        virtualinvoke $r202.<com.google.gwt.user.client.ui.FlowPanel: void add(com.google.gwt.user.client.ui.Widget)>($r220);
+
+        $z2 = staticinvoke <org.waveprotocol.wave.client.debug.logger.LogLevel: boolean showDebug()>();
+
+        if $z2 == 0 goto label06;
+
+        $r130 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML prettyContent1>;
+
+        $r221 = (com.google.gwt.user.client.ui.Widget) $r130;
+
+        virtualinvoke $r202.<com.google.gwt.user.client.ui.FlowPanel: void add(com.google.gwt.user.client.ui.Widget)>($r221);
+
+     label06:
+        $r59 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.Editor editor2>;
+
+        $r60 = interfaceinvoke $r59.<org.waveprotocol.wave.client.editor.Editor: com.google.gwt.user.client.ui.Widget getWidget()>();
+
+        virtualinvoke $r203.<com.google.gwt.user.client.ui.FlowPanel: void add(com.google.gwt.user.client.ui.Widget)>($r60);
+
+        $r61 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.CheckBox toggleEditCheck2>;
+
+        $r222 = (com.google.gwt.user.client.ui.Widget) $r61;
+
+        virtualinvoke $r203.<com.google.gwt.user.client.ui.FlowPanel: void add(com.google.gwt.user.client.ui.Widget)>($r222);
+
+        $r62 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.CheckBox diffCheck>;
+
+        $r223 = (com.google.gwt.user.client.ui.Widget) $r62;
+
+        virtualinvoke $r203.<com.google.gwt.user.client.ui.FlowPanel: void add(com.google.gwt.user.client.ui.Widget)>($r223);
+
+        $r63 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.CheckBox createEditor2DocDetached>;
+
+        $r224 = (com.google.gwt.user.client.ui.Widget) $r63;
+
+        virtualinvoke $r203.<com.google.gwt.user.client.ui.FlowPanel: void add(com.google.gwt.user.client.ui.Widget)>($r224);
+
+        $z3 = staticinvoke <org.waveprotocol.wave.client.debug.logger.LogLevel: boolean showDebug()>();
+
+        if $z3 == 0 goto label07;
+
+        $r129 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML prettyContent2>;
+
+        $r225 = (com.google.gwt.user.client.ui.Widget) $r129;
+
+        virtualinvoke $r203.<com.google.gwt.user.client.ui.FlowPanel: void add(com.google.gwt.user.client.ui.Widget)>($r225);
+
+     label07:
+        $r226 = (com.google.gwt.user.client.ui.Widget) $r202;
+
+        virtualinvoke $r201.<com.google.gwt.user.client.ui.HorizontalPanel: void add(com.google.gwt.user.client.ui.Widget)>($r226);
+
+        $z4 = staticinvoke <org.waveprotocol.wave.client.debug.logger.LogLevel: boolean showDebug()>();
+
+        if $z4 == 0 goto label08;
+
+        $r128 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML prettyHtml1>;
+
+        $r227 = (com.google.gwt.user.client.ui.Widget) $r128;
+
+        virtualinvoke $r201.<com.google.gwt.user.client.ui.HorizontalPanel: void add(com.google.gwt.user.client.ui.Widget)>($r227);
+
+     label08:
+        $r228 = (com.google.gwt.user.client.ui.Widget) $r203;
+
+        virtualinvoke $r201.<com.google.gwt.user.client.ui.HorizontalPanel: void add(com.google.gwt.user.client.ui.Widget)>($r228);
+
+        $z5 = staticinvoke <org.waveprotocol.wave.client.debug.logger.LogLevel: boolean showDebug()>();
+
+        if $z5 == 0 goto label09;
+
+        $r127 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML prettyHtml2>;
+
+        $r229 = (com.google.gwt.user.client.ui.Widget) $r127;
+
+        virtualinvoke $r201.<com.google.gwt.user.client.ui.HorizontalPanel: void add(com.google.gwt.user.client.ui.Widget)>($r229);
+
+     label09:
+        $r204 = new com.google.gwt.user.client.ui.HorizontalPanel;
+
+        specialinvoke $r204.<com.google.gwt.user.client.ui.HorizontalPanel: void <init>()>();
+
+        $r65 = <com.google.gwt.user.client.ui.HorizontalPanel: com.google.gwt.user.client.ui.HasVerticalAlignment$VerticalAlignmentConstant ALIGN_MIDDLE>;
+
+        virtualinvoke $r204.<com.google.gwt.user.client.ui.HorizontalPanel: void setVerticalAlignment(com.google.gwt.user.client.ui.HasVerticalAlignment$VerticalAlignmentConstant)>($r65);
+
+        $r67 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.CheckBox queuingCheck>;
+
+        $r66 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.event.dom.client.ClickHandler queuingCheckHandler>;
+
+        virtualinvoke $r67.<com.google.gwt.user.client.ui.CheckBox: com.google.gwt.event.shared.HandlerRegistration addClickHandler(com.google.gwt.event.dom.client.ClickHandler)>($r66);
+
+        $r69 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.CheckBox disabledCheck>;
+
+        $r68 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.event.dom.client.ClickHandler disabledCheckHandler>;
+
+        virtualinvoke $r69.<com.google.gwt.user.client.ui.CheckBox: com.google.gwt.event.shared.HandlerRegistration addClickHandler(com.google.gwt.event.dom.client.ClickHandler)>($r68);
+
+        $r71 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.CheckBox diffCheck>;
+
+        $r70 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.event.dom.client.ClickHandler diffCheckHandler>;
+
+        virtualinvoke $r71.<com.google.gwt.user.client.ui.CheckBox: com.google.gwt.event.shared.HandlerRegistration addClickHandler(com.google.gwt.event.dom.client.ClickHandler)>($r70);
+
+        specialinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: void setPlayButtonState()>();
+
+        $r72 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.Button clearAnnotationsButton>;
+
+        $r230 = (com.google.gwt.user.client.ui.Widget) $r72;
+
+        virtualinvoke $r204.<com.google.gwt.user.client.ui.HorizontalPanel: void add(com.google.gwt.user.client.ui.Widget)>($r230);
+
+        $r73 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.CheckBox queuingCheck>;
+
+        $r231 = (com.google.gwt.user.client.ui.Widget) $r73;
+
+        virtualinvoke $r204.<com.google.gwt.user.client.ui.HorizontalPanel: void add(com.google.gwt.user.client.ui.Widget)>($r231);
+
+        $r74 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.Button playButton>;
+
+        $r232 = (com.google.gwt.user.client.ui.Widget) $r74;
+
+        virtualinvoke $r204.<com.google.gwt.user.client.ui.HorizontalPanel: void add(com.google.gwt.user.client.ui.Widget)>($r232);
+
+        $r205 = new com.google.gwt.user.client.ui.Label;
+
+        specialinvoke $r205.<com.google.gwt.user.client.ui.Label: void <init>(java.lang.String)>("Operation:");
+
+        $r233 = (com.google.gwt.user.client.ui.Widget) $r205;
+
+        virtualinvoke $r204.<com.google.gwt.user.client.ui.HorizontalPanel: void add(com.google.gwt.user.client.ui.Widget)>($r233);
+
+        $r76 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML operationOutput>;
+
+        $r234 = (com.google.gwt.user.client.ui.Widget) $r76;
+
+        virtualinvoke $r204.<com.google.gwt.user.client.ui.HorizontalPanel: void add(com.google.gwt.user.client.ui.Widget)>($r234);
+
+        $r235 = (com.google.gwt.user.client.ui.Widget) $r204;
+
+        virtualinvoke $r200.<com.google.gwt.user.client.ui.FlowPanel: void add(com.google.gwt.user.client.ui.Widget)>($r235);
+
+        $r236 = (com.google.gwt.user.client.ui.Widget) $r201;
+
+        virtualinvoke $r200.<com.google.gwt.user.client.ui.FlowPanel: void add(com.google.gwt.user.client.ui.Widget)>($r236);
+
+        virtualinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: void initContentOracle()>();
+
+        $r206 = new com.google.gwt.user.client.ui.FlowPanel;
+
+        specialinvoke $r206.<com.google.gwt.user.client.ui.FlowPanel: void <init>()>();
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.FlowPanel widgetRow> = $r206;
+
+        $r79 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.FlowPanel widgetRow>;
+
+        $r78 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.Button clearEditorsButton>;
+
+        $r237 = (com.google.gwt.user.client.ui.Widget) $r78;
+
+        virtualinvoke $r79.<com.google.gwt.user.client.ui.FlowPanel: void add(com.google.gwt.user.client.ui.Widget)>($r237);
+
+        $r81 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.FlowPanel widgetRow>;
+
+        $r80 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.Button setContentButton>;
+
+        $r238 = (com.google.gwt.user.client.ui.Widget) $r80;
+
+        virtualinvoke $r81.<com.google.gwt.user.client.ui.FlowPanel: void add(com.google.gwt.user.client.ui.Widget)>($r238);
+
+        $r83 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.FlowPanel widgetRow>;
+
+        $r207 = new com.google.gwt.user.client.ui.InlineLabel;
+
+        specialinvoke $r207.<com.google.gwt.user.client.ui.InlineLabel: void <init>(java.lang.String)>("<body><line/>");
+
+        $r239 = (com.google.gwt.user.client.ui.Widget) $r207;
+
+        virtualinvoke $r83.<com.google.gwt.user.client.ui.FlowPanel: void add(com.google.gwt.user.client.ui.Widget)>($r239);
+
+        $r85 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.FlowPanel widgetRow>;
+
+        $r84 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.TextArea contentBox>;
+
+        if $r84 == null goto label10;
+
+        $r159 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.TextArea contentBox>;
+
+        goto label11;
+
+     label10:
+        $r159 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.SuggestBox contentSuggestBox>;
+
+     label11:
+        $r240 = (com.google.gwt.user.client.ui.Widget) $r159;
+
+        virtualinvoke $r85.<com.google.gwt.user.client.ui.FlowPanel: void add(com.google.gwt.user.client.ui.Widget)>($r240);
+
+        $r87 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.FlowPanel widgetRow>;
+
+        $r208 = new com.google.gwt.user.client.ui.InlineLabel;
+
+        specialinvoke $r208.<com.google.gwt.user.client.ui.InlineLabel: void <init>(java.lang.String)>("</body>");
+
+        $r241 = (com.google.gwt.user.client.ui.Widget) $r208;
+
+        virtualinvoke $r87.<com.google.gwt.user.client.ui.FlowPanel: void add(com.google.gwt.user.client.ui.Widget)>($r241);
+
+        $r210 = new com.google.gwt.user.client.ui.Button;
+
+        $r209 = new org.waveprotocol.wave.client.editor.harness.EditorHarness$18;
+
+        specialinvoke $r209.<org.waveprotocol.wave.client.editor.harness.EditorHarness$18: void <init>(org.waveprotocol.wave.client.editor.harness.EditorHarness)>(r0);
+
+        specialinvoke $r210.<com.google.gwt.user.client.ui.Button: void <init>(java.lang.String,com.google.gwt.event.dom.client.ClickHandler)>("Clear text", $r209);
+
+        $r90 = virtualinvoke $r210.<com.google.gwt.user.client.ui.Button: com.google.gwt.user.client.Element getElement()>();
+
+        virtualinvoke $r90.<com.google.gwt.user.client.Element: void setId(java.lang.String)>("clear-content-box");
+
+        $r91 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.FlowPanel widgetRow>;
+
+        $r242 = (com.google.gwt.user.client.ui.Widget) $r210;
+
+        virtualinvoke $r91.<com.google.gwt.user.client.ui.FlowPanel: void add(com.google.gwt.user.client.ui.Widget)>($r242);
+
+        virtualinvoke $r210.<com.google.gwt.user.client.ui.Button: void setVisible(boolean)>(0);
+
+        $z6 = staticinvoke <org.waveprotocol.wave.client.debug.logger.LogLevel: boolean showDebug()>();
+
+        if $z6 == 0 goto label12;
+
+        $r120 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.FlowPanel widgetRow>;
+
+        $r211 = new com.google.gwt.user.client.ui.FlowPanel;
+
+        specialinvoke $r211.<com.google.gwt.user.client.ui.FlowPanel: void <init>()>();
+
+        $r243 = (com.google.gwt.user.client.ui.Widget) $r211;
+
+        virtualinvoke $r120.<com.google.gwt.user.client.ui.FlowPanel: void add(com.google.gwt.user.client.ui.Widget)>($r243);
+
+        $r122 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.FlowPanel widgetRow>;
+
+        $r121 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.Button clearLogButton>;
+
+        $r244 = (com.google.gwt.user.client.ui.Widget) $r121;
+
+        virtualinvoke $r122.<com.google.gwt.user.client.ui.FlowPanel: void add(com.google.gwt.user.client.ui.Widget)>($r244);
+
+        $r124 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.FlowPanel widgetRow>;
+
+        $r123 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.Button quietButton>;
+
+        $r245 = (com.google.gwt.user.client.ui.Widget) $r123;
+
+        virtualinvoke $r124.<com.google.gwt.user.client.ui.FlowPanel: void add(com.google.gwt.user.client.ui.Widget)>($r245);
+
+        $r126 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.FlowPanel widgetRow>;
+
+        $r125 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.Button loudButton>;
+
+        $r246 = (com.google.gwt.user.client.ui.Widget) $r125;
+
+        virtualinvoke $r126.<com.google.gwt.user.client.ui.FlowPanel: void add(com.google.gwt.user.client.ui.Widget)>($r246);
+
+     label12:
+        $r92 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.FlowPanel widgetRow>;
+
+        $r247 = (com.google.gwt.user.client.ui.Widget) $r92;
+
+        virtualinvoke $r200.<com.google.gwt.user.client.ui.FlowPanel: void add(com.google.gwt.user.client.ui.Widget)>($r247);
+
+        $z7 = staticinvoke <org.waveprotocol.wave.client.debug.logger.LogLevel: boolean showDebug()>();
+
+        if $z7 == 0 goto label13;
+
+        $r115 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML error>;
+
+        $r248 = (com.google.gwt.user.client.ui.Widget) $r115;
+
+        virtualinvoke $r200.<com.google.gwt.user.client.ui.FlowPanel: void add(com.google.gwt.user.client.ui.Widget)>($r248);
+
+        $r116 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML fatal>;
+
+        $r249 = (com.google.gwt.user.client.ui.Widget) $r116;
+
+        virtualinvoke $r200.<com.google.gwt.user.client.ui.FlowPanel: void add(com.google.gwt.user.client.ui.Widget)>($r249);
+
+        $r117 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML log>;
+
+        $r250 = (com.google.gwt.user.client.ui.Widget) $r117;
+
+        virtualinvoke $r200.<com.google.gwt.user.client.ui.FlowPanel: void add(com.google.gwt.user.client.ui.Widget)>($r250);
+
+        $r212 = new org.waveprotocol.wave.client.editor.harness.EditorHarness$19;
+
+        specialinvoke $r212.<org.waveprotocol.wave.client.editor.harness.EditorHarness$19: void <init>(org.waveprotocol.wave.client.editor.harness.EditorHarness)>(r0);
+
+        staticinvoke <com.google.gwt.core.client.GWT: void setUncaughtExceptionHandler(com.google.gwt.core.client.GWT$UncaughtExceptionHandler)>($r212);
+
+        goto label14;
+
+     label13:
+        $r213 = new com.google.gwt.user.client.ui.HTML;
+
+        specialinvoke $r213.<com.google.gwt.user.client.ui.HTML: void <init>()>();
+
+        $r251 = (com.google.gwt.user.client.ui.Widget) $r213;
+
+        virtualinvoke $r200.<com.google.gwt.user.client.ui.FlowPanel: void add(com.google.gwt.user.client.ui.Widget)>($r251);
+
+     label14:
+        $r252 = (com.google.gwt.user.client.ui.Widget) $r200;
+
+        virtualinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: void initWidget(com.google.gwt.user.client.ui.Widget)>($r252);
+
+        $z8 = staticinvoke <org.waveprotocol.wave.client.debug.logger.LogLevel: boolean showDebug()>();
+
+        if $z8 == 0 goto label15;
+
+        $r113 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML log>;
+
+        $r114 = virtualinvoke $r113.<com.google.gwt.user.client.ui.HTML: com.google.gwt.user.client.Element getElement()>();
+
+        $r253 = (com.google.gwt.dom.client.Element) $r114;
+
+        staticinvoke <org.waveprotocol.wave.client.debug.logger.DomLogger: void enable(com.google.gwt.dom.client.Element)>($r253);
+
+        specialinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: void lottaLogging()>();
+
+     label15:
+        $r214 = new org.waveprotocol.wave.client.editor.keys.KeyBindingRegistry;
+
+        specialinvoke $r214.<org.waveprotocol.wave.client.editor.keys.KeyBindingRegistry: void <init>()>();
+
+        virtualinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: void extendKeyBindings(org.waveprotocol.wave.client.editor.keys.KeyBindingRegistry)>($r214);
+
+        $r97 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.Editor editor1>;
+
+        $r96 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.content.Registries testEditorRegistries>;
+
+        $r95 = <org.waveprotocol.wave.client.editor.EditorSettings: org.waveprotocol.wave.client.editor.EditorSettings DEFAULT>;
+
+        interfaceinvoke $r97.<org.waveprotocol.wave.client.editor.Editor: void init(org.waveprotocol.wave.client.editor.content.Registries,org.waveprotocol.wave.client.editor.keys.KeyBindingRegistry,org.waveprotocol.wave.client.editor.EditorSettings)>($r96, $r214, $r95);
+
+        $r100 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.Editor editor2>;
+
+        $r99 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.content.Registries testEditorRegistries>;
+
+        $r98 = <org.waveprotocol.wave.client.editor.EditorSettings: org.waveprotocol.wave.client.editor.EditorSettings DEFAULT>;
+
+        interfaceinvoke $r100.<org.waveprotocol.wave.client.editor.Editor: void init(org.waveprotocol.wave.client.editor.content.Registries,org.waveprotocol.wave.client.editor.keys.KeyBindingRegistry,org.waveprotocol.wave.client.editor.EditorSettings)>($r99, $r214, $r98);
+
+        $r102 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.Editor editor1>;
+
+        $r215 = new org.waveprotocol.wave.client.editor.harness.EditorHarness$20;
+
+        specialinvoke $r215.<org.waveprotocol.wave.client.editor.harness.EditorHarness$20: void <init>(org.waveprotocol.wave.client.editor.harness.EditorHarness)>(r0);
+
+        interfaceinvoke $r102.<org.waveprotocol.wave.client.editor.Editor: void addUpdateListener(org.waveprotocol.wave.client.editor.EditorUpdateEvent$EditorUpdateListener)>($r215);
+
+        $r104 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.Editor editor1>;
+
+        $r103 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.model.operation.SilentOperationSink editor1Sink>;
+
+        interfaceinvoke $r104.<org.waveprotocol.wave.client.editor.Editor: void setOutputSink(org.waveprotocol.wave.model.operation.SilentOperationSink)>($r103);
+
+        $r106 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.Editor editor2>;
+
+        $r105 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.model.operation.SilentOperationSink editor2Sink>;
+
+        interfaceinvoke $r106.<org.waveprotocol.wave.client.editor.Editor: void setOutputSink(org.waveprotocol.wave.model.operation.SilentOperationSink)>($r105);
+
+        virtualinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: void clearEditors()>();
+
+        $r107 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.Editor editor1>;
+
+        interfaceinvoke $r107.<org.waveprotocol.wave.client.editor.Editor: void setEditing(boolean)>(1);
+
+        $r108 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.Editor editor2>;
+
+        interfaceinvoke $r108.<org.waveprotocol.wave.client.editor.Editor: void setEditing(boolean)>(0);
+
+        $r109 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.CheckBox toggleEditCheck2>;
+
+        $r110 = staticinvoke <java.lang.Boolean: java.lang.Boolean valueOf(boolean)>(0);
+
+        virtualinvoke $r109.<com.google.gwt.user.client.ui.CheckBox: void setValue(java.lang.Boolean)>($r110);
+
+        $r111 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.CheckBox toggleEditCheck1>;
+
+        $r112 = staticinvoke <java.lang.Boolean: java.lang.Boolean valueOf(boolean)>(1);
+
+        virtualinvoke $r111.<com.google.gwt.user.client.ui.CheckBox: void setValue(java.lang.Boolean)>($r112);
+
+        specialinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: void outputBothEditorStates()>();
+
+        specialinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: void outputOperation(org.waveprotocol.wave.model.document.operation.DocOp)>(null);
+
+     label16:
+        goto label20;
+
+     label17:
+        $r154 := @caughtexception;
+
+        $r155 = staticinvoke <com.google.gwt.core.client.GWT: com.google.gwt.core.client.GWT$UncaughtExceptionHandler getUncaughtExceptionHandler()>();
+
+        if $r155 == null goto label18;
+
+        interfaceinvoke $r155.<com.google.gwt.core.client.GWT$UncaughtExceptionHandler: void onUncaughtException(java.lang.Throwable)>($r154);
+
+        goto label19;
+
+     label18:
+        $r156 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.common.logging.LoggerBundle logger>;
+
+        $r157 = interfaceinvoke $r156.<org.waveprotocol.wave.common.logging.LoggerBundle: org.waveprotocol.wave.common.logging.Logger error()>();
+
+        interfaceinvoke $r157.<org.waveprotocol.wave.common.logging.Logger: void log(java.lang.Throwable)>($r154);
+
+     label19:
+        throw $r154;
+
+     label20:
+        return;
+
+        catch java.lang.RuntimeException from label03 to label16 with label17;
+    }
+
+    public org.waveprotocol.wave.model.document.operation.automaton.DocumentSchema getSchema()
+    {
+        org.waveprotocol.wave.model.document.operation.automaton.DocumentSchema $r0;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r1;
+
+        r1 := @this: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        $r0 = <org.waveprotocol.wave.model.schema.conversation.ConversationSchemas: org.waveprotocol.wave.model.document.operation.automaton.DocumentSchema BLIP_SCHEMA_CONSTRAINTS>;
+
+        return $r0;
+    }
+
+    public void registerDoodads(org.waveprotocol.wave.client.editor.content.Registries)
+    {
+        org.waveprotocol.wave.client.editor.content.PainterRegistry $r5;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness$21 $r6;
+        org.waveprotocol.wave.model.document.util.AnnotationRegistry $r4;
+        org.waveprotocol.wave.client.editor.content.Registries $r1, r2;
+        org.waveprotocol.wave.client.editor.ElementHandlerRegistry $r3;
+
+        r0 := @this: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        r2 := @parameter0: org.waveprotocol.wave.client.editor.content.Registries;
+
+        $r1 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.content.Registries testEditorRegistries>;
+
+        interfaceinvoke $r1.<org.waveprotocol.wave.client.editor.content.Registries: org.waveprotocol.wave.client.editor.ElementHandlerRegistry getElementHandlerRegistry()>();
+
+        $r3 = interfaceinvoke r2.<org.waveprotocol.wave.client.editor.content.Registries: org.waveprotocol.wave.client.editor.ElementHandlerRegistry getElementHandlerRegistry()>();
+
+        staticinvoke <org.waveprotocol.wave.client.editor.content.paragraph.LineRendering: void registerContainer(java.lang.String,org.waveprotocol.wave.client.editor.ElementHandlerRegistry)>("body", $r3);
+
+        staticinvoke <org.waveprotocol.wave.client.editor.content.misc.StyleAnnotationHandler: void register(org.waveprotocol.wave.client.editor.content.Registries)>(r2);
+
+        $r4 = interfaceinvoke r2.<org.waveprotocol.wave.client.editor.content.Registries: org.waveprotocol.wave.model.document.util.AnnotationRegistry getAnnotationHandlerRegistry()>();
+
+        $r5 = interfaceinvoke r2.<org.waveprotocol.wave.client.editor.content.Registries: org.waveprotocol.wave.client.editor.content.PainterRegistry getPaintRegistry()>();
+
+        staticinvoke <org.waveprotocol.wave.client.doodad.diff.DiffAnnotationHandler: void register(org.waveprotocol.wave.model.document.util.AnnotationRegistry,org.waveprotocol.wave.client.editor.content.PainterRegistry)>($r4, $r5);
+
+        $r6 = new org.waveprotocol.wave.client.editor.harness.EditorHarness$21;
+
+        specialinvoke $r6.<org.waveprotocol.wave.client.editor.harness.EditorHarness$21: void <init>(org.waveprotocol.wave.client.editor.harness.EditorHarness)>(r0);
+
+        staticinvoke <org.waveprotocol.wave.client.doodad.link.LinkAnnotationHandler: void register(org.waveprotocol.wave.client.editor.content.Registries,org.waveprotocol.wave.client.doodad.link.LinkAnnotationHandler$LinkAttributeAugmenter)>(r2, $r6);
+
+        virtualinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: void extend(org.waveprotocol.wave.client.editor.content.Registries)>(r2);
+
+        return;
+    }
+
+    public void extend(org.waveprotocol.wave.client.editor.content.Registries)
+    {
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+        org.waveprotocol.wave.client.editor.content.Registries r1;
+
+        r0 := @this: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        r1 := @parameter0: org.waveprotocol.wave.client.editor.content.Registries;
+
+        return;
+    }
+
+    public void extendKeyBindings(org.waveprotocol.wave.client.editor.keys.KeyBindingRegistry)
+    {
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+        org.waveprotocol.wave.client.editor.keys.KeyBindingRegistry r1;
+
+        r0 := @this: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        r1 := @parameter0: org.waveprotocol.wave.client.editor.keys.KeyBindingRegistry;
+
+        return;
+    }
+
+    private org.waveprotocol.wave.client.editor.Editor createEditor(java.lang.String)
+    {
+        com.google.gwt.user.client.Element $r5;
+        org.waveprotocol.wave.client.editor.Editor $r3;
+        com.google.gwt.user.client.ui.Widget $r4;
+        org.waveprotocol.wave.client.widget.popup.PopupProvider $r0;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r2;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness$22 $r1;
+        java.lang.String r6;
+
+        r2 := @this: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        r6 := @parameter0: java.lang.String;
+
+        $r0 = <org.waveprotocol.wave.client.widget.popup.simple.Popup: org.waveprotocol.wave.client.widget.popup.PopupProvider LIGHTWEIGHT_POPUP_PROVIDER>;
+
+        staticinvoke <org.waveprotocol.wave.client.editor.EditorStaticDeps: void setPopupProvider(org.waveprotocol.wave.client.widget.popup.PopupProvider)>($r0);
+
+        $r1 = new org.waveprotocol.wave.client.editor.harness.EditorHarness$22;
+
+        specialinvoke $r1.<org.waveprotocol.wave.client.editor.harness.EditorHarness$22: void <init>(org.waveprotocol.wave.client.editor.harness.EditorHarness)>(r2);
+
+        staticinvoke <org.waveprotocol.wave.client.editor.EditorStaticDeps: void setPopupChromeProvider(org.waveprotocol.wave.client.widget.popup.PopupChromeProvider)>($r1);
+
+        $r3 = staticinvoke <org.waveprotocol.wave.client.editor.Editors: org.waveprotocol.wave.client.editor.Editor create()>();
+
+        $r4 = interfaceinvoke $r3.<org.waveprotocol.wave.client.editor.Editor: com.google.gwt.user.client.ui.Widget getWidget()>();
+
+        $r5 = virtualinvoke $r4.<com.google.gwt.user.client.ui.Widget: com.google.gwt.user.client.Element getElement()>();
+
+        virtualinvoke $r5.<com.google.gwt.user.client.Element: void setId(java.lang.String)>(r6);
+
+        interfaceinvoke $r3.<org.waveprotocol.wave.client.editor.Editor: void addKeySignalListener(org.waveprotocol.wave.client.common.util.KeySignalListener)>(r2);
+
+        return $r3;
+    }
+
+    private void lottaLogging()
+    {
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+
+        r0 := @this: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        staticinvoke <org.waveprotocol.wave.client.debug.logger.DomLogger: void enableAllModules()>();
+
+        staticinvoke <org.waveprotocol.wave.client.debug.logger.DomLogger: void enableModule(java.lang.String,boolean)>("test", 1);
+
+        staticinvoke <org.waveprotocol.wave.client.debug.logger.DomLogger: void enableModule(java.lang.String,boolean)>("editor", 1);
+
+        staticinvoke <org.waveprotocol.wave.client.debug.logger.DomLogger: void enableModule(java.lang.String,boolean)>("editor-node", 1);
+
+        staticinvoke <org.waveprotocol.wave.client.debug.logger.DomLogger: void enableModule(java.lang.String,boolean)>("operator", 1);
+
+        staticinvoke <org.waveprotocol.wave.client.debug.logger.DomLogger: void enableModule(java.lang.String,boolean)>("dragdrop", 1);
+
+        return;
+    }
+
+    private void littleLogging()
+    {
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r1;
+        org.waveprotocol.wave.common.logging.AbstractLogger$Level $r0;
+
+        r1 := @this: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        $r0 = <org.waveprotocol.wave.common.logging.AbstractLogger$Level: org.waveprotocol.wave.common.logging.AbstractLogger$Level ERROR>;
+
+        staticinvoke <org.waveprotocol.wave.client.debug.logger.DomLogger: void setMaxLevel(org.waveprotocol.wave.common.logging.AbstractLogger$Level)>($r0);
+
+        staticinvoke <org.waveprotocol.wave.client.debug.logger.DomLogger: void enableModule(java.lang.String,boolean)>("test", 1);
+
+        return;
+    }
+
+    public boolean onKeySignal(com.google.gwt.user.client.ui.Widget, org.waveprotocol.wave.client.common.util.SignalEvent)
+    {
+        com.google.gwt.user.client.ui.Widget r2;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness$25 $r0;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r1;
+        org.waveprotocol.wave.client.common.util.SignalEvent r3;
+
+        r1 := @this: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        r2 := @parameter0: com.google.gwt.user.client.ui.Widget;
+
+        r3 := @parameter1: org.waveprotocol.wave.client.common.util.SignalEvent;
+
+        $r0 = new org.waveprotocol.wave.client.editor.harness.EditorHarness$25;
+
+        specialinvoke $r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness$25: void <init>(org.waveprotocol.wave.client.editor.harness.EditorHarness,com.google.gwt.user.client.ui.Widget)>(r1, r2);
+
+        staticinvoke <org.waveprotocol.wave.client.scheduler.ScheduleCommand: void addCommand(org.waveprotocol.wave.client.scheduler.Scheduler$Task)>($r0);
+
+        return 0;
+    }
+
+    public org.waveprotocol.wave.client.editor.Editor getEditor1()
+    {
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+        org.waveprotocol.wave.client.editor.Editor $r1;
+
+        r0 := @this: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        $r1 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.Editor editor1>;
+
+        return $r1;
+    }
+
+    public org.waveprotocol.wave.client.editor.Editor getEditor2()
+    {
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+        org.waveprotocol.wave.client.editor.Editor $r1;
+
+        r0 := @this: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        $r1 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.Editor editor2>;
+
+        return $r1;
+    }
+
+    public void run()
+    {
+        org.waveprotocol.wave.client.editor.Editor $r2;
+        com.google.gwt.user.client.ui.Widget $r3;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r1;
+        com.google.gwt.user.client.ui.RootPanel $r0;
+
+        r1 := @this: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        $r0 = staticinvoke <com.google.gwt.user.client.ui.RootPanel: com.google.gwt.user.client.ui.RootPanel get()>();
+
+        $r3 = (com.google.gwt.user.client.ui.Widget) r1;
+
+        virtualinvoke $r0.<com.google.gwt.user.client.ui.RootPanel: void add(com.google.gwt.user.client.ui.Widget)>($r3);
+
+        $r2 = virtualinvoke r1.<org.waveprotocol.wave.client.editor.harness.EditorHarness: org.waveprotocol.wave.client.editor.Editor getEditor1()>();
+
+        interfaceinvoke $r2.<org.waveprotocol.wave.client.editor.Editor: void focus(boolean)>(1);
+
+        return;
+    }
+
+    static void access$000(org.waveprotocol.wave.client.editor.harness.EditorHarness)
+    {
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+
+        r0 := @parameter0: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        specialinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: void setFromContentBox()>();
+
+        return;
+    }
+
+    static void access$100(org.waveprotocol.wave.client.editor.harness.EditorHarness, org.waveprotocol.wave.client.editor.Editor, boolean)
+    {
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+        org.waveprotocol.wave.client.editor.Editor r1;
+        boolean z0;
+
+        r0 := @parameter0: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        r1 := @parameter1: org.waveprotocol.wave.client.editor.Editor;
+
+        z0 := @parameter2: boolean;
+
+        specialinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: void setEditing(org.waveprotocol.wave.client.editor.Editor,boolean)>(r1, z0);
+
+        return;
+    }
+
+    static com.google.gwt.user.client.ui.HTML access$200(org.waveprotocol.wave.client.editor.harness.EditorHarness)
+    {
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+        com.google.gwt.user.client.ui.HTML $r1;
+
+        r0 := @parameter0: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        $r1 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML log>;
+
+        return $r1;
+    }
+
+    static com.google.gwt.user.client.ui.HTML access$300(org.waveprotocol.wave.client.editor.harness.EditorHarness)
+    {
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+        com.google.gwt.user.client.ui.HTML $r1;
+
+        r0 := @parameter0: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        $r1 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML error>;
+
+        return $r1;
+    }
+
+    static com.google.gwt.user.client.ui.HTML access$400(org.waveprotocol.wave.client.editor.harness.EditorHarness)
+    {
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+        com.google.gwt.user.client.ui.HTML $r1;
+
+        r0 := @parameter0: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        $r1 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML fatal>;
+
+        return $r1;
+    }
+
+    static void access$500(org.waveprotocol.wave.client.editor.harness.EditorHarness)
+    {
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+
+        r0 := @parameter0: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        specialinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: void littleLogging()>();
+
+        return;
+    }
+
+    static void access$600(org.waveprotocol.wave.client.editor.harness.EditorHarness)
+    {
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+
+        r0 := @parameter0: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        specialinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: void lottaLogging()>();
+
+        return;
+    }
+
+    static com.google.gwt.user.client.ui.CheckBox access$700(org.waveprotocol.wave.client.editor.harness.EditorHarness)
+    {
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+        com.google.gwt.user.client.ui.CheckBox $r1;
+
+        r0 := @parameter0: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        $r1 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.CheckBox queuingCheck>;
+
+        return $r1;
+    }
+
+    static void access$800(org.waveprotocol.wave.client.editor.harness.EditorHarness)
+    {
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+
+        r0 := @parameter0: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        specialinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: void playOne()>();
+
+        return;
+    }
+
+    static com.google.gwt.user.client.ui.CheckBox access$900(org.waveprotocol.wave.client.editor.harness.EditorHarness)
+    {
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+        com.google.gwt.user.client.ui.CheckBox $r1;
+
+        r0 := @parameter0: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        $r1 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.CheckBox diffCheck>;
+
+        return $r1;
+    }
+
+    static com.google.gwt.user.client.ui.CheckBox access$1000(org.waveprotocol.wave.client.editor.harness.EditorHarness)
+    {
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+        com.google.gwt.user.client.ui.CheckBox $r1;
+
+        r0 := @parameter0: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        $r1 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.CheckBox disabledCheck>;
+
+        return $r1;
+    }
+
+    static void access$1100(org.waveprotocol.wave.client.editor.harness.EditorHarness)
+    {
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+
+        r0 := @parameter0: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        specialinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: void setEditorLevel()>();
+
+        return;
+    }
+
+    static int access$1208(org.waveprotocol.wave.client.editor.harness.EditorHarness)
+    {
+        int $i0, $i1;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+
+        r0 := @parameter0: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        $i0 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: int randomTestCounter>;
+
+        $i1 = $i0 + 1;
+
+        r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: int randomTestCounter> = $i1;
+
+        return $i0;
+    }
+
+    static int access$1200(org.waveprotocol.wave.client.editor.harness.EditorHarness)
+    {
+        int $i0;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+
+        r0 := @parameter0: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        $i0 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: int randomTestCounter>;
+
+        return $i0;
+    }
+
+    static void access$1300(org.waveprotocol.wave.client.editor.harness.EditorHarness)
+    {
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+
+        r0 := @parameter0: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        specialinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: void showRedErrorIndicator()>();
+
+        return;
+    }
+
+    static void access$1400(org.waveprotocol.wave.client.editor.harness.EditorHarness)
+    {
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+
+        r0 := @parameter0: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        specialinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: void showRedFatalIndicator()>();
+
+        return;
+    }
+
+    static com.google.gwt.user.client.ui.TextArea access$1500(org.waveprotocol.wave.client.editor.harness.EditorHarness)
+    {
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+        com.google.gwt.user.client.ui.TextArea $r1;
+
+        r0 := @parameter0: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        $r1 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.TextArea contentBox>;
+
+        return $r1;
+    }
+
+    static com.google.gwt.user.client.ui.SuggestBox access$1600(org.waveprotocol.wave.client.editor.harness.EditorHarness)
+    {
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+        com.google.gwt.user.client.ui.SuggestBox $r1;
+
+        r0 := @parameter0: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        $r1 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.SuggestBox contentSuggestBox>;
+
+        return $r1;
+    }
+
+    static void access$1700(org.waveprotocol.wave.client.editor.harness.EditorHarness, java.lang.Throwable)
+    {
+        java.lang.Throwable r1;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+
+        r0 := @parameter0: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        r1 := @parameter1: java.lang.Throwable;
+
+        specialinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: void logUncaughtExceptions(java.lang.Throwable)>(r1);
+
+        return;
+    }
+
+    static void access$1800(org.waveprotocol.wave.client.editor.harness.EditorHarness)
+    {
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+
+        r0 := @parameter0: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        specialinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: void outputBothEditorStates()>();
+
+        return;
+    }
+
+    static void access$1900(org.waveprotocol.wave.client.editor.harness.EditorHarness)
+    {
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+
+        r0 := @parameter0: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        specialinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: void setPlayButtonState()>();
+
+        return;
+    }
+
+    static void access$2000(org.waveprotocol.wave.client.editor.harness.EditorHarness, org.waveprotocol.wave.model.document.operation.DocOp)
+    {
+        org.waveprotocol.wave.model.document.operation.DocOp r1;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+
+        r0 := @parameter0: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        r1 := @parameter1: org.waveprotocol.wave.model.document.operation.DocOp;
+
+        specialinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: void outputOperation(org.waveprotocol.wave.model.document.operation.DocOp)>(r1);
+
+        return;
+    }
+
+    static com.google.gwt.user.client.ui.HTML access$2100(org.waveprotocol.wave.client.editor.harness.EditorHarness)
+    {
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+        com.google.gwt.user.client.ui.HTML $r1;
+
+        r0 := @parameter0: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        $r1 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML prettyContent1>;
+
+        return $r1;
+    }
+
+    static com.google.gwt.user.client.ui.HTML access$2200(org.waveprotocol.wave.client.editor.harness.EditorHarness)
+    {
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+        com.google.gwt.user.client.ui.HTML $r1;
+
+        r0 := @parameter0: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        $r1 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML prettyHtml1>;
+
+        return $r1;
+    }
+
+    static void access$2300(org.waveprotocol.wave.client.editor.harness.EditorHarness, org.waveprotocol.wave.client.editor.Editor, com.google.gwt.user.client.ui.HTML, com.google.gwt.user.client.ui.HTML)
+    {
+        org.waveprotocol.wave.client.editor.Editor r1;
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+        com.google.gwt.user.client.ui.HTML r2, r3;
+
+        r0 := @parameter0: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        r1 := @parameter1: org.waveprotocol.wave.client.editor.Editor;
+
+        r2 := @parameter2: com.google.gwt.user.client.ui.HTML;
+
+        r3 := @parameter3: com.google.gwt.user.client.ui.HTML;
+
+        specialinvoke r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: void outputEditorState(org.waveprotocol.wave.client.editor.Editor,com.google.gwt.user.client.ui.HTML,com.google.gwt.user.client.ui.HTML)>(r1, r2, r3);
+
+        return;
+    }
+
+    static com.google.gwt.user.client.ui.HTML access$2400(org.waveprotocol.wave.client.editor.harness.EditorHarness)
+    {
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+        com.google.gwt.user.client.ui.HTML $r1;
+
+        r0 := @parameter0: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        $r1 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML prettyContent2>;
+
+        return $r1;
+    }
+
+    static com.google.gwt.user.client.ui.HTML access$2500(org.waveprotocol.wave.client.editor.harness.EditorHarness)
+    {
+        org.waveprotocol.wave.client.editor.harness.EditorHarness r0;
+        com.google.gwt.user.client.ui.HTML $r1;
+
+        r0 := @parameter0: org.waveprotocol.wave.client.editor.harness.EditorHarness;
+
+        $r1 = r0.<org.waveprotocol.wave.client.editor.harness.EditorHarness: com.google.gwt.user.client.ui.HTML prettyHtml2>;
+
+        return $r1;
+    }
+
+    static void <clinit>()
+    {
+        java.lang.Class $r0;
+        boolean $z0, $z1;
+
+        <org.waveprotocol.wave.client.editor.harness.EditorHarness: java.lang.String TOPLEVEL_CONTAINER_TAGNAME> = "body";
+
+        $r0 = class "Lorg/waveprotocol/wave/client/editor/harness/EditorHarness;";
+
+        $z0 = virtualinvoke $r0.<java.lang.Class: boolean desiredAssertionStatus()>();
+
+        if $z0 != 0 goto label1;
+
+        $z1 = 1;
+
+        goto label2;
+
+     label1:
+        $z1 = 0;
+
+     label2:
+        <org.waveprotocol.wave.client.editor.harness.EditorHarness: boolean $assertionsDisabled> = $z1;
+
+        staticinvoke <org.waveprotocol.wave.model.document.util.LineContainers: void setTopLevelContainerTagname(java.lang.String)>("body");
+
+        staticinvoke <org.waveprotocol.wave.client.editor.Editors: void initRootRegistries()>();
+
+        return;
+    }
+}

@@ -1,0 +1,613 @@
+public class org.mortbay.servlet.ThrottlingFilter extends java.lang.Object implements javax.servlet.Filter
+{
+    private int _maximum;
+    private int _current;
+    private long _queueTimeout;
+    private long _queueSize;
+    private final java.lang.Object _lock;
+    private final java.util.List _queue;
+
+    public void <init>()
+    {
+        org.mortbay.servlet.ThrottlingFilter r0;
+        java.lang.Object $r1;
+        java.util.LinkedList $r2;
+
+        r0 := @this: org.mortbay.servlet.ThrottlingFilter;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        r0.<org.mortbay.servlet.ThrottlingFilter: int _current> = 0;
+
+        $r1 = new java.lang.Object;
+
+        specialinvoke $r1.<java.lang.Object: void <init>()>();
+
+        r0.<org.mortbay.servlet.ThrottlingFilter: java.lang.Object _lock> = $r1;
+
+        $r2 = new java.util.LinkedList;
+
+        specialinvoke $r2.<java.util.LinkedList: void <init>()>();
+
+        r0.<org.mortbay.servlet.ThrottlingFilter: java.util.List _queue> = $r2;
+
+        return;
+    }
+
+    public void init(javax.servlet.FilterConfig) throws javax.servlet.ServletException
+    {
+        long $l2, $l4, $l5, $l8, $l9;
+        byte $b6;
+        java.lang.StringBuffer $r2, $r3, $r4, $r5, $r6, $r7, $r8, $r9;
+        org.mortbay.servlet.ThrottlingFilter r0;
+        int $i0, $i1, $i3, $i7;
+        java.lang.String $r10;
+        javax.servlet.FilterConfig r1;
+
+        r0 := @this: org.mortbay.servlet.ThrottlingFilter;
+
+        r1 := @parameter0: javax.servlet.FilterConfig;
+
+        $i0 = specialinvoke r0.<org.mortbay.servlet.ThrottlingFilter: int getIntegerParameter(javax.servlet.FilterConfig,java.lang.String,int)>(r1, "maximum", 10);
+
+        r0.<org.mortbay.servlet.ThrottlingFilter: int _maximum> = $i0;
+
+        $i1 = specialinvoke r0.<org.mortbay.servlet.ThrottlingFilter: int getIntegerParameter(javax.servlet.FilterConfig,java.lang.String,int)>(r1, "block", 5000);
+
+        $l2 = (long) $i1;
+
+        r0.<org.mortbay.servlet.ThrottlingFilter: long _queueTimeout> = $l2;
+
+        $i3 = specialinvoke r0.<org.mortbay.servlet.ThrottlingFilter: int getIntegerParameter(javax.servlet.FilterConfig,java.lang.String,int)>(r1, "queue", 500);
+
+        $l4 = (long) $i3;
+
+        r0.<org.mortbay.servlet.ThrottlingFilter: long _queueSize> = $l4;
+
+        $l5 = r0.<org.mortbay.servlet.ThrottlingFilter: long _queueTimeout>;
+
+        $b6 = $l5 cmp -1L;
+
+        if $b6 != 0 goto label1;
+
+        r0.<org.mortbay.servlet.ThrottlingFilter: long _queueTimeout> = 2147483647L;
+
+     label1:
+        $r2 = new java.lang.StringBuffer;
+
+        specialinvoke $r2.<java.lang.StringBuffer: void <init>()>();
+
+        $r3 = virtualinvoke $r2.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>("Config{maximum:");
+
+        $i7 = r0.<org.mortbay.servlet.ThrottlingFilter: int _maximum>;
+
+        $r4 = virtualinvoke $r3.<java.lang.StringBuffer: java.lang.StringBuffer append(int)>($i7);
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>(", block:");
+
+        $l8 = r0.<org.mortbay.servlet.ThrottlingFilter: long _queueTimeout>;
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuffer: java.lang.StringBuffer append(long)>($l8);
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>(", queue:");
+
+        $l9 = r0.<org.mortbay.servlet.ThrottlingFilter: long _queueSize>;
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuffer: java.lang.StringBuffer append(long)>($l9);
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>("}");
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuffer: java.lang.String toString()>();
+
+        staticinvoke <org.mortbay.log.Log: void debug(java.lang.String,java.lang.Object,java.lang.Object)>($r10, null, null);
+
+        return;
+    }
+
+    private int getIntegerParameter(javax.servlet.FilterConfig, java.lang.String, int) throws javax.servlet.ServletException
+    {
+        javax.servlet.ServletException $r4;
+        java.lang.NumberFormatException $r3;
+        java.lang.StringBuffer $r5, $r6, $r7, $r8, $r9, $r10;
+        javax.servlet.FilterConfig r0;
+        int $i0, i1;
+        org.mortbay.servlet.ThrottlingFilter r12;
+        java.lang.String r1, $r2, $r11;
+
+        r12 := @this: org.mortbay.servlet.ThrottlingFilter;
+
+        r0 := @parameter0: javax.servlet.FilterConfig;
+
+        r1 := @parameter1: java.lang.String;
+
+        i1 := @parameter2: int;
+
+        $r2 = interfaceinvoke r0.<javax.servlet.FilterConfig: java.lang.String getInitParameter(java.lang.String)>(r1);
+
+        if $r2 != null goto label1;
+
+        return i1;
+
+     label1:
+        $i0 = staticinvoke <java.lang.Integer: int parseInt(java.lang.String)>($r2);
+
+     label2:
+        return $i0;
+
+     label3:
+        $r3 := @caughtexception;
+
+        $r4 = new javax.servlet.ServletException;
+
+        $r5 = new java.lang.StringBuffer;
+
+        specialinvoke $r5.<java.lang.StringBuffer: void <init>()>();
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>("Parameter ");
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>(r1);
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>(" must be a number (was ");
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>($r2);
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>(" instead)");
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuffer: java.lang.String toString()>();
+
+        specialinvoke $r4.<javax.servlet.ServletException: void <init>(java.lang.String)>($r11);
+
+        throw $r4;
+
+        catch java.lang.NumberFormatException from label1 to label2 with label3;
+    }
+
+    public void doFilter(javax.servlet.ServletRequest, javax.servlet.ServletResponse, javax.servlet.FilterChain) throws java.io.IOException, javax.servlet.ServletException
+    {
+        javax.servlet.ServletRequest r1;
+        javax.servlet.FilterChain r3;
+        javax.servlet.http.HttpServletRequest $r5;
+        javax.servlet.ServletResponse r2;
+        org.mortbay.servlet.ThrottlingFilter r0;
+        javax.servlet.http.HttpServletResponse $r4;
+
+        r0 := @this: org.mortbay.servlet.ThrottlingFilter;
+
+        r1 := @parameter0: javax.servlet.ServletRequest;
+
+        r2 := @parameter1: javax.servlet.ServletResponse;
+
+        r3 := @parameter2: javax.servlet.FilterChain;
+
+        $r5 = (javax.servlet.http.HttpServletRequest) r1;
+
+        $r4 = (javax.servlet.http.HttpServletResponse) r2;
+
+        virtualinvoke r0.<org.mortbay.servlet.ThrottlingFilter: void doFilter(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse,javax.servlet.FilterChain)>($r5, $r4, r3);
+
+        return;
+    }
+
+    public void doFilter(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.FilterChain) throws java.io.IOException, javax.servlet.ServletException
+    {
+        java.lang.Throwable $r6;
+        javax.servlet.FilterChain r4;
+        org.mortbay.util.ajax.Continuation $r2;
+        javax.servlet.http.HttpServletResponse r3;
+        javax.servlet.http.HttpServletRequest r1;
+        org.mortbay.servlet.ThrottlingFilter r0;
+        java.lang.String $r5;
+        boolean $z0, $z1, $z2, z3;
+
+        r0 := @this: org.mortbay.servlet.ThrottlingFilter;
+
+        r1 := @parameter0: javax.servlet.http.HttpServletRequest;
+
+        r3 := @parameter1: javax.servlet.http.HttpServletResponse;
+
+        r4 := @parameter2: javax.servlet.FilterChain;
+
+        $r2 = specialinvoke r0.<org.mortbay.servlet.ThrottlingFilter: org.mortbay.util.ajax.Continuation getContinuation(javax.servlet.ServletRequest)>(r1);
+
+        z3 = 0;
+
+     label01:
+        $z0 = specialinvoke r0.<org.mortbay.servlet.ThrottlingFilter: boolean acceptRequest()>();
+
+        z3 = $z0;
+
+        if $z0 != 0 goto label03;
+
+        $z1 = interfaceinvoke $r2.<org.mortbay.util.ajax.Continuation: boolean isPending()>();
+
+        if $z1 == 0 goto label02;
+
+        $r5 = interfaceinvoke r1.<javax.servlet.http.HttpServletRequest: java.lang.String getRequestURI()>();
+
+        staticinvoke <org.mortbay.log.Log: void debug(java.lang.String,java.lang.Object,java.lang.Object)>("Request {} / {} was already queued, rejecting", $r5, $r2);
+
+        specialinvoke r0.<org.mortbay.servlet.ThrottlingFilter: void dropFromQueue(org.mortbay.util.ajax.Continuation)>($r2);
+
+        interfaceinvoke $r2.<org.mortbay.util.ajax.Continuation: void reset()>();
+
+        goto label03;
+
+     label02:
+        $z2 = specialinvoke r0.<org.mortbay.servlet.ThrottlingFilter: boolean queueRequest(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse,org.mortbay.util.ajax.Continuation)>(r1, r3, $r2);
+
+        if $z2 == 0 goto label03;
+
+        z3 = specialinvoke r0.<org.mortbay.servlet.ThrottlingFilter: boolean acceptRequest()>();
+
+     label03:
+        if z3 == 0 goto label04;
+
+        interfaceinvoke r4.<javax.servlet.FilterChain: void doFilter(javax.servlet.ServletRequest,javax.servlet.ServletResponse)>(r1, r3);
+
+        goto label05;
+
+     label04:
+        virtualinvoke r0.<org.mortbay.servlet.ThrottlingFilter: void rejectRequest(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse)>(r1, r3);
+
+     label05:
+        goto label10;
+
+     label06:
+        goto label09;
+
+     label07:
+        $r6 := @caughtexception;
+
+        goto label12;
+
+     label08:
+        throw $r6;
+
+     label09:
+        return;
+
+     label10:
+        if z3 == 0 goto label11;
+
+        specialinvoke r0.<org.mortbay.servlet.ThrottlingFilter: void releaseRequest()>();
+
+        specialinvoke r0.<org.mortbay.servlet.ThrottlingFilter: void popQueue()>();
+
+     label11:
+        goto label06;
+
+     label12:
+        if z3 == 0 goto label13;
+
+        specialinvoke r0.<org.mortbay.servlet.ThrottlingFilter: void releaseRequest()>();
+
+        specialinvoke r0.<org.mortbay.servlet.ThrottlingFilter: void popQueue()>();
+
+     label13:
+        goto label08;
+
+        catch java.lang.Throwable from label01 to label06 with label07;
+        catch java.lang.Throwable from label07 to label08 with label07;
+    }
+
+    private void dropFromQueue(org.mortbay.util.ajax.Continuation)
+    {
+        org.mortbay.servlet.ThrottlingFilter r0;
+        java.util.List $r2;
+        org.mortbay.util.ajax.Continuation r1;
+
+        r0 := @this: org.mortbay.servlet.ThrottlingFilter;
+
+        r1 := @parameter0: org.mortbay.util.ajax.Continuation;
+
+        $r2 = r0.<org.mortbay.servlet.ThrottlingFilter: java.util.List _queue>;
+
+        interfaceinvoke $r2.<java.util.List: boolean remove(java.lang.Object)>(r1);
+
+        interfaceinvoke r1.<org.mortbay.util.ajax.Continuation: void reset()>();
+
+        return;
+    }
+
+    protected void rejectRequest(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse) throws java.io.IOException
+    {
+        javax.servlet.http.HttpServletResponse r0;
+        javax.servlet.http.HttpServletRequest r3;
+        java.lang.StringBuffer $r1, $r2, $r5;
+        org.mortbay.servlet.ThrottlingFilter r7;
+        java.lang.String $r4, $r6;
+
+        r7 := @this: org.mortbay.servlet.ThrottlingFilter;
+
+        r3 := @parameter0: javax.servlet.http.HttpServletRequest;
+
+        r0 := @parameter1: javax.servlet.http.HttpServletResponse;
+
+        $r1 = new java.lang.StringBuffer;
+
+        specialinvoke $r1.<java.lang.StringBuffer: void <init>()>();
+
+        $r2 = virtualinvoke $r1.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>("Too many active connections to resource ");
+
+        $r4 = interfaceinvoke r3.<javax.servlet.http.HttpServletRequest: java.lang.String getRequestURI()>();
+
+        $r5 = virtualinvoke $r2.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>($r4);
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuffer: java.lang.String toString()>();
+
+        interfaceinvoke r0.<javax.servlet.http.HttpServletResponse: void sendError(int,java.lang.String)>(503, $r6);
+
+        return;
+    }
+
+    private void popQueue()
+    {
+        java.lang.Throwable $r6;
+        org.mortbay.util.ajax.Continuation r5;
+        java.util.List $r1, $r2, $r3;
+        org.mortbay.servlet.ThrottlingFilter r0;
+        java.lang.Object $r4;
+        boolean $z0;
+
+        r0 := @this: org.mortbay.servlet.ThrottlingFilter;
+
+        $r1 = r0.<org.mortbay.servlet.ThrottlingFilter: java.util.List _queue>;
+
+        entermonitor $r1;
+
+     label1:
+        $r2 = r0.<org.mortbay.servlet.ThrottlingFilter: java.util.List _queue>;
+
+        $z0 = interfaceinvoke $r2.<java.util.List: boolean isEmpty()>();
+
+        if $z0 == 0 goto label3;
+
+        exitmonitor $r1;
+
+     label2:
+        return;
+
+     label3:
+        $r3 = r0.<org.mortbay.servlet.ThrottlingFilter: java.util.List _queue>;
+
+        $r4 = interfaceinvoke $r3.<java.util.List: java.lang.Object remove(int)>(0);
+
+        r5 = (org.mortbay.util.ajax.Continuation) $r4;
+
+        exitmonitor $r1;
+
+     label4:
+        goto label7;
+
+     label5:
+        $r6 := @caughtexception;
+
+        exitmonitor $r1;
+
+     label6:
+        throw $r6;
+
+     label7:
+        staticinvoke <org.mortbay.log.Log: void debug(java.lang.String,java.lang.Object,java.lang.Object)>("Resuming continuation {}", r5, null);
+
+        interfaceinvoke r5.<org.mortbay.util.ajax.Continuation: void resume()>();
+
+        return;
+
+        catch java.lang.Throwable from label1 to label2 with label5;
+        catch java.lang.Throwable from label3 to label4 with label5;
+        catch java.lang.Throwable from label5 to label6 with label5;
+    }
+
+    private void releaseRequest()
+    {
+        java.lang.Throwable $r2;
+        org.mortbay.servlet.ThrottlingFilter r0;
+        int $i0, $i1;
+        java.lang.Object $r1;
+
+        r0 := @this: org.mortbay.servlet.ThrottlingFilter;
+
+        $r1 = r0.<org.mortbay.servlet.ThrottlingFilter: java.lang.Object _lock>;
+
+        entermonitor $r1;
+
+     label1:
+        $i0 = r0.<org.mortbay.servlet.ThrottlingFilter: int _current>;
+
+        $i1 = $i0 - 1;
+
+        r0.<org.mortbay.servlet.ThrottlingFilter: int _current> = $i1;
+
+        exitmonitor $r1;
+
+     label2:
+        goto label5;
+
+     label3:
+        $r2 := @caughtexception;
+
+        exitmonitor $r1;
+
+     label4:
+        throw $r2;
+
+     label5:
+        return;
+
+        catch java.lang.Throwable from label1 to label2 with label3;
+        catch java.lang.Throwable from label3 to label4 with label3;
+    }
+
+    private boolean acceptRequest()
+    {
+        java.lang.Throwable $r2;
+        org.mortbay.servlet.ThrottlingFilter r0;
+        int $i0, $i1, $i2, $i3;
+        java.lang.Object $r1;
+
+        r0 := @this: org.mortbay.servlet.ThrottlingFilter;
+
+        $r1 = r0.<org.mortbay.servlet.ThrottlingFilter: java.lang.Object _lock>;
+
+        entermonitor $r1;
+
+     label1:
+        $i1 = r0.<org.mortbay.servlet.ThrottlingFilter: int _current>;
+
+        $i0 = r0.<org.mortbay.servlet.ThrottlingFilter: int _maximum>;
+
+        if $i1 >= $i0 goto label3;
+
+        $i2 = r0.<org.mortbay.servlet.ThrottlingFilter: int _current>;
+
+        $i3 = $i2 + 1;
+
+        r0.<org.mortbay.servlet.ThrottlingFilter: int _current> = $i3;
+
+        exitmonitor $r1;
+
+     label2:
+        return 1;
+
+     label3:
+        exitmonitor $r1;
+
+     label4:
+        goto label7;
+
+     label5:
+        $r2 := @caughtexception;
+
+        exitmonitor $r1;
+
+     label6:
+        throw $r2;
+
+     label7:
+        return 0;
+
+        catch java.lang.Throwable from label1 to label2 with label5;
+        catch java.lang.Throwable from label3 to label4 with label5;
+        catch java.lang.Throwable from label5 to label6 with label5;
+    }
+
+    private boolean queueRequest(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.mortbay.util.ajax.Continuation) throws java.io.IOException, javax.servlet.ServletException
+    {
+        java.lang.Throwable $r9;
+        org.mortbay.util.ajax.Continuation r5;
+        long $l1, $l2, $l4;
+        javax.servlet.http.HttpServletRequest r3;
+        byte $b3;
+        org.mortbay.servlet.ThrottlingFilter r0;
+        int $i0, $i5;
+        java.lang.String $r4, $r7, $r8;
+        javax.servlet.http.HttpServletResponse r10;
+        java.util.List $r1, $r2, $r6;
+
+        r0 := @this: org.mortbay.servlet.ThrottlingFilter;
+
+        r3 := @parameter0: javax.servlet.http.HttpServletRequest;
+
+        r10 := @parameter1: javax.servlet.http.HttpServletResponse;
+
+        r5 := @parameter2: org.mortbay.util.ajax.Continuation;
+
+        $r1 = r0.<org.mortbay.servlet.ThrottlingFilter: java.util.List _queue>;
+
+        entermonitor $r1;
+
+     label1:
+        $r2 = r0.<org.mortbay.servlet.ThrottlingFilter: java.util.List _queue>;
+
+        $i0 = interfaceinvoke $r2.<java.util.List: int size()>();
+
+        $l2 = (long) $i0;
+
+        $l1 = r0.<org.mortbay.servlet.ThrottlingFilter: long _queueSize>;
+
+        $b3 = $l2 cmp $l1;
+
+        $i5 = (int) $b3;
+
+        if $i5 < 0 goto label3;
+
+        $r8 = interfaceinvoke r3.<javax.servlet.http.HttpServletRequest: java.lang.String getRequestURI()>();
+
+        staticinvoke <org.mortbay.log.Log: void debug(java.lang.String,java.lang.Object,java.lang.Object)>("Queue is full, rejecting request {}", $r8, null);
+
+        exitmonitor $r1;
+
+     label2:
+        return 0;
+
+     label3:
+        $r4 = interfaceinvoke r3.<javax.servlet.http.HttpServletRequest: java.lang.String getRequestURI()>();
+
+        staticinvoke <org.mortbay.log.Log: void debug(java.lang.String,java.lang.Object,java.lang.Object)>("Queuing request {} / {}", $r4, r5);
+
+        $r6 = r0.<org.mortbay.servlet.ThrottlingFilter: java.util.List _queue>;
+
+        interfaceinvoke $r6.<java.util.List: boolean add(java.lang.Object)>(r5);
+
+        exitmonitor $r1;
+
+     label4:
+        goto label7;
+
+     label5:
+        $r9 := @caughtexception;
+
+        exitmonitor $r1;
+
+     label6:
+        throw $r9;
+
+     label7:
+        $l4 = r0.<org.mortbay.servlet.ThrottlingFilter: long _queueTimeout>;
+
+        interfaceinvoke r5.<org.mortbay.util.ajax.Continuation: boolean suspend(long)>($l4);
+
+        $r7 = interfaceinvoke r3.<javax.servlet.http.HttpServletRequest: java.lang.String getRequestURI()>();
+
+        staticinvoke <org.mortbay.log.Log: void debug(java.lang.String,java.lang.Object,java.lang.Object)>("Resuming blocking continuation for request {}", $r7, null);
+
+        return 1;
+
+        catch java.lang.Throwable from label1 to label2 with label5;
+        catch java.lang.Throwable from label3 to label4 with label5;
+        catch java.lang.Throwable from label5 to label6 with label5;
+    }
+
+    private org.mortbay.util.ajax.Continuation getContinuation(javax.servlet.ServletRequest)
+    {
+        javax.servlet.ServletRequest r0;
+        org.mortbay.util.ajax.Continuation $r2;
+        org.mortbay.servlet.ThrottlingFilter r3;
+        java.lang.Object $r1;
+
+        r3 := @this: org.mortbay.servlet.ThrottlingFilter;
+
+        r0 := @parameter0: javax.servlet.ServletRequest;
+
+        $r1 = interfaceinvoke r0.<javax.servlet.ServletRequest: java.lang.Object getAttribute(java.lang.String)>("org.mortbay.jetty.ajax.Continuation");
+
+        $r2 = (org.mortbay.util.ajax.Continuation) $r1;
+
+        return $r2;
+    }
+
+    public void destroy()
+    {
+        org.mortbay.servlet.ThrottlingFilter r0;
+        java.util.List $r1;
+
+        r0 := @this: org.mortbay.servlet.ThrottlingFilter;
+
+        $r1 = r0.<org.mortbay.servlet.ThrottlingFilter: java.util.List _queue>;
+
+        interfaceinvoke $r1.<java.util.List: void clear()>();
+
+        return;
+    }
+}

@@ -1,0 +1,1567 @@
+public class com.googlecode.mp4parser.authoring.tracks.H264TrackImpl extends com.googlecode.mp4parser.authoring.AbstractTrack
+{
+    private static final java.util.logging.Logger LOG;
+    static int BUFFER;
+    com.googlecode.mp4parser.authoring.TrackMetaData trackMetaData;
+    com.coremedia.iso.boxes.SampleDescriptionBox sampleDescriptionBox;
+    private com.googlecode.mp4parser.DataSource dataSource;
+    private java.util.List samples;
+    boolean readSamples;
+    java.util.List ctts;
+    java.util.List sdtp;
+    java.util.List stss;
+    com.googlecode.mp4parser.h264.model.SeqParameterSet seqParameterSet;
+    com.googlecode.mp4parser.h264.model.PictureParameterSet pictureParameterSet;
+    java.util.LinkedList seqParameterSetList;
+    java.util.LinkedList pictureParameterSetList;
+    private int width;
+    private int height;
+    private long timescale;
+    private int frametick;
+    private int currentScSize;
+    private int prevScSize;
+    private com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$SEIMessage seiMessage;
+    int frameNrInGop;
+    private boolean determineFrameRate;
+    private java.lang.String lang;
+    private long[] decodingTimes;
+    java.nio.ByteBuffer sixtyFourK;
+    private static int[] $SWITCH_TABLE$com$googlecode$mp4parser$authoring$tracks$H264TrackImpl$NALActions;
+
+    static void <clinit>()
+    {
+        java.lang.Class $r0;
+        java.lang.String $r1;
+        java.util.logging.Logger $r2;
+
+        $r0 = class "Lcom/googlecode/mp4parser/authoring/tracks/H264TrackImpl;";
+
+        $r1 = virtualinvoke $r0.<java.lang.Class: java.lang.String getName()>();
+
+        $r2 = staticinvoke <java.util.logging.Logger: java.util.logging.Logger getLogger(java.lang.String)>($r1);
+
+        <com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.util.logging.Logger LOG> = $r2;
+
+        <com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: int BUFFER> = 67107840;
+
+        return;
+    }
+
+    public void <init>(com.googlecode.mp4parser.DataSource, java.lang.String, long, int) throws java.io.IOException
+    {
+        com.googlecode.mp4parser.DataSource r6, $r8;
+        long l0;
+        java.nio.ByteBuffer $r4;
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl r0;
+        byte $b2;
+        int i1, $i3;
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$LookAhead $r12;
+        java.lang.String r5;
+        com.googlecode.mp4parser.authoring.TrackMetaData $r9;
+        java.util.LinkedList $r10, $r11;
+
+        r0 := @this: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl;
+
+        r6 := @parameter0: com.googlecode.mp4parser.DataSource;
+
+        r5 := @parameter1: java.lang.String;
+
+        l0 := @parameter2: long;
+
+        i1 := @parameter3: int;
+
+        specialinvoke r0.<com.googlecode.mp4parser.authoring.AbstractTrack: void <init>()>();
+
+        $r9 = new com.googlecode.mp4parser.authoring.TrackMetaData;
+
+        specialinvoke $r9.<com.googlecode.mp4parser.authoring.TrackMetaData: void <init>()>();
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.authoring.TrackMetaData trackMetaData> = $r9;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: boolean readSamples> = 0;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.h264.model.SeqParameterSet seqParameterSet> = null;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.h264.model.PictureParameterSet pictureParameterSet> = null;
+
+        $r10 = new java.util.LinkedList;
+
+        specialinvoke $r10.<java.util.LinkedList: void <init>()>();
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.util.LinkedList seqParameterSetList> = $r10;
+
+        $r11 = new java.util.LinkedList;
+
+        specialinvoke $r11.<java.util.LinkedList: void <init>()>();
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.util.LinkedList pictureParameterSetList> = $r11;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: int frameNrInGop> = 0;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: boolean determineFrameRate> = 1;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.lang.String lang> = "eng";
+
+        $r4 = staticinvoke <java.nio.ByteBuffer: java.nio.ByteBuffer allocate(int)>(1);
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.nio.ByteBuffer sixtyFourK> = $r4;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.lang.String lang> = r5;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: long timescale> = l0;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: int frametick> = i1;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.DataSource dataSource> = r6;
+
+        $b2 = l0 cmp 0L;
+
+        $i3 = (int) $b2;
+
+        if $i3 <= 0 goto label1;
+
+        if i1 <= 0 goto label1;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: boolean determineFrameRate> = 0;
+
+     label1:
+        $r12 = new com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$LookAhead;
+
+        $r8 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.DataSource dataSource>;
+
+        specialinvoke $r12.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$LookAhead: void <init>(com.googlecode.mp4parser.authoring.tracks.H264TrackImpl,com.googlecode.mp4parser.DataSource)>(r0, $r8);
+
+        specialinvoke r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: void parse(com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$LookAhead)>($r12);
+
+        return;
+    }
+
+    public void <init>(com.googlecode.mp4parser.DataSource, java.lang.String) throws java.io.IOException
+    {
+        com.googlecode.mp4parser.DataSource r6, $r8;
+        java.nio.ByteBuffer $r4;
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl r0;
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$LookAhead $r7;
+        com.googlecode.mp4parser.authoring.TrackMetaData $r1;
+        java.lang.String r5;
+        java.util.LinkedList $r2, $r3;
+
+        r0 := @this: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl;
+
+        r6 := @parameter0: com.googlecode.mp4parser.DataSource;
+
+        r5 := @parameter1: java.lang.String;
+
+        specialinvoke r0.<com.googlecode.mp4parser.authoring.AbstractTrack: void <init>()>();
+
+        $r1 = new com.googlecode.mp4parser.authoring.TrackMetaData;
+
+        specialinvoke $r1.<com.googlecode.mp4parser.authoring.TrackMetaData: void <init>()>();
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.authoring.TrackMetaData trackMetaData> = $r1;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: boolean readSamples> = 0;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.h264.model.SeqParameterSet seqParameterSet> = null;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.h264.model.PictureParameterSet pictureParameterSet> = null;
+
+        $r2 = new java.util.LinkedList;
+
+        specialinvoke $r2.<java.util.LinkedList: void <init>()>();
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.util.LinkedList seqParameterSetList> = $r2;
+
+        $r3 = new java.util.LinkedList;
+
+        specialinvoke $r3.<java.util.LinkedList: void <init>()>();
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.util.LinkedList pictureParameterSetList> = $r3;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: int frameNrInGop> = 0;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: boolean determineFrameRate> = 1;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.lang.String lang> = "eng";
+
+        $r4 = staticinvoke <java.nio.ByteBuffer: java.nio.ByteBuffer allocate(int)>(1);
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.nio.ByteBuffer sixtyFourK> = $r4;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.lang.String lang> = r5;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.DataSource dataSource> = r6;
+
+        $r7 = new com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$LookAhead;
+
+        $r8 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.DataSource dataSource>;
+
+        specialinvoke $r7.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$LookAhead: void <init>(com.googlecode.mp4parser.authoring.tracks.H264TrackImpl,com.googlecode.mp4parser.DataSource)>(r0, $r8);
+
+        specialinvoke r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: void parse(com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$LookAhead)>($r7);
+
+        return;
+    }
+
+    public void <init>(com.googlecode.mp4parser.DataSource) throws java.io.IOException
+    {
+        com.googlecode.mp4parser.DataSource r5, $r7;
+        java.nio.ByteBuffer $r4;
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl r0;
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$LookAhead $r6;
+        com.googlecode.mp4parser.authoring.TrackMetaData $r1;
+        java.util.LinkedList $r2, $r3;
+
+        r0 := @this: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl;
+
+        r5 := @parameter0: com.googlecode.mp4parser.DataSource;
+
+        specialinvoke r0.<com.googlecode.mp4parser.authoring.AbstractTrack: void <init>()>();
+
+        $r1 = new com.googlecode.mp4parser.authoring.TrackMetaData;
+
+        specialinvoke $r1.<com.googlecode.mp4parser.authoring.TrackMetaData: void <init>()>();
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.authoring.TrackMetaData trackMetaData> = $r1;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: boolean readSamples> = 0;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.h264.model.SeqParameterSet seqParameterSet> = null;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.h264.model.PictureParameterSet pictureParameterSet> = null;
+
+        $r2 = new java.util.LinkedList;
+
+        specialinvoke $r2.<java.util.LinkedList: void <init>()>();
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.util.LinkedList seqParameterSetList> = $r2;
+
+        $r3 = new java.util.LinkedList;
+
+        specialinvoke $r3.<java.util.LinkedList: void <init>()>();
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.util.LinkedList pictureParameterSetList> = $r3;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: int frameNrInGop> = 0;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: boolean determineFrameRate> = 1;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.lang.String lang> = "eng";
+
+        $r4 = staticinvoke <java.nio.ByteBuffer: java.nio.ByteBuffer allocate(int)>(1);
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.nio.ByteBuffer sixtyFourK> = $r4;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.DataSource dataSource> = r5;
+
+        $r6 = new com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$LookAhead;
+
+        $r7 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.DataSource dataSource>;
+
+        specialinvoke $r6.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$LookAhead: void <init>(com.googlecode.mp4parser.authoring.tracks.H264TrackImpl,com.googlecode.mp4parser.DataSource)>(r0, $r7);
+
+        specialinvoke r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: void parse(com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$LookAhead)>($r6);
+
+        return;
+    }
+
+    private void parse(com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$LookAhead) throws java.io.IOException
+    {
+        byte[] $r19;
+        java.util.Date $r41, $r42;
+        com.coremedia.iso.boxes.h264.AvcConfigurationBox $r40;
+        byte $b7;
+        com.googlecode.mp4parser.h264.model.ChromaFormat $r16;
+        boolean $z0, $z1;
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl r0;
+        com.googlecode.mp4parser.h264.model.SeqParameterSet $r11, $r12, $r13, $r14, $r15;
+        long $l8;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i9, $i10, $i11;
+        java.lang.String $r25;
+        java.util.LinkedList $r9, $r10, $r17, $r32, $r33, $r34, $r35;
+        double $d0, $d1;
+        com.coremedia.iso.boxes.SampleDescriptionBox $r20, $r38;
+        java.io.IOException $r36, $r37;
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$LookAhead r5;
+        java.lang.Object $r18;
+        com.googlecode.mp4parser.authoring.TrackMetaData $r22, $r24, $r26, $r27, $r28, $r29;
+        com.coremedia.iso.boxes.sampleentry.VisualSampleEntry $r39;
+
+        r0 := @this: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl;
+
+        r5 := @parameter0: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$LookAhead;
+
+        $r32 = new java.util.LinkedList;
+
+        specialinvoke $r32.<java.util.LinkedList: void <init>()>();
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.util.List ctts> = $r32;
+
+        $r33 = new java.util.LinkedList;
+
+        specialinvoke $r33.<java.util.LinkedList: void <init>()>();
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.util.List sdtp> = $r33;
+
+        $r34 = new java.util.LinkedList;
+
+        specialinvoke $r34.<java.util.LinkedList: void <init>()>();
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.util.List stss> = $r34;
+
+        $r35 = new java.util.LinkedList;
+
+        specialinvoke $r35.<java.util.LinkedList: void <init>()>();
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.util.List samples> = $r35;
+
+        $z0 = specialinvoke r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: boolean readSamples(com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$LookAhead)>(r5);
+
+        if $z0 != 0 goto label1;
+
+        $r36 = new java.io.IOException;
+
+        specialinvoke $r36.<java.io.IOException: void <init>()>();
+
+        throw $r36;
+
+     label1:
+        $z1 = specialinvoke r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: boolean readVariables()>();
+
+        if $z1 != 0 goto label2;
+
+        $r37 = new java.io.IOException;
+
+        specialinvoke $r37.<java.io.IOException: void <init>()>();
+
+        throw $r37;
+
+     label2:
+        $r38 = new com.coremedia.iso.boxes.SampleDescriptionBox;
+
+        specialinvoke $r38.<com.coremedia.iso.boxes.SampleDescriptionBox: void <init>()>();
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.coremedia.iso.boxes.SampleDescriptionBox sampleDescriptionBox> = $r38;
+
+        $r39 = new com.coremedia.iso.boxes.sampleentry.VisualSampleEntry;
+
+        specialinvoke $r39.<com.coremedia.iso.boxes.sampleentry.VisualSampleEntry: void <init>(java.lang.String)>("avc1");
+
+        virtualinvoke $r39.<com.coremedia.iso.boxes.sampleentry.VisualSampleEntry: void setDataReferenceIndex(int)>(1);
+
+        virtualinvoke $r39.<com.coremedia.iso.boxes.sampleentry.VisualSampleEntry: void setDepth(int)>(24);
+
+        virtualinvoke $r39.<com.coremedia.iso.boxes.sampleentry.VisualSampleEntry: void setFrameCount(int)>(1);
+
+        virtualinvoke $r39.<com.coremedia.iso.boxes.sampleentry.VisualSampleEntry: void setHorizresolution(double)>(72.0);
+
+        virtualinvoke $r39.<com.coremedia.iso.boxes.sampleentry.VisualSampleEntry: void setVertresolution(double)>(72.0);
+
+        $i0 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: int width>;
+
+        virtualinvoke $r39.<com.coremedia.iso.boxes.sampleentry.VisualSampleEntry: void setWidth(int)>($i0);
+
+        $i1 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: int height>;
+
+        virtualinvoke $r39.<com.coremedia.iso.boxes.sampleentry.VisualSampleEntry: void setHeight(int)>($i1);
+
+        virtualinvoke $r39.<com.coremedia.iso.boxes.sampleentry.VisualSampleEntry: void setCompressorname(java.lang.String)>("AVC Coding");
+
+        $r40 = new com.coremedia.iso.boxes.h264.AvcConfigurationBox;
+
+        specialinvoke $r40.<com.coremedia.iso.boxes.h264.AvcConfigurationBox: void <init>()>();
+
+        $r9 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.util.LinkedList seqParameterSetList>;
+
+        virtualinvoke $r40.<com.coremedia.iso.boxes.h264.AvcConfigurationBox: void setSequenceParameterSets(java.util.List)>($r9);
+
+        $r10 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.util.LinkedList pictureParameterSetList>;
+
+        virtualinvoke $r40.<com.coremedia.iso.boxes.h264.AvcConfigurationBox: void setPictureParameterSets(java.util.List)>($r10);
+
+        $r11 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.h264.model.SeqParameterSet seqParameterSet>;
+
+        $i2 = $r11.<com.googlecode.mp4parser.h264.model.SeqParameterSet: int level_idc>;
+
+        virtualinvoke $r40.<com.coremedia.iso.boxes.h264.AvcConfigurationBox: void setAvcLevelIndication(int)>($i2);
+
+        $r12 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.h264.model.SeqParameterSet seqParameterSet>;
+
+        $i3 = $r12.<com.googlecode.mp4parser.h264.model.SeqParameterSet: int profile_idc>;
+
+        virtualinvoke $r40.<com.coremedia.iso.boxes.h264.AvcConfigurationBox: void setAvcProfileIndication(int)>($i3);
+
+        $r13 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.h264.model.SeqParameterSet seqParameterSet>;
+
+        $i4 = $r13.<com.googlecode.mp4parser.h264.model.SeqParameterSet: int bit_depth_luma_minus8>;
+
+        virtualinvoke $r40.<com.coremedia.iso.boxes.h264.AvcConfigurationBox: void setBitDepthLumaMinus8(int)>($i4);
+
+        $r14 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.h264.model.SeqParameterSet seqParameterSet>;
+
+        $i5 = $r14.<com.googlecode.mp4parser.h264.model.SeqParameterSet: int bit_depth_chroma_minus8>;
+
+        virtualinvoke $r40.<com.coremedia.iso.boxes.h264.AvcConfigurationBox: void setBitDepthChromaMinus8(int)>($i5);
+
+        $r15 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.h264.model.SeqParameterSet seqParameterSet>;
+
+        $r16 = $r15.<com.googlecode.mp4parser.h264.model.SeqParameterSet: com.googlecode.mp4parser.h264.model.ChromaFormat chroma_format_idc>;
+
+        $i6 = virtualinvoke $r16.<com.googlecode.mp4parser.h264.model.ChromaFormat: int getId()>();
+
+        virtualinvoke $r40.<com.coremedia.iso.boxes.h264.AvcConfigurationBox: void setChromaFormat(int)>($i6);
+
+        virtualinvoke $r40.<com.coremedia.iso.boxes.h264.AvcConfigurationBox: void setConfigurationVersion(int)>(1);
+
+        virtualinvoke $r40.<com.coremedia.iso.boxes.h264.AvcConfigurationBox: void setLengthSizeMinusOne(int)>(3);
+
+        $r17 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.util.LinkedList seqParameterSetList>;
+
+        $r18 = virtualinvoke $r17.<java.util.LinkedList: java.lang.Object get(int)>(0);
+
+        $r19 = (byte[]) $r18;
+
+        $b7 = $r19[1];
+
+        $i11 = (int) $b7;
+
+        virtualinvoke $r40.<com.coremedia.iso.boxes.h264.AvcConfigurationBox: void setProfileCompatibility(int)>($i11);
+
+        virtualinvoke $r39.<com.coremedia.iso.boxes.sampleentry.VisualSampleEntry: void addBox(com.coremedia.iso.boxes.Box)>($r40);
+
+        $r20 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.coremedia.iso.boxes.SampleDescriptionBox sampleDescriptionBox>;
+
+        virtualinvoke $r20.<com.coremedia.iso.boxes.SampleDescriptionBox: void addBox(com.coremedia.iso.boxes.Box)>($r39);
+
+        $r22 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.authoring.TrackMetaData trackMetaData>;
+
+        $r41 = new java.util.Date;
+
+        specialinvoke $r41.<java.util.Date: void <init>()>();
+
+        virtualinvoke $r22.<com.googlecode.mp4parser.authoring.TrackMetaData: void setCreationTime(java.util.Date)>($r41);
+
+        $r24 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.authoring.TrackMetaData trackMetaData>;
+
+        $r42 = new java.util.Date;
+
+        specialinvoke $r42.<java.util.Date: void <init>()>();
+
+        virtualinvoke $r24.<com.googlecode.mp4parser.authoring.TrackMetaData: void setModificationTime(java.util.Date)>($r42);
+
+        $r26 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.authoring.TrackMetaData trackMetaData>;
+
+        $r25 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.lang.String lang>;
+
+        virtualinvoke $r26.<com.googlecode.mp4parser.authoring.TrackMetaData: void setLanguage(java.lang.String)>($r25);
+
+        $r27 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.authoring.TrackMetaData trackMetaData>;
+
+        $l8 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: long timescale>;
+
+        virtualinvoke $r27.<com.googlecode.mp4parser.authoring.TrackMetaData: void setTimescale(long)>($l8);
+
+        $r28 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.authoring.TrackMetaData trackMetaData>;
+
+        $i9 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: int width>;
+
+        $d0 = (double) $i9;
+
+        virtualinvoke $r28.<com.googlecode.mp4parser.authoring.TrackMetaData: void setWidth(double)>($d0);
+
+        $r29 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.authoring.TrackMetaData trackMetaData>;
+
+        $i10 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: int height>;
+
+        $d1 = (double) $i10;
+
+        virtualinvoke $r29.<com.googlecode.mp4parser.authoring.TrackMetaData: void setHeight(double)>($d1);
+
+        return;
+    }
+
+    public com.coremedia.iso.boxes.SampleDescriptionBox getSampleDescriptionBox()
+    {
+        com.coremedia.iso.boxes.SampleDescriptionBox $r1;
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl r0;
+
+        r0 := @this: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl;
+
+        $r1 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.coremedia.iso.boxes.SampleDescriptionBox sampleDescriptionBox>;
+
+        return $r1;
+    }
+
+    public java.util.List getCompositionTimeEntries()
+    {
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl r0;
+        java.util.List $r1;
+
+        r0 := @this: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl;
+
+        $r1 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.util.List ctts>;
+
+        return $r1;
+    }
+
+    public long[] getSyncSamples()
+    {
+        long $l3;
+        java.lang.Integer $r6;
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl r0;
+        java.util.List $r1, $r3, $r4;
+        long[] r2;
+        int $i0, $i1, $i2, i4;
+        java.lang.Object $r5;
+
+        r0 := @this: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl;
+
+        $r1 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.util.List stss>;
+
+        $i0 = interfaceinvoke $r1.<java.util.List: int size()>();
+
+        r2 = newarray (long)[$i0];
+
+        i4 = 0;
+
+        goto label2;
+
+     label1:
+        $r4 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.util.List stss>;
+
+        $r5 = interfaceinvoke $r4.<java.util.List: java.lang.Object get(int)>(i4);
+
+        $r6 = (java.lang.Integer) $r5;
+
+        $i2 = virtualinvoke $r6.<java.lang.Integer: int intValue()>();
+
+        $l3 = (long) $i2;
+
+        r2[i4] = $l3;
+
+        i4 = i4 + 1;
+
+     label2:
+        $r3 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.util.List stss>;
+
+        $i1 = interfaceinvoke $r3.<java.util.List: int size()>();
+
+        if i4 < $i1 goto label1;
+
+        return r2;
+    }
+
+    public java.util.List getSampleDependencies()
+    {
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl r0;
+        java.util.List $r1;
+
+        r0 := @this: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl;
+
+        $r1 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.util.List sdtp>;
+
+        return $r1;
+    }
+
+    public com.googlecode.mp4parser.authoring.TrackMetaData getTrackMetaData()
+    {
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl r0;
+        com.googlecode.mp4parser.authoring.TrackMetaData $r1;
+
+        r0 := @this: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl;
+
+        $r1 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.authoring.TrackMetaData trackMetaData>;
+
+        return $r1;
+    }
+
+    public java.lang.String getHandler()
+    {
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl r0;
+
+        r0 := @this: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl;
+
+        return "vide";
+    }
+
+    public java.util.List getSamples()
+    {
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl r0;
+        java.util.List $r1;
+
+        r0 := @this: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl;
+
+        $r1 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.util.List samples>;
+
+        return $r1;
+    }
+
+    public com.coremedia.iso.boxes.AbstractMediaHeaderBox getMediaHeaderBox()
+    {
+        com.coremedia.iso.boxes.VideoMediaHeaderBox $r0;
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl r1;
+
+        r1 := @this: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl;
+
+        $r0 = new com.coremedia.iso.boxes.VideoMediaHeaderBox;
+
+        specialinvoke $r0.<com.coremedia.iso.boxes.VideoMediaHeaderBox: void <init>()>();
+
+        return $r0;
+    }
+
+    private boolean readVariables()
+    {
+        byte b20, b24, b25, b26;
+        com.googlecode.mp4parser.h264.model.ChromaFormat $r11, $r13, $r15;
+        boolean $z0, $z1, $z2;
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl r0;
+        com.googlecode.mp4parser.h264.model.SeqParameterSet $r1, $r2, $r3, $r4, $r5, $r6, $r7, $r8, $r9, $r10, $r12, $r14;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i10, $i11, $i12, $i13, $i14, $i15, $i16, $i17, $i18, $i19, i21, i22, i23;
+
+        r0 := @this: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl;
+
+        $r1 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.h264.model.SeqParameterSet seqParameterSet>;
+
+        $i0 = $r1.<com.googlecode.mp4parser.h264.model.SeqParameterSet: int pic_width_in_mbs_minus1>;
+
+        $i1 = $i0 + 1;
+
+        $i2 = $i1 * 16;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: int width> = $i2;
+
+        b20 = 2;
+
+        b26 = 2;
+
+        b25 = 2;
+
+        b24 = 2;
+
+        $r2 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.h264.model.SeqParameterSet seqParameterSet>;
+
+        $z0 = $r2.<com.googlecode.mp4parser.h264.model.SeqParameterSet: boolean frame_mbs_only_flag>;
+
+        if $z0 == 0 goto label1;
+
+        b20 = 1;
+
+        b26 = 1;
+
+        b25 = 1;
+
+        b24 = 1;
+
+     label1:
+        $r3 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.h264.model.SeqParameterSet seqParameterSet>;
+
+        $i3 = $r3.<com.googlecode.mp4parser.h264.model.SeqParameterSet: int pic_height_in_map_units_minus1>;
+
+        $i4 = $i3 + 1;
+
+        $i5 = 16 * $i4;
+
+        $i6 = $i5 * b24;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: int height> = $i6;
+
+        $r4 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.h264.model.SeqParameterSet seqParameterSet>;
+
+        $z1 = $r4.<com.googlecode.mp4parser.h264.model.SeqParameterSet: boolean frame_cropping_flag>;
+
+        if $z1 == 0 goto label4;
+
+        i21 = 0;
+
+        $r5 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.h264.model.SeqParameterSet seqParameterSet>;
+
+        $z2 = $r5.<com.googlecode.mp4parser.h264.model.SeqParameterSet: boolean residual_color_transform_flag>;
+
+        if $z2 != 0 goto label2;
+
+        $r14 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.h264.model.SeqParameterSet seqParameterSet>;
+
+        $r15 = $r14.<com.googlecode.mp4parser.h264.model.SeqParameterSet: com.googlecode.mp4parser.h264.model.ChromaFormat chroma_format_idc>;
+
+        i21 = virtualinvoke $r15.<com.googlecode.mp4parser.h264.model.ChromaFormat: int getId()>();
+
+     label2:
+        i22 = 1;
+
+        i23 = b26;
+
+        if i21 == 0 goto label3;
+
+        $r10 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.h264.model.SeqParameterSet seqParameterSet>;
+
+        $r11 = $r10.<com.googlecode.mp4parser.h264.model.SeqParameterSet: com.googlecode.mp4parser.h264.model.ChromaFormat chroma_format_idc>;
+
+        i22 = virtualinvoke $r11.<com.googlecode.mp4parser.h264.model.ChromaFormat: int getSubWidth()>();
+
+        $r12 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.h264.model.SeqParameterSet seqParameterSet>;
+
+        $r13 = $r12.<com.googlecode.mp4parser.h264.model.SeqParameterSet: com.googlecode.mp4parser.h264.model.ChromaFormat chroma_format_idc>;
+
+        $i19 = virtualinvoke $r13.<com.googlecode.mp4parser.h264.model.ChromaFormat: int getSubHeight()>();
+
+        i23 = $i19 * b25;
+
+     label3:
+        $i11 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: int width>;
+
+        $r6 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.h264.model.SeqParameterSet seqParameterSet>;
+
+        $i8 = $r6.<com.googlecode.mp4parser.h264.model.SeqParameterSet: int frame_crop_left_offset>;
+
+        $r7 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.h264.model.SeqParameterSet seqParameterSet>;
+
+        $i7 = $r7.<com.googlecode.mp4parser.h264.model.SeqParameterSet: int frame_crop_right_offset>;
+
+        $i9 = $i8 + $i7;
+
+        $i10 = i22 * $i9;
+
+        $i12 = $i11 - $i10;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: int width> = $i12;
+
+        $i17 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: int height>;
+
+        $r8 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.h264.model.SeqParameterSet seqParameterSet>;
+
+        $i14 = $r8.<com.googlecode.mp4parser.h264.model.SeqParameterSet: int frame_crop_top_offset>;
+
+        $r9 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.h264.model.SeqParameterSet seqParameterSet>;
+
+        $i13 = $r9.<com.googlecode.mp4parser.h264.model.SeqParameterSet: int frame_crop_bottom_offset>;
+
+        $i15 = $i14 + $i13;
+
+        $i16 = i23 * $i15;
+
+        $i18 = $i17 - $i16;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: int height> = $i18;
+
+     label4:
+        return 1;
+    }
+
+    private java.nio.ByteBuffer findNextSample(com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$LookAhead) throws java.io.IOException
+    {
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl r3;
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$LookAhead r0;
+        java.io.EOFException $r2;
+        java.nio.ByteBuffer $r1;
+        boolean $z0, $z1;
+
+        r3 := @this: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl;
+
+        r0 := @parameter0: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$LookAhead;
+
+     label1:
+        goto label3;
+
+     label2:
+        virtualinvoke r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$LookAhead: void discardByte()>();
+
+     label3:
+        $z0 = virtualinvoke r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$LookAhead: boolean nextThreeEquals001()>();
+
+        if $z0 == 0 goto label2;
+
+        virtualinvoke r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$LookAhead: void discardNext3AndMarkStart()>();
+
+        goto label5;
+
+     label4:
+        virtualinvoke r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$LookAhead: void discardByte()>();
+
+     label5:
+        $z1 = virtualinvoke r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$LookAhead: boolean nextThreeEquals000or001orEof()>();
+
+        if $z1 == 0 goto label4;
+
+        $r1 = virtualinvoke r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$LookAhead: java.nio.ByteBuffer getSample()>();
+
+     label6:
+        return $r1;
+
+     label7:
+        $r2 := @caughtexception;
+
+        return null;
+
+        catch java.io.EOFException from label1 to label6 with label7;
+    }
+
+    protected com.googlecode.mp4parser.authoring.Sample createSample(java.util.List)
+    {
+        byte[] r1;
+        java.nio.ByteBuffer $r2, $r5, $r7, r10;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, i10;
+        com.googlecode.mp4parser.authoring.SampleImpl $r8;
+        boolean $z0;
+        java.nio.ByteBuffer[] r11;
+        java.util.Iterator $r3;
+        java.util.List r0;
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl r9;
+        java.lang.Object $r4, $r6;
+
+        r9 := @this: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl;
+
+        r0 := @parameter0: java.util.List;
+
+        $i0 = interfaceinvoke r0.<java.util.List: int size()>();
+
+        $i1 = $i0 * 4;
+
+        r1 = newarray (byte)[$i1];
+
+        $r2 = staticinvoke <java.nio.ByteBuffer: java.nio.ByteBuffer wrap(byte[])>(r1);
+
+        $r3 = interfaceinvoke r0.<java.util.List: java.util.Iterator iterator()>();
+
+        goto label2;
+
+     label1:
+        $r4 = interfaceinvoke $r3.<java.util.Iterator: java.lang.Object next()>();
+
+        r10 = (java.nio.ByteBuffer) $r4;
+
+        $i2 = virtualinvoke r10.<java.nio.ByteBuffer: int remaining()>();
+
+        virtualinvoke $r2.<java.nio.ByteBuffer: java.nio.ByteBuffer putInt(int)>($i2);
+
+     label2:
+        $z0 = interfaceinvoke $r3.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 != 0 goto label1;
+
+        $i3 = interfaceinvoke r0.<java.util.List: int size()>();
+
+        $i4 = $i3 * 2;
+
+        r11 = newarray (java.nio.ByteBuffer)[$i4];
+
+        i10 = 0;
+
+        goto label4;
+
+     label3:
+        $i7 = 2 * i10;
+
+        $i6 = i10 * 4;
+
+        $r5 = staticinvoke <java.nio.ByteBuffer: java.nio.ByteBuffer wrap(byte[],int,int)>(r1, $i6, 4);
+
+        r11[$i7] = $r5;
+
+        $i8 = 2 * i10;
+
+        $i9 = $i8 + 1;
+
+        $r6 = interfaceinvoke r0.<java.util.List: java.lang.Object get(int)>(i10);
+
+        $r7 = (java.nio.ByteBuffer) $r6;
+
+        r11[$i9] = $r7;
+
+        i10 = i10 + 1;
+
+     label4:
+        $i5 = interfaceinvoke r0.<java.util.List: int size()>();
+
+        if i10 < $i5 goto label3;
+
+        $r8 = new com.googlecode.mp4parser.authoring.SampleImpl;
+
+        specialinvoke $r8.<com.googlecode.mp4parser.authoring.SampleImpl: void <init>(java.nio.ByteBuffer[])>(r11);
+
+        return $r8;
+    }
+
+    private boolean readSamples(com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$LookAhead) throws java.io.IOException
+    {
+        java.lang.Integer $r25;
+        byte $b0, b3;
+        com.coremedia.iso.boxes.SampleDependencyTypeBox$Entry $r41;
+        com.coremedia.iso.boxes.CompositionTimeToSample$Entry $r40;
+        com.googlecode.mp4parser.authoring.Sample $r14;
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$SliceHeader$SliceType $r12, $r13;
+        long $l14;
+        java.util.ArrayList r29, $r36, $r39;
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$SliceHeader $r38;
+        com.googlecode.mp4parser.h264.model.PictureParameterSet $r10;
+        java.nio.ByteBuffer $r7, $r35;
+        int[] $r4;
+        boolean $z0, $z1, $z2, z3;
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl r0;
+        java.util.List $r16, $r24, $r26, $r31, $r33;
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$ByteBufferBackedInputStream $r37;
+        com.googlecode.mp4parser.h264.model.SeqParameterSet $r11;
+        long[] $r27, $r28;
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$SEIMessage $r17, $r18, $r19, $r20, $r21, $r22, $r23, $r30;
+        int $i1, i2, $i4, $i5, $i6, $i7, $i8, $i9, $i10, $i11, $i12, $i13, i15, i16, i17, $i18, $i19, $i20, $i21, $i22, $i23, $i24, $i25;
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$NALActions $r3;
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$LookAhead r2;
+        java.lang.Object $r6;
+        java.io.InputStream $r8;
+
+        r0 := @this: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl;
+
+        r2 := @parameter0: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$LookAhead;
+
+        $z0 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: boolean readSamples>;
+
+        if $z0 == 0 goto label01;
+
+        return 1;
+
+     label01:
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: boolean readSamples> = 1;
+
+        $r36 = new java.util.ArrayList;
+
+        specialinvoke $r36.<java.util.ArrayList: void <init>()>();
+
+        r29 = $r36;
+
+        i15 = 0;
+
+        goto label14;
+
+     label02:
+        $b0 = virtualinvoke $r35.<java.nio.ByteBuffer: byte get(int)>(0);
+
+        $i22 = (int) $b0;
+
+        $i1 = $i22 >> 5;
+
+        i2 = $i1 & 3;
+
+        b3 = $b0 & 31;
+
+        $i23 = (int) b3;
+
+        $r3 = specialinvoke r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$NALActions handleNALUnit(int,int,java.nio.ByteBuffer)>(i2, $i23, $r35);
+
+        $r4 = staticinvoke <com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: int[] $SWITCH_TABLE$com$googlecode$mp4parser$authoring$tracks$H264TrackImpl$NALActions()>();
+
+        $i4 = virtualinvoke $r3.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$NALActions: int ordinal()>();
+
+        $i5 = $r4[$i4];
+
+        tableswitch($i5)
+        {
+            case 1: goto label03;
+            case 2: goto label04;
+            case 3: goto label05;
+            case 4: goto label13;
+            default: goto label14;
+        };
+
+     label03:
+        goto label14;
+
+     label04:
+        interfaceinvoke r29.<java.util.List: boolean add(java.lang.Object)>($r35);
+
+        goto label14;
+
+     label05:
+        i16 = 22;
+
+        i15 = i15 + 1;
+
+        interfaceinvoke r29.<java.util.List: boolean add(java.lang.Object)>($r35);
+
+        z3 = 0;
+
+        $i24 = (int) b3;
+
+        if $i24 != 5 goto label06;
+
+        i16 = 38;
+
+        z3 = 1;
+
+     label06:
+        $r37 = new com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$ByteBufferBackedInputStream;
+
+        $i6 = interfaceinvoke r29.<java.util.List: int size()>();
+
+        $i7 = $i6 - 1;
+
+        $r6 = interfaceinvoke r29.<java.util.List: java.lang.Object get(int)>($i7);
+
+        $r7 = (java.nio.ByteBuffer) $r6;
+
+        specialinvoke $r37.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$ByteBufferBackedInputStream: void <init>(com.googlecode.mp4parser.authoring.tracks.H264TrackImpl,java.nio.ByteBuffer)>(r0, $r7);
+
+        $r8 = virtualinvoke r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.io.InputStream cleanBuffer(java.io.InputStream)>($r37);
+
+        $r38 = new com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$SliceHeader;
+
+        $r11 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.h264.model.SeqParameterSet seqParameterSet>;
+
+        $r10 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.h264.model.PictureParameterSet pictureParameterSet>;
+
+        specialinvoke $r38.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$SliceHeader: void <init>(java.io.InputStream,com.googlecode.mp4parser.h264.model.SeqParameterSet,com.googlecode.mp4parser.h264.model.PictureParameterSet,boolean)>($r8, $r11, $r10, z3);
+
+        $r13 = $r38.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$SliceHeader: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$SliceHeader$SliceType slice_type>;
+
+        $r12 = <com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$SliceHeader$SliceType: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$SliceHeader$SliceType B>;
+
+        if $r13 != $r12 goto label07;
+
+        i16 = i16 + 4;
+
+     label07:
+        $r14 = virtualinvoke r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.authoring.Sample createSample(java.util.List)>(r29);
+
+        $r39 = new java.util.ArrayList;
+
+        specialinvoke $r39.<java.util.ArrayList: void <init>()>();
+
+        r29 = $r39;
+
+        $r16 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.util.List samples>;
+
+        interfaceinvoke $r16.<java.util.List: boolean add(java.lang.Object)>($r14);
+
+        $i25 = (int) b3;
+
+        if $i25 != 5 goto label08;
+
+        $r24 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.util.List stss>;
+
+        $r25 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i15);
+
+        interfaceinvoke $r24.<java.util.List: boolean add(java.lang.Object)>($r25);
+
+     label08:
+        $r17 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$SEIMessage seiMessage>;
+
+        if $r17 == null goto label09;
+
+        $r23 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$SEIMessage seiMessage>;
+
+        $i11 = $r23.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$SEIMessage: int n_frames>;
+
+        if $i11 != 0 goto label10;
+
+     label09:
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: int frameNrInGop> = 0;
+
+     label10:
+        i17 = 0;
+
+        $r30 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$SEIMessage seiMessage>;
+
+        if $r30 == null goto label11;
+
+        $r21 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$SEIMessage seiMessage>;
+
+        $z2 = $r21.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$SEIMessage: boolean clock_timestamp_flag>;
+
+        if $z2 == 0 goto label11;
+
+        $r22 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$SEIMessage seiMessage>;
+
+        $i10 = $r22.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$SEIMessage: int n_frames>;
+
+        $i9 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: int frameNrInGop>;
+
+        i17 = $i10 - $i9;
+
+        goto label12;
+
+     label11:
+        $r18 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$SEIMessage seiMessage>;
+
+        if $r18 == null goto label12;
+
+        $r19 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$SEIMessage seiMessage>;
+
+        $z1 = $r19.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$SEIMessage: boolean removal_delay_flag>;
+
+        if $z1 == 0 goto label12;
+
+        $r20 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$SEIMessage seiMessage>;
+
+        $i8 = $r20.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$SEIMessage: int dpb_removal_delay>;
+
+        i17 = $i8 / 2;
+
+     label12:
+        $r31 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.util.List ctts>;
+
+        $r40 = new com.coremedia.iso.boxes.CompositionTimeToSample$Entry;
+
+        $i18 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: int frametick>;
+
+        $i19 = i17 * $i18;
+
+        specialinvoke $r40.<com.coremedia.iso.boxes.CompositionTimeToSample$Entry: void <init>(int,int)>(1, $i19);
+
+        interfaceinvoke $r31.<java.util.List: boolean add(java.lang.Object)>($r40);
+
+        $r33 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.util.List sdtp>;
+
+        $r41 = new com.coremedia.iso.boxes.SampleDependencyTypeBox$Entry;
+
+        specialinvoke $r41.<com.coremedia.iso.boxes.SampleDependencyTypeBox$Entry: void <init>(int)>(i16);
+
+        interfaceinvoke $r33.<java.util.List: boolean add(java.lang.Object)>($r41);
+
+        $i20 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: int frameNrInGop>;
+
+        $i21 = $i20 + 1;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: int frameNrInGop> = $i21;
+
+        goto label14;
+
+     label13:
+        return 1;
+
+     label14:
+        $r35 = specialinvoke r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.nio.ByteBuffer findNextSample(com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$LookAhead)>(r2);
+
+        if $r35 != null goto label02;
+
+        $r26 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.util.List samples>;
+
+        $i12 = interfaceinvoke $r26.<java.util.List: int size()>();
+
+        $r27 = newarray (long)[$i12];
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: long[] decodingTimes> = $r27;
+
+        $r28 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: long[] decodingTimes>;
+
+        $i13 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: int frametick>;
+
+        $l14 = (long) $i13;
+
+        staticinvoke <java.util.Arrays: void fill(long[],long)>($r28, $l14);
+
+        return 1;
+    }
+
+    protected java.io.InputStream cleanBuffer(java.io.InputStream)
+    {
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl r1;
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$CleanInputStream $r0;
+        java.io.InputStream r2;
+
+        r1 := @this: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl;
+
+        r2 := @parameter0: java.io.InputStream;
+
+        $r0 = new com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$CleanInputStream;
+
+        specialinvoke $r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$CleanInputStream: void <init>(com.googlecode.mp4parser.authoring.tracks.H264TrackImpl,java.io.InputStream)>(r1, r2);
+
+        return $r0;
+    }
+
+    public long[] getSampleDurations()
+    {
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl r0;
+        long[] $r1;
+
+        r0 := @this: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl;
+
+        $r1 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: long[] decodingTimes>;
+
+        return $r1;
+    }
+
+    static byte[] toArray(java.nio.ByteBuffer)
+    {
+        byte[] r1;
+        int $i0, $i1;
+        java.nio.ByteBuffer $r0, r2;
+
+        r2 := @parameter0: java.nio.ByteBuffer;
+
+        $r0 = virtualinvoke r2.<java.nio.ByteBuffer: java.nio.ByteBuffer duplicate()>();
+
+        $i0 = virtualinvoke $r0.<java.nio.ByteBuffer: int remaining()>();
+
+        r1 = newarray (byte)[$i0];
+
+        $i1 = lengthof r1;
+
+        virtualinvoke $r0.<java.nio.ByteBuffer: java.nio.ByteBuffer get(byte[],int,int)>(r1, 0, $i1);
+
+        return r1;
+    }
+
+    private com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$NALActions handleNALUnit(int, int, java.nio.ByteBuffer) throws java.io.IOException
+    {
+        byte[] $r6, $r12;
+        com.googlecode.mp4parser.h264.model.SeqParameterSet $r7, $r10, $r16;
+        com.googlecode.mp4parser.h264.model.PictureParameterSet $r1, $r4;
+        java.nio.ByteBuffer r3;
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$SEIMessage $r13;
+        int i0, i1;
+        java.lang.String $r20;
+        java.util.LinkedList $r5, $r11;
+        java.io.PrintStream $r18;
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$NALActions r21;
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl r0;
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$ByteBufferBackedInputStream $r2, $r8, $r14;
+        java.lang.StringBuilder $r17, $r19;
+        java.io.InputStream $r9, $r15;
+
+        r0 := @this: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl;
+
+        i1 := @parameter0: int;
+
+        i0 := @parameter1: int;
+
+        r3 := @parameter2: java.nio.ByteBuffer;
+
+        tableswitch(i0)
+        {
+            case 1: goto label01;
+            case 2: goto label01;
+            case 3: goto label01;
+            case 4: goto label01;
+            case 5: goto label01;
+            case 6: goto label02;
+            case 7: goto label04;
+            case 8: goto label06;
+            case 9: goto label03;
+            case 10: goto label08;
+            case 11: goto label08;
+            default: goto label09;
+        };
+
+     label01:
+        r21 = <com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$NALActions: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$NALActions STORE>;
+
+        goto label10;
+
+     label02:
+        $r13 = new com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$SEIMessage;
+
+        $r14 = new com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$ByteBufferBackedInputStream;
+
+        specialinvoke $r14.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$ByteBufferBackedInputStream: void <init>(com.googlecode.mp4parser.authoring.tracks.H264TrackImpl,java.nio.ByteBuffer)>(r0, r3);
+
+        $r15 = virtualinvoke r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.io.InputStream cleanBuffer(java.io.InputStream)>($r14);
+
+        $r16 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.h264.model.SeqParameterSet seqParameterSet>;
+
+        specialinvoke $r13.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$SEIMessage: void <init>(com.googlecode.mp4parser.authoring.tracks.H264TrackImpl,java.io.InputStream,com.googlecode.mp4parser.h264.model.SeqParameterSet)>(r0, $r15, $r16);
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$SEIMessage seiMessage> = $r13;
+
+        r21 = <com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$NALActions: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$NALActions BUFFER>;
+
+        goto label10;
+
+     label03:
+        r21 = <com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$NALActions: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$NALActions BUFFER>;
+
+        goto label10;
+
+     label04:
+        $r7 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.h264.model.SeqParameterSet seqParameterSet>;
+
+        if $r7 != null goto label05;
+
+        $r8 = new com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$ByteBufferBackedInputStream;
+
+        specialinvoke $r8.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$ByteBufferBackedInputStream: void <init>(com.googlecode.mp4parser.authoring.tracks.H264TrackImpl,java.nio.ByteBuffer)>(r0, r3);
+
+        $r9 = virtualinvoke r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.io.InputStream cleanBuffer(java.io.InputStream)>($r8);
+
+        virtualinvoke $r9.<java.io.InputStream: int read()>();
+
+        $r10 = staticinvoke <com.googlecode.mp4parser.h264.model.SeqParameterSet: com.googlecode.mp4parser.h264.model.SeqParameterSet read(java.io.InputStream)>($r9);
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.h264.model.SeqParameterSet seqParameterSet> = $r10;
+
+        $r11 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.util.LinkedList seqParameterSetList>;
+
+        $r12 = staticinvoke <com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: byte[] toArray(java.nio.ByteBuffer)>(r3);
+
+        virtualinvoke $r11.<java.util.LinkedList: boolean add(java.lang.Object)>($r12);
+
+        specialinvoke r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: void configureFramerate()>();
+
+     label05:
+        r21 = <com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$NALActions: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$NALActions IGNORE>;
+
+        goto label10;
+
+     label06:
+        $r1 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.h264.model.PictureParameterSet pictureParameterSet>;
+
+        if $r1 != null goto label07;
+
+        $r2 = new com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$ByteBufferBackedInputStream;
+
+        specialinvoke $r2.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$ByteBufferBackedInputStream: void <init>(com.googlecode.mp4parser.authoring.tracks.H264TrackImpl,java.nio.ByteBuffer)>(r0, r3);
+
+        virtualinvoke $r2.<java.io.InputStream: int read()>();
+
+        $r4 = staticinvoke <com.googlecode.mp4parser.h264.model.PictureParameterSet: com.googlecode.mp4parser.h264.model.PictureParameterSet read(java.io.InputStream)>($r2);
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.h264.model.PictureParameterSet pictureParameterSet> = $r4;
+
+        $r5 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.util.LinkedList pictureParameterSetList>;
+
+        $r6 = staticinvoke <com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: byte[] toArray(java.nio.ByteBuffer)>(r3);
+
+        virtualinvoke $r5.<java.util.LinkedList: boolean add(java.lang.Object)>($r6);
+
+     label07:
+        r21 = <com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$NALActions: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$NALActions IGNORE>;
+
+        goto label10;
+
+     label08:
+        r21 = <com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$NALActions: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$NALActions END>;
+
+        goto label10;
+
+     label09:
+        $r18 = <java.lang.System: java.io.PrintStream err>;
+
+        $r17 = new java.lang.StringBuilder;
+
+        specialinvoke $r17.<java.lang.StringBuilder: void <init>(java.lang.String)>("Unknown NAL unit type: ");
+
+        $r19 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>(i0);
+
+        $r20 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r18.<java.io.PrintStream: void println(java.lang.String)>($r20);
+
+        r21 = <com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$NALActions: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$NALActions IGNORE>;
+
+     label10:
+        return r21;
+    }
+
+    private void configureFramerate()
+    {
+        com.googlecode.mp4parser.h264.model.SeqParameterSet $r1, $r4, $r6;
+        long $l2, $l4, $l6;
+        byte $b5;
+        int $i0, $i1, $i3, $i7, $i8;
+        java.lang.String $r14;
+        boolean $z0;
+        java.io.PrintStream $r3, $r9;
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl r0;
+        com.googlecode.mp4parser.h264.model.VUIParameters $r2, $r5, $r7;
+        java.lang.StringBuilder $r8, $r10, $r11, $r12, $r13;
+
+        r0 := @this: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl;
+
+        $z0 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: boolean determineFrameRate>;
+
+        if $z0 == 0 goto label3;
+
+        $r1 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.h264.model.SeqParameterSet seqParameterSet>;
+
+        $r2 = $r1.<com.googlecode.mp4parser.h264.model.SeqParameterSet: com.googlecode.mp4parser.h264.model.VUIParameters vuiParams>;
+
+        if $r2 == null goto label2;
+
+        $r4 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.h264.model.SeqParameterSet seqParameterSet>;
+
+        $r5 = $r4.<com.googlecode.mp4parser.h264.model.SeqParameterSet: com.googlecode.mp4parser.h264.model.VUIParameters vuiParams>;
+
+        $i0 = $r5.<com.googlecode.mp4parser.h264.model.VUIParameters: int time_scale>;
+
+        $i1 = $i0 >> 1;
+
+        $l2 = (long) $i1;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: long timescale> = $l2;
+
+        $r6 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.googlecode.mp4parser.h264.model.SeqParameterSet seqParameterSet>;
+
+        $r7 = $r6.<com.googlecode.mp4parser.h264.model.SeqParameterSet: com.googlecode.mp4parser.h264.model.VUIParameters vuiParams>;
+
+        $i3 = $r7.<com.googlecode.mp4parser.h264.model.VUIParameters: int num_units_in_tick>;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: int frametick> = $i3;
+
+        $l4 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: long timescale>;
+
+        $b5 = $l4 cmp 0L;
+
+        if $b5 == 0 goto label1;
+
+        $i8 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: int frametick>;
+
+        if $i8 != 0 goto label3;
+
+     label1:
+        $r9 = <java.lang.System: java.io.PrintStream err>;
+
+        $r8 = new java.lang.StringBuilder;
+
+        specialinvoke $r8.<java.lang.StringBuilder: void <init>(java.lang.String)>("Warning: vuiParams contain invalid values: time_scale: ");
+
+        $l6 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: long timescale>;
+
+        $r10 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l6);
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" and frame_tick: ");
+
+        $i7 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: int frametick>;
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i7);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(". Setting frame rate to 25fps");
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r9.<java.io.PrintStream: void println(java.lang.String)>($r14);
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: long timescale> = 90000L;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: int frametick> = 3600;
+
+        goto label3;
+
+     label2:
+        $r3 = <java.lang.System: java.io.PrintStream err>;
+
+        virtualinvoke $r3.<java.io.PrintStream: void println(java.lang.String)>("Warning: Can\'t determine frame rate. Guessing 25 fps");
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: long timescale> = 90000L;
+
+        r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: int frametick> = 3600;
+
+     label3:
+        return;
+    }
+
+    public volatile com.coremedia.iso.boxes.Box getMediaHeaderBox()
+    {
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl r0;
+        com.coremedia.iso.boxes.AbstractMediaHeaderBox $r1;
+
+        r0 := @this: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl;
+
+        $r1 = virtualinvoke r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: com.coremedia.iso.boxes.AbstractMediaHeaderBox getMediaHeaderBox()>();
+
+        return $r1;
+    }
+
+    static java.util.List access$1(com.googlecode.mp4parser.authoring.tracks.H264TrackImpl)
+    {
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl r0;
+        java.util.List $r1;
+
+        r0 := @parameter0: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl;
+
+        $r1 = r0.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.util.List samples>;
+
+        return $r1;
+    }
+
+    static java.util.logging.Logger access$2()
+    {
+        java.util.logging.Logger $r0;
+
+        $r0 = <com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: java.util.logging.Logger LOG>;
+
+        return $r0;
+    }
+
+    static int[] $SWITCH_TABLE$com$googlecode$mp4parser$authoring$tracks$H264TrackImpl$NALActions()
+    {
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$NALActions[] $r1;
+        java.lang.NoSuchFieldError $r7, $r8, $r9, $r10;
+        int[] $r0, r2;
+        int $i0, $i1, $i2, $i3, $i4;
+        com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$NALActions $r3, $r4, $r5, $r6;
+
+        $r0 = <com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: int[] $SWITCH_TABLE$com$googlecode$mp4parser$authoring$tracks$H264TrackImpl$NALActions>;
+
+        if $r0 == null goto label01;
+
+        return $r0;
+
+     label01:
+        $r1 = staticinvoke <com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$NALActions: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$NALActions[] values()>();
+
+        $i0 = lengthof $r1;
+
+        r2 = newarray (int)[$i0];
+
+     label02:
+        $r3 = <com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$NALActions: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$NALActions BUFFER>;
+
+        $i1 = virtualinvoke $r3.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$NALActions: int ordinal()>();
+
+        r2[$i1] = 2;
+
+     label03:
+        goto label05;
+
+     label04:
+        $r10 := @caughtexception;
+
+     label05:
+        $r4 = <com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$NALActions: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$NALActions END>;
+
+        $i2 = virtualinvoke $r4.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$NALActions: int ordinal()>();
+
+        r2[$i2] = 4;
+
+     label06:
+        goto label08;
+
+     label07:
+        $r9 := @caughtexception;
+
+     label08:
+        $r5 = <com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$NALActions: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$NALActions IGNORE>;
+
+        $i3 = virtualinvoke $r5.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$NALActions: int ordinal()>();
+
+        r2[$i3] = 1;
+
+     label09:
+        goto label11;
+
+     label10:
+        $r8 := @caughtexception;
+
+     label11:
+        $r6 = <com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$NALActions: com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$NALActions STORE>;
+
+        $i4 = virtualinvoke $r6.<com.googlecode.mp4parser.authoring.tracks.H264TrackImpl$NALActions: int ordinal()>();
+
+        r2[$i4] = 3;
+
+     label12:
+        goto label14;
+
+     label13:
+        $r7 := @caughtexception;
+
+     label14:
+        <com.googlecode.mp4parser.authoring.tracks.H264TrackImpl: int[] $SWITCH_TABLE$com$googlecode$mp4parser$authoring$tracks$H264TrackImpl$NALActions> = r2;
+
+        return r2;
+
+        catch java.lang.NoSuchFieldError from label02 to label03 with label04;
+        catch java.lang.NoSuchFieldError from label05 to label06 with label07;
+        catch java.lang.NoSuchFieldError from label08 to label09 with label10;
+        catch java.lang.NoSuchFieldError from label11 to label12 with label13;
+    }
+}

@@ -1,0 +1,223 @@
+class ucar.nc2.ft.point.remote.RemotePointCollection extends ucar.nc2.ft.point.PointCollectionImpl implements ucar.nc2.ft.point.remote.QueryMaker
+{
+    private java.lang.String uri;
+    private ucar.nc2.ft.point.remote.QueryMaker queryMaker;
+
+    void <init>(java.lang.String, ucar.nc2.ft.point.remote.QueryMaker)
+    {
+        ucar.nc2.ft.point.remote.RemotePointCollection r0;
+        ucar.nc2.ft.point.remote.QueryMaker r2, $r3;
+        java.lang.String r1;
+
+        r0 := @this: ucar.nc2.ft.point.remote.RemotePointCollection;
+
+        r1 := @parameter0: java.lang.String;
+
+        r2 := @parameter1: ucar.nc2.ft.point.remote.QueryMaker;
+
+        specialinvoke r0.<ucar.nc2.ft.point.PointCollectionImpl: void <init>(java.lang.String)>(r1);
+
+        r0.<ucar.nc2.ft.point.remote.RemotePointCollection: java.lang.String uri> = r1;
+
+        if r2 != null goto label1;
+
+        $r3 = r0;
+
+        goto label2;
+
+     label1:
+        $r3 = r2;
+
+     label2:
+        r0.<ucar.nc2.ft.point.remote.RemotePointCollection: ucar.nc2.ft.point.remote.QueryMaker queryMaker> = $r3;
+
+        return;
+    }
+
+    public java.lang.String makeQuery()
+    {
+        ucar.unidata.geoloc.LatLonRect $r2;
+        ucar.nc2.units.DateRange $r1;
+        ucar.nc2.ft.point.remote.RemotePointCollection r0;
+        java.lang.String $r3;
+
+        r0 := @this: ucar.nc2.ft.point.remote.RemotePointCollection;
+
+        $r2 = r0.<ucar.nc2.ft.point.remote.RemotePointCollection: ucar.unidata.geoloc.LatLonRect boundingBox>;
+
+        $r1 = r0.<ucar.nc2.ft.point.remote.RemotePointCollection: ucar.nc2.units.DateRange dateRange>;
+
+        $r3 = staticinvoke <ucar.nc2.ft.point.remote.PointDatasetRemote: java.lang.String makeQuery(java.lang.String,ucar.unidata.geoloc.LatLonRect,ucar.nc2.units.DateRange)>(null, $r2, $r1);
+
+        return $r3;
+    }
+
+    public ucar.nc2.ft.PointFeatureIterator getPointFeatureIterator(int) throws java.io.IOException
+    {
+        java.lang.Throwable $r18;
+        byte[] r21, r22;
+        ucar.nc2.ft.point.remote.QueryMaker $r1;
+        int $i0, $i1, i2;
+        java.lang.String $r2, $r3, r23;
+        ucar.nc2.ft.point.remote.RemotePointFeatureIterator $r16;
+        ucar.nc2.stream.NcStreamProto$Error $r13;
+        java.io.IOException $r12;
+        java.lang.RuntimeException $r19;
+        ucar.nc2.ft.point.remote.PointStream$ProtobufPointFeatureMaker $r17;
+        ucar.nc2.ft.point.remote.RemotePointCollection r0;
+        ucar.nc2.ft.point.remote.PointStream$MessageType $r5, $r6, $r7, $r8;
+        java.lang.StringBuilder $r9, $r10, $r11;
+        ucar.nc2.ft.point.remote.PointStreamProto$PointFeatureCollection $r15;
+        ucar.nc2.ft.point.PointIteratorEmpty $r14;
+        java.io.InputStream $r4, r20;
+
+        r0 := @this: ucar.nc2.ft.point.remote.RemotePointCollection;
+
+        i2 := @parameter0: int;
+
+        r20 = null;
+
+     label01:
+        $r2 = r0.<ucar.nc2.ft.point.remote.RemotePointCollection: java.lang.String uri>;
+
+        $r1 = r0.<ucar.nc2.ft.point.remote.RemotePointCollection: ucar.nc2.ft.point.remote.QueryMaker queryMaker>;
+
+        $r3 = interfaceinvoke $r1.<ucar.nc2.ft.point.remote.QueryMaker: java.lang.String makeQuery()>();
+
+        $r4 = staticinvoke <ucar.nc2.stream.CdmRemote: java.io.InputStream sendQuery(java.lang.String,java.lang.String)>($r2, $r3);
+
+        r20 = $r4;
+
+        $r5 = staticinvoke <ucar.nc2.ft.point.remote.PointStream: ucar.nc2.ft.point.remote.PointStream$MessageType readMagic(java.io.InputStream)>($r4);
+
+        $r6 = <ucar.nc2.ft.point.remote.PointStream$MessageType: ucar.nc2.ft.point.remote.PointStream$MessageType PointFeatureCollection>;
+
+        if $r5 != $r6 goto label03;
+
+        $i1 = staticinvoke <ucar.nc2.stream.NcStream: int readVInt(java.io.InputStream)>($r4);
+
+        r21 = newarray (byte)[$i1];
+
+        staticinvoke <ucar.nc2.stream.NcStream: int readFully(java.io.InputStream,byte[])>($r4, r21);
+
+        $r15 = staticinvoke <ucar.nc2.ft.point.remote.PointStreamProto$PointFeatureCollection: ucar.nc2.ft.point.remote.PointStreamProto$PointFeatureCollection parseFrom(byte[])>(r21);
+
+        $r16 = new ucar.nc2.ft.point.remote.RemotePointFeatureIterator;
+
+        $r17 = new ucar.nc2.ft.point.remote.PointStream$ProtobufPointFeatureMaker;
+
+        specialinvoke $r17.<ucar.nc2.ft.point.remote.PointStream$ProtobufPointFeatureMaker: void <init>(ucar.nc2.ft.point.remote.PointStreamProto$PointFeatureCollection)>($r15);
+
+        specialinvoke $r16.<ucar.nc2.ft.point.remote.RemotePointFeatureIterator: void <init>(java.io.InputStream,ucar.nc2.ft.point.remote.FeatureMaker)>($r4, $r17);
+
+        interfaceinvoke $r16.<ucar.nc2.ft.PointFeatureIterator: void setCalculateBounds(ucar.nc2.ft.PointFeatureCollection)>(r0);
+
+     label02:
+        return $r16;
+
+     label03:
+        $r7 = <ucar.nc2.ft.point.remote.PointStream$MessageType: ucar.nc2.ft.point.remote.PointStream$MessageType End>;
+
+        if $r5 != $r7 goto label05;
+
+        $r14 = new ucar.nc2.ft.point.PointIteratorEmpty;
+
+        specialinvoke $r14.<ucar.nc2.ft.point.PointIteratorEmpty: void <init>()>();
+
+     label04:
+        return $r14;
+
+     label05:
+        $r8 = <ucar.nc2.ft.point.remote.PointStream$MessageType: ucar.nc2.ft.point.remote.PointStream$MessageType Error>;
+
+        if $r5 != $r8 goto label06;
+
+        $i0 = staticinvoke <ucar.nc2.stream.NcStream: int readVInt(java.io.InputStream)>($r4);
+
+        r22 = newarray (byte)[$i0];
+
+        staticinvoke <ucar.nc2.stream.NcStream: int readFully(java.io.InputStream,byte[])>($r4, r22);
+
+        $r13 = staticinvoke <ucar.nc2.stream.NcStreamProto$Error: ucar.nc2.stream.NcStreamProto$Error parseFrom(byte[])>(r22);
+
+        r23 = staticinvoke <ucar.nc2.stream.NcStream: java.lang.String decodeErrorMessage(ucar.nc2.stream.NcStreamProto$Error)>($r13);
+
+        goto label07;
+
+     label06:
+        $r9 = new java.lang.StringBuilder;
+
+        specialinvoke $r9.<java.lang.StringBuilder: void <init>()>();
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Illegal pointstream message type= ");
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r5);
+
+        r23 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.String toString()>();
+
+     label07:
+        goto label10;
+
+     label08:
+        $r18 := @caughtexception;
+
+        if r20 == null goto label09;
+
+        virtualinvoke r20.<java.io.InputStream: void close()>();
+
+     label09:
+        $r19 = new java.lang.RuntimeException;
+
+        specialinvoke $r19.<java.lang.RuntimeException: void <init>(java.lang.Throwable)>($r18);
+
+        throw $r19;
+
+     label10:
+        if r23 == null goto label11;
+
+        $r12 = new java.io.IOException;
+
+        specialinvoke $r12.<java.io.IOException: void <init>(java.lang.String)>(r23);
+
+        throw $r12;
+
+     label11:
+        return null;
+
+        catch java.lang.Throwable from label01 to label02 with label08;
+        catch java.lang.Throwable from label03 to label04 with label08;
+        catch java.lang.Throwable from label05 to label07 with label08;
+    }
+
+    public ucar.nc2.ft.PointFeatureCollection subset(ucar.unidata.geoloc.LatLonRect, ucar.nc2.units.DateRange) throws java.io.IOException
+    {
+        ucar.unidata.geoloc.LatLonRect r2;
+        ucar.nc2.units.DateRange r3;
+        ucar.nc2.ft.point.remote.RemotePointCollection r1;
+        ucar.nc2.ft.point.remote.RemotePointCollection$PointFeatureCollectionSubset $r0;
+
+        r1 := @this: ucar.nc2.ft.point.remote.RemotePointCollection;
+
+        r2 := @parameter0: ucar.unidata.geoloc.LatLonRect;
+
+        r3 := @parameter1: ucar.nc2.units.DateRange;
+
+        $r0 = new ucar.nc2.ft.point.remote.RemotePointCollection$PointFeatureCollectionSubset;
+
+        specialinvoke $r0.<ucar.nc2.ft.point.remote.RemotePointCollection$PointFeatureCollectionSubset: void <init>(ucar.nc2.ft.point.remote.RemotePointCollection,ucar.nc2.ft.point.remote.RemotePointCollection,ucar.unidata.geoloc.LatLonRect,ucar.nc2.units.DateRange)>(r1, r1, r2, r3);
+
+        return $r0;
+    }
+
+    static java.lang.String access$000(ucar.nc2.ft.point.remote.RemotePointCollection)
+    {
+        ucar.nc2.ft.point.remote.RemotePointCollection r0;
+        java.lang.String $r1;
+
+        r0 := @parameter0: ucar.nc2.ft.point.remote.RemotePointCollection;
+
+        $r1 = r0.<ucar.nc2.ft.point.remote.RemotePointCollection: java.lang.String uri>;
+
+        return $r1;
+    }
+}

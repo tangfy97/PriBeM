@@ -1,0 +1,1977 @@
+public final class com.hp.hpl.jena.tdb.index.ext.ExtHash extends java.lang.Object implements com.hp.hpl.jena.tdb.index.Index
+{
+    private static org.slf4j.Logger log;
+    public static boolean Debugging;
+    public static boolean Checking;
+    public static boolean Logging;
+    java.nio.IntBuffer dictionary;
+    private int bitLen;
+    private final com.hp.hpl.jena.tdb.index.ext.HashBucketMgr hashBucketMgr;
+    private final com.hp.hpl.jena.tdb.base.record.RecordFactory recordFactory;
+    private final com.hp.hpl.jena.tdb.base.file.PlainFile dictionaryFile;
+    private com.hp.hpl.jena.tdb.index.ext.ExtHash$HashRecordKey hashFunction;
+    static com.hp.hpl.jena.tdb.index.ext.ExtHash$HashRecordKey hash4bytes;
+    static com.hp.hpl.jena.tdb.index.ext.ExtHash$HashRecordKey hashFNV;
+
+    public static com.hp.hpl.jena.tdb.index.ext.ExtHash createMem(com.hp.hpl.jena.tdb.base.record.RecordFactory, int)
+    {
+        com.hp.hpl.jena.tdb.base.block.BlockMgr $r0;
+        com.hp.hpl.jena.tdb.index.ext.ExtHash $r1;
+        int i0;
+        com.hp.hpl.jena.tdb.base.record.RecordFactory r3;
+        com.hp.hpl.jena.tdb.base.file.PlainFileMem $r2;
+
+        r3 := @parameter0: com.hp.hpl.jena.tdb.base.record.RecordFactory;
+
+        i0 := @parameter1: int;
+
+        $r0 = staticinvoke <com.hp.hpl.jena.tdb.base.block.BlockMgrFactory: com.hp.hpl.jena.tdb.base.block.BlockMgr createMem(java.lang.String,int)>("ExtHash", i0);
+
+        $r1 = new com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        $r2 = new com.hp.hpl.jena.tdb.base.file.PlainFileMem;
+
+        specialinvoke $r2.<com.hp.hpl.jena.tdb.base.file.PlainFileMem: void <init>()>();
+
+        specialinvoke $r1.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void <init>(com.hp.hpl.jena.tdb.base.file.PlainFile,com.hp.hpl.jena.tdb.base.record.RecordFactory,com.hp.hpl.jena.tdb.base.block.BlockMgr)>($r2, r3, $r0);
+
+        return $r1;
+    }
+
+    public void <init>(com.hp.hpl.jena.tdb.base.file.PlainFile, com.hp.hpl.jena.tdb.base.record.RecordFactory, com.hp.hpl.jena.tdb.base.block.BlockMgr)
+    {
+        com.hp.hpl.jena.tdb.index.ext.HashBucket $r12;
+        java.nio.ByteBuffer $r4;
+        com.hp.hpl.jena.tdb.base.block.BlockMgr r8;
+        java.nio.IntBuffer $r5, $r13;
+        com.hp.hpl.jena.tdb.index.ext.ExtHash r0;
+        int $i0;
+        boolean $z0;
+        com.hp.hpl.jena.tdb.index.ext.ExtHash$HashRecordKey $r1;
+        com.hp.hpl.jena.tdb.index.ext.HashBucketMgr $r7, $r9, $r10, $r11, $r14;
+        com.hp.hpl.jena.tdb.base.file.PlainFile r2, $r3;
+        com.hp.hpl.jena.tdb.base.record.RecordFactory r6;
+
+        r0 := @this: com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        r2 := @parameter0: com.hp.hpl.jena.tdb.base.file.PlainFile;
+
+        r6 := @parameter1: com.hp.hpl.jena.tdb.base.record.RecordFactory;
+
+        r8 := @parameter2: com.hp.hpl.jena.tdb.base.block.BlockMgr;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int bitLen> = 0;
+
+        $r1 = <com.hp.hpl.jena.tdb.index.ext.ExtHash: com.hp.hpl.jena.tdb.index.ext.ExtHash$HashRecordKey hashFNV>;
+
+        r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: com.hp.hpl.jena.tdb.index.ext.ExtHash$HashRecordKey hashFunction> = $r1;
+
+        r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: com.hp.hpl.jena.tdb.base.file.PlainFile dictionaryFile> = r2;
+
+        $r3 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: com.hp.hpl.jena.tdb.base.file.PlainFile dictionaryFile>;
+
+        $r4 = virtualinvoke $r3.<com.hp.hpl.jena.tdb.base.file.PlainFile: java.nio.ByteBuffer ensure(int)>(4);
+
+        $r5 = virtualinvoke $r4.<java.nio.ByteBuffer: java.nio.IntBuffer asIntBuffer()>();
+
+        r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: java.nio.IntBuffer dictionary> = $r5;
+
+        r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: com.hp.hpl.jena.tdb.base.record.RecordFactory recordFactory> = r6;
+
+        $r7 = new com.hp.hpl.jena.tdb.index.ext.HashBucketMgr;
+
+        specialinvoke $r7.<com.hp.hpl.jena.tdb.index.ext.HashBucketMgr: void <init>(com.hp.hpl.jena.tdb.base.record.RecordFactory,com.hp.hpl.jena.tdb.base.block.BlockMgr)>(r6, r8);
+
+        r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: com.hp.hpl.jena.tdb.index.ext.HashBucketMgr hashBucketMgr> = $r7;
+
+        $r9 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: com.hp.hpl.jena.tdb.index.ext.HashBucketMgr hashBucketMgr>;
+
+        virtualinvoke $r9.<com.hp.hpl.jena.tdb.index.ext.HashBucketMgr: boolean valid(int)>(0);
+
+        $r10 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: com.hp.hpl.jena.tdb.index.ext.HashBucketMgr hashBucketMgr>;
+
+        $z0 = virtualinvoke $r10.<com.hp.hpl.jena.tdb.index.ext.HashBucketMgr: boolean valid(int)>(0);
+
+        if $z0 == 0 goto label1;
+
+        goto label2;
+
+     label1:
+        $r11 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: com.hp.hpl.jena.tdb.index.ext.HashBucketMgr hashBucketMgr>;
+
+        $r12 = virtualinvoke $r11.<com.hp.hpl.jena.tdb.index.ext.HashBucketMgr: com.hp.hpl.jena.tdb.index.ext.HashBucket create(int,int)>(0, 0);
+
+        $r13 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: java.nio.IntBuffer dictionary>;
+
+        $i0 = virtualinvoke $r12.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getId()>();
+
+        virtualinvoke $r13.<java.nio.IntBuffer: java.nio.IntBuffer put(int,int)>(0, $i0);
+
+        r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int bitLen> = 0;
+
+        $r14 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: com.hp.hpl.jena.tdb.index.ext.HashBucketMgr hashBucketMgr>;
+
+        virtualinvoke $r14.<com.hp.hpl.jena.tdb.index.ext.HashBucketMgr: void put(com.hp.hpl.jena.tdb.base.page.Page)>($r12);
+
+     label2:
+        return;
+    }
+
+    private int trieKey(com.hp.hpl.jena.tdb.base.record.Record)
+    {
+        byte[] $r3;
+        com.hp.hpl.jena.tdb.index.ext.ExtHash$HashRecordKey $r2;
+        com.hp.hpl.jena.tdb.index.ext.ExtHash r0;
+        com.hp.hpl.jena.tdb.base.record.Record r1;
+        int $i0, $i1, $i2;
+
+        r0 := @this: com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        r1 := @parameter0: com.hp.hpl.jena.tdb.base.record.Record;
+
+        $r2 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: com.hp.hpl.jena.tdb.index.ext.ExtHash$HashRecordKey hashFunction>;
+
+        $r3 = virtualinvoke r1.<com.hp.hpl.jena.tdb.base.record.Record: byte[] getKey()>();
+
+        $i0 = interfaceinvoke $r2.<com.hp.hpl.jena.tdb.index.ext.ExtHash$HashRecordKey: int hashCode(byte[])>($r3);
+
+        $i1 = staticinvoke <java.lang.Integer: int reverse(int)>($i0);
+
+        $i2 = $i1 >>> 1;
+
+        return $i2;
+    }
+
+    private int trieKey(com.hp.hpl.jena.tdb.base.record.Record, int)
+    {
+        com.hp.hpl.jena.tdb.index.ext.ExtHash r0;
+        com.hp.hpl.jena.tdb.base.record.Record r1;
+        int $i0, i1, $i2;
+
+        r0 := @this: com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        r1 := @parameter0: com.hp.hpl.jena.tdb.base.record.Record;
+
+        i1 := @parameter1: int;
+
+        $i0 = specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int trieKey(com.hp.hpl.jena.tdb.base.record.Record)>(r1);
+
+        $i2 = specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int trieKey(int,int)>($i0, i1);
+
+        return $i2;
+    }
+
+    private int trieKey(int, int)
+    {
+        com.hp.hpl.jena.tdb.index.ext.ExtHash r0;
+        int i0, i1, $i2, $i3;
+
+        r0 := @this: com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        i0 := @parameter0: int;
+
+        i1 := @parameter1: int;
+
+        $i2 = 31 - i1;
+
+        $i3 = i0 >>> $i2;
+
+        return $i3;
+    }
+
+    private int bucketId(com.hp.hpl.jena.tdb.base.record.Record, int)
+    {
+        java.nio.IntBuffer $r2;
+        com.hp.hpl.jena.tdb.index.ext.ExtHash r0;
+        com.hp.hpl.jena.tdb.base.record.Record r1;
+        int $i0, i1, $i2, $i3;
+
+        r0 := @this: com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        r1 := @parameter0: com.hp.hpl.jena.tdb.base.record.Record;
+
+        i1 := @parameter1: int;
+
+        $i0 = specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int trieKey(com.hp.hpl.jena.tdb.base.record.Record)>(r1);
+
+        $i2 = specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int trieKey(int,int)>($i0, i1);
+
+        $r2 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: java.nio.IntBuffer dictionary>;
+
+        $i3 = virtualinvoke $r2.<java.nio.IntBuffer: int get(int)>($i2);
+
+        return $i3;
+    }
+
+    private static long filesize(int)
+    {
+        int i0;
+        long $l1, $l2;
+
+        i0 := @parameter0: int;
+
+        $l1 = (long) i0;
+
+        $l2 = 4L * $l1;
+
+        return $l2;
+    }
+
+    private void resizeDictionary()
+    {
+        java.lang.Object[] $r5;
+        java.lang.Integer $r6, $r7;
+        java.nio.ByteBuffer $r2;
+        java.nio.IntBuffer $r3, $r4;
+        com.hp.hpl.jena.tdb.index.ext.ExtHash r0;
+        int $i0, i1, $i2, i3, i4, $i5, $i6, $i7, $i8, $i9, i10, $i12;
+        boolean $z0, $z1;
+        com.hp.hpl.jena.tdb.base.file.PlainFile $r1;
+
+        r0 := @this: com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        $i0 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int bitLen>;
+
+        i1 = 1 << $i0;
+
+        $i2 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int bitLen>;
+
+        i3 = $i2 + 1;
+
+        i4 = 1 << i3;
+
+        $z0 = specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean logging()>();
+
+        if $z0 == 0 goto label1;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void log(java.lang.Object)>(">>>>Resize");
+
+        $r5 = newarray (java.lang.Object)[2];
+
+        $r6 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i1);
+
+        $r5[0] = $r6;
+
+        $r7 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i4);
+
+        $r5[1] = $r7;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void log(java.lang.String,java.lang.Object[])>("resize: %d ==> %d", $r5);
+
+     label1:
+        $r1 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: com.hp.hpl.jena.tdb.base.file.PlainFile dictionaryFile>;
+
+        $i5 = i4 * 4;
+
+        $r2 = virtualinvoke $r1.<com.hp.hpl.jena.tdb.base.file.PlainFile: java.nio.ByteBuffer ensure(int)>($i5);
+
+        $r3 = virtualinvoke $r2.<java.nio.ByteBuffer: java.nio.IntBuffer asIntBuffer()>();
+
+        $r4 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: java.nio.IntBuffer dictionary>;
+
+        if $r4 == null goto label3;
+
+        i10 = i1 - 1;
+
+     label2:
+        if i10 < 0 goto label3;
+
+        $i6 = virtualinvoke $r3.<java.nio.IntBuffer: int get(int)>(i10);
+
+        $i7 = 2 * i10;
+
+        virtualinvoke $r3.<java.nio.IntBuffer: java.nio.IntBuffer put(int,int)>($i7, $i6);
+
+        $i8 = 2 * i10;
+
+        $i9 = $i8 + 1;
+
+        virtualinvoke $r3.<java.nio.IntBuffer: java.nio.IntBuffer put(int,int)>($i9, $i6);
+
+        $i12 = (int) -1;
+
+        i10 = i10 + $i12;
+
+        goto label2;
+
+     label3:
+        r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: java.nio.IntBuffer dictionary> = $r3;
+
+        r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int bitLen> = i3;
+
+        $z1 = specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean logging()>();
+
+        if $z1 == 0 goto label4;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void log(java.lang.Object)>("<<<<Resize");
+
+     label4:
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void internalCheck()>();
+
+        return;
+    }
+
+    final int getBucketId(int)
+    {
+        java.nio.IntBuffer $r1;
+        com.hp.hpl.jena.tdb.index.ext.ExtHash r0;
+        int i0, $i1;
+
+        r0 := @this: com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        i0 := @parameter0: int;
+
+        $r1 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: java.nio.IntBuffer dictionary>;
+
+        $i1 = virtualinvoke $r1.<java.nio.IntBuffer: int get(int)>(i0);
+
+        return $i1;
+    }
+
+    final com.hp.hpl.jena.tdb.index.ext.HashBucket getBucket(int)
+    {
+        com.hp.hpl.jena.tdb.index.ext.ExtHash r0;
+        com.hp.hpl.jena.tdb.index.ext.HashBucket $r2;
+        int i0;
+        com.hp.hpl.jena.tdb.index.ext.HashBucketMgr $r1;
+
+        r0 := @this: com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        i0 := @parameter0: int;
+
+        $r1 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: com.hp.hpl.jena.tdb.index.ext.HashBucketMgr hashBucketMgr>;
+
+        $r2 = virtualinvoke $r1.<com.hp.hpl.jena.tdb.index.ext.HashBucketMgr: com.hp.hpl.jena.tdb.index.ext.HashBucket get(int)>(i0);
+
+        return $r2;
+    }
+
+    public final int dictionarySize()
+    {
+        int $i0;
+        java.nio.IntBuffer $r1;
+        com.hp.hpl.jena.tdb.index.ext.ExtHash r0;
+
+        r0 := @this: com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        $r1 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: java.nio.IntBuffer dictionary>;
+
+        $i0 = virtualinvoke $r1.<java.nio.IntBuffer: int capacity()>();
+
+        return $i0;
+    }
+
+    public boolean contains(com.hp.hpl.jena.tdb.base.record.Record)
+    {
+        com.hp.hpl.jena.tdb.index.ext.ExtHash r0;
+        com.hp.hpl.jena.tdb.base.record.Record r1, $r2;
+        boolean $z0;
+
+        r0 := @this: com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        r1 := @parameter0: com.hp.hpl.jena.tdb.base.record.Record;
+
+        $r2 = virtualinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: com.hp.hpl.jena.tdb.base.record.Record find(com.hp.hpl.jena.tdb.base.record.Record)>(r1);
+
+        if $r2 == null goto label1;
+
+        $z0 = 1;
+
+        goto label2;
+
+     label1:
+        $z0 = 0;
+
+     label2:
+        return $z0;
+    }
+
+    public com.hp.hpl.jena.tdb.base.record.Record find(com.hp.hpl.jena.tdb.base.record.Record)
+    {
+        byte[] $r6;
+        java.lang.Object[] $r5, $r7;
+        com.hp.hpl.jena.tdb.index.ext.HashBucket $r3;
+        com.hp.hpl.jena.tdb.index.ext.HashBucketMgr $r2;
+        com.hp.hpl.jena.tdb.index.ext.ExtHash r0;
+        com.hp.hpl.jena.tdb.base.record.Record r1, $r4;
+        int $i0, $i1;
+        boolean $z0, $z1;
+
+        r0 := @this: com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        r1 := @parameter0: com.hp.hpl.jena.tdb.base.record.Record;
+
+        $z0 = specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean logging()>();
+
+        if $z0 == 0 goto label1;
+
+        $r7 = newarray (java.lang.Object)[1];
+
+        $r7[0] = r1;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void log(java.lang.String,java.lang.Object[])>(">> get(%s)", $r7);
+
+     label1:
+        $i0 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int bitLen>;
+
+        $i1 = specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int bucketId(com.hp.hpl.jena.tdb.base.record.Record,int)>(r1, $i0);
+
+        $r2 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: com.hp.hpl.jena.tdb.index.ext.HashBucketMgr hashBucketMgr>;
+
+        $r3 = virtualinvoke $r2.<com.hp.hpl.jena.tdb.index.ext.HashBucketMgr: com.hp.hpl.jena.tdb.index.ext.HashBucket get(int)>($i1);
+
+        $r4 = virtualinvoke $r3.<com.hp.hpl.jena.tdb.index.ext.HashBucket: com.hp.hpl.jena.tdb.base.record.Record find(com.hp.hpl.jena.tdb.base.record.Record)>(r1);
+
+        $z1 = specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean logging()>();
+
+        if $z1 == 0 goto label2;
+
+        $r5 = newarray (java.lang.Object)[2];
+
+        $r6 = virtualinvoke r1.<com.hp.hpl.jena.tdb.base.record.Record: byte[] getKey()>();
+
+        $r5[0] = $r6;
+
+        $r5[1] = $r4;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void log(java.lang.String,java.lang.Object[])>("<< get(%s) -> %s", $r5);
+
+     label2:
+        return $r4;
+    }
+
+    public boolean add(com.hp.hpl.jena.tdb.base.record.Record)
+    {
+        java.lang.Object[] $r2, $r3;
+        com.hp.hpl.jena.tdb.index.ext.ExtHash r0;
+        com.hp.hpl.jena.tdb.base.record.Record r1;
+        int $i0;
+        boolean $z0, $z1, $z2;
+
+        r0 := @this: com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        r1 := @parameter0: com.hp.hpl.jena.tdb.base.record.Record;
+
+        $z0 = specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean logging()>();
+
+        if $z0 == 0 goto label1;
+
+        $r3 = newarray (java.lang.Object)[1];
+
+        $r3[0] = r1;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void log(java.lang.String,java.lang.Object[])>(">> add(%s)", $r3);
+
+     label1:
+        $i0 = specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int trieKey(com.hp.hpl.jena.tdb.base.record.Record)>(r1);
+
+        $z1 = specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean put(com.hp.hpl.jena.tdb.base.record.Record,int)>(r1, $i0);
+
+        $z2 = specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean logging()>();
+
+        if $z2 == 0 goto label2;
+
+        $r2 = newarray (java.lang.Object)[1];
+
+        $r2[0] = r1;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void log(java.lang.String,java.lang.Object[])>("<< add(%s)", $r2);
+
+     label2:
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void internalCheck()>();
+
+        return $z1;
+    }
+
+    public boolean delete(com.hp.hpl.jena.tdb.base.record.Record)
+    {
+        java.lang.Object[] $r5, $r6;
+        com.hp.hpl.jena.tdb.index.ext.HashBucket $r3;
+        com.hp.hpl.jena.tdb.index.ext.HashBucketMgr $r2, $r4;
+        com.hp.hpl.jena.tdb.index.ext.ExtHash r0;
+        com.hp.hpl.jena.tdb.base.record.Record r1;
+        int $i0, $i1;
+        boolean $z0, $z1, $z2;
+
+        r0 := @this: com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        r1 := @parameter0: com.hp.hpl.jena.tdb.base.record.Record;
+
+        $z0 = specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean logging()>();
+
+        if $z0 == 0 goto label1;
+
+        $r6 = newarray (java.lang.Object)[1];
+
+        $r6[0] = r1;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void log(java.lang.String,java.lang.Object[])>(">> remove(%s)", $r6);
+
+     label1:
+        $i0 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int bitLen>;
+
+        $i1 = specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int bucketId(com.hp.hpl.jena.tdb.base.record.Record,int)>(r1, $i0);
+
+        $r2 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: com.hp.hpl.jena.tdb.index.ext.HashBucketMgr hashBucketMgr>;
+
+        $r3 = virtualinvoke $r2.<com.hp.hpl.jena.tdb.index.ext.HashBucketMgr: com.hp.hpl.jena.tdb.index.ext.HashBucket get(int)>($i1);
+
+        $z1 = virtualinvoke $r3.<com.hp.hpl.jena.tdb.index.ext.HashBucket: boolean removeByKey(com.hp.hpl.jena.tdb.base.record.Record)>(r1);
+
+        $r4 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: com.hp.hpl.jena.tdb.index.ext.HashBucketMgr hashBucketMgr>;
+
+        virtualinvoke $r4.<com.hp.hpl.jena.tdb.index.ext.HashBucketMgr: void put(com.hp.hpl.jena.tdb.base.page.Page)>($r3);
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void internalCheck()>();
+
+        $z2 = specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean logging()>();
+
+        if $z2 == 0 goto label2;
+
+        $r5 = newarray (java.lang.Object)[1];
+
+        $r5[0] = r1;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void log(java.lang.String,java.lang.Object[])>("<< remove(%s)", $r5);
+
+     label2:
+        return $z1;
+    }
+
+    public com.hp.hpl.jena.tdb.base.record.RecordFactory getRecordFactory()
+    {
+        com.hp.hpl.jena.tdb.base.record.RecordFactory $r1;
+        com.hp.hpl.jena.tdb.index.ext.ExtHash r0;
+
+        r0 := @this: com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        $r1 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: com.hp.hpl.jena.tdb.base.record.RecordFactory recordFactory>;
+
+        return $r1;
+    }
+
+    public java.util.Iterator iterator()
+    {
+        com.hp.hpl.jena.tdb.index.ext.ExtHashIterator $r0;
+        com.hp.hpl.jena.tdb.index.ext.ExtHash r1;
+
+        r1 := @this: com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        $r0 = new com.hp.hpl.jena.tdb.index.ext.ExtHashIterator;
+
+        specialinvoke $r0.<com.hp.hpl.jena.tdb.index.ext.ExtHashIterator: void <init>(com.hp.hpl.jena.tdb.index.ext.ExtHash)>(r1);
+
+        return $r0;
+    }
+
+    public boolean isEmpty()
+    {
+        java.nio.IntBuffer $r1;
+        com.hp.hpl.jena.tdb.index.ext.ExtHash r0;
+        com.hp.hpl.jena.tdb.index.ext.HashBucket $r3;
+        int $i0;
+        com.hp.hpl.jena.tdb.index.ext.HashBucketMgr $r2;
+        boolean $z0;
+
+        r0 := @this: com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        $r1 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: java.nio.IntBuffer dictionary>;
+
+        $i0 = virtualinvoke $r1.<java.nio.IntBuffer: int limit()>();
+
+        if $i0 != 1 goto label1;
+
+        $r2 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: com.hp.hpl.jena.tdb.index.ext.HashBucketMgr hashBucketMgr>;
+
+        $r3 = virtualinvoke $r2.<com.hp.hpl.jena.tdb.index.ext.HashBucketMgr: com.hp.hpl.jena.tdb.index.ext.HashBucket get(int)>(1);
+
+        $z0 = virtualinvoke $r3.<com.hp.hpl.jena.tdb.index.ext.HashBucket: boolean isEmpty()>();
+
+        return $z0;
+
+     label1:
+        return 0;
+    }
+
+    public void clear()
+    {
+        java.lang.UnsupportedOperationException $r0;
+        com.hp.hpl.jena.tdb.index.ext.ExtHash r3;
+        java.lang.StringBuilder $r1, $r2, $r6, $r7;
+        java.lang.Class $r4;
+        java.lang.String $r5, $r8;
+
+        r3 := @this: com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        $r0 = new java.lang.UnsupportedOperationException;
+
+        $r1 = new java.lang.StringBuilder;
+
+        specialinvoke $r1.<java.lang.StringBuilder: void <init>()>();
+
+        $r2 = virtualinvoke $r1.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("RangeIndex(");
+
+        $r4 = virtualinvoke r3.<java.lang.Object: java.lang.Class getClass()>();
+
+        $r5 = staticinvoke <com.hp.hpl.jena.sparql.util.Utils: java.lang.String classShortName(java.lang.Class)>($r4);
+
+        $r6 = virtualinvoke $r2.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r5);
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(").clear");
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r0.<java.lang.UnsupportedOperationException: void <init>(java.lang.String)>($r8);
+
+        throw $r0;
+    }
+
+    public long size()
+    {
+        long $l0;
+        com.hp.hpl.jena.tdb.index.ext.ExtHash r0;
+
+        r0 := @this: com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        $l0 = virtualinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: long count()>();
+
+        return $l0;
+    }
+
+    public long count()
+    {
+        com.hp.hpl.jena.tdb.index.ext.HashBucket $r7;
+        com.hp.hpl.jena.tdb.index.ext.HashBucketMgr $r6;
+        long $l3, l4;
+        java.lang.Integer $r4, $r5;
+        java.util.HashSet $r0;
+        java.nio.IntBuffer $r2, $r3;
+        com.hp.hpl.jena.tdb.index.ext.ExtHash r1;
+        int $i0, $i1, $i2, i5;
+        boolean $z0;
+
+        r1 := @this: com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        $r0 = new java.util.HashSet;
+
+        specialinvoke $r0.<java.util.HashSet: void <init>()>();
+
+        l4 = 0L;
+
+        i5 = 0;
+
+     label1:
+        $r2 = r1.<com.hp.hpl.jena.tdb.index.ext.ExtHash: java.nio.IntBuffer dictionary>;
+
+        $i0 = virtualinvoke $r2.<java.nio.IntBuffer: int capacity()>();
+
+        if i5 >= $i0 goto label4;
+
+        $r3 = r1.<com.hp.hpl.jena.tdb.index.ext.ExtHash: java.nio.IntBuffer dictionary>;
+
+        $i1 = virtualinvoke $r3.<java.nio.IntBuffer: int get(int)>(i5);
+
+        $r4 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i1);
+
+        $z0 = interfaceinvoke $r0.<java.util.Set: boolean contains(java.lang.Object)>($r4);
+
+        if $z0 == 0 goto label2;
+
+        goto label3;
+
+     label2:
+        $r5 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i1);
+
+        interfaceinvoke $r0.<java.util.Set: boolean add(java.lang.Object)>($r5);
+
+        $r6 = r1.<com.hp.hpl.jena.tdb.index.ext.ExtHash: com.hp.hpl.jena.tdb.index.ext.HashBucketMgr hashBucketMgr>;
+
+        $r7 = virtualinvoke $r6.<com.hp.hpl.jena.tdb.index.ext.HashBucketMgr: com.hp.hpl.jena.tdb.index.ext.HashBucket get(int)>($i1);
+
+        $i2 = virtualinvoke $r7.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getCount()>();
+
+        $l3 = (long) $i2;
+
+        l4 = l4 + $l3;
+
+     label3:
+        i5 = i5 + 1;
+
+        goto label1;
+
+     label4:
+        return l4;
+    }
+
+    public void sync()
+    {
+        com.hp.hpl.jena.tdb.base.block.BlockMgr $r2;
+        com.hp.hpl.jena.tdb.index.ext.ExtHash r0;
+        com.hp.hpl.jena.tdb.index.ext.HashBucketMgr $r1;
+        com.hp.hpl.jena.tdb.base.file.PlainFile $r3;
+
+        r0 := @this: com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        $r1 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: com.hp.hpl.jena.tdb.index.ext.HashBucketMgr hashBucketMgr>;
+
+        $r2 = virtualinvoke $r1.<com.hp.hpl.jena.tdb.index.ext.HashBucketMgr: com.hp.hpl.jena.tdb.base.block.BlockMgr getBlockMgr()>();
+
+        interfaceinvoke $r2.<com.hp.hpl.jena.tdb.base.block.BlockMgr: void sync()>();
+
+        $r3 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: com.hp.hpl.jena.tdb.base.file.PlainFile dictionaryFile>;
+
+        virtualinvoke $r3.<com.hp.hpl.jena.tdb.base.file.PlainFile: void sync()>();
+
+        return;
+    }
+
+    public void close()
+    {
+        com.hp.hpl.jena.tdb.base.block.BlockMgr $r2;
+        com.hp.hpl.jena.tdb.index.ext.ExtHash r0;
+        com.hp.hpl.jena.tdb.index.ext.HashBucketMgr $r1;
+        com.hp.hpl.jena.tdb.base.file.PlainFile $r3;
+
+        r0 := @this: com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        $r1 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: com.hp.hpl.jena.tdb.index.ext.HashBucketMgr hashBucketMgr>;
+
+        $r2 = virtualinvoke $r1.<com.hp.hpl.jena.tdb.index.ext.HashBucketMgr: com.hp.hpl.jena.tdb.base.block.BlockMgr getBlockMgr()>();
+
+        interfaceinvoke $r2.<com.hp.hpl.jena.tdb.base.block.BlockMgr: void close()>();
+
+        $r3 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: com.hp.hpl.jena.tdb.base.file.PlainFile dictionaryFile>;
+
+        virtualinvoke $r3.<com.hp.hpl.jena.tdb.base.file.PlainFile: void close()>();
+
+        return;
+    }
+
+    private boolean put(com.hp.hpl.jena.tdb.base.record.Record, int)
+    {
+        java.lang.Integer $r6, $r8, $r9, $r11, $r14, $r15, $r17;
+        java.nio.IntBuffer $r1;
+        com.hp.hpl.jena.tdb.base.record.Record r4;
+        boolean $z0, $z1, $z2, $z3, z4, $z5, $z6, $z7, $z8, $z9, z10;
+        java.lang.Throwable $r18;
+        java.lang.Object[] $r5, $r7, $r10, $r13, $r16;
+        com.hp.hpl.jena.tdb.index.ext.HashBucket $r3;
+        com.hp.hpl.jena.tdb.index.ext.ExtHash r0;
+        int i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i10;
+        com.hp.hpl.jena.tdb.index.ext.HashBucketMgr $r2, $r12;
+
+        r0 := @this: com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        r4 := @parameter0: com.hp.hpl.jena.tdb.base.record.Record;
+
+        i0 := @parameter1: int;
+
+        $z0 = specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean logging()>();
+
+        if $z0 == 0 goto label01;
+
+        $r16 = newarray (java.lang.Object)[2];
+
+        $r16[0] = r4;
+
+        $r17 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i0);
+
+        $r16[1] = $r17;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void log(java.lang.String,java.lang.Object[])>("put(%s,0x%08X)", $r16);
+
+     label01:
+        $i1 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int bitLen>;
+
+        $i2 = specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int trieKey(int,int)>(i0, $i1);
+
+        $r1 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: java.nio.IntBuffer dictionary>;
+
+        $i3 = virtualinvoke $r1.<java.nio.IntBuffer: int get(int)>($i2);
+
+        $r2 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: com.hp.hpl.jena.tdb.index.ext.HashBucketMgr hashBucketMgr>;
+
+        $r3 = virtualinvoke $r2.<com.hp.hpl.jena.tdb.index.ext.HashBucketMgr: com.hp.hpl.jena.tdb.index.ext.HashBucket get(int)>($i3);
+
+        $z1 = virtualinvoke $r3.<com.hp.hpl.jena.tdb.index.ext.HashBucket: boolean isFull()>();
+
+        if $z1 != 0 goto label03;
+
+        $z8 = <com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean Debugging>;
+
+        if $z8 == 0 goto label02;
+
+        $r13 = newarray (java.lang.Object)[3];
+
+        $r14 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i0);
+
+        $r13[0] = $r14;
+
+        $r13[1] = r4;
+
+        $i10 = virtualinvoke $r3.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getId()>();
+
+        $r15 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i10);
+
+        $r13[2] = $r15;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void log(java.lang.String,java.lang.Object[])>("Insert [(0x%04X) %s]: %d", $r13);
+
+     label02:
+        $z9 = virtualinvoke $r3.<com.hp.hpl.jena.tdb.index.ext.HashBucket: boolean put(com.hp.hpl.jena.tdb.base.record.Record)>(r4);
+
+        $r12 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: com.hp.hpl.jena.tdb.index.ext.HashBucketMgr hashBucketMgr>;
+
+        virtualinvoke $r12.<com.hp.hpl.jena.tdb.index.ext.HashBucketMgr: void put(com.hp.hpl.jena.tdb.base.page.Page)>($r3);
+
+        return $z9;
+
+     label03:
+        $i4 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int bitLen>;
+
+        $i5 = virtualinvoke $r3.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getTrieBitLen()>();
+
+        if $i4 != $i5 goto label10;
+
+        z10 = <com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean Logging>;
+
+        z4 = <com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean Debugging>;
+
+     label04:
+        $z5 = <com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean Debugging>;
+
+        if $z5 == 0 goto label05;
+
+        $r10 = newarray (java.lang.Object)[1];
+
+        $i9 = virtualinvoke $r3.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getId()>();
+
+        $r11 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i9);
+
+        $r10[0] = $r11;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void log(java.lang.String,java.lang.Object[])>("Bucket full: %d", $r10);
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void log(java.lang.Object)>("Bucket can\'t be split - dictionary resize needed");
+
+        virtualinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void dump()>();
+
+     label05:
+        $i7 = virtualinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int dictionarySize()>();
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void resizeDictionary()>();
+
+        $z6 = <com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean Debugging>;
+
+        if $z6 == 0 goto label06;
+
+        $r7 = newarray (java.lang.Object)[2];
+
+        $r8 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i7);
+
+        $r7[0] = $r8;
+
+        $i8 = virtualinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int dictionarySize()>();
+
+        $r9 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i8);
+
+        $r7[1] = $r9;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void log(java.lang.String,java.lang.Object[])>("Resize: %d -> %d", $r7);
+
+     label06:
+        $z7 = specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean put(com.hp.hpl.jena.tdb.base.record.Record,int)>(r4, i0);
+
+     label07:
+        <com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean Logging> = z10;
+
+        <com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean Debugging> = z4;
+
+        return $z7;
+
+     label08:
+        $r18 := @caughtexception;
+
+     label09:
+        <com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean Logging> = z10;
+
+        <com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean Debugging> = z4;
+
+        throw $r18;
+
+     label10:
+        $z2 = <com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean Debugging>;
+
+        if $z2 == 0 goto label11;
+
+        $r5 = newarray (java.lang.Object)[1];
+
+        $i6 = virtualinvoke $r3.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getId()>();
+
+        $r6 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i6);
+
+        $r5[0] = $r6;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void log(java.lang.String,java.lang.Object[])>("Split bucket: %d", $r5);
+
+     label11:
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void splitAndReorganise(com.hp.hpl.jena.tdb.index.ext.HashBucket,int,int,int)>($r3, $i2, $i3, i0);
+
+        $z3 = specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean put(com.hp.hpl.jena.tdb.base.record.Record,int)>(r4, i0);
+
+        return $z3;
+
+        catch java.lang.Throwable from label04 to label07 with label08;
+        catch java.lang.Throwable from label08 to label09 with label08;
+    }
+
+    private void splitAndReorganise(com.hp.hpl.jena.tdb.index.ext.HashBucket, int, int, int)
+    {
+        java.lang.Integer $r6, $r7, $r8, $r9, $r11, $r12, $r14, $r15, $r16, $r18, $r20, $r21, $r22, $r23, $r25, $r26, $r27, $r28, $r30, $r31, $r32, $r33;
+        java.lang.Object[] $r5, $r10, $r13, $r17, $r19, $r24, $r29;
+        com.hp.hpl.jena.tdb.index.ext.HashBucket r1, $r4, $r34;
+        long $l6;
+        com.hp.hpl.jena.tdb.index.ext.HashBucketMgr $r3;
+        java.nio.IntBuffer $r2, $r35;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5;
+        com.hp.hpl.jena.tdb.index.ext.ExtHash r0;
+        int i0, i1, $i2, $i3, $i4, $i5, $i7, $i8, $i9, $i10, $i11, i12, $i13, $i14, i15, $i16, $i17, $i18, $i19, $i20, $i21, $i22, $i23, $i24, $i25, $i26, $i27, $i28, $i29, $i30, $i31, $i32, $i33, $i34, $i35, $i36, $i37, $i38, i39, $i40;
+
+        r0 := @this: com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        r1 := @parameter0: com.hp.hpl.jena.tdb.index.ext.HashBucket;
+
+        i12 := @parameter1: int;
+
+        i0 := @parameter2: int;
+
+        i15 := @parameter3: int;
+
+        $z0 = specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean logging()>();
+
+        if $z0 == 0 goto label01;
+
+        $r29 = newarray (java.lang.Object)[4];
+
+        $r30 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i12);
+
+        $r29[0] = $r30;
+
+        $r31 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i0);
+
+        $r29[1] = $r31;
+
+        $i25 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int bitLen>;
+
+        $r32 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i25);
+
+        $r29[2] = $r32;
+
+        $i26 = virtualinvoke r1.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getTrieBitLen()>();
+
+        $r33 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i26);
+
+        $r29[3] = $r33;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void log(java.lang.String,java.lang.Object[])>("splitAndReorganise: idx=%d, id=%d, bitLen=%d, bucket.hashLength=%d", $r29);
+
+     label01:
+        $z1 = <com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean Checking>;
+
+        if $z1 == 0 goto label03;
+
+        $i13 = virtualinvoke r1.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getTrieBitLen()>();
+
+        $i14 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int bitLen>;
+
+        if $i13 < $i14 goto label02;
+
+        $r24 = newarray (java.lang.Object)[5];
+
+        $r25 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i12);
+
+        $r24[0] = $r25;
+
+        $r26 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i15);
+
+        $r24[1] = $r26;
+
+        $i22 = virtualinvoke r1.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getTrieBitLen()>();
+
+        $i23 = specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int trieKey(int,int)>(i15, $i22);
+
+        $r27 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i23);
+
+        $r24[2] = $r27;
+
+        $i24 = virtualinvoke r1.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getTrieValue()>();
+
+        $r28 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i24);
+
+        $r24[3] = $r28;
+
+        $r24[4] = r1;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void error(java.lang.String,java.lang.Object[])>("splitAndReorganise: idx=0x%X : hash=0x%X[0x%X,0x%X] : Hash not shorter : %s", $r24);
+
+     label02:
+        $i16 = virtualinvoke r1.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getTrieBitLen()>();
+
+        $i17 = specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int trieKey(int,int)>(i15, $i16);
+
+        $i18 = virtualinvoke r1.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getTrieValue()>();
+
+        if $i17 == $i18 goto label03;
+
+        $r19 = newarray (java.lang.Object)[5];
+
+        $r20 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i12);
+
+        $r19[0] = $r20;
+
+        $r21 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i15);
+
+        $r19[1] = $r21;
+
+        $i19 = virtualinvoke r1.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getTrieBitLen()>();
+
+        $i20 = specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int trieKey(int,int)>(i15, $i19);
+
+        $r22 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i20);
+
+        $r19[2] = $r22;
+
+        $i21 = virtualinvoke r1.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getTrieValue()>();
+
+        $r23 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i21);
+
+        $r19[3] = $r23;
+
+        $r19[4] = r1;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void error(java.lang.String,java.lang.Object[])>("splitAndReorganise: idx=0x%X : hash=0x%X[0x%X,0x%X] : Inconsistency : %s", $r19);
+
+     label03:
+        $i27 = virtualinvoke r1.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getTrieValue()>();
+
+        $i28 = virtualinvoke r1.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getTrieBitLen()>();
+
+        $r34 = specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: com.hp.hpl.jena.tdb.index.ext.HashBucket split(int,com.hp.hpl.jena.tdb.index.ext.HashBucket)>(i0, r1);
+
+        $i29 = $i27 << 1;
+
+        $i30 = $i29 | 1;
+
+        $i31 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int bitLen>;
+
+        $i32 = $i31 - $i28;
+
+        $i33 = $i32 - 1;
+
+        $i34 = $i30 << $i33;
+
+        $i35 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int bitLen>;
+
+        $i36 = $i35 - $i28;
+
+        $i37 = $i36 - 1;
+
+        $i38 = 1 << $i37;
+
+        i39 = 0;
+
+     label04:
+        if i39 >= $i38 goto label09;
+
+        i1 = $i34 | i39;
+
+        $z3 = specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean logging()>();
+
+        if $z3 == 0 goto label05;
+
+        $r17 = newarray (java.lang.Object)[1];
+
+        $r18 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i1);
+
+        $r17[0] = $r18;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void log(java.lang.String,java.lang.Object[])>("Point to split bucket: 0x%04X", $r17);
+
+     label05:
+        $z4 = <com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean Checking>;
+
+        if $z4 == 0 goto label08;
+
+        $i2 = $i34 & i39;
+
+        if $i2 == 0 goto label06;
+
+        $r13 = newarray (java.lang.Object)[3];
+
+        $r14 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i12);
+
+        $r13[0] = $r14;
+
+        $r15 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i34);
+
+        $r13[1] = $r15;
+
+        $r16 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i39);
+
+        $r13[2] = $r16;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void error(java.lang.String,java.lang.Object[])>("put: idx=%d : trieRoot=0x%X, sub=%d: Broken trie pattern ", $r13);
+
+     label06:
+        $l6 = (long) i1;
+
+        $i4 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int bitLen>;
+
+        $i3 = $i28 + 1;
+
+        $i5 = $i4 - $i3;
+
+        $z5 = staticinvoke <org.apache.jena.atlas.lib.BitsLong: boolean isSet(long,int)>($l6, $i5);
+
+        if $z5 != 0 goto label07;
+
+        $r10 = newarray (java.lang.Object)[2];
+
+        $r11 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i34);
+
+        $r10[0] = $r11;
+
+        $r12 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i39);
+
+        $r10[1] = $r12;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void error(java.lang.String,java.lang.Object[])>("put: Broken trie pattern (0x%X,%d)", $r10);
+
+     label07:
+        $r2 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: java.nio.IntBuffer dictionary>;
+
+        $i7 = virtualinvoke $r2.<java.nio.IntBuffer: int get(int)>(i1);
+
+        $r3 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: com.hp.hpl.jena.tdb.index.ext.HashBucketMgr hashBucketMgr>;
+
+        $r4 = virtualinvoke $r3.<com.hp.hpl.jena.tdb.index.ext.HashBucketMgr: com.hp.hpl.jena.tdb.index.ext.HashBucket get(int)>($i7);
+
+        $i8 = virtualinvoke $r4.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getId()>();
+
+        $i9 = virtualinvoke r1.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getId()>();
+
+        if $i8 == $i9 goto label08;
+
+        $r5 = newarray (java.lang.Object)[4];
+
+        $r6 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i34);
+
+        $r5[0] = $r6;
+
+        $r7 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i39);
+
+        $r5[1] = $r7;
+
+        $i10 = virtualinvoke $r4.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getId()>();
+
+        $r8 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i10);
+
+        $r5[2] = $r8;
+
+        $i11 = virtualinvoke r1.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getId()>();
+
+        $r9 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i11);
+
+        $r5[3] = $r9;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void error(java.lang.String,java.lang.Object[])>("put: Wrong bucket at trie 0x%X %d: (%d,%d)", $r5);
+
+     label08:
+        $r35 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: java.nio.IntBuffer dictionary>;
+
+        $i40 = virtualinvoke $r34.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getId()>();
+
+        virtualinvoke $r35.<java.nio.IntBuffer: java.nio.IntBuffer put(int,int)>(i1, $i40);
+
+        i39 = i39 + 1;
+
+        goto label04;
+
+     label09:
+        $z2 = specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean logging()>();
+
+        if $z2 == 0 goto label10;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void log(java.lang.Object)>("Reorg complete");
+
+     label10:
+        return;
+    }
+
+    private com.hp.hpl.jena.tdb.index.ext.HashBucket split(int, com.hp.hpl.jena.tdb.index.ext.HashBucket)
+    {
+        java.lang.Integer $r13, $r15, $r18, $r19, $r21, $r22, $r23;
+        com.hp.hpl.jena.tdb.base.record.Record $r10;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5;
+        java.lang.Object[] $r8, $r9, $r11, $r12, $r14, $r16, $r17, $r20, $r24;
+        com.hp.hpl.jena.tdb.index.ext.HashBucket r1, $r3;
+        com.hp.hpl.jena.tdb.index.ext.ExtHash r0;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, i8, $i9, $i10, $i11, $i12, i13, i14, $i15;
+        com.hp.hpl.jena.tdb.base.buffer.RecordBuffer $r4, $r5;
+        com.hp.hpl.jena.tdb.index.ext.HashBucketMgr $r2, $r6, $r7;
+
+        r0 := @this: com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        i8 := @parameter0: int;
+
+        r1 := @parameter1: com.hp.hpl.jena.tdb.index.ext.HashBucket;
+
+        $z0 = specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean logging()>();
+
+        if $z0 == 0 goto label01;
+
+        $r20 = newarray (java.lang.Object)[3];
+
+        $r21 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i8);
+
+        $r20[0] = $r21;
+
+        $i9 = virtualinvoke r1.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getCount()>();
+
+        $r22 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i9);
+
+        $r20[1] = $r22;
+
+        $i10 = virtualinvoke r1.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getTrieBitLen()>();
+
+        $r23 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i10);
+
+        $r20[2] = $r23;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void log(java.lang.String,java.lang.Object[])>("split: Bucket %d : size: %d; Bucket bitlength %d", $r20);
+
+        $r24 = newarray (java.lang.Object)[1];
+
+        $r24[0] = r1;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void log(java.lang.String,java.lang.Object[])>("split: %s", $r24);
+
+     label01:
+        virtualinvoke r1.<com.hp.hpl.jena.tdb.index.ext.HashBucket: void incTrieBitLen()>();
+
+        $i0 = virtualinvoke r1.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getTrieValue()>();
+
+        $i11 = $i0 << 1;
+
+        $i1 = virtualinvoke r1.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getTrieValue()>();
+
+        $i2 = $i1 << 1;
+
+        $i12 = $i2 | 1;
+
+        virtualinvoke r1.<com.hp.hpl.jena.tdb.index.ext.HashBucket: void setTrieValue(int)>($i11);
+
+        $z1 = specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean logging()>();
+
+        if $z1 == 0 goto label02;
+
+        $r17 = newarray (java.lang.Object)[2];
+
+        $r18 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i11);
+
+        $r17[0] = $r18;
+
+        $r19 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i12);
+
+        $r17[1] = $r19;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void log(java.lang.String,java.lang.Object[])>("split: bucket hashes 0x%04X 0x%04X", $r17);
+
+     label02:
+        $r2 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: com.hp.hpl.jena.tdb.index.ext.HashBucketMgr hashBucketMgr>;
+
+        $i3 = virtualinvoke r1.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getTrieBitLen()>();
+
+        $r3 = virtualinvoke $r2.<com.hp.hpl.jena.tdb.index.ext.HashBucketMgr: com.hp.hpl.jena.tdb.index.ext.HashBucket create(int,int)>($i12, $i3);
+
+        $z2 = specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean logging()>();
+
+        if $z2 == 0 goto label03;
+
+        $r16 = newarray (java.lang.Object)[1];
+
+        $r16[0] = $r3;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void log(java.lang.String,java.lang.Object[])>("New bucket: %s", $r16);
+
+     label03:
+        $r4 = virtualinvoke r1.<com.hp.hpl.jena.tdb.index.ext.HashBucket: com.hp.hpl.jena.tdb.base.buffer.RecordBuffer getRecordBuffer()>();
+
+        $r5 = virtualinvoke $r3.<com.hp.hpl.jena.tdb.index.ext.HashBucket: com.hp.hpl.jena.tdb.base.buffer.RecordBuffer getRecordBuffer()>();
+
+        i13 = 0;
+
+        i14 = 0;
+
+     label04:
+        $i15 = virtualinvoke $r4.<com.hp.hpl.jena.tdb.base.buffer.RecordBuffer: int size()>();
+
+        if i14 >= $i15 goto label11;
+
+        $r10 = virtualinvoke $r4.<com.hp.hpl.jena.tdb.base.buffer.RecordBuffer: com.hp.hpl.jena.tdb.base.record.Record get(int)>(i14);
+
+        $i6 = virtualinvoke r1.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getTrieBitLen()>();
+
+        $i7 = specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int trieKey(com.hp.hpl.jena.tdb.base.record.Record,int)>($r10, $i6);
+
+        if $i7 != $i11 goto label07;
+
+        $z5 = specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean logging()>();
+
+        if $z5 == 0 goto label05;
+
+        $r14 = newarray (java.lang.Object)[1];
+
+        $r15 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i14);
+
+        $r14[0] = $r15;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void log(java.lang.String,java.lang.Object[])>("Allocate index %d to bucket1", $r14);
+
+     label05:
+        if i13 == i14 goto label06;
+
+        virtualinvoke $r4.<com.hp.hpl.jena.tdb.base.buffer.RecordBuffer: void set(int,com.hp.hpl.jena.tdb.base.record.Record)>(i13, $r10);
+
+     label06:
+        i13 = i13 + 1;
+
+        goto label10;
+
+     label07:
+        if $i7 != $i12 goto label09;
+
+        $z4 = specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean logging()>();
+
+        if $z4 == 0 goto label08;
+
+        $r12 = newarray (java.lang.Object)[1];
+
+        $r13 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i14);
+
+        $r12[0] = $r13;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void log(java.lang.String,java.lang.Object[])>("Allocate index %d to bucket2", $r12);
+
+     label08:
+        virtualinvoke $r5.<com.hp.hpl.jena.tdb.base.buffer.RecordBuffer: void add(com.hp.hpl.jena.tdb.base.record.Record)>($r10);
+
+        goto label10;
+
+     label09:
+        $r11 = newarray (java.lang.Object)[0];
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void error(java.lang.String,java.lang.Object[])>("Bad trie for allocation to split buckets", $r11);
+
+     label10:
+        i14 = i14 + 1;
+
+        goto label04;
+
+     label11:
+        $i4 = virtualinvoke r1.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getCount()>();
+
+        $i5 = $i4 - i13;
+
+        virtualinvoke $r4.<com.hp.hpl.jena.tdb.base.buffer.RecordBuffer: void clear(int,int)>(i13, $i5);
+
+        virtualinvoke $r4.<com.hp.hpl.jena.tdb.base.buffer.RecordBuffer: void setSize(int)>(i13);
+
+        $z3 = specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean logging()>();
+
+        if $z3 == 0 goto label12;
+
+        $r8 = newarray (java.lang.Object)[1];
+
+        $r8[0] = r1;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void log(java.lang.String,java.lang.Object[])>("split: Lower bucket: %s", $r8);
+
+        $r9 = newarray (java.lang.Object)[1];
+
+        $r9[0] = $r3;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void log(java.lang.String,java.lang.Object[])>("split: Upper bucket: %s", $r9);
+
+     label12:
+        $r6 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: com.hp.hpl.jena.tdb.index.ext.HashBucketMgr hashBucketMgr>;
+
+        virtualinvoke $r6.<com.hp.hpl.jena.tdb.index.ext.HashBucketMgr: void put(com.hp.hpl.jena.tdb.base.page.Page)>(r1);
+
+        $r7 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: com.hp.hpl.jena.tdb.index.ext.HashBucketMgr hashBucketMgr>;
+
+        virtualinvoke $r7.<com.hp.hpl.jena.tdb.index.ext.HashBucketMgr: void put(com.hp.hpl.jena.tdb.base.page.Page)>($r3);
+
+        return $r3;
+    }
+
+    public java.lang.String toString()
+    {
+        org.apache.jena.atlas.io.IndentedLineBuffer $r0;
+        java.lang.String $r2;
+        com.hp.hpl.jena.tdb.index.ext.ExtHash r1;
+
+        r1 := @this: com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        $r0 = new org.apache.jena.atlas.io.IndentedLineBuffer;
+
+        specialinvoke $r0.<org.apache.jena.atlas.io.IndentedLineBuffer: void <init>()>();
+
+        specialinvoke r1.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void dump(org.apache.jena.atlas.io.IndentedWriter)>($r0);
+
+        $r2 = virtualinvoke $r0.<org.apache.jena.atlas.io.IndentedLineBuffer: java.lang.String asString()>();
+
+        return $r2;
+    }
+
+    public void dump()
+    {
+        com.hp.hpl.jena.tdb.index.ext.ExtHash r0;
+        org.apache.jena.atlas.io.IndentedWriter $r1, $r2, $r3;
+
+        r0 := @this: com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        $r1 = <org.apache.jena.atlas.io.IndentedWriter: org.apache.jena.atlas.io.IndentedWriter stdout>;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void dump(org.apache.jena.atlas.io.IndentedWriter)>($r1);
+
+        $r2 = <org.apache.jena.atlas.io.IndentedWriter: org.apache.jena.atlas.io.IndentedWriter stdout>;
+
+        virtualinvoke $r2.<org.apache.jena.atlas.io.IndentedWriter: void ensureStartOfLine()>();
+
+        $r3 = <org.apache.jena.atlas.io.IndentedWriter: org.apache.jena.atlas.io.IndentedWriter stdout>;
+
+        virtualinvoke $r3.<org.apache.jena.atlas.io.IndentedWriter: void flush()>();
+
+        return;
+    }
+
+    private void dump(org.apache.jena.atlas.io.IndentedWriter)
+    {
+        java.lang.Object[] $r1, $r4, $r9;
+        com.hp.hpl.jena.tdb.index.ext.HashBucket $r8;
+        java.lang.Integer $r3, $r5, $r10, $r11;
+        java.nio.IntBuffer $r6;
+        com.hp.hpl.jena.tdb.index.ext.ExtHash r2;
+        int $i0, $i1, $i2, $i3, $i4, $i5, i6;
+        com.hp.hpl.jena.tdb.index.ext.HashBucketMgr $r7;
+        org.apache.jena.atlas.io.IndentedWriter r0;
+
+        r2 := @this: com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        r0 := @parameter0: org.apache.jena.atlas.io.IndentedWriter;
+
+        $r1 = newarray (java.lang.Object)[1];
+
+        $i0 = r2.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int bitLen>;
+
+        $r3 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i0);
+
+        $r1[0] = $r3;
+
+        virtualinvoke r0.<org.apache.jena.atlas.io.IndentedWriter: void printf(java.lang.String,java.lang.Object[])>("Bitlen      = %d\n", $r1);
+
+        $r4 = newarray (java.lang.Object)[1];
+
+        $i1 = r2.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int bitLen>;
+
+        $i2 = 1 << $i1;
+
+        $r5 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i2);
+
+        $r4[0] = $r5;
+
+        virtualinvoke r0.<org.apache.jena.atlas.io.IndentedWriter: void printf(java.lang.String,java.lang.Object[])>("Dictionary  = %d\n", $r4);
+
+        virtualinvoke r0.<org.apache.jena.atlas.io.IndentedWriter: void incIndent(int)>(4);
+
+        i6 = 0;
+
+     label1:
+        $i3 = r2.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int bitLen>;
+
+        $i4 = 1 << $i3;
+
+        if i6 >= $i4 goto label2;
+
+        virtualinvoke r0.<org.apache.jena.atlas.io.IndentedWriter: void ensureStartOfLine()>();
+
+        $r6 = r2.<com.hp.hpl.jena.tdb.index.ext.ExtHash: java.nio.IntBuffer dictionary>;
+
+        $i5 = virtualinvoke $r6.<java.nio.IntBuffer: int get(int)>(i6);
+
+        $r7 = r2.<com.hp.hpl.jena.tdb.index.ext.ExtHash: com.hp.hpl.jena.tdb.index.ext.HashBucketMgr hashBucketMgr>;
+
+        $r8 = virtualinvoke $r7.<com.hp.hpl.jena.tdb.index.ext.HashBucketMgr: com.hp.hpl.jena.tdb.index.ext.HashBucket get(int)>($i5);
+
+        $r9 = newarray (java.lang.Object)[3];
+
+        $r10 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i6);
+
+        $r9[0] = $r10;
+
+        $r11 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i5);
+
+        $r9[1] = $r11;
+
+        $r9[2] = $r8;
+
+        virtualinvoke r0.<org.apache.jena.atlas.io.IndentedWriter: void printf(java.lang.String,java.lang.Object[])>("[%d] %02d %s", $r9);
+
+        i6 = i6 + 1;
+
+        goto label1;
+
+     label2:
+        virtualinvoke r0.<org.apache.jena.atlas.io.IndentedWriter: void decIndent(int)>(4);
+
+        return;
+    }
+
+    public void check()
+    {
+        com.hp.hpl.jena.tdb.index.ext.ExtHash r0;
+
+        r0 := @this: com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void performCheck()>();
+
+        return;
+    }
+
+    private final void internalCheck()
+    {
+        com.hp.hpl.jena.tdb.index.ext.ExtHash r0;
+        boolean $z0;
+
+        r0 := @this: com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        $z0 = <com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean Checking>;
+
+        if $z0 == 0 goto label1;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void performCheck()>();
+
+     label1:
+        return;
+    }
+
+    private final void performCheck()
+    {
+        java.lang.Object[] $r8;
+        com.hp.hpl.jena.tdb.index.ext.HashBucket $r7;
+        java.lang.Integer $r4, $r5, $r9, $r10;
+        java.util.HashSet $r2;
+        java.nio.IntBuffer $r1, $r3;
+        com.hp.hpl.jena.tdb.index.ext.ExtHash r0;
+        int $i0, i1, $i2, $i3, i4;
+        boolean $z0;
+        com.hp.hpl.jena.tdb.index.ext.HashBucketMgr $r6;
+
+        r0 := @this: com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        $i0 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int bitLen>;
+
+        i1 = 1 << $i0;
+
+        $r1 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: java.nio.IntBuffer dictionary>;
+
+        $i2 = virtualinvoke $r1.<java.nio.IntBuffer: int limit()>();
+
+        if i1 == $i2 goto label1;
+
+        $r8 = newarray (java.lang.Object)[2];
+
+        $r9 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i2);
+
+        $r8[0] = $r9;
+
+        $r10 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i1);
+
+        $r8[1] = $r10;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void error(java.lang.String,java.lang.Object[])>("Dictionary size = %d : expected = %d", $r8);
+
+     label1:
+        $r2 = new java.util.HashSet;
+
+        specialinvoke $r2.<java.util.HashSet: void <init>()>();
+
+        i4 = 0;
+
+     label2:
+        if i4 >= $i2 goto label5;
+
+        $r3 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: java.nio.IntBuffer dictionary>;
+
+        $i3 = virtualinvoke $r3.<java.nio.IntBuffer: int get(int)>(i4);
+
+        $r4 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i3);
+
+        $z0 = interfaceinvoke $r2.<java.util.Set: boolean contains(java.lang.Object)>($r4);
+
+        if $z0 == 0 goto label3;
+
+        goto label4;
+
+     label3:
+        $r5 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i3);
+
+        interfaceinvoke $r2.<java.util.Set: boolean add(java.lang.Object)>($r5);
+
+        $r6 = r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: com.hp.hpl.jena.tdb.index.ext.HashBucketMgr hashBucketMgr>;
+
+        $r7 = virtualinvoke $r6.<com.hp.hpl.jena.tdb.index.ext.HashBucketMgr: com.hp.hpl.jena.tdb.index.ext.HashBucket get(int)>($i3);
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void performCheck(int,com.hp.hpl.jena.tdb.index.ext.HashBucket)>(i4, $r7);
+
+     label4:
+        i4 = i4 + 1;
+
+        goto label2;
+
+     label5:
+        return;
+    }
+
+    private void performCheck(int, com.hp.hpl.jena.tdb.index.ext.HashBucket)
+    {
+        java.lang.Integer $r4, $r5, $r6, $r10, $r11, $r12, $r13, $r15, $r16, $r17, $r19, $r20, $r21, $r22, $r24, $r25, $r26, $r27;
+        com.hp.hpl.jena.tdb.base.record.Record $r7, $r8, r28;
+        boolean $z0, $z1, $z2;
+        java.lang.Object[] $r3, $r9, $r14, $r18, $r23;
+        com.hp.hpl.jena.tdb.index.ext.HashBucket r0;
+        com.hp.hpl.jena.tdb.index.ext.ExtHash r1;
+        int $i0, $i1, i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i10, $i11, $i12, $i13, $i14, $i15, $i16, $i17, i18, $i19, $i20, $i21, $i22, i23;
+        com.hp.hpl.jena.tdb.base.buffer.RecordBuffer $r2;
+
+        r1 := @this: com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        i2 := @parameter0: int;
+
+        r0 := @parameter1: com.hp.hpl.jena.tdb.index.ext.HashBucket;
+
+        $i0 = virtualinvoke r0.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getTrieBitLen()>();
+
+        $i1 = r1.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int bitLen>;
+
+        if $i0 <= $i1 goto label1;
+
+        $r23 = newarray (java.lang.Object)[4];
+
+        $r24 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i2);
+
+        $r23[0] = $r24;
+
+        $i14 = virtualinvoke r0.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getId()>();
+
+        $r25 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i14);
+
+        $r23[1] = $r25;
+
+        $i15 = virtualinvoke r0.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getTrieBitLen()>();
+
+        $r26 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i15);
+
+        $r23[2] = $r26;
+
+        $i16 = r1.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int bitLen>;
+
+        $r27 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i16);
+
+        $r23[3] = $r27;
+
+        specialinvoke r1.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void error(java.lang.String,java.lang.Object[])>("[%d] Bucket %d has bit length longer than the dictionary\'s (%d, %d)", $r23);
+
+     label1:
+        $i3 = r1.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int bitLen>;
+
+        $i4 = virtualinvoke r0.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getTrieBitLen()>();
+
+        $i5 = $i3 - $i4;
+
+        $i17 = i2 >>> $i5;
+
+        $i6 = virtualinvoke r0.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getTrieValue()>();
+
+        if $i17 == $i6 goto label2;
+
+        $r18 = newarray (java.lang.Object)[5];
+
+        $r19 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i2);
+
+        $r18[0] = $r19;
+
+        $i12 = virtualinvoke r0.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getId()>();
+
+        $r20 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i12);
+
+        $r18[1] = $r20;
+
+        $i13 = virtualinvoke r0.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getTrieValue()>();
+
+        $r21 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i13);
+
+        $r18[2] = $r21;
+
+        $r22 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i17);
+
+        $r18[3] = $r22;
+
+        $r18[4] = r0;
+
+        specialinvoke r1.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void error(java.lang.String,java.lang.Object[])>("[%d] Bucket %d : hash prefix 0x%X, expected 0x%X : %s", $r18);
+
+     label2:
+        r28 = <com.hp.hpl.jena.tdb.base.record.Record: com.hp.hpl.jena.tdb.base.record.Record NO_REC>;
+
+        i18 = 0;
+
+     label3:
+        $i19 = virtualinvoke r0.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getCount()>();
+
+        if i18 >= $i19 goto label6;
+
+        $r7 = virtualinvoke r0.<com.hp.hpl.jena.tdb.index.ext.HashBucket: com.hp.hpl.jena.tdb.base.record.Record get(int)>(i18);
+
+        $r8 = <com.hp.hpl.jena.tdb.base.record.Record: com.hp.hpl.jena.tdb.base.record.Record NO_REC>;
+
+        if r28 == $r8 goto label4;
+
+        $z2 = staticinvoke <com.hp.hpl.jena.tdb.base.record.Record: boolean keyLT(com.hp.hpl.jena.tdb.base.record.Record,com.hp.hpl.jena.tdb.base.record.Record)>($r7, r28);
+
+        if $z2 == 0 goto label4;
+
+        $r14 = newarray (java.lang.Object)[4];
+
+        $r15 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i2);
+
+        $r14[0] = $r15;
+
+        $i11 = virtualinvoke r0.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getId()>();
+
+        $r16 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i11);
+
+        $r14[1] = $r16;
+
+        $r17 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i18);
+
+        $r14[2] = $r17;
+
+        $r14[3] = r0;
+
+        specialinvoke r1.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void error(java.lang.String,java.lang.Object[])>("[%d] Bucket %d: Not sorted (slot %d) : %s", $r14);
+
+     label4:
+        r28 = $r7;
+
+        $i20 = virtualinvoke r0.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getTrieBitLen()>();
+
+        $i21 = specialinvoke r1.<com.hp.hpl.jena.tdb.index.ext.ExtHash: int trieKey(com.hp.hpl.jena.tdb.base.record.Record,int)>($r7, $i20);
+
+        $i22 = virtualinvoke r0.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getTrieValue()>();
+
+        if $i21 == $i22 goto label5;
+
+        $r9 = newarray (java.lang.Object)[5];
+
+        $r10 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i2);
+
+        $r9[0] = $r10;
+
+        $i9 = virtualinvoke r0.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getId()>();
+
+        $r11 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i9);
+
+        $r9[1] = $r11;
+
+        $r12 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i21);
+
+        $r9[2] = $r12;
+
+        $i10 = virtualinvoke r0.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getTrieValue()>();
+
+        $r13 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i10);
+
+        $r9[3] = $r13;
+
+        $r9[4] = r0;
+
+        specialinvoke r1.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void error(java.lang.String,java.lang.Object[])>("[%d] Bucket %d: Key (0x%04X) does not match the hash (0x%04X) : %s", $r9);
+
+     label5:
+        i18 = i18 + 1;
+
+        goto label3;
+
+     label6:
+        $z0 = <com.hp.hpl.jena.tdb.sys.SystemTDB: boolean NullOut>;
+
+        if $z0 == 0 goto label9;
+
+        i23 = virtualinvoke r0.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getCount()>();
+
+     label7:
+        $i7 = virtualinvoke r0.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getMaxSize()>();
+
+        if i23 >= $i7 goto label9;
+
+        $r2 = virtualinvoke r0.<com.hp.hpl.jena.tdb.index.ext.HashBucket: com.hp.hpl.jena.tdb.base.buffer.RecordBuffer getRecordBuffer()>();
+
+        $z1 = virtualinvoke $r2.<com.hp.hpl.jena.tdb.base.buffer.RecordBuffer: boolean isClear(int)>(i23);
+
+        if $z1 != 0 goto label8;
+
+        $r3 = newarray (java.lang.Object)[4];
+
+        $r4 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i2);
+
+        $r3[0] = $r4;
+
+        $i8 = virtualinvoke r0.<com.hp.hpl.jena.tdb.index.ext.HashBucket: int getId()>();
+
+        $r5 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i8);
+
+        $r3[1] = $r5;
+
+        $r6 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i23);
+
+        $r3[2] = $r6;
+
+        $r3[3] = r0;
+
+        specialinvoke r1.<com.hp.hpl.jena.tdb.index.ext.ExtHash: void error(java.lang.String,java.lang.Object[])>("[%d] Bucket %d : overspill at [%d]: %s", $r3);
+
+     label8:
+        i23 = i23 + 1;
+
+        goto label7;
+
+     label9:
+        return;
+    }
+
+    private transient void error(java.lang.String, java.lang.Object[])
+    {
+        java.lang.Object[] r0;
+        org.slf4j.Logger $r2;
+        com.hp.hpl.jena.tdb.index.ext.ExtHash r4;
+        java.lang.String $r1, r5;
+        com.hp.hpl.jena.tdb.base.StorageException $r3;
+
+        r4 := @this: com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        r5 := @parameter0: java.lang.String;
+
+        r0 := @parameter1: java.lang.Object[];
+
+        $r1 = staticinvoke <java.lang.String: java.lang.String format(java.lang.String,java.lang.Object[])>(r5, r0);
+
+        $r2 = <com.hp.hpl.jena.tdb.index.ext.ExtHash: org.slf4j.Logger log>;
+
+        interfaceinvoke $r2.<org.slf4j.Logger: void error(java.lang.String)>($r1);
+
+        $r3 = new com.hp.hpl.jena.tdb.base.StorageException;
+
+        specialinvoke $r3.<com.hp.hpl.jena.tdb.base.StorageException: void <init>(java.lang.String)>($r1);
+
+        throw $r3;
+    }
+
+    private final boolean logging()
+    {
+        com.hp.hpl.jena.tdb.index.ext.ExtHash r0;
+        boolean $z0;
+
+        r0 := @this: com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        $z0 = <com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean Logging>;
+
+        return $z0;
+    }
+
+    private final transient void log(java.lang.String, java.lang.Object[])
+    {
+        java.lang.Object[] r1;
+        org.slf4j.Logger $r2;
+        com.hp.hpl.jena.tdb.index.ext.ExtHash r4;
+        java.lang.String r0, $r3;
+
+        r4 := @this: com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        r0 := @parameter0: java.lang.String;
+
+        r1 := @parameter1: java.lang.Object[];
+
+        $r2 = <com.hp.hpl.jena.tdb.index.ext.ExtHash: org.slf4j.Logger log>;
+
+        $r3 = staticinvoke <java.lang.String: java.lang.String format(java.lang.String,java.lang.Object[])>(r0, r1);
+
+        interfaceinvoke $r2.<org.slf4j.Logger: void debug(java.lang.String)>($r3);
+
+        return;
+    }
+
+    private final void log(java.lang.Object)
+    {
+        org.slf4j.Logger $r1;
+        com.hp.hpl.jena.tdb.index.ext.ExtHash r3;
+        java.lang.Object r0;
+        java.lang.String $r2;
+
+        r3 := @this: com.hp.hpl.jena.tdb.index.ext.ExtHash;
+
+        r0 := @parameter0: java.lang.Object;
+
+        $r1 = <com.hp.hpl.jena.tdb.index.ext.ExtHash: org.slf4j.Logger log>;
+
+        $r2 = virtualinvoke r0.<java.lang.Object: java.lang.String toString()>();
+
+        interfaceinvoke $r1.<org.slf4j.Logger: void debug(java.lang.String)>($r2);
+
+        return;
+    }
+
+    static void <clinit>()
+    {
+        com.hp.hpl.jena.tdb.index.ext.ExtHash$2 $r2;
+        org.slf4j.Logger $r0;
+        com.hp.hpl.jena.tdb.index.ext.ExtHash$1 $r1;
+
+        $r0 = staticinvoke <org.slf4j.LoggerFactory: org.slf4j.Logger getLogger(java.lang.Class)>(class "Lcom/hp/hpl/jena/tdb/index/ext/ExtHash;");
+
+        <com.hp.hpl.jena.tdb.index.ext.ExtHash: org.slf4j.Logger log> = $r0;
+
+        <com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean Debugging> = 0;
+
+        <com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean Checking> = 0;
+
+        <com.hp.hpl.jena.tdb.index.ext.ExtHash: boolean Logging> = 0;
+
+        $r1 = new com.hp.hpl.jena.tdb.index.ext.ExtHash$1;
+
+        specialinvoke $r1.<com.hp.hpl.jena.tdb.index.ext.ExtHash$1: void <init>()>();
+
+        <com.hp.hpl.jena.tdb.index.ext.ExtHash: com.hp.hpl.jena.tdb.index.ext.ExtHash$HashRecordKey hash4bytes> = $r1;
+
+        $r2 = new com.hp.hpl.jena.tdb.index.ext.ExtHash$2;
+
+        specialinvoke $r2.<com.hp.hpl.jena.tdb.index.ext.ExtHash$2: void <init>()>();
+
+        <com.hp.hpl.jena.tdb.index.ext.ExtHash: com.hp.hpl.jena.tdb.index.ext.ExtHash$HashRecordKey hashFNV> = $r2;
+
+        return;
+    }
+}

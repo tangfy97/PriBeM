@@ -1,0 +1,457 @@
+public abstract class org.apache.http.client.methods.HttpRequestBase extends org.apache.http.message.AbstractHttpMessage implements org.apache.http.client.methods.HttpUriRequest, org.apache.http.client.methods.AbortableHttpRequest, java.lang.Cloneable
+{
+    private java.util.concurrent.locks.Lock abortLock;
+    private volatile boolean aborted;
+    private java.net.URI uri;
+    private org.apache.http.conn.ClientConnectionRequest connRequest;
+    private org.apache.http.conn.ConnectionReleaseTrigger releaseTrigger;
+
+    public void <init>()
+    {
+        org.apache.http.client.methods.HttpRequestBase r0;
+        java.util.concurrent.locks.ReentrantLock $r1;
+
+        r0 := @this: org.apache.http.client.methods.HttpRequestBase;
+
+        specialinvoke r0.<org.apache.http.message.AbstractHttpMessage: void <init>()>();
+
+        $r1 = new java.util.concurrent.locks.ReentrantLock;
+
+        specialinvoke $r1.<java.util.concurrent.locks.ReentrantLock: void <init>()>();
+
+        r0.<org.apache.http.client.methods.HttpRequestBase: java.util.concurrent.locks.Lock abortLock> = $r1;
+
+        return;
+    }
+
+    public abstract java.lang.String getMethod();
+
+    public org.apache.http.ProtocolVersion getProtocolVersion()
+    {
+        org.apache.http.client.methods.HttpRequestBase r0;
+        org.apache.http.ProtocolVersion $r2;
+        org.apache.http.params.HttpParams $r1;
+
+        r0 := @this: org.apache.http.client.methods.HttpRequestBase;
+
+        $r1 = virtualinvoke r0.<org.apache.http.client.methods.HttpRequestBase: org.apache.http.params.HttpParams getParams()>();
+
+        $r2 = staticinvoke <org.apache.http.params.HttpProtocolParams: org.apache.http.ProtocolVersion getVersion(org.apache.http.params.HttpParams)>($r1);
+
+        return $r2;
+    }
+
+    public java.net.URI getURI()
+    {
+        org.apache.http.client.methods.HttpRequestBase r0;
+        java.net.URI $r1;
+
+        r0 := @this: org.apache.http.client.methods.HttpRequestBase;
+
+        $r1 = r0.<org.apache.http.client.methods.HttpRequestBase: java.net.URI uri>;
+
+        return $r1;
+    }
+
+    public org.apache.http.RequestLine getRequestLine()
+    {
+        org.apache.http.ProtocolVersion $r2;
+        org.apache.http.message.BasicRequestLine $r5;
+        org.apache.http.client.methods.HttpRequestBase r0;
+        int $i0;
+        java.lang.String $r1, r4;
+        java.net.URI $r3;
+
+        r0 := @this: org.apache.http.client.methods.HttpRequestBase;
+
+        $r1 = virtualinvoke r0.<org.apache.http.client.methods.HttpRequestBase: java.lang.String getMethod()>();
+
+        $r2 = virtualinvoke r0.<org.apache.http.client.methods.HttpRequestBase: org.apache.http.ProtocolVersion getProtocolVersion()>();
+
+        $r3 = virtualinvoke r0.<org.apache.http.client.methods.HttpRequestBase: java.net.URI getURI()>();
+
+        r4 = null;
+
+        if $r3 == null goto label1;
+
+        r4 = virtualinvoke $r3.<java.net.URI: java.lang.String toASCIIString()>();
+
+     label1:
+        if r4 == null goto label2;
+
+        $i0 = virtualinvoke r4.<java.lang.String: int length()>();
+
+        if $i0 != 0 goto label3;
+
+     label2:
+        r4 = "/";
+
+     label3:
+        $r5 = new org.apache.http.message.BasicRequestLine;
+
+        specialinvoke $r5.<org.apache.http.message.BasicRequestLine: void <init>(java.lang.String,java.lang.String,org.apache.http.ProtocolVersion)>($r1, r4, $r2);
+
+        return $r5;
+    }
+
+    public void setURI(java.net.URI)
+    {
+        org.apache.http.client.methods.HttpRequestBase r0;
+        java.net.URI r1;
+
+        r0 := @this: org.apache.http.client.methods.HttpRequestBase;
+
+        r1 := @parameter0: java.net.URI;
+
+        r0.<org.apache.http.client.methods.HttpRequestBase: java.net.URI uri> = r1;
+
+        return;
+    }
+
+    public void setConnectionRequest(org.apache.http.conn.ClientConnectionRequest) throws java.io.IOException
+    {
+        java.lang.Throwable $r5;
+        org.apache.http.client.methods.HttpRequestBase r0;
+        org.apache.http.conn.ClientConnectionRequest r2;
+        java.io.IOException $r4;
+        java.util.concurrent.locks.Lock $r1, $r3, $r6;
+        boolean $z0;
+
+        r0 := @this: org.apache.http.client.methods.HttpRequestBase;
+
+        r2 := @parameter0: org.apache.http.conn.ClientConnectionRequest;
+
+        $z0 = r0.<org.apache.http.client.methods.HttpRequestBase: boolean aborted>;
+
+        if $z0 == 0 goto label1;
+
+        $r4 = new java.io.IOException;
+
+        specialinvoke $r4.<java.io.IOException: void <init>(java.lang.String)>("Request already aborted");
+
+        throw $r4;
+
+     label1:
+        $r1 = r0.<org.apache.http.client.methods.HttpRequestBase: java.util.concurrent.locks.Lock abortLock>;
+
+        interfaceinvoke $r1.<java.util.concurrent.locks.Lock: void lock()>();
+
+     label2:
+        r0.<org.apache.http.client.methods.HttpRequestBase: org.apache.http.conn.ClientConnectionRequest connRequest> = r2;
+
+     label3:
+        $r3 = r0.<org.apache.http.client.methods.HttpRequestBase: java.util.concurrent.locks.Lock abortLock>;
+
+        interfaceinvoke $r3.<java.util.concurrent.locks.Lock: void unlock()>();
+
+        goto label6;
+
+     label4:
+        $r5 := @caughtexception;
+
+     label5:
+        $r6 = r0.<org.apache.http.client.methods.HttpRequestBase: java.util.concurrent.locks.Lock abortLock>;
+
+        interfaceinvoke $r6.<java.util.concurrent.locks.Lock: void unlock()>();
+
+        throw $r5;
+
+     label6:
+        return;
+
+        catch java.lang.Throwable from label2 to label3 with label4;
+        catch java.lang.Throwable from label4 to label5 with label4;
+    }
+
+    public void setReleaseTrigger(org.apache.http.conn.ConnectionReleaseTrigger) throws java.io.IOException
+    {
+        java.lang.Throwable $r5;
+        org.apache.http.client.methods.HttpRequestBase r0;
+        java.io.IOException $r4;
+        java.util.concurrent.locks.Lock $r1, $r3, $r6;
+        org.apache.http.conn.ConnectionReleaseTrigger r2;
+        boolean $z0;
+
+        r0 := @this: org.apache.http.client.methods.HttpRequestBase;
+
+        r2 := @parameter0: org.apache.http.conn.ConnectionReleaseTrigger;
+
+        $z0 = r0.<org.apache.http.client.methods.HttpRequestBase: boolean aborted>;
+
+        if $z0 == 0 goto label1;
+
+        $r4 = new java.io.IOException;
+
+        specialinvoke $r4.<java.io.IOException: void <init>(java.lang.String)>("Request already aborted");
+
+        throw $r4;
+
+     label1:
+        $r1 = r0.<org.apache.http.client.methods.HttpRequestBase: java.util.concurrent.locks.Lock abortLock>;
+
+        interfaceinvoke $r1.<java.util.concurrent.locks.Lock: void lock()>();
+
+     label2:
+        r0.<org.apache.http.client.methods.HttpRequestBase: org.apache.http.conn.ConnectionReleaseTrigger releaseTrigger> = r2;
+
+     label3:
+        $r3 = r0.<org.apache.http.client.methods.HttpRequestBase: java.util.concurrent.locks.Lock abortLock>;
+
+        interfaceinvoke $r3.<java.util.concurrent.locks.Lock: void unlock()>();
+
+        goto label6;
+
+     label4:
+        $r5 := @caughtexception;
+
+     label5:
+        $r6 = r0.<org.apache.http.client.methods.HttpRequestBase: java.util.concurrent.locks.Lock abortLock>;
+
+        interfaceinvoke $r6.<java.util.concurrent.locks.Lock: void unlock()>();
+
+        throw $r5;
+
+     label6:
+        return;
+
+        catch java.lang.Throwable from label2 to label3 with label4;
+        catch java.lang.Throwable from label4 to label5 with label4;
+    }
+
+    private void cleanup()
+    {
+        org.apache.http.client.methods.HttpRequestBase r0;
+        org.apache.http.conn.ClientConnectionRequest $r1, $r4;
+        org.apache.http.conn.ConnectionReleaseTrigger $r2, $r3;
+        java.io.IOException $r5;
+
+        r0 := @this: org.apache.http.client.methods.HttpRequestBase;
+
+        $r1 = r0.<org.apache.http.client.methods.HttpRequestBase: org.apache.http.conn.ClientConnectionRequest connRequest>;
+
+        if $r1 == null goto label1;
+
+        $r4 = r0.<org.apache.http.client.methods.HttpRequestBase: org.apache.http.conn.ClientConnectionRequest connRequest>;
+
+        interfaceinvoke $r4.<org.apache.http.conn.ClientConnectionRequest: void abortRequest()>();
+
+        r0.<org.apache.http.client.methods.HttpRequestBase: org.apache.http.conn.ClientConnectionRequest connRequest> = null;
+
+     label1:
+        $r2 = r0.<org.apache.http.client.methods.HttpRequestBase: org.apache.http.conn.ConnectionReleaseTrigger releaseTrigger>;
+
+        if $r2 == null goto label6;
+
+     label2:
+        $r3 = r0.<org.apache.http.client.methods.HttpRequestBase: org.apache.http.conn.ConnectionReleaseTrigger releaseTrigger>;
+
+        interfaceinvoke $r3.<org.apache.http.conn.ConnectionReleaseTrigger: void abortConnection()>();
+
+     label3:
+        goto label5;
+
+     label4:
+        $r5 := @caughtexception;
+
+     label5:
+        r0.<org.apache.http.client.methods.HttpRequestBase: org.apache.http.conn.ConnectionReleaseTrigger releaseTrigger> = null;
+
+     label6:
+        return;
+
+        catch java.io.IOException from label2 to label3 with label4;
+    }
+
+    public void abort()
+    {
+        java.lang.Throwable $r3;
+        java.util.concurrent.locks.Lock $r1, $r2, $r4;
+        org.apache.http.client.methods.HttpRequestBase r0;
+        boolean $z0;
+
+        r0 := @this: org.apache.http.client.methods.HttpRequestBase;
+
+        $z0 = r0.<org.apache.http.client.methods.HttpRequestBase: boolean aborted>;
+
+        if $z0 == 0 goto label1;
+
+        return;
+
+     label1:
+        $r1 = r0.<org.apache.http.client.methods.HttpRequestBase: java.util.concurrent.locks.Lock abortLock>;
+
+        interfaceinvoke $r1.<java.util.concurrent.locks.Lock: void lock()>();
+
+     label2:
+        r0.<org.apache.http.client.methods.HttpRequestBase: boolean aborted> = 1;
+
+        specialinvoke r0.<org.apache.http.client.methods.HttpRequestBase: void cleanup()>();
+
+     label3:
+        $r2 = r0.<org.apache.http.client.methods.HttpRequestBase: java.util.concurrent.locks.Lock abortLock>;
+
+        interfaceinvoke $r2.<java.util.concurrent.locks.Lock: void unlock()>();
+
+        goto label6;
+
+     label4:
+        $r3 := @caughtexception;
+
+     label5:
+        $r4 = r0.<org.apache.http.client.methods.HttpRequestBase: java.util.concurrent.locks.Lock abortLock>;
+
+        interfaceinvoke $r4.<java.util.concurrent.locks.Lock: void unlock()>();
+
+        throw $r3;
+
+     label6:
+        return;
+
+        catch java.lang.Throwable from label2 to label3 with label4;
+        catch java.lang.Throwable from label4 to label5 with label4;
+    }
+
+    public boolean isAborted()
+    {
+        org.apache.http.client.methods.HttpRequestBase r0;
+        boolean $z0;
+
+        r0 := @this: org.apache.http.client.methods.HttpRequestBase;
+
+        $z0 = r0.<org.apache.http.client.methods.HttpRequestBase: boolean aborted>;
+
+        return $z0;
+    }
+
+    public void reset()
+    {
+        java.lang.Throwable $r3;
+        java.util.concurrent.locks.Lock $r1, $r2, $r4;
+        org.apache.http.client.methods.HttpRequestBase r0;
+
+        r0 := @this: org.apache.http.client.methods.HttpRequestBase;
+
+        $r1 = r0.<org.apache.http.client.methods.HttpRequestBase: java.util.concurrent.locks.Lock abortLock>;
+
+        interfaceinvoke $r1.<java.util.concurrent.locks.Lock: void lock()>();
+
+     label1:
+        specialinvoke r0.<org.apache.http.client.methods.HttpRequestBase: void cleanup()>();
+
+        r0.<org.apache.http.client.methods.HttpRequestBase: boolean aborted> = 0;
+
+     label2:
+        $r2 = r0.<org.apache.http.client.methods.HttpRequestBase: java.util.concurrent.locks.Lock abortLock>;
+
+        interfaceinvoke $r2.<java.util.concurrent.locks.Lock: void unlock()>();
+
+        goto label5;
+
+     label3:
+        $r3 := @caughtexception;
+
+     label4:
+        $r4 = r0.<org.apache.http.client.methods.HttpRequestBase: java.util.concurrent.locks.Lock abortLock>;
+
+        interfaceinvoke $r4.<java.util.concurrent.locks.Lock: void unlock()>();
+
+        throw $r3;
+
+     label5:
+        return;
+
+        catch java.lang.Throwable from label1 to label2 with label3;
+        catch java.lang.Throwable from label3 to label4 with label3;
+    }
+
+    public void releaseConnection()
+    {
+        org.apache.http.client.methods.HttpRequestBase r0;
+
+        r0 := @this: org.apache.http.client.methods.HttpRequestBase;
+
+        virtualinvoke r0.<org.apache.http.client.methods.HttpRequestBase: void reset()>();
+
+        return;
+    }
+
+    public java.lang.Object clone() throws java.lang.CloneNotSupportedException
+    {
+        org.apache.http.message.HeaderGroup $r4, $r6;
+        java.util.concurrent.locks.ReentrantLock $r3;
+        org.apache.http.client.methods.HttpRequestBase r0, r2;
+        org.apache.http.params.HttpParams $r7, $r9;
+        java.lang.Object $r1, $r5, $r8;
+
+        r0 := @this: org.apache.http.client.methods.HttpRequestBase;
+
+        $r1 = specialinvoke r0.<java.lang.Object: java.lang.Object clone()>();
+
+        r2 = (org.apache.http.client.methods.HttpRequestBase) $r1;
+
+        $r3 = new java.util.concurrent.locks.ReentrantLock;
+
+        specialinvoke $r3.<java.util.concurrent.locks.ReentrantLock: void <init>()>();
+
+        r2.<org.apache.http.client.methods.HttpRequestBase: java.util.concurrent.locks.Lock abortLock> = $r3;
+
+        r2.<org.apache.http.client.methods.HttpRequestBase: boolean aborted> = 0;
+
+        r2.<org.apache.http.client.methods.HttpRequestBase: org.apache.http.conn.ConnectionReleaseTrigger releaseTrigger> = null;
+
+        r2.<org.apache.http.client.methods.HttpRequestBase: org.apache.http.conn.ClientConnectionRequest connRequest> = null;
+
+        $r4 = r0.<org.apache.http.client.methods.HttpRequestBase: org.apache.http.message.HeaderGroup headergroup>;
+
+        $r5 = staticinvoke <org.apache.http.client.utils.CloneUtils: java.lang.Object clone(java.lang.Object)>($r4);
+
+        $r6 = (org.apache.http.message.HeaderGroup) $r5;
+
+        r2.<org.apache.http.client.methods.HttpRequestBase: org.apache.http.message.HeaderGroup headergroup> = $r6;
+
+        $r7 = r0.<org.apache.http.client.methods.HttpRequestBase: org.apache.http.params.HttpParams params>;
+
+        $r8 = staticinvoke <org.apache.http.client.utils.CloneUtils: java.lang.Object clone(java.lang.Object)>($r7);
+
+        $r9 = (org.apache.http.params.HttpParams) $r8;
+
+        r2.<org.apache.http.client.methods.HttpRequestBase: org.apache.http.params.HttpParams params> = $r9;
+
+        return r2;
+    }
+
+    public java.lang.String toString()
+    {
+        org.apache.http.client.methods.HttpRequestBase r1;
+        org.apache.http.ProtocolVersion $r8;
+        java.lang.StringBuilder $r0, $r3, $r4, $r6, $r7, $r9;
+        java.lang.String $r2, $r10;
+        java.net.URI $r5;
+
+        r1 := @this: org.apache.http.client.methods.HttpRequestBase;
+
+        $r0 = new java.lang.StringBuilder;
+
+        specialinvoke $r0.<java.lang.StringBuilder: void <init>()>();
+
+        $r2 = virtualinvoke r1.<org.apache.http.client.methods.HttpRequestBase: java.lang.String getMethod()>();
+
+        $r3 = virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r2);
+
+        $r4 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" ");
+
+        $r5 = virtualinvoke r1.<org.apache.http.client.methods.HttpRequestBase: java.net.URI getURI()>();
+
+        $r6 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r5);
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" ");
+
+        $r8 = virtualinvoke r1.<org.apache.http.client.methods.HttpRequestBase: org.apache.http.ProtocolVersion getProtocolVersion()>();
+
+        $r9 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r8);
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        return $r10;
+    }
+}

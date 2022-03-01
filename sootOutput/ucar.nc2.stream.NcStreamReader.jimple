@@ -1,0 +1,612 @@
+public class ucar.nc2.stream.NcStreamReader extends java.lang.Object
+{
+    private static final boolean debug;
+
+    public void <init>()
+    {
+        ucar.nc2.stream.NcStreamReader r0;
+
+        r0 := @this: ucar.nc2.stream.NcStreamReader;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        return;
+    }
+
+    public ucar.nc2.NetcdfFile readStream(java.io.InputStream, ucar.nc2.NetcdfFile) throws java.io.IOException
+    {
+        byte[] r0, $r3, $r4, $r13, $r14;
+        ucar.nc2.stream.NcStreamReader r2;
+        int $i0, $i1;
+        java.lang.String $r10, $r12, $r18, $r20;
+        boolean $z0, $z1, $z2;
+        java.io.IOException $r7, $r15;
+        java.lang.StringBuilder $r8, $r9, $r11, $r16, $r17, $r19;
+        ucar.nc2.NetcdfFile $r6, r21;
+        ucar.nc2.stream.NcStreamProto$Header $r5;
+        java.io.InputStream r1;
+
+        r2 := @this: ucar.nc2.stream.NcStreamReader;
+
+        r1 := @parameter0: java.io.InputStream;
+
+        r21 := @parameter1: ucar.nc2.NetcdfFile;
+
+        r0 = newarray (byte)[4];
+
+        staticinvoke <ucar.nc2.stream.NcStream: int readFully(java.io.InputStream,byte[])>(r1, r0);
+
+        $r3 = <ucar.nc2.stream.NcStream: byte[] MAGIC_START>;
+
+        $z0 = specialinvoke r2.<ucar.nc2.stream.NcStreamReader: boolean test(byte[],byte[])>(r0, $r3);
+
+        if $z0 == 0 goto label1;
+
+        $r13 = <ucar.nc2.stream.NcStream: byte[] MAGIC_HEADER>;
+
+        $z2 = specialinvoke r2.<ucar.nc2.stream.NcStreamReader: boolean readAndTest(java.io.InputStream,byte[])>(r1, $r13);
+
+        if $z2 != 0 goto label2;
+
+        $r15 = new java.io.IOException;
+
+        $r16 = new java.lang.StringBuilder;
+
+        specialinvoke $r16.<java.lang.StringBuilder: void <init>()>();
+
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Data corrupted on ");
+
+        $r18 = virtualinvoke r21.<ucar.nc2.NetcdfFile: java.lang.String getLocation()>();
+
+        $r19 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r18);
+
+        $r20 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r15.<java.io.IOException: void <init>(java.lang.String)>($r20);
+
+        throw $r15;
+
+     label1:
+        $r4 = <ucar.nc2.stream.NcStream: byte[] MAGIC_HEADER>;
+
+        $z1 = specialinvoke r2.<ucar.nc2.stream.NcStreamReader: boolean test(byte[],byte[])>(r0, $r4);
+
+        if $z1 != 0 goto label2;
+
+        $r7 = new java.io.IOException;
+
+        $r8 = new java.lang.StringBuilder;
+
+        specialinvoke $r8.<java.lang.StringBuilder: void <init>()>();
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Data corrupted on ");
+
+        $r10 = virtualinvoke r21.<ucar.nc2.NetcdfFile: java.lang.String getLocation()>();
+
+        $r11 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r10);
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r7.<java.io.IOException: void <init>(java.lang.String)>($r12);
+
+        throw $r7;
+
+     label2:
+        $i0 = staticinvoke <ucar.nc2.stream.NcStream: int readVInt(java.io.InputStream)>(r1);
+
+        $r14 = newarray (byte)[$i0];
+
+        staticinvoke <ucar.nc2.stream.NcStream: int readFully(java.io.InputStream,byte[])>(r1, $r14);
+
+        $r5 = staticinvoke <ucar.nc2.stream.NcStreamProto$Header: ucar.nc2.stream.NcStreamProto$Header parseFrom(byte[])>($r14);
+
+        $r6 = virtualinvoke r2.<ucar.nc2.stream.NcStreamReader: ucar.nc2.NetcdfFile proto2nc(ucar.nc2.stream.NcStreamProto$Header,ucar.nc2.NetcdfFile)>($r5, r21);
+
+     label3:
+        $i1 = virtualinvoke r1.<java.io.InputStream: int available()>();
+
+        if $i1 <= 0 goto label4;
+
+        virtualinvoke r2.<ucar.nc2.stream.NcStreamReader: ucar.nc2.stream.NcStreamReader$DataResult readData(java.io.InputStream,ucar.nc2.NetcdfFile)>(r1, $r6);
+
+        goto label3;
+
+     label4:
+        return $r6;
+    }
+
+    public ucar.nc2.stream.NcStreamReader$DataResult readData(java.io.InputStream, ucar.nc2.NetcdfFile) throws java.io.IOException
+    {
+        byte[] $r2, r3, r50, r51, r52;
+        java.nio.ByteBuffer $r14, $r28, $r36;
+        ucar.ma2.ArrayStructureBB $r23, $r26;
+        int[] $r13, $r22, $r27, $r31, $r37;
+        boolean $z0, $z1, $z2;
+        ucar.nc2.stream.NcStreamProto$DataType $r5;
+        ucar.ma2.DataType $r6, $r7, $r10, $r11, $r12;
+        ucar.ma2.StructureMembers $r21;
+        java.lang.StringBuilder $r44, $r45, $r47;
+        ucar.nc2.NetcdfFile r18;
+        ucar.ma2.Section r9, $r49;
+        ucar.nc2.stream.NcStreamReader r0;
+        ucar.nc2.Structure r53;
+        ucar.nc2.stream.NcStreamProto$Data $r4;
+        int $i0, $i1, $i2, $i3, $i4;
+        ucar.nc2.Variable $r20;
+        java.lang.String $r17, $r19, $r25, $r30, $r35, $r41, $r42, $r46, $r48;
+        ucar.nc2.stream.NcStreamProto$Section $r8;
+        ucar.ma2.IndexIterator $r33, $r39;
+        java.io.IOException $r43;
+        ucar.ma2.Array $r15, $r32, $r38;
+        ucar.nc2.stream.NcStreamReader$DataResult $r16, $r24, $r29, $r34, $r40;
+        java.io.InputStream r1;
+
+        r0 := @this: ucar.nc2.stream.NcStreamReader;
+
+        r1 := @parameter0: java.io.InputStream;
+
+        r18 := @parameter1: ucar.nc2.NetcdfFile;
+
+        $r2 = <ucar.nc2.stream.NcStream: byte[] MAGIC_DATA>;
+
+        $z0 = specialinvoke r0.<ucar.nc2.stream.NcStreamReader: boolean readAndTest(java.io.InputStream,byte[])>(r1, $r2);
+
+        if $z0 != 0 goto label01;
+
+        $r43 = new java.io.IOException;
+
+        $r44 = new java.lang.StringBuilder;
+
+        specialinvoke $r44.<java.lang.StringBuilder: void <init>()>();
+
+        $r45 = virtualinvoke $r44.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Data transfer corrupted on ");
+
+        $r46 = virtualinvoke r18.<ucar.nc2.NetcdfFile: java.lang.String getLocation()>();
+
+        $r47 = virtualinvoke $r45.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r46);
+
+        $r48 = virtualinvoke $r47.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r43.<java.io.IOException: void <init>(java.lang.String)>($r48);
+
+        throw $r43;
+
+     label01:
+        $i0 = staticinvoke <ucar.nc2.stream.NcStream: int readVInt(java.io.InputStream)>(r1);
+
+        r3 = newarray (byte)[$i0];
+
+        staticinvoke <ucar.nc2.stream.NcStream: int readFully(java.io.InputStream,byte[])>(r1, r3);
+
+        $r4 = staticinvoke <ucar.nc2.stream.NcStreamProto$Data: ucar.nc2.stream.NcStreamProto$Data parseFrom(byte[])>(r3);
+
+        $r5 = virtualinvoke $r4.<ucar.nc2.stream.NcStreamProto$Data: ucar.nc2.stream.NcStreamProto$DataType getDataType()>();
+
+        $r6 = staticinvoke <ucar.nc2.stream.NcStream: ucar.ma2.DataType decodeDataType(ucar.nc2.stream.NcStreamProto$DataType)>($r5);
+
+        $r7 = <ucar.ma2.DataType: ucar.ma2.DataType SEQUENCE>;
+
+        if $r6 != $r7 goto label02;
+
+        $r49 = new ucar.ma2.Section;
+
+        specialinvoke $r49.<ucar.ma2.Section: void <init>()>();
+
+        goto label03;
+
+     label02:
+        $r8 = virtualinvoke $r4.<ucar.nc2.stream.NcStreamProto$Data: ucar.nc2.stream.NcStreamProto$Section getSection()>();
+
+        $r49 = staticinvoke <ucar.nc2.stream.NcStream: ucar.ma2.Section decodeSection(ucar.nc2.stream.NcStreamProto$Section)>($r8);
+
+     label03:
+        r9 = $r49;
+
+        $r10 = <ucar.ma2.DataType: ucar.ma2.DataType STRING>;
+
+        if $r6 != $r10 goto label06;
+
+        $r37 = virtualinvoke $r49.<ucar.ma2.Section: int[] getShape()>();
+
+        $r38 = staticinvoke <ucar.ma2.Array: ucar.ma2.Array factory(ucar.ma2.DataType,int[])>($r6, $r37);
+
+        $r39 = virtualinvoke $r38.<ucar.ma2.Array: ucar.ma2.IndexIterator getIndexIterator()>();
+
+     label04:
+        $z2 = interfaceinvoke $r39.<ucar.ma2.IndexIterator: boolean hasNext()>();
+
+        if $z2 == 0 goto label05;
+
+        $i4 = staticinvoke <ucar.nc2.stream.NcStream: int readVInt(java.io.InputStream)>(r1);
+
+        r50 = newarray (byte)[$i4];
+
+        staticinvoke <ucar.nc2.stream.NcStream: int readFully(java.io.InputStream,byte[])>(r1, r50);
+
+        $r42 = new java.lang.String;
+
+        specialinvoke $r42.<java.lang.String: void <init>(byte[],java.lang.String)>(r50, "UTF-8");
+
+        interfaceinvoke $r39.<ucar.ma2.IndexIterator: void setObjectNext(java.lang.Object)>($r42);
+
+        goto label04;
+
+     label05:
+        $r40 = new ucar.nc2.stream.NcStreamReader$DataResult;
+
+        $r41 = virtualinvoke $r4.<ucar.nc2.stream.NcStreamProto$Data: java.lang.String getVarName()>();
+
+        specialinvoke $r40.<ucar.nc2.stream.NcStreamReader$DataResult: void <init>(ucar.nc2.stream.NcStreamReader,java.lang.String,ucar.ma2.Section,ucar.ma2.Array)>(r0, $r41, r9, $r38);
+
+        return $r40;
+
+     label06:
+        $r11 = <ucar.ma2.DataType: ucar.ma2.DataType OPAQUE>;
+
+        if $r6 != $r11 goto label09;
+
+        $r31 = virtualinvoke $r49.<ucar.ma2.Section: int[] getShape()>();
+
+        $r32 = staticinvoke <ucar.ma2.Array: ucar.ma2.Array factory(ucar.ma2.DataType,int[])>($r6, $r31);
+
+        $r33 = virtualinvoke $r32.<ucar.ma2.Array: ucar.ma2.IndexIterator getIndexIterator()>();
+
+     label07:
+        $z1 = interfaceinvoke $r33.<ucar.ma2.IndexIterator: boolean hasNext()>();
+
+        if $z1 == 0 goto label08;
+
+        $i3 = staticinvoke <ucar.nc2.stream.NcStream: int readVInt(java.io.InputStream)>(r1);
+
+        r51 = newarray (byte)[$i3];
+
+        staticinvoke <ucar.nc2.stream.NcStream: int readFully(java.io.InputStream,byte[])>(r1, r51);
+
+        $r36 = staticinvoke <java.nio.ByteBuffer: java.nio.ByteBuffer wrap(byte[])>(r51);
+
+        interfaceinvoke $r33.<ucar.ma2.IndexIterator: void setObjectNext(java.lang.Object)>($r36);
+
+        goto label07;
+
+     label08:
+        $r34 = new ucar.nc2.stream.NcStreamReader$DataResult;
+
+        $r35 = virtualinvoke $r4.<ucar.nc2.stream.NcStreamProto$Data: java.lang.String getVarName()>();
+
+        specialinvoke $r34.<ucar.nc2.stream.NcStreamReader$DataResult: void <init>(ucar.nc2.stream.NcStreamReader,java.lang.String,ucar.ma2.Section,ucar.ma2.Array)>(r0, $r35, r9, $r32);
+
+        return $r34;
+
+     label09:
+        $i1 = staticinvoke <ucar.nc2.stream.NcStream: int readVInt(java.io.InputStream)>(r1);
+
+        r52 = newarray (byte)[$i1];
+
+        staticinvoke <ucar.nc2.stream.NcStream: int readFully(java.io.InputStream,byte[])>(r1, r52);
+
+        $r12 = <ucar.ma2.DataType: ucar.ma2.DataType STRUCTURE>;
+
+        if $r6 != $r12 goto label11;
+
+        $r19 = virtualinvoke $r4.<ucar.nc2.stream.NcStreamProto$Data: java.lang.String getVarName()>();
+
+        $r20 = virtualinvoke r18.<ucar.nc2.NetcdfFile: ucar.nc2.Variable findVariable(java.lang.String)>($r19);
+
+        r53 = (ucar.nc2.Structure) $r20;
+
+        $r21 = virtualinvoke r53.<ucar.nc2.Structure: ucar.ma2.StructureMembers makeStructureMembers()>();
+
+        $i2 = virtualinvoke $r4.<ucar.nc2.stream.NcStreamProto$Data: int getVersion()>();
+
+        if $i2 != 0 goto label10;
+
+        staticinvoke <ucar.ma2.ArrayStructureBB: int setOffsets(ucar.ma2.StructureMembers)>($r21);
+
+        $r26 = new ucar.ma2.ArrayStructureBB;
+
+        $r27 = virtualinvoke $r49.<ucar.ma2.Section: int[] getShape()>();
+
+        $r28 = staticinvoke <java.nio.ByteBuffer: java.nio.ByteBuffer wrap(byte[])>(r52);
+
+        specialinvoke $r26.<ucar.ma2.ArrayStructureBB: void <init>(ucar.ma2.StructureMembers,int[],java.nio.ByteBuffer,int)>($r21, $r27, $r28, 0);
+
+        $r29 = new ucar.nc2.stream.NcStreamReader$DataResult;
+
+        $r30 = virtualinvoke $r4.<ucar.nc2.stream.NcStreamProto$Data: java.lang.String getVarName()>();
+
+        specialinvoke $r29.<ucar.nc2.stream.NcStreamReader$DataResult: void <init>(ucar.nc2.stream.NcStreamReader,java.lang.String,ucar.ma2.Section,ucar.ma2.Array)>(r0, $r30, $r49, $r26);
+
+        return $r29;
+
+     label10:
+        $r22 = virtualinvoke $r49.<ucar.ma2.Section: int[] getShape()>();
+
+        $r23 = staticinvoke <ucar.nc2.stream.NcStream: ucar.ma2.ArrayStructureBB decodeArrayStructure(ucar.ma2.StructureMembers,int[],byte[])>($r21, $r22, r52);
+
+        $r24 = new ucar.nc2.stream.NcStreamReader$DataResult;
+
+        $r25 = virtualinvoke $r4.<ucar.nc2.stream.NcStreamProto$Data: java.lang.String getVarName()>();
+
+        specialinvoke $r24.<ucar.nc2.stream.NcStreamReader$DataResult: void <init>(ucar.nc2.stream.NcStreamReader,java.lang.String,ucar.ma2.Section,ucar.ma2.Array)>(r0, $r25, $r49, $r23);
+
+        return $r24;
+
+     label11:
+        $r13 = virtualinvoke $r49.<ucar.ma2.Section: int[] getShape()>();
+
+        $r14 = staticinvoke <java.nio.ByteBuffer: java.nio.ByteBuffer wrap(byte[])>(r52);
+
+        $r15 = staticinvoke <ucar.ma2.Array: ucar.ma2.Array factory(ucar.ma2.DataType,int[],java.nio.ByteBuffer)>($r6, $r13, $r14);
+
+        $r16 = new ucar.nc2.stream.NcStreamReader$DataResult;
+
+        $r17 = virtualinvoke $r4.<ucar.nc2.stream.NcStreamProto$Data: java.lang.String getVarName()>();
+
+        specialinvoke $r16.<ucar.nc2.stream.NcStreamReader$DataResult: void <init>(ucar.nc2.stream.NcStreamReader,java.lang.String,ucar.ma2.Section,ucar.ma2.Array)>(r0, $r17, $r49, $r15);
+
+        return $r16;
+    }
+
+    public ucar.ma2.StructureDataIterator getStructureIterator(java.io.InputStream, ucar.nc2.NetcdfFile) throws java.io.IOException
+    {
+        byte[] $r2, r3;
+        ucar.nc2.stream.NcStreamReader$StreamDataIterator $r10;
+        ucar.nc2.stream.NcStreamReader r0;
+        ucar.nc2.Structure r8;
+        ucar.nc2.stream.NcStreamProto$Data $r4;
+        int $i0;
+        ucar.nc2.Variable $r7;
+        java.lang.String $r6, $r14, $r16;
+        boolean $z0;
+        java.io.IOException $r11;
+        ucar.ma2.StructureMembers $r9;
+        java.lang.StringBuilder $r12, $r13, $r15;
+        ucar.nc2.NetcdfFile r5;
+        java.io.InputStream r1;
+
+        r0 := @this: ucar.nc2.stream.NcStreamReader;
+
+        r1 := @parameter0: java.io.InputStream;
+
+        r5 := @parameter1: ucar.nc2.NetcdfFile;
+
+        $r2 = <ucar.nc2.stream.NcStream: byte[] MAGIC_DATA>;
+
+        $z0 = specialinvoke r0.<ucar.nc2.stream.NcStreamReader: boolean readAndTest(java.io.InputStream,byte[])>(r1, $r2);
+
+        if $z0 != 0 goto label1;
+
+        $r11 = new java.io.IOException;
+
+        $r12 = new java.lang.StringBuilder;
+
+        specialinvoke $r12.<java.lang.StringBuilder: void <init>()>();
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Data transfer corrupted on ");
+
+        $r14 = virtualinvoke r5.<ucar.nc2.NetcdfFile: java.lang.String getLocation()>();
+
+        $r15 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r14);
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r11.<java.io.IOException: void <init>(java.lang.String)>($r16);
+
+        throw $r11;
+
+     label1:
+        $i0 = staticinvoke <ucar.nc2.stream.NcStream: int readVInt(java.io.InputStream)>(r1);
+
+        r3 = newarray (byte)[$i0];
+
+        staticinvoke <ucar.nc2.stream.NcStream: int readFully(java.io.InputStream,byte[])>(r1, r3);
+
+        $r4 = staticinvoke <ucar.nc2.stream.NcStreamProto$Data: ucar.nc2.stream.NcStreamProto$Data parseFrom(byte[])>(r3);
+
+        $r6 = virtualinvoke $r4.<ucar.nc2.stream.NcStreamProto$Data: java.lang.String getVarName()>();
+
+        $r7 = virtualinvoke r5.<ucar.nc2.NetcdfFile: ucar.nc2.Variable findVariable(java.lang.String)>($r6);
+
+        r8 = (ucar.nc2.Structure) $r7;
+
+        $r9 = virtualinvoke r8.<ucar.nc2.Structure: ucar.ma2.StructureMembers makeStructureMembers()>();
+
+        staticinvoke <ucar.ma2.ArrayStructureBB: int setOffsets(ucar.ma2.StructureMembers)>($r9);
+
+        $r10 = new ucar.nc2.stream.NcStreamReader$StreamDataIterator;
+
+        specialinvoke $r10.<ucar.nc2.stream.NcStreamReader$StreamDataIterator: void <init>(ucar.nc2.stream.NcStreamReader,java.io.InputStream,ucar.ma2.StructureMembers)>(r0, r1, $r9);
+
+        return $r10;
+    }
+
+    private boolean readAndTest(java.io.InputStream, byte[]) throws java.io.IOException
+    {
+        byte[] r0, r1;
+        ucar.nc2.stream.NcStreamReader r3;
+        byte $b4, $b5;
+        int $i0, $i1, $i2, $i3, i6, $i7, $i8;
+        java.io.InputStream r2;
+
+        r3 := @this: ucar.nc2.stream.NcStreamReader;
+
+        r2 := @parameter0: java.io.InputStream;
+
+        r0 := @parameter1: byte[];
+
+        $i0 = lengthof r0;
+
+        r1 = newarray (byte)[$i0];
+
+        staticinvoke <ucar.nc2.stream.NcStream: int readFully(java.io.InputStream,byte[])>(r2, r1);
+
+        $i2 = lengthof r1;
+
+        $i1 = lengthof r0;
+
+        if $i2 == $i1 goto label1;
+
+        return 0;
+
+     label1:
+        i6 = 0;
+
+     label2:
+        $i3 = lengthof r1;
+
+        if i6 >= $i3 goto label4;
+
+        $b5 = r1[i6];
+
+        $b4 = r0[i6];
+
+        $i7 = (int) $b5;
+
+        $i8 = (int) $b4;
+
+        if $i7 == $i8 goto label3;
+
+        return 0;
+
+     label3:
+        i6 = i6 + 1;
+
+        goto label2;
+
+     label4:
+        return 1;
+    }
+
+    private boolean test(byte[], byte[]) throws java.io.IOException
+    {
+        byte[] r0, r1;
+        ucar.nc2.stream.NcStreamReader r2;
+        byte $b3, $b4;
+        int $i0, $i1, $i2, i5, $i6, $i7;
+
+        r2 := @this: ucar.nc2.stream.NcStreamReader;
+
+        r0 := @parameter0: byte[];
+
+        r1 := @parameter1: byte[];
+
+        $i1 = lengthof r0;
+
+        $i0 = lengthof r1;
+
+        if $i1 == $i0 goto label1;
+
+        return 0;
+
+     label1:
+        i5 = 0;
+
+     label2:
+        $i2 = lengthof r0;
+
+        if i5 >= $i2 goto label4;
+
+        $b4 = r0[i5];
+
+        $b3 = r1[i5];
+
+        $i6 = (int) $b4;
+
+        $i7 = (int) $b3;
+
+        if $i6 == $i7 goto label3;
+
+        return 0;
+
+     label3:
+        i5 = i5 + 1;
+
+        goto label2;
+
+     label4:
+        return 1;
+    }
+
+    public ucar.nc2.NetcdfFile proto2nc(ucar.nc2.stream.NcStreamProto$Header, ucar.nc2.NetcdfFile) throws com.google.protobuf.InvalidProtocolBufferException
+    {
+        ucar.nc2.stream.NcStreamReader$NetcdfFileStream $r6;
+        ucar.nc2.stream.NcStreamProto$Group $r2;
+        ucar.nc2.Group $r3;
+        ucar.nc2.stream.NcStreamReader r7;
+        java.lang.String $r1, $r4, $r5;
+        ucar.nc2.NetcdfFile r8;
+        ucar.nc2.stream.NcStreamProto$Header r0;
+        boolean $z0, $z1;
+
+        r7 := @this: ucar.nc2.stream.NcStreamReader;
+
+        r0 := @parameter0: ucar.nc2.stream.NcStreamProto$Header;
+
+        r8 := @parameter1: ucar.nc2.NetcdfFile;
+
+        if r8 != null goto label1;
+
+        $r6 = new ucar.nc2.stream.NcStreamReader$NetcdfFileStream;
+
+        specialinvoke $r6.<ucar.nc2.stream.NcStreamReader$NetcdfFileStream: void <init>(ucar.nc2.stream.NcStreamReader,ucar.nc2.stream.NcStreamReader$1)>(r7, null);
+
+        r8 = $r6;
+
+     label1:
+        $r1 = virtualinvoke r0.<ucar.nc2.stream.NcStreamProto$Header: java.lang.String getLocation()>();
+
+        virtualinvoke r8.<ucar.nc2.NetcdfFile: void setLocation(java.lang.String)>($r1);
+
+        $z0 = virtualinvoke r0.<ucar.nc2.stream.NcStreamProto$Header: boolean hasId()>();
+
+        if $z0 == 0 goto label2;
+
+        $r5 = virtualinvoke r0.<ucar.nc2.stream.NcStreamProto$Header: java.lang.String getId()>();
+
+        virtualinvoke r8.<ucar.nc2.NetcdfFile: void setId(java.lang.String)>($r5);
+
+     label2:
+        $z1 = virtualinvoke r0.<ucar.nc2.stream.NcStreamProto$Header: boolean hasTitle()>();
+
+        if $z1 == 0 goto label3;
+
+        $r4 = virtualinvoke r0.<ucar.nc2.stream.NcStreamProto$Header: java.lang.String getTitle()>();
+
+        virtualinvoke r8.<ucar.nc2.NetcdfFile: void setTitle(java.lang.String)>($r4);
+
+     label3:
+        $r2 = virtualinvoke r0.<ucar.nc2.stream.NcStreamProto$Header: ucar.nc2.stream.NcStreamProto$Group getRoot()>();
+
+        $r3 = virtualinvoke r8.<ucar.nc2.NetcdfFile: ucar.nc2.Group getRootGroup()>();
+
+        staticinvoke <ucar.nc2.stream.NcStream: void readGroup(ucar.nc2.stream.NcStreamProto$Group,ucar.nc2.NetcdfFile,ucar.nc2.Group)>($r2, r8, $r3);
+
+        virtualinvoke r8.<ucar.nc2.NetcdfFile: void finish()>();
+
+        return r8;
+    }
+
+    static boolean access$000(ucar.nc2.stream.NcStreamReader, byte[], byte[]) throws java.io.IOException
+    {
+        byte[] r1, r2;
+        ucar.nc2.stream.NcStreamReader r0;
+        boolean $z0;
+
+        r0 := @parameter0: ucar.nc2.stream.NcStreamReader;
+
+        r1 := @parameter1: byte[];
+
+        r2 := @parameter2: byte[];
+
+        $z0 = specialinvoke r0.<ucar.nc2.stream.NcStreamReader: boolean test(byte[],byte[])>(r1, r2);
+
+        return $z0;
+    }
+
+    public static void <clinit>()
+    {
+        <ucar.nc2.stream.NcStreamReader: boolean debug> = 0;
+
+        return;
+    }
+}

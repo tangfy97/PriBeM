@@ -1,0 +1,645 @@
+public class org.eclipse.jdt.internal.compiler.ProcessTaskManager extends java.lang.Object implements java.lang.Runnable
+{
+    org.eclipse.jdt.internal.compiler.Compiler compiler;
+    private int unitIndex;
+    private java.lang.Thread processingThread;
+    org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration unitToProcess;
+    private java.lang.Throwable caughtException;
+    volatile int currentIndex;
+    volatile int availableIndex;
+    volatile int size;
+    volatile int sleepCount;
+    org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration[] units;
+    public static int PROCESSED_QUEUE_SIZE;
+
+    static void <clinit>()
+    {
+        <org.eclipse.jdt.internal.compiler.ProcessTaskManager: int PROCESSED_QUEUE_SIZE> = 12;
+
+        return;
+    }
+
+    public void <init>(org.eclipse.jdt.internal.compiler.Compiler)
+    {
+        java.lang.Throwable $r6;
+        org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration[] $r2;
+        org.eclipse.jdt.internal.compiler.Compiler r1;
+        org.eclipse.jdt.internal.compiler.ProcessTaskManager r0;
+        java.lang.Thread $r3, $r4, $r5;
+        int $i0, $i1;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.ProcessTaskManager;
+
+        r1 := @parameter0: org.eclipse.jdt.internal.compiler.Compiler;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: org.eclipse.jdt.internal.compiler.Compiler compiler> = r1;
+
+        r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: int unitIndex> = 0;
+
+        r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: int currentIndex> = 0;
+
+        r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: int availableIndex> = 0;
+
+        $i0 = <org.eclipse.jdt.internal.compiler.ProcessTaskManager: int PROCESSED_QUEUE_SIZE>;
+
+        r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: int size> = $i0;
+
+        r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: int sleepCount> = 0;
+
+        $i1 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: int size>;
+
+        $r2 = newarray (org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration)[$i1];
+
+        r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration[] units> = $r2;
+
+        entermonitor r0;
+
+     label1:
+        $r3 = new java.lang.Thread;
+
+        specialinvoke $r3.<java.lang.Thread: void <init>(java.lang.Runnable,java.lang.String)>(r0, "Compiler Processing Task");
+
+        r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: java.lang.Thread processingThread> = $r3;
+
+        $r4 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: java.lang.Thread processingThread>;
+
+        virtualinvoke $r4.<java.lang.Thread: void setDaemon(boolean)>(1);
+
+        $r5 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: java.lang.Thread processingThread>;
+
+        virtualinvoke $r5.<java.lang.Thread: void start()>();
+
+        exitmonitor r0;
+
+     label2:
+        goto label5;
+
+     label3:
+        $r6 := @caughtexception;
+
+        exitmonitor r0;
+
+     label4:
+        throw $r6;
+
+     label5:
+        return;
+
+        catch java.lang.Throwable from label1 to label2 with label3;
+        catch java.lang.Throwable from label3 to label4 with label3;
+    }
+
+    private synchronized void addNextUnit(org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration)
+    {
+        org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration[] $r1, $r4;
+        org.eclipse.jdt.internal.compiler.ProcessTaskManager r0;
+        java.lang.InterruptedException $r3;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i7;
+        org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration r2, $r5;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.ProcessTaskManager;
+
+        r2 := @parameter0: org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
+
+        goto label6;
+
+     label1:
+        r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: int sleepCount> = 1;
+
+     label2:
+        virtualinvoke r0.<java.lang.Object: void wait(long)>(250L);
+
+     label3:
+        goto label5;
+
+     label4:
+        $r3 := @caughtexception;
+
+     label5:
+        r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: int sleepCount> = 0;
+
+     label6:
+        $r4 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration[] units>;
+
+        $i5 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: int availableIndex>;
+
+        $r5 = $r4[$i5];
+
+        if $r5 != null goto label1;
+
+        $r1 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration[] units>;
+
+        $i0 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: int availableIndex>;
+
+        $i1 = $i0 + 1;
+
+        r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: int availableIndex> = $i1;
+
+        $r1[$i0] = r2;
+
+        $i3 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: int availableIndex>;
+
+        $i2 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: int size>;
+
+        if $i3 < $i2 goto label7;
+
+        r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: int availableIndex> = 0;
+
+     label7:
+        $i4 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: int sleepCount>;
+
+        $i7 = (int) -1;
+
+        if $i4 > $i7 goto label8;
+
+        virtualinvoke r0.<java.lang.Object: void notify()>();
+
+     label8:
+        return;
+
+        catch java.lang.InterruptedException from label2 to label3 with label4;
+    }
+
+    public org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration removeNextUnit() throws java.lang.Error
+    {
+        java.lang.Throwable $r4, $r5, $r6, $r8, $r10, $r11;
+        java.lang.Error $r9;
+        java.lang.Thread $r15;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i11;
+        boolean $z0, z1, $z2;
+        org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration[] $r1, $r2, $r3;
+        java.lang.RuntimeException $r7;
+        org.eclipse.jdt.internal.compiler.ProcessTaskManager r0;
+        java.lang.InterruptedException $r12;
+        org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration $r13, r14;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.ProcessTaskManager;
+
+        z1 = 0;
+
+        entermonitor r0;
+
+     label01:
+        $r1 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration[] units>;
+
+        $i0 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: int currentIndex>;
+
+        r14 = $r1[$i0];
+
+        if r14 == null goto label02;
+
+        $r10 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: java.lang.Throwable caughtException>;
+
+        if $r10 == null goto label11;
+
+     label02:
+        $r15 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: java.lang.Thread processingThread>;
+
+        if $r15 != null goto label06;
+
+        $r4 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: java.lang.Throwable caughtException>;
+
+        if $r4 == null goto label04;
+
+        $r5 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: java.lang.Throwable caughtException>;
+
+        $z0 = $r5 instanceof java.lang.Error;
+
+        if $z0 == 0 goto label03;
+
+        $r8 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: java.lang.Throwable caughtException>;
+
+        $r9 = (java.lang.Error) $r8;
+
+        throw $r9;
+
+     label03:
+        $r6 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: java.lang.Throwable caughtException>;
+
+        $r7 = (java.lang.RuntimeException) $r6;
+
+        throw $r7;
+
+     label04:
+        exitmonitor r0;
+
+     label05:
+        return null;
+
+     label06:
+        $i11 = (int) -1;
+
+        r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: int sleepCount> = $i11;
+
+     label07:
+        virtualinvoke r0.<java.lang.Object: void wait(long)>(100L);
+
+     label08:
+        goto label10;
+
+     label09:
+        $r12 := @caughtexception;
+
+     label10:
+        r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: int sleepCount> = 0;
+
+        $r2 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration[] units>;
+
+        $i1 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: int currentIndex>;
+
+        $r13 = $r2[$i1];
+
+        r14 = $r13;
+
+        if $r13 == null goto label02;
+
+     label11:
+        $r3 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration[] units>;
+
+        $i2 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: int currentIndex>;
+
+        $i3 = $i2 + 1;
+
+        r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: int currentIndex> = $i3;
+
+        $r3[$i2] = null;
+
+        $i5 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: int currentIndex>;
+
+        $i4 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: int size>;
+
+        if $i5 < $i4 goto label12;
+
+        r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: int currentIndex> = 0;
+
+     label12:
+        $i6 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: int sleepCount>;
+
+        if $i6 < 1 goto label15;
+
+        $i7 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: int sleepCount>;
+
+        $i8 = $i7 + 1;
+
+        r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: int sleepCount> = $i8;
+
+        if $i8 <= 4 goto label15;
+
+        virtualinvoke r0.<java.lang.Object: void notify()>();
+
+        $i9 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: int sleepCount>;
+
+        if $i9 <= 8 goto label13;
+
+        $z2 = 1;
+
+        goto label14;
+
+     label13:
+        $z2 = 0;
+
+     label14:
+        z1 = $z2;
+
+     label15:
+        exitmonitor r0;
+
+     label16:
+        goto label19;
+
+     label17:
+        $r11 := @caughtexception;
+
+        exitmonitor r0;
+
+     label18:
+        throw $r11;
+
+     label19:
+        if z1 == 0 goto label20;
+
+        staticinvoke <java.lang.Thread: void yield()>();
+
+     label20:
+        return r14;
+
+        catch java.lang.InterruptedException from label07 to label08 with label09;
+        catch java.lang.Throwable from label01 to label05 with label17;
+        catch java.lang.Throwable from label06 to label16 with label17;
+        catch java.lang.Throwable from label17 to label18 with label17;
+    }
+
+    public void run()
+    {
+        java.lang.Thread $r1, $r2;
+        boolean $z0;
+        java.io.PrintWriter $r21;
+        org.eclipse.jdt.internal.compiler.impl.CompilerOptions $r13;
+        org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration $r4, $r5, $r7, $r14, $r16, $r17, $r18, $r27, $r35, $r36;
+        java.lang.Throwable $r30, $r32, $r34, $r37;
+        java.lang.Error $r33;
+        java.lang.String[] $r20;
+        int $i0, $i1, $i2, $i3, $i4;
+        java.lang.String $r6, $r9, $r11, $r22, $r23, $r25, $r26, $r29;
+        java.lang.RuntimeException $r31;
+        org.eclipse.jdt.internal.compiler.Compiler $r3, $r8, $r12, $r15, $r19, $r24;
+        org.eclipse.jdt.internal.compiler.ProcessTaskManager r0;
+        char[] $r10, $r28;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.ProcessTaskManager;
+
+        goto label30;
+
+     label01:
+        r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration unitToProcess> = null;
+
+     label02:
+        entermonitor r0;
+
+     label03:
+        $r2 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: java.lang.Thread processingThread>;
+
+        if $r2 != null goto label05;
+
+        exitmonitor r0;
+
+     label04:
+        return;
+
+     label05:
+        $r3 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: org.eclipse.jdt.internal.compiler.Compiler compiler>;
+
+        $i0 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: int unitIndex>;
+
+        $r4 = virtualinvoke $r3.<org.eclipse.jdt.internal.compiler.Compiler: org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration getUnitToProcess(int)>($i0);
+
+        r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration unitToProcess> = $r4;
+
+        $r5 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration unitToProcess>;
+
+        if $r5 != null goto label07;
+
+        r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: java.lang.Thread processingThread> = null;
+
+        exitmonitor r0;
+
+     label06:
+        return;
+
+     label07:
+        $i1 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: int unitIndex>;
+
+        $i2 = $i1 + 1;
+
+        r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: int unitIndex> = $i2;
+
+        exitmonitor r0;
+
+     label08:
+        goto label11;
+
+     label09:
+        $r37 := @caughtexception;
+
+        exitmonitor r0;
+
+     label10:
+        throw $r37;
+
+     label11:
+        $r8 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: org.eclipse.jdt.internal.compiler.Compiler compiler>;
+
+        $r9 = <org.eclipse.jdt.internal.compiler.util.Messages: java.lang.String compilation_processing>;
+
+        $r6 = new java.lang.String;
+
+        $r7 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration unitToProcess>;
+
+        $r10 = virtualinvoke $r7.<org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration: char[] getFileName()>();
+
+        specialinvoke $r6.<java.lang.String: void <init>(char[])>($r10);
+
+        $r11 = staticinvoke <org.eclipse.jdt.internal.compiler.util.Messages: java.lang.String bind(java.lang.String,java.lang.Object)>($r9, $r6);
+
+        virtualinvoke $r8.<org.eclipse.jdt.internal.compiler.Compiler: void reportProgress(java.lang.String)>($r11);
+
+        $r12 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: org.eclipse.jdt.internal.compiler.Compiler compiler>;
+
+        $r13 = $r12.<org.eclipse.jdt.internal.compiler.Compiler: org.eclipse.jdt.internal.compiler.impl.CompilerOptions options>;
+
+        $z0 = $r13.<org.eclipse.jdt.internal.compiler.impl.CompilerOptions: boolean verbose>;
+
+        if $z0 == 0 goto label12;
+
+        $r19 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: org.eclipse.jdt.internal.compiler.Compiler compiler>;
+
+        $r21 = $r19.<org.eclipse.jdt.internal.compiler.Compiler: java.io.PrintWriter out>;
+
+        $r22 = <org.eclipse.jdt.internal.compiler.util.Messages: java.lang.String compilation_process>;
+
+        $r20 = newarray (java.lang.String)[3];
+
+        $i3 = $i1 + 1;
+
+        $r23 = staticinvoke <java.lang.String: java.lang.String valueOf(int)>($i3);
+
+        $r20[0] = $r23;
+
+        $r24 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: org.eclipse.jdt.internal.compiler.Compiler compiler>;
+
+        $i4 = $r24.<org.eclipse.jdt.internal.compiler.Compiler: int totalUnits>;
+
+        $r25 = staticinvoke <java.lang.String: java.lang.String valueOf(int)>($i4);
+
+        $r20[1] = $r25;
+
+        $r26 = new java.lang.String;
+
+        $r27 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration unitToProcess>;
+
+        $r28 = virtualinvoke $r27.<org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration: char[] getFileName()>();
+
+        specialinvoke $r26.<java.lang.String: void <init>(char[])>($r28);
+
+        $r20[2] = $r26;
+
+        $r29 = staticinvoke <org.eclipse.jdt.internal.compiler.util.Messages: java.lang.String bind(java.lang.String,java.lang.Object[])>($r22, $r20);
+
+        virtualinvoke $r21.<java.io.PrintWriter: void println(java.lang.String)>($r29);
+
+     label12:
+        $r15 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: org.eclipse.jdt.internal.compiler.Compiler compiler>;
+
+        $r14 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration unitToProcess>;
+
+        virtualinvoke $r15.<org.eclipse.jdt.internal.compiler.Compiler: void process(org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration,int)>($r14, $i1);
+
+        goto label15;
+
+     label13:
+        $r34 := @caughtexception;
+
+        $r35 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration unitToProcess>;
+
+        if $r35 == null goto label14;
+
+        $r36 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration unitToProcess>;
+
+        virtualinvoke $r36.<org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration: void cleanUp()>();
+
+     label14:
+        throw $r34;
+
+     label15:
+        $r16 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration unitToProcess>;
+
+        if $r16 == null goto label16;
+
+        $r18 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration unitToProcess>;
+
+        virtualinvoke $r18.<org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration: void cleanUp()>();
+
+     label16:
+        $r17 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration unitToProcess>;
+
+        specialinvoke r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: void addNextUnit(org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration)>($r17);
+
+     label17:
+        goto label30;
+
+     label18:
+        $r33 := @caughtexception;
+
+        entermonitor r0;
+
+     label19:
+        r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: java.lang.Thread processingThread> = null;
+
+        r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: java.lang.Throwable caughtException> = $r33;
+
+        exitmonitor r0;
+
+     label20:
+        goto label23;
+
+     label21:
+        $r32 := @caughtexception;
+
+        exitmonitor r0;
+
+     label22:
+        throw $r32;
+
+     label23:
+        return;
+
+     label24:
+        $r31 := @caughtexception;
+
+        entermonitor r0;
+
+     label25:
+        r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: java.lang.Thread processingThread> = null;
+
+        r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: java.lang.Throwable caughtException> = $r31;
+
+        exitmonitor r0;
+
+     label26:
+        goto label29;
+
+     label27:
+        $r30 := @caughtexception;
+
+        exitmonitor r0;
+
+     label28:
+        throw $r30;
+
+     label29:
+        return;
+
+     label30:
+        $r1 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: java.lang.Thread processingThread>;
+
+        if $r1 != null goto label01;
+
+        return;
+
+        catch java.lang.Throwable from label03 to label04 with label09;
+        catch java.lang.Throwable from label05 to label06 with label09;
+        catch java.lang.Throwable from label07 to label08 with label09;
+        catch java.lang.Throwable from label09 to label10 with label09;
+        catch java.lang.Throwable from label11 to label13 with label13;
+        catch java.lang.Error from label02 to label04 with label18;
+        catch java.lang.Error from label05 to label06 with label18;
+        catch java.lang.Error from label07 to label17 with label18;
+        catch java.lang.Throwable from label19 to label20 with label21;
+        catch java.lang.Throwable from label21 to label22 with label21;
+        catch java.lang.RuntimeException from label02 to label04 with label24;
+        catch java.lang.RuntimeException from label05 to label06 with label24;
+        catch java.lang.RuntimeException from label07 to label17 with label24;
+        catch java.lang.Throwable from label25 to label26 with label27;
+        catch java.lang.Throwable from label27 to label28 with label27;
+    }
+
+    public void shutdown()
+    {
+        org.eclipse.jdt.internal.compiler.ProcessTaskManager r0;
+        java.lang.Throwable $r3;
+        java.lang.InterruptedException $r2;
+        java.lang.Thread $r1, r4;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.ProcessTaskManager;
+
+     label01:
+        r4 = null;
+
+        entermonitor r0;
+
+     label02:
+        $r1 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: java.lang.Thread processingThread>;
+
+        if $r1 == null goto label03;
+
+        r4 = r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: java.lang.Thread processingThread>;
+
+        r0.<org.eclipse.jdt.internal.compiler.ProcessTaskManager: java.lang.Thread processingThread> = null;
+
+        virtualinvoke r0.<java.lang.Object: void notifyAll()>();
+
+     label03:
+        exitmonitor r0;
+
+     label04:
+        goto label07;
+
+     label05:
+        $r3 := @caughtexception;
+
+        exitmonitor r0;
+
+     label06:
+        throw $r3;
+
+     label07:
+        if r4 == null goto label10;
+
+        virtualinvoke r4.<java.lang.Thread: void join(long)>(250L);
+
+     label08:
+        goto label10;
+
+     label09:
+        $r2 := @caughtexception;
+
+     label10:
+        return;
+
+        catch java.lang.Throwable from label02 to label04 with label05;
+        catch java.lang.Throwable from label05 to label06 with label05;
+        catch java.lang.InterruptedException from label01 to label08 with label09;
+    }
+}

@@ -1,0 +1,2294 @@
+public class org.eclipse.jetty.servlets.DoSFilter extends java.lang.Object implements javax.servlet.Filter
+{
+    private static final org.eclipse.jetty.util.log.Logger LOG;
+    private static final java.lang.String IPv4_GROUP;
+    private static final java.util.regex.Pattern IPv4_PATTERN;
+    private static final java.lang.String IPv6_GROUP;
+    private static final java.util.regex.Pattern IPv6_PATTERN;
+    private static final java.util.regex.Pattern CIDR_PATTERN;
+    private static final java.lang.String __TRACKER;
+    private static final java.lang.String __THROTTLED;
+    private static final int __DEFAULT_MAX_REQUESTS_PER_SEC;
+    private static final int __DEFAULT_DELAY_MS;
+    private static final int __DEFAULT_THROTTLE;
+    private static final int __DEFAULT_MAX_WAIT_MS;
+    private static final long __DEFAULT_THROTTLE_MS;
+    private static final long __DEFAULT_MAX_REQUEST_MS_INIT_PARAM;
+    private static final long __DEFAULT_MAX_IDLE_TRACKER_MS_INIT_PARAM;
+    static final java.lang.String MANAGED_ATTR_INIT_PARAM;
+    static final java.lang.String MAX_REQUESTS_PER_S_INIT_PARAM;
+    static final java.lang.String DELAY_MS_INIT_PARAM;
+    static final java.lang.String THROTTLED_REQUESTS_INIT_PARAM;
+    static final java.lang.String MAX_WAIT_INIT_PARAM;
+    static final java.lang.String THROTTLE_MS_INIT_PARAM;
+    static final java.lang.String MAX_REQUEST_MS_INIT_PARAM;
+    static final java.lang.String MAX_IDLE_TRACKER_MS_INIT_PARAM;
+    static final java.lang.String INSERT_HEADERS_INIT_PARAM;
+    static final java.lang.String TRACK_SESSIONS_INIT_PARAM;
+    static final java.lang.String REMOTE_PORT_INIT_PARAM;
+    static final java.lang.String IP_WHITELIST_INIT_PARAM;
+    static final java.lang.String ENABLED_INIT_PARAM;
+    private static final int USER_AUTH;
+    private static final int USER_SESSION;
+    private static final int USER_IP;
+    private static final int USER_UNKNOWN;
+    private javax.servlet.ServletContext _context;
+    private volatile long _delayMs;
+    private volatile long _throttleMs;
+    private volatile long _maxWaitMs;
+    private volatile long _maxRequestMs;
+    private volatile long _maxIdleTrackerMs;
+    private volatile boolean _insertHeaders;
+    private volatile boolean _trackSessions;
+    private volatile boolean _remotePort;
+    private volatile boolean _enabled;
+    private java.util.concurrent.Semaphore _passes;
+    private volatile int _throttledRequests;
+    private volatile int _maxRequestsPerSec;
+    private java.util.Queue[] _queue;
+    private org.eclipse.jetty.continuation.ContinuationListener[] _listeners;
+    private final java.util.concurrent.ConcurrentHashMap _rateTrackers;
+    private final java.util.List _whitelist;
+    private final org.eclipse.jetty.util.thread.Timeout _requestTimeoutQ;
+    private final org.eclipse.jetty.util.thread.Timeout _trackerTimeoutQ;
+    private java.lang.Thread _timerThread;
+    private volatile boolean _running;
+
+    public void <init>()
+    {
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        org.eclipse.jetty.util.thread.Timeout $r3, $r4;
+        java.util.concurrent.ConcurrentHashMap $r1;
+        java.util.concurrent.CopyOnWriteArrayList $r2;
+
+        r0 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        $r1 = new java.util.concurrent.ConcurrentHashMap;
+
+        specialinvoke $r1.<java.util.concurrent.ConcurrentHashMap: void <init>()>();
+
+        r0.<org.eclipse.jetty.servlets.DoSFilter: java.util.concurrent.ConcurrentHashMap _rateTrackers> = $r1;
+
+        $r2 = new java.util.concurrent.CopyOnWriteArrayList;
+
+        specialinvoke $r2.<java.util.concurrent.CopyOnWriteArrayList: void <init>()>();
+
+        r0.<org.eclipse.jetty.servlets.DoSFilter: java.util.List _whitelist> = $r2;
+
+        $r3 = new org.eclipse.jetty.util.thread.Timeout;
+
+        specialinvoke $r3.<org.eclipse.jetty.util.thread.Timeout: void <init>()>();
+
+        r0.<org.eclipse.jetty.servlets.DoSFilter: org.eclipse.jetty.util.thread.Timeout _requestTimeoutQ> = $r3;
+
+        $r4 = new org.eclipse.jetty.util.thread.Timeout;
+
+        specialinvoke $r4.<org.eclipse.jetty.util.thread.Timeout: void <init>()>();
+
+        r0.<org.eclipse.jetty.servlets.DoSFilter: org.eclipse.jetty.util.thread.Timeout _trackerTimeoutQ> = $r4;
+
+        return;
+    }
+
+    public void init(javax.servlet.FilterConfig)
+    {
+        java.util.Queue[] $r3, $r5, $r29;
+        java.lang.Thread $r23;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8;
+        java.util.concurrent.ConcurrentHashMap $r6;
+        org.eclipse.jetty.servlets.DoSFilter$2 $r22;
+        org.eclipse.jetty.servlets.DoSFilter$1 $r30;
+        java.util.concurrent.ConcurrentLinkedQueue $r28;
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        org.eclipse.jetty.continuation.ContinuationListener[] $r4, $r31;
+        long $l5, $l6, l9, l11, l12, l13, l14;
+        int $i0, $i1, $i2, $i3, $i4, i7, i8, i10;
+        java.lang.String $r7, $r8, $r9, $r10, $r11, $r12, $r13, $r14, $r15, $r16, $r17, $r25, $r27, r32, $r33;
+        org.eclipse.jetty.util.thread.Timeout $r18, $r19, $r20, $r21;
+        javax.servlet.FilterConfig r1;
+        javax.servlet.ServletContext $r2, $r24, $r26;
+
+        r0 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        r1 := @parameter0: javax.servlet.FilterConfig;
+
+        $r2 = interfaceinvoke r1.<javax.servlet.FilterConfig: javax.servlet.ServletContext getServletContext()>();
+
+        r0.<org.eclipse.jetty.servlets.DoSFilter: javax.servlet.ServletContext _context> = $r2;
+
+        $i0 = virtualinvoke r0.<org.eclipse.jetty.servlets.DoSFilter: int getMaxPriority()>();
+
+        $i1 = $i0 + 1;
+
+        $r3 = newarray (java.util.Queue)[$i1];
+
+        r0.<org.eclipse.jetty.servlets.DoSFilter: java.util.Queue[] _queue> = $r3;
+
+        $i2 = virtualinvoke r0.<org.eclipse.jetty.servlets.DoSFilter: int getMaxPriority()>();
+
+        $i3 = $i2 + 1;
+
+        $r4 = newarray (org.eclipse.jetty.continuation.ContinuationListener)[$i3];
+
+        r0.<org.eclipse.jetty.servlets.DoSFilter: org.eclipse.jetty.continuation.ContinuationListener[] _listeners> = $r4;
+
+        i7 = 0;
+
+     label01:
+        $r5 = r0.<org.eclipse.jetty.servlets.DoSFilter: java.util.Queue[] _queue>;
+
+        $i4 = lengthof $r5;
+
+        if i7 >= $i4 goto label02;
+
+        $r29 = r0.<org.eclipse.jetty.servlets.DoSFilter: java.util.Queue[] _queue>;
+
+        $r28 = new java.util.concurrent.ConcurrentLinkedQueue;
+
+        specialinvoke $r28.<java.util.concurrent.ConcurrentLinkedQueue: void <init>()>();
+
+        $r29[i7] = $r28;
+
+        $r31 = r0.<org.eclipse.jetty.servlets.DoSFilter: org.eclipse.jetty.continuation.ContinuationListener[] _listeners>;
+
+        $r30 = new org.eclipse.jetty.servlets.DoSFilter$1;
+
+        specialinvoke $r30.<org.eclipse.jetty.servlets.DoSFilter$1: void <init>(org.eclipse.jetty.servlets.DoSFilter,int)>(r0, i7);
+
+        $r31[i7] = $r30;
+
+        i7 = i7 + 1;
+
+        goto label01;
+
+     label02:
+        $r6 = r0.<org.eclipse.jetty.servlets.DoSFilter: java.util.concurrent.ConcurrentHashMap _rateTrackers>;
+
+        virtualinvoke $r6.<java.util.concurrent.ConcurrentHashMap: void clear()>();
+
+        i8 = 25;
+
+        $r7 = interfaceinvoke r1.<javax.servlet.FilterConfig: java.lang.String getInitParameter(java.lang.String)>("maxRequestsPerSec");
+
+        if $r7 == null goto label03;
+
+        i8 = staticinvoke <java.lang.Integer: int parseInt(java.lang.String)>($r7);
+
+     label03:
+        virtualinvoke r0.<org.eclipse.jetty.servlets.DoSFilter: void setMaxRequestsPerSec(int)>(i8);
+
+        l9 = 100L;
+
+        $r8 = interfaceinvoke r1.<javax.servlet.FilterConfig: java.lang.String getInitParameter(java.lang.String)>("delayMs");
+
+        if $r8 == null goto label04;
+
+        l9 = staticinvoke <java.lang.Long: long parseLong(java.lang.String)>($r8);
+
+     label04:
+        virtualinvoke r0.<org.eclipse.jetty.servlets.DoSFilter: void setDelayMs(long)>(l9);
+
+        i10 = 5;
+
+        $r9 = interfaceinvoke r1.<javax.servlet.FilterConfig: java.lang.String getInitParameter(java.lang.String)>("throttledRequests");
+
+        if $r9 == null goto label05;
+
+        i10 = staticinvoke <java.lang.Integer: int parseInt(java.lang.String)>($r9);
+
+     label05:
+        virtualinvoke r0.<org.eclipse.jetty.servlets.DoSFilter: void setThrottledRequests(int)>(i10);
+
+        l11 = 50L;
+
+        $r10 = interfaceinvoke r1.<javax.servlet.FilterConfig: java.lang.String getInitParameter(java.lang.String)>("maxWaitMs");
+
+        if $r10 == null goto label06;
+
+        l11 = staticinvoke <java.lang.Long: long parseLong(java.lang.String)>($r10);
+
+     label06:
+        virtualinvoke r0.<org.eclipse.jetty.servlets.DoSFilter: void setMaxWaitMs(long)>(l11);
+
+        l12 = 30000L;
+
+        $r11 = interfaceinvoke r1.<javax.servlet.FilterConfig: java.lang.String getInitParameter(java.lang.String)>("throttleMs");
+
+        if $r11 == null goto label07;
+
+        l12 = staticinvoke <java.lang.Long: long parseLong(java.lang.String)>($r11);
+
+     label07:
+        virtualinvoke r0.<org.eclipse.jetty.servlets.DoSFilter: void setThrottleMs(long)>(l12);
+
+        l13 = 30000L;
+
+        $r12 = interfaceinvoke r1.<javax.servlet.FilterConfig: java.lang.String getInitParameter(java.lang.String)>("maxRequestMs");
+
+        if $r12 == null goto label08;
+
+        l13 = staticinvoke <java.lang.Long: long parseLong(java.lang.String)>($r12);
+
+     label08:
+        virtualinvoke r0.<org.eclipse.jetty.servlets.DoSFilter: void setMaxRequestMs(long)>(l13);
+
+        l14 = 30000L;
+
+        $r13 = interfaceinvoke r1.<javax.servlet.FilterConfig: java.lang.String getInitParameter(java.lang.String)>("maxIdleTrackerMs");
+
+        if $r13 == null goto label09;
+
+        l14 = staticinvoke <java.lang.Long: long parseLong(java.lang.String)>($r13);
+
+     label09:
+        virtualinvoke r0.<org.eclipse.jetty.servlets.DoSFilter: void setMaxIdleTrackerMs(long)>(l14);
+
+        r32 = "";
+
+        $r14 = interfaceinvoke r1.<javax.servlet.FilterConfig: java.lang.String getInitParameter(java.lang.String)>("ipWhitelist");
+
+        if $r14 == null goto label10;
+
+        r32 = $r14;
+
+     label10:
+        virtualinvoke r0.<org.eclipse.jetty.servlets.DoSFilter: void setWhitelist(java.lang.String)>(r32);
+
+        $r15 = interfaceinvoke r1.<javax.servlet.FilterConfig: java.lang.String getInitParameter(java.lang.String)>("insertHeaders");
+
+        if $r15 == null goto label11;
+
+        $z4 = staticinvoke <java.lang.Boolean: boolean parseBoolean(java.lang.String)>($r15);
+
+        if $z4 == 0 goto label12;
+
+     label11:
+        $z5 = 1;
+
+        goto label13;
+
+     label12:
+        $z5 = 0;
+
+     label13:
+        virtualinvoke r0.<org.eclipse.jetty.servlets.DoSFilter: void setInsertHeaders(boolean)>($z5);
+
+        $r16 = interfaceinvoke r1.<javax.servlet.FilterConfig: java.lang.String getInitParameter(java.lang.String)>("trackSessions");
+
+        if $r16 == null goto label14;
+
+        $z3 = staticinvoke <java.lang.Boolean: boolean parseBoolean(java.lang.String)>($r16);
+
+        if $z3 == 0 goto label15;
+
+     label14:
+        $z6 = 1;
+
+        goto label16;
+
+     label15:
+        $z6 = 0;
+
+     label16:
+        virtualinvoke r0.<org.eclipse.jetty.servlets.DoSFilter: void setTrackSessions(boolean)>($z6);
+
+        $r17 = interfaceinvoke r1.<javax.servlet.FilterConfig: java.lang.String getInitParameter(java.lang.String)>("remotePort");
+
+        if $r17 == null goto label17;
+
+        $z2 = staticinvoke <java.lang.Boolean: boolean parseBoolean(java.lang.String)>($r17);
+
+        if $z2 == 0 goto label17;
+
+        $z7 = 1;
+
+        goto label18;
+
+     label17:
+        $z7 = 0;
+
+     label18:
+        virtualinvoke r0.<org.eclipse.jetty.servlets.DoSFilter: void setRemotePort(boolean)>($z7);
+
+        $r33 = interfaceinvoke r1.<javax.servlet.FilterConfig: java.lang.String getInitParameter(java.lang.String)>("enabled");
+
+        if $r33 == null goto label19;
+
+        $z1 = staticinvoke <java.lang.Boolean: boolean parseBoolean(java.lang.String)>($r33);
+
+        if $z1 == 0 goto label20;
+
+     label19:
+        $z8 = 1;
+
+        goto label21;
+
+     label20:
+        $z8 = 0;
+
+     label21:
+        virtualinvoke r0.<org.eclipse.jetty.servlets.DoSFilter: void setEnabled(boolean)>($z8);
+
+        $r18 = r0.<org.eclipse.jetty.servlets.DoSFilter: org.eclipse.jetty.util.thread.Timeout _requestTimeoutQ>;
+
+        virtualinvoke $r18.<org.eclipse.jetty.util.thread.Timeout: long setNow()>();
+
+        $r19 = r0.<org.eclipse.jetty.servlets.DoSFilter: org.eclipse.jetty.util.thread.Timeout _requestTimeoutQ>;
+
+        $l5 = r0.<org.eclipse.jetty.servlets.DoSFilter: long _maxRequestMs>;
+
+        virtualinvoke $r19.<org.eclipse.jetty.util.thread.Timeout: void setDuration(long)>($l5);
+
+        $r20 = r0.<org.eclipse.jetty.servlets.DoSFilter: org.eclipse.jetty.util.thread.Timeout _trackerTimeoutQ>;
+
+        virtualinvoke $r20.<org.eclipse.jetty.util.thread.Timeout: long setNow()>();
+
+        $r21 = r0.<org.eclipse.jetty.servlets.DoSFilter: org.eclipse.jetty.util.thread.Timeout _trackerTimeoutQ>;
+
+        $l6 = r0.<org.eclipse.jetty.servlets.DoSFilter: long _maxIdleTrackerMs>;
+
+        virtualinvoke $r21.<org.eclipse.jetty.util.thread.Timeout: void setDuration(long)>($l6);
+
+        r0.<org.eclipse.jetty.servlets.DoSFilter: boolean _running> = 1;
+
+        $r22 = new org.eclipse.jetty.servlets.DoSFilter$2;
+
+        specialinvoke $r22.<org.eclipse.jetty.servlets.DoSFilter$2: void <init>(org.eclipse.jetty.servlets.DoSFilter)>(r0);
+
+        r0.<org.eclipse.jetty.servlets.DoSFilter: java.lang.Thread _timerThread> = $r22;
+
+        $r23 = r0.<org.eclipse.jetty.servlets.DoSFilter: java.lang.Thread _timerThread>;
+
+        virtualinvoke $r23.<java.lang.Thread: void start()>();
+
+        $r24 = r0.<org.eclipse.jetty.servlets.DoSFilter: javax.servlet.ServletContext _context>;
+
+        if $r24 == null goto label22;
+
+        $r25 = interfaceinvoke r1.<javax.servlet.FilterConfig: java.lang.String getInitParameter(java.lang.String)>("managedAttr");
+
+        $z0 = staticinvoke <java.lang.Boolean: boolean parseBoolean(java.lang.String)>($r25);
+
+        if $z0 == 0 goto label22;
+
+        $r26 = r0.<org.eclipse.jetty.servlets.DoSFilter: javax.servlet.ServletContext _context>;
+
+        $r27 = interfaceinvoke r1.<javax.servlet.FilterConfig: java.lang.String getFilterName()>();
+
+        interfaceinvoke $r26.<javax.servlet.ServletContext: void setAttribute(java.lang.String,java.lang.Object)>($r27, r0);
+
+     label22:
+        return;
+    }
+
+    public void doFilter(javax.servlet.ServletRequest, javax.servlet.ServletResponse, javax.servlet.FilterChain) throws java.io.IOException, javax.servlet.ServletException
+    {
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        javax.servlet.ServletRequest r1;
+        javax.servlet.FilterChain r3;
+        javax.servlet.http.HttpServletRequest $r5;
+        javax.servlet.ServletResponse r2;
+        javax.servlet.http.HttpServletResponse $r4;
+
+        r0 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        r1 := @parameter0: javax.servlet.ServletRequest;
+
+        r2 := @parameter1: javax.servlet.ServletResponse;
+
+        r3 := @parameter2: javax.servlet.FilterChain;
+
+        $r5 = (javax.servlet.http.HttpServletRequest) r1;
+
+        $r4 = (javax.servlet.http.HttpServletResponse) r2;
+
+        virtualinvoke r0.<org.eclipse.jetty.servlets.DoSFilter: void doFilter(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse,javax.servlet.FilterChain)>($r5, $r4, r3);
+
+        return;
+    }
+
+    protected void doFilter(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.FilterChain) throws java.io.IOException, javax.servlet.ServletException
+    {
+        byte $b4, $b6, $b10;
+        java.lang.StringBuilder $r33, $r35, $r36, $r38, $r39, $r41, $r46, $r48, $r49, $r51, $r52, $r54, $r59, $r60, $r61, $r63, $r64, $r66, $r67, $r69, $r91, $r92, $r93;
+        org.eclipse.jetty.servlets.DoSFilter$RateTracker $r30, r87;
+        java.lang.Throwable $r73;
+        java.lang.Object[] $r43, $r56, $r71;
+        long $l0, $l1, $l3, $l8;
+        javax.servlet.http.HttpServletRequest r2;
+        org.eclipse.jetty.continuation.ContinuationListener $r21;
+        java.lang.String $r34, $r37, $r42, $r47, $r50, $r55, $r62, $r65, $r70;
+        org.eclipse.jetty.util.thread.Timeout $r1;
+        javax.servlet.ServletContext $r81;
+        javax.servlet.FilterChain r12;
+        java.util.Queue[] $r7, $r9, $r22, $r24, $r26, $r74, $r76, $r82, $r84;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9, z10;
+        java.security.Principal $r40, $r53, $r68;
+        java.util.Queue $r10, $r23, $r27, $r77, $r85;
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        org.eclipse.jetty.continuation.Continuation $r13, r29, $r72, r79, r89, r90;
+        org.eclipse.jetty.continuation.ContinuationListener[] $r20;
+        int $i2, $i5, $i7, $i9, $i11, $i12, i13, i14, i15, i16, $i17, $i18, $i19, $i21, $i23, $i25, $i27;
+        java.lang.Boolean $r15, $r17, $r19, r88;
+        java.util.concurrent.Semaphore $r4, $r8, $r18, $r25, $r75, $r83;
+        javax.servlet.http.HttpServletResponse r6;
+        java.util.concurrent.TimeUnit $r5;
+        java.lang.InterruptedException $r80;
+        java.lang.Object $r3, $r11, $r14, $r16, $r28, $r78, $r86;
+        org.eclipse.jetty.util.log.Logger $r32, $r45, $r58;
+
+        r0 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        r2 := @parameter0: javax.servlet.http.HttpServletRequest;
+
+        r6 := @parameter1: javax.servlet.http.HttpServletResponse;
+
+        r12 := @parameter2: javax.servlet.FilterChain;
+
+        $z0 = virtualinvoke r0.<org.eclipse.jetty.servlets.DoSFilter: boolean isEnabled()>();
+
+        if $z0 != 0 goto label01;
+
+        interfaceinvoke r12.<javax.servlet.FilterChain: void doFilter(javax.servlet.ServletRequest,javax.servlet.ServletResponse)>(r2, r6);
+
+        return;
+
+     label01:
+        $r1 = r0.<org.eclipse.jetty.servlets.DoSFilter: org.eclipse.jetty.util.thread.Timeout _requestTimeoutQ>;
+
+        $l0 = virtualinvoke $r1.<org.eclipse.jetty.util.thread.Timeout: long getNow()>();
+
+        $r3 = interfaceinvoke r2.<javax.servlet.http.HttpServletRequest: java.lang.Object getAttribute(java.lang.String)>("DoSFilter.Tracker");
+
+        r87 = (org.eclipse.jetty.servlets.DoSFilter$RateTracker) $r3;
+
+        if r87 != null goto label09;
+
+        $r30 = virtualinvoke r0.<org.eclipse.jetty.servlets.DoSFilter: org.eclipse.jetty.servlets.DoSFilter$RateTracker getRateTracker(javax.servlet.ServletRequest)>(r2);
+
+        r87 = $r30;
+
+        $z6 = virtualinvoke $r30.<org.eclipse.jetty.servlets.DoSFilter$RateTracker: boolean isRateExceeded(long)>($l0);
+
+        if $z6 != 0 goto label02;
+
+        virtualinvoke r0.<org.eclipse.jetty.servlets.DoSFilter: void doFilterChain(javax.servlet.FilterChain,javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse)>(r12, r2, r6);
+
+        return;
+
+     label02:
+        $l8 = virtualinvoke r0.<org.eclipse.jetty.servlets.DoSFilter: long getDelayMs()>();
+
+        $z7 = virtualinvoke r0.<org.eclipse.jetty.servlets.DoSFilter: boolean isInsertHeaders()>();
+
+        $i9 = (int) $l8;
+
+        lookupswitch($i9)
+        {
+            case -1: goto label03;
+            case 0: goto label05;
+            default: goto label06;
+        };
+
+     label03:
+        $r45 = <org.eclipse.jetty.servlets.DoSFilter: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r91 = new java.lang.StringBuilder;
+
+        specialinvoke $r91.<java.lang.StringBuilder: void <init>()>();
+
+        $r46 = virtualinvoke $r91.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("DOS ALERT: Request rejected ip=");
+
+        $r47 = interfaceinvoke r2.<javax.servlet.http.HttpServletRequest: java.lang.String getRemoteAddr()>();
+
+        $r48 = virtualinvoke $r46.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r47);
+
+        $r49 = virtualinvoke $r48.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(",session=");
+
+        $r50 = interfaceinvoke r2.<javax.servlet.http.HttpServletRequest: java.lang.String getRequestedSessionId()>();
+
+        $r51 = virtualinvoke $r49.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r50);
+
+        $r52 = virtualinvoke $r51.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(",user=");
+
+        $r53 = interfaceinvoke r2.<javax.servlet.http.HttpServletRequest: java.security.Principal getUserPrincipal()>();
+
+        $r54 = virtualinvoke $r52.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r53);
+
+        $r55 = virtualinvoke $r54.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r56 = newarray (java.lang.Object)[0];
+
+        interfaceinvoke $r45.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.String,java.lang.Object[])>($r55, $r56);
+
+        if $z7 == 0 goto label04;
+
+        interfaceinvoke r6.<javax.servlet.http.HttpServletResponse: void addHeader(java.lang.String,java.lang.String)>("DoSFilter", "unavailable");
+
+     label04:
+        interfaceinvoke r6.<javax.servlet.http.HttpServletResponse: void sendError(int)>(503);
+
+        return;
+
+     label05:
+        $r32 = <org.eclipse.jetty.servlets.DoSFilter: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r92 = new java.lang.StringBuilder;
+
+        specialinvoke $r92.<java.lang.StringBuilder: void <init>()>();
+
+        $r33 = virtualinvoke $r92.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("DOS ALERT: Request throttled ip=");
+
+        $r34 = interfaceinvoke r2.<javax.servlet.http.HttpServletRequest: java.lang.String getRemoteAddr()>();
+
+        $r35 = virtualinvoke $r33.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r34);
+
+        $r36 = virtualinvoke $r35.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(",session=");
+
+        $r37 = interfaceinvoke r2.<javax.servlet.http.HttpServletRequest: java.lang.String getRequestedSessionId()>();
+
+        $r38 = virtualinvoke $r36.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r37);
+
+        $r39 = virtualinvoke $r38.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(",user=");
+
+        $r40 = interfaceinvoke r2.<javax.servlet.http.HttpServletRequest: java.security.Principal getUserPrincipal()>();
+
+        $r41 = virtualinvoke $r39.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r40);
+
+        $r42 = virtualinvoke $r41.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r43 = newarray (java.lang.Object)[0];
+
+        interfaceinvoke $r32.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.String,java.lang.Object[])>($r42, $r43);
+
+        interfaceinvoke r2.<javax.servlet.http.HttpServletRequest: void setAttribute(java.lang.String,java.lang.Object)>("DoSFilter.Tracker", $r30);
+
+        goto label09;
+
+     label06:
+        $r58 = <org.eclipse.jetty.servlets.DoSFilter: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r93 = new java.lang.StringBuilder;
+
+        specialinvoke $r93.<java.lang.StringBuilder: void <init>()>();
+
+        $r59 = virtualinvoke $r93.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("DOS ALERT: Request delayed=");
+
+        $r60 = virtualinvoke $r59.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l8);
+
+        $r61 = virtualinvoke $r60.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("ms ip=");
+
+        $r62 = interfaceinvoke r2.<javax.servlet.http.HttpServletRequest: java.lang.String getRemoteAddr()>();
+
+        $r63 = virtualinvoke $r61.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r62);
+
+        $r64 = virtualinvoke $r63.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(",session=");
+
+        $r65 = interfaceinvoke r2.<javax.servlet.http.HttpServletRequest: java.lang.String getRequestedSessionId()>();
+
+        $r66 = virtualinvoke $r64.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r65);
+
+        $r67 = virtualinvoke $r66.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(",user=");
+
+        $r68 = interfaceinvoke r2.<javax.servlet.http.HttpServletRequest: java.security.Principal getUserPrincipal()>();
+
+        $r69 = virtualinvoke $r67.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r68);
+
+        $r70 = virtualinvoke $r69.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r71 = newarray (java.lang.Object)[0];
+
+        interfaceinvoke $r58.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.String,java.lang.Object[])>($r70, $r71);
+
+        if $z7 == 0 goto label07;
+
+        interfaceinvoke r6.<javax.servlet.http.HttpServletResponse: void addHeader(java.lang.String,java.lang.String)>("DoSFilter", "delayed");
+
+     label07:
+        $r72 = staticinvoke <org.eclipse.jetty.continuation.ContinuationSupport: org.eclipse.jetty.continuation.Continuation getContinuation(javax.servlet.ServletRequest)>(r2);
+
+        interfaceinvoke r2.<javax.servlet.http.HttpServletRequest: void setAttribute(java.lang.String,java.lang.Object)>("DoSFilter.Tracker", $r30);
+
+        $b10 = $l8 cmp 0L;
+
+        $i17 = (int) $b10;
+
+        if $i17 <= 0 goto label08;
+
+        interfaceinvoke $r72.<org.eclipse.jetty.continuation.Continuation: void setTimeout(long)>($l8);
+
+     label08:
+        interfaceinvoke $r72.<org.eclipse.jetty.continuation.Continuation: void suspend()>();
+
+        return;
+
+     label09:
+        z10 = 0;
+
+     label10:
+        $r4 = r0.<org.eclipse.jetty.servlets.DoSFilter: java.util.concurrent.Semaphore _passes>;
+
+        $l1 = virtualinvoke r0.<org.eclipse.jetty.servlets.DoSFilter: long getMaxWaitMs()>();
+
+        $r5 = <java.util.concurrent.TimeUnit: java.util.concurrent.TimeUnit MILLISECONDS>;
+
+        $z1 = virtualinvoke $r4.<java.util.concurrent.Semaphore: boolean tryAcquire(long,java.util.concurrent.TimeUnit)>($l1, $r5);
+
+        z10 = $z1;
+
+        if $z1 != 0 goto label19;
+
+        $r13 = staticinvoke <org.eclipse.jetty.continuation.ContinuationSupport: org.eclipse.jetty.continuation.Continuation getContinuation(javax.servlet.ServletRequest)>(r2);
+
+        $r14 = interfaceinvoke r2.<javax.servlet.http.HttpServletRequest: java.lang.Object getAttribute(java.lang.String)>("DoSFilter.Throttled");
+
+        r88 = (java.lang.Boolean) $r14;
+
+        $l3 = virtualinvoke r0.<org.eclipse.jetty.servlets.DoSFilter: long getThrottleMs()>();
+
+        $r15 = <java.lang.Boolean: java.lang.Boolean TRUE>;
+
+        if r88 == $r15 goto label18;
+
+        $b4 = $l3 cmp 0L;
+
+        $i18 = (int) $b4;
+
+        if $i18 <= 0 goto label18;
+
+        $i5 = virtualinvoke r0.<org.eclipse.jetty.servlets.DoSFilter: int getPriority(javax.servlet.http.HttpServletRequest,org.eclipse.jetty.servlets.DoSFilter$RateTracker)>(r2, r87);
+
+        $r19 = <java.lang.Boolean: java.lang.Boolean TRUE>;
+
+        interfaceinvoke r2.<javax.servlet.http.HttpServletRequest: void setAttribute(java.lang.String,java.lang.Object)>("DoSFilter.Throttled", $r19);
+
+        $z4 = virtualinvoke r0.<org.eclipse.jetty.servlets.DoSFilter: boolean isInsertHeaders()>();
+
+        if $z4 == 0 goto label11;
+
+        interfaceinvoke r6.<javax.servlet.http.HttpServletResponse: void addHeader(java.lang.String,java.lang.String)>("DoSFilter", "throttled");
+
+     label11:
+        $b6 = $l3 cmp 0L;
+
+        $i19 = (int) $b6;
+
+        if $i19 <= 0 goto label12;
+
+        interfaceinvoke $r13.<org.eclipse.jetty.continuation.Continuation: void setTimeout(long)>($l3);
+
+     label12:
+        interfaceinvoke $r13.<org.eclipse.jetty.continuation.Continuation: void suspend()>();
+
+        $r20 = r0.<org.eclipse.jetty.servlets.DoSFilter: org.eclipse.jetty.continuation.ContinuationListener[] _listeners>;
+
+        $r21 = $r20[$i5];
+
+        interfaceinvoke $r13.<org.eclipse.jetty.continuation.Continuation: void addContinuationListener(org.eclipse.jetty.continuation.ContinuationListener)>($r21);
+
+        $r22 = r0.<org.eclipse.jetty.servlets.DoSFilter: java.util.Queue[] _queue>;
+
+        $r23 = $r22[$i5];
+
+        interfaceinvoke $r23.<java.util.Queue: boolean add(java.lang.Object)>($r13);
+
+     label13:
+        if $z1 == 0 goto label17;
+
+        $r24 = r0.<org.eclipse.jetty.servlets.DoSFilter: java.util.Queue[] _queue>;
+
+        i13 = lengthof $r24;
+
+     label14:
+        $i7 = i13;
+
+        $i21 = (int) -1;
+
+        i13 = i13 + $i21;
+
+        if $i7 <= 0 goto label16;
+
+        $r26 = r0.<org.eclipse.jetty.servlets.DoSFilter: java.util.Queue[] _queue>;
+
+        $r27 = $r26[i13];
+
+        $r28 = interfaceinvoke $r27.<java.util.Queue: java.lang.Object poll()>();
+
+        r29 = (org.eclipse.jetty.continuation.Continuation) $r28;
+
+        if r29 == null goto label15;
+
+        $z5 = interfaceinvoke r29.<org.eclipse.jetty.continuation.Continuation: boolean isSuspended()>();
+
+        if $z5 == 0 goto label15;
+
+        interfaceinvoke r29.<org.eclipse.jetty.continuation.Continuation: void resume()>();
+
+        goto label16;
+
+     label15:
+        goto label14;
+
+     label16:
+        $r25 = r0.<org.eclipse.jetty.servlets.DoSFilter: java.util.concurrent.Semaphore _passes>;
+
+        virtualinvoke $r25.<java.util.concurrent.Semaphore: void release()>();
+
+     label17:
+        return;
+
+     label18:
+        $r16 = interfaceinvoke r2.<javax.servlet.http.HttpServletRequest: java.lang.Object getAttribute(java.lang.String)>("javax.servlet.resumed");
+
+        $r17 = <java.lang.Boolean: java.lang.Boolean TRUE>;
+
+        if $r16 != $r17 goto label19;
+
+        $r18 = r0.<org.eclipse.jetty.servlets.DoSFilter: java.util.concurrent.Semaphore _passes>;
+
+        virtualinvoke $r18.<java.util.concurrent.Semaphore: void acquire()>();
+
+        z10 = 1;
+
+     label19:
+        if z10 == 0 goto label20;
+
+        virtualinvoke r0.<org.eclipse.jetty.servlets.DoSFilter: void doFilterChain(javax.servlet.FilterChain,javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse)>(r12, r2, r6);
+
+        goto label22;
+
+     label20:
+        $z2 = virtualinvoke r0.<org.eclipse.jetty.servlets.DoSFilter: boolean isInsertHeaders()>();
+
+        if $z2 == 0 goto label21;
+
+        interfaceinvoke r6.<javax.servlet.http.HttpServletResponse: void addHeader(java.lang.String,java.lang.String)>("DoSFilter", "unavailable");
+
+     label21:
+        interfaceinvoke r6.<javax.servlet.http.HttpServletResponse: void sendError(int)>(503);
+
+     label22:
+        if z10 == 0 goto label37;
+
+        $r7 = r0.<org.eclipse.jetty.servlets.DoSFilter: java.util.Queue[] _queue>;
+
+        i14 = lengthof $r7;
+
+     label23:
+        $i2 = i14;
+
+        $i23 = (int) -1;
+
+        i14 = i14 + $i23;
+
+        if $i2 <= 0 goto label25;
+
+        $r9 = r0.<org.eclipse.jetty.servlets.DoSFilter: java.util.Queue[] _queue>;
+
+        $r10 = $r9[i14];
+
+        $r11 = interfaceinvoke $r10.<java.util.Queue: java.lang.Object poll()>();
+
+        r89 = (org.eclipse.jetty.continuation.Continuation) $r11;
+
+        if r89 == null goto label24;
+
+        $z3 = interfaceinvoke r89.<org.eclipse.jetty.continuation.Continuation: boolean isSuspended()>();
+
+        if $z3 == 0 goto label24;
+
+        interfaceinvoke r89.<org.eclipse.jetty.continuation.Continuation: void resume()>();
+
+        goto label25;
+
+     label24:
+        goto label23;
+
+     label25:
+        $r8 = r0.<org.eclipse.jetty.servlets.DoSFilter: java.util.concurrent.Semaphore _passes>;
+
+        virtualinvoke $r8.<java.util.concurrent.Semaphore: void release()>();
+
+        goto label37;
+
+     label26:
+        $r80 := @caughtexception;
+
+        $r81 = r0.<org.eclipse.jetty.servlets.DoSFilter: javax.servlet.ServletContext _context>;
+
+        interfaceinvoke $r81.<javax.servlet.ServletContext: void log(java.lang.String,java.lang.Throwable)>("DoS", $r80);
+
+        interfaceinvoke r6.<javax.servlet.http.HttpServletResponse: void sendError(int)>(503);
+
+     label27:
+        if z10 == 0 goto label37;
+
+        $r82 = r0.<org.eclipse.jetty.servlets.DoSFilter: java.util.Queue[] _queue>;
+
+        i15 = lengthof $r82;
+
+     label28:
+        $i12 = i15;
+
+        $i25 = (int) -1;
+
+        i15 = i15 + $i25;
+
+        if $i12 <= 0 goto label30;
+
+        $r84 = r0.<org.eclipse.jetty.servlets.DoSFilter: java.util.Queue[] _queue>;
+
+        $r85 = $r84[i15];
+
+        $r86 = interfaceinvoke $r85.<java.util.Queue: java.lang.Object poll()>();
+
+        r90 = (org.eclipse.jetty.continuation.Continuation) $r86;
+
+        if r90 == null goto label29;
+
+        $z9 = interfaceinvoke r90.<org.eclipse.jetty.continuation.Continuation: boolean isSuspended()>();
+
+        if $z9 == 0 goto label29;
+
+        interfaceinvoke r90.<org.eclipse.jetty.continuation.Continuation: void resume()>();
+
+        goto label30;
+
+     label29:
+        goto label28;
+
+     label30:
+        $r83 = r0.<org.eclipse.jetty.servlets.DoSFilter: java.util.concurrent.Semaphore _passes>;
+
+        virtualinvoke $r83.<java.util.concurrent.Semaphore: void release()>();
+
+        goto label37;
+
+     label31:
+        $r73 := @caughtexception;
+
+     label32:
+        if z10 == 0 goto label36;
+
+        $r74 = r0.<org.eclipse.jetty.servlets.DoSFilter: java.util.Queue[] _queue>;
+
+        i16 = lengthof $r74;
+
+     label33:
+        $i11 = i16;
+
+        $i27 = (int) -1;
+
+        i16 = i16 + $i27;
+
+        if $i11 <= 0 goto label35;
+
+        $r76 = r0.<org.eclipse.jetty.servlets.DoSFilter: java.util.Queue[] _queue>;
+
+        $r77 = $r76[i16];
+
+        $r78 = interfaceinvoke $r77.<java.util.Queue: java.lang.Object poll()>();
+
+        r79 = (org.eclipse.jetty.continuation.Continuation) $r78;
+
+        if r79 == null goto label34;
+
+        $z8 = interfaceinvoke r79.<org.eclipse.jetty.continuation.Continuation: boolean isSuspended()>();
+
+        if $z8 == 0 goto label34;
+
+        interfaceinvoke r79.<org.eclipse.jetty.continuation.Continuation: void resume()>();
+
+        goto label35;
+
+     label34:
+        goto label33;
+
+     label35:
+        $r75 = r0.<org.eclipse.jetty.servlets.DoSFilter: java.util.concurrent.Semaphore _passes>;
+
+        virtualinvoke $r75.<java.util.concurrent.Semaphore: void release()>();
+
+     label36:
+        throw $r73;
+
+     label37:
+        return;
+
+        catch java.lang.InterruptedException from label10 to label13 with label26;
+        catch java.lang.InterruptedException from label18 to label22 with label26;
+        catch java.lang.Throwable from label10 to label13 with label31;
+        catch java.lang.Throwable from label18 to label22 with label31;
+        catch java.lang.Throwable from label26 to label27 with label31;
+        catch java.lang.Throwable from label31 to label32 with label31;
+    }
+
+    protected void doFilterChain(javax.servlet.FilterChain, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse) throws java.io.IOException, javax.servlet.ServletException
+    {
+        org.eclipse.jetty.servlets.DoSFilter r2;
+        java.lang.Throwable $r7;
+        javax.servlet.FilterChain r6;
+        org.eclipse.jetty.servlets.DoSFilter$3 $r1;
+        org.eclipse.jetty.util.thread.Timeout $r5;
+        javax.servlet.http.HttpServletResponse r4;
+        javax.servlet.http.HttpServletRequest r3;
+        java.lang.Thread $r0;
+
+        r2 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        r6 := @parameter0: javax.servlet.FilterChain;
+
+        r3 := @parameter1: javax.servlet.http.HttpServletRequest;
+
+        r4 := @parameter2: javax.servlet.http.HttpServletResponse;
+
+        $r0 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        $r1 = new org.eclipse.jetty.servlets.DoSFilter$3;
+
+        specialinvoke $r1.<org.eclipse.jetty.servlets.DoSFilter$3: void <init>(org.eclipse.jetty.servlets.DoSFilter,javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse,java.lang.Thread)>(r2, r3, r4, $r0);
+
+     label1:
+        $r5 = r2.<org.eclipse.jetty.servlets.DoSFilter: org.eclipse.jetty.util.thread.Timeout _requestTimeoutQ>;
+
+        virtualinvoke $r5.<org.eclipse.jetty.util.thread.Timeout: void schedule(org.eclipse.jetty.util.thread.Timeout$Task)>($r1);
+
+        interfaceinvoke r6.<javax.servlet.FilterChain: void doFilter(javax.servlet.ServletRequest,javax.servlet.ServletResponse)>(r3, r4);
+
+     label2:
+        virtualinvoke $r1.<org.eclipse.jetty.util.thread.Timeout$Task: void cancel()>();
+
+        goto label5;
+
+     label3:
+        $r7 := @caughtexception;
+
+     label4:
+        virtualinvoke $r1.<org.eclipse.jetty.util.thread.Timeout$Task: void cancel()>();
+
+        throw $r7;
+
+     label5:
+        return;
+
+        catch java.lang.Throwable from label1 to label2 with label3;
+        catch java.lang.Throwable from label3 to label4 with label3;
+    }
+
+    protected void closeConnection(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Thread)
+    {
+        java.io.PrintWriter $r1;
+        org.eclipse.jetty.servlets.DoSFilter r7;
+        java.lang.IllegalStateException $r5;
+        javax.servlet.http.HttpServletResponse r0;
+        java.io.IOException $r3;
+        javax.servlet.http.HttpServletRequest r8;
+        javax.servlet.ServletOutputStream $r6;
+        java.lang.Thread r2;
+        org.eclipse.jetty.util.log.Logger $r4;
+        boolean $z0;
+
+        r7 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        r8 := @parameter0: javax.servlet.http.HttpServletRequest;
+
+        r0 := @parameter1: javax.servlet.http.HttpServletResponse;
+
+        r2 := @parameter2: java.lang.Thread;
+
+        $z0 = interfaceinvoke r0.<javax.servlet.http.HttpServletResponse: boolean isCommitted()>();
+
+        if $z0 != 0 goto label1;
+
+        interfaceinvoke r0.<javax.servlet.http.HttpServletResponse: void setHeader(java.lang.String,java.lang.String)>("Connection", "close");
+
+     label1:
+        $r1 = interfaceinvoke r0.<javax.servlet.http.HttpServletResponse: java.io.PrintWriter getWriter()>();
+
+        virtualinvoke $r1.<java.io.PrintWriter: void close()>();
+
+     label2:
+        goto label4;
+
+     label3:
+        $r5 := @caughtexception;
+
+        $r6 = interfaceinvoke r0.<javax.servlet.http.HttpServletResponse: javax.servlet.ServletOutputStream getOutputStream()>();
+
+        virtualinvoke $r6.<javax.servlet.ServletOutputStream: void close()>();
+
+     label4:
+        goto label6;
+
+     label5:
+        $r3 := @caughtexception;
+
+        $r4 = <org.eclipse.jetty.servlets.DoSFilter: org.eclipse.jetty.util.log.Logger LOG>;
+
+        interfaceinvoke $r4.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.Throwable)>($r3);
+
+     label6:
+        virtualinvoke r2.<java.lang.Thread: void interrupt()>();
+
+        return;
+
+        catch java.lang.IllegalStateException from label1 to label2 with label3;
+        catch java.io.IOException from label1 to label4 with label5;
+    }
+
+    protected int getPriority(javax.servlet.http.HttpServletRequest, org.eclipse.jetty.servlets.DoSFilter$RateTracker)
+    {
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        javax.servlet.http.HttpServletRequest r1;
+        int $i0;
+        java.lang.String $r2;
+        org.eclipse.jetty.servlets.DoSFilter$RateTracker r3;
+
+        r0 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        r1 := @parameter0: javax.servlet.http.HttpServletRequest;
+
+        r3 := @parameter1: org.eclipse.jetty.servlets.DoSFilter$RateTracker;
+
+        $r2 = virtualinvoke r0.<org.eclipse.jetty.servlets.DoSFilter: java.lang.String extractUserId(javax.servlet.ServletRequest)>(r1);
+
+        if $r2 == null goto label1;
+
+        return 2;
+
+     label1:
+        if r3 == null goto label2;
+
+        $i0 = virtualinvoke r3.<org.eclipse.jetty.servlets.DoSFilter$RateTracker: int getType()>();
+
+        return $i0;
+
+     label2:
+        return 0;
+    }
+
+    protected int getMaxPriority()
+    {
+        org.eclipse.jetty.servlets.DoSFilter r0;
+
+        r0 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        return 2;
+    }
+
+    public org.eclipse.jetty.servlets.DoSFilter$RateTracker getRateTracker(javax.servlet.ServletRequest)
+    {
+        byte b3, b4, b5, b6;
+        org.eclipse.jetty.servlets.DoSFilter$FixedRateTracker $r23;
+        boolean $z0, $z1, $z2, $z3;
+        javax.servlet.http.HttpSession $r2;
+        java.util.concurrent.ConcurrentHashMap $r7, $r17;
+        java.util.List $r5;
+        java.lang.StringBuilder $r13, $r14, $r22;
+        org.eclipse.jetty.servlets.DoSFilter$RateTracker $r10, $r19, r20, $r21, $r24;
+        org.eclipse.jetty.servlets.DoSFilter r3;
+        javax.servlet.http.HttpServletRequest $r1;
+        int $i0, $i1, $i2;
+        java.lang.String $r4, $r6, $r12, r15, $r16;
+        javax.servlet.ServletRequest r0;
+        org.eclipse.jetty.util.thread.Timeout $r9;
+        java.lang.Object $r8, $r18;
+
+        r3 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        r0 := @parameter0: javax.servlet.ServletRequest;
+
+        $r1 = (javax.servlet.http.HttpServletRequest) r0;
+
+        $r2 = interfaceinvoke $r1.<javax.servlet.http.HttpServletRequest: javax.servlet.http.HttpSession getSession(boolean)>(0);
+
+        $r4 = virtualinvoke r3.<org.eclipse.jetty.servlets.DoSFilter: java.lang.String extractUserId(javax.servlet.ServletRequest)>(r0);
+
+        r15 = $r4;
+
+        if $r4 == null goto label01;
+
+        b3 = 2;
+
+        b6 = 2;
+
+        b5 = 2;
+
+        b4 = 2;
+
+        goto label05;
+
+     label01:
+        $z0 = r3.<org.eclipse.jetty.servlets.DoSFilter: boolean _trackSessions>;
+
+        if $z0 == 0 goto label02;
+
+        if $r2 == null goto label02;
+
+        $z2 = interfaceinvoke $r2.<javax.servlet.http.HttpSession: boolean isNew()>();
+
+        if $z2 != 0 goto label02;
+
+        r15 = interfaceinvoke $r2.<javax.servlet.http.HttpSession: java.lang.String getId()>();
+
+        b3 = 2;
+
+        b6 = 2;
+
+        b5 = 2;
+
+        b4 = 2;
+
+        goto label05;
+
+     label02:
+        $z3 = r3.<org.eclipse.jetty.servlets.DoSFilter: boolean _remotePort>;
+
+        if $z3 == 0 goto label03;
+
+        $r22 = new java.lang.StringBuilder;
+
+        specialinvoke $r22.<java.lang.StringBuilder: void <init>()>();
+
+        $r12 = interfaceinvoke r0.<javax.servlet.ServletRequest: java.lang.String getRemoteAddr()>();
+
+        $r13 = virtualinvoke $r22.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r12);
+
+        $i2 = interfaceinvoke r0.<javax.servlet.ServletRequest: int getRemotePort()>();
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i2);
+
+        $r16 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        goto label04;
+
+     label03:
+        $r16 = interfaceinvoke r0.<javax.servlet.ServletRequest: java.lang.String getRemoteAddr()>();
+
+     label04:
+        r15 = $r16;
+
+        b3 = 1;
+
+        b6 = 1;
+
+        b5 = 1;
+
+        b4 = 1;
+
+     label05:
+        $r17 = r3.<org.eclipse.jetty.servlets.DoSFilter: java.util.concurrent.ConcurrentHashMap _rateTrackers>;
+
+        $r18 = virtualinvoke $r17.<java.util.concurrent.ConcurrentHashMap: java.lang.Object get(java.lang.Object)>(r15);
+
+        $r19 = (org.eclipse.jetty.servlets.DoSFilter$RateTracker) $r18;
+
+        r20 = $r19;
+
+        if $r19 != null goto label10;
+
+        $r5 = r3.<org.eclipse.jetty.servlets.DoSFilter: java.util.List _whitelist>;
+
+        $r6 = interfaceinvoke r0.<javax.servlet.ServletRequest: java.lang.String getRemoteAddr()>();
+
+        $z1 = virtualinvoke r3.<org.eclipse.jetty.servlets.DoSFilter: boolean checkWhitelist(java.util.List,java.lang.String)>($r5, $r6);
+
+        if $z1 == 0 goto label06;
+
+        $r23 = new org.eclipse.jetty.servlets.DoSFilter$FixedRateTracker;
+
+        $r21 = $r23;
+
+        $i1 = r3.<org.eclipse.jetty.servlets.DoSFilter: int _maxRequestsPerSec>;
+
+        specialinvoke $r23.<org.eclipse.jetty.servlets.DoSFilter$FixedRateTracker: void <init>(org.eclipse.jetty.servlets.DoSFilter,java.lang.String,int,int)>(r3, r15, b5, $i1);
+
+        goto label07;
+
+     label06:
+        $r24 = new org.eclipse.jetty.servlets.DoSFilter$RateTracker;
+
+        $r21 = $r24;
+
+        $i0 = r3.<org.eclipse.jetty.servlets.DoSFilter: int _maxRequestsPerSec>;
+
+        specialinvoke $r24.<org.eclipse.jetty.servlets.DoSFilter$RateTracker: void <init>(org.eclipse.jetty.servlets.DoSFilter,java.lang.String,int,int)>(r3, r15, b4, $i0);
+
+     label07:
+        r20 = $r21;
+
+        $r7 = r3.<org.eclipse.jetty.servlets.DoSFilter: java.util.concurrent.ConcurrentHashMap _rateTrackers>;
+
+        $r8 = virtualinvoke $r7.<java.util.concurrent.ConcurrentHashMap: java.lang.Object putIfAbsent(java.lang.Object,java.lang.Object)>(r15, $r21);
+
+        $r10 = (org.eclipse.jetty.servlets.DoSFilter$RateTracker) $r8;
+
+        if $r10 == null goto label08;
+
+        r20 = $r10;
+
+     label08:
+        if b6 != 1 goto label09;
+
+        $r9 = r3.<org.eclipse.jetty.servlets.DoSFilter: org.eclipse.jetty.util.thread.Timeout _trackerTimeoutQ>;
+
+        virtualinvoke $r9.<org.eclipse.jetty.util.thread.Timeout: void schedule(org.eclipse.jetty.util.thread.Timeout$Task)>(r20);
+
+        goto label10;
+
+     label09:
+        if $r2 == null goto label10;
+
+        interfaceinvoke $r2.<javax.servlet.http.HttpSession: void setAttribute(java.lang.String,java.lang.Object)>("DoSFilter.Tracker", r20);
+
+     label10:
+        return r20;
+    }
+
+    protected boolean checkWhitelist(java.util.List, java.lang.String)
+    {
+        org.eclipse.jetty.servlets.DoSFilter r5;
+        java.util.Iterator $r1;
+        java.util.List r0;
+        java.lang.Object $r2;
+        java.lang.String r3, r4;
+        boolean $z0, $z1, $z2, $z3;
+
+        r5 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        r0 := @parameter0: java.util.List;
+
+        r4 := @parameter1: java.lang.String;
+
+        $r1 = interfaceinvoke r0.<java.util.List: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r1.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label4;
+
+        $r2 = interfaceinvoke $r1.<java.util.Iterator: java.lang.Object next()>();
+
+        r3 = (java.lang.String) $r2;
+
+        $z1 = virtualinvoke r3.<java.lang.String: boolean contains(java.lang.CharSequence)>("/");
+
+        if $z1 == 0 goto label2;
+
+        $z3 = virtualinvoke r5.<org.eclipse.jetty.servlets.DoSFilter: boolean subnetMatch(java.lang.String,java.lang.String)>(r3, r4);
+
+        if $z3 == 0 goto label3;
+
+        return 1;
+
+     label2:
+        $z2 = virtualinvoke r3.<java.lang.String: boolean equals(java.lang.Object)>(r4);
+
+        if $z2 == 0 goto label3;
+
+        return 1;
+
+     label3:
+        goto label1;
+
+     label4:
+        return 0;
+    }
+
+    protected boolean subnetMatch(java.lang.String, java.lang.String)
+    {
+        org.eclipse.jetty.servlets.DoSFilter r5;
+        byte[] $r6, $r8, $r9;
+        java.lang.Object[] $r10, $r12, $r15;
+        java.util.regex.Matcher $r2;
+        byte $b3, $b4, $b5, $b6, $b7, $b8;
+        int $i0, i1, $i2, i9, $i10, $i11;
+        java.lang.String r0, $r3, $r4, r7;
+        boolean $z0;
+        java.lang.NumberFormatException $r14;
+        java.util.regex.Pattern $r1;
+        org.eclipse.jetty.util.log.Logger $r11, $r13, $r16;
+
+        r5 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        r0 := @parameter0: java.lang.String;
+
+        r7 := @parameter1: java.lang.String;
+
+        $r1 = <org.eclipse.jetty.servlets.DoSFilter: java.util.regex.Pattern CIDR_PATTERN>;
+
+        $r2 = virtualinvoke $r1.<java.util.regex.Pattern: java.util.regex.Matcher matcher(java.lang.CharSequence)>(r0);
+
+        $z0 = virtualinvoke $r2.<java.util.regex.Matcher: boolean matches()>();
+
+        if $z0 != 0 goto label01;
+
+        return 0;
+
+     label01:
+        $r3 = virtualinvoke $r2.<java.util.regex.Matcher: java.lang.String group(int)>(1);
+
+     label02:
+        $r4 = virtualinvoke $r2.<java.util.regex.Matcher: java.lang.String group(int)>(2);
+
+        $i0 = staticinvoke <java.lang.Integer: int parseInt(java.lang.String)>($r4);
+
+     label03:
+        goto label05;
+
+     label04:
+        $r14 := @caughtexception;
+
+        $r16 = <org.eclipse.jetty.servlets.DoSFilter: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r15 = newarray (java.lang.Object)[1];
+
+        $r15[0] = r0;
+
+        interfaceinvoke $r16.<org.eclipse.jetty.util.log.Logger: void info(java.lang.String,java.lang.Object[])>("Ignoring malformed CIDR address {}", $r15);
+
+        return 0;
+
+     label05:
+        $r6 = specialinvoke r5.<org.eclipse.jetty.servlets.DoSFilter: byte[] addressToBytes(java.lang.String)>($r3);
+
+        if $r6 != null goto label06;
+
+        $r13 = <org.eclipse.jetty.servlets.DoSFilter: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r12 = newarray (java.lang.Object)[1];
+
+        $r12[0] = r0;
+
+        interfaceinvoke $r13.<org.eclipse.jetty.util.log.Logger: void info(java.lang.String,java.lang.Object[])>("Ignoring malformed CIDR address {}", $r12);
+
+        return 0;
+
+     label06:
+        $r8 = specialinvoke r5.<org.eclipse.jetty.servlets.DoSFilter: byte[] addressToBytes(java.lang.String)>(r7);
+
+        if $r8 != null goto label07;
+
+        $r11 = <org.eclipse.jetty.servlets.DoSFilter: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r10 = newarray (java.lang.Object)[1];
+
+        $r10[0] = r7;
+
+        interfaceinvoke $r11.<org.eclipse.jetty.util.log.Logger: void info(java.lang.String,java.lang.Object[])>("Ignoring malformed remote address {}", $r10);
+
+        return 0;
+
+     label07:
+        i1 = lengthof $r6;
+
+        $i2 = lengthof $r8;
+
+        if i1 == $i2 goto label08;
+
+        return 0;
+
+     label08:
+        $r9 = specialinvoke r5.<org.eclipse.jetty.servlets.DoSFilter: byte[] prefixToBytes(int,int)>($i0, i1);
+
+        i9 = 0;
+
+     label09:
+        if i9 >= i1 goto label11;
+
+        $b4 = $r6[i9];
+
+        $b3 = $r9[i9];
+
+        $b8 = $b4 & $b3;
+
+        $b6 = $r8[i9];
+
+        $b5 = $r9[i9];
+
+        $b7 = $b6 & $b5;
+
+        $i10 = (int) $b8;
+
+        $i11 = (int) $b7;
+
+        if $i10 == $i11 goto label10;
+
+        return 0;
+
+     label10:
+        i9 = i9 + 1;
+
+        goto label09;
+
+     label11:
+        return 1;
+
+        catch java.lang.NumberFormatException from label02 to label03 with label04;
+    }
+
+    private byte[] addressToBytes(java.lang.String)
+    {
+        org.eclipse.jetty.servlets.DoSFilter r9;
+        byte[] r10, r11;
+        java.lang.Integer $r6, $r8;
+        java.util.regex.Matcher $r2, $r4;
+        byte $b6, $b8, $b12;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i7, $i9, $i10, $i11, i13, i14, $i16;
+        java.lang.String r0, $r5, $r7;
+        boolean $z0, $z1;
+        java.util.regex.Pattern $r1, $r3;
+
+        r9 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        r0 := @parameter0: java.lang.String;
+
+        $r1 = <org.eclipse.jetty.servlets.DoSFilter: java.util.regex.Pattern IPv4_PATTERN>;
+
+        $r2 = virtualinvoke $r1.<java.util.regex.Pattern: java.util.regex.Matcher matcher(java.lang.CharSequence)>(r0);
+
+        $z0 = virtualinvoke $r2.<java.util.regex.Matcher: boolean matches()>();
+
+        if $z0 == 0 goto label3;
+
+        r10 = newarray (byte)[4];
+
+        i13 = 0;
+
+     label1:
+        $i10 = lengthof r10;
+
+        if i13 >= $i10 goto label2;
+
+        $i11 = i13 + 1;
+
+        $r7 = virtualinvoke $r2.<java.util.regex.Matcher: java.lang.String group(int)>($i11);
+
+        $r8 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(java.lang.String)>($r7);
+
+        $b12 = virtualinvoke $r8.<java.lang.Integer: byte byteValue()>();
+
+        r10[i13] = $b12;
+
+        i13 = i13 + 1;
+
+        goto label1;
+
+     label2:
+        return r10;
+
+     label3:
+        $r3 = <org.eclipse.jetty.servlets.DoSFilter: java.util.regex.Pattern IPv6_PATTERN>;
+
+        $r4 = virtualinvoke $r3.<java.util.regex.Pattern: java.util.regex.Matcher matcher(java.lang.CharSequence)>(r0);
+
+        $z1 = virtualinvoke $r4.<java.util.regex.Matcher: boolean matches()>();
+
+        if $z1 == 0 goto label6;
+
+        r11 = newarray (byte)[16];
+
+        i14 = 0;
+
+     label4:
+        $i0 = lengthof r11;
+
+        if i14 >= $i0 goto label5;
+
+        $i1 = i14 / 2;
+
+        $i2 = $i1 + 1;
+
+        $r5 = virtualinvoke $r4.<java.util.regex.Matcher: java.lang.String group(int)>($i2);
+
+        $r6 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(java.lang.String,int)>($r5, 16);
+
+        $i3 = virtualinvoke $r6.<java.lang.Integer: int intValue()>();
+
+        $i16 = (int) 65280;
+
+        $i4 = $i3 & $i16;
+
+        $i5 = $i4 >>> 8;
+
+        $b6 = (byte) $i5;
+
+        r11[i14] = $b6;
+
+        $i9 = i14 + 1;
+
+        $i7 = $i3 & 255;
+
+        $b8 = (byte) $i7;
+
+        r11[$i9] = $b8;
+
+        i14 = i14 + 2;
+
+        goto label4;
+
+     label5:
+        return r11;
+
+     label6:
+        return null;
+    }
+
+    private byte[] prefixToBytes(int, int)
+    {
+        org.eclipse.jetty.servlets.DoSFilter r1;
+        byte[] r0;
+        byte $b6;
+        int i0, $i1, $i2, $i3, $i4, $i5, i7, i8, $i10, $i12;
+
+        r1 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        i7 := @parameter0: int;
+
+        i0 := @parameter1: int;
+
+        r0 = newarray (byte)[i0];
+
+        i8 = 0;
+
+     label1:
+        $i1 = i7 / 8;
+
+        if $i1 <= 0 goto label2;
+
+        r0[i8] = -1;
+
+        $i10 = (int) -8;
+
+        i7 = i7 + $i10;
+
+        i8 = i8 + 1;
+
+        goto label1;
+
+     label2:
+        $i2 = 8 - i7;
+
+        $i3 = 1 << $i2;
+
+        $i4 = $i3 - 1;
+
+        $i12 = (int) -1;
+
+        $i5 = $i4 ^ $i12;
+
+        $b6 = (byte) $i5;
+
+        r0[i8] = $b6;
+
+        return r0;
+    }
+
+    public void destroy()
+    {
+        org.eclipse.jetty.servlets.DoSFilter r1;
+        java.lang.Object[] $r0;
+        org.eclipse.jetty.util.thread.Timeout $r4, $r5;
+        java.util.concurrent.ConcurrentHashMap $r6;
+        java.util.List $r7;
+        java.lang.Thread $r3;
+        org.eclipse.jetty.util.log.Logger $r2;
+
+        r1 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        $r2 = <org.eclipse.jetty.servlets.DoSFilter: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r0 = newarray (java.lang.Object)[1];
+
+        $r0[0] = r1;
+
+        interfaceinvoke $r2.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Object[])>("Destroy {}", $r0);
+
+        r1.<org.eclipse.jetty.servlets.DoSFilter: boolean _running> = 0;
+
+        $r3 = r1.<org.eclipse.jetty.servlets.DoSFilter: java.lang.Thread _timerThread>;
+
+        virtualinvoke $r3.<java.lang.Thread: void interrupt()>();
+
+        $r4 = r1.<org.eclipse.jetty.servlets.DoSFilter: org.eclipse.jetty.util.thread.Timeout _requestTimeoutQ>;
+
+        virtualinvoke $r4.<org.eclipse.jetty.util.thread.Timeout: void cancelAll()>();
+
+        $r5 = r1.<org.eclipse.jetty.servlets.DoSFilter: org.eclipse.jetty.util.thread.Timeout _trackerTimeoutQ>;
+
+        virtualinvoke $r5.<org.eclipse.jetty.util.thread.Timeout: void cancelAll()>();
+
+        $r6 = r1.<org.eclipse.jetty.servlets.DoSFilter: java.util.concurrent.ConcurrentHashMap _rateTrackers>;
+
+        virtualinvoke $r6.<java.util.concurrent.ConcurrentHashMap: void clear()>();
+
+        $r7 = r1.<org.eclipse.jetty.servlets.DoSFilter: java.util.List _whitelist>;
+
+        interfaceinvoke $r7.<java.util.List: void clear()>();
+
+        return;
+    }
+
+    protected java.lang.String extractUserId(javax.servlet.ServletRequest)
+    {
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        javax.servlet.ServletRequest r1;
+
+        r0 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        r1 := @parameter0: javax.servlet.ServletRequest;
+
+        return null;
+    }
+
+    public int getMaxRequestsPerSec()
+    {
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        int $i0;
+
+        r0 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        $i0 = r0.<org.eclipse.jetty.servlets.DoSFilter: int _maxRequestsPerSec>;
+
+        return $i0;
+    }
+
+    public void setMaxRequestsPerSec(int)
+    {
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        int i0;
+
+        r0 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        i0 := @parameter0: int;
+
+        r0.<org.eclipse.jetty.servlets.DoSFilter: int _maxRequestsPerSec> = i0;
+
+        return;
+    }
+
+    public long getDelayMs()
+    {
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        long $l0;
+
+        r0 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        $l0 = r0.<org.eclipse.jetty.servlets.DoSFilter: long _delayMs>;
+
+        return $l0;
+    }
+
+    public void setDelayMs(long)
+    {
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        long l0;
+
+        r0 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        l0 := @parameter0: long;
+
+        r0.<org.eclipse.jetty.servlets.DoSFilter: long _delayMs> = l0;
+
+        return;
+    }
+
+    public long getMaxWaitMs()
+    {
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        long $l0;
+
+        r0 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        $l0 = r0.<org.eclipse.jetty.servlets.DoSFilter: long _maxWaitMs>;
+
+        return $l0;
+    }
+
+    public void setMaxWaitMs(long)
+    {
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        long l0;
+
+        r0 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        l0 := @parameter0: long;
+
+        r0.<org.eclipse.jetty.servlets.DoSFilter: long _maxWaitMs> = l0;
+
+        return;
+    }
+
+    public int getThrottledRequests()
+    {
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        int $i0;
+
+        r0 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        $i0 = r0.<org.eclipse.jetty.servlets.DoSFilter: int _throttledRequests>;
+
+        return $i0;
+    }
+
+    public void setThrottledRequests(int)
+    {
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        java.util.concurrent.Semaphore $r1, $r2, $r3;
+        int i0, $i1, $i2, $i3, $i4;
+
+        r0 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        i0 := @parameter0: int;
+
+        $r1 = r0.<org.eclipse.jetty.servlets.DoSFilter: java.util.concurrent.Semaphore _passes>;
+
+        if $r1 != null goto label1;
+
+        $i4 = 0;
+
+        goto label2;
+
+     label1:
+        $r2 = r0.<org.eclipse.jetty.servlets.DoSFilter: java.util.concurrent.Semaphore _passes>;
+
+        $i4 = virtualinvoke $r2.<java.util.concurrent.Semaphore: int availablePermits()>();
+
+     label2:
+        $r3 = new java.util.concurrent.Semaphore;
+
+        $i1 = r0.<org.eclipse.jetty.servlets.DoSFilter: int _throttledRequests>;
+
+        $i2 = i0 - $i1;
+
+        $i3 = $i2 + $i4;
+
+        specialinvoke $r3.<java.util.concurrent.Semaphore: void <init>(int,boolean)>($i3, 1);
+
+        r0.<org.eclipse.jetty.servlets.DoSFilter: java.util.concurrent.Semaphore _passes> = $r3;
+
+        r0.<org.eclipse.jetty.servlets.DoSFilter: int _throttledRequests> = i0;
+
+        return;
+    }
+
+    public long getThrottleMs()
+    {
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        long $l0;
+
+        r0 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        $l0 = r0.<org.eclipse.jetty.servlets.DoSFilter: long _throttleMs>;
+
+        return $l0;
+    }
+
+    public void setThrottleMs(long)
+    {
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        long l0;
+
+        r0 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        l0 := @parameter0: long;
+
+        r0.<org.eclipse.jetty.servlets.DoSFilter: long _throttleMs> = l0;
+
+        return;
+    }
+
+    public long getMaxRequestMs()
+    {
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        long $l0;
+
+        r0 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        $l0 = r0.<org.eclipse.jetty.servlets.DoSFilter: long _maxRequestMs>;
+
+        return $l0;
+    }
+
+    public void setMaxRequestMs(long)
+    {
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        long l0;
+
+        r0 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        l0 := @parameter0: long;
+
+        r0.<org.eclipse.jetty.servlets.DoSFilter: long _maxRequestMs> = l0;
+
+        return;
+    }
+
+    public long getMaxIdleTrackerMs()
+    {
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        long $l0;
+
+        r0 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        $l0 = r0.<org.eclipse.jetty.servlets.DoSFilter: long _maxIdleTrackerMs>;
+
+        return $l0;
+    }
+
+    public void setMaxIdleTrackerMs(long)
+    {
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        long l0;
+
+        r0 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        l0 := @parameter0: long;
+
+        r0.<org.eclipse.jetty.servlets.DoSFilter: long _maxIdleTrackerMs> = l0;
+
+        return;
+    }
+
+    public boolean isInsertHeaders()
+    {
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        $z0 = r0.<org.eclipse.jetty.servlets.DoSFilter: boolean _insertHeaders>;
+
+        return $z0;
+    }
+
+    public void setInsertHeaders(boolean)
+    {
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        boolean z0;
+
+        r0 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        z0 := @parameter0: boolean;
+
+        r0.<org.eclipse.jetty.servlets.DoSFilter: boolean _insertHeaders> = z0;
+
+        return;
+    }
+
+    public boolean isTrackSessions()
+    {
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        $z0 = r0.<org.eclipse.jetty.servlets.DoSFilter: boolean _trackSessions>;
+
+        return $z0;
+    }
+
+    public void setTrackSessions(boolean)
+    {
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        boolean z0;
+
+        r0 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        z0 := @parameter0: boolean;
+
+        r0.<org.eclipse.jetty.servlets.DoSFilter: boolean _trackSessions> = z0;
+
+        return;
+    }
+
+    public boolean isRemotePort()
+    {
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        $z0 = r0.<org.eclipse.jetty.servlets.DoSFilter: boolean _remotePort>;
+
+        return $z0;
+    }
+
+    public void setRemotePort(boolean)
+    {
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        boolean z0;
+
+        r0 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        z0 := @parameter0: boolean;
+
+        r0.<org.eclipse.jetty.servlets.DoSFilter: boolean _remotePort> = z0;
+
+        return;
+    }
+
+    public boolean isEnabled()
+    {
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        $z0 = r0.<org.eclipse.jetty.servlets.DoSFilter: boolean _enabled>;
+
+        return $z0;
+    }
+
+    public void setEnabled(boolean)
+    {
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        boolean z0;
+
+        r0 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        z0 := @parameter0: boolean;
+
+        r0.<org.eclipse.jetty.servlets.DoSFilter: boolean _enabled> = z0;
+
+        return;
+    }
+
+    public java.lang.String getWhitelist()
+    {
+        org.eclipse.jetty.servlets.DoSFilter r1;
+        java.util.Iterator $r3;
+        java.util.List $r2;
+        java.lang.StringBuilder $r0;
+        java.lang.Object $r5;
+        java.lang.String $r4, r6;
+        boolean $z0, $z1;
+
+        r1 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        $r0 = new java.lang.StringBuilder;
+
+        specialinvoke $r0.<java.lang.StringBuilder: void <init>()>();
+
+        $r2 = r1.<org.eclipse.jetty.servlets.DoSFilter: java.util.List _whitelist>;
+
+        $r3 = interfaceinvoke $r2.<java.util.List: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r3.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label3;
+
+        $r5 = interfaceinvoke $r3.<java.util.Iterator: java.lang.Object next()>();
+
+        r6 = (java.lang.String) $r5;
+
+        virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r6);
+
+        $z1 = interfaceinvoke $r3.<java.util.Iterator: boolean hasNext()>();
+
+        if $z1 == 0 goto label2;
+
+        virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(",");
+
+     label2:
+        goto label1;
+
+     label3:
+        $r4 = virtualinvoke $r0.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        return $r4;
+    }
+
+    public void setWhitelist(java.lang.String)
+    {
+        org.eclipse.jetty.servlets.DoSFilter r3;
+        java.lang.Object[] $r6;
+        java.lang.String[] $r2;
+        java.util.ArrayList $r0;
+        java.util.List $r4, $r5;
+        int i0, i1;
+        java.lang.String r1, r8;
+        org.eclipse.jetty.util.log.Logger $r7;
+
+        r3 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        r1 := @parameter0: java.lang.String;
+
+        $r0 = new java.util.ArrayList;
+
+        specialinvoke $r0.<java.util.ArrayList: void <init>()>();
+
+        $r2 = virtualinvoke r1.<java.lang.String: java.lang.String[] split(java.lang.String)>(",");
+
+        i0 = lengthof $r2;
+
+        i1 = 0;
+
+     label1:
+        if i1 >= i0 goto label2;
+
+        r8 = $r2[i1];
+
+        specialinvoke r3.<org.eclipse.jetty.servlets.DoSFilter: boolean addWhitelistAddress(java.util.List,java.lang.String)>($r0, r8);
+
+        i1 = i1 + 1;
+
+        goto label1;
+
+     label2:
+        $r4 = r3.<org.eclipse.jetty.servlets.DoSFilter: java.util.List _whitelist>;
+
+        interfaceinvoke $r4.<java.util.List: void clear()>();
+
+        $r5 = r3.<org.eclipse.jetty.servlets.DoSFilter: java.util.List _whitelist>;
+
+        interfaceinvoke $r5.<java.util.List: boolean addAll(java.util.Collection)>($r0);
+
+        $r7 = <org.eclipse.jetty.servlets.DoSFilter: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r6 = newarray (java.lang.Object)[1];
+
+        $r6[0] = $r0;
+
+        interfaceinvoke $r7.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Object[])>("Whitelisted IP addresses: {}", $r6);
+
+        return;
+    }
+
+    public void clearWhitelist()
+    {
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        java.util.List $r1;
+
+        r0 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        $r1 = r0.<org.eclipse.jetty.servlets.DoSFilter: java.util.List _whitelist>;
+
+        interfaceinvoke $r1.<java.util.List: void clear()>();
+
+        return;
+    }
+
+    public boolean addWhitelistAddress(java.lang.String)
+    {
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        java.util.List $r2;
+        java.lang.String r1;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        r1 := @parameter0: java.lang.String;
+
+        $r2 = r0.<org.eclipse.jetty.servlets.DoSFilter: java.util.List _whitelist>;
+
+        $z0 = specialinvoke r0.<org.eclipse.jetty.servlets.DoSFilter: boolean addWhitelistAddress(java.util.List,java.lang.String)>($r2, r1);
+
+        return $z0;
+    }
+
+    private boolean addWhitelistAddress(java.util.List, java.lang.String)
+    {
+        org.eclipse.jetty.servlets.DoSFilter r2;
+        java.util.List r1;
+        int $i0;
+        java.lang.String $r0, r3;
+        boolean $z0, $z1;
+
+        r2 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        r1 := @parameter0: java.util.List;
+
+        r3 := @parameter1: java.lang.String;
+
+        $r0 = virtualinvoke r3.<java.lang.String: java.lang.String trim()>();
+
+        $i0 = virtualinvoke $r0.<java.lang.String: int length()>();
+
+        if $i0 <= 0 goto label1;
+
+        $z0 = interfaceinvoke r1.<java.util.List: boolean add(java.lang.Object)>($r0);
+
+        if $z0 == 0 goto label1;
+
+        $z1 = 1;
+
+        goto label2;
+
+     label1:
+        $z1 = 0;
+
+     label2:
+        return $z1;
+    }
+
+    public boolean removeWhitelistAddress(java.lang.String)
+    {
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        java.util.List $r2;
+        java.lang.String r1;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.servlets.DoSFilter;
+
+        r1 := @parameter0: java.lang.String;
+
+        $r2 = r0.<org.eclipse.jetty.servlets.DoSFilter: java.util.List _whitelist>;
+
+        $z0 = interfaceinvoke $r2.<java.util.List: boolean remove(java.lang.Object)>(r1);
+
+        return $z0;
+    }
+
+    static java.util.Queue[] access$000(org.eclipse.jetty.servlets.DoSFilter)
+    {
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        java.util.Queue[] $r1;
+
+        r0 := @parameter0: org.eclipse.jetty.servlets.DoSFilter;
+
+        $r1 = r0.<org.eclipse.jetty.servlets.DoSFilter: java.util.Queue[] _queue>;
+
+        return $r1;
+    }
+
+    static boolean access$100(org.eclipse.jetty.servlets.DoSFilter)
+    {
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        boolean $z0;
+
+        r0 := @parameter0: org.eclipse.jetty.servlets.DoSFilter;
+
+        $z0 = r0.<org.eclipse.jetty.servlets.DoSFilter: boolean _running>;
+
+        return $z0;
+    }
+
+    static org.eclipse.jetty.util.thread.Timeout access$200(org.eclipse.jetty.servlets.DoSFilter)
+    {
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        org.eclipse.jetty.util.thread.Timeout $r1;
+
+        r0 := @parameter0: org.eclipse.jetty.servlets.DoSFilter;
+
+        $r1 = r0.<org.eclipse.jetty.servlets.DoSFilter: org.eclipse.jetty.util.thread.Timeout _requestTimeoutQ>;
+
+        return $r1;
+    }
+
+    static org.eclipse.jetty.util.thread.Timeout access$300(org.eclipse.jetty.servlets.DoSFilter)
+    {
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        org.eclipse.jetty.util.thread.Timeout $r1;
+
+        r0 := @parameter0: org.eclipse.jetty.servlets.DoSFilter;
+
+        $r1 = r0.<org.eclipse.jetty.servlets.DoSFilter: org.eclipse.jetty.util.thread.Timeout _trackerTimeoutQ>;
+
+        return $r1;
+    }
+
+    static org.eclipse.jetty.util.log.Logger access$400()
+    {
+        org.eclipse.jetty.util.log.Logger $r0;
+
+        $r0 = <org.eclipse.jetty.servlets.DoSFilter: org.eclipse.jetty.util.log.Logger LOG>;
+
+        return $r0;
+    }
+
+    static java.util.concurrent.ConcurrentHashMap access$500(org.eclipse.jetty.servlets.DoSFilter)
+    {
+        org.eclipse.jetty.servlets.DoSFilter r0;
+        java.util.concurrent.ConcurrentHashMap $r1;
+
+        r0 := @parameter0: org.eclipse.jetty.servlets.DoSFilter;
+
+        $r1 = r0.<org.eclipse.jetty.servlets.DoSFilter: java.util.concurrent.ConcurrentHashMap _rateTrackers>;
+
+        return $r1;
+    }
+
+    static void <clinit>()
+    {
+        org.eclipse.jetty.util.log.Logger $r0;
+        java.util.regex.Pattern $r1, $r2, $r3;
+
+        <org.eclipse.jetty.servlets.DoSFilter: int USER_UNKNOWN> = 0;
+
+        <org.eclipse.jetty.servlets.DoSFilter: int USER_IP> = 1;
+
+        <org.eclipse.jetty.servlets.DoSFilter: int USER_SESSION> = 2;
+
+        <org.eclipse.jetty.servlets.DoSFilter: int USER_AUTH> = 2;
+
+        <org.eclipse.jetty.servlets.DoSFilter: java.lang.String ENABLED_INIT_PARAM> = "enabled";
+
+        <org.eclipse.jetty.servlets.DoSFilter: java.lang.String IP_WHITELIST_INIT_PARAM> = "ipWhitelist";
+
+        <org.eclipse.jetty.servlets.DoSFilter: java.lang.String REMOTE_PORT_INIT_PARAM> = "remotePort";
+
+        <org.eclipse.jetty.servlets.DoSFilter: java.lang.String TRACK_SESSIONS_INIT_PARAM> = "trackSessions";
+
+        <org.eclipse.jetty.servlets.DoSFilter: java.lang.String INSERT_HEADERS_INIT_PARAM> = "insertHeaders";
+
+        <org.eclipse.jetty.servlets.DoSFilter: java.lang.String MAX_IDLE_TRACKER_MS_INIT_PARAM> = "maxIdleTrackerMs";
+
+        <org.eclipse.jetty.servlets.DoSFilter: java.lang.String MAX_REQUEST_MS_INIT_PARAM> = "maxRequestMs";
+
+        <org.eclipse.jetty.servlets.DoSFilter: java.lang.String THROTTLE_MS_INIT_PARAM> = "throttleMs";
+
+        <org.eclipse.jetty.servlets.DoSFilter: java.lang.String MAX_WAIT_INIT_PARAM> = "maxWaitMs";
+
+        <org.eclipse.jetty.servlets.DoSFilter: java.lang.String THROTTLED_REQUESTS_INIT_PARAM> = "throttledRequests";
+
+        <org.eclipse.jetty.servlets.DoSFilter: java.lang.String DELAY_MS_INIT_PARAM> = "delayMs";
+
+        <org.eclipse.jetty.servlets.DoSFilter: java.lang.String MAX_REQUESTS_PER_S_INIT_PARAM> = "maxRequestsPerSec";
+
+        <org.eclipse.jetty.servlets.DoSFilter: java.lang.String MANAGED_ATTR_INIT_PARAM> = "managedAttr";
+
+        <org.eclipse.jetty.servlets.DoSFilter: long __DEFAULT_MAX_IDLE_TRACKER_MS_INIT_PARAM> = 30000L;
+
+        <org.eclipse.jetty.servlets.DoSFilter: long __DEFAULT_MAX_REQUEST_MS_INIT_PARAM> = 30000L;
+
+        <org.eclipse.jetty.servlets.DoSFilter: long __DEFAULT_THROTTLE_MS> = 30000L;
+
+        <org.eclipse.jetty.servlets.DoSFilter: int __DEFAULT_MAX_WAIT_MS> = 50;
+
+        <org.eclipse.jetty.servlets.DoSFilter: int __DEFAULT_THROTTLE> = 5;
+
+        <org.eclipse.jetty.servlets.DoSFilter: int __DEFAULT_DELAY_MS> = 100;
+
+        <org.eclipse.jetty.servlets.DoSFilter: int __DEFAULT_MAX_REQUESTS_PER_SEC> = 25;
+
+        <org.eclipse.jetty.servlets.DoSFilter: java.lang.String __THROTTLED> = "DoSFilter.Throttled";
+
+        <org.eclipse.jetty.servlets.DoSFilter: java.lang.String __TRACKER> = "DoSFilter.Tracker";
+
+        <org.eclipse.jetty.servlets.DoSFilter: java.lang.String IPv6_GROUP> = "(\\p{XDigit}{1,4})";
+
+        <org.eclipse.jetty.servlets.DoSFilter: java.lang.String IPv4_GROUP> = "(\\d{1,3})";
+
+        $r0 = staticinvoke <org.eclipse.jetty.util.log.Log: org.eclipse.jetty.util.log.Logger getLogger(java.lang.Class)>(class "Lorg/eclipse/jetty/servlets/DoSFilter;");
+
+        <org.eclipse.jetty.servlets.DoSFilter: org.eclipse.jetty.util.log.Logger LOG> = $r0;
+
+        $r1 = staticinvoke <java.util.regex.Pattern: java.util.regex.Pattern compile(java.lang.String)>("(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})");
+
+        <org.eclipse.jetty.servlets.DoSFilter: java.util.regex.Pattern IPv4_PATTERN> = $r1;
+
+        $r2 = staticinvoke <java.util.regex.Pattern: java.util.regex.Pattern compile(java.lang.String)>("(\\p{XDigit}{1,4}):(\\p{XDigit}{1,4}):(\\p{XDigit}{1,4}):(\\p{XDigit}{1,4}):(\\p{XDigit}{1,4}):(\\p{XDigit}{1,4}):(\\p{XDigit}{1,4}):(\\p{XDigit}{1,4})");
+
+        <org.eclipse.jetty.servlets.DoSFilter: java.util.regex.Pattern IPv6_PATTERN> = $r2;
+
+        $r3 = staticinvoke <java.util.regex.Pattern: java.util.regex.Pattern compile(java.lang.String)>("([^/]+)/(\\d+)");
+
+        <org.eclipse.jetty.servlets.DoSFilter: java.util.regex.Pattern CIDR_PATTERN> = $r3;
+
+        return;
+    }
+}

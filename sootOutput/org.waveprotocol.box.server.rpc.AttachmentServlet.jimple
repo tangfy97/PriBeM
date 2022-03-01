@@ -1,0 +1,694 @@
+public class org.waveprotocol.box.server.rpc.AttachmentServlet extends javax.servlet.http.HttpServlet
+{
+    private static final org.waveprotocol.wave.util.logging.Log LOG;
+    private final org.waveprotocol.box.server.persistence.AttachmentStore store;
+    private final org.waveprotocol.box.server.waveserver.WaveletProvider waveletProvider;
+    private final org.waveprotocol.box.server.authentication.SessionManager sessionManager;
+
+    private void <init>(org.waveprotocol.box.server.persistence.AttachmentStore, org.waveprotocol.box.server.waveserver.WaveletProvider, org.waveprotocol.box.server.authentication.SessionManager)
+    {
+        org.waveprotocol.box.server.authentication.SessionManager r3;
+        org.waveprotocol.box.server.rpc.AttachmentServlet r0;
+        org.waveprotocol.box.server.waveserver.WaveletProvider r2;
+        org.waveprotocol.box.server.persistence.AttachmentStore r1;
+
+        r0 := @this: org.waveprotocol.box.server.rpc.AttachmentServlet;
+
+        r1 := @parameter0: org.waveprotocol.box.server.persistence.AttachmentStore;
+
+        r2 := @parameter1: org.waveprotocol.box.server.waveserver.WaveletProvider;
+
+        r3 := @parameter2: org.waveprotocol.box.server.authentication.SessionManager;
+
+        specialinvoke r0.<javax.servlet.http.HttpServlet: void <init>()>();
+
+        r0.<org.waveprotocol.box.server.rpc.AttachmentServlet: org.waveprotocol.box.server.persistence.AttachmentStore store> = r1;
+
+        r0.<org.waveprotocol.box.server.rpc.AttachmentServlet: org.waveprotocol.box.server.waveserver.WaveletProvider waveletProvider> = r2;
+
+        r0.<org.waveprotocol.box.server.rpc.AttachmentServlet: org.waveprotocol.box.server.authentication.SessionManager sessionManager> = r3;
+
+        return;
+    }
+
+    private static java.lang.String getAttachmentIdFromRequest(javax.servlet.http.HttpServletRequest)
+    {
+        javax.servlet.http.HttpServletRequest r0;
+        int $i0;
+        java.lang.String $r1, $r2, $r3;
+
+        r0 := @parameter0: javax.servlet.http.HttpServletRequest;
+
+        $r1 = interfaceinvoke r0.<javax.servlet.http.HttpServletRequest: java.lang.String getPathInfo()>();
+
+        $i0 = virtualinvoke $r1.<java.lang.String: int length()>();
+
+        if $i0 != 0 goto label1;
+
+        return "";
+
+     label1:
+        $r2 = interfaceinvoke r0.<javax.servlet.http.HttpServletRequest: java.lang.String getPathInfo()>();
+
+        $r3 = virtualinvoke $r2.<java.lang.String: java.lang.String substring(int)>(1);
+
+        return $r3;
+    }
+
+    private static java.lang.String getFileNameFromRequest(javax.servlet.http.HttpServletRequest)
+    {
+        javax.servlet.http.HttpServletRequest r0;
+        java.lang.String $r1, $r2;
+
+        r0 := @parameter0: javax.servlet.http.HttpServletRequest;
+
+        $r1 = interfaceinvoke r0.<javax.servlet.http.HttpServletRequest: java.lang.String getParameter(java.lang.String)>("fileName");
+
+        if $r1 == null goto label1;
+
+        $r2 = $r1;
+
+        goto label2;
+
+     label1:
+        $r2 = "";
+
+     label2:
+        return $r2;
+    }
+
+    private static org.waveprotocol.wave.model.id.WaveletName waveRef2WaveletName(java.lang.String)
+    {
+        org.waveprotocol.wave.model.id.WaveletName $r5;
+        org.waveprotocol.wave.model.id.WaveId $r2;
+        org.waveprotocol.wave.model.waveref.WaveRef $r1;
+        org.waveprotocol.wave.model.id.WaveletId $r3, $r12;
+        org.waveprotocol.wave.model.waveref.InvalidWaveRefException $r6;
+        java.lang.StringBuilder $r7, $r9, $r10;
+        org.waveprotocol.wave.util.logging.Log $r8;
+        java.lang.String r0, $r4, $r11;
+
+        r0 := @parameter0: java.lang.String;
+
+     label1:
+        $r1 = staticinvoke <org.waveprotocol.wave.util.escapers.jvm.JavaWaverefEncoder: org.waveprotocol.wave.model.waveref.WaveRef decodeWaveRefFromPath(java.lang.String)>(r0);
+
+     label2:
+        goto label4;
+
+     label3:
+        $r6 := @caughtexception;
+
+        $r8 = <org.waveprotocol.box.server.rpc.AttachmentServlet: org.waveprotocol.wave.util.logging.Log LOG>;
+
+        $r7 = new java.lang.StringBuilder;
+
+        specialinvoke $r7.<java.lang.StringBuilder: void <init>()>();
+
+        $r9 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Cannot decode: ");
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r0);
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r8.<org.waveprotocol.wave.util.logging.Log: void warning(java.lang.String,java.lang.Throwable)>($r11, $r6);
+
+        return null;
+
+     label4:
+        $r2 = virtualinvoke $r1.<org.waveprotocol.wave.model.waveref.WaveRef: org.waveprotocol.wave.model.id.WaveId getWaveId()>();
+
+        $r3 = virtualinvoke $r1.<org.waveprotocol.wave.model.waveref.WaveRef: org.waveprotocol.wave.model.id.WaveletId getWaveletId()>();
+
+        if $r3 == null goto label5;
+
+        $r12 = virtualinvoke $r1.<org.waveprotocol.wave.model.waveref.WaveRef: org.waveprotocol.wave.model.id.WaveletId getWaveletId()>();
+
+        goto label6;
+
+     label5:
+        $r4 = virtualinvoke $r2.<org.waveprotocol.wave.model.id.WaveId: java.lang.String getDomain()>();
+
+        $r12 = staticinvoke <org.waveprotocol.wave.model.id.WaveletId: org.waveprotocol.wave.model.id.WaveletId of(java.lang.String,java.lang.String)>($r4, "conv+root");
+
+     label6:
+        $r5 = staticinvoke <org.waveprotocol.wave.model.id.WaveletName: org.waveprotocol.wave.model.id.WaveletName of(org.waveprotocol.wave.model.id.WaveId,org.waveprotocol.wave.model.id.WaveletId)>($r2, $r12);
+
+        return $r5;
+
+        catch org.waveprotocol.wave.model.waveref.InvalidWaveRefException from label1 to label2 with label3;
+    }
+
+    private static java.lang.String getWaveRefFromRequest(javax.servlet.http.HttpServletRequest)
+    {
+        javax.servlet.http.HttpServletRequest r0;
+        java.lang.StringBuilder $r3, $r5, $r6;
+        org.waveprotocol.wave.util.logging.Log $r4;
+        java.lang.String $r1, $r7, r8, $r9;
+        java.io.UnsupportedEncodingException $r2;
+
+        r0 := @parameter0: javax.servlet.http.HttpServletRequest;
+
+        $r1 = interfaceinvoke r0.<javax.servlet.http.HttpServletRequest: java.lang.String getParameter(java.lang.String)>("waveRef");
+
+        r8 = null;
+
+        if $r1 == null goto label4;
+
+     label1:
+        r8 = staticinvoke <java.net.URLDecoder: java.lang.String decode(java.lang.String,java.lang.String)>($r1, "UTF-8");
+
+     label2:
+        goto label4;
+
+     label3:
+        $r2 := @caughtexception;
+
+        $r4 = <org.waveprotocol.box.server.rpc.AttachmentServlet: org.waveprotocol.wave.util.logging.Log LOG>;
+
+        $r3 = new java.lang.StringBuilder;
+
+        specialinvoke $r3.<java.lang.StringBuilder: void <init>()>();
+
+        $r5 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Problem decoding: ");
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r1);
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r4.<org.waveprotocol.wave.util.logging.Log: void warning(java.lang.String,java.lang.Throwable)>($r7, $r2);
+
+     label4:
+        if r8 == null goto label5;
+
+        $r9 = r8;
+
+        goto label6;
+
+     label5:
+        $r9 = "";
+
+     label6:
+        return $r9;
+
+        catch java.io.UnsupportedEncodingException from label1 to label2 with label3;
+    }
+
+    private static java.lang.String getMimeTypeByFileName(java.lang.String)
+    {
+        java.lang.String r0, r1;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7;
+
+        r0 := @parameter0: java.lang.String;
+
+        r1 = "application/octet-stream";
+
+        $z0 = virtualinvoke r0.<java.lang.String: boolean endsWith(java.lang.String)>(".ico");
+
+        if $z0 == 0 goto label1;
+
+        r1 = "image/png;";
+
+        goto label8;
+
+     label1:
+        $z1 = virtualinvoke r0.<java.lang.String: boolean endsWith(java.lang.String)>(".xml");
+
+        if $z1 == 0 goto label2;
+
+        r1 = "text/plain;";
+
+        goto label8;
+
+     label2:
+        $z2 = virtualinvoke r0.<java.lang.String: boolean endsWith(java.lang.String)>(".png");
+
+        if $z2 == 0 goto label3;
+
+        r1 = "image/png;";
+
+        goto label8;
+
+     label3:
+        $z3 = virtualinvoke r0.<java.lang.String: boolean endsWith(java.lang.String)>(".html");
+
+        if $z3 == 0 goto label4;
+
+        r1 = "text/html;";
+
+        goto label8;
+
+     label4:
+        $z4 = virtualinvoke r0.<java.lang.String: boolean endsWith(java.lang.String)>(".doc");
+
+        if $z4 == 0 goto label5;
+
+        r1 = "application/msword;";
+
+        goto label8;
+
+     label5:
+        $z5 = virtualinvoke r0.<java.lang.String: boolean endsWith(java.lang.String)>(".pdf");
+
+        if $z5 == 0 goto label6;
+
+        r1 = "application/pdf;";
+
+        goto label8;
+
+     label6:
+        $z6 = virtualinvoke r0.<java.lang.String: boolean endsWith(java.lang.String)>(".mp3");
+
+        if $z6 == 0 goto label7;
+
+        r1 = "audio/mpeg;";
+
+        goto label8;
+
+     label7:
+        $z7 = virtualinvoke r0.<java.lang.String: boolean endsWith(java.lang.String)>(".gif");
+
+        if $z7 == 0 goto label8;
+
+        r1 = "image/gif;";
+
+     label8:
+        return r1;
+    }
+
+    protected void doGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse) throws java.io.IOException
+    {
+        org.waveprotocol.box.server.waveserver.WaveletProvider $r10;
+        java.util.Date $r19;
+        org.waveprotocol.wave.model.wave.ParticipantId $r9;
+        org.waveprotocol.box.server.authentication.SessionManager $r7;
+        org.waveprotocol.wave.util.logging.Log $r22, $r29;
+        boolean $z0, $z1, $z2, z3;
+        javax.servlet.http.HttpSession $r8;
+        org.waveprotocol.wave.model.id.WaveletName $r5;
+        org.waveprotocol.box.server.persistence.AttachmentStore $r11;
+        java.lang.StringBuilder $r14, $r15, $r16, $r17, $r21, $r23, $r24, $r25, $r28, $r30, $r31, $r32, $r33;
+        long $l0, $l2, $l4;
+        javax.servlet.http.HttpServletRequest r0;
+        javax.servlet.ServletOutputStream $r20;
+        int $i1, $i3;
+        java.lang.String $r1, $r2, $r3, $r13, $r18, $r26, $r34;
+        org.waveprotocol.box.server.persistence.AttachmentStore$AttachmentData $r12;
+        javax.servlet.http.HttpServletResponse r4;
+        org.waveprotocol.box.server.rpc.AttachmentServlet r6;
+        org.waveprotocol.box.server.waveserver.WaveServerException $r27;
+
+        r6 := @this: org.waveprotocol.box.server.rpc.AttachmentServlet;
+
+        r0 := @parameter0: javax.servlet.http.HttpServletRequest;
+
+        r4 := @parameter1: javax.servlet.http.HttpServletResponse;
+
+        $r1 = staticinvoke <org.waveprotocol.box.server.rpc.AttachmentServlet: java.lang.String getAttachmentIdFromRequest(javax.servlet.http.HttpServletRequest)>(r0);
+
+        $r2 = staticinvoke <org.waveprotocol.box.server.rpc.AttachmentServlet: java.lang.String getFileNameFromRequest(javax.servlet.http.HttpServletRequest)>(r0);
+
+        $r3 = staticinvoke <org.waveprotocol.box.server.rpc.AttachmentServlet: java.lang.String getWaveRefFromRequest(javax.servlet.http.HttpServletRequest)>(r0);
+
+        $z0 = virtualinvoke $r1.<java.lang.String: boolean isEmpty()>();
+
+        if $z0 != 0 goto label1;
+
+        $z1 = virtualinvoke $r2.<java.lang.String: boolean isEmpty()>();
+
+        if $z1 != 0 goto label1;
+
+        $z2 = virtualinvoke $r3.<java.lang.String: boolean isEmpty()>();
+
+        if $z2 == 0 goto label2;
+
+     label1:
+        interfaceinvoke r4.<javax.servlet.http.HttpServletResponse: void sendError(int)>(404);
+
+        return;
+
+     label2:
+        $r5 = staticinvoke <org.waveprotocol.box.server.rpc.AttachmentServlet: org.waveprotocol.wave.model.id.WaveletName waveRef2WaveletName(java.lang.String)>($r3);
+
+        if $r5 != null goto label3;
+
+        interfaceinvoke r4.<javax.servlet.http.HttpServletResponse: void sendError(int)>(404);
+
+        return;
+
+     label3:
+        $r7 = r6.<org.waveprotocol.box.server.rpc.AttachmentServlet: org.waveprotocol.box.server.authentication.SessionManager sessionManager>;
+
+        $r8 = interfaceinvoke r0.<javax.servlet.http.HttpServletRequest: javax.servlet.http.HttpSession getSession(boolean)>(0);
+
+        $r9 = interfaceinvoke $r7.<org.waveprotocol.box.server.authentication.SessionManager: org.waveprotocol.wave.model.wave.ParticipantId getLoggedInUser(javax.servlet.http.HttpSession)>($r8);
+
+        z3 = 0;
+
+     label4:
+        $r10 = r6.<org.waveprotocol.box.server.rpc.AttachmentServlet: org.waveprotocol.box.server.waveserver.WaveletProvider waveletProvider>;
+
+        z3 = interfaceinvoke $r10.<org.waveprotocol.box.server.waveserver.WaveletProvider: boolean checkAccessPermission(org.waveprotocol.wave.model.id.WaveletName,org.waveprotocol.wave.model.wave.ParticipantId)>($r5, $r9);
+
+     label5:
+        goto label7;
+
+     label6:
+        $r27 := @caughtexception;
+
+        $r29 = <org.waveprotocol.box.server.rpc.AttachmentServlet: org.waveprotocol.wave.util.logging.Log LOG>;
+
+        $r28 = new java.lang.StringBuilder;
+
+        specialinvoke $r28.<java.lang.StringBuilder: void <init>()>();
+
+        $r30 = virtualinvoke $r28.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Problem while authorizing user: ");
+
+        $r31 = virtualinvoke $r30.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r9);
+
+        $r32 = virtualinvoke $r31.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" for wavelet: ");
+
+        $r33 = virtualinvoke $r32.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r5);
+
+        $r34 = virtualinvoke $r33.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r29.<org.waveprotocol.wave.util.logging.Log: void warning(java.lang.String,java.lang.Throwable)>($r34, $r27);
+
+     label7:
+        if z3 != 0 goto label8;
+
+        interfaceinvoke r4.<javax.servlet.http.HttpServletResponse: void sendError(int)>(403);
+
+        return;
+
+     label8:
+        $r11 = r6.<org.waveprotocol.box.server.rpc.AttachmentServlet: org.waveprotocol.box.server.persistence.AttachmentStore store>;
+
+        $r12 = interfaceinvoke $r11.<org.waveprotocol.box.server.persistence.AttachmentStore: org.waveprotocol.box.server.persistence.AttachmentStore$AttachmentData getAttachment(org.waveprotocol.wave.model.id.WaveletName,java.lang.String)>($r5, $r1);
+
+        if $r12 != null goto label9;
+
+        interfaceinvoke r4.<javax.servlet.http.HttpServletResponse: void sendError(int)>(404);
+
+        return;
+
+     label9:
+        $r13 = staticinvoke <org.waveprotocol.box.server.rpc.AttachmentServlet: java.lang.String getMimeTypeByFileName(java.lang.String)>($r2);
+
+        interfaceinvoke r4.<javax.servlet.http.HttpServletResponse: void setContentType(java.lang.String)>($r13);
+
+        $l0 = interfaceinvoke $r12.<org.waveprotocol.box.server.persistence.AttachmentStore$AttachmentData: long getContentSize()>();
+
+        $i1 = (int) $l0;
+
+        interfaceinvoke r4.<javax.servlet.http.HttpServletResponse: void setContentLength(int)>($i1);
+
+        $r14 = new java.lang.StringBuilder;
+
+        specialinvoke $r14.<java.lang.StringBuilder: void <init>()>();
+
+        $r15 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("attachment; filename=\"");
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r2);
+
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("\"");
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke r4.<javax.servlet.http.HttpServletResponse: void setHeader(java.lang.String,java.lang.String)>("Content-Disposition", $r18);
+
+        interfaceinvoke r4.<javax.servlet.http.HttpServletResponse: void setStatus(int)>(200);
+
+        $l2 = interfaceinvoke $r12.<org.waveprotocol.box.server.persistence.AttachmentStore$AttachmentData: long getContentSize()>();
+
+        $i3 = (int) $l2;
+
+        interfaceinvoke r4.<javax.servlet.http.HttpServletResponse: void setContentLength(int)>($i3);
+
+        $r19 = interfaceinvoke $r12.<org.waveprotocol.box.server.persistence.AttachmentStore$AttachmentData: java.util.Date getLastModifiedDate()>();
+
+        $l4 = virtualinvoke $r19.<java.util.Date: long getTime()>();
+
+        interfaceinvoke r4.<javax.servlet.http.HttpServletResponse: void setDateHeader(java.lang.String,long)>("Last-Modified", $l4);
+
+        $r20 = interfaceinvoke r4.<javax.servlet.http.HttpServletResponse: javax.servlet.ServletOutputStream getOutputStream()>();
+
+        interfaceinvoke $r12.<org.waveprotocol.box.server.persistence.AttachmentStore$AttachmentData: void writeDataTo(java.io.OutputStream)>($r20);
+
+        $r22 = <org.waveprotocol.box.server.rpc.AttachmentServlet: org.waveprotocol.wave.util.logging.Log LOG>;
+
+        $r21 = new java.lang.StringBuilder;
+
+        specialinvoke $r21.<java.lang.StringBuilder: void <init>()>();
+
+        $r23 = virtualinvoke $r21.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Fetched attachment with id \'");
+
+        $r24 = virtualinvoke $r23.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r1);
+
+        $r25 = virtualinvoke $r24.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("\'");
+
+        $r26 = virtualinvoke $r25.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r22.<org.waveprotocol.wave.util.logging.Log: void info(java.lang.String)>($r26);
+
+        return;
+
+        catch org.waveprotocol.box.server.waveserver.WaveServerException from label4 to label5 with label6;
+    }
+
+    protected void doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse) throws javax.servlet.ServletException, java.io.IOException
+    {
+        org.waveprotocol.box.server.waveserver.WaveletProvider $r11;
+        org.apache.commons.fileupload.servlet.ServletFileUpload $r3;
+        org.waveprotocol.wave.model.wave.ParticipantId $r10;
+        org.waveprotocol.box.server.authentication.SessionManager $r8;
+        org.waveprotocol.wave.util.logging.Log $r21, $r25;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6;
+        javax.servlet.http.HttpSession $r9;
+        java.io.PrintWriter $r22, $r26;
+        org.waveprotocol.wave.model.id.WaveletName $r6;
+        org.waveprotocol.box.server.persistence.AttachmentStore $r14;
+        java.lang.Exception $r30;
+        java.util.List $r4;
+        org.apache.commons.fileupload.disk.DiskFileItemFactory $r2;
+        java.lang.StringBuilder $r16, $r17, $r18, $r19, $r31, $r32, $r34;
+        java.lang.Object[] $r23;
+        javax.servlet.http.HttpServletRequest r0;
+        java.lang.String $r12, $r13, $r20, $r24, $r28, $r29, $r33, $r35, r36, r37;
+        java.util.Iterator $r5;
+        org.apache.commons.fileupload.FileItem r38, r39;
+        javax.servlet.http.HttpServletResponse r1;
+        org.waveprotocol.box.server.rpc.AttachmentServlet r7;
+        java.lang.Object $r27;
+        java.io.InputStream $r15;
+
+        r7 := @this: org.waveprotocol.box.server.rpc.AttachmentServlet;
+
+        r0 := @parameter0: javax.servlet.http.HttpServletRequest;
+
+        r1 := @parameter1: javax.servlet.http.HttpServletResponse;
+
+        $z0 = staticinvoke <org.apache.commons.fileupload.servlet.ServletFileUpload: boolean isMultipartContent(javax.servlet.http.HttpServletRequest)>(r0);
+
+        if $z0 == 0 goto label18;
+
+        $r2 = new org.apache.commons.fileupload.disk.DiskFileItemFactory;
+
+        specialinvoke $r2.<org.apache.commons.fileupload.disk.DiskFileItemFactory: void <init>()>();
+
+        $r3 = new org.apache.commons.fileupload.servlet.ServletFileUpload;
+
+        specialinvoke $r3.<org.apache.commons.fileupload.servlet.ServletFileUpload: void <init>(org.apache.commons.fileupload.FileItemFactory)>($r2);
+
+     label01:
+        $r4 = virtualinvoke $r3.<org.apache.commons.fileupload.servlet.ServletFileUpload: java.util.List parseRequest(javax.servlet.http.HttpServletRequest)>(r0);
+
+        r36 = null;
+
+        r37 = null;
+
+        r38 = null;
+
+        $r5 = interfaceinvoke $r4.<java.util.List: java.util.Iterator iterator()>();
+
+     label02:
+        $z1 = interfaceinvoke $r5.<java.util.Iterator: boolean hasNext()>();
+
+        if $z1 == 0 goto label06;
+
+        $r27 = interfaceinvoke $r5.<java.util.Iterator: java.lang.Object next()>();
+
+        r39 = (org.apache.commons.fileupload.FileItem) $r27;
+
+        $z4 = interfaceinvoke r39.<org.apache.commons.fileupload.FileItem: boolean isFormField()>();
+
+        if $z4 == 0 goto label04;
+
+        $r28 = interfaceinvoke r39.<org.apache.commons.fileupload.FileItem: java.lang.String getFieldName()>();
+
+        $z5 = virtualinvoke $r28.<java.lang.String: boolean equals(java.lang.Object)>("attachmentId");
+
+        if $z5 == 0 goto label03;
+
+        r36 = interfaceinvoke r39.<org.apache.commons.fileupload.FileItem: java.lang.String getString()>();
+
+     label03:
+        $r29 = interfaceinvoke r39.<org.apache.commons.fileupload.FileItem: java.lang.String getFieldName()>();
+
+        $z6 = virtualinvoke $r29.<java.lang.String: boolean equals(java.lang.Object)>("waveRef");
+
+        if $z6 == 0 goto label05;
+
+        r37 = interfaceinvoke r39.<org.apache.commons.fileupload.FileItem: java.lang.String getString()>();
+
+        goto label05;
+
+     label04:
+        r38 = r39;
+
+     label05:
+        goto label02;
+
+     label06:
+        if r36 != null goto label08;
+
+        interfaceinvoke r1.<javax.servlet.http.HttpServletResponse: void sendError(int,java.lang.String)>(400, "No attachment id in request.");
+
+     label07:
+        return;
+
+     label08:
+        if r37 != null goto label10;
+
+        interfaceinvoke r1.<javax.servlet.http.HttpServletResponse: void sendError(int,java.lang.String)>(400, "No wave reference in request.");
+
+     label09:
+        return;
+
+     label10:
+        $r6 = staticinvoke <org.waveprotocol.box.server.rpc.AttachmentServlet: org.waveprotocol.wave.model.id.WaveletName waveRef2WaveletName(java.lang.String)>(r37);
+
+        $r8 = r7.<org.waveprotocol.box.server.rpc.AttachmentServlet: org.waveprotocol.box.server.authentication.SessionManager sessionManager>;
+
+        $r9 = interfaceinvoke r0.<javax.servlet.http.HttpServletRequest: javax.servlet.http.HttpSession getSession(boolean)>(0);
+
+        $r10 = interfaceinvoke $r8.<org.waveprotocol.box.server.authentication.SessionManager: org.waveprotocol.wave.model.wave.ParticipantId getLoggedInUser(javax.servlet.http.HttpSession)>($r9);
+
+        $r11 = r7.<org.waveprotocol.box.server.rpc.AttachmentServlet: org.waveprotocol.box.server.waveserver.WaveletProvider waveletProvider>;
+
+        $z2 = interfaceinvoke $r11.<org.waveprotocol.box.server.waveserver.WaveletProvider: boolean checkAccessPermission(org.waveprotocol.wave.model.id.WaveletName,org.waveprotocol.wave.model.wave.ParticipantId)>($r6, $r10);
+
+        if $z2 != 0 goto label12;
+
+        interfaceinvoke r1.<javax.servlet.http.HttpServletResponse: void sendError(int)>(403);
+
+     label11:
+        return;
+
+     label12:
+        $r12 = interfaceinvoke r38.<org.apache.commons.fileupload.FileItem: java.lang.String getName()>();
+
+        if $r12 == null goto label15;
+
+        $r13 = staticinvoke <org.apache.commons.io.FilenameUtils: java.lang.String getName(java.lang.String)>($r12);
+
+        $r14 = r7.<org.waveprotocol.box.server.rpc.AttachmentServlet: org.waveprotocol.box.server.persistence.AttachmentStore store>;
+
+        $r15 = interfaceinvoke r38.<org.apache.commons.fileupload.FileItem: java.io.InputStream getInputStream()>();
+
+        $z3 = interfaceinvoke $r14.<org.waveprotocol.box.server.persistence.AttachmentStore: boolean storeAttachment(org.waveprotocol.wave.model.id.WaveletName,java.lang.String,java.io.InputStream)>($r6, r36, $r15);
+
+        if $z3 == 0 goto label13;
+
+        interfaceinvoke r1.<javax.servlet.http.HttpServletResponse: void setStatus(int)>(201);
+
+        $r23 = newarray (java.lang.Object)[2];
+
+        $r23[0] = $r13;
+
+        $r23[1] = r36;
+
+        $r24 = staticinvoke <java.lang.String: java.lang.String format(java.lang.String,java.lang.Object[])>("The file with name: %s and id: %s was created successfully.", $r23);
+
+        $r25 = <org.waveprotocol.box.server.rpc.AttachmentServlet: org.waveprotocol.wave.util.logging.Log LOG>;
+
+        virtualinvoke $r25.<org.waveprotocol.wave.util.logging.Log: void fine(java.lang.String)>($r24);
+
+        $r26 = interfaceinvoke r1.<javax.servlet.http.HttpServletResponse: java.io.PrintWriter getWriter()>();
+
+        virtualinvoke $r26.<java.io.PrintWriter: void print(java.lang.String)>("OK");
+
+        goto label14;
+
+     label13:
+        interfaceinvoke r1.<javax.servlet.http.HttpServletResponse: void setStatus(int)>(201);
+
+        $r16 = new java.lang.StringBuilder;
+
+        specialinvoke $r16.<java.lang.StringBuilder: void <init>()>();
+
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Attachment ID ");
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r36);
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" already exists!");
+
+        $r20 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r21 = <org.waveprotocol.box.server.rpc.AttachmentServlet: org.waveprotocol.wave.util.logging.Log LOG>;
+
+        virtualinvoke $r21.<org.waveprotocol.wave.util.logging.Log: void warning(java.lang.String)>($r20);
+
+        $r22 = interfaceinvoke r1.<javax.servlet.http.HttpServletResponse: java.io.PrintWriter getWriter()>();
+
+        virtualinvoke $r22.<java.io.PrintWriter: void print(java.lang.String)>($r20);
+
+     label14:
+        interfaceinvoke r1.<javax.servlet.http.HttpServletResponse: void flushBuffer()>();
+
+     label15:
+        goto label17;
+
+     label16:
+        $r30 := @caughtexception;
+
+        $r31 = new java.lang.StringBuilder;
+
+        specialinvoke $r31.<java.lang.StringBuilder: void <init>()>();
+
+        $r32 = virtualinvoke $r31.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("An error occurred while creating the file : ");
+
+        $r33 = virtualinvoke $r30.<java.lang.Exception: java.lang.String getMessage()>();
+
+        $r34 = virtualinvoke $r32.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r33);
+
+        $r35 = virtualinvoke $r34.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke r1.<javax.servlet.http.HttpServletResponse: void sendError(int,java.lang.String)>(500, $r35);
+
+     label17:
+        goto label19;
+
+     label18:
+        interfaceinvoke r1.<javax.servlet.http.HttpServletResponse: void sendError(int,java.lang.String)>(415, "Request contents type is not supported by the servlet.");
+
+     label19:
+        return;
+
+        catch java.lang.Exception from label01 to label07 with label16;
+        catch java.lang.Exception from label08 to label09 with label16;
+        catch java.lang.Exception from label10 to label11 with label16;
+        catch java.lang.Exception from label12 to label15 with label16;
+    }
+
+    static void <clinit>()
+    {
+        org.waveprotocol.wave.util.logging.Log $r0;
+
+        $r0 = staticinvoke <org.waveprotocol.wave.util.logging.Log: org.waveprotocol.wave.util.logging.Log get(java.lang.Class)>(class "Lorg/waveprotocol/box/server/rpc/AttachmentServlet;");
+
+        <org.waveprotocol.box.server.rpc.AttachmentServlet: org.waveprotocol.wave.util.logging.Log LOG> = $r0;
+
+        return;
+    }
+}

@@ -1,0 +1,691 @@
+public class org.eclipse.jetty.security.authentication.DigestAuthenticator extends org.eclipse.jetty.security.authentication.LoginAuthenticator
+{
+    private static final org.eclipse.jetty.util.log.Logger LOG;
+    java.security.SecureRandom _random;
+    private long _maxNonceAgeMs;
+    private int _maxNC;
+    private java.util.concurrent.ConcurrentMap _nonceMap;
+    private java.util.Queue _nonceQueue;
+
+    public void <init>()
+    {
+        java.security.SecureRandom $r1;
+        org.eclipse.jetty.security.authentication.DigestAuthenticator r0;
+        java.util.concurrent.ConcurrentHashMap $r2;
+        java.util.concurrent.ConcurrentLinkedQueue $r3;
+
+        r0 := @this: org.eclipse.jetty.security.authentication.DigestAuthenticator;
+
+        specialinvoke r0.<org.eclipse.jetty.security.authentication.LoginAuthenticator: void <init>()>();
+
+        $r1 = new java.security.SecureRandom;
+
+        specialinvoke $r1.<java.security.SecureRandom: void <init>()>();
+
+        r0.<org.eclipse.jetty.security.authentication.DigestAuthenticator: java.security.SecureRandom _random> = $r1;
+
+        r0.<org.eclipse.jetty.security.authentication.DigestAuthenticator: long _maxNonceAgeMs> = 60000L;
+
+        r0.<org.eclipse.jetty.security.authentication.DigestAuthenticator: int _maxNC> = 1024;
+
+        $r2 = new java.util.concurrent.ConcurrentHashMap;
+
+        specialinvoke $r2.<java.util.concurrent.ConcurrentHashMap: void <init>()>();
+
+        r0.<org.eclipse.jetty.security.authentication.DigestAuthenticator: java.util.concurrent.ConcurrentMap _nonceMap> = $r2;
+
+        $r3 = new java.util.concurrent.ConcurrentLinkedQueue;
+
+        specialinvoke $r3.<java.util.concurrent.ConcurrentLinkedQueue: void <init>()>();
+
+        r0.<org.eclipse.jetty.security.authentication.DigestAuthenticator: java.util.Queue _nonceQueue> = $r3;
+
+        return;
+    }
+
+    public void setConfiguration(org.eclipse.jetty.security.Authenticator$AuthConfiguration)
+    {
+        java.lang.Long $r3;
+        org.eclipse.jetty.security.authentication.DigestAuthenticator r0;
+        long $l0;
+        org.eclipse.jetty.security.Authenticator$AuthConfiguration r1;
+        java.lang.String $r2;
+
+        r0 := @this: org.eclipse.jetty.security.authentication.DigestAuthenticator;
+
+        r1 := @parameter0: org.eclipse.jetty.security.Authenticator$AuthConfiguration;
+
+        specialinvoke r0.<org.eclipse.jetty.security.authentication.LoginAuthenticator: void setConfiguration(org.eclipse.jetty.security.Authenticator$AuthConfiguration)>(r1);
+
+        $r2 = interfaceinvoke r1.<org.eclipse.jetty.security.Authenticator$AuthConfiguration: java.lang.String getInitParameter(java.lang.String)>("maxNonceAge");
+
+        if $r2 == null goto label1;
+
+        $r3 = staticinvoke <java.lang.Long: java.lang.Long valueOf(java.lang.String)>($r2);
+
+        $l0 = virtualinvoke $r3.<java.lang.Long: long longValue()>();
+
+        r0.<org.eclipse.jetty.security.authentication.DigestAuthenticator: long _maxNonceAgeMs> = $l0;
+
+     label1:
+        return;
+    }
+
+    public int getMaxNonceCount()
+    {
+        org.eclipse.jetty.security.authentication.DigestAuthenticator r0;
+        int $i0;
+
+        r0 := @this: org.eclipse.jetty.security.authentication.DigestAuthenticator;
+
+        $i0 = r0.<org.eclipse.jetty.security.authentication.DigestAuthenticator: int _maxNC>;
+
+        return $i0;
+    }
+
+    public void setMaxNonceCount(int)
+    {
+        org.eclipse.jetty.security.authentication.DigestAuthenticator r0;
+        int i0;
+
+        r0 := @this: org.eclipse.jetty.security.authentication.DigestAuthenticator;
+
+        i0 := @parameter0: int;
+
+        r0.<org.eclipse.jetty.security.authentication.DigestAuthenticator: int _maxNC> = i0;
+
+        return;
+    }
+
+    public void setMaxNonceAge(long)
+    {
+        org.eclipse.jetty.security.authentication.DigestAuthenticator r0;
+        long l0;
+
+        r0 := @this: org.eclipse.jetty.security.authentication.DigestAuthenticator;
+
+        l0 := @parameter0: long;
+
+        r0.<org.eclipse.jetty.security.authentication.DigestAuthenticator: long _maxNonceAgeMs> = l0;
+
+        return;
+    }
+
+    public long getMaxNonceAge()
+    {
+        org.eclipse.jetty.security.authentication.DigestAuthenticator r0;
+        long $l0;
+
+        r0 := @this: org.eclipse.jetty.security.authentication.DigestAuthenticator;
+
+        $l0 = r0.<org.eclipse.jetty.security.authentication.DigestAuthenticator: long _maxNonceAgeMs>;
+
+        return $l0;
+    }
+
+    public java.lang.String getAuthMethod()
+    {
+        org.eclipse.jetty.security.authentication.DigestAuthenticator r0;
+
+        r0 := @this: org.eclipse.jetty.security.authentication.DigestAuthenticator;
+
+        return "DIGEST";
+    }
+
+    public boolean secureResponse(javax.servlet.ServletRequest, javax.servlet.ServletResponse, boolean, org.eclipse.jetty.server.Authentication$User) throws org.eclipse.jetty.security.ServerAuthException
+    {
+        javax.servlet.ServletRequest r1;
+        javax.servlet.ServletResponse r2;
+        org.eclipse.jetty.server.Authentication$User r3;
+        org.eclipse.jetty.security.authentication.DigestAuthenticator r0;
+        boolean z0;
+
+        r0 := @this: org.eclipse.jetty.security.authentication.DigestAuthenticator;
+
+        r1 := @parameter0: javax.servlet.ServletRequest;
+
+        r2 := @parameter1: javax.servlet.ServletResponse;
+
+        z0 := @parameter2: boolean;
+
+        r3 := @parameter3: org.eclipse.jetty.server.Authentication$User;
+
+        return 1;
+    }
+
+    public org.eclipse.jetty.server.Authentication validateRequest(javax.servlet.ServletRequest, javax.servlet.ServletResponse, boolean) throws org.eclipse.jetty.security.ServerAuthException
+    {
+        org.eclipse.jetty.server.Request $r16, $r28;
+        java.lang.StringBuilder $r7, $r8, $r12, $r13, $r14, $r15, $r18, $r19, $r20, $r21, $r42, $r44, $r45;
+        java.lang.Object[] $r47;
+        org.eclipse.jetty.server.UserIdentity $r30;
+        javax.servlet.http.HttpServletRequest r1;
+        java.lang.String $r4, $r6, $r11, $r17, $r22, $r27, $r29, $r32, $r33, $r34, $r35, $r36, $r37, $r38, $r39, $r40, $r41, $r46, r51, r52, r53;
+        org.eclipse.jetty.security.authentication.DigestAuthenticator$Digest $r26;
+        java.io.IOException $r49;
+        org.eclipse.jetty.security.LoginService $r10;
+        org.eclipse.jetty.security.ServerAuthException $r50;
+        org.eclipse.jetty.security.authentication.DeferredAuthentication $r48;
+        boolean z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9, z10, $z11, $z12;
+        org.eclipse.jetty.util.QuotedStringTokenizer $r25;
+        javax.servlet.ServletResponse r2;
+        int $i0, $i1, $i2;
+        javax.servlet.ServletRequest r0;
+        javax.servlet.http.HttpServletResponse r3;
+        org.eclipse.jetty.security.UserAuthentication $r31;
+        org.eclipse.jetty.server.Authentication $r5, $r23;
+        org.eclipse.jetty.security.authentication.DigestAuthenticator r9;
+        org.eclipse.jetty.util.log.Logger $r24, $r43;
+
+        r9 := @this: org.eclipse.jetty.security.authentication.DigestAuthenticator;
+
+        r0 := @parameter0: javax.servlet.ServletRequest;
+
+        r2 := @parameter1: javax.servlet.ServletResponse;
+
+        z0 := @parameter2: boolean;
+
+        if z0 != 0 goto label01;
+
+        $r48 = new org.eclipse.jetty.security.authentication.DeferredAuthentication;
+
+        specialinvoke $r48.<org.eclipse.jetty.security.authentication.DeferredAuthentication: void <init>(org.eclipse.jetty.security.authentication.LoginAuthenticator)>(r9);
+
+        return $r48;
+
+     label01:
+        r1 = (javax.servlet.http.HttpServletRequest) r0;
+
+        r3 = (javax.servlet.http.HttpServletResponse) r2;
+
+        $r4 = interfaceinvoke r1.<javax.servlet.http.HttpServletRequest: java.lang.String getHeader(java.lang.String)>("Authorization");
+
+     label02:
+        z10 = 0;
+
+        if $r4 == null goto label24;
+
+        $r24 = <org.eclipse.jetty.security.authentication.DigestAuthenticator: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $z1 = interfaceinvoke $r24.<org.eclipse.jetty.util.log.Logger: boolean isDebugEnabled()>();
+
+        if $z1 == 0 goto label03;
+
+        $r43 = <org.eclipse.jetty.security.authentication.DigestAuthenticator: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r42 = new java.lang.StringBuilder;
+
+        specialinvoke $r42.<java.lang.StringBuilder: void <init>()>();
+
+        $r44 = virtualinvoke $r42.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Credentials: ");
+
+        $r45 = virtualinvoke $r44.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r4);
+
+        $r46 = virtualinvoke $r45.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r47 = newarray (java.lang.Object)[0];
+
+        interfaceinvoke $r43.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Object[])>($r46, $r47);
+
+     label03:
+        $r25 = new org.eclipse.jetty.util.QuotedStringTokenizer;
+
+        specialinvoke $r25.<org.eclipse.jetty.util.QuotedStringTokenizer: void <init>(java.lang.String,java.lang.String,boolean,boolean)>($r4, "=, ", 1, 0);
+
+        $r26 = new org.eclipse.jetty.security.authentication.DigestAuthenticator$Digest;
+
+        $r27 = interfaceinvoke r1.<javax.servlet.http.HttpServletRequest: java.lang.String getMethod()>();
+
+        specialinvoke $r26.<org.eclipse.jetty.security.authentication.DigestAuthenticator$Digest: void <init>(java.lang.String)>($r27);
+
+        r51 = null;
+
+        r52 = null;
+
+     label04:
+        $z11 = virtualinvoke $r25.<org.eclipse.jetty.util.QuotedStringTokenizer: boolean hasMoreTokens()>();
+
+        if $z11 == 0 goto label20;
+
+        $r33 = virtualinvoke $r25.<org.eclipse.jetty.util.QuotedStringTokenizer: java.lang.String nextToken()>();
+
+        $i1 = virtualinvoke $r33.<java.lang.String: int length()>();
+
+        if $i1 != 1 goto label05;
+
+        $i2 = virtualinvoke $r33.<java.lang.String: char charAt(int)>(0);
+
+        goto label06;
+
+     label05:
+        $i2 = 0;
+
+     label06:
+        lookupswitch($i2)
+        {
+            case 32: goto label09;
+            case 44: goto label08;
+            case 61: goto label07;
+            default: goto label10;
+        };
+
+     label07:
+        r52 = r51;
+
+        r51 = $r33;
+
+        goto label19;
+
+     label08:
+        r52 = null;
+
+        goto label19;
+
+     label09:
+        goto label19;
+
+     label10:
+        r51 = $r33;
+
+        if r52 == null goto label19;
+
+        $r34 = "username";
+
+        $z2 = virtualinvoke $r34.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>(r52);
+
+        if $z2 == 0 goto label11;
+
+        $r26.<org.eclipse.jetty.security.authentication.DigestAuthenticator$Digest: java.lang.String username> = $r33;
+
+        goto label18;
+
+     label11:
+        $r35 = "realm";
+
+        $z3 = virtualinvoke $r35.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>(r52);
+
+        if $z3 == 0 goto label12;
+
+        $r26.<org.eclipse.jetty.security.authentication.DigestAuthenticator$Digest: java.lang.String realm> = $r33;
+
+        goto label18;
+
+     label12:
+        $r36 = "nonce";
+
+        $z4 = virtualinvoke $r36.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>(r52);
+
+        if $z4 == 0 goto label13;
+
+        $r26.<org.eclipse.jetty.security.authentication.DigestAuthenticator$Digest: java.lang.String nonce> = $r33;
+
+        goto label18;
+
+     label13:
+        $r37 = "nc";
+
+        $z5 = virtualinvoke $r37.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>(r52);
+
+        if $z5 == 0 goto label14;
+
+        $r26.<org.eclipse.jetty.security.authentication.DigestAuthenticator$Digest: java.lang.String nc> = $r33;
+
+        goto label18;
+
+     label14:
+        $r38 = "cnonce";
+
+        $z6 = virtualinvoke $r38.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>(r52);
+
+        if $z6 == 0 goto label15;
+
+        $r26.<org.eclipse.jetty.security.authentication.DigestAuthenticator$Digest: java.lang.String cnonce> = $r33;
+
+        goto label18;
+
+     label15:
+        $r39 = "qop";
+
+        $z7 = virtualinvoke $r39.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>(r52);
+
+        if $z7 == 0 goto label16;
+
+        $r26.<org.eclipse.jetty.security.authentication.DigestAuthenticator$Digest: java.lang.String qop> = $r33;
+
+        goto label18;
+
+     label16:
+        $r40 = "uri";
+
+        $z8 = virtualinvoke $r40.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>(r52);
+
+        if $z8 == 0 goto label17;
+
+        $r26.<org.eclipse.jetty.security.authentication.DigestAuthenticator$Digest: java.lang.String uri> = $r33;
+
+        goto label18;
+
+     label17:
+        $r41 = "response";
+
+        $z9 = virtualinvoke $r41.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>(r52);
+
+        if $z9 == 0 goto label18;
+
+        $r26.<org.eclipse.jetty.security.authentication.DigestAuthenticator$Digest: java.lang.String response> = $r33;
+
+     label18:
+        r52 = null;
+
+     label19:
+        goto label04;
+
+     label20:
+        $r28 = (org.eclipse.jetty.server.Request) r1;
+
+        $i0 = specialinvoke r9.<org.eclipse.jetty.security.authentication.DigestAuthenticator: int checkNonce(org.eclipse.jetty.security.authentication.DigestAuthenticator$Digest,org.eclipse.jetty.server.Request)>($r26, $r28);
+
+        if $i0 <= 0 goto label23;
+
+        $r29 = $r26.<org.eclipse.jetty.security.authentication.DigestAuthenticator$Digest: java.lang.String username>;
+
+        $r30 = virtualinvoke r9.<org.eclipse.jetty.security.authentication.DigestAuthenticator: org.eclipse.jetty.server.UserIdentity login(java.lang.String,java.lang.Object,javax.servlet.ServletRequest)>($r29, $r26, r0);
+
+        if $r30 == null goto label22;
+
+        $r31 = new org.eclipse.jetty.security.UserAuthentication;
+
+        $r32 = virtualinvoke r9.<org.eclipse.jetty.security.authentication.DigestAuthenticator: java.lang.String getAuthMethod()>();
+
+        specialinvoke $r31.<org.eclipse.jetty.security.UserAuthentication: void <init>(java.lang.String,org.eclipse.jetty.server.UserIdentity)>($r32, $r30);
+
+     label21:
+        return $r31;
+
+     label22:
+        goto label24;
+
+     label23:
+        if $i0 != 0 goto label24;
+
+        z10 = 1;
+
+     label24:
+        $z12 = staticinvoke <org.eclipse.jetty.security.authentication.DeferredAuthentication: boolean isDeferred(javax.servlet.http.HttpServletResponse)>(r3);
+
+        if $z12 != 0 goto label27;
+
+        $r6 = interfaceinvoke r1.<javax.servlet.http.HttpServletRequest: java.lang.String getContextPath()>();
+
+        r53 = $r6;
+
+        if $r6 != null goto label25;
+
+        r53 = "/";
+
+     label25:
+        $r7 = new java.lang.StringBuilder;
+
+        specialinvoke $r7.<java.lang.StringBuilder: void <init>()>();
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Digest realm=\"");
+
+        $r10 = r9.<org.eclipse.jetty.security.authentication.DigestAuthenticator: org.eclipse.jetty.security.LoginService _loginService>;
+
+        $r11 = interfaceinvoke $r10.<org.eclipse.jetty.security.LoginService: java.lang.String getName()>();
+
+        $r12 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r11);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("\", domain=\"");
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r53);
+
+        $r15 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("\", nonce=\"");
+
+        $r16 = (org.eclipse.jetty.server.Request) r1;
+
+        $r17 = virtualinvoke r9.<org.eclipse.jetty.security.authentication.DigestAuthenticator: java.lang.String newNonce(org.eclipse.jetty.server.Request)>($r16);
+
+        $r18 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r17);
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("\", algorithm=MD5, qop=\"auth\",");
+
+        $r20 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" stale=");
+
+        $r21 = virtualinvoke $r20.<java.lang.StringBuilder: java.lang.StringBuilder append(boolean)>(z10);
+
+        $r22 = virtualinvoke $r21.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke r3.<javax.servlet.http.HttpServletResponse: void setHeader(java.lang.String,java.lang.String)>("WWW-Authenticate", $r22);
+
+        interfaceinvoke r3.<javax.servlet.http.HttpServletResponse: void sendError(int)>(401);
+
+        $r23 = <org.eclipse.jetty.server.Authentication: org.eclipse.jetty.server.Authentication SEND_CONTINUE>;
+
+     label26:
+        return $r23;
+
+     label27:
+        $r5 = <org.eclipse.jetty.server.Authentication: org.eclipse.jetty.server.Authentication UNAUTHENTICATED>;
+
+     label28:
+        return $r5;
+
+     label29:
+        $r49 := @caughtexception;
+
+        $r50 = new org.eclipse.jetty.security.ServerAuthException;
+
+        specialinvoke $r50.<org.eclipse.jetty.security.ServerAuthException: void <init>(java.lang.Throwable)>($r49);
+
+        throw $r50;
+
+        catch java.io.IOException from label02 to label21 with label29;
+        catch java.io.IOException from label22 to label26 with label29;
+        catch java.io.IOException from label27 to label28 with label29;
+    }
+
+    public java.lang.String newNonce(org.eclipse.jetty.server.Request)
+    {
+        org.eclipse.jetty.server.Request r5;
+        byte[] $r9;
+        long $l0;
+        org.eclipse.jetty.security.authentication.DigestAuthenticator$Nonce $r2;
+        java.util.concurrent.ConcurrentMap $r7;
+        java.security.SecureRandom $r1;
+        org.eclipse.jetty.security.authentication.DigestAuthenticator r0;
+        int $i1;
+        char[] $r4;
+        java.lang.Object $r8;
+        java.lang.String $r3, $r6, $r11;
+        java.util.Queue $r10;
+
+        r0 := @this: org.eclipse.jetty.security.authentication.DigestAuthenticator;
+
+        r5 := @parameter0: org.eclipse.jetty.server.Request;
+
+     label1:
+        $r9 = newarray (byte)[24];
+
+        $r1 = r0.<org.eclipse.jetty.security.authentication.DigestAuthenticator: java.security.SecureRandom _random>;
+
+        virtualinvoke $r1.<java.security.SecureRandom: void nextBytes(byte[])>($r9);
+
+        $r2 = new org.eclipse.jetty.security.authentication.DigestAuthenticator$Nonce;
+
+        $r3 = new java.lang.String;
+
+        $r4 = staticinvoke <org.eclipse.jetty.util.B64Code: char[] encode(byte[])>($r9);
+
+        specialinvoke $r3.<java.lang.String: void <init>(char[])>($r4);
+
+        $l0 = virtualinvoke r5.<org.eclipse.jetty.server.Request: long getTimeStamp()>();
+
+        $i1 = r0.<org.eclipse.jetty.security.authentication.DigestAuthenticator: int _maxNC>;
+
+        specialinvoke $r2.<org.eclipse.jetty.security.authentication.DigestAuthenticator$Nonce: void <init>(java.lang.String,long,int)>($r3, $l0, $i1);
+
+        $r7 = r0.<org.eclipse.jetty.security.authentication.DigestAuthenticator: java.util.concurrent.ConcurrentMap _nonceMap>;
+
+        $r6 = $r2.<org.eclipse.jetty.security.authentication.DigestAuthenticator$Nonce: java.lang.String _nonce>;
+
+        $r8 = interfaceinvoke $r7.<java.util.concurrent.ConcurrentMap: java.lang.Object putIfAbsent(java.lang.Object,java.lang.Object)>($r6, $r2);
+
+        if $r8 != null goto label1;
+
+        $r10 = r0.<org.eclipse.jetty.security.authentication.DigestAuthenticator: java.util.Queue _nonceQueue>;
+
+        interfaceinvoke $r10.<java.util.Queue: boolean add(java.lang.Object)>($r2);
+
+        $r11 = $r2.<org.eclipse.jetty.security.authentication.DigestAuthenticator$Nonce: java.lang.String _nonce>;
+
+        return $r11;
+    }
+
+    private int checkNonce(org.eclipse.jetty.security.authentication.DigestAuthenticator$Digest, org.eclipse.jetty.server.Request)
+    {
+        org.eclipse.jetty.server.Request r0;
+        byte $b6, $b9;
+        boolean $z0;
+        java.lang.Exception $r15;
+        java.util.Queue $r2, $r10, $r13;
+        long $l0, $l1, l2, $l3, $l5, $l8;
+        java.util.concurrent.ConcurrentMap $r6, $r12;
+        int $i4, $i7, $i10, $i11, $i13, $i15;
+        java.lang.String $r5, $r8, $r11;
+        org.eclipse.jetty.security.authentication.DigestAuthenticator$Digest r4;
+        org.eclipse.jetty.security.authentication.DigestAuthenticator$Nonce $r9, r17;
+        org.eclipse.jetty.security.authentication.DigestAuthenticator r1;
+        java.lang.Object $r3, $r7, $r14;
+        org.eclipse.jetty.util.log.Logger $r16;
+
+        r1 := @this: org.eclipse.jetty.security.authentication.DigestAuthenticator;
+
+        r4 := @parameter0: org.eclipse.jetty.security.authentication.DigestAuthenticator$Digest;
+
+        r0 := @parameter1: org.eclipse.jetty.server.Request;
+
+        $l0 = virtualinvoke r0.<org.eclipse.jetty.server.Request: long getTimeStamp()>();
+
+        $l1 = r1.<org.eclipse.jetty.security.authentication.DigestAuthenticator: long _maxNonceAgeMs>;
+
+        l2 = $l0 - $l1;
+
+        $r2 = r1.<org.eclipse.jetty.security.authentication.DigestAuthenticator: java.util.Queue _nonceQueue>;
+
+        $r3 = interfaceinvoke $r2.<java.util.Queue: java.lang.Object peek()>();
+
+        r17 = (org.eclipse.jetty.security.authentication.DigestAuthenticator$Nonce) $r3;
+
+     label1:
+        if r17 == null goto label2;
+
+        $l8 = r17.<org.eclipse.jetty.security.authentication.DigestAuthenticator$Nonce: long _ts>;
+
+        $b9 = $l8 cmp l2;
+
+        $i10 = (int) $b9;
+
+        if $i10 >= 0 goto label2;
+
+        $r10 = r1.<org.eclipse.jetty.security.authentication.DigestAuthenticator: java.util.Queue _nonceQueue>;
+
+        interfaceinvoke $r10.<java.util.Queue: boolean remove(java.lang.Object)>(r17);
+
+        $r12 = r1.<org.eclipse.jetty.security.authentication.DigestAuthenticator: java.util.concurrent.ConcurrentMap _nonceMap>;
+
+        $r11 = r17.<org.eclipse.jetty.security.authentication.DigestAuthenticator$Nonce: java.lang.String _nonce>;
+
+        interfaceinvoke $r12.<java.util.concurrent.ConcurrentMap: java.lang.Object remove(java.lang.Object)>($r11);
+
+        $r13 = r1.<org.eclipse.jetty.security.authentication.DigestAuthenticator: java.util.Queue _nonceQueue>;
+
+        $r14 = interfaceinvoke $r13.<java.util.Queue: java.lang.Object peek()>();
+
+        r17 = (org.eclipse.jetty.security.authentication.DigestAuthenticator$Nonce) $r14;
+
+        goto label1;
+
+     label2:
+        $r6 = r1.<org.eclipse.jetty.security.authentication.DigestAuthenticator: java.util.concurrent.ConcurrentMap _nonceMap>;
+
+        $r5 = r4.<org.eclipse.jetty.security.authentication.DigestAuthenticator$Digest: java.lang.String nonce>;
+
+        $r7 = interfaceinvoke $r6.<java.util.concurrent.ConcurrentMap: java.lang.Object get(java.lang.Object)>($r5);
+
+        $r9 = (org.eclipse.jetty.security.authentication.DigestAuthenticator$Nonce) $r7;
+
+        if $r9 != null goto label4;
+
+     label3:
+        return 0;
+
+     label4:
+        $r8 = r4.<org.eclipse.jetty.security.authentication.DigestAuthenticator$Digest: java.lang.String nc>;
+
+        $l3 = staticinvoke <java.lang.Long: long parseLong(java.lang.String,int)>($r8, 16);
+
+        $i4 = r1.<org.eclipse.jetty.security.authentication.DigestAuthenticator: int _maxNC>;
+
+        $l5 = (long) $i4;
+
+        $b6 = $l3 cmp $l5;
+
+        $i11 = (int) $b6;
+
+        if $i11 < 0 goto label6;
+
+     label5:
+        return 0;
+
+     label6:
+        $i7 = (int) $l3;
+
+        $z0 = virtualinvoke $r9.<org.eclipse.jetty.security.authentication.DigestAuthenticator$Nonce: boolean seen(int)>($i7);
+
+        if $z0 == 0 goto label8;
+
+     label7:
+        $i13 = (int) -1;
+
+        return $i13;
+
+     label8:
+        return 1;
+
+     label9:
+        $r15 := @caughtexception;
+
+        $r16 = <org.eclipse.jetty.security.authentication.DigestAuthenticator: org.eclipse.jetty.util.log.Logger LOG>;
+
+        interfaceinvoke $r16.<org.eclipse.jetty.util.log.Logger: void ignore(java.lang.Throwable)>($r15);
+
+        $i15 = (int) -1;
+
+        return $i15;
+
+        catch java.lang.Exception from label2 to label3 with label9;
+        catch java.lang.Exception from label4 to label5 with label9;
+        catch java.lang.Exception from label6 to label7 with label9;
+    }
+
+    static org.eclipse.jetty.util.log.Logger access$000()
+    {
+        org.eclipse.jetty.util.log.Logger $r0;
+
+        $r0 = <org.eclipse.jetty.security.authentication.DigestAuthenticator: org.eclipse.jetty.util.log.Logger LOG>;
+
+        return $r0;
+    }
+
+    static void <clinit>()
+    {
+        org.eclipse.jetty.util.log.Logger $r0;
+
+        $r0 = staticinvoke <org.eclipse.jetty.util.log.Log: org.eclipse.jetty.util.log.Logger getLogger(java.lang.Class)>(class "Lorg/eclipse/jetty/security/authentication/DigestAuthenticator;");
+
+        <org.eclipse.jetty.security.authentication.DigestAuthenticator: org.eclipse.jetty.util.log.Logger LOG> = $r0;
+
+        return;
+    }
+}

@@ -1,0 +1,706 @@
+public class com.hp.hpl.jena.shared.LockMRSW extends java.lang.Object implements com.hp.hpl.jena.shared.Lock
+{
+    static org.slf4j.Logger log;
+    java.util.Map threadStates;
+    int threadStatesSize;
+    java.util.concurrent.locks.ReadWriteLock mrswLock;
+    java.util.concurrent.atomic.AtomicInteger activeReadLocks;
+    java.util.concurrent.atomic.AtomicInteger activeWriteLocks;
+
+    public void <init>()
+    {
+        java.util.HashMap $r1;
+        java.util.concurrent.locks.ReentrantReadWriteLock $r3;
+        java.util.concurrent.atomic.AtomicInteger $r4, $r5;
+        java.util.Map $r2;
+        java.lang.Thread $r10;
+        int $i0;
+        java.lang.String $r11, $r13;
+        boolean $z0;
+        org.slf4j.Logger $r6, $r8;
+        com.hp.hpl.jena.shared.LockMRSW r0;
+        java.lang.StringBuilder $r7, $r9, $r12;
+
+        r0 := @this: com.hp.hpl.jena.shared.LockMRSW;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        $r1 = new java.util.HashMap;
+
+        specialinvoke $r1.<java.util.HashMap: void <init>()>();
+
+        r0.<com.hp.hpl.jena.shared.LockMRSW: java.util.Map threadStates> = $r1;
+
+        $r2 = r0.<com.hp.hpl.jena.shared.LockMRSW: java.util.Map threadStates>;
+
+        $i0 = interfaceinvoke $r2.<java.util.Map: int size()>();
+
+        r0.<com.hp.hpl.jena.shared.LockMRSW: int threadStatesSize> = $i0;
+
+        $r3 = new java.util.concurrent.locks.ReentrantReadWriteLock;
+
+        specialinvoke $r3.<java.util.concurrent.locks.ReentrantReadWriteLock: void <init>()>();
+
+        r0.<com.hp.hpl.jena.shared.LockMRSW: java.util.concurrent.locks.ReadWriteLock mrswLock> = $r3;
+
+        $r4 = new java.util.concurrent.atomic.AtomicInteger;
+
+        specialinvoke $r4.<java.util.concurrent.atomic.AtomicInteger: void <init>(int)>(0);
+
+        r0.<com.hp.hpl.jena.shared.LockMRSW: java.util.concurrent.atomic.AtomicInteger activeReadLocks> = $r4;
+
+        $r5 = new java.util.concurrent.atomic.AtomicInteger;
+
+        specialinvoke $r5.<java.util.concurrent.atomic.AtomicInteger: void <init>(int)>(0);
+
+        r0.<com.hp.hpl.jena.shared.LockMRSW: java.util.concurrent.atomic.AtomicInteger activeWriteLocks> = $r5;
+
+        $r6 = <com.hp.hpl.jena.shared.LockMRSW: org.slf4j.Logger log>;
+
+        $z0 = interfaceinvoke $r6.<org.slf4j.Logger: boolean isDebugEnabled()>();
+
+        if $z0 == 0 goto label1;
+
+        $r8 = <com.hp.hpl.jena.shared.LockMRSW: org.slf4j.Logger log>;
+
+        $r7 = new java.lang.StringBuilder;
+
+        specialinvoke $r7.<java.lang.StringBuilder: void <init>()>();
+
+        $r9 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Lock : ");
+
+        $r10 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        $r11 = virtualinvoke $r10.<java.lang.Thread: java.lang.String getName()>();
+
+        $r12 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r11);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r8.<org.slf4j.Logger: void debug(java.lang.String)>($r13);
+
+     label1:
+        return;
+    }
+
+    public final void enterCriticalSection(boolean)
+    {
+        java.lang.Thread $r6, $r28, $r37, $r48;
+        java.util.concurrent.locks.ReadWriteLock $r13, $r16;
+        java.lang.StringBuilder $r4, $r8, $r9, $r11, $r21, $r22, $r24, $r26, $r30, $r31, $r33, $r35, $r39, $r40, $r42, $r46, $r50, $r51, $r53;
+        java.lang.Throwable $r44;
+        java.lang.String $r7, $r10, $r12, $r23, $r25, $r29, $r32, $r34, $r38, $r41, $r43, $r49, $r52, $r54;
+        java.util.concurrent.locks.Lock $r14, $r17;
+        com.hp.hpl.jena.shared.LockMRSW$LockState $r1;
+        java.util.concurrent.atomic.AtomicInteger $r3, $r15, $r18;
+        boolean $z0, $z1, $z2, z3, $z4;
+        com.hp.hpl.jena.shared.JenaException $r20;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i10;
+        org.slf4j.Logger $r2, $r5, $r19, $r27, $r36, $r45, $r47, $r55;
+        com.hp.hpl.jena.shared.LockMRSW r0;
+
+        r0 := @this: com.hp.hpl.jena.shared.LockMRSW;
+
+        z3 := @parameter0: boolean;
+
+        $r1 = virtualinvoke r0.<com.hp.hpl.jena.shared.LockMRSW: com.hp.hpl.jena.shared.LockMRSW$LockState getLockState()>();
+
+        $r2 = <com.hp.hpl.jena.shared.LockMRSW: org.slf4j.Logger log>;
+
+        $z0 = interfaceinvoke $r2.<org.slf4j.Logger: boolean isDebugEnabled()>();
+
+        if $z0 == 0 goto label01;
+
+        $r36 = <com.hp.hpl.jena.shared.LockMRSW: org.slf4j.Logger log>;
+
+        $r35 = new java.lang.StringBuilder;
+
+        specialinvoke $r35.<java.lang.StringBuilder: void <init>()>();
+
+        $r37 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        $r38 = virtualinvoke $r37.<java.lang.Thread: java.lang.String getName()>();
+
+        $r39 = virtualinvoke $r35.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r38);
+
+        $r40 = virtualinvoke $r39.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" >> enterCS: ");
+
+        $r41 = specialinvoke r0.<com.hp.hpl.jena.shared.LockMRSW: java.lang.String report(com.hp.hpl.jena.shared.LockMRSW$LockState)>($r1);
+
+        $r42 = virtualinvoke $r40.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r41);
+
+        $r43 = virtualinvoke $r42.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r36.<org.slf4j.Logger: void debug(java.lang.String)>($r43);
+
+     label01:
+        $i0 = $r1.<com.hp.hpl.jena.shared.LockMRSW$LockState: int readLocks>;
+
+        if $i0 <= 0 goto label03;
+
+        $i7 = $r1.<com.hp.hpl.jena.shared.LockMRSW$LockState: int writeLocks>;
+
+        if $i7 != 0 goto label03;
+
+        if z3 != 0 goto label03;
+
+        $i8 = $r1.<com.hp.hpl.jena.shared.LockMRSW$LockState: int readLocks>;
+
+        $i9 = $i8 + 1;
+
+        $r1.<com.hp.hpl.jena.shared.LockMRSW$LockState: int readLocks> = $i9;
+
+        $r18 = r0.<com.hp.hpl.jena.shared.LockMRSW: java.util.concurrent.atomic.AtomicInteger activeReadLocks>;
+
+        virtualinvoke $r18.<java.util.concurrent.atomic.AtomicInteger: int incrementAndGet()>();
+
+        $r19 = <com.hp.hpl.jena.shared.LockMRSW: org.slf4j.Logger log>;
+
+        $z1 = interfaceinvoke $r19.<org.slf4j.Logger: boolean isDebugEnabled()>();
+
+        if $z1 == 0 goto label02;
+
+        $r27 = <com.hp.hpl.jena.shared.LockMRSW: org.slf4j.Logger log>;
+
+        $r26 = new java.lang.StringBuilder;
+
+        specialinvoke $r26.<java.lang.StringBuilder: void <init>()>();
+
+        $r28 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        $r29 = virtualinvoke $r28.<java.lang.Thread: java.lang.String getName()>();
+
+        $r30 = virtualinvoke $r26.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r29);
+
+        $r31 = virtualinvoke $r30.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" << enterCS: promotion attempt: ");
+
+        $r32 = specialinvoke r0.<com.hp.hpl.jena.shared.LockMRSW: java.lang.String report(com.hp.hpl.jena.shared.LockMRSW$LockState)>($r1);
+
+        $r33 = virtualinvoke $r31.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r32);
+
+        $r34 = virtualinvoke $r33.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r27.<org.slf4j.Logger: void debug(java.lang.String)>($r34);
+
+     label02:
+        $r20 = new com.hp.hpl.jena.shared.JenaException;
+
+        $r21 = new java.lang.StringBuilder;
+
+        specialinvoke $r21.<java.lang.StringBuilder: void <init>()>();
+
+        $r22 = virtualinvoke $r21.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("enterCriticalSection: Write lock request while holding read lock - potential deadlock");
+
+        $r23 = specialinvoke r0.<com.hp.hpl.jena.shared.LockMRSW: java.lang.String report(com.hp.hpl.jena.shared.LockMRSW$LockState)>($r1);
+
+        $r24 = virtualinvoke $r22.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r23);
+
+        $r25 = virtualinvoke $r24.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r20.<com.hp.hpl.jena.shared.JenaException: void <init>(java.lang.String)>($r25);
+
+        throw $r20;
+
+     label03:
+        $i10 = $r1.<com.hp.hpl.jena.shared.LockMRSW$LockState: int writeLocks>;
+
+        if $i10 <= 0 goto label04;
+
+        if z3 == 0 goto label04;
+
+        z3 = 0;
+
+     label04:
+        if z3 == 0 goto label06;
+
+        $i4 = $r1.<com.hp.hpl.jena.shared.LockMRSW$LockState: int readLocks>;
+
+        if $i4 != 0 goto label05;
+
+        $r16 = r0.<com.hp.hpl.jena.shared.LockMRSW: java.util.concurrent.locks.ReadWriteLock mrswLock>;
+
+        $r17 = interfaceinvoke $r16.<java.util.concurrent.locks.ReadWriteLock: java.util.concurrent.locks.Lock readLock()>();
+
+        interfaceinvoke $r17.<java.util.concurrent.locks.Lock: void lock()>();
+
+     label05:
+        $i5 = $r1.<com.hp.hpl.jena.shared.LockMRSW$LockState: int readLocks>;
+
+        $i6 = $i5 + 1;
+
+        $r1.<com.hp.hpl.jena.shared.LockMRSW$LockState: int readLocks> = $i6;
+
+        $r15 = r0.<com.hp.hpl.jena.shared.LockMRSW: java.util.concurrent.atomic.AtomicInteger activeReadLocks>;
+
+        virtualinvoke $r15.<java.util.concurrent.atomic.AtomicInteger: int incrementAndGet()>();
+
+        goto label08;
+
+     label06:
+        $i1 = $r1.<com.hp.hpl.jena.shared.LockMRSW$LockState: int writeLocks>;
+
+        if $i1 != 0 goto label07;
+
+        $r13 = r0.<com.hp.hpl.jena.shared.LockMRSW: java.util.concurrent.locks.ReadWriteLock mrswLock>;
+
+        $r14 = interfaceinvoke $r13.<java.util.concurrent.locks.ReadWriteLock: java.util.concurrent.locks.Lock writeLock()>();
+
+        interfaceinvoke $r14.<java.util.concurrent.locks.Lock: void lock()>();
+
+     label07:
+        $i2 = $r1.<com.hp.hpl.jena.shared.LockMRSW$LockState: int writeLocks>;
+
+        $i3 = $i2 + 1;
+
+        $r1.<com.hp.hpl.jena.shared.LockMRSW$LockState: int writeLocks> = $i3;
+
+        $r3 = r0.<com.hp.hpl.jena.shared.LockMRSW: java.util.concurrent.atomic.AtomicInteger activeWriteLocks>;
+
+        virtualinvoke $r3.<java.util.concurrent.atomic.AtomicInteger: int incrementAndGet()>();
+
+     label08:
+        $r55 = <com.hp.hpl.jena.shared.LockMRSW: org.slf4j.Logger log>;
+
+        $z4 = interfaceinvoke $r55.<org.slf4j.Logger: boolean isDebugEnabled()>();
+
+        if $z4 == 0 goto label12;
+
+        $r5 = <com.hp.hpl.jena.shared.LockMRSW: org.slf4j.Logger log>;
+
+        $r4 = new java.lang.StringBuilder;
+
+        specialinvoke $r4.<java.lang.StringBuilder: void <init>()>();
+
+        $r6 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        $r7 = virtualinvoke $r6.<java.lang.Thread: java.lang.String getName()>();
+
+        $r8 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r7);
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" << enterCS: ");
+
+        $r10 = specialinvoke r0.<com.hp.hpl.jena.shared.LockMRSW: java.lang.String report(com.hp.hpl.jena.shared.LockMRSW$LockState)>($r1);
+
+        $r11 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r10);
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r5.<org.slf4j.Logger: void debug(java.lang.String)>($r12);
+
+        goto label12;
+
+     label09:
+        $r44 := @caughtexception;
+
+     label10:
+        $r45 = <com.hp.hpl.jena.shared.LockMRSW: org.slf4j.Logger log>;
+
+        $z2 = interfaceinvoke $r45.<org.slf4j.Logger: boolean isDebugEnabled()>();
+
+        if $z2 == 0 goto label11;
+
+        $r47 = <com.hp.hpl.jena.shared.LockMRSW: org.slf4j.Logger log>;
+
+        $r46 = new java.lang.StringBuilder;
+
+        specialinvoke $r46.<java.lang.StringBuilder: void <init>()>();
+
+        $r48 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        $r49 = virtualinvoke $r48.<java.lang.Thread: java.lang.String getName()>();
+
+        $r50 = virtualinvoke $r46.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r49);
+
+        $r51 = virtualinvoke $r50.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" << enterCS: ");
+
+        $r52 = specialinvoke r0.<com.hp.hpl.jena.shared.LockMRSW: java.lang.String report(com.hp.hpl.jena.shared.LockMRSW$LockState)>($r1);
+
+        $r53 = virtualinvoke $r51.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r52);
+
+        $r54 = virtualinvoke $r53.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r47.<org.slf4j.Logger: void debug(java.lang.String)>($r54);
+
+     label11:
+        throw $r44;
+
+     label12:
+        return;
+
+        catch java.lang.Throwable from label04 to label08 with label09;
+        catch java.lang.Throwable from label09 to label10 with label09;
+    }
+
+    public final void leaveCriticalSection()
+    {
+        java.lang.Thread $r6, $r17, $r30, $r41, $r52;
+        java.util.concurrent.locks.ReadWriteLock $r24, $r37;
+        java.lang.StringBuilder $r4, $r5, $r8, $r9, $r11, $r15, $r19, $r20, $r22, $r28, $r32, $r33, $r35, $r39, $r43, $r44, $r46, $r50, $r54, $r55, $r57;
+        java.lang.Throwable $r48;
+        java.lang.String $r7, $r10, $r12, $r18, $r21, $r23, $r31, $r34, $r36, $r42, $r45, $r47, $r53, $r56, $r58;
+        java.util.concurrent.locks.Lock $r25, $r38;
+        com.hp.hpl.jena.shared.LockMRSW$LockState $r1;
+        java.util.concurrent.atomic.AtomicInteger $r13, $r26;
+        boolean $z0, $z1, $z2, $z3;
+        com.hp.hpl.jena.shared.JenaException $r3;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7;
+        org.slf4j.Logger $r2, $r14, $r16, $r27, $r29, $r40, $r49, $r51;
+        com.hp.hpl.jena.shared.LockMRSW r0;
+
+        r0 := @this: com.hp.hpl.jena.shared.LockMRSW;
+
+        $r1 = virtualinvoke r0.<com.hp.hpl.jena.shared.LockMRSW: com.hp.hpl.jena.shared.LockMRSW$LockState getLockState()>();
+
+        $r2 = <com.hp.hpl.jena.shared.LockMRSW: org.slf4j.Logger log>;
+
+        $z0 = interfaceinvoke $r2.<org.slf4j.Logger: boolean isDebugEnabled()>();
+
+        if $z0 == 0 goto label01;
+
+        $r40 = <com.hp.hpl.jena.shared.LockMRSW: org.slf4j.Logger log>;
+
+        $r39 = new java.lang.StringBuilder;
+
+        specialinvoke $r39.<java.lang.StringBuilder: void <init>()>();
+
+        $r41 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        $r42 = virtualinvoke $r41.<java.lang.Thread: java.lang.String getName()>();
+
+        $r43 = virtualinvoke $r39.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r42);
+
+        $r44 = virtualinvoke $r43.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" >> leaveCS: ");
+
+        $r45 = specialinvoke r0.<com.hp.hpl.jena.shared.LockMRSW: java.lang.String report(com.hp.hpl.jena.shared.LockMRSW$LockState)>($r1);
+
+        $r46 = virtualinvoke $r44.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r45);
+
+        $r47 = virtualinvoke $r46.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r40.<org.slf4j.Logger: void debug(java.lang.String)>($r47);
+
+     label01:
+        $i0 = $r1.<com.hp.hpl.jena.shared.LockMRSW$LockState: int readLocks>;
+
+        if $i0 <= 0 goto label05;
+
+        $i5 = $r1.<com.hp.hpl.jena.shared.LockMRSW$LockState: int readLocks>;
+
+        $i6 = $i5 - 1;
+
+        $r1.<com.hp.hpl.jena.shared.LockMRSW$LockState: int readLocks> = $i6;
+
+        $r26 = r0.<com.hp.hpl.jena.shared.LockMRSW: java.util.concurrent.atomic.AtomicInteger activeReadLocks>;
+
+        virtualinvoke $r26.<java.util.concurrent.atomic.AtomicInteger: int getAndDecrement()>();
+
+        $i7 = $r1.<com.hp.hpl.jena.shared.LockMRSW$LockState: int readLocks>;
+
+        if $i7 != 0 goto label02;
+
+        $r37 = r0.<com.hp.hpl.jena.shared.LockMRSW: java.util.concurrent.locks.ReadWriteLock mrswLock>;
+
+        $r38 = interfaceinvoke $r37.<java.util.concurrent.locks.ReadWriteLock: java.util.concurrent.locks.Lock readLock()>();
+
+        interfaceinvoke $r38.<java.util.concurrent.locks.Lock: void unlock()>();
+
+     label02:
+        virtualinvoke $r1.<com.hp.hpl.jena.shared.LockMRSW$LockState: void clean()>();
+
+     label03:
+        $r27 = <com.hp.hpl.jena.shared.LockMRSW: org.slf4j.Logger log>;
+
+        $z2 = interfaceinvoke $r27.<org.slf4j.Logger: boolean isDebugEnabled()>();
+
+        if $z2 == 0 goto label04;
+
+        $r29 = <com.hp.hpl.jena.shared.LockMRSW: org.slf4j.Logger log>;
+
+        $r28 = new java.lang.StringBuilder;
+
+        specialinvoke $r28.<java.lang.StringBuilder: void <init>()>();
+
+        $r30 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        $r31 = virtualinvoke $r30.<java.lang.Thread: java.lang.String getName()>();
+
+        $r32 = virtualinvoke $r28.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r31);
+
+        $r33 = virtualinvoke $r32.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" << leaveCS: ");
+
+        $r34 = specialinvoke r0.<com.hp.hpl.jena.shared.LockMRSW: java.lang.String report(com.hp.hpl.jena.shared.LockMRSW$LockState)>($r1);
+
+        $r35 = virtualinvoke $r33.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r34);
+
+        $r36 = virtualinvoke $r35.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r29.<org.slf4j.Logger: void debug(java.lang.String)>($r36);
+
+     label04:
+        return;
+
+     label05:
+        $i1 = $r1.<com.hp.hpl.jena.shared.LockMRSW$LockState: int writeLocks>;
+
+        if $i1 <= 0 goto label09;
+
+        $i2 = $r1.<com.hp.hpl.jena.shared.LockMRSW$LockState: int writeLocks>;
+
+        $i3 = $i2 - 1;
+
+        $r1.<com.hp.hpl.jena.shared.LockMRSW$LockState: int writeLocks> = $i3;
+
+        $r13 = r0.<com.hp.hpl.jena.shared.LockMRSW: java.util.concurrent.atomic.AtomicInteger activeWriteLocks>;
+
+        virtualinvoke $r13.<java.util.concurrent.atomic.AtomicInteger: int getAndDecrement()>();
+
+        $i4 = $r1.<com.hp.hpl.jena.shared.LockMRSW$LockState: int writeLocks>;
+
+        if $i4 != 0 goto label06;
+
+        $r24 = r0.<com.hp.hpl.jena.shared.LockMRSW: java.util.concurrent.locks.ReadWriteLock mrswLock>;
+
+        $r25 = interfaceinvoke $r24.<java.util.concurrent.locks.ReadWriteLock: java.util.concurrent.locks.Lock writeLock()>();
+
+        interfaceinvoke $r25.<java.util.concurrent.locks.Lock: void unlock()>();
+
+     label06:
+        virtualinvoke $r1.<com.hp.hpl.jena.shared.LockMRSW$LockState: void clean()>();
+
+     label07:
+        $r14 = <com.hp.hpl.jena.shared.LockMRSW: org.slf4j.Logger log>;
+
+        $z1 = interfaceinvoke $r14.<org.slf4j.Logger: boolean isDebugEnabled()>();
+
+        if $z1 == 0 goto label08;
+
+        $r16 = <com.hp.hpl.jena.shared.LockMRSW: org.slf4j.Logger log>;
+
+        $r15 = new java.lang.StringBuilder;
+
+        specialinvoke $r15.<java.lang.StringBuilder: void <init>()>();
+
+        $r17 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        $r18 = virtualinvoke $r17.<java.lang.Thread: java.lang.String getName()>();
+
+        $r19 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r18);
+
+        $r20 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" << leaveCS: ");
+
+        $r21 = specialinvoke r0.<com.hp.hpl.jena.shared.LockMRSW: java.lang.String report(com.hp.hpl.jena.shared.LockMRSW$LockState)>($r1);
+
+        $r22 = virtualinvoke $r20.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r21);
+
+        $r23 = virtualinvoke $r22.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r16.<org.slf4j.Logger: void debug(java.lang.String)>($r23);
+
+     label08:
+        return;
+
+     label09:
+        $r3 = new com.hp.hpl.jena.shared.JenaException;
+
+        $r4 = new java.lang.StringBuilder;
+
+        specialinvoke $r4.<java.lang.StringBuilder: void <init>()>();
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("leaveCriticalSection: No lock held (");
+
+        $r6 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        $r7 = virtualinvoke $r6.<java.lang.Thread: java.lang.String getName()>();
+
+        $r8 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r7);
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(") ");
+
+        $r10 = specialinvoke r0.<com.hp.hpl.jena.shared.LockMRSW: java.lang.String report(com.hp.hpl.jena.shared.LockMRSW$LockState)>($r1);
+
+        $r11 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r10);
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r3.<com.hp.hpl.jena.shared.JenaException: void <init>(java.lang.String)>($r12);
+
+        throw $r3;
+
+     label10:
+        $r48 := @caughtexception;
+
+     label11:
+        $r49 = <com.hp.hpl.jena.shared.LockMRSW: org.slf4j.Logger log>;
+
+        $z3 = interfaceinvoke $r49.<org.slf4j.Logger: boolean isDebugEnabled()>();
+
+        if $z3 == 0 goto label12;
+
+        $r51 = <com.hp.hpl.jena.shared.LockMRSW: org.slf4j.Logger log>;
+
+        $r50 = new java.lang.StringBuilder;
+
+        specialinvoke $r50.<java.lang.StringBuilder: void <init>()>();
+
+        $r52 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        $r53 = virtualinvoke $r52.<java.lang.Thread: java.lang.String getName()>();
+
+        $r54 = virtualinvoke $r50.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r53);
+
+        $r55 = virtualinvoke $r54.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" << leaveCS: ");
+
+        $r56 = specialinvoke r0.<com.hp.hpl.jena.shared.LockMRSW: java.lang.String report(com.hp.hpl.jena.shared.LockMRSW$LockState)>($r1);
+
+        $r57 = virtualinvoke $r55.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r56);
+
+        $r58 = virtualinvoke $r57.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r51.<org.slf4j.Logger: void debug(java.lang.String)>($r58);
+
+     label12:
+        throw $r48;
+
+        catch java.lang.Throwable from label01 to label03 with label10;
+        catch java.lang.Throwable from label05 to label07 with label10;
+        catch java.lang.Throwable from label09 to label11 with label10;
+    }
+
+    private synchronized java.lang.String report(com.hp.hpl.jena.shared.LockMRSW$LockState)
+    {
+        com.hp.hpl.jena.shared.LockMRSW$LockState r1;
+        java.util.concurrent.atomic.AtomicInteger $r5, $r7;
+        java.lang.StringBuffer $r0;
+        java.lang.Thread $r9;
+        int $i0, $i1, $i2, $i3;
+        java.lang.String $r2, $r3, $r6, $r8, $r10, $r11;
+        com.hp.hpl.jena.shared.LockMRSW r4;
+
+        r4 := @this: com.hp.hpl.jena.shared.LockMRSW;
+
+        r1 := @parameter0: com.hp.hpl.jena.shared.LockMRSW$LockState;
+
+        $r0 = new java.lang.StringBuffer;
+
+        specialinvoke $r0.<java.lang.StringBuffer: void <init>()>();
+
+        virtualinvoke $r0.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>("Thread R/W: ");
+
+        $i0 = r1.<com.hp.hpl.jena.shared.LockMRSW$LockState: int readLocks>;
+
+        $r2 = staticinvoke <java.lang.Integer: java.lang.String toString(int)>($i0);
+
+        virtualinvoke $r0.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>($r2);
+
+        virtualinvoke $r0.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>("/");
+
+        $i1 = r1.<com.hp.hpl.jena.shared.LockMRSW$LockState: int writeLocks>;
+
+        $r3 = staticinvoke <java.lang.Integer: java.lang.String toString(int)>($i1);
+
+        virtualinvoke $r0.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>($r3);
+
+        virtualinvoke $r0.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>(" :: Model R/W: ");
+
+        $r5 = r4.<com.hp.hpl.jena.shared.LockMRSW: java.util.concurrent.atomic.AtomicInteger activeReadLocks>;
+
+        $i2 = virtualinvoke $r5.<java.util.concurrent.atomic.AtomicInteger: int get()>();
+
+        $r6 = staticinvoke <java.lang.Integer: java.lang.String toString(int)>($i2);
+
+        virtualinvoke $r0.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>($r6);
+
+        virtualinvoke $r0.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>("/");
+
+        $r7 = r4.<com.hp.hpl.jena.shared.LockMRSW: java.util.concurrent.atomic.AtomicInteger activeWriteLocks>;
+
+        $i3 = virtualinvoke $r7.<java.util.concurrent.atomic.AtomicInteger: int get()>();
+
+        $r8 = staticinvoke <java.lang.Integer: java.lang.String toString(int)>($i3);
+
+        virtualinvoke $r0.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>($r8);
+
+        virtualinvoke $r0.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>(" (thread: ");
+
+        $r9 = r1.<com.hp.hpl.jena.shared.LockMRSW$LockState: java.lang.Thread thread>;
+
+        $r10 = virtualinvoke $r9.<java.lang.Thread: java.lang.String getName()>();
+
+        virtualinvoke $r0.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>($r10);
+
+        virtualinvoke $r0.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>(")");
+
+        $r11 = virtualinvoke $r0.<java.lang.StringBuffer: java.lang.String toString()>();
+
+        return $r11;
+    }
+
+    synchronized com.hp.hpl.jena.shared.LockMRSW$LockState getLockState()
+    {
+        com.hp.hpl.jena.shared.LockMRSW$LockState $r4, r7;
+        com.hp.hpl.jena.shared.LockMRSW r1;
+        java.lang.Thread $r0;
+        java.util.Map $r2, $r5, $r6;
+        int $i0;
+        java.lang.Object $r3;
+
+        r1 := @this: com.hp.hpl.jena.shared.LockMRSW;
+
+        $r0 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        $r2 = r1.<com.hp.hpl.jena.shared.LockMRSW: java.util.Map threadStates>;
+
+        $r3 = interfaceinvoke $r2.<java.util.Map: java.lang.Object get(java.lang.Object)>($r0);
+
+        r7 = (com.hp.hpl.jena.shared.LockMRSW$LockState) $r3;
+
+        if r7 != null goto label1;
+
+        $r4 = new com.hp.hpl.jena.shared.LockMRSW$LockState;
+
+        specialinvoke $r4.<com.hp.hpl.jena.shared.LockMRSW$LockState: void <init>(com.hp.hpl.jena.shared.LockMRSW)>(r1);
+
+        r7 = $r4;
+
+        $r5 = r1.<com.hp.hpl.jena.shared.LockMRSW: java.util.Map threadStates>;
+
+        interfaceinvoke $r5.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>($r0, $r4);
+
+        $r6 = r1.<com.hp.hpl.jena.shared.LockMRSW: java.util.Map threadStates>;
+
+        $i0 = interfaceinvoke $r6.<java.util.Map: int size()>();
+
+        r1.<com.hp.hpl.jena.shared.LockMRSW: int threadStatesSize> = $i0;
+
+     label1:
+        return r7;
+    }
+
+    synchronized void removeLockState(java.lang.Thread)
+    {
+        com.hp.hpl.jena.shared.LockMRSW r0;
+        java.lang.Thread r1;
+        java.util.Map $r2;
+
+        r0 := @this: com.hp.hpl.jena.shared.LockMRSW;
+
+        r1 := @parameter0: java.lang.Thread;
+
+        $r2 = r0.<com.hp.hpl.jena.shared.LockMRSW: java.util.Map threadStates>;
+
+        interfaceinvoke $r2.<java.util.Map: java.lang.Object remove(java.lang.Object)>(r1);
+
+        return;
+    }
+
+    static void <clinit>()
+    {
+        org.slf4j.Logger $r0;
+
+        $r0 = staticinvoke <org.slf4j.LoggerFactory: org.slf4j.Logger getLogger(java.lang.Class)>(class "Lcom/hp/hpl/jena/shared/LockMRSW;");
+
+        <com.hp.hpl.jena.shared.LockMRSW: org.slf4j.Logger log> = $r0;
+
+        return;
+    }
+}

@@ -1,0 +1,962 @@
+public class org.tukaani.xz.LZMAInputStream extends java.io.InputStream
+{
+    public static final int DICT_SIZE_MAX;
+    private java.io.InputStream in;
+    private org.tukaani.xz.lz.LZDecoder lz;
+    private org.tukaani.xz.rangecoder.RangeDecoderFromStream rc;
+    private org.tukaani.xz.lzma.LZMADecoder lzma;
+    private boolean endReached;
+    private final byte[] tempBuf;
+    private long remainingSize;
+    private java.io.IOException exception;
+    static final boolean $assertionsDisabled;
+    static java.lang.Class class$org$tukaani$xz$LZMAInputStream;
+
+    public static int getMemoryUsage(int, byte) throws org.tukaani.xz.UnsupportedOptionsException, org.tukaani.xz.CorruptedInputException
+    {
+        short s6, $s8;
+        org.tukaani.xz.UnsupportedOptionsException $r2;
+        org.tukaani.xz.CorruptedInputException $r3;
+        byte b1;
+        int i0, i2, $i3, i4, $i5, i7, $i9, $i10;
+
+        i0 := @parameter0: int;
+
+        b1 := @parameter1: byte;
+
+        if i0 < 0 goto label1;
+
+        if i0 <= 2147483632 goto label2;
+
+     label1:
+        $r2 = new org.tukaani.xz.UnsupportedOptionsException;
+
+        specialinvoke $r2.<org.tukaani.xz.UnsupportedOptionsException: void <init>(java.lang.String)>("LZMA dictionary is too big for this implementation");
+
+        throw $r2;
+
+     label2:
+        $s8 = (short) b1;
+
+        s6 = $s8 & 255;
+
+        $i9 = (int) s6;
+
+        if $i9 <= 224 goto label3;
+
+        $r3 = new org.tukaani.xz.CorruptedInputException;
+
+        specialinvoke $r3.<org.tukaani.xz.CorruptedInputException: void <init>(java.lang.String)>("Invalid LZMA properties byte");
+
+        throw $r3;
+
+     label3:
+        $i10 = (int) s6;
+
+        i7 = $i10 % 45;
+
+        i2 = i7 / 9;
+
+        $i3 = i2 * 9;
+
+        i4 = i7 - $i3;
+
+        $i5 = staticinvoke <org.tukaani.xz.LZMAInputStream: int getMemoryUsage(int,int,int)>(i0, i4, i2);
+
+        return $i5;
+    }
+
+    public static int getMemoryUsage(int, int, int)
+    {
+        java.lang.IllegalArgumentException $r0;
+        int i0, i1, i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9;
+
+        i2 := @parameter0: int;
+
+        i0 := @parameter1: int;
+
+        i1 := @parameter2: int;
+
+        if i0 < 0 goto label1;
+
+        if i0 > 8 goto label1;
+
+        if i1 < 0 goto label1;
+
+        if i1 <= 4 goto label2;
+
+     label1:
+        $r0 = new java.lang.IllegalArgumentException;
+
+        specialinvoke $r0.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>("Invalid lc or lp");
+
+        throw $r0;
+
+     label2:
+        $i3 = staticinvoke <org.tukaani.xz.LZMAInputStream: int getDictSize(int)>(i2);
+
+        $i4 = $i3 / 1024;
+
+        $i8 = 10 + $i4;
+
+        $i5 = i0 + i1;
+
+        $i6 = 1536 << $i5;
+
+        $i7 = $i6 / 1024;
+
+        $i9 = $i8 + $i7;
+
+        return $i9;
+    }
+
+    private static int getDictSize(int)
+    {
+        int $i0, $i1, i2, $i4;
+        java.lang.IllegalArgumentException $r1;
+
+        i2 := @parameter0: int;
+
+        if i2 < 0 goto label1;
+
+        if i2 <= 2147483632 goto label2;
+
+     label1:
+        $r1 = new java.lang.IllegalArgumentException;
+
+        specialinvoke $r1.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>("LZMA dictionary is too big for this implementation");
+
+        throw $r1;
+
+     label2:
+        if i2 >= 4096 goto label3;
+
+        i2 = 4096;
+
+     label3:
+        $i0 = i2 + 15;
+
+        $i4 = (int) -16;
+
+        $i1 = $i0 & $i4;
+
+        return $i1;
+    }
+
+    public void <init>(java.io.InputStream) throws java.io.IOException
+    {
+        int $i1;
+        org.tukaani.xz.LZMAInputStream r0;
+        java.io.InputStream r1;
+
+        r0 := @this: org.tukaani.xz.LZMAInputStream;
+
+        r1 := @parameter0: java.io.InputStream;
+
+        $i1 = (int) -1;
+
+        specialinvoke r0.<org.tukaani.xz.LZMAInputStream: void <init>(java.io.InputStream,int)>(r1, $i1);
+
+        return;
+    }
+
+    public void <init>(java.io.InputStream, int) throws java.io.IOException
+    {
+        byte[] $r1;
+        java.io.DataInputStream $r5;
+        long $l5, $l6, l12;
+        org.tukaani.xz.MemoryLimitException $r6;
+        byte $b0;
+        int $i1, i2, $i3, $i4, $i7, $i8, $i9, i10, i11, i13, $i15;
+        org.tukaani.xz.LZMAInputStream r0;
+        java.io.InputStream r3;
+
+        r0 := @this: org.tukaani.xz.LZMAInputStream;
+
+        r3 := @parameter0: java.io.InputStream;
+
+        i2 := @parameter1: int;
+
+        specialinvoke r0.<java.io.InputStream: void <init>()>();
+
+        r0.<org.tukaani.xz.LZMAInputStream: boolean endReached> = 0;
+
+        $r1 = newarray (byte)[1];
+
+        r0.<org.tukaani.xz.LZMAInputStream: byte[] tempBuf> = $r1;
+
+        r0.<org.tukaani.xz.LZMAInputStream: java.io.IOException exception> = null;
+
+        $r5 = new java.io.DataInputStream;
+
+        specialinvoke $r5.<java.io.DataInputStream: void <init>(java.io.InputStream)>(r3);
+
+        $b0 = virtualinvoke $r5.<java.io.DataInputStream: byte readByte()>();
+
+        i10 = 0;
+
+        i11 = 0;
+
+     label1:
+        if i11 >= 4 goto label2;
+
+        $i7 = virtualinvoke $r5.<java.io.DataInputStream: int readUnsignedByte()>();
+
+        $i8 = 8 * i11;
+
+        $i9 = $i7 << $i8;
+
+        i10 = i10 | $i9;
+
+        i11 = i11 + 1;
+
+        goto label1;
+
+     label2:
+        l12 = 0L;
+
+        i13 = 0;
+
+     label3:
+        if i13 >= 8 goto label4;
+
+        $i3 = virtualinvoke $r5.<java.io.DataInputStream: int readUnsignedByte()>();
+
+        $l5 = (long) $i3;
+
+        $i4 = 8 * i13;
+
+        $l6 = $l5 << $i4;
+
+        l12 = l12 | $l6;
+
+        i13 = i13 + 1;
+
+        goto label3;
+
+     label4:
+        $i1 = staticinvoke <org.tukaani.xz.LZMAInputStream: int getMemoryUsage(int,byte)>(i10, $b0);
+
+        $i15 = (int) -1;
+
+        if i2 == $i15 goto label5;
+
+        if $i1 <= i2 goto label5;
+
+        $r6 = new org.tukaani.xz.MemoryLimitException;
+
+        specialinvoke $r6.<org.tukaani.xz.MemoryLimitException: void <init>(int,int)>($i1, i2);
+
+        throw $r6;
+
+     label5:
+        specialinvoke r0.<org.tukaani.xz.LZMAInputStream: void initialize(java.io.InputStream,long,byte,int,byte[])>(r3, l12, $b0, i10, null);
+
+        return;
+    }
+
+    public void <init>(java.io.InputStream, long, byte, int) throws java.io.IOException
+    {
+        byte[] $r1;
+        byte b1;
+        org.tukaani.xz.LZMAInputStream r0;
+        int i2;
+        long l0;
+        java.io.InputStream r2;
+
+        r0 := @this: org.tukaani.xz.LZMAInputStream;
+
+        r2 := @parameter0: java.io.InputStream;
+
+        l0 := @parameter1: long;
+
+        b1 := @parameter2: byte;
+
+        i2 := @parameter3: int;
+
+        specialinvoke r0.<java.io.InputStream: void <init>()>();
+
+        r0.<org.tukaani.xz.LZMAInputStream: boolean endReached> = 0;
+
+        $r1 = newarray (byte)[1];
+
+        r0.<org.tukaani.xz.LZMAInputStream: byte[] tempBuf> = $r1;
+
+        r0.<org.tukaani.xz.LZMAInputStream: java.io.IOException exception> = null;
+
+        specialinvoke r0.<org.tukaani.xz.LZMAInputStream: void initialize(java.io.InputStream,long,byte,int,byte[])>(r2, l0, b1, i2, null);
+
+        return;
+    }
+
+    public void <init>(java.io.InputStream, long, byte, int, byte[]) throws java.io.IOException
+    {
+        byte[] $r1, r3;
+        byte b1;
+        org.tukaani.xz.LZMAInputStream r0;
+        int i2;
+        long l0;
+        java.io.InputStream r2;
+
+        r0 := @this: org.tukaani.xz.LZMAInputStream;
+
+        r2 := @parameter0: java.io.InputStream;
+
+        l0 := @parameter1: long;
+
+        b1 := @parameter2: byte;
+
+        i2 := @parameter3: int;
+
+        r3 := @parameter4: byte[];
+
+        specialinvoke r0.<java.io.InputStream: void <init>()>();
+
+        r0.<org.tukaani.xz.LZMAInputStream: boolean endReached> = 0;
+
+        $r1 = newarray (byte)[1];
+
+        r0.<org.tukaani.xz.LZMAInputStream: byte[] tempBuf> = $r1;
+
+        r0.<org.tukaani.xz.LZMAInputStream: java.io.IOException exception> = null;
+
+        specialinvoke r0.<org.tukaani.xz.LZMAInputStream: void initialize(java.io.InputStream,long,byte,int,byte[])>(r2, l0, b1, i2, r3);
+
+        return;
+    }
+
+    public void <init>(java.io.InputStream, long, int, int, int, int, byte[]) throws java.io.IOException
+    {
+        byte[] $r1, r3;
+        long l0;
+        org.tukaani.xz.LZMAInputStream r0;
+        int i1, i2, i3, i4;
+        java.io.InputStream r2;
+
+        r0 := @this: org.tukaani.xz.LZMAInputStream;
+
+        r2 := @parameter0: java.io.InputStream;
+
+        l0 := @parameter1: long;
+
+        i1 := @parameter2: int;
+
+        i2 := @parameter3: int;
+
+        i3 := @parameter4: int;
+
+        i4 := @parameter5: int;
+
+        r3 := @parameter6: byte[];
+
+        specialinvoke r0.<java.io.InputStream: void <init>()>();
+
+        r0.<org.tukaani.xz.LZMAInputStream: boolean endReached> = 0;
+
+        $r1 = newarray (byte)[1];
+
+        r0.<org.tukaani.xz.LZMAInputStream: byte[] tempBuf> = $r1;
+
+        r0.<org.tukaani.xz.LZMAInputStream: java.io.IOException exception> = null;
+
+        specialinvoke r0.<org.tukaani.xz.LZMAInputStream: void initialize(java.io.InputStream,long,int,int,int,int,byte[])>(r2, l0, i1, i2, i3, i4, r3);
+
+        return;
+    }
+
+    private void initialize(java.io.InputStream, long, byte, int, byte[]) throws java.io.IOException
+    {
+        byte[] r3;
+        long l0;
+        short s10, $s13;
+        byte $b1, b2;
+        int i3, $i4, $i5, i6, $i7, i8, i9, i11, $i12, $i14, $i15, $i16;
+        org.tukaani.xz.UnsupportedOptionsException $r6, $r8;
+        org.tukaani.xz.CorruptedInputException $r7;
+        org.tukaani.xz.LZMAInputStream r1;
+        java.io.InputStream r2;
+
+        r1 := @this: org.tukaani.xz.LZMAInputStream;
+
+        r2 := @parameter0: java.io.InputStream;
+
+        l0 := @parameter1: long;
+
+        b2 := @parameter2: byte;
+
+        i9 := @parameter3: int;
+
+        r3 := @parameter4: byte[];
+
+        $b1 = l0 cmp -1L;
+
+        $i12 = (int) $b1;
+
+        if $i12 >= 0 goto label1;
+
+        $r6 = new org.tukaani.xz.UnsupportedOptionsException;
+
+        specialinvoke $r6.<org.tukaani.xz.UnsupportedOptionsException: void <init>(java.lang.String)>("Uncompressed size is too big");
+
+        throw $r6;
+
+     label1:
+        $s13 = (short) b2;
+
+        s10 = $s13 & 255;
+
+        $i14 = (int) s10;
+
+        if $i14 <= 224 goto label2;
+
+        $r7 = new org.tukaani.xz.CorruptedInputException;
+
+        specialinvoke $r7.<org.tukaani.xz.CorruptedInputException: void <init>(java.lang.String)>("Invalid LZMA properties byte");
+
+        throw $r7;
+
+     label2:
+        $i15 = (int) s10;
+
+        i3 = $i15 / 45;
+
+        $i4 = i3 * 9;
+
+        $i5 = $i4 * 5;
+
+        $i16 = (int) s10;
+
+        i11 = $i16 - $i5;
+
+        i6 = i11 / 9;
+
+        $i7 = i6 * 9;
+
+        i8 = i11 - $i7;
+
+        if i9 < 0 goto label3;
+
+        if i9 <= 2147483632 goto label4;
+
+     label3:
+        $r8 = new org.tukaani.xz.UnsupportedOptionsException;
+
+        specialinvoke $r8.<org.tukaani.xz.UnsupportedOptionsException: void <init>(java.lang.String)>("LZMA dictionary is too big for this implementation");
+
+        throw $r8;
+
+     label4:
+        specialinvoke r1.<org.tukaani.xz.LZMAInputStream: void initialize(java.io.InputStream,long,int,int,int,int,byte[])>(r2, l0, i8, i6, i3, i9, r3);
+
+        return;
+    }
+
+    private void initialize(java.io.InputStream, long, int, int, int, int, byte[]) throws java.io.IOException
+    {
+        byte[] r2;
+        long l0, $l7;
+        byte $b1, $b6, $b8;
+        int i2, i3, i4, $i5, $i9, i10, i11, $i12, $i13, $i14, $i15;
+        org.tukaani.xz.lzma.LZMADecoder $r12;
+        java.lang.IllegalArgumentException $r9;
+        org.tukaani.xz.rangecoder.RangeDecoderFromStream $r8, $r11;
+        org.tukaani.xz.LZMAInputStream r0;
+        org.tukaani.xz.lz.LZDecoder $r7, $r10;
+        java.io.InputStream r1;
+
+        r0 := @this: org.tukaani.xz.LZMAInputStream;
+
+        r1 := @parameter0: java.io.InputStream;
+
+        l0 := @parameter1: long;
+
+        i2 := @parameter2: int;
+
+        i3 := @parameter3: int;
+
+        i4 := @parameter4: int;
+
+        i10 := @parameter5: int;
+
+        r2 := @parameter6: byte[];
+
+        $b1 = l0 cmp -1L;
+
+        $i13 = (int) $b1;
+
+        if $i13 < 0 goto label1;
+
+        if i2 < 0 goto label1;
+
+        if i2 > 8 goto label1;
+
+        if i3 < 0 goto label1;
+
+        if i3 > 4 goto label1;
+
+        if i4 < 0 goto label1;
+
+        if i4 <= 4 goto label2;
+
+     label1:
+        $r9 = new java.lang.IllegalArgumentException;
+
+        specialinvoke $r9.<java.lang.IllegalArgumentException: void <init>()>();
+
+        throw $r9;
+
+     label2:
+        r0.<org.tukaani.xz.LZMAInputStream: java.io.InputStream in> = r1;
+
+        $i5 = staticinvoke <org.tukaani.xz.LZMAInputStream: int getDictSize(int)>(i10);
+
+        i11 = $i5;
+
+        $b6 = l0 cmp 0L;
+
+        $i14 = (int) $b6;
+
+        if $i14 < 0 goto label3;
+
+        $l7 = (long) $i5;
+
+        $b8 = $l7 cmp l0;
+
+        $i15 = (int) $b8;
+
+        if $i15 <= 0 goto label3;
+
+        $i9 = (int) l0;
+
+        i11 = staticinvoke <org.tukaani.xz.LZMAInputStream: int getDictSize(int)>($i9);
+
+     label3:
+        $r10 = new org.tukaani.xz.lz.LZDecoder;
+
+        $i12 = staticinvoke <org.tukaani.xz.LZMAInputStream: int getDictSize(int)>(i11);
+
+        specialinvoke $r10.<org.tukaani.xz.lz.LZDecoder: void <init>(int,byte[])>($i12, r2);
+
+        r0.<org.tukaani.xz.LZMAInputStream: org.tukaani.xz.lz.LZDecoder lz> = $r10;
+
+        $r11 = new org.tukaani.xz.rangecoder.RangeDecoderFromStream;
+
+        specialinvoke $r11.<org.tukaani.xz.rangecoder.RangeDecoderFromStream: void <init>(java.io.InputStream)>(r1);
+
+        r0.<org.tukaani.xz.LZMAInputStream: org.tukaani.xz.rangecoder.RangeDecoderFromStream rc> = $r11;
+
+        $r12 = new org.tukaani.xz.lzma.LZMADecoder;
+
+        $r7 = r0.<org.tukaani.xz.LZMAInputStream: org.tukaani.xz.lz.LZDecoder lz>;
+
+        $r8 = r0.<org.tukaani.xz.LZMAInputStream: org.tukaani.xz.rangecoder.RangeDecoderFromStream rc>;
+
+        specialinvoke $r12.<org.tukaani.xz.lzma.LZMADecoder: void <init>(org.tukaani.xz.lz.LZDecoder,org.tukaani.xz.rangecoder.RangeDecoder,int,int,int)>($r7, $r8, i2, i3, i4);
+
+        r0.<org.tukaani.xz.LZMAInputStream: org.tukaani.xz.lzma.LZMADecoder lzma> = $r12;
+
+        r0.<org.tukaani.xz.LZMAInputStream: long remainingSize> = l0;
+
+        return;
+    }
+
+    public int read() throws java.io.IOException
+    {
+        byte[] $r1, $r2;
+        short $s2;
+        byte $b1;
+        org.tukaani.xz.LZMAInputStream r0;
+        int $i0, $i4;
+
+        r0 := @this: org.tukaani.xz.LZMAInputStream;
+
+        $r1 = r0.<org.tukaani.xz.LZMAInputStream: byte[] tempBuf>;
+
+        $i0 = virtualinvoke r0.<org.tukaani.xz.LZMAInputStream: int read(byte[],int,int)>($r1, 0, 1);
+
+        $i4 = (int) -1;
+
+        if $i0 != $i4 goto label1;
+
+        $s2 = -1;
+
+        goto label2;
+
+     label1:
+        $r2 = r0.<org.tukaani.xz.LZMAInputStream: byte[] tempBuf>;
+
+        $b1 = $r2[0];
+
+        $s2 = $b1 & 255;
+
+     label2:
+        return $s2;
+    }
+
+    public int read(byte[], int, int) throws java.io.IOException
+    {
+        byte[] r0;
+        java.lang.IndexOutOfBoundsException $r18;
+        byte $b4, $b7, $b12, $b14, $b17, $b20;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5;
+        org.tukaani.xz.XZIOException $r19;
+        org.tukaani.xz.rangecoder.RangeDecoderFromStream $r5, $r14;
+        org.tukaani.xz.LZMAInputStream r1;
+        org.tukaani.xz.lz.LZDecoder $r4, $r7, $r16;
+        long $l3, $l6, $l8, $l9, $l10, $l11, $l13, $l15, $l16, $l18, $l19;
+        java.lang.AssertionError $r20;
+        int $i0, $i1, $i2, $i5, $i21, i22, i23, i24, i25, $i26, $i28, $i29, $i30, $i31, $i32, $i34;
+        org.tukaani.xz.lzma.LZMADecoder $r13, $r17;
+        java.io.IOException $r3, $r9, $r11;
+        org.tukaani.xz.CorruptedInputException $r12, $r21;
+        java.io.InputStream $r2;
+
+        r1 := @this: org.tukaani.xz.LZMAInputStream;
+
+        r0 := @parameter0: byte[];
+
+        i22 := @parameter1: int;
+
+        i23 := @parameter2: int;
+
+        if i22 < 0 goto label01;
+
+        if i23 < 0 goto label01;
+
+        $i0 = i22 + i23;
+
+        if $i0 < 0 goto label01;
+
+        $i2 = i22 + i23;
+
+        $i1 = lengthof r0;
+
+        if $i2 <= $i1 goto label02;
+
+     label01:
+        $r18 = new java.lang.IndexOutOfBoundsException;
+
+        specialinvoke $r18.<java.lang.IndexOutOfBoundsException: void <init>()>();
+
+        throw $r18;
+
+     label02:
+        if i23 != 0 goto label03;
+
+        return 0;
+
+     label03:
+        $r2 = r1.<org.tukaani.xz.LZMAInputStream: java.io.InputStream in>;
+
+        if $r2 != null goto label04;
+
+        $r19 = new org.tukaani.xz.XZIOException;
+
+        specialinvoke $r19.<org.tukaani.xz.XZIOException: void <init>(java.lang.String)>("Stream closed");
+
+        throw $r19;
+
+     label04:
+        $r3 = r1.<org.tukaani.xz.LZMAInputStream: java.io.IOException exception>;
+
+        if $r3 == null goto label05;
+
+        $r9 = r1.<org.tukaani.xz.LZMAInputStream: java.io.IOException exception>;
+
+        throw $r9;
+
+     label05:
+        $z0 = r1.<org.tukaani.xz.LZMAInputStream: boolean endReached>;
+
+        if $z0 == 0 goto label06;
+
+        $i28 = (int) -1;
+
+        return $i28;
+
+     label06:
+        i24 = 0;
+
+     label07:
+        if i23 <= 0 goto label22;
+
+        i25 = i23;
+
+        $l3 = r1.<org.tukaani.xz.LZMAInputStream: long remainingSize>;
+
+        $b4 = $l3 cmp 0L;
+
+        $i29 = (int) $b4;
+
+        if $i29 < 0 goto label08;
+
+        $l16 = r1.<org.tukaani.xz.LZMAInputStream: long remainingSize>;
+
+        $l15 = (long) i23;
+
+        $b17 = $l16 cmp $l15;
+
+        $i30 = (int) $b17;
+
+        if $i30 >= 0 goto label08;
+
+        $l18 = r1.<org.tukaani.xz.LZMAInputStream: long remainingSize>;
+
+        i25 = (int) $l18;
+
+     label08:
+        $r16 = r1.<org.tukaani.xz.LZMAInputStream: org.tukaani.xz.lz.LZDecoder lz>;
+
+        virtualinvoke $r16.<org.tukaani.xz.lz.LZDecoder: void setLimit(int)>(i25);
+
+     label09:
+        $r17 = r1.<org.tukaani.xz.LZMAInputStream: org.tukaani.xz.lzma.LZMADecoder lzma>;
+
+        virtualinvoke $r17.<org.tukaani.xz.lzma.LZMADecoder: void decode()>();
+
+     label10:
+        goto label14;
+
+     label11:
+        $r12 := @caughtexception;
+
+        $l19 = r1.<org.tukaani.xz.LZMAInputStream: long remainingSize>;
+
+        $b20 = $l19 cmp -1L;
+
+        if $b20 != 0 goto label12;
+
+        $r13 = r1.<org.tukaani.xz.LZMAInputStream: org.tukaani.xz.lzma.LZMADecoder lzma>;
+
+        $z4 = virtualinvoke $r13.<org.tukaani.xz.lzma.LZMADecoder: boolean endMarkerDetected()>();
+
+        if $z4 != 0 goto label13;
+
+     label12:
+        throw $r12;
+
+     label13:
+        r1.<org.tukaani.xz.LZMAInputStream: boolean endReached> = 1;
+
+        $r14 = r1.<org.tukaani.xz.LZMAInputStream: org.tukaani.xz.rangecoder.RangeDecoderFromStream rc>;
+
+        virtualinvoke $r14.<org.tukaani.xz.rangecoder.RangeDecoderFromStream: void normalize()>();
+
+     label14:
+        $r4 = r1.<org.tukaani.xz.LZMAInputStream: org.tukaani.xz.lz.LZDecoder lz>;
+
+        $i5 = virtualinvoke $r4.<org.tukaani.xz.lz.LZDecoder: int flush(byte[],int)>(r0, i22);
+
+        i22 = i22 + $i5;
+
+        i23 = i23 - $i5;
+
+        $i21 = i24 + $i5;
+
+        i24 = $i21;
+
+        $l6 = r1.<org.tukaani.xz.LZMAInputStream: long remainingSize>;
+
+        $b7 = $l6 cmp 0L;
+
+        $i31 = (int) $b7;
+
+        if $i31 < 0 goto label16;
+
+        $l9 = r1.<org.tukaani.xz.LZMAInputStream: long remainingSize>;
+
+        $l8 = (long) $i5;
+
+        $l10 = $l9 - $l8;
+
+        r1.<org.tukaani.xz.LZMAInputStream: long remainingSize> = $l10;
+
+        $z3 = <org.tukaani.xz.LZMAInputStream: boolean $assertionsDisabled>;
+
+        if $z3 != 0 goto label15;
+
+        $l13 = r1.<org.tukaani.xz.LZMAInputStream: long remainingSize>;
+
+        $b14 = $l13 cmp 0L;
+
+        $i32 = (int) $b14;
+
+        if $i32 >= 0 goto label15;
+
+        $r20 = new java.lang.AssertionError;
+
+        specialinvoke $r20.<java.lang.AssertionError: void <init>()>();
+
+        throw $r20;
+
+     label15:
+        $l11 = r1.<org.tukaani.xz.LZMAInputStream: long remainingSize>;
+
+        $b12 = $l11 cmp 0L;
+
+        if $b12 != 0 goto label16;
+
+        r1.<org.tukaani.xz.LZMAInputStream: boolean endReached> = 1;
+
+     label16:
+        $z5 = r1.<org.tukaani.xz.LZMAInputStream: boolean endReached>;
+
+        if $z5 == 0 goto label21;
+
+        $r5 = r1.<org.tukaani.xz.LZMAInputStream: org.tukaani.xz.rangecoder.RangeDecoderFromStream rc>;
+
+        $z1 = virtualinvoke $r5.<org.tukaani.xz.rangecoder.RangeDecoderFromStream: boolean isFinished()>();
+
+        if $z1 == 0 goto label17;
+
+        $r7 = r1.<org.tukaani.xz.LZMAInputStream: org.tukaani.xz.lz.LZDecoder lz>;
+
+        $z2 = virtualinvoke $r7.<org.tukaani.xz.lz.LZDecoder: boolean hasPending()>();
+
+        if $z2 == 0 goto label18;
+
+     label17:
+        $r21 = new org.tukaani.xz.CorruptedInputException;
+
+        specialinvoke $r21.<org.tukaani.xz.CorruptedInputException: void <init>()>();
+
+        throw $r21;
+
+     label18:
+        if $i21 != 0 goto label19;
+
+        $i34 = (int) -1;
+
+        $i26 = $i34;
+
+        goto label20;
+
+     label19:
+        $i26 = $i21;
+
+     label20:
+        return $i26;
+
+     label21:
+        goto label07;
+
+     label22:
+        return i24;
+
+     label23:
+        $r11 := @caughtexception;
+
+        r1.<org.tukaani.xz.LZMAInputStream: java.io.IOException exception> = $r11;
+
+        throw $r11;
+
+        catch org.tukaani.xz.CorruptedInputException from label09 to label10 with label11;
+        catch java.io.IOException from label06 to label20 with label23;
+        catch java.io.IOException from label21 to label22 with label23;
+    }
+
+    public void close() throws java.io.IOException
+    {
+        java.lang.Throwable $r3;
+        org.tukaani.xz.LZMAInputStream r0;
+        java.io.InputStream $r1, $r2;
+
+        r0 := @this: org.tukaani.xz.LZMAInputStream;
+
+        $r1 = r0.<org.tukaani.xz.LZMAInputStream: java.io.InputStream in>;
+
+        if $r1 == null goto label5;
+
+     label1:
+        $r2 = r0.<org.tukaani.xz.LZMAInputStream: java.io.InputStream in>;
+
+        virtualinvoke $r2.<java.io.InputStream: void close()>();
+
+     label2:
+        r0.<org.tukaani.xz.LZMAInputStream: java.io.InputStream in> = null;
+
+        goto label5;
+
+     label3:
+        $r3 := @caughtexception;
+
+     label4:
+        r0.<org.tukaani.xz.LZMAInputStream: java.io.InputStream in> = null;
+
+        throw $r3;
+
+     label5:
+        return;
+
+        catch java.lang.Throwable from label1 to label2 with label3;
+        catch java.lang.Throwable from label3 to label4 with label3;
+    }
+
+    static java.lang.Class class$(java.lang.String)
+    {
+        java.lang.Throwable $r4;
+        java.lang.Class $r1;
+        java.lang.ClassNotFoundException $r2;
+        java.lang.String r0;
+        java.lang.NoClassDefFoundError $r3;
+
+        r0 := @parameter0: java.lang.String;
+
+     label1:
+        $r1 = staticinvoke <java.lang.Class: java.lang.Class forName(java.lang.String)>(r0);
+
+     label2:
+        return $r1;
+
+     label3:
+        $r2 := @caughtexception;
+
+        $r3 = new java.lang.NoClassDefFoundError;
+
+        specialinvoke $r3.<java.lang.NoClassDefFoundError: void <init>()>();
+
+        $r4 = virtualinvoke $r3.<java.lang.NoClassDefFoundError: java.lang.Throwable initCause(java.lang.Throwable)>($r2);
+
+        throw $r4;
+
+        catch java.lang.ClassNotFoundException from label1 to label2 with label3;
+    }
+
+    static void <clinit>()
+    {
+        java.lang.Class $r0, $r1;
+        boolean $z0, $z1;
+
+        <org.tukaani.xz.LZMAInputStream: int DICT_SIZE_MAX> = 2147483632;
+
+        $r0 = <org.tukaani.xz.LZMAInputStream: java.lang.Class class$org$tukaani$xz$LZMAInputStream>;
+
+        if $r0 != null goto label1;
+
+        $r1 = staticinvoke <org.tukaani.xz.LZMAInputStream: java.lang.Class class$(java.lang.String)>("org.tukaani.xz.LZMAInputStream");
+
+        <org.tukaani.xz.LZMAInputStream: java.lang.Class class$org$tukaani$xz$LZMAInputStream> = $r1;
+
+        goto label2;
+
+     label1:
+        $r1 = <org.tukaani.xz.LZMAInputStream: java.lang.Class class$org$tukaani$xz$LZMAInputStream>;
+
+     label2:
+        $z0 = virtualinvoke $r1.<java.lang.Class: boolean desiredAssertionStatus()>();
+
+        if $z0 != 0 goto label3;
+
+        $z1 = 1;
+
+        goto label4;
+
+     label3:
+        $z1 = 0;
+
+     label4:
+        <org.tukaani.xz.LZMAInputStream: boolean $assertionsDisabled> = $z1;
+
+        return;
+    }
+}

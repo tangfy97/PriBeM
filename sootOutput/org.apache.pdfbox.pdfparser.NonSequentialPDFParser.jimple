@@ -1,0 +1,4336 @@
+public class org.apache.pdfbox.pdfparser.NonSequentialPDFParser extends org.apache.pdfbox.pdfparser.PDFParser
+{
+    private static final byte[] XREF;
+    private static final int E;
+    private static final int N;
+    private static final int X;
+    public static final java.lang.String SYSPROP_PARSEMINIMAL;
+    public static final java.lang.String SYSPROP_EOFLOOKUPRANGE;
+    private static final java.io.InputStream EMPTY_INPUT_STREAM;
+    protected static final int DEFAULT_TRAIL_BYTECOUNT;
+    protected static final char[] EOF_MARKER;
+    protected static final char[] STARTXREF_MARKER;
+    protected static final char[] OBJ_MARKER;
+    private final java.io.File pdfFile;
+    private long fileLen;
+    private final org.apache.pdfbox.io.RandomAccessBufferedFileInputStream raStream;
+    private boolean isLenient;
+    protected org.apache.pdfbox.pdmodel.encryption.SecurityHandler securityHandler;
+    private java.lang.String keyStoreFilename;
+    private java.lang.String alias;
+    private java.lang.String password;
+    private int readTrailBytes;
+    private boolean parseMinimalCatalog;
+    private boolean initialParseDone;
+    private boolean allPagesParsed;
+    private static final org.apache.commons.logging.Log LOG;
+    private boolean isTmpPDFFile;
+    public static final java.lang.String TMP_FILE_PREFIX;
+    private org.apache.pdfbox.cos.COSDictionary pagesDictionary;
+    private boolean inGetLength;
+    private final int streamCopyBufLen;
+    private final byte[] streamCopyBuf;
+
+    public void <init>(java.lang.String) throws java.io.IOException
+    {
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r0;
+        java.lang.String r2;
+        java.io.File $r1;
+
+        r0 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        r2 := @parameter0: java.lang.String;
+
+        $r1 = new java.io.File;
+
+        specialinvoke $r1.<java.io.File: void <init>(java.lang.String)>(r2);
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: int streamCopyBufLen> = 8192;
+
+        specialinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void <init>(java.io.File,org.apache.pdfbox.io.RandomAccess)>($r1, null);
+
+        return;
+    }
+
+    public void <init>(java.io.File, org.apache.pdfbox.io.RandomAccess) throws java.io.IOException
+    {
+        org.apache.pdfbox.io.RandomAccess r2;
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r0;
+        java.io.File r1;
+
+        r0 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        r1 := @parameter0: java.io.File;
+
+        r2 := @parameter1: org.apache.pdfbox.io.RandomAccess;
+
+        specialinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void <init>(java.io.File,org.apache.pdfbox.io.RandomAccess,java.lang.String)>(r1, r2, "");
+
+        return;
+    }
+
+    public void <init>(java.io.File, org.apache.pdfbox.io.RandomAccess, java.lang.String) throws java.io.IOException
+    {
+        byte[] $r4;
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r0;
+        java.io.File r5, $r7;
+        org.apache.pdfbox.io.RandomAccess r8;
+        java.lang.String $r2, $r3, r9;
+        org.apache.pdfbox.io.RandomAccessBufferedFileInputStream $r6;
+        java.io.InputStream $r1;
+        boolean $z0;
+
+        r0 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        r5 := @parameter0: java.io.File;
+
+        r8 := @parameter1: org.apache.pdfbox.io.RandomAccess;
+
+        r9 := @parameter2: java.lang.String;
+
+        $r1 = <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.io.InputStream EMPTY_INPUT_STREAM>;
+
+        specialinvoke r0.<org.apache.pdfbox.pdfparser.PDFParser: void <init>(java.io.InputStream,org.apache.pdfbox.io.RandomAccess,boolean)>($r1, null, 0);
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: int streamCopyBufLen> = 8192;
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean isLenient> = 1;
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.pdmodel.encryption.SecurityHandler securityHandler> = null;
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.lang.String keyStoreFilename> = null;
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.lang.String alias> = null;
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.lang.String password> = "";
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: int readTrailBytes> = 2048;
+
+        $r2 = "true";
+
+        $r3 = staticinvoke <java.lang.System: java.lang.String getProperty(java.lang.String)>("org.apache.pdfbox.pdfparser.nonSequentialPDFParser.parseMinimal");
+
+        $z0 = virtualinvoke $r2.<java.lang.String: boolean equals(java.lang.Object)>($r3);
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean parseMinimalCatalog> = $z0;
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean initialParseDone> = 0;
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean allPagesParsed> = 0;
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean isTmpPDFFile> = 0;
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSDictionary pagesDictionary> = null;
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean inGetLength> = 0;
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: int streamCopyBufLen> = 8192;
+
+        $r4 = newarray (byte)[8192];
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: byte[] streamCopyBuf> = $r4;
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.io.File pdfFile> = r5;
+
+        $r6 = new org.apache.pdfbox.io.RandomAccessBufferedFileInputStream;
+
+        $r7 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.io.File pdfFile>;
+
+        specialinvoke $r6.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: void <init>(java.io.File)>($r7);
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.RandomAccessBufferedFileInputStream raStream> = $r6;
+
+        specialinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void init(java.io.File,org.apache.pdfbox.io.RandomAccess,java.lang.String)>(r5, r8, r9);
+
+        return;
+    }
+
+    private void init(java.io.File, org.apache.pdfbox.io.RandomAccess, java.lang.String) throws java.io.IOException
+    {
+        org.apache.pdfbox.io.RandomAccess r2;
+        int $i0;
+        java.lang.String $r0, r5, $r13;
+        org.apache.pdfbox.cos.COSDocument $r15;
+        org.apache.pdfbox.io.RandomAccessBuffer $r6;
+        org.apache.pdfbox.io.PushBackInputStream $r3;
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r1;
+        java.lang.NumberFormatException $r7;
+        java.io.File r14;
+        java.lang.StringBuilder $r8, $r10, $r11, $r12;
+        org.apache.commons.logging.Log $r9;
+        org.apache.pdfbox.io.RandomAccessBufferedFileInputStream $r4;
+
+        r1 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        r14 := @parameter0: java.io.File;
+
+        r2 := @parameter1: org.apache.pdfbox.io.RandomAccess;
+
+        r5 := @parameter2: java.lang.String;
+
+        $r0 = staticinvoke <java.lang.System: java.lang.String getProperty(java.lang.String)>("org.apache.pdfbox.pdfparser.nonSequentialPDFParser.eofLookupRange");
+
+        if $r0 == null goto label4;
+
+     label1:
+        $i0 = staticinvoke <java.lang.Integer: int parseInt(java.lang.String)>($r0);
+
+        virtualinvoke r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void setEOFLookupRange(int)>($i0);
+
+     label2:
+        goto label4;
+
+     label3:
+        $r7 := @caughtexception;
+
+        $r9 = <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.commons.logging.Log LOG>;
+
+        $r8 = new java.lang.StringBuilder;
+
+        specialinvoke $r8.<java.lang.StringBuilder: void <init>()>();
+
+        $r10 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("System property org.apache.pdfbox.pdfparser.nonSequentialPDFParser.eofLookupRange does not contain an integer value, but: \'");
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r0);
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("\'");
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r9.<org.apache.commons.logging.Log: void warn(java.lang.Object)>($r13);
+
+     label4:
+        if r2 != null goto label5;
+
+        $r15 = new org.apache.pdfbox.cos.COSDocument;
+
+        $r6 = new org.apache.pdfbox.io.RandomAccessBuffer;
+
+        specialinvoke $r6.<org.apache.pdfbox.io.RandomAccessBuffer: void <init>()>();
+
+        specialinvoke $r15.<org.apache.pdfbox.cos.COSDocument: void <init>(org.apache.pdfbox.io.RandomAccess,boolean)>($r6, 0);
+
+        goto label6;
+
+     label5:
+        $r15 = new org.apache.pdfbox.cos.COSDocument;
+
+        specialinvoke $r15.<org.apache.pdfbox.cos.COSDocument: void <init>(org.apache.pdfbox.io.RandomAccess,boolean)>(r2, 0);
+
+     label6:
+        virtualinvoke r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void setDocument(org.apache.pdfbox.cos.COSDocument)>($r15);
+
+        $r3 = new org.apache.pdfbox.io.PushBackInputStream;
+
+        $r4 = r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.RandomAccessBufferedFileInputStream raStream>;
+
+        specialinvoke $r3.<org.apache.pdfbox.io.PushBackInputStream: void <init>(java.io.InputStream,int)>($r4, 4096);
+
+        r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource> = $r3;
+
+        r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.lang.String password> = r5;
+
+        return;
+
+        catch java.lang.NumberFormatException from label1 to label2 with label3;
+    }
+
+    public void <init>(java.io.InputStream) throws java.io.IOException
+    {
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r0;
+        java.io.InputStream r1;
+
+        r0 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        r1 := @parameter0: java.io.InputStream;
+
+        specialinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void <init>(java.io.InputStream,org.apache.pdfbox.io.RandomAccess,java.lang.String)>(r1, null, "");
+
+        return;
+    }
+
+    public void <init>(java.io.InputStream, org.apache.pdfbox.io.RandomAccess, java.lang.String) throws java.io.IOException
+    {
+        byte[] $r4;
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r0;
+        java.io.File $r6, $r8, $r11;
+        org.apache.pdfbox.io.RandomAccess r9;
+        java.lang.String $r2, $r3, r10;
+        org.apache.pdfbox.io.RandomAccessBufferedFileInputStream $r7;
+        java.io.InputStream $r1, r5;
+        boolean $z0;
+
+        r0 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        r5 := @parameter0: java.io.InputStream;
+
+        r9 := @parameter1: org.apache.pdfbox.io.RandomAccess;
+
+        r10 := @parameter2: java.lang.String;
+
+        $r1 = <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.io.InputStream EMPTY_INPUT_STREAM>;
+
+        specialinvoke r0.<org.apache.pdfbox.pdfparser.PDFParser: void <init>(java.io.InputStream,org.apache.pdfbox.io.RandomAccess,boolean)>($r1, null, 0);
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: int streamCopyBufLen> = 8192;
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean isLenient> = 1;
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.pdmodel.encryption.SecurityHandler securityHandler> = null;
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.lang.String keyStoreFilename> = null;
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.lang.String alias> = null;
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.lang.String password> = "";
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: int readTrailBytes> = 2048;
+
+        $r2 = "true";
+
+        $r3 = staticinvoke <java.lang.System: java.lang.String getProperty(java.lang.String)>("org.apache.pdfbox.pdfparser.nonSequentialPDFParser.parseMinimal");
+
+        $z0 = virtualinvoke $r2.<java.lang.String: boolean equals(java.lang.Object)>($r3);
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean parseMinimalCatalog> = $z0;
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean initialParseDone> = 0;
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean allPagesParsed> = 0;
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean isTmpPDFFile> = 0;
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSDictionary pagesDictionary> = null;
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean inGetLength> = 0;
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: int streamCopyBufLen> = 8192;
+
+        $r4 = newarray (byte)[8192];
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: byte[] streamCopyBuf> = $r4;
+
+        $r6 = specialinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.io.File createTmpFile(java.io.InputStream)>(r5);
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.io.File pdfFile> = $r6;
+
+        $r7 = new org.apache.pdfbox.io.RandomAccessBufferedFileInputStream;
+
+        $r8 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.io.File pdfFile>;
+
+        specialinvoke $r7.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: void <init>(java.io.File)>($r8);
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.RandomAccessBufferedFileInputStream raStream> = $r7;
+
+        $r11 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.io.File pdfFile>;
+
+        specialinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void init(java.io.File,org.apache.pdfbox.io.RandomAccess,java.lang.String)>($r11, r9, r10);
+
+        return;
+    }
+
+    private java.io.File createTmpFile(java.io.InputStream) throws java.io.IOException
+    {
+        java.lang.Throwable $r4;
+        java.io.FileOutputStream $r1, r5;
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r3;
+        java.io.File $r0;
+        java.io.InputStream r2;
+
+        r3 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        r2 := @parameter0: java.io.InputStream;
+
+        r5 = null;
+
+     label1:
+        $r0 = staticinvoke <java.io.File: java.io.File createTempFile(java.lang.String,java.lang.String)>("tmpPDF", ".pdf");
+
+        $r1 = new java.io.FileOutputStream;
+
+        specialinvoke $r1.<java.io.FileOutputStream: void <init>(java.io.File)>($r0);
+
+        r5 = $r1;
+
+        staticinvoke <org.apache.pdfbox.io.IOUtils: long copy(java.io.InputStream,java.io.OutputStream)>(r2, $r1);
+
+        r3.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean isTmpPDFFile> = 1;
+
+        goto label5;
+
+     label2:
+        return $r0;
+
+     label3:
+        $r4 := @caughtexception;
+
+        goto label6;
+
+     label4:
+        throw $r4;
+
+     label5:
+        staticinvoke <org.apache.pdfbox.io.IOUtils: void closeQuietly(java.io.InputStream)>(r2);
+
+        staticinvoke <org.apache.pdfbox.io.IOUtils: void closeQuietly(java.io.OutputStream)>($r1);
+
+        goto label2;
+
+     label6:
+        staticinvoke <org.apache.pdfbox.io.IOUtils: void closeQuietly(java.io.InputStream)>(r2);
+
+        staticinvoke <org.apache.pdfbox.io.IOUtils: void closeQuietly(java.io.OutputStream)>(r5);
+
+        goto label4;
+
+        catch java.lang.Throwable from label1 to label2 with label3;
+        catch java.lang.Throwable from label3 to label4 with label3;
+    }
+
+    public void setEOFLookupRange(int)
+    {
+        int i0;
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r0;
+
+        r0 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        i0 := @parameter0: int;
+
+        if i0 <= 15 goto label1;
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: int readTrailBytes> = i0;
+
+     label1:
+        return;
+    }
+
+    protected void initialParse() throws java.io.IOException
+    {
+        byte $b4, $b6, $b9, $b11, $b15, $b19;
+        org.apache.pdfbox.cos.COSName[] $r20;
+        org.apache.pdfbox.cos.COSBase $r9, $r15, $r18, $r19, r92;
+        java.lang.StringBuilder $r41, $r44, $r45, $r66, $r68, $r74, $r75, $r76, $r82, $r85, $r86, $r88, $r95, $r96, $r102, $r103;
+        long $l0, $l1, $l3, $l5, $l7, $l10, $l12, $l14, $l16, l17, l18;
+        org.apache.pdfbox.cos.COSDocument $r1, $r5, $r6, $r16, $r22, $r26, $r34, $r78;
+        java.io.IOException $r97, $r104, $r105;
+        java.util.Collection $r10;
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r0;
+        java.security.KeyStore $r47;
+        org.apache.pdfbox.cos.COSDictionary $r4, $r7, $r13, $r21, $r27, $r57, $r61;
+        org.apache.pdfbox.pdmodel.encryption.StandardDecryptionMaterial $r101;
+        org.apache.pdfbox.cos.COSArray $r36;
+        org.apache.pdfbox.cos.COSObject $r17, r90, r93, r94;
+        org.apache.pdfbox.pdfparser.XrefTrailerResolver $r2, $r3, $r12, $r56, $r60;
+        int $i2, $i8, $i13, $i20, $i21, $i22;
+        org.apache.pdfbox.cos.COSName $r8, $r14, $r58, $r62, $r63;
+        java.io.FileInputStream $r99;
+        java.lang.Object $r24;
+        java.lang.Class $r83;
+        org.apache.pdfbox.pdmodel.encryption.PublicKeyDecryptionMaterial $r100;
+        java.lang.Exception $r79;
+        java.lang.String $r28, $r30, $r32, $r43, $r46, $r49, $r50, $r53, $r54, $r69, $r77, $r84, $r87, $r89;
+        java.io.File $r42;
+        char[] $r51;
+        org.apache.pdfbox.pdmodel.encryption.DecryptionMaterial r91;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9, $z10, $z11;
+        org.apache.pdfbox.pdmodel.encryption.AccessPermission $r38;
+        org.apache.pdfbox.pdmodel.encryption.SecurityHandlersManager $r31;
+        org.apache.pdfbox.pdmodel.encryption.SecurityHandler $r33, $r35, $r37;
+        java.util.Iterator $r11;
+        org.apache.pdfbox.io.PushBackInputStream $r55, $r59, $r67, $r70, $r71;
+        org.apache.pdfbox.pdmodel.encryption.PDEncryptionDictionary $r98;
+        org.apache.commons.logging.Log $r40, $r73;
+
+        r0 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        $l0 = virtualinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: long getStartxrefOffset()>();
+
+        virtualinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void setPdfSource(long)>($l0);
+
+        virtualinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean parseStartXref()>();
+
+        $r1 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSDocument document>;
+
+        $l1 = virtualinvoke $r1.<org.apache.pdfbox.cos.COSDocument: long getStartXref()>();
+
+        l17 = $l1;
+
+        $z0 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean isLenient>;
+
+        if $z0 == 0 goto label01;
+
+        $l16 = specialinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: long calculateFixingOffset(long)>($l1);
+
+        l17 = $l1 - $l16;
+
+        $r78 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSDocument document>;
+
+        virtualinvoke $r78.<org.apache.pdfbox.cos.COSDocument: void setStartXref(long)>(l17);
+
+     label01:
+        l18 = l17;
+
+     label02:
+        $b19 = l18 cmp -1L;
+
+        $i20 = (int) $b19;
+
+        if $i20 <= 0 goto label10;
+
+        virtualinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void setPdfSource(long)>(l18);
+
+        virtualinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void skipSpaces()>();
+
+        $r55 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        $i2 = virtualinvoke $r55.<org.apache.pdfbox.io.PushBackInputStream: int peek()>();
+
+        if $i2 != 120 goto label08;
+
+        virtualinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean parseXrefTable(long)>(l18);
+
+        $r59 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        $l7 = virtualinvoke $r59.<org.apache.pdfbox.io.PushBackInputStream: long getOffset()>();
+
+     label03:
+        $z8 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean isLenient>;
+
+        if $z8 == 0 goto label05;
+
+        $r70 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        $i13 = virtualinvoke $r70.<org.apache.pdfbox.io.PushBackInputStream: int peek()>();
+
+        if $i13 == 116 goto label05;
+
+        $r71 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        $l14 = virtualinvoke $r71.<org.apache.pdfbox.io.PushBackInputStream: long getOffset()>();
+
+        $b15 = $l14 cmp $l7;
+
+        if $b15 != 0 goto label04;
+
+        $r73 = <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.commons.logging.Log LOG>;
+
+        $r95 = new java.lang.StringBuilder;
+
+        specialinvoke $r95.<java.lang.StringBuilder: void <init>()>();
+
+        $r74 = virtualinvoke $r95.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Expected trailer object at position ");
+
+        $r75 = virtualinvoke $r74.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l7);
+
+        $r76 = virtualinvoke $r75.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(", keep trying");
+
+        $r77 = virtualinvoke $r76.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r73.<org.apache.commons.logging.Log: void warn(java.lang.Object)>($r77);
+
+     label04:
+        virtualinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.lang.String readLine()>();
+
+        goto label03;
+
+     label05:
+        $z9 = virtualinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean parseTrailer()>();
+
+        if $z9 != 0 goto label06;
+
+        $r97 = new java.io.IOException;
+
+        $r96 = new java.lang.StringBuilder;
+
+        specialinvoke $r96.<java.lang.StringBuilder: void <init>()>();
+
+        $r66 = virtualinvoke $r96.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Expected trailer object at position: ");
+
+        $r67 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        $l12 = virtualinvoke $r67.<org.apache.pdfbox.io.PushBackInputStream: long getOffset()>();
+
+        $r68 = virtualinvoke $r66.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l12);
+
+        $r69 = virtualinvoke $r68.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r97.<java.io.IOException: void <init>(java.lang.String)>($r69);
+
+        throw $r97;
+
+     label06:
+        $r60 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.pdfparser.XrefTrailerResolver xrefTrailerResolver>;
+
+        $r61 = virtualinvoke $r60.<org.apache.pdfbox.pdfparser.XrefTrailerResolver: org.apache.pdfbox.cos.COSDictionary getCurrentTrailer()>();
+
+        $r62 = <org.apache.pdfbox.cos.COSName: org.apache.pdfbox.cos.COSName PREV>;
+
+        $i8 = virtualinvoke $r61.<org.apache.pdfbox.cos.COSDictionary: int getInt(org.apache.pdfbox.cos.COSName)>($r62);
+
+        l18 = (long) $i8;
+
+        $z10 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean isLenient>;
+
+        if $z10 == 0 goto label07;
+
+        $b9 = l18 cmp -1L;
+
+        $i21 = (int) $b9;
+
+        if $i21 <= 0 goto label07;
+
+        $l10 = specialinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: long calculateFixingOffset(long)>(l18);
+
+        $b11 = $l10 cmp 0L;
+
+        if $b11 == 0 goto label07;
+
+        l18 = l18 - $l10;
+
+        $r63 = <org.apache.pdfbox.cos.COSName: org.apache.pdfbox.cos.COSName PREV>;
+
+        virtualinvoke $r61.<org.apache.pdfbox.cos.COSDictionary: void setLong(org.apache.pdfbox.cos.COSName,long)>($r63, l18);
+
+     label07:
+        goto label02;
+
+     label08:
+        $l3 = specialinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: long parseXrefObjStream(long)>(l18);
+
+        l18 = $l3;
+
+        $z7 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean isLenient>;
+
+        if $z7 == 0 goto label02;
+
+        $b4 = $l3 cmp -1L;
+
+        $i22 = (int) $b4;
+
+        if $i22 <= 0 goto label02;
+
+        $l5 = specialinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: long calculateFixingOffset(long)>($l3);
+
+        $b6 = $l5 cmp 0L;
+
+        if $b6 == 0 goto label09;
+
+        l18 = $l3 - $l5;
+
+        $r56 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.pdfparser.XrefTrailerResolver xrefTrailerResolver>;
+
+        $r57 = virtualinvoke $r56.<org.apache.pdfbox.pdfparser.XrefTrailerResolver: org.apache.pdfbox.cos.COSDictionary getCurrentTrailer()>();
+
+        $r58 = <org.apache.pdfbox.cos.COSName: org.apache.pdfbox.cos.COSName PREV>;
+
+        virtualinvoke $r57.<org.apache.pdfbox.cos.COSDictionary: void setLong(org.apache.pdfbox.cos.COSName,long)>($r58, l18);
+
+     label09:
+        goto label02;
+
+     label10:
+        $r2 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.pdfparser.XrefTrailerResolver xrefTrailerResolver>;
+
+        virtualinvoke $r2.<org.apache.pdfbox.pdfparser.XrefTrailerResolver: void setStartxref(long)>(l17);
+
+        $r3 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.pdfparser.XrefTrailerResolver xrefTrailerResolver>;
+
+        $r4 = virtualinvoke $r3.<org.apache.pdfbox.pdfparser.XrefTrailerResolver: org.apache.pdfbox.cos.COSDictionary getTrailer()>();
+
+        $r5 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSDocument document>;
+
+        virtualinvoke $r5.<org.apache.pdfbox.cos.COSDocument: void setTrailer(org.apache.pdfbox.cos.COSDictionary)>($r4);
+
+        $z1 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean isLenient>;
+
+        if $z1 == 0 goto label11;
+
+        specialinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void checkXrefOffsets()>();
+
+     label11:
+        $r6 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSDocument document>;
+
+        $r7 = virtualinvoke $r6.<org.apache.pdfbox.cos.COSDocument: org.apache.pdfbox.cos.COSDictionary getTrailer()>();
+
+        $r8 = <org.apache.pdfbox.cos.COSName: org.apache.pdfbox.cos.COSName ENCRYPT>;
+
+        $r9 = virtualinvoke $r7.<org.apache.pdfbox.cos.COSDictionary: org.apache.pdfbox.cos.COSBase getItem(org.apache.pdfbox.cos.COSName)>($r8);
+
+        if $r9 == null goto label17;
+
+        $z5 = $r9 instanceof org.apache.pdfbox.cos.COSObject;
+
+        if $z5 == 0 goto label12;
+
+        r90 = (org.apache.pdfbox.cos.COSObject) $r9;
+
+        virtualinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSBase parseObjectDynamically(org.apache.pdfbox.cos.COSObject,boolean)>(r90, 1);
+
+     label12:
+        $r98 = new org.apache.pdfbox.pdmodel.encryption.PDEncryptionDictionary;
+
+        $r26 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSDocument document>;
+
+        $r27 = virtualinvoke $r26.<org.apache.pdfbox.cos.COSDocument: org.apache.pdfbox.cos.COSDictionary getEncryptionDictionary()>();
+
+        specialinvoke $r98.<org.apache.pdfbox.pdmodel.encryption.PDEncryptionDictionary: void <init>(org.apache.pdfbox.cos.COSDictionary)>($r27);
+
+        $r28 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.lang.String keyStoreFilename>;
+
+        if $r28 == null goto label13;
+
+        $r47 = staticinvoke <java.security.KeyStore: java.security.KeyStore getInstance(java.lang.String)>("PKCS12");
+
+        $r99 = new java.io.FileInputStream;
+
+        $r49 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.lang.String keyStoreFilename>;
+
+        specialinvoke $r99.<java.io.FileInputStream: void <init>(java.lang.String)>($r49);
+
+        $r50 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.lang.String password>;
+
+        $r51 = virtualinvoke $r50.<java.lang.String: char[] toCharArray()>();
+
+        virtualinvoke $r47.<java.security.KeyStore: void load(java.io.InputStream,char[])>($r99, $r51);
+
+        $r100 = new org.apache.pdfbox.pdmodel.encryption.PublicKeyDecryptionMaterial;
+
+        $r54 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.lang.String alias>;
+
+        $r53 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.lang.String password>;
+
+        specialinvoke $r100.<org.apache.pdfbox.pdmodel.encryption.PublicKeyDecryptionMaterial: void <init>(java.security.KeyStore,java.lang.String,java.lang.String)>($r47, $r54, $r53);
+
+        r91 = $r100;
+
+        goto label14;
+
+     label13:
+        $r101 = new org.apache.pdfbox.pdmodel.encryption.StandardDecryptionMaterial;
+
+        $r30 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.lang.String password>;
+
+        specialinvoke $r101.<org.apache.pdfbox.pdmodel.encryption.StandardDecryptionMaterial: void <init>(java.lang.String)>($r30);
+
+        r91 = $r101;
+
+     label14:
+        $r31 = staticinvoke <org.apache.pdfbox.pdmodel.encryption.SecurityHandlersManager: org.apache.pdfbox.pdmodel.encryption.SecurityHandlersManager getInstance()>();
+
+        $r32 = virtualinvoke $r98.<org.apache.pdfbox.pdmodel.encryption.PDEncryptionDictionary: java.lang.String getFilter()>();
+
+        $r33 = virtualinvoke $r31.<org.apache.pdfbox.pdmodel.encryption.SecurityHandlersManager: org.apache.pdfbox.pdmodel.encryption.SecurityHandler getSecurityHandler(java.lang.String)>($r32);
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.pdmodel.encryption.SecurityHandler securityHandler> = $r33;
+
+        $r35 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.pdmodel.encryption.SecurityHandler securityHandler>;
+
+        $r34 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSDocument document>;
+
+        $r36 = virtualinvoke $r34.<org.apache.pdfbox.cos.COSDocument: org.apache.pdfbox.cos.COSArray getDocumentID()>();
+
+        virtualinvoke $r35.<org.apache.pdfbox.pdmodel.encryption.SecurityHandler: void prepareForDecryption(org.apache.pdfbox.pdmodel.encryption.PDEncryptionDictionary,org.apache.pdfbox.cos.COSArray,org.apache.pdfbox.pdmodel.encryption.DecryptionMaterial)>($r98, $r36, r91);
+
+        $r37 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.pdmodel.encryption.SecurityHandler securityHandler>;
+
+        $r38 = virtualinvoke $r37.<org.apache.pdfbox.pdmodel.encryption.SecurityHandler: org.apache.pdfbox.pdmodel.encryption.AccessPermission getCurrentAccessPermission()>();
+
+        $z6 = virtualinvoke $r38.<org.apache.pdfbox.pdmodel.encryption.AccessPermission: boolean canExtractContent()>();
+
+        if $z6 != 0 goto label15;
+
+        $r40 = <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.commons.logging.Log LOG>;
+
+        $r102 = new java.lang.StringBuilder;
+
+        specialinvoke $r102.<java.lang.StringBuilder: void <init>()>();
+
+        $r41 = virtualinvoke $r102.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("PDF file \'");
+
+        $r42 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.io.File pdfFile>;
+
+        $r43 = virtualinvoke $r42.<java.io.File: java.lang.String getPath()>();
+
+        $r44 = virtualinvoke $r41.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r43);
+
+        $r45 = virtualinvoke $r44.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("\' does not allow extracting content.");
+
+        $r46 = virtualinvoke $r45.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r40.<org.apache.commons.logging.Log: void warn(java.lang.Object)>($r46);
+
+     label15:
+        goto label17;
+
+     label16:
+        $r79 := @caughtexception;
+
+        $r104 = new java.io.IOException;
+
+        $r103 = new java.lang.StringBuilder;
+
+        specialinvoke $r103.<java.lang.StringBuilder: void <init>()>();
+
+        $r82 = virtualinvoke $r103.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Error (");
+
+        $r83 = virtualinvoke $r79.<java.lang.Object: java.lang.Class getClass()>();
+
+        $r84 = virtualinvoke $r83.<java.lang.Class: java.lang.String getSimpleName()>();
+
+        $r85 = virtualinvoke $r82.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r84);
+
+        $r86 = virtualinvoke $r85.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(") while creating security handler for decryption: ");
+
+        $r87 = virtualinvoke $r79.<java.lang.Exception: java.lang.String getMessage()>();
+
+        $r88 = virtualinvoke $r86.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r87);
+
+        $r89 = virtualinvoke $r88.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r104.<java.io.IOException: void <init>(java.lang.String)>($r89);
+
+        throw $r104;
+
+     label17:
+        $r10 = virtualinvoke $r4.<org.apache.pdfbox.cos.COSDictionary: java.util.Collection getValues()>();
+
+        $r11 = interfaceinvoke $r10.<java.util.Collection: java.util.Iterator iterator()>();
+
+     label18:
+        $z11 = interfaceinvoke $r11.<java.util.Iterator: boolean hasNext()>();
+
+        if $z11 == 0 goto label20;
+
+        $r24 = interfaceinvoke $r11.<java.util.Iterator: java.lang.Object next()>();
+
+        r92 = (org.apache.pdfbox.cos.COSBase) $r24;
+
+        $z4 = r92 instanceof org.apache.pdfbox.cos.COSObject;
+
+        if $z4 == 0 goto label19;
+
+        r93 = (org.apache.pdfbox.cos.COSObject) r92;
+
+        virtualinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSBase parseObjectDynamically(org.apache.pdfbox.cos.COSObject,boolean)>(r93, 0);
+
+     label19:
+        goto label18;
+
+     label20:
+        $r12 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.pdfparser.XrefTrailerResolver xrefTrailerResolver>;
+
+        $r13 = virtualinvoke $r12.<org.apache.pdfbox.pdfparser.XrefTrailerResolver: org.apache.pdfbox.cos.COSDictionary getTrailer()>();
+
+        $r14 = <org.apache.pdfbox.cos.COSName: org.apache.pdfbox.cos.COSName ROOT>;
+
+        $r15 = virtualinvoke $r13.<org.apache.pdfbox.cos.COSDictionary: org.apache.pdfbox.cos.COSBase getItem(org.apache.pdfbox.cos.COSName)>($r14);
+
+        r94 = (org.apache.pdfbox.cos.COSObject) $r15;
+
+        if r94 != null goto label21;
+
+        $r105 = new java.io.IOException;
+
+        specialinvoke $r105.<java.io.IOException: void <init>(java.lang.String)>("Missing root object specification in trailer.");
+
+        throw $r105;
+
+     label21:
+        virtualinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSBase parseObjectDynamically(org.apache.pdfbox.cos.COSObject,boolean)>(r94, 0);
+
+        $z2 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean parseMinimalCatalog>;
+
+        if $z2 != 0 goto label22;
+
+        $r16 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSDocument document>;
+
+        $r17 = virtualinvoke $r16.<org.apache.pdfbox.cos.COSDocument: org.apache.pdfbox.cos.COSObject getCatalog()>();
+
+        if $r17 == null goto label22;
+
+        $r18 = virtualinvoke $r17.<org.apache.pdfbox.cos.COSObject: org.apache.pdfbox.cos.COSBase getObject()>();
+
+        $z3 = $r18 instanceof org.apache.pdfbox.cos.COSDictionary;
+
+        if $z3 == 0 goto label22;
+
+        $r19 = virtualinvoke $r17.<org.apache.pdfbox.cos.COSObject: org.apache.pdfbox.cos.COSBase getObject()>();
+
+        $r21 = (org.apache.pdfbox.cos.COSDictionary) $r19;
+
+        $r20 = (org.apache.pdfbox.cos.COSName[]) null;
+
+        specialinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void parseDictObjects(org.apache.pdfbox.cos.COSDictionary,org.apache.pdfbox.cos.COSName[])>($r21, $r20);
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean allPagesParsed> = 1;
+
+        $r22 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSDocument document>;
+
+        virtualinvoke $r22.<org.apache.pdfbox.cos.COSDocument: void setDecrypted()>();
+
+     label22:
+        virtualinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void readVersionInTrailer(org.apache.pdfbox.cos.COSDictionary)>($r4);
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean initialParseDone> = 1;
+
+        return;
+
+        catch java.lang.Exception from label12 to label15 with label16;
+    }
+
+    private long parseXrefObjStream(long) throws java.io.IOException
+    {
+        org.apache.pdfbox.cos.COSName $r6;
+        org.apache.pdfbox.cos.COSDocument $r3;
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r0;
+        long l0, $l2, $l3;
+        org.apache.pdfbox.cos.COSDictionary $r2;
+        org.apache.pdfbox.io.RandomAccess $r4;
+        int $i1;
+        char[] $r1;
+        org.apache.pdfbox.cos.COSStream $r5;
+
+        r0 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        l0 := @parameter0: long;
+
+        virtualinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: long readObjectNumber()>();
+
+        virtualinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: int readGenerationNumber()>();
+
+        $r1 = <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: char[] OBJ_MARKER>;
+
+        virtualinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void readPattern(char[])>($r1);
+
+        $r2 = virtualinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSDictionary parseCOSDictionary()>();
+
+        $r3 = virtualinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSDocument getDocument()>();
+
+        $r4 = virtualinvoke $r3.<org.apache.pdfbox.cos.COSDocument: org.apache.pdfbox.io.RandomAccess getScratchFile()>();
+
+        $r5 = virtualinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSStream parseCOSStream(org.apache.pdfbox.cos.COSDictionary,org.apache.pdfbox.io.RandomAccess)>($r2, $r4);
+
+        $i1 = (int) l0;
+
+        $l2 = (long) $i1;
+
+        virtualinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void parseXrefStream(org.apache.pdfbox.cos.COSStream,long)>($r5, $l2);
+
+        $r6 = <org.apache.pdfbox.cos.COSName: org.apache.pdfbox.cos.COSName PREV>;
+
+        $l3 = virtualinvoke $r2.<org.apache.pdfbox.cos.COSDictionary: long getLong(org.apache.pdfbox.cos.COSName)>($r6);
+
+        return $l3;
+    }
+
+    private final long getPdfSourceOffset()
+    {
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r0;
+        long $l0;
+        org.apache.pdfbox.io.PushBackInputStream $r1;
+
+        r0 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        $r1 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        $l0 = virtualinvoke $r1.<org.apache.pdfbox.io.PushBackInputStream: long getOffset()>();
+
+        return $l0;
+    }
+
+    protected final void setPdfSource(long) throws java.io.IOException
+    {
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r0;
+        long l0;
+        org.apache.pdfbox.io.PushBackInputStream $r1;
+
+        r0 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        l0 := @parameter0: long;
+
+        $r1 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        virtualinvoke $r1.<org.apache.pdfbox.io.PushBackInputStream: void seek(long)>(l0);
+
+        return;
+    }
+
+    protected final void releasePdfSourceInputStream() throws java.io.IOException
+    {
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r0;
+
+        r0 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        return;
+    }
+
+    private final void closeFileStream() throws java.io.IOException
+    {
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r0;
+        org.apache.pdfbox.io.PushBackInputStream $r1, $r2;
+
+        r0 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        $r1 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        if $r1 == null goto label1;
+
+        $r2 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        virtualinvoke $r2.<org.apache.pdfbox.io.PushBackInputStream: void close()>();
+
+     label1:
+        return;
+    }
+
+    protected final long getStartxrefOffset() throws java.io.IOException
+    {
+        byte[] $r20;
+        byte $b4;
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r0;
+        java.lang.StringBuilder $r9, $r12, $r13, $r17, $r18, $r26, $r28;
+        java.lang.Throwable $r23;
+        long $l0, $l2, $l3, $l5, $l6, $l7, $l11, $l12, $l16;
+        int $i1, $i8, $i9, $i10, $i13, $i14, $i15, $i17, i18, i19, $i20;
+        java.lang.String $r14, $r19, $r29;
+        java.io.IOException $r21, $r22, $r27, $r30, $r31;
+        java.io.FileInputStream r24, $r25;
+        java.io.File $r1, $r3;
+        char[] $r4, $r5, $r11;
+
+        r0 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        $r1 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.io.File pdfFile>;
+
+        $l0 = virtualinvoke $r1.<java.io.File: long length()>();
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: long fileLen> = $l0;
+
+        r24 = null;
+
+     label01:
+        $r25 = new java.io.FileInputStream;
+
+        $r3 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.io.File pdfFile>;
+
+        specialinvoke $r25.<java.io.FileInputStream: void <init>(java.io.File)>($r3);
+
+        r24 = $r25;
+
+        $l3 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: long fileLen>;
+
+        $i1 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: int readTrailBytes>;
+
+        $l2 = (long) $i1;
+
+        $b4 = $l3 cmp $l2;
+
+        $i20 = (int) $b4;
+
+        if $i20 >= 0 goto label02;
+
+        $l16 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: long fileLen>;
+
+        $i17 = (int) $l16;
+
+        goto label03;
+
+     label02:
+        $i17 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: int readTrailBytes>;
+
+     label03:
+        i18 = $i17;
+
+        $r20 = newarray (byte)[$i17];
+
+        $l6 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: long fileLen>;
+
+        $l5 = (long) $i17;
+
+        $l7 = $l6 - $l5;
+
+        virtualinvoke $r25.<java.io.FileInputStream: long skip(long)>($l7);
+
+        i19 = 0;
+
+     label04:
+        if i19 >= i18 goto label06;
+
+        $i13 = i18 - i19;
+
+        $i14 = virtualinvoke $r25.<java.io.FileInputStream: int read(byte[],int,int)>($r20, i19, $i13);
+
+        if $i14 >= 1 goto label05;
+
+        $r27 = new java.io.IOException;
+
+        $r26 = new java.lang.StringBuilder;
+
+        specialinvoke $r26.<java.lang.StringBuilder: void <init>()>();
+
+        $r17 = virtualinvoke $r26.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("No more bytes to read for trailing buffer, but expected: ");
+
+        $i15 = i18 - i19;
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i15);
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r27.<java.io.IOException: void <init>(java.lang.String)>($r19);
+
+        throw $r27;
+
+     label05:
+        i19 = i19 + $i14;
+
+        goto label04;
+
+     label06:
+        goto label13;
+
+     label07:
+        goto label10;
+
+     label08:
+        $r23 := @caughtexception;
+
+        goto label18;
+
+     label09:
+        throw $r23;
+
+     label10:
+        $r4 = <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: char[] EOF_MARKER>;
+
+        $i8 = lengthof $r20;
+
+        $i9 = virtualinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: int lastIndexOf(char[],byte[],int)>($r4, $r20, $i8);
+
+        if $i9 >= 0 goto label11;
+
+        $r30 = new java.io.IOException;
+
+        $r28 = new java.lang.StringBuilder;
+
+        specialinvoke $r28.<java.lang.StringBuilder: void <init>()>();
+
+        $r9 = virtualinvoke $r28.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Missing end of file marker \'");
+
+        $r29 = new java.lang.String;
+
+        $r11 = <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: char[] EOF_MARKER>;
+
+        specialinvoke $r29.<java.lang.String: void <init>(char[])>($r11);
+
+        $r12 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r29);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("\'");
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r30.<java.io.IOException: void <init>(java.lang.String)>($r14);
+
+        throw $r30;
+
+     label11:
+        $r5 = <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: char[] STARTXREF_MARKER>;
+
+        $i10 = virtualinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: int lastIndexOf(char[],byte[],int)>($r5, $r20, $i9);
+
+        if $i10 >= 0 goto label12;
+
+        $r31 = new java.io.IOException;
+
+        specialinvoke $r31.<java.io.IOException: void <init>(java.lang.String)>("Missing \'startxref\' marker.");
+
+        throw $r31;
+
+     label12:
+        $l11 = (long) $i10;
+
+        $l12 = $l7 + $l11;
+
+        return $l12;
+
+     label13:
+        if $r25 == null goto label17;
+
+     label14:
+        virtualinvoke $r25.<java.io.FileInputStream: void close()>();
+
+     label15:
+        goto label17;
+
+     label16:
+        $r22 := @caughtexception;
+
+     label17:
+        goto label07;
+
+     label18:
+        if r24 == null goto label22;
+
+     label19:
+        virtualinvoke r24.<java.io.FileInputStream: void close()>();
+
+     label20:
+        goto label22;
+
+     label21:
+        $r21 := @caughtexception;
+
+     label22:
+        goto label09;
+
+        catch java.lang.Throwable from label01 to label07 with label08;
+        catch java.lang.Throwable from label08 to label09 with label08;
+        catch java.io.IOException from label14 to label15 with label16;
+        catch java.io.IOException from label19 to label20 with label21;
+    }
+
+    protected int lastIndexOf(char[], byte[], int)
+    {
+        byte[] r1;
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r2;
+        char c6;
+        byte $b3;
+        int $i0, i1, i2, i4, i5, $i8, $i9, $i10, $i12, $i14;
+        char[] r0;
+
+        r2 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        r0 := @parameter0: char[];
+
+        r1 := @parameter1: byte[];
+
+        i2 := @parameter2: int;
+
+        $i0 = lengthof r0;
+
+        i1 = $i0 - 1;
+
+        i4 = i2;
+
+        i5 = i1;
+
+        c6 = r0[i1];
+
+     label1:
+        $i8 = (int) -1;
+
+        i4 = i4 + $i8;
+
+        if i4 < 0 goto label4;
+
+        $b3 = r1[i4];
+
+        $i9 = (int) $b3;
+
+        $i10 = (int) c6;
+
+        if $i9 != $i10 goto label3;
+
+        $i12 = (int) -1;
+
+        i5 = i5 + $i12;
+
+        if i5 >= 0 goto label2;
+
+        return i4;
+
+     label2:
+        c6 = r0[i5];
+
+        goto label1;
+
+     label3:
+        if i5 >= i1 goto label1;
+
+        i5 = i1;
+
+        c6 = r0[i1];
+
+        goto label1;
+
+     label4:
+        $i14 = (int) -1;
+
+        return $i14;
+    }
+
+    protected final void readPattern(char[]) throws java.io.IOException
+    {
+        long $l3;
+        int i0, $i2, i4, $i5;
+        java.lang.String $r13, $r15;
+        org.apache.pdfbox.io.PushBackInputStream $r2, $r11;
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r0;
+        char c1;
+        java.io.IOException $r16;
+        char[] r1;
+        java.lang.StringBuilder $r5, $r7, $r8, $r9, $r10, $r12, $r14;
+
+        r0 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        r1 := @parameter0: char[];
+
+        virtualinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void skipSpaces()>();
+
+        i0 = lengthof r1;
+
+        i4 = 0;
+
+     label1:
+        if i4 >= i0 goto label3;
+
+        c1 = r1[i4];
+
+        $r2 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        $i2 = virtualinvoke $r2.<org.apache.pdfbox.io.PushBackInputStream: int read()>();
+
+        $i5 = (int) c1;
+
+        if $i2 == $i5 goto label2;
+
+        $r16 = new java.io.IOException;
+
+        $r14 = new java.lang.StringBuilder;
+
+        specialinvoke $r14.<java.lang.StringBuilder: void <init>()>();
+
+        $r5 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Expected pattern \'");
+
+        $r15 = new java.lang.String;
+
+        specialinvoke $r15.<java.lang.String: void <init>(char[])>(r1);
+
+        $r7 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r15);
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("\' but missed at character \'");
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(char)>(c1);
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("\' at offset ");
+
+        $r11 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        $l3 = virtualinvoke $r11.<org.apache.pdfbox.io.PushBackInputStream: long getOffset()>();
+
+        $r12 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l3);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r16.<java.io.IOException: void <init>(java.lang.String)>($r13);
+
+        throw $r16;
+
+     label2:
+        i4 = i4 + 1;
+
+        goto label1;
+
+     label3:
+        virtualinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void skipSpaces()>();
+
+        return;
+    }
+
+    private org.apache.pdfbox.cos.COSDictionary getPagesObject() throws java.io.IOException
+    {
+        org.apache.pdfbox.cos.COSObject $r3, r6;
+        java.lang.String $r14, $r16;
+        boolean $z0;
+        org.apache.pdfbox.cos.COSName $r4;
+        org.apache.pdfbox.cos.COSDocument $r2;
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r0;
+        java.io.IOException $r10, $r17;
+        org.apache.pdfbox.cos.COSDictionary $r1, $r8, $r9, $r18;
+        org.apache.pdfbox.cos.COSBase $r5, $r7;
+        java.lang.StringBuilder $r11, $r12, $r15;
+        java.lang.Class $r13;
+
+        r0 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        $r1 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSDictionary pagesDictionary>;
+
+        if $r1 == null goto label1;
+
+        $r18 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSDictionary pagesDictionary>;
+
+        return $r18;
+
+     label1:
+        $r2 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSDocument document>;
+
+        $r3 = virtualinvoke $r2.<org.apache.pdfbox.cos.COSDocument: org.apache.pdfbox.cos.COSObject getCatalog()>();
+
+        $r4 = <org.apache.pdfbox.cos.COSName: org.apache.pdfbox.cos.COSName PAGES>;
+
+        $r5 = virtualinvoke $r3.<org.apache.pdfbox.cos.COSObject: org.apache.pdfbox.cos.COSBase getItem(org.apache.pdfbox.cos.COSName)>($r4);
+
+        r6 = (org.apache.pdfbox.cos.COSObject) $r5;
+
+        if r6 != null goto label2;
+
+        $r17 = new java.io.IOException;
+
+        specialinvoke $r17.<java.io.IOException: void <init>(java.lang.String)>("Missing PAGES entry in document catalog.");
+
+        throw $r17;
+
+     label2:
+        $r7 = virtualinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSBase parseObjectDynamically(org.apache.pdfbox.cos.COSObject,boolean)>(r6, 0);
+
+        $z0 = $r7 instanceof org.apache.pdfbox.cos.COSDictionary;
+
+        if $z0 != 0 goto label3;
+
+        $r10 = new java.io.IOException;
+
+        $r11 = new java.lang.StringBuilder;
+
+        specialinvoke $r11.<java.lang.StringBuilder: void <init>()>();
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("PAGES not a dictionary object, but: ");
+
+        $r13 = virtualinvoke $r7.<java.lang.Object: java.lang.Class getClass()>();
+
+        $r14 = virtualinvoke $r13.<java.lang.Class: java.lang.String getSimpleName()>();
+
+        $r15 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r14);
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r10.<java.io.IOException: void <init>(java.lang.String)>($r16);
+
+        throw $r10;
+
+     label3:
+        $r8 = (org.apache.pdfbox.cos.COSDictionary) $r7;
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSDictionary pagesDictionary> = $r8;
+
+        $r9 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSDictionary pagesDictionary>;
+
+        return $r9;
+    }
+
+    public void parse() throws java.io.IOException
+    {
+        java.lang.Throwable $r11;
+        int $i0, i1;
+        boolean $z0, $z1, z2;
+        org.apache.pdfbox.cos.COSDocument $r2, $r3, $r4, $r7, $r8;
+        org.apache.pdfbox.io.PushBackInputStream $r1;
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r0;
+        java.io.IOException $r5, $r6, $r9, $r10;
+
+        r0 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        z2 = 1;
+
+     label01:
+        virtualinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void parseHeader()>();
+
+        $r1 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        virtualinvoke $r1.<org.apache.pdfbox.io.PushBackInputStream: void seek(long)>(0L);
+
+        $z0 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean initialParseDone>;
+
+        if $z0 != 0 goto label02;
+
+        virtualinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void initialParse()>();
+
+     label02:
+        $i0 = virtualinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: int getPageNumber()>();
+
+        $z1 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean allPagesParsed>;
+
+        if $z1 != 0 goto label05;
+
+        i1 = 0;
+
+     label03:
+        if i1 >= $i0 goto label04;
+
+        virtualinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.pdmodel.PDPage getPage(int)>(i1);
+
+        i1 = i1 + 1;
+
+        goto label03;
+
+     label04:
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean allPagesParsed> = 1;
+
+        $r4 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSDocument document>;
+
+        virtualinvoke $r4.<org.apache.pdfbox.cos.COSDocument: void setDecrypted()>();
+
+     label05:
+        z2 = 0;
+
+        goto label10;
+
+     label06:
+        goto label09;
+
+     label07:
+        $r11 := @caughtexception;
+
+        goto label18;
+
+     label08:
+        throw $r11;
+
+     label09:
+        return;
+
+     label10:
+        specialinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void closeFileStream()>();
+
+     label11:
+        goto label13;
+
+     label12:
+        $r10 := @caughtexception;
+
+     label13:
+        virtualinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void deleteTempFile()>();
+
+        if 0 == 0 goto label17;
+
+        $r2 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSDocument document>;
+
+        if $r2 == null goto label17;
+
+     label14:
+        $r3 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSDocument document>;
+
+        virtualinvoke $r3.<org.apache.pdfbox.cos.COSDocument: void close()>();
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSDocument document> = null;
+
+     label15:
+        goto label17;
+
+     label16:
+        $r9 := @caughtexception;
+
+     label17:
+        goto label06;
+
+     label18:
+        specialinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void closeFileStream()>();
+
+     label19:
+        goto label21;
+
+     label20:
+        $r6 := @caughtexception;
+
+     label21:
+        virtualinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void deleteTempFile()>();
+
+        if z2 == 0 goto label25;
+
+        $r7 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSDocument document>;
+
+        if $r7 == null goto label25;
+
+     label22:
+        $r8 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSDocument document>;
+
+        virtualinvoke $r8.<org.apache.pdfbox.cos.COSDocument: void close()>();
+
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSDocument document> = null;
+
+     label23:
+        goto label25;
+
+     label24:
+        $r5 := @caughtexception;
+
+     label25:
+        goto label08;
+
+        catch java.lang.Throwable from label01 to label06 with label07;
+        catch java.lang.Throwable from label07 to label08 with label07;
+        catch java.io.IOException from label10 to label11 with label12;
+        catch java.io.IOException from label14 to label15 with label16;
+        catch java.io.IOException from label18 to label19 with label20;
+        catch java.io.IOException from label22 to label23 with label24;
+    }
+
+    protected java.io.File getPdfFile()
+    {
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r0;
+        java.io.File $r1;
+
+        r0 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        $r1 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.io.File pdfFile>;
+
+        return $r1;
+    }
+
+    public boolean isLenient()
+    {
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r0;
+        boolean $z0;
+
+        r0 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        $z0 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean isLenient>;
+
+        return $z0;
+    }
+
+    public void setLenient(boolean) throws java.lang.IllegalArgumentException
+    {
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r0;
+        java.lang.IllegalArgumentException $r1;
+        boolean $z0, z1;
+
+        r0 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        z1 := @parameter0: boolean;
+
+        $z0 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean initialParseDone>;
+
+        if $z0 == 0 goto label1;
+
+        $r1 = new java.lang.IllegalArgumentException;
+
+        specialinvoke $r1.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>("Cannot change leniency after parsing");
+
+        throw $r1;
+
+     label1:
+        r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean isLenient> = z1;
+
+        return;
+    }
+
+    protected void deleteTempFile()
+    {
+        java.lang.SecurityException $r10;
+        java.lang.String $r6, $r9, $r15, $r18;
+        boolean $z0, $z1;
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r0;
+        java.io.File $r1, $r5, $r14;
+        java.lang.StringBuilder $r2, $r4, $r7, $r8, $r11, $r13, $r16, $r17;
+        org.apache.commons.logging.Log $r3, $r12;
+
+        r0 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        $z0 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean isTmpPDFFile>;
+
+        if $z0 == 0 goto label4;
+
+     label1:
+        $r1 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.io.File pdfFile>;
+
+        $z1 = virtualinvoke $r1.<java.io.File: boolean delete()>();
+
+        if $z1 != 0 goto label2;
+
+        $r3 = <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.commons.logging.Log LOG>;
+
+        $r2 = new java.lang.StringBuilder;
+
+        specialinvoke $r2.<java.lang.StringBuilder: void <init>()>();
+
+        $r4 = virtualinvoke $r2.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Temporary file \'");
+
+        $r5 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.io.File pdfFile>;
+
+        $r6 = virtualinvoke $r5.<java.io.File: java.lang.String getName()>();
+
+        $r7 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r6);
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("\' can\'t be deleted");
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r3.<org.apache.commons.logging.Log: void warn(java.lang.Object)>($r9);
+
+     label2:
+        goto label4;
+
+     label3:
+        $r10 := @caughtexception;
+
+        $r12 = <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.commons.logging.Log LOG>;
+
+        $r11 = new java.lang.StringBuilder;
+
+        specialinvoke $r11.<java.lang.StringBuilder: void <init>()>();
+
+        $r13 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Temporary file \'");
+
+        $r14 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.io.File pdfFile>;
+
+        $r15 = virtualinvoke $r14.<java.io.File: java.lang.String getName()>();
+
+        $r16 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r15);
+
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("\' can\'t be deleted");
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r12.<org.apache.commons.logging.Log: void warn(java.lang.Object,java.lang.Throwable)>($r18, $r10);
+
+     label4:
+        return;
+
+        catch java.lang.SecurityException from label1 to label2 with label3;
+    }
+
+    public org.apache.pdfbox.pdmodel.encryption.SecurityHandler getSecurityHandler()
+    {
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r0;
+        org.apache.pdfbox.pdmodel.encryption.SecurityHandler $r1;
+
+        r0 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        $r1 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.pdmodel.encryption.SecurityHandler securityHandler>;
+
+        return $r1;
+    }
+
+    public org.apache.pdfbox.pdmodel.PDDocument getPDDocument() throws java.io.IOException
+    {
+        org.apache.pdfbox.pdmodel.PDDocument $r1;
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r0;
+        org.apache.pdfbox.pdmodel.encryption.SecurityHandler $r2, $r3;
+
+        r0 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        $r1 = specialinvoke r0.<org.apache.pdfbox.pdfparser.PDFParser: org.apache.pdfbox.pdmodel.PDDocument getPDDocument()>();
+
+        $r2 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.pdmodel.encryption.SecurityHandler securityHandler>;
+
+        if $r2 == null goto label1;
+
+        $r3 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.pdmodel.encryption.SecurityHandler securityHandler>;
+
+        virtualinvoke $r1.<org.apache.pdfbox.pdmodel.PDDocument: boolean setSecurityHandler(org.apache.pdfbox.pdmodel.encryption.SecurityHandler)>($r3);
+
+     label1:
+        return $r1;
+    }
+
+    public int getPageNumber() throws java.io.IOException
+    {
+        org.apache.pdfbox.cos.COSDictionary $r1;
+        org.apache.pdfbox.cos.COSName $r2;
+        int $i0;
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r0;
+        java.io.IOException $r3;
+
+        r0 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        $r1 = specialinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSDictionary getPagesObject()>();
+
+        $r2 = <org.apache.pdfbox.cos.COSName: org.apache.pdfbox.cos.COSName COUNT>;
+
+        $i0 = virtualinvoke $r1.<org.apache.pdfbox.cos.COSDictionary: int getInt(org.apache.pdfbox.cos.COSName)>($r2);
+
+        if $i0 >= 0 goto label1;
+
+        $r3 = new java.io.IOException;
+
+        specialinvoke $r3.<java.io.IOException: void <init>(java.lang.String)>("No page number specified.");
+
+        throw $r3;
+
+     label1:
+        return $i0;
+    }
+
+    public org.apache.pdfbox.pdmodel.PDPage getPage(int) throws java.io.IOException
+    {
+        org.apache.pdfbox.cos.COSArray r4;
+        org.apache.pdfbox.cos.COSObject $r5;
+        org.apache.pdfbox.cos.COSName[] $r11;
+        int i0;
+        java.lang.String $r17;
+        boolean $z0, $z1;
+        org.apache.pdfbox.cos.COSName $r1, $r8;
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r0;
+        java.io.IOException $r12, $r18;
+        org.apache.pdfbox.cos.COSDictionary $r2, r7, r10;
+        org.apache.pdfbox.cos.COSBase $r3, $r6, $r9;
+        java.lang.StringBuilder $r13, $r14, $r15, $r16;
+        org.apache.pdfbox.pdmodel.PDPage $r19;
+
+        r0 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        i0 := @parameter0: int;
+
+        specialinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSDictionary getPagesObject()>();
+
+        $r2 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSDictionary pagesDictionary>;
+
+        $r1 = <org.apache.pdfbox.cos.COSName: org.apache.pdfbox.cos.COSName KIDS>;
+
+        $r3 = virtualinvoke $r2.<org.apache.pdfbox.cos.COSDictionary: org.apache.pdfbox.cos.COSBase getDictionaryObject(org.apache.pdfbox.cos.COSName)>($r1);
+
+        r4 = (org.apache.pdfbox.cos.COSArray) $r3;
+
+        if r4 != null goto label1;
+
+        $r18 = new java.io.IOException;
+
+        specialinvoke $r18.<java.io.IOException: void <init>(java.lang.String)>("Missing \'Kids\' entry in pages dictionary.");
+
+        throw $r18;
+
+     label1:
+        $r5 = specialinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSObject getPageObject(int,org.apache.pdfbox.cos.COSArray,int)>(i0, r4, 0);
+
+        if $r5 != null goto label2;
+
+        $r12 = new java.io.IOException;
+
+        $r13 = new java.lang.StringBuilder;
+
+        specialinvoke $r13.<java.lang.StringBuilder: void <init>()>();
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Page ");
+
+        $r15 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>(i0);
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" not found.");
+
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r12.<java.io.IOException: void <init>(java.lang.String)>($r17);
+
+        throw $r12;
+
+     label2:
+        $r6 = virtualinvoke $r5.<org.apache.pdfbox.cos.COSObject: org.apache.pdfbox.cos.COSBase getObject()>();
+
+        r7 = (org.apache.pdfbox.cos.COSDictionary) $r6;
+
+        $z0 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean parseMinimalCatalog>;
+
+        if $z0 == 0 goto label3;
+
+        $z1 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean allPagesParsed>;
+
+        if $z1 != 0 goto label3;
+
+        $r8 = <org.apache.pdfbox.cos.COSName: org.apache.pdfbox.cos.COSName RESOURCES>;
+
+        $r9 = virtualinvoke r7.<org.apache.pdfbox.cos.COSDictionary: org.apache.pdfbox.cos.COSBase getDictionaryObject(org.apache.pdfbox.cos.COSName)>($r8);
+
+        r10 = (org.apache.pdfbox.cos.COSDictionary) $r9;
+
+        $r11 = newarray (org.apache.pdfbox.cos.COSName)[0];
+
+        specialinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void parseDictObjects(org.apache.pdfbox.cos.COSDictionary,org.apache.pdfbox.cos.COSName[])>(r10, $r11);
+
+     label3:
+        $r19 = new org.apache.pdfbox.pdmodel.PDPage;
+
+        specialinvoke $r19.<org.apache.pdfbox.pdmodel.PDPage: void <init>(org.apache.pdfbox.cos.COSDictionary)>(r7);
+
+        return $r19;
+    }
+
+    private org.apache.pdfbox.cos.COSObject getPageObject(int, org.apache.pdfbox.cos.COSArray, int) throws java.io.IOException
+    {
+        org.apache.pdfbox.cos.COSArray r0, $r10;
+        org.apache.pdfbox.cos.COSObject r3, $r9;
+        int i0, $i1, i2, $i3, i4;
+        boolean $z0;
+        org.apache.pdfbox.cos.COSName $r5, $r6;
+        java.util.Iterator $r1;
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r8;
+        org.apache.pdfbox.cos.COSDictionary $r12;
+        org.apache.pdfbox.cos.COSBase $r4, $r7, $r11, r13;
+        java.lang.Object $r2;
+
+        r8 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        i2 := @parameter0: int;
+
+        r0 := @parameter1: org.apache.pdfbox.cos.COSArray;
+
+        i0 := @parameter2: int;
+
+        i4 = i0;
+
+        $r1 = virtualinvoke r0.<org.apache.pdfbox.cos.COSArray: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r1.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label8;
+
+        $r2 = interfaceinvoke $r1.<java.util.Iterator: java.lang.Object next()>();
+
+        r3 = (org.apache.pdfbox.cos.COSObject) $r2;
+
+        $r4 = virtualinvoke r3.<org.apache.pdfbox.cos.COSObject: org.apache.pdfbox.cos.COSBase getObject()>();
+
+        r13 = $r4;
+
+        if $r4 != null goto label2;
+
+        $r11 = virtualinvoke r8.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSBase parseObjectDynamically(org.apache.pdfbox.cos.COSObject,boolean)>(r3, 0);
+
+        r13 = $r11;
+
+        virtualinvoke r3.<org.apache.pdfbox.cos.COSObject: void setObject(org.apache.pdfbox.cos.COSBase)>($r11);
+
+     label2:
+        $r12 = (org.apache.pdfbox.cos.COSDictionary) r13;
+
+        $r5 = <org.apache.pdfbox.cos.COSName: org.apache.pdfbox.cos.COSName COUNT>;
+
+        $i1 = virtualinvoke $r12.<org.apache.pdfbox.cos.COSDictionary: int getInt(org.apache.pdfbox.cos.COSName)>($r5);
+
+        if $i1 < 0 goto label3;
+
+        $i3 = i4 + $i1;
+
+        if $i3 > i2 goto label3;
+
+        i4 = i4 + $i1;
+
+        goto label1;
+
+     label3:
+        $r6 = <org.apache.pdfbox.cos.COSName: org.apache.pdfbox.cos.COSName KIDS>;
+
+        $r7 = virtualinvoke $r12.<org.apache.pdfbox.cos.COSDictionary: org.apache.pdfbox.cos.COSBase getDictionaryObject(org.apache.pdfbox.cos.COSName)>($r6);
+
+        $r10 = (org.apache.pdfbox.cos.COSArray) $r7;
+
+        if $r10 == null goto label5;
+
+        $r9 = specialinvoke r8.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSObject getPageObject(int,org.apache.pdfbox.cos.COSArray,int)>(i2, $r10, i4);
+
+        if $r9 == null goto label4;
+
+        return $r9;
+
+     label4:
+        goto label7;
+
+     label5:
+        if i4 != i2 goto label6;
+
+        return r3;
+
+     label6:
+        i4 = i4 + 1;
+
+     label7:
+        goto label1;
+
+     label8:
+        return null;
+    }
+
+    private final long getObjectId(org.apache.pdfbox.cos.COSObject)
+    {
+        org.apache.pdfbox.cos.COSObject r0;
+        long $l0, $l1, $l2, $l3;
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r3;
+        org.apache.pdfbox.cos.COSInteger $r1, $r2;
+
+        r3 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        r0 := @parameter0: org.apache.pdfbox.cos.COSObject;
+
+        $r1 = virtualinvoke r0.<org.apache.pdfbox.cos.COSObject: org.apache.pdfbox.cos.COSInteger getObjectNumber()>();
+
+        $l0 = virtualinvoke $r1.<org.apache.pdfbox.cos.COSInteger: long longValue()>();
+
+        $l1 = $l0 << 32;
+
+        $r2 = virtualinvoke r0.<org.apache.pdfbox.cos.COSObject: org.apache.pdfbox.cos.COSInteger getGenerationNumber()>();
+
+        $l2 = virtualinvoke $r2.<org.apache.pdfbox.cos.COSInteger: long longValue()>();
+
+        $l3 = $l1 | $l2;
+
+        return $l3;
+    }
+
+    private final void addNewToList(java.util.Queue, java.util.Collection, java.util.Set)
+    {
+        java.util.Iterator $r1;
+        java.util.Collection r0;
+        org.apache.pdfbox.cos.COSObject $r6;
+        java.util.Set r7;
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r5;
+        long $l0;
+        org.apache.pdfbox.cos.COSBase r3;
+        java.lang.Long $r8;
+        java.lang.Object $r2;
+        java.util.Queue r4;
+        boolean $z0, $z1, $z2;
+
+        r5 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        r4 := @parameter0: java.util.Queue;
+
+        r0 := @parameter1: java.util.Collection;
+
+        r7 := @parameter2: java.util.Set;
+
+        $r1 = interfaceinvoke r0.<java.util.Collection: java.util.Iterator iterator()>();
+
+     label1:
+        $z2 = interfaceinvoke $r1.<java.util.Iterator: boolean hasNext()>();
+
+        if $z2 == 0 goto label3;
+
+        $r2 = interfaceinvoke $r1.<java.util.Iterator: java.lang.Object next()>();
+
+        r3 = (org.apache.pdfbox.cos.COSBase) $r2;
+
+        $z0 = r3 instanceof org.apache.pdfbox.cos.COSObject;
+
+        if $z0 == 0 goto label2;
+
+        $r6 = (org.apache.pdfbox.cos.COSObject) r3;
+
+        $l0 = specialinvoke r5.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: long getObjectId(org.apache.pdfbox.cos.COSObject)>($r6);
+
+        $r8 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l0);
+
+        $z1 = interfaceinvoke r7.<java.util.Set: boolean add(java.lang.Object)>($r8);
+
+        if $z1 != 0 goto label2;
+
+        goto label1;
+
+     label2:
+        interfaceinvoke r4.<java.util.Queue: boolean add(java.lang.Object)>(r3);
+
+        goto label1;
+
+     label3:
+        return;
+    }
+
+    private final void addNewToList(java.util.Queue, org.apache.pdfbox.cos.COSBase, java.util.Set)
+    {
+        org.apache.pdfbox.cos.COSObject $r3;
+        java.util.Set r4;
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r2;
+        long $l0;
+        org.apache.pdfbox.cos.COSBase r0;
+        java.lang.Long $r5;
+        java.util.Queue r1;
+        boolean $z0, $z1;
+
+        r2 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        r1 := @parameter0: java.util.Queue;
+
+        r0 := @parameter1: org.apache.pdfbox.cos.COSBase;
+
+        r4 := @parameter2: java.util.Set;
+
+        $z0 = r0 instanceof org.apache.pdfbox.cos.COSObject;
+
+        if $z0 == 0 goto label1;
+
+        $r3 = (org.apache.pdfbox.cos.COSObject) r0;
+
+        $l0 = specialinvoke r2.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: long getObjectId(org.apache.pdfbox.cos.COSObject)>($r3);
+
+        $r5 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l0);
+
+        $z1 = interfaceinvoke r4.<java.util.Set: boolean add(java.lang.Object)>($r5);
+
+        if $z1 != 0 goto label1;
+
+        return;
+
+     label1:
+        interfaceinvoke r1.<java.util.Queue: boolean add(java.lang.Object)>(r0);
+
+        return;
+    }
+
+    private transient void parseDictObjects(org.apache.pdfbox.cos.COSDictionary, org.apache.pdfbox.cos.COSName[]) throws java.io.IOException
+    {
+        byte $b7, $b11;
+        java.lang.Long $r14, $r18, $r47, r52, r53;
+        org.apache.pdfbox.cos.COSName[] r4;
+        java.util.Map $r20, $r26;
+        org.apache.pdfbox.cos.COSBase $r13, $r40, $r45, $r50;
+        java.lang.StringBuilder $r31, $r32, $r62;
+        long $l0, $l1, $l3, $l5, $l6, $l8, $l9, $l10, $l12;
+        java.util.ArrayList $r64;
+        java.lang.String $r33;
+        org.apache.pdfbox.cos.COSDocument $r22;
+        java.io.IOException $r63;
+        java.util.TreeMap $r57;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9, $z10;
+        java.util.Collection $r7, $r42, $r44;
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r5;
+        org.apache.pdfbox.persistence.util.COSObjectKey $r60, $r61;
+        org.apache.pdfbox.cos.COSDictionary r6, $r41;
+        java.util.List $r10, $r36, r54;
+        org.apache.pdfbox.cos.COSArray $r37;
+        org.apache.pdfbox.cos.COSObject $r23, $r46, r51, r55;
+        java.util.HashSet $r58, $r59;
+        org.apache.pdfbox.pdfparser.XrefTrailerResolver $r19, $r25;
+        org.apache.pdfbox.cos.COSInteger $r16, $r17;
+        int $i2, $i4, i13, i14, $i15, $i16;
+        java.util.LinkedList $r56;
+        org.apache.pdfbox.cos.COSStream $r43;
+        org.apache.pdfbox.cos.COSName r48;
+        java.util.Iterator $r11, $r38;
+        org.apache.pdfbox.cos.COSNull $r24;
+        java.lang.Object $r8, $r9, $r12, $r21, $r28, $r34, $r39, $r49;
+
+        r5 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        r6 := @parameter0: org.apache.pdfbox.cos.COSDictionary;
+
+        r4 := @parameter1: org.apache.pdfbox.cos.COSName[];
+
+        $r56 = new java.util.LinkedList;
+
+        specialinvoke $r56.<java.util.LinkedList: void <init>()>();
+
+        $r57 = new java.util.TreeMap;
+
+        specialinvoke $r57.<java.util.TreeMap: void <init>()>();
+
+        $r58 = new java.util.HashSet;
+
+        specialinvoke $r58.<java.util.HashSet: void <init>()>();
+
+        $r59 = new java.util.HashSet;
+
+        specialinvoke $r59.<java.util.HashSet: void <init>()>();
+
+        if r4 == null goto label03;
+
+        i13 = lengthof r4;
+
+        i14 = 0;
+
+     label01:
+        if i14 >= i13 goto label03;
+
+        r48 = r4[i14];
+
+        $r45 = virtualinvoke r6.<org.apache.pdfbox.cos.COSDictionary: org.apache.pdfbox.cos.COSBase getItem(org.apache.pdfbox.cos.COSName)>(r48);
+
+        $z9 = $r45 instanceof org.apache.pdfbox.cos.COSObject;
+
+        if $z9 == 0 goto label02;
+
+        $r46 = (org.apache.pdfbox.cos.COSObject) $r45;
+
+        $l12 = specialinvoke r5.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: long getObjectId(org.apache.pdfbox.cos.COSObject)>($r46);
+
+        $r47 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l12);
+
+        interfaceinvoke $r58.<java.util.Set: boolean add(java.lang.Object)>($r47);
+
+     label02:
+        i14 = i14 + 1;
+
+        goto label01;
+
+     label03:
+        $r7 = virtualinvoke r6.<org.apache.pdfbox.cos.COSDictionary: java.util.Collection getValues()>();
+
+        specialinvoke r5.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void addNewToList(java.util.Queue,java.util.Collection,java.util.Set)>($r56, $r7, $r59);
+
+     label04:
+        $z10 = interfaceinvoke $r56.<java.util.Queue: boolean isEmpty()>();
+
+        if $z10 == 0 goto label05;
+
+        $z8 = virtualinvoke $r57.<java.util.TreeMap: boolean isEmpty()>();
+
+        if $z8 != 0 goto label21;
+
+     label05:
+        $r49 = interfaceinvoke $r56.<java.util.Queue: java.lang.Object poll()>();
+
+        $r50 = (org.apache.pdfbox.cos.COSBase) $r49;
+
+        if $r50 == null goto label17;
+
+        $z2 = $r50 instanceof org.apache.pdfbox.cos.COSStream;
+
+        if $z2 == 0 goto label06;
+
+        $r43 = (org.apache.pdfbox.cos.COSStream) $r50;
+
+        $r44 = virtualinvoke $r43.<org.apache.pdfbox.cos.COSStream: java.util.Collection getValues()>();
+
+        specialinvoke r5.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void addNewToList(java.util.Queue,java.util.Collection,java.util.Set)>($r56, $r44, $r59);
+
+        goto label05;
+
+     label06:
+        $z3 = $r50 instanceof org.apache.pdfbox.cos.COSDictionary;
+
+        if $z3 == 0 goto label07;
+
+        $r41 = (org.apache.pdfbox.cos.COSDictionary) $r50;
+
+        $r42 = virtualinvoke $r41.<org.apache.pdfbox.cos.COSDictionary: java.util.Collection getValues()>();
+
+        specialinvoke r5.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void addNewToList(java.util.Queue,java.util.Collection,java.util.Set)>($r56, $r42, $r59);
+
+        goto label05;
+
+     label07:
+        $z4 = $r50 instanceof org.apache.pdfbox.cos.COSArray;
+
+        if $z4 == 0 goto label10;
+
+        $r37 = (org.apache.pdfbox.cos.COSArray) $r50;
+
+        $r38 = virtualinvoke $r37.<org.apache.pdfbox.cos.COSArray: java.util.Iterator iterator()>();
+
+     label08:
+        $z7 = interfaceinvoke $r38.<java.util.Iterator: boolean hasNext()>();
+
+        if $z7 == 0 goto label09;
+
+        $r39 = interfaceinvoke $r38.<java.util.Iterator: java.lang.Object next()>();
+
+        $r40 = (org.apache.pdfbox.cos.COSBase) $r39;
+
+        specialinvoke r5.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void addNewToList(java.util.Queue,org.apache.pdfbox.cos.COSBase,java.util.Set)>($r56, $r40, $r59);
+
+        goto label08;
+
+     label09:
+        goto label05;
+
+     label10:
+        $z5 = $r50 instanceof org.apache.pdfbox.cos.COSObject;
+
+        if $z5 == 0 goto label05;
+
+        r51 = (org.apache.pdfbox.cos.COSObject) $r50;
+
+        $l1 = specialinvoke r5.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: long getObjectId(org.apache.pdfbox.cos.COSObject)>(r51);
+
+        $r60 = new org.apache.pdfbox.persistence.util.COSObjectKey;
+
+        $r16 = virtualinvoke r51.<org.apache.pdfbox.cos.COSObject: org.apache.pdfbox.cos.COSInteger getObjectNumber()>();
+
+        $i2 = virtualinvoke $r16.<org.apache.pdfbox.cos.COSInteger: int intValue()>();
+
+        $l3 = (long) $i2;
+
+        $r17 = virtualinvoke r51.<org.apache.pdfbox.cos.COSObject: org.apache.pdfbox.cos.COSInteger getGenerationNumber()>();
+
+        $i4 = virtualinvoke $r17.<org.apache.pdfbox.cos.COSInteger: int intValue()>();
+
+        $l5 = (long) $i4;
+
+        specialinvoke $r60.<org.apache.pdfbox.persistence.util.COSObjectKey: void <init>(long,long)>($l3, $l5);
+
+        $r18 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l1);
+
+        $z6 = interfaceinvoke $r58.<java.util.Set: boolean contains(java.lang.Object)>($r18);
+
+        if $z6 != 0 goto label16;
+
+        $r19 = r5.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.pdfparser.XrefTrailerResolver xrefTrailerResolver>;
+
+        $r20 = virtualinvoke $r19.<org.apache.pdfbox.pdfparser.XrefTrailerResolver: java.util.Map getXrefTable()>();
+
+        $r21 = interfaceinvoke $r20.<java.util.Map: java.lang.Object get(java.lang.Object)>($r60);
+
+        r52 = (java.lang.Long) $r21;
+
+        if r52 == null goto label15;
+
+        $l6 = virtualinvoke r52.<java.lang.Long: long longValue()>();
+
+        $b7 = $l6 cmp 0L;
+
+        $i15 = (int) $b7;
+
+        if $i15 <= 0 goto label11;
+
+        $r36 = staticinvoke <java.util.Collections: java.util.List singletonList(java.lang.Object)>(r51);
+
+        virtualinvoke $r57.<java.util.TreeMap: java.lang.Object put(java.lang.Object,java.lang.Object)>(r52, $r36);
+
+        goto label16;
+
+     label11:
+        $r25 = r5.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.pdfparser.XrefTrailerResolver xrefTrailerResolver>;
+
+        $r26 = virtualinvoke $r25.<org.apache.pdfbox.pdfparser.XrefTrailerResolver: java.util.Map getXrefTable()>();
+
+        $r61 = new org.apache.pdfbox.persistence.util.COSObjectKey;
+
+        $l8 = virtualinvoke r52.<java.lang.Long: long longValue()>();
+
+        $l9 = neg $l8;
+
+        specialinvoke $r61.<org.apache.pdfbox.persistence.util.COSObjectKey: void <init>(long,long)>($l9, 0L);
+
+        $r28 = interfaceinvoke $r26.<java.util.Map: java.lang.Object get(java.lang.Object)>($r61);
+
+        r53 = (java.lang.Long) $r28;
+
+        if r53 == null goto label12;
+
+        $l10 = virtualinvoke r53.<java.lang.Long: long longValue()>();
+
+        $b11 = $l10 cmp 0L;
+
+        $i16 = (int) $b11;
+
+        if $i16 > 0 goto label13;
+
+     label12:
+        $r63 = new java.io.IOException;
+
+        $r62 = new java.lang.StringBuilder;
+
+        specialinvoke $r62.<java.lang.StringBuilder: void <init>()>();
+
+        $r31 = virtualinvoke $r62.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Invalid object stream xref object reference: ");
+
+        $r32 = virtualinvoke $r31.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r53);
+
+        $r33 = virtualinvoke $r32.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r63.<java.io.IOException: void <init>(java.lang.String)>($r33);
+
+        throw $r63;
+
+     label13:
+        $r34 = virtualinvoke $r57.<java.util.TreeMap: java.lang.Object get(java.lang.Object)>(r53);
+
+        r54 = (java.util.List) $r34;
+
+        if r54 != null goto label14;
+
+        $r64 = new java.util.ArrayList;
+
+        specialinvoke $r64.<java.util.ArrayList: void <init>()>();
+
+        r54 = $r64;
+
+        virtualinvoke $r57.<java.util.TreeMap: java.lang.Object put(java.lang.Object,java.lang.Object)>(r53, $r64);
+
+     label14:
+        interfaceinvoke r54.<java.util.List: boolean add(java.lang.Object)>(r51);
+
+        goto label16;
+
+     label15:
+        $r22 = r5.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSDocument document>;
+
+        $r23 = virtualinvoke $r22.<org.apache.pdfbox.cos.COSDocument: org.apache.pdfbox.cos.COSObject getObjectFromPool(org.apache.pdfbox.persistence.util.COSObjectKey)>($r60);
+
+        $r24 = <org.apache.pdfbox.cos.COSNull: org.apache.pdfbox.cos.COSNull NULL>;
+
+        virtualinvoke $r23.<org.apache.pdfbox.cos.COSObject: void setObject(org.apache.pdfbox.cos.COSBase)>($r24);
+
+     label16:
+        goto label05;
+
+     label17:
+        $z0 = virtualinvoke $r57.<java.util.TreeMap: boolean isEmpty()>();
+
+        if $z0 == 0 goto label18;
+
+        goto label21;
+
+     label18:
+        $r8 = virtualinvoke $r57.<java.util.TreeMap: java.lang.Object firstKey()>();
+
+        $r9 = virtualinvoke $r57.<java.util.TreeMap: java.lang.Object remove(java.lang.Object)>($r8);
+
+        $r10 = (java.util.List) $r9;
+
+        $r11 = interfaceinvoke $r10.<java.util.List: java.util.Iterator iterator()>();
+
+     label19:
+        $z1 = interfaceinvoke $r11.<java.util.Iterator: boolean hasNext()>();
+
+        if $z1 == 0 goto label20;
+
+        $r12 = interfaceinvoke $r11.<java.util.Iterator: java.lang.Object next()>();
+
+        r55 = (org.apache.pdfbox.cos.COSObject) $r12;
+
+        $r13 = virtualinvoke r5.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSBase parseObjectDynamically(org.apache.pdfbox.cos.COSObject,boolean)>(r55, 0);
+
+        virtualinvoke r55.<org.apache.pdfbox.cos.COSObject: void setObject(org.apache.pdfbox.cos.COSBase)>($r13);
+
+        specialinvoke r5.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void addNewToList(java.util.Queue,org.apache.pdfbox.cos.COSBase,java.util.Set)>($r56, $r13, $r59);
+
+        $l0 = specialinvoke r5.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: long getObjectId(org.apache.pdfbox.cos.COSObject)>(r55);
+
+        $r14 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l0);
+
+        interfaceinvoke $r58.<java.util.Set: boolean add(java.lang.Object)>($r14);
+
+        goto label19;
+
+     label20:
+        goto label04;
+
+     label21:
+        return;
+    }
+
+    protected final org.apache.pdfbox.cos.COSBase parseObjectDynamically(org.apache.pdfbox.cos.COSObject, boolean) throws java.io.IOException
+    {
+        org.apache.pdfbox.cos.COSObject r1;
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r0;
+        org.apache.pdfbox.cos.COSInteger $r2, $r3;
+        org.apache.pdfbox.cos.COSBase $r4;
+        int $i0, $i1;
+        boolean z0;
+
+        r0 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        r1 := @parameter0: org.apache.pdfbox.cos.COSObject;
+
+        z0 := @parameter1: boolean;
+
+        $r2 = virtualinvoke r1.<org.apache.pdfbox.cos.COSObject: org.apache.pdfbox.cos.COSInteger getObjectNumber()>();
+
+        $i0 = virtualinvoke $r2.<org.apache.pdfbox.cos.COSInteger: int intValue()>();
+
+        $r3 = virtualinvoke r1.<org.apache.pdfbox.cos.COSObject: org.apache.pdfbox.cos.COSInteger getGenerationNumber()>();
+
+        $i1 = virtualinvoke $r3.<org.apache.pdfbox.cos.COSInteger: int intValue()>();
+
+        $r4 = virtualinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSBase parseObjectDynamically(int,int,boolean)>($i0, $i1, z0);
+
+        return $r4;
+    }
+
+    protected org.apache.pdfbox.cos.COSBase parseObjectDynamically(int, int, boolean) throws java.io.IOException
+    {
+        byte[] $r74;
+        byte $b5, $b13, $b17, $b31;
+        java.lang.Long r8, $r19;
+        java.util.Map $r6;
+        org.apache.pdfbox.cos.COSBase $r4, $r9, $r22, $r35, $r62, $r63, r108, $r113;
+        java.lang.StringBuilder $r26, $r27, $r28, $r29, $r30, $r31, $r32, $r33, $r40, $r41, $r42, $r43, $r44, $r45, $r46, $r47, $r48, $r52, $r53, $r54, $r55, $r56, $r57, $r58, $r59, $r60, $r78, $r79, $r80, $r94, $r95, $r96, $r97, $r102, $r103, $r104, $r106, $r115, $r117, $r119, $r121, $r123, $r124;
+        long $l2, $l3, $l4, $l6, $l7, $l8, $l9, $l10, $l12, $l14, $l15, $l16, $l19, $l20, $l21, $l22, $l23, $l24, $l26, $l27, $l28, $l29, $l30, l32;
+        org.apache.pdfbox.cos.COSString $r64, $r71, $r72;
+        org.apache.pdfbox.cos.COSDocument $r2, $r11, $r20, $r83;
+        java.io.IOException $r116, $r118, $r120, $r122, $r125;
+        org.apache.pdfbox.exceptions.CryptographyException $r99;
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r1;
+        org.apache.pdfbox.persistence.util.COSObjectKey $r114, $r127;
+        org.apache.pdfbox.cos.COSDictionary $r65, $r82;
+        org.apache.pdfbox.cos.COSArray r111;
+        org.apache.pdfbox.cos.COSObject $r3, $r21, r112;
+        org.apache.pdfbox.pdfparser.XrefTrailerResolver $r5, $r13;
+        int i0, i1, $i11, $i18, $i25, i33, i34, $i35, $i36;
+        org.apache.pdfbox.cos.COSStream $r12, $r85;
+        java.lang.Object $r7, $r17, $r68, $r69, $r70;
+        java.util.Set $r14, $r66;
+        java.lang.String $r34, $r36, $r49, $r61, $r81, $r87, $r88, $r89, $r98, $r105, $r107, r109;
+        java.util.Map$Entry r110;
+        char[] $r23;
+        org.apache.pdfbox.pdfparser.PDFObjectStreamParser $r126;
+        org.apache.pdfbox.io.RandomAccess $r84;
+        boolean z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9, $z10, $z11, $z12, $z13, $z14, $z15, $z16, $z17;
+        org.apache.pdfbox.pdmodel.encryption.SecurityHandler $r37, $r86, $r90;
+        java.util.List $r15;
+        java.util.Iterator $r16, $r67;
+        org.apache.pdfbox.io.PushBackInputStream $r73, $r75;
+        org.apache.pdfbox.cos.COSNull $r91;
+        org.apache.commons.logging.Log $r51;
+
+        r1 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        i0 := @parameter0: int;
+
+        i1 := @parameter1: int;
+
+        z0 := @parameter2: boolean;
+
+        $r114 = new org.apache.pdfbox.persistence.util.COSObjectKey;
+
+        $l3 = (long) i0;
+
+        $l2 = (long) i1;
+
+        specialinvoke $r114.<org.apache.pdfbox.persistence.util.COSObjectKey: void <init>(long,long)>($l3, $l2);
+
+        $r2 = r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSDocument document>;
+
+        $r3 = virtualinvoke $r2.<org.apache.pdfbox.cos.COSDocument: org.apache.pdfbox.cos.COSObject getObjectFromPool(org.apache.pdfbox.persistence.util.COSObjectKey)>($r114);
+
+        $r4 = virtualinvoke $r3.<org.apache.pdfbox.cos.COSObject: org.apache.pdfbox.cos.COSBase getObject()>();
+
+        if $r4 != null goto label26;
+
+        $r5 = r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.pdfparser.XrefTrailerResolver xrefTrailerResolver>;
+
+        $r6 = virtualinvoke $r5.<org.apache.pdfbox.pdfparser.XrefTrailerResolver: java.util.Map getXrefTable()>();
+
+        $r7 = interfaceinvoke $r6.<java.util.Map: java.lang.Object get(java.lang.Object)>($r114);
+
+        r8 = (java.lang.Long) $r7;
+
+        if z0 == 0 goto label02;
+
+        if r8 == null goto label01;
+
+        $l30 = virtualinvoke r8.<java.lang.Long: long longValue()>();
+
+        $b31 = $l30 cmp 0L;
+
+        $i35 = (int) $b31;
+
+        if $i35 > 0 goto label02;
+
+     label01:
+        $r116 = new java.io.IOException;
+
+        $r115 = new java.lang.StringBuilder;
+
+        specialinvoke $r115.<java.lang.StringBuilder: void <init>()>();
+
+        $r94 = virtualinvoke $r115.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Object must be defined and must not be compressed object: ");
+
+        $l28 = virtualinvoke $r114.<org.apache.pdfbox.persistence.util.COSObjectKey: long getNumber()>();
+
+        $r95 = virtualinvoke $r94.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l28);
+
+        $r96 = virtualinvoke $r95.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(":");
+
+        $l29 = virtualinvoke $r114.<org.apache.pdfbox.persistence.util.COSObjectKey: long getGeneration()>();
+
+        $r97 = virtualinvoke $r96.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l29);
+
+        $r98 = virtualinvoke $r97.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r116.<java.io.IOException: void <init>(java.lang.String)>($r98);
+
+        throw $r116;
+
+     label02:
+        if r8 != null goto label03;
+
+        $r91 = <org.apache.pdfbox.cos.COSNull: org.apache.pdfbox.cos.COSNull NULL>;
+
+        virtualinvoke $r3.<org.apache.pdfbox.cos.COSObject: void setObject(org.apache.pdfbox.cos.COSBase)>($r91);
+
+        goto label26;
+
+     label03:
+        $l4 = virtualinvoke r8.<java.lang.Long: long longValue()>();
+
+        $b5 = $l4 cmp 0L;
+
+        $i36 = (int) $b5;
+
+        if $i36 <= 0 goto label23;
+
+        $l9 = virtualinvoke r8.<java.lang.Long: long longValue()>();
+
+        virtualinvoke r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void setPdfSource(long)>($l9);
+
+        $l10 = virtualinvoke r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: long readObjectNumber()>();
+
+        $i11 = virtualinvoke r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: int readGenerationNumber()>();
+
+        l32 = (long) $i11;
+
+        $r23 = <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: char[] OBJ_MARKER>;
+
+        virtualinvoke r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void readPattern(char[])>($r23);
+
+        $l12 = virtualinvoke $r114.<org.apache.pdfbox.persistence.util.COSObjectKey: long getNumber()>();
+
+        $b13 = $l10 cmp $l12;
+
+        if $b13 != 0 goto label04;
+
+        $l16 = virtualinvoke $r114.<org.apache.pdfbox.persistence.util.COSObjectKey: long getGeneration()>();
+
+        $b17 = l32 cmp $l16;
+
+        if $b17 == 0 goto label05;
+
+     label04:
+        $r118 = new java.io.IOException;
+
+        $r117 = new java.lang.StringBuilder;
+
+        specialinvoke $r117.<java.lang.StringBuilder: void <init>()>();
+
+        $r26 = virtualinvoke $r117.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("XREF for ");
+
+        $l14 = virtualinvoke $r114.<org.apache.pdfbox.persistence.util.COSObjectKey: long getNumber()>();
+
+        $r27 = virtualinvoke $r26.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l14);
+
+        $r28 = virtualinvoke $r27.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(":");
+
+        $l15 = virtualinvoke $r114.<org.apache.pdfbox.persistence.util.COSObjectKey: long getGeneration()>();
+
+        $r29 = virtualinvoke $r28.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l15);
+
+        $r30 = virtualinvoke $r29.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" points to wrong object: ");
+
+        $r31 = virtualinvoke $r30.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l10);
+
+        $r32 = virtualinvoke $r31.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(":");
+
+        $r33 = virtualinvoke $r32.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>(l32);
+
+        $r34 = virtualinvoke $r33.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r118.<java.io.IOException: void <init>(java.lang.String)>($r34);
+
+        throw $r118;
+
+     label05:
+        virtualinvoke r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void skipSpaces()>();
+
+        $r35 = virtualinvoke r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSBase parseDirObject()>();
+
+        r108 = $r35;
+
+        $r36 = virtualinvoke r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.lang.String readString()>();
+
+        r109 = $r36;
+
+        $z5 = virtualinvoke $r36.<java.lang.String: boolean equals(java.lang.Object)>("stream");
+
+        if $z5 == 0 goto label12;
+
+        $r73 = r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        $r74 = virtualinvoke $r36.<java.lang.String: byte[] getBytes(java.lang.String)>("ISO-8859-1");
+
+        virtualinvoke $r73.<org.apache.pdfbox.io.PushBackInputStream: void unread(byte[])>($r74);
+
+        $r75 = r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        virtualinvoke $r75.<org.apache.pdfbox.io.PushBackInputStream: void unread(int)>(32);
+
+        $z14 = $r35 instanceof org.apache.pdfbox.cos.COSDictionary;
+
+        if $z14 == 0 goto label10;
+
+        $r82 = (org.apache.pdfbox.cos.COSDictionary) $r35;
+
+        $r83 = virtualinvoke r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSDocument getDocument()>();
+
+        $r84 = virtualinvoke $r83.<org.apache.pdfbox.cos.COSDocument: org.apache.pdfbox.io.RandomAccess getScratchFile()>();
+
+        $r85 = virtualinvoke r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSStream parseCOSStream(org.apache.pdfbox.cos.COSDictionary,org.apache.pdfbox.io.RandomAccess)>($r82, $r84);
+
+        $r86 = r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.pdmodel.encryption.SecurityHandler securityHandler>;
+
+        if $r86 == null goto label09;
+
+     label06:
+        $r90 = r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.pdmodel.encryption.SecurityHandler securityHandler>;
+
+        $l27 = (long) i0;
+
+        $l26 = (long) i1;
+
+        virtualinvoke $r90.<org.apache.pdfbox.pdmodel.encryption.SecurityHandler: void decryptStream(org.apache.pdfbox.cos.COSStream,long,long)>($r85, $l27, $l26);
+
+     label07:
+        goto label09;
+
+     label08:
+        $r99 := @caughtexception;
+
+        $r120 = new java.io.IOException;
+
+        $r119 = new java.lang.StringBuilder;
+
+        specialinvoke $r119.<java.lang.StringBuilder: void <init>()>();
+
+        $r102 = virtualinvoke $r119.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Error decrypting stream object ");
+
+        $r103 = virtualinvoke $r102.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>(i0);
+
+        $r104 = virtualinvoke $r103.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(": ");
+
+        $r105 = virtualinvoke $r99.<org.apache.pdfbox.exceptions.CryptographyException: java.lang.String getMessage()>();
+
+        $r106 = virtualinvoke $r104.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r105);
+
+        $r107 = virtualinvoke $r106.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r120.<java.io.IOException: void <init>(java.lang.String)>($r107);
+
+        throw $r120;
+
+     label09:
+        r108 = $r85;
+
+        goto label11;
+
+     label10:
+        $r122 = new java.io.IOException;
+
+        $r121 = new java.lang.StringBuilder;
+
+        specialinvoke $r121.<java.lang.StringBuilder: void <init>()>();
+
+        $r78 = virtualinvoke $r121.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Stream not preceded by dictionary (offset: ");
+
+        $r79 = virtualinvoke $r78.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r8);
+
+        $r80 = virtualinvoke $r79.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(").");
+
+        $r81 = virtualinvoke $r80.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r122.<java.io.IOException: void <init>(java.lang.String)>($r81);
+
+        throw $r122;
+
+     label11:
+        virtualinvoke r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void skipSpaces()>();
+
+        $r87 = virtualinvoke r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.lang.String readLine()>();
+
+        r109 = $r87;
+
+        $z15 = virtualinvoke $r87.<java.lang.String: boolean startsWith(java.lang.String)>("endobj");
+
+        if $z15 != 0 goto label20;
+
+        $z16 = virtualinvoke $r87.<java.lang.String: boolean startsWith(java.lang.String)>("endstream");
+
+        if $z16 == 0 goto label20;
+
+        $r88 = virtualinvoke $r87.<java.lang.String: java.lang.String substring(int)>(9);
+
+        $r89 = virtualinvoke $r88.<java.lang.String: java.lang.String trim()>();
+
+        r109 = $r89;
+
+        $i25 = virtualinvoke $r89.<java.lang.String: int length()>();
+
+        if $i25 != 0 goto label20;
+
+        r109 = virtualinvoke r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.lang.String readLine()>();
+
+        goto label20;
+
+     label12:
+        $r37 = r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.pdmodel.encryption.SecurityHandler securityHandler>;
+
+        if $r37 == null goto label20;
+
+        $z8 = $r35 instanceof org.apache.pdfbox.cos.COSString;
+
+        if $z8 == 0 goto label13;
+
+        $r72 = (org.apache.pdfbox.cos.COSString) $r35;
+
+        $l24 = (long) i0;
+
+        $l23 = (long) i1;
+
+        virtualinvoke r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void decrypt(org.apache.pdfbox.cos.COSString,long,long)>($r72, $l24, $l23);
+
+        goto label20;
+
+     label13:
+        $z9 = $r35 instanceof org.apache.pdfbox.cos.COSDictionary;
+
+        if $z9 == 0 goto label17;
+
+        $r65 = (org.apache.pdfbox.cos.COSDictionary) $r35;
+
+        $r66 = virtualinvoke $r65.<org.apache.pdfbox.cos.COSDictionary: java.util.Set entrySet()>();
+
+        $r67 = interfaceinvoke $r66.<java.util.Set: java.util.Iterator iterator()>();
+
+     label14:
+        $z12 = interfaceinvoke $r67.<java.util.Iterator: boolean hasNext()>();
+
+        if $z12 == 0 goto label16;
+
+        $r68 = interfaceinvoke $r67.<java.util.Iterator: java.lang.Object next()>();
+
+        r110 = (java.util.Map$Entry) $r68;
+
+        $r69 = interfaceinvoke r110.<java.util.Map$Entry: java.lang.Object getValue()>();
+
+        $z13 = $r69 instanceof org.apache.pdfbox.cos.COSString;
+
+        if $z13 == 0 goto label15;
+
+        $r70 = interfaceinvoke r110.<java.util.Map$Entry: java.lang.Object getValue()>();
+
+        $r71 = (org.apache.pdfbox.cos.COSString) $r70;
+
+        $l22 = (long) i0;
+
+        $l21 = (long) i1;
+
+        virtualinvoke r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void decrypt(org.apache.pdfbox.cos.COSString,long,long)>($r71, $l22, $l21);
+
+     label15:
+        goto label14;
+
+     label16:
+        goto label20;
+
+     label17:
+        $z10 = $r35 instanceof org.apache.pdfbox.cos.COSArray;
+
+        if $z10 == 0 goto label20;
+
+        r111 = (org.apache.pdfbox.cos.COSArray) $r35;
+
+        i33 = 0;
+
+        $i18 = virtualinvoke r111.<org.apache.pdfbox.cos.COSArray: int size()>();
+
+     label18:
+        if i33 >= $i18 goto label20;
+
+        $r62 = virtualinvoke r111.<org.apache.pdfbox.cos.COSArray: org.apache.pdfbox.cos.COSBase get(int)>(i33);
+
+        $z11 = $r62 instanceof org.apache.pdfbox.cos.COSString;
+
+        if $z11 == 0 goto label19;
+
+        $r63 = virtualinvoke r111.<org.apache.pdfbox.cos.COSArray: org.apache.pdfbox.cos.COSBase get(int)>(i33);
+
+        $r64 = (org.apache.pdfbox.cos.COSString) $r63;
+
+        $l20 = (long) i0;
+
+        $l19 = (long) i1;
+
+        virtualinvoke r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void decrypt(org.apache.pdfbox.cos.COSString,long,long)>($r64, $l20, $l19);
+
+     label19:
+        i33 = i33 + 1;
+
+        goto label18;
+
+     label20:
+        virtualinvoke $r3.<org.apache.pdfbox.cos.COSObject: void setObject(org.apache.pdfbox.cos.COSBase)>(r108);
+
+        $z17 = virtualinvoke r109.<java.lang.String: boolean startsWith(java.lang.String)>("endobj");
+
+        if $z17 != 0 goto label22;
+
+        $z6 = virtualinvoke r109.<java.lang.String: boolean endsWith(java.lang.String)>(" obj");
+
+        if $z6 == 0 goto label21;
+
+        $z7 = r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean isLenient>;
+
+        if $z7 == 0 goto label21;
+
+        $r51 = <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.commons.logging.Log LOG>;
+
+        $r123 = new java.lang.StringBuilder;
+
+        specialinvoke $r123.<java.lang.StringBuilder: void <init>()>();
+
+        $r52 = virtualinvoke $r123.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Object (");
+
+        $r53 = virtualinvoke $r52.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l10);
+
+        $r54 = virtualinvoke $r53.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(":");
+
+        $r55 = virtualinvoke $r54.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>(l32);
+
+        $r56 = virtualinvoke $r55.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(") at offset ");
+
+        $r57 = virtualinvoke $r56.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r8);
+
+        $r58 = virtualinvoke $r57.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" does not end with \'endobj\' but with \'");
+
+        $r59 = virtualinvoke $r58.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r109);
+
+        $r60 = virtualinvoke $r59.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("\'");
+
+        $r61 = virtualinvoke $r60.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r51.<org.apache.commons.logging.Log: void warn(java.lang.Object)>($r61);
+
+        goto label22;
+
+     label21:
+        $r125 = new java.io.IOException;
+
+        $r124 = new java.lang.StringBuilder;
+
+        specialinvoke $r124.<java.lang.StringBuilder: void <init>()>();
+
+        $r40 = virtualinvoke $r124.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Object (");
+
+        $r41 = virtualinvoke $r40.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l10);
+
+        $r42 = virtualinvoke $r41.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(":");
+
+        $r43 = virtualinvoke $r42.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>(l32);
+
+        $r44 = virtualinvoke $r43.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(") at offset ");
+
+        $r45 = virtualinvoke $r44.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r8);
+
+        $r46 = virtualinvoke $r45.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" does not end with \'endobj\' but with \'");
+
+        $r47 = virtualinvoke $r46.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r109);
+
+        $r48 = virtualinvoke $r47.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("\'");
+
+        $r49 = virtualinvoke $r48.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r125.<java.io.IOException: void <init>(java.lang.String)>($r49);
+
+        throw $r125;
+
+     label22:
+        virtualinvoke r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void releasePdfSourceInputStream()>();
+
+        goto label26;
+
+     label23:
+        $l6 = virtualinvoke r8.<java.lang.Long: long longValue()>();
+
+        $l7 = neg $l6;
+
+        i34 = (int) $l7;
+
+        $r9 = virtualinvoke r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSBase parseObjectDynamically(int,int,boolean)>(i34, 0, 1);
+
+        $z1 = $r9 instanceof org.apache.pdfbox.cos.COSStream;
+
+        if $z1 == 0 goto label26;
+
+        $r126 = new org.apache.pdfbox.pdfparser.PDFObjectStreamParser;
+
+        $r12 = (org.apache.pdfbox.cos.COSStream) $r9;
+
+        $r11 = r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSDocument document>;
+
+        $z2 = r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean forceParsing>;
+
+        specialinvoke $r126.<org.apache.pdfbox.pdfparser.PDFObjectStreamParser: void <init>(org.apache.pdfbox.cos.COSStream,org.apache.pdfbox.cos.COSDocument,boolean)>($r12, $r11, $z2);
+
+        virtualinvoke $r126.<org.apache.pdfbox.pdfparser.PDFObjectStreamParser: void parse()>();
+
+        $r13 = r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.pdfparser.XrefTrailerResolver xrefTrailerResolver>;
+
+        $r14 = virtualinvoke $r13.<org.apache.pdfbox.pdfparser.XrefTrailerResolver: java.util.Set getContainedObjectNumbers(int)>(i34);
+
+        $r15 = virtualinvoke $r126.<org.apache.pdfbox.pdfparser.PDFObjectStreamParser: java.util.List getObjects()>();
+
+        $r16 = interfaceinvoke $r15.<java.util.List: java.util.Iterator iterator()>();
+
+     label24:
+        $z3 = interfaceinvoke $r16.<java.util.Iterator: boolean hasNext()>();
+
+        if $z3 == 0 goto label26;
+
+        $r17 = interfaceinvoke $r16.<java.util.Iterator: java.lang.Object next()>();
+
+        r112 = (org.apache.pdfbox.cos.COSObject) $r17;
+
+        $r127 = new org.apache.pdfbox.persistence.util.COSObjectKey;
+
+        specialinvoke $r127.<org.apache.pdfbox.persistence.util.COSObjectKey: void <init>(org.apache.pdfbox.cos.COSObject)>(r112);
+
+        $l8 = virtualinvoke $r127.<org.apache.pdfbox.persistence.util.COSObjectKey: long getNumber()>();
+
+        $r19 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l8);
+
+        $z4 = interfaceinvoke $r14.<java.util.Set: boolean contains(java.lang.Object)>($r19);
+
+        if $z4 == 0 goto label25;
+
+        $r20 = r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSDocument document>;
+
+        $r21 = virtualinvoke $r20.<org.apache.pdfbox.cos.COSDocument: org.apache.pdfbox.cos.COSObject getObjectFromPool(org.apache.pdfbox.persistence.util.COSObjectKey)>($r127);
+
+        $r22 = virtualinvoke r112.<org.apache.pdfbox.cos.COSObject: org.apache.pdfbox.cos.COSBase getObject()>();
+
+        virtualinvoke $r21.<org.apache.pdfbox.cos.COSObject: void setObject(org.apache.pdfbox.cos.COSBase)>($r22);
+
+     label25:
+        goto label24;
+
+     label26:
+        $r113 = virtualinvoke $r3.<org.apache.pdfbox.cos.COSObject: org.apache.pdfbox.cos.COSBase getObject()>();
+
+        return $r113;
+
+        catch org.apache.pdfbox.exceptions.CryptographyException from label06 to label07 with label08;
+    }
+
+    protected final void decrypt(org.apache.pdfbox.cos.COSString, long, long) throws java.io.IOException
+    {
+        org.apache.pdfbox.exceptions.CryptographyException $r3;
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r0;
+        long l0, l1;
+        java.io.IOException $r4;
+        org.apache.pdfbox.pdmodel.encryption.SecurityHandler $r2;
+        org.apache.pdfbox.cos.COSString r1;
+        java.lang.StringBuilder $r5, $r6, $r8;
+        java.lang.String $r7, $r9;
+
+        r0 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        r1 := @parameter0: org.apache.pdfbox.cos.COSString;
+
+        l0 := @parameter1: long;
+
+        l1 := @parameter2: long;
+
+     label1:
+        $r2 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.pdmodel.encryption.SecurityHandler securityHandler>;
+
+        virtualinvoke $r2.<org.apache.pdfbox.pdmodel.encryption.SecurityHandler: void decryptString(org.apache.pdfbox.cos.COSString,long,long)>(r1, l0, l1);
+
+     label2:
+        goto label4;
+
+     label3:
+        $r3 := @caughtexception;
+
+        $r4 = new java.io.IOException;
+
+        $r5 = new java.lang.StringBuilder;
+
+        specialinvoke $r5.<java.lang.StringBuilder: void <init>()>();
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Error decrypting string: ");
+
+        $r7 = virtualinvoke $r3.<org.apache.pdfbox.exceptions.CryptographyException: java.lang.String getMessage()>();
+
+        $r8 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r7);
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r4.<java.io.IOException: void <init>(java.lang.String)>($r9);
+
+        throw $r4;
+
+     label4:
+        return;
+
+        catch org.apache.pdfbox.exceptions.CryptographyException from label1 to label2 with label3;
+    }
+
+    private org.apache.pdfbox.cos.COSNumber getLength(org.apache.pdfbox.cos.COSBase) throws java.io.IOException
+    {
+        org.apache.pdfbox.cos.COSNumber r31;
+        boolean $z0, $z1, $z2, $z3;
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r1;
+        org.apache.pdfbox.cos.COSBase r0, $r10, $r11, $r12, $r18, $r23;
+        java.lang.StringBuilder $r3, $r4, $r7, $r14, $r15, $r16, $r17, $r21, $r26, $r27, $r28;
+        java.lang.Throwable $r30;
+        org.apache.pdfbox.cos.COSObject r9;
+        long $l0;
+        java.lang.String $r6, $r8, $r20, $r22, $r29;
+        java.io.IOException $r2, $r13, $r24, $r25;
+        java.lang.Class $r5, $r19;
+
+        r1 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        r0 := @parameter0: org.apache.pdfbox.cos.COSBase;
+
+        if r0 != null goto label01;
+
+        return null;
+
+     label01:
+        $z0 = r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean inGetLength>;
+
+        if $z0 == 0 goto label02;
+
+        $r25 = new java.io.IOException;
+
+        $r26 = new java.lang.StringBuilder;
+
+        specialinvoke $r26.<java.lang.StringBuilder: void <init>()>();
+
+        $r27 = virtualinvoke $r26.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Loop while reading length from ");
+
+        $r28 = virtualinvoke $r27.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r0);
+
+        $r29 = virtualinvoke $r28.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r25.<java.io.IOException: void <init>(java.lang.String)>($r29);
+
+        throw $r25;
+
+     label02:
+        r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean inGetLength> = 1;
+
+        $z1 = r0 instanceof org.apache.pdfbox.cos.COSNumber;
+
+        if $z1 == 0 goto label03;
+
+        r31 = (org.apache.pdfbox.cos.COSNumber) r0;
+
+        goto label07;
+
+     label03:
+        $z2 = r0 instanceof org.apache.pdfbox.cos.COSObject;
+
+        if $z2 == 0 goto label06;
+
+        r9 = (org.apache.pdfbox.cos.COSObject) r0;
+
+        $r10 = virtualinvoke r9.<org.apache.pdfbox.cos.COSObject: org.apache.pdfbox.cos.COSBase getObject()>();
+
+        if $r10 != null goto label04;
+
+        $l0 = specialinvoke r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: long getPdfSourceOffset()>();
+
+        virtualinvoke r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void releasePdfSourceInputStream()>();
+
+        virtualinvoke r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSBase parseObjectDynamically(org.apache.pdfbox.cos.COSObject,boolean)>(r9, 1);
+
+        virtualinvoke r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void setPdfSource(long)>($l0);
+
+        $r23 = virtualinvoke r9.<org.apache.pdfbox.cos.COSObject: org.apache.pdfbox.cos.COSBase getObject()>();
+
+        if $r23 != null goto label04;
+
+        $r24 = new java.io.IOException;
+
+        specialinvoke $r24.<java.io.IOException: void <init>(java.lang.String)>("Length object content was not read.");
+
+        throw $r24;
+
+     label04:
+        $r11 = virtualinvoke r9.<org.apache.pdfbox.cos.COSObject: org.apache.pdfbox.cos.COSBase getObject()>();
+
+        $z3 = $r11 instanceof org.apache.pdfbox.cos.COSNumber;
+
+        if $z3 != 0 goto label05;
+
+        $r13 = new java.io.IOException;
+
+        $r14 = new java.lang.StringBuilder;
+
+        specialinvoke $r14.<java.lang.StringBuilder: void <init>()>();
+
+        $r15 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Wrong type of referenced length object ");
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r9);
+
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(": ");
+
+        $r18 = virtualinvoke r9.<org.apache.pdfbox.cos.COSObject: org.apache.pdfbox.cos.COSBase getObject()>();
+
+        $r19 = virtualinvoke $r18.<java.lang.Object: java.lang.Class getClass()>();
+
+        $r20 = virtualinvoke $r19.<java.lang.Class: java.lang.String getSimpleName()>();
+
+        $r21 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r20);
+
+        $r22 = virtualinvoke $r21.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r13.<java.io.IOException: void <init>(java.lang.String)>($r22);
+
+        throw $r13;
+
+     label05:
+        $r12 = virtualinvoke r9.<org.apache.pdfbox.cos.COSObject: org.apache.pdfbox.cos.COSBase getObject()>();
+
+        r31 = (org.apache.pdfbox.cos.COSNumber) $r12;
+
+        goto label07;
+
+     label06:
+        $r2 = new java.io.IOException;
+
+        $r3 = new java.lang.StringBuilder;
+
+        specialinvoke $r3.<java.lang.StringBuilder: void <init>()>();
+
+        $r4 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Wrong type of length object: ");
+
+        $r5 = virtualinvoke r0.<java.lang.Object: java.lang.Class getClass()>();
+
+        $r6 = virtualinvoke $r5.<java.lang.Class: java.lang.String getSimpleName()>();
+
+        $r7 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r6);
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r2.<java.io.IOException: void <init>(java.lang.String)>($r8);
+
+        throw $r2;
+
+     label07:
+        goto label12;
+
+     label08:
+        goto label11;
+
+     label09:
+        $r30 := @caughtexception;
+
+        goto label13;
+
+     label10:
+        throw $r30;
+
+     label11:
+        return r31;
+
+     label12:
+        r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean inGetLength> = 0;
+
+        goto label08;
+
+     label13:
+        r1.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean inGetLength> = 0;
+
+        goto label10;
+
+        catch java.lang.Throwable from label02 to label08 with label09;
+        catch java.lang.Throwable from label09 to label10 with label09;
+    }
+
+    protected org.apache.pdfbox.cos.COSStream parseCOSStream(org.apache.pdfbox.cos.COSDictionary, org.apache.pdfbox.io.RandomAccess) throws java.io.IOException
+    {
+        byte[] $r17, $r19;
+        byte $b2, $b3;
+        org.apache.pdfbox.cos.COSNumber $r30;
+        org.apache.pdfbox.io.RandomAccess r2;
+        boolean $z0, $z1, z2;
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r3;
+        org.apache.pdfbox.cos.COSDictionary r1;
+        org.apache.pdfbox.cos.COSBase $r29;
+        java.lang.StringBuilder $r8, $r9, $r10, $r12, $r34;
+        java.lang.Throwable $r26;
+        long $l0, $l1, $l5, l8;
+        int $i4, $i6, i7, i9, $i10, $i11, $i12;
+        java.lang.String $r5, $r13;
+        org.apache.pdfbox.pdfparser.EndstreamOutputStream $r33;
+        org.apache.pdfbox.cos.COSStream $r31;
+        java.io.OutputStream $r14, $r16, r27;
+        org.apache.pdfbox.cos.COSName $r28;
+        org.apache.pdfbox.io.PushBackInputStream $r4, $r11, $r18, $r20, $r22, $r23, $r24, $r25;
+        java.io.IOException $r32, $r35;
+
+        r3 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        r1 := @parameter0: org.apache.pdfbox.cos.COSDictionary;
+
+        r2 := @parameter1: org.apache.pdfbox.io.RandomAccess;
+
+        $r31 = new org.apache.pdfbox.cos.COSStream;
+
+        specialinvoke $r31.<org.apache.pdfbox.cos.COSStream: void <init>(org.apache.pdfbox.cos.COSDictionary,org.apache.pdfbox.io.RandomAccess)>(r1, r2);
+
+        r27 = null;
+
+     label01:
+        virtualinvoke r3.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.lang.String readString()>();
+
+        $r4 = r3.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        i7 = virtualinvoke $r4.<org.apache.pdfbox.io.PushBackInputStream: int read()>();
+
+     label02:
+        if i7 != 32 goto label03;
+
+        $r25 = r3.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        i7 = virtualinvoke $r25.<org.apache.pdfbox.io.PushBackInputStream: int read()>();
+
+        goto label02;
+
+     label03:
+        if i7 != 13 goto label04;
+
+        $r23 = r3.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        $i6 = virtualinvoke $r23.<org.apache.pdfbox.io.PushBackInputStream: int read()>();
+
+        if $i6 == 10 goto label05;
+
+        $r24 = r3.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        virtualinvoke $r24.<org.apache.pdfbox.io.PushBackInputStream: void unread(int)>($i6);
+
+        goto label05;
+
+     label04:
+        if i7 == 10 goto label05;
+
+        $r22 = r3.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        virtualinvoke $r22.<org.apache.pdfbox.io.PushBackInputStream: void unread(int)>(i7);
+
+     label05:
+        $r28 = <org.apache.pdfbox.cos.COSName: org.apache.pdfbox.cos.COSName LENGTH>;
+
+        $r29 = virtualinvoke r1.<org.apache.pdfbox.cos.COSDictionary: org.apache.pdfbox.cos.COSBase getItem(org.apache.pdfbox.cos.COSName)>($r28);
+
+        $r30 = specialinvoke r3.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.cos.COSNumber getLength(org.apache.pdfbox.cos.COSBase)>($r29);
+
+        if $r30 != null goto label06;
+
+        $r32 = new java.io.IOException;
+
+        specialinvoke $r32.<java.io.IOException: void <init>(java.lang.String)>("Missing length for stream.");
+
+        throw $r32;
+
+     label06:
+        z2 = 0;
+
+        $l0 = virtualinvoke $r30.<org.apache.pdfbox.cos.COSNumber: long longValue()>();
+
+        $z0 = specialinvoke r3.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean validateStreamLength(long)>($l0);
+
+        if $z0 == 0 goto label12;
+
+        $r16 = virtualinvoke $r31.<org.apache.pdfbox.cos.COSStream: java.io.OutputStream createFilteredStream(org.apache.pdfbox.cos.COSBase)>($r30);
+
+        r27 = $r16;
+
+        l8 = virtualinvoke $r30.<org.apache.pdfbox.cos.COSNumber: long longValue()>();
+
+        i9 = 0;
+
+     label07:
+        $b2 = l8 cmp 0L;
+
+        $i11 = (int) $b2;
+
+        if $i11 <= 0 goto label11;
+
+        $r18 = r3.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        $r17 = r3.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: byte[] streamCopyBuf>;
+
+        $b3 = l8 cmp 8192L;
+
+        $i12 = (int) $b3;
+
+        if $i12 <= 0 goto label08;
+
+        $i10 = 8192;
+
+        goto label09;
+
+     label08:
+        $i10 = (int) l8;
+
+     label09:
+        $i4 = virtualinvoke $r18.<org.apache.pdfbox.io.PushBackInputStream: int read(byte[],int,int)>($r17, 0, $i10);
+
+        if $i4 > 0 goto label10;
+
+        z2 = 1;
+
+        virtualinvoke $r16.<java.io.OutputStream: void close()>();
+
+        $r20 = r3.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        virtualinvoke $r20.<org.apache.pdfbox.io.PushBackInputStream: void unread(int)>(i9);
+
+        goto label11;
+
+     label10:
+        $r19 = r3.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: byte[] streamCopyBuf>;
+
+        virtualinvoke $r16.<java.io.OutputStream: void write(byte[],int,int)>($r19, 0, $i4);
+
+        $l5 = (long) $i4;
+
+        l8 = l8 - $l5;
+
+        i9 = i9 + $i4;
+
+        goto label07;
+
+     label11:
+        goto label13;
+
+     label12:
+        z2 = 1;
+
+     label13:
+        if z2 == 0 goto label14;
+
+        $r14 = virtualinvoke $r31.<org.apache.pdfbox.cos.COSStream: java.io.OutputStream createFilteredStream(org.apache.pdfbox.cos.COSBase)>($r30);
+
+        r27 = $r14;
+
+        $r33 = new org.apache.pdfbox.pdfparser.EndstreamOutputStream;
+
+        specialinvoke $r33.<org.apache.pdfbox.pdfparser.EndstreamOutputStream: void <init>(java.io.OutputStream)>($r14);
+
+        specialinvoke r3.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void readUntilEndStream(java.io.OutputStream)>($r33);
+
+     label14:
+        $r5 = virtualinvoke r3.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.lang.String readString()>();
+
+        $z1 = virtualinvoke $r5.<java.lang.String: boolean equals(java.lang.Object)>("endstream");
+
+        if $z1 != 0 goto label15;
+
+        $r35 = new java.io.IOException;
+
+        $r34 = new java.lang.StringBuilder;
+
+        specialinvoke $r34.<java.lang.StringBuilder: void <init>()>();
+
+        $r8 = virtualinvoke $r34.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Error reading stream using length value. Expected=\'endstream\' actual=\'");
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r5);
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("\' at offset ");
+
+        $r11 = r3.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        $l1 = virtualinvoke $r11.<org.apache.pdfbox.io.PushBackInputStream: long getOffset()>();
+
+        $r12 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l1);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r35.<java.io.IOException: void <init>(java.lang.String)>($r13);
+
+        throw $r35;
+
+     label15:
+        goto label20;
+
+     label16:
+        goto label19;
+
+     label17:
+        $r26 := @caughtexception;
+
+        goto label22;
+
+     label18:
+        throw $r26;
+
+     label19:
+        return $r31;
+
+     label20:
+        if r27 == null goto label21;
+
+        virtualinvoke r27.<java.io.OutputStream: void close()>();
+
+     label21:
+        goto label16;
+
+     label22:
+        if r27 == null goto label23;
+
+        virtualinvoke r27.<java.io.OutputStream: void close()>();
+
+     label23:
+        goto label18;
+
+        catch java.lang.Throwable from label01 to label16 with label17;
+        catch java.lang.Throwable from label17 to label18 with label17;
+    }
+
+    private boolean validateStreamLength(long) throws java.io.IOException
+    {
+        byte[] $r4;
+        long $l0, l1, l2, $l3;
+        byte $b4;
+        int $i5;
+        java.lang.String $r3;
+        boolean $z0, z1;
+        org.apache.pdfbox.io.PushBackInputStream $r1, $r2, $r5;
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r0;
+        org.apache.commons.logging.Log $r6, $r7;
+
+        r0 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        l1 := @parameter0: long;
+
+        z1 = 1;
+
+        $r1 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        $l0 = virtualinvoke $r1.<org.apache.pdfbox.io.PushBackInputStream: long getOffset()>();
+
+        l2 = $l0 + l1;
+
+        $l3 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: long fileLen>;
+
+        $b4 = l2 cmp $l3;
+
+        $i5 = (int) $b4;
+
+        if $i5 <= 0 goto label1;
+
+        z1 = 0;
+
+        $r7 = <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.commons.logging.Log LOG>;
+
+        interfaceinvoke $r7.<org.apache.commons.logging.Log: void error(java.lang.Object)>("The end of the stream is out of range, using workaround to read the stream");
+
+        goto label3;
+
+     label1:
+        $r2 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        virtualinvoke $r2.<org.apache.pdfbox.io.PushBackInputStream: void seek(long)>(l2);
+
+        virtualinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void skipSpaces()>();
+
+        $r3 = "endstream";
+
+        $r4 = virtualinvoke $r3.<java.lang.String: byte[] getBytes(java.lang.String)>("ISO-8859-1");
+
+        $z0 = specialinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean checkBytesAtOffset(byte[])>($r4);
+
+        if $z0 != 0 goto label2;
+
+        z1 = 0;
+
+        $r6 = <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.commons.logging.Log LOG>;
+
+        interfaceinvoke $r6.<org.apache.commons.logging.Log: void error(java.lang.Object)>("The end of the stream doesn\'t point to the correct offset, using workaround to read the stream");
+
+     label2:
+        $r5 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        virtualinvoke $r5.<org.apache.pdfbox.io.PushBackInputStream: void seek(long)>($l0);
+
+     label3:
+        return z1;
+    }
+
+    private void readUntilEndStream(java.io.OutputStream) throws java.io.IOException
+    {
+        byte[] $r1, $r4, $r5, $r7, $r8, $r9, r10, $r11;
+        byte $b10, b16, $b17, $b18, $b19;
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r0;
+        int $i0, $i1, i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i11, $i12, i13, i14, i15, $i20, $i21, $i22, $i23, $i24, $i25, $i26, $i27;
+        java.io.OutputStream r3;
+        org.apache.pdfbox.io.PushBackInputStream $r2, $r6;
+
+        r0 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        r3 := @parameter0: java.io.OutputStream;
+
+        i13 = 0;
+
+        r10 = <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: byte[] ENDSTREAM>;
+
+     label01:
+        $r2 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        $r1 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: byte[] streamCopyBuf>;
+
+        $i0 = 8192 - i13;
+
+        $i1 = virtualinvoke $r2.<org.apache.pdfbox.io.PushBackInputStream: int read(byte[],int,int)>($r1, i13, $i0);
+
+        if $i1 <= 0 goto label14;
+
+        i2 = i13;
+
+        i14 = i13;
+
+        i15 = $i1 - 5;
+
+     label02:
+        if i14 >= $i1 goto label11;
+
+        if i13 != 0 goto label04;
+
+        $i12 = i14 + 5;
+
+        if $i12 >= i15 goto label04;
+
+        $r9 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: byte[] streamCopyBuf>;
+
+        b16 = $r9[$i12];
+
+        $i20 = (int) b16;
+
+        if $i20 > 116 goto label03;
+
+        $i21 = (int) b16;
+
+        if $i21 >= 97 goto label04;
+
+     label03:
+        i14 = $i12;
+
+        goto label10;
+
+     label04:
+        $r11 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: byte[] streamCopyBuf>;
+
+        $b17 = $r11[i14];
+
+        $b18 = r10[i13];
+
+        $i22 = (int) $b17;
+
+        $i23 = (int) $b18;
+
+        if $i22 != $i23 goto label05;
+
+        i13 = i13 + 1;
+
+        $i11 = lengthof r10;
+
+        if i13 != $i11 goto label10;
+
+        i14 = i14 + 1;
+
+        goto label11;
+
+     label05:
+        if i13 != 3 goto label06;
+
+        $r8 = <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: byte[] ENDOBJ>;
+
+        $b10 = $r8[i13];
+
+        $i24 = (int) $b17;
+
+        $i25 = (int) $b10;
+
+        if $i24 != $i25 goto label06;
+
+        r10 = <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: byte[] ENDOBJ>;
+
+        i13 = i13 + 1;
+
+        goto label10;
+
+     label06:
+        $i26 = (int) $b17;
+
+        if $i26 != 101 goto label07;
+
+        $b19 = 1;
+
+        goto label09;
+
+     label07:
+        $i27 = (int) $b17;
+
+        if $i27 != 110 goto label08;
+
+        if i13 != 7 goto label08;
+
+        $b19 = 2;
+
+        goto label09;
+
+     label08:
+        $b19 = 0;
+
+     label09:
+        i13 = $b19;
+
+        r10 = <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: byte[] ENDSTREAM>;
+
+     label10:
+        i14 = i14 + 1;
+
+        goto label02;
+
+     label11:
+        $i3 = i14 - i13;
+
+        $i4 = staticinvoke <java.lang.Math: int max(int,int)>(0, $i3);
+
+        if $i4 <= 0 goto label12;
+
+        $r7 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: byte[] streamCopyBuf>;
+
+        virtualinvoke r3.<java.io.OutputStream: void write(byte[],int,int)>($r7, 0, $i4);
+
+     label12:
+        $i5 = lengthof r10;
+
+        if i13 != $i5 goto label13;
+
+        $r6 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        $r5 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: byte[] streamCopyBuf>;
+
+        $i7 = $i1 - $i4;
+
+        $i6 = lengthof r10;
+
+        $i8 = $i7 - $i6;
+
+        $i9 = $i8 + i2;
+
+        virtualinvoke $r6.<org.apache.pdfbox.io.PushBackInputStream: void unread(byte[],int,int)>($r5, $i4, $i9);
+
+        goto label14;
+
+     label13:
+        $r4 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: byte[] streamCopyBuf>;
+
+        staticinvoke <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)>(r10, 0, $r4, 0, i13);
+
+        goto label01;
+
+     label14:
+        virtualinvoke r3.<java.io.OutputStream: void flush()>();
+
+        return;
+    }
+
+    private long calculateFixingOffset(long) throws java.io.IOException
+    {
+        byte[] $r2, $r3;
+        org.apache.pdfbox.io.PushBackInputStream $r1;
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r0;
+        long l0, $l2, $l3;
+        byte $b4;
+        int $i1;
+
+        r0 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        l0 := @parameter0: long;
+
+        virtualinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: void setPdfSource(long)>(l0);
+
+        $r1 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        $i1 = virtualinvoke $r1.<org.apache.pdfbox.io.PushBackInputStream: int peek()>();
+
+        if $i1 != 120 goto label1;
+
+        $r3 = <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: byte[] XREF>;
+
+        $l3 = specialinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: long calculateFixingOffset(long,byte[])>(l0, $r3);
+
+        $b4 = $l3 cmp 0L;
+
+        if $b4 != 0 goto label1;
+
+        return 0L;
+
+     label1:
+        $r2 = <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: byte[] XREF>;
+
+        $l2 = specialinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: long calculateFixingOffset(long,byte[])>(l0, $r2);
+
+        return $l2;
+    }
+
+    private long calculateFixingOffset(long, long, long) throws java.io.IOException
+    {
+        byte[] $r9;
+        long l0, l1, l2, $l3;
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r8;
+        java.lang.StringBuilder $r0, $r2, $r3, $r5, $r6;
+        java.lang.String $r1, $r4, $r7;
+
+        r8 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        l2 := @parameter0: long;
+
+        l0 := @parameter1: long;
+
+        l1 := @parameter2: long;
+
+        $r0 = new java.lang.StringBuilder;
+
+        specialinvoke $r0.<java.lang.StringBuilder: void <init>()>();
+
+        $r1 = staticinvoke <java.lang.Long: java.lang.String toString(long)>(l0);
+
+        $r2 = virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r1);
+
+        $r3 = virtualinvoke $r2.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" ");
+
+        $r4 = staticinvoke <java.lang.Long: java.lang.String toString(long)>(l1);
+
+        $r5 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r4);
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" obj");
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r9 = virtualinvoke $r7.<java.lang.String: byte[] getBytes(java.lang.String)>("ISO-8859-1");
+
+        $l3 = specialinvoke r8.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: long calculateFixingOffset(long,byte[])>(l2, $r9);
+
+        return $l3;
+    }
+
+    private boolean checkBytesAtOffset(byte[]) throws java.io.IOException
+    {
+        byte[] r2, r3;
+        byte $b1;
+        int $i0, i2, $i3, $i4, i5, $i6;
+        boolean $z0, z1;
+        org.apache.pdfbox.io.PushBackInputStream $r1, $r4, $r5, $r6;
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r0;
+
+        r0 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        r2 := @parameter0: byte[];
+
+        z1 = 0;
+
+        $r1 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        $i0 = virtualinvoke $r1.<org.apache.pdfbox.io.PushBackInputStream: int peek()>();
+
+        $b1 = r2[0];
+
+        $i6 = (int) $b1;
+
+        if $i0 != $i6 goto label5;
+
+        i2 = lengthof r2;
+
+        r3 = newarray (byte)[i2];
+
+        $r4 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        i5 = virtualinvoke $r4.<org.apache.pdfbox.io.PushBackInputStream: int read(byte[],int,int)>(r3, 0, i2);
+
+     label1:
+        if i5 >= i2 goto label3;
+
+        $r6 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        $i3 = i2 - i5;
+
+        $i4 = virtualinvoke $r6.<org.apache.pdfbox.io.PushBackInputStream: int read(byte[],int,int)>(r3, i5, $i3);
+
+        if $i4 >= 0 goto label2;
+
+        goto label3;
+
+     label2:
+        i5 = i5 + $i4;
+
+        goto label1;
+
+     label3:
+        $z0 = staticinvoke <java.util.Arrays: boolean equals(byte[],byte[])>(r2, r3);
+
+        if $z0 == 0 goto label4;
+
+        z1 = 1;
+
+     label4:
+        $r5 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        virtualinvoke $r5.<org.apache.pdfbox.io.PushBackInputStream: void unread(byte[],int,int)>(r3, 0, i5);
+
+     label5:
+        return z1;
+    }
+
+    private long calculateFixingOffset(long, byte[]) throws java.io.IOException
+    {
+        byte[] r3;
+        byte $b1, $b5, $b6, $b11;
+        java.lang.StringBuilder $r9, $r11, $r12, $r13, $r17, $r19, $r20, $r21, $r26, $r28, $r29, $r30, $r31, $r32, $r39, $r41, $r42, $r43, $r44, $r45, $r50, $r51, $r52, $r54, $r56, $r58, $r60, $r62, $r65;
+        long l0, $l2, $l4, $l7, $l8, $l10, $l12, $l13, l15, l17;
+        java.lang.String $r14, $r22, $r33, $r46, $r55, $r57, $r59, $r61, $r63, $r66;
+        java.io.IOException $r64;
+        boolean $z0, $z1, $z2;
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r0;
+        int $i3, $i9, i14, i16, $i18, $i19, $i21, $i22;
+        org.apache.pdfbox.io.PushBackInputStream $r1, $r2, $r4, $r5, $r6, $r23, $r34, $r35, $r36, $r47;
+        org.apache.commons.logging.Log $r8, $r25, $r38, $r49;
+
+        r0 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        l0 := @parameter0: long;
+
+        r3 := @parameter1: byte[];
+
+        $b1 = l0 cmp 0L;
+
+        $i18 = (int) $b1;
+
+        if $i18 >= 0 goto label01;
+
+        $r49 = <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.commons.logging.Log LOG>;
+
+        $r56 = new java.lang.StringBuilder;
+
+        specialinvoke $r56.<java.lang.StringBuilder: void <init>()>();
+
+        $r50 = virtualinvoke $r56.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Invalid object offset ");
+
+        $r51 = virtualinvoke $r50.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>(l0);
+
+        $r52 = virtualinvoke $r51.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" for object ");
+
+        $r57 = new java.lang.String;
+
+        specialinvoke $r57.<java.lang.String: void <init>(byte[])>(r3);
+
+        $r54 = virtualinvoke $r52.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r57);
+
+        $r55 = virtualinvoke $r54.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r49.<org.apache.commons.logging.Log: void error(java.lang.Object)>($r55);
+
+        return 0L;
+
+     label01:
+        $r1 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        $l2 = virtualinvoke $r1.<org.apache.pdfbox.io.PushBackInputStream: long getOffset()>();
+
+        $r2 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        virtualinvoke $r2.<org.apache.pdfbox.io.PushBackInputStream: void seek(long)>(l0);
+
+        $z0 = specialinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean checkBytesAtOffset(byte[])>(r3);
+
+        if $z0 == 0 goto label02;
+
+        $r47 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        virtualinvoke $r47.<org.apache.pdfbox.io.PushBackInputStream: void seek(long)>($l2);
+
+        return 0L;
+
+     label02:
+        i14 = 1;
+
+     label03:
+        if i14 >= 20 goto label07;
+
+        $i9 = i14 * 10;
+
+        $l10 = (long) $i9;
+
+        l15 = l0 - $l10;
+
+        $b11 = l15 cmp 0L;
+
+        $i19 = (int) $b11;
+
+        if $i19 <= 0 goto label06;
+
+        $r34 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        virtualinvoke $r34.<org.apache.pdfbox.io.PushBackInputStream: void seek(long)>(l15);
+
+        i16 = 0;
+
+     label04:
+        if i16 >= 10 goto label06;
+
+        $z2 = specialinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean checkBytesAtOffset(byte[])>(r3);
+
+        if $z2 == 0 goto label05;
+
+        $r36 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        virtualinvoke $r36.<org.apache.pdfbox.io.PushBackInputStream: void seek(long)>($l2);
+
+        $r38 = <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.commons.logging.Log LOG>;
+
+        $r58 = new java.lang.StringBuilder;
+
+        specialinvoke $r58.<java.lang.StringBuilder: void <init>()>();
+
+        $r39 = virtualinvoke $r58.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Fixed reference for object ");
+
+        $r59 = new java.lang.String;
+
+        specialinvoke $r59.<java.lang.String: void <init>(byte[])>(r3);
+
+        $r41 = virtualinvoke $r39.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r59);
+
+        $r42 = virtualinvoke $r41.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" ");
+
+        $r43 = virtualinvoke $r42.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>(l0);
+
+        $r44 = virtualinvoke $r43.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" -> ");
+
+        $l12 = l0 - l15;
+
+        $r45 = virtualinvoke $r44.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l12);
+
+        $r46 = virtualinvoke $r45.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r38.<org.apache.commons.logging.Log: void debug(java.lang.Object)>($r46);
+
+        $l13 = l0 - l15;
+
+        return $l13;
+
+     label05:
+        l15 = l15 + 1L;
+
+        $r35 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        virtualinvoke $r35.<org.apache.pdfbox.io.PushBackInputStream: int read()>();
+
+        i16 = i16 + 1;
+
+        goto label04;
+
+     label06:
+        i14 = i14 + 1;
+
+        goto label03;
+
+     label07:
+        $r4 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        virtualinvoke $r4.<org.apache.pdfbox.io.PushBackInputStream: void seek(long)>(l0);
+
+        l17 = l0;
+
+     label08:
+        $z1 = specialinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: boolean checkBytesAtOffset(byte[])>(r3);
+
+        if $z1 == 0 goto label10;
+
+        $r23 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        virtualinvoke $r23.<org.apache.pdfbox.io.PushBackInputStream: void seek(long)>($l2);
+
+        $b6 = l17 cmp 0L;
+
+        if $b6 == 0 goto label09;
+
+        $r25 = <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.commons.logging.Log LOG>;
+
+        $r60 = new java.lang.StringBuilder;
+
+        specialinvoke $r60.<java.lang.StringBuilder: void <init>()>();
+
+        $r26 = virtualinvoke $r60.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Fixed reference for object ");
+
+        $r61 = new java.lang.String;
+
+        specialinvoke $r61.<java.lang.String: void <init>(byte[])>(r3);
+
+        $r28 = virtualinvoke $r26.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r61);
+
+        $r29 = virtualinvoke $r28.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" ");
+
+        $r30 = virtualinvoke $r29.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>(l0);
+
+        $r31 = virtualinvoke $r30.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" -> ");
+
+        $l8 = l0 - l17;
+
+        $r32 = virtualinvoke $r31.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l8);
+
+        $r33 = virtualinvoke $r32.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r25.<org.apache.commons.logging.Log: void debug(java.lang.Object)>($r33);
+
+     label09:
+        $l7 = l0 - l17;
+
+        return $l7;
+
+     label10:
+        l17 = l17 + 1L;
+
+        $r5 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        $i3 = virtualinvoke $r5.<org.apache.pdfbox.io.PushBackInputStream: int read()>();
+
+        $i21 = (int) -1;
+
+        if $i3 != $i21 goto label11;
+
+        $r64 = new java.io.IOException;
+
+        $r62 = new java.lang.StringBuilder;
+
+        specialinvoke $r62.<java.lang.StringBuilder: void <init>()>();
+
+        $r17 = virtualinvoke $r62.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Premature end of file while dereferencing object ");
+
+        $r63 = new java.lang.String;
+
+        specialinvoke $r63.<java.lang.String: void <init>(byte[])>(r3);
+
+        $r19 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r63);
+
+        $r20 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" at offset ");
+
+        $r21 = virtualinvoke $r20.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>(l0);
+
+        $r22 = virtualinvoke $r21.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r64.<java.io.IOException: void <init>(java.lang.String)>($r22);
+
+        throw $r64;
+
+     label11:
+        $l4 = l0 + 200L;
+
+        $b5 = l17 cmp $l4;
+
+        $i22 = (int) $b5;
+
+        if $i22 < 0 goto label08;
+
+        $r6 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.io.PushBackInputStream pdfSource>;
+
+        virtualinvoke $r6.<org.apache.pdfbox.io.PushBackInputStream: void seek(long)>($l2);
+
+        $r8 = <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.commons.logging.Log LOG>;
+
+        $r65 = new java.lang.StringBuilder;
+
+        specialinvoke $r65.<java.lang.StringBuilder: void <init>()>();
+
+        $r9 = virtualinvoke $r65.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Can\'t find the object ");
+
+        $r66 = new java.lang.String;
+
+        specialinvoke $r66.<java.lang.String: void <init>(byte[])>(r3);
+
+        $r11 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r66);
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" at offset ");
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>(l0);
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r8.<org.apache.commons.logging.Log: void error(java.lang.Object)>($r14);
+
+        return 0L;
+    }
+
+    private void checkXrefOffsets() throws java.io.IOException
+    {
+        byte $b1, $b6;
+        java.lang.Long r8, $r9;
+        java.util.Map $r2;
+        boolean $z0;
+        java.util.Set $r3;
+        org.apache.pdfbox.pdfparser.NonSequentialPDFParser r0;
+        org.apache.pdfbox.persistence.util.COSObjectKey r6;
+        java.lang.StringBuilder $r12, $r13, $r14, $r15, $r16, $r17, $r18, $r19, $r21;
+        long $l0, $l2, $l3, $l4, $l5, $l7, l8;
+        org.apache.pdfbox.pdfparser.XrefTrailerResolver $r1;
+        int $i9;
+        java.lang.String $r20;
+        java.util.Iterator $r4;
+        java.lang.Object $r5, $r7;
+        org.apache.commons.logging.Log $r11;
+
+        r0 := @this: org.apache.pdfbox.pdfparser.NonSequentialPDFParser;
+
+        $r1 = r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.pdfbox.pdfparser.XrefTrailerResolver xrefTrailerResolver>;
+
+        $r2 = virtualinvoke $r1.<org.apache.pdfbox.pdfparser.XrefTrailerResolver: java.util.Map getXrefTable()>();
+
+        if $r2 == null goto label3;
+
+        $r3 = interfaceinvoke $r2.<java.util.Map: java.util.Set keySet()>();
+
+        $r4 = interfaceinvoke $r3.<java.util.Set: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r4.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label3;
+
+        $r5 = interfaceinvoke $r4.<java.util.Iterator: java.lang.Object next()>();
+
+        r6 = (org.apache.pdfbox.persistence.util.COSObjectKey) $r5;
+
+        $r7 = interfaceinvoke $r2.<java.util.Map: java.lang.Object get(java.lang.Object)>(r6);
+
+        r8 = (java.lang.Long) $r7;
+
+        if r8 == null goto label2;
+
+        $l0 = virtualinvoke r8.<java.lang.Long: long longValue()>();
+
+        $b1 = $l0 cmp 0L;
+
+        $i9 = (int) $b1;
+
+        if $i9 <= 0 goto label2;
+
+        $l2 = virtualinvoke r6.<org.apache.pdfbox.persistence.util.COSObjectKey: long getNumber()>();
+
+        $l3 = virtualinvoke r6.<org.apache.pdfbox.persistence.util.COSObjectKey: long getGeneration()>();
+
+        $l4 = virtualinvoke r8.<java.lang.Long: long longValue()>();
+
+        $l5 = specialinvoke r0.<org.apache.pdfbox.pdfparser.NonSequentialPDFParser: long calculateFixingOffset(long,long,long)>($l4, $l2, $l3);
+
+        $b6 = $l5 cmp 0L;
+
+        if $b6 == 0 goto label2;
+
+        $l7 = virtualinvoke r8.<java.lang.Long: long longValue()>();
+
+        l8 = $l7 - $l5;
+
+        $r9 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>(l8);
+
+        interfaceinvoke $r2.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>(r6, $r9);
+
+        $r11 = <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.commons.logging.Log LOG>;
+
+        $r21 = new java.lang.StringBuilder;
+
+        specialinvoke $r21.<java.lang.StringBuilder: void <init>()>();
+
+        $r12 = virtualinvoke $r21.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Fixed reference for object ");
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l2);
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" ");
+
+        $r15 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l3);
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" ");
+
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r8);
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" -> ");
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>(l8);
+
+        $r20 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r11.<org.apache.commons.logging.Log: void debug(java.lang.Object)>($r20);
+
+     label2:
+        goto label1;
+
+     label3:
+        return;
+    }
+
+    static void <clinit>()
+    {
+        byte[] $r0, $r2;
+        java.io.ByteArrayInputStream $r1;
+        char[] $r3, $r4, $r5;
+        org.apache.commons.logging.Log $r6;
+
+        <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.lang.String TMP_FILE_PREFIX> = "tmpPDF";
+
+        <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: int DEFAULT_TRAIL_BYTECOUNT> = 2048;
+
+        <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.lang.String SYSPROP_EOFLOOKUPRANGE> = "org.apache.pdfbox.pdfparser.nonSequentialPDFParser.eofLookupRange";
+
+        <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.lang.String SYSPROP_PARSEMINIMAL> = "org.apache.pdfbox.pdfparser.nonSequentialPDFParser.parseMinimal";
+
+        <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: int X> = 120;
+
+        <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: int N> = 110;
+
+        <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: int E> = 101;
+
+        $r0 = newarray (byte)[4];
+
+        $r0[0] = 120;
+
+        $r0[1] = 114;
+
+        $r0[2] = 101;
+
+        $r0[3] = 102;
+
+        <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: byte[] XREF> = $r0;
+
+        $r1 = new java.io.ByteArrayInputStream;
+
+        $r2 = newarray (byte)[0];
+
+        specialinvoke $r1.<java.io.ByteArrayInputStream: void <init>(byte[])>($r2);
+
+        <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: java.io.InputStream EMPTY_INPUT_STREAM> = $r1;
+
+        $r3 = newarray (char)[5];
+
+        $r3[0] = 37;
+
+        $r3[1] = 37;
+
+        $r3[2] = 69;
+
+        $r3[3] = 79;
+
+        $r3[4] = 70;
+
+        <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: char[] EOF_MARKER> = $r3;
+
+        $r4 = newarray (char)[9];
+
+        $r4[0] = 115;
+
+        $r4[1] = 116;
+
+        $r4[2] = 97;
+
+        $r4[3] = 114;
+
+        $r4[4] = 116;
+
+        $r4[5] = 120;
+
+        $r4[6] = 114;
+
+        $r4[7] = 101;
+
+        $r4[8] = 102;
+
+        <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: char[] STARTXREF_MARKER> = $r4;
+
+        $r5 = newarray (char)[3];
+
+        $r5[0] = 111;
+
+        $r5[1] = 98;
+
+        $r5[2] = 106;
+
+        <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: char[] OBJ_MARKER> = $r5;
+
+        $r6 = staticinvoke <org.apache.commons.logging.LogFactory: org.apache.commons.logging.Log getLog(java.lang.Class)>(class "Lorg/apache/pdfbox/pdfparser/NonSequentialPDFParser;");
+
+        <org.apache.pdfbox.pdfparser.NonSequentialPDFParser: org.apache.commons.logging.Log LOG> = $r6;
+
+        return;
+    }
+}

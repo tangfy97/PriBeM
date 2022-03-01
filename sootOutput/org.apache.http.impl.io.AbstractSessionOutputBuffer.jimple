@@ -1,0 +1,674 @@
+public abstract class org.apache.http.impl.io.AbstractSessionOutputBuffer extends java.lang.Object implements org.apache.http.io.SessionOutputBuffer, org.apache.http.io.BufferInfo
+{
+    private static final java.nio.charset.Charset ASCII;
+    private static final byte[] CRLF;
+    private java.io.OutputStream outstream;
+    private org.apache.http.util.ByteArrayBuffer buffer;
+    private java.nio.charset.Charset charset;
+    private java.nio.charset.CharsetEncoder encoder;
+    private java.nio.ByteBuffer bbuf;
+    private boolean ascii;
+    private int minChunkLimit;
+    private org.apache.http.impl.io.HttpTransportMetricsImpl metrics;
+    private java.nio.charset.CodingErrorAction onMalformedInputAction;
+    private java.nio.charset.CodingErrorAction onUnMappableInputAction;
+
+    public void <init>()
+    {
+        org.apache.http.impl.io.AbstractSessionOutputBuffer r0;
+
+        r0 := @this: org.apache.http.impl.io.AbstractSessionOutputBuffer;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        r0.<org.apache.http.impl.io.AbstractSessionOutputBuffer: boolean ascii> = 1;
+
+        r0.<org.apache.http.impl.io.AbstractSessionOutputBuffer: int minChunkLimit> = 512;
+
+        return;
+    }
+
+    protected void init(java.io.OutputStream, int, org.apache.http.params.HttpParams)
+    {
+        java.nio.charset.Charset $r5, $r6, $r7;
+        java.nio.charset.CodingErrorAction $r9, $r10;
+        int i0, $i1;
+        java.lang.String $r4;
+        org.apache.http.util.ByteArrayBuffer $r3;
+        boolean $z0;
+        java.io.OutputStream r0;
+        org.apache.http.impl.io.AbstractSessionOutputBuffer r2;
+        org.apache.http.impl.io.HttpTransportMetricsImpl $r8;
+        java.lang.IllegalArgumentException $r11, $r12, $r13;
+        org.apache.http.params.HttpParams r1;
+
+        r2 := @this: org.apache.http.impl.io.AbstractSessionOutputBuffer;
+
+        r0 := @parameter0: java.io.OutputStream;
+
+        i0 := @parameter1: int;
+
+        r1 := @parameter2: org.apache.http.params.HttpParams;
+
+        if r0 != null goto label1;
+
+        $r13 = new java.lang.IllegalArgumentException;
+
+        specialinvoke $r13.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>("Input stream may not be null");
+
+        throw $r13;
+
+     label1:
+        if i0 > 0 goto label2;
+
+        $r12 = new java.lang.IllegalArgumentException;
+
+        specialinvoke $r12.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>("Buffer size may not be negative or zero");
+
+        throw $r12;
+
+     label2:
+        if r1 != null goto label3;
+
+        $r11 = new java.lang.IllegalArgumentException;
+
+        specialinvoke $r11.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>("HTTP parameters may not be null");
+
+        throw $r11;
+
+     label3:
+        r2.<org.apache.http.impl.io.AbstractSessionOutputBuffer: java.io.OutputStream outstream> = r0;
+
+        $r3 = new org.apache.http.util.ByteArrayBuffer;
+
+        specialinvoke $r3.<org.apache.http.util.ByteArrayBuffer: void <init>(int)>(i0);
+
+        r2.<org.apache.http.impl.io.AbstractSessionOutputBuffer: org.apache.http.util.ByteArrayBuffer buffer> = $r3;
+
+        $r4 = staticinvoke <org.apache.http.params.HttpProtocolParams: java.lang.String getHttpElementCharset(org.apache.http.params.HttpParams)>(r1);
+
+        $r5 = staticinvoke <java.nio.charset.Charset: java.nio.charset.Charset forName(java.lang.String)>($r4);
+
+        r2.<org.apache.http.impl.io.AbstractSessionOutputBuffer: java.nio.charset.Charset charset> = $r5;
+
+        $r7 = r2.<org.apache.http.impl.io.AbstractSessionOutputBuffer: java.nio.charset.Charset charset>;
+
+        $r6 = <org.apache.http.impl.io.AbstractSessionOutputBuffer: java.nio.charset.Charset ASCII>;
+
+        $z0 = virtualinvoke $r7.<java.nio.charset.Charset: boolean equals(java.lang.Object)>($r6);
+
+        r2.<org.apache.http.impl.io.AbstractSessionOutputBuffer: boolean ascii> = $z0;
+
+        r2.<org.apache.http.impl.io.AbstractSessionOutputBuffer: java.nio.charset.CharsetEncoder encoder> = null;
+
+        $i1 = interfaceinvoke r1.<org.apache.http.params.HttpParams: int getIntParameter(java.lang.String,int)>("http.connection.min-chunk-limit", 512);
+
+        r2.<org.apache.http.impl.io.AbstractSessionOutputBuffer: int minChunkLimit> = $i1;
+
+        $r8 = virtualinvoke r2.<org.apache.http.impl.io.AbstractSessionOutputBuffer: org.apache.http.impl.io.HttpTransportMetricsImpl createTransportMetrics()>();
+
+        r2.<org.apache.http.impl.io.AbstractSessionOutputBuffer: org.apache.http.impl.io.HttpTransportMetricsImpl metrics> = $r8;
+
+        $r9 = staticinvoke <org.apache.http.params.HttpProtocolParams: java.nio.charset.CodingErrorAction getMalformedInputAction(org.apache.http.params.HttpParams)>(r1);
+
+        r2.<org.apache.http.impl.io.AbstractSessionOutputBuffer: java.nio.charset.CodingErrorAction onMalformedInputAction> = $r9;
+
+        $r10 = staticinvoke <org.apache.http.params.HttpProtocolParams: java.nio.charset.CodingErrorAction getUnmappableInputAction(org.apache.http.params.HttpParams)>(r1);
+
+        r2.<org.apache.http.impl.io.AbstractSessionOutputBuffer: java.nio.charset.CodingErrorAction onUnMappableInputAction> = $r10;
+
+        return;
+    }
+
+    protected org.apache.http.impl.io.HttpTransportMetricsImpl createTransportMetrics()
+    {
+        org.apache.http.impl.io.HttpTransportMetricsImpl $r0;
+        org.apache.http.impl.io.AbstractSessionOutputBuffer r1;
+
+        r1 := @this: org.apache.http.impl.io.AbstractSessionOutputBuffer;
+
+        $r0 = new org.apache.http.impl.io.HttpTransportMetricsImpl;
+
+        specialinvoke $r0.<org.apache.http.impl.io.HttpTransportMetricsImpl: void <init>()>();
+
+        return $r0;
+    }
+
+    public int capacity()
+    {
+        int $i0;
+        org.apache.http.impl.io.AbstractSessionOutputBuffer r0;
+        org.apache.http.util.ByteArrayBuffer $r1;
+
+        r0 := @this: org.apache.http.impl.io.AbstractSessionOutputBuffer;
+
+        $r1 = r0.<org.apache.http.impl.io.AbstractSessionOutputBuffer: org.apache.http.util.ByteArrayBuffer buffer>;
+
+        $i0 = virtualinvoke $r1.<org.apache.http.util.ByteArrayBuffer: int capacity()>();
+
+        return $i0;
+    }
+
+    public int length()
+    {
+        int $i0;
+        org.apache.http.impl.io.AbstractSessionOutputBuffer r0;
+        org.apache.http.util.ByteArrayBuffer $r1;
+
+        r0 := @this: org.apache.http.impl.io.AbstractSessionOutputBuffer;
+
+        $r1 = r0.<org.apache.http.impl.io.AbstractSessionOutputBuffer: org.apache.http.util.ByteArrayBuffer buffer>;
+
+        $i0 = virtualinvoke $r1.<org.apache.http.util.ByteArrayBuffer: int length()>();
+
+        return $i0;
+    }
+
+    public int available()
+    {
+        int $i0, $i1, $i2;
+        org.apache.http.impl.io.AbstractSessionOutputBuffer r0;
+
+        r0 := @this: org.apache.http.impl.io.AbstractSessionOutputBuffer;
+
+        $i0 = virtualinvoke r0.<org.apache.http.impl.io.AbstractSessionOutputBuffer: int capacity()>();
+
+        $i1 = virtualinvoke r0.<org.apache.http.impl.io.AbstractSessionOutputBuffer: int length()>();
+
+        $i2 = $i0 - $i1;
+
+        return $i2;
+    }
+
+    protected void flushBuffer() throws java.io.IOException
+    {
+        java.io.OutputStream $r3;
+        byte[] $r4;
+        org.apache.http.impl.io.AbstractSessionOutputBuffer r0;
+        long $l1;
+        org.apache.http.impl.io.HttpTransportMetricsImpl $r6;
+        int $i0;
+        org.apache.http.util.ByteArrayBuffer $r1, $r2, $r5;
+
+        r0 := @this: org.apache.http.impl.io.AbstractSessionOutputBuffer;
+
+        $r1 = r0.<org.apache.http.impl.io.AbstractSessionOutputBuffer: org.apache.http.util.ByteArrayBuffer buffer>;
+
+        $i0 = virtualinvoke $r1.<org.apache.http.util.ByteArrayBuffer: int length()>();
+
+        if $i0 <= 0 goto label1;
+
+        $r3 = r0.<org.apache.http.impl.io.AbstractSessionOutputBuffer: java.io.OutputStream outstream>;
+
+        $r2 = r0.<org.apache.http.impl.io.AbstractSessionOutputBuffer: org.apache.http.util.ByteArrayBuffer buffer>;
+
+        $r4 = virtualinvoke $r2.<org.apache.http.util.ByteArrayBuffer: byte[] buffer()>();
+
+        virtualinvoke $r3.<java.io.OutputStream: void write(byte[],int,int)>($r4, 0, $i0);
+
+        $r5 = r0.<org.apache.http.impl.io.AbstractSessionOutputBuffer: org.apache.http.util.ByteArrayBuffer buffer>;
+
+        virtualinvoke $r5.<org.apache.http.util.ByteArrayBuffer: void clear()>();
+
+        $r6 = r0.<org.apache.http.impl.io.AbstractSessionOutputBuffer: org.apache.http.impl.io.HttpTransportMetricsImpl metrics>;
+
+        $l1 = (long) $i0;
+
+        virtualinvoke $r6.<org.apache.http.impl.io.HttpTransportMetricsImpl: void incrementBytesTransferred(long)>($l1);
+
+     label1:
+        return;
+    }
+
+    public void flush() throws java.io.IOException
+    {
+        java.io.OutputStream $r1;
+        org.apache.http.impl.io.AbstractSessionOutputBuffer r0;
+
+        r0 := @this: org.apache.http.impl.io.AbstractSessionOutputBuffer;
+
+        virtualinvoke r0.<org.apache.http.impl.io.AbstractSessionOutputBuffer: void flushBuffer()>();
+
+        $r1 = r0.<org.apache.http.impl.io.AbstractSessionOutputBuffer: java.io.OutputStream outstream>;
+
+        virtualinvoke $r1.<java.io.OutputStream: void flush()>();
+
+        return;
+    }
+
+    public void write(byte[], int, int) throws java.io.IOException
+    {
+        byte[] r0;
+        long $l3;
+        int i0, $i1, i2, $i4, $i5, $i6, i7;
+        org.apache.http.util.ByteArrayBuffer $r4, $r5, $r6, $r7;
+        java.io.OutputStream $r2;
+        org.apache.http.impl.io.AbstractSessionOutputBuffer r1;
+        org.apache.http.impl.io.HttpTransportMetricsImpl $r3;
+
+        r1 := @this: org.apache.http.impl.io.AbstractSessionOutputBuffer;
+
+        r0 := @parameter0: byte[];
+
+        i2 := @parameter1: int;
+
+        i0 := @parameter2: int;
+
+        if r0 != null goto label1;
+
+        return;
+
+     label1:
+        $i1 = r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: int minChunkLimit>;
+
+        if i0 > $i1 goto label2;
+
+        $r4 = r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: org.apache.http.util.ByteArrayBuffer buffer>;
+
+        $i4 = virtualinvoke $r4.<org.apache.http.util.ByteArrayBuffer: int capacity()>();
+
+        if i0 <= $i4 goto label3;
+
+     label2:
+        virtualinvoke r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: void flushBuffer()>();
+
+        $r2 = r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: java.io.OutputStream outstream>;
+
+        virtualinvoke $r2.<java.io.OutputStream: void write(byte[],int,int)>(r0, i2, i0);
+
+        $r3 = r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: org.apache.http.impl.io.HttpTransportMetricsImpl metrics>;
+
+        $l3 = (long) i0;
+
+        virtualinvoke $r3.<org.apache.http.impl.io.HttpTransportMetricsImpl: void incrementBytesTransferred(long)>($l3);
+
+        goto label5;
+
+     label3:
+        $r5 = r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: org.apache.http.util.ByteArrayBuffer buffer>;
+
+        $i5 = virtualinvoke $r5.<org.apache.http.util.ByteArrayBuffer: int capacity()>();
+
+        $r6 = r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: org.apache.http.util.ByteArrayBuffer buffer>;
+
+        $i6 = virtualinvoke $r6.<org.apache.http.util.ByteArrayBuffer: int length()>();
+
+        i7 = $i5 - $i6;
+
+        if i0 <= i7 goto label4;
+
+        virtualinvoke r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: void flushBuffer()>();
+
+     label4:
+        $r7 = r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: org.apache.http.util.ByteArrayBuffer buffer>;
+
+        virtualinvoke $r7.<org.apache.http.util.ByteArrayBuffer: void append(byte[],int,int)>(r0, i2, i0);
+
+     label5:
+        return;
+    }
+
+    public void write(byte[]) throws java.io.IOException
+    {
+        int $i0;
+        byte[] r0;
+        org.apache.http.impl.io.AbstractSessionOutputBuffer r1;
+
+        r1 := @this: org.apache.http.impl.io.AbstractSessionOutputBuffer;
+
+        r0 := @parameter0: byte[];
+
+        if r0 != null goto label1;
+
+        return;
+
+     label1:
+        $i0 = lengthof r0;
+
+        virtualinvoke r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: void write(byte[],int,int)>(r0, 0, $i0);
+
+        return;
+    }
+
+    public void write(int) throws java.io.IOException
+    {
+        int i0;
+        org.apache.http.impl.io.AbstractSessionOutputBuffer r0;
+        org.apache.http.util.ByteArrayBuffer $r1, $r2;
+        boolean $z0;
+
+        r0 := @this: org.apache.http.impl.io.AbstractSessionOutputBuffer;
+
+        i0 := @parameter0: int;
+
+        $r1 = r0.<org.apache.http.impl.io.AbstractSessionOutputBuffer: org.apache.http.util.ByteArrayBuffer buffer>;
+
+        $z0 = virtualinvoke $r1.<org.apache.http.util.ByteArrayBuffer: boolean isFull()>();
+
+        if $z0 == 0 goto label1;
+
+        virtualinvoke r0.<org.apache.http.impl.io.AbstractSessionOutputBuffer: void flushBuffer()>();
+
+     label1:
+        $r2 = r0.<org.apache.http.impl.io.AbstractSessionOutputBuffer: org.apache.http.util.ByteArrayBuffer buffer>;
+
+        virtualinvoke $r2.<org.apache.http.util.ByteArrayBuffer: void append(int)>(i0);
+
+        return;
+    }
+
+    public void writeLine(java.lang.String) throws java.io.IOException
+    {
+        byte[] $r3;
+        java.nio.CharBuffer $r2;
+        org.apache.http.impl.io.AbstractSessionOutputBuffer r1;
+        char $c2;
+        int $i0, $i1, i3, $i4;
+        java.lang.String r0;
+        boolean $z0;
+
+        r1 := @this: org.apache.http.impl.io.AbstractSessionOutputBuffer;
+
+        r0 := @parameter0: java.lang.String;
+
+        if r0 != null goto label1;
+
+        return;
+
+     label1:
+        $i0 = virtualinvoke r0.<java.lang.String: int length()>();
+
+        if $i0 <= 0 goto label5;
+
+        $z0 = r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: boolean ascii>;
+
+        if $z0 == 0 goto label4;
+
+        i3 = 0;
+
+     label2:
+        $i1 = virtualinvoke r0.<java.lang.String: int length()>();
+
+        if i3 >= $i1 goto label3;
+
+        $c2 = virtualinvoke r0.<java.lang.String: char charAt(int)>(i3);
+
+        $i4 = (int) $c2;
+
+        virtualinvoke r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: void write(int)>($i4);
+
+        i3 = i3 + 1;
+
+        goto label2;
+
+     label3:
+        goto label5;
+
+     label4:
+        $r2 = staticinvoke <java.nio.CharBuffer: java.nio.CharBuffer wrap(java.lang.CharSequence)>(r0);
+
+        specialinvoke r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: void writeEncoded(java.nio.CharBuffer)>($r2);
+
+     label5:
+        $r3 = <org.apache.http.impl.io.AbstractSessionOutputBuffer: byte[] CRLF>;
+
+        virtualinvoke r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: void write(byte[])>($r3);
+
+        return;
+    }
+
+    public void writeLine(org.apache.http.util.CharArrayBuffer) throws java.io.IOException
+    {
+        byte[] $r4;
+        int $i0, $i1, $i2, $i3, i4, i5, i6;
+        boolean $z0, $z1;
+        org.apache.http.util.ByteArrayBuffer $r5, $r6, $r7, $r8;
+        java.nio.CharBuffer $r3;
+        org.apache.http.impl.io.AbstractSessionOutputBuffer r1;
+        org.apache.http.util.CharArrayBuffer r0;
+        char[] $r2;
+
+        r1 := @this: org.apache.http.impl.io.AbstractSessionOutputBuffer;
+
+        r0 := @parameter0: org.apache.http.util.CharArrayBuffer;
+
+        if r0 != null goto label1;
+
+        return;
+
+     label1:
+        $z0 = r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: boolean ascii>;
+
+        if $z0 == 0 goto label6;
+
+        i4 = 0;
+
+        i5 = virtualinvoke r0.<org.apache.http.util.CharArrayBuffer: int length()>();
+
+     label2:
+        if i5 <= 0 goto label5;
+
+        $r5 = r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: org.apache.http.util.ByteArrayBuffer buffer>;
+
+        $i1 = virtualinvoke $r5.<org.apache.http.util.ByteArrayBuffer: int capacity()>();
+
+        $r6 = r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: org.apache.http.util.ByteArrayBuffer buffer>;
+
+        $i2 = virtualinvoke $r6.<org.apache.http.util.ByteArrayBuffer: int length()>();
+
+        i6 = $i1 - $i2;
+
+        $i3 = staticinvoke <java.lang.Math: int min(int,int)>(i6, i5);
+
+        if $i3 <= 0 goto label3;
+
+        $r8 = r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: org.apache.http.util.ByteArrayBuffer buffer>;
+
+        virtualinvoke $r8.<org.apache.http.util.ByteArrayBuffer: void append(org.apache.http.util.CharArrayBuffer,int,int)>(r0, i4, $i3);
+
+     label3:
+        $r7 = r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: org.apache.http.util.ByteArrayBuffer buffer>;
+
+        $z1 = virtualinvoke $r7.<org.apache.http.util.ByteArrayBuffer: boolean isFull()>();
+
+        if $z1 == 0 goto label4;
+
+        virtualinvoke r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: void flushBuffer()>();
+
+     label4:
+        i4 = i4 + $i3;
+
+        i5 = i5 - $i3;
+
+        goto label2;
+
+     label5:
+        goto label7;
+
+     label6:
+        $r2 = virtualinvoke r0.<org.apache.http.util.CharArrayBuffer: char[] buffer()>();
+
+        $i0 = virtualinvoke r0.<org.apache.http.util.CharArrayBuffer: int length()>();
+
+        $r3 = staticinvoke <java.nio.CharBuffer: java.nio.CharBuffer wrap(char[],int,int)>($r2, 0, $i0);
+
+        specialinvoke r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: void writeEncoded(java.nio.CharBuffer)>($r3);
+
+     label7:
+        $r4 = <org.apache.http.impl.io.AbstractSessionOutputBuffer: byte[] CRLF>;
+
+        virtualinvoke r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: void write(byte[])>($r4);
+
+        return;
+    }
+
+    private void writeEncoded(java.nio.CharBuffer) throws java.io.IOException
+    {
+        java.nio.ByteBuffer $r3, $r5, $r8, $r9, $r12;
+        java.nio.charset.CoderResult $r7, $r11;
+        java.nio.charset.Charset $r13;
+        java.nio.charset.CodingErrorAction $r15, $r17;
+        boolean $z0, $z1;
+        java.nio.CharBuffer r0;
+        org.apache.http.impl.io.AbstractSessionOutputBuffer r1;
+        java.nio.charset.CharsetEncoder $r2, $r4, $r6, $r10, $r14, $r16, $r18;
+
+        r1 := @this: org.apache.http.impl.io.AbstractSessionOutputBuffer;
+
+        r0 := @parameter0: java.nio.CharBuffer;
+
+        $z0 = virtualinvoke r0.<java.nio.CharBuffer: boolean hasRemaining()>();
+
+        if $z0 != 0 goto label1;
+
+        return;
+
+     label1:
+        $r2 = r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: java.nio.charset.CharsetEncoder encoder>;
+
+        if $r2 != null goto label2;
+
+        $r13 = r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: java.nio.charset.Charset charset>;
+
+        $r14 = virtualinvoke $r13.<java.nio.charset.Charset: java.nio.charset.CharsetEncoder newEncoder()>();
+
+        r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: java.nio.charset.CharsetEncoder encoder> = $r14;
+
+        $r16 = r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: java.nio.charset.CharsetEncoder encoder>;
+
+        $r15 = r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: java.nio.charset.CodingErrorAction onMalformedInputAction>;
+
+        virtualinvoke $r16.<java.nio.charset.CharsetEncoder: java.nio.charset.CharsetEncoder onMalformedInput(java.nio.charset.CodingErrorAction)>($r15);
+
+        $r18 = r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: java.nio.charset.CharsetEncoder encoder>;
+
+        $r17 = r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: java.nio.charset.CodingErrorAction onUnMappableInputAction>;
+
+        virtualinvoke $r18.<java.nio.charset.CharsetEncoder: java.nio.charset.CharsetEncoder onUnmappableCharacter(java.nio.charset.CodingErrorAction)>($r17);
+
+     label2:
+        $r3 = r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: java.nio.ByteBuffer bbuf>;
+
+        if $r3 != null goto label3;
+
+        $r12 = staticinvoke <java.nio.ByteBuffer: java.nio.ByteBuffer allocate(int)>(1024);
+
+        r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: java.nio.ByteBuffer bbuf> = $r12;
+
+     label3:
+        $r4 = r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: java.nio.charset.CharsetEncoder encoder>;
+
+        virtualinvoke $r4.<java.nio.charset.CharsetEncoder: java.nio.charset.CharsetEncoder reset()>();
+
+     label4:
+        $z1 = virtualinvoke r0.<java.nio.CharBuffer: boolean hasRemaining()>();
+
+        if $z1 == 0 goto label5;
+
+        $r10 = r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: java.nio.charset.CharsetEncoder encoder>;
+
+        $r9 = r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: java.nio.ByteBuffer bbuf>;
+
+        $r11 = virtualinvoke $r10.<java.nio.charset.CharsetEncoder: java.nio.charset.CoderResult encode(java.nio.CharBuffer,java.nio.ByteBuffer,boolean)>(r0, $r9, 1);
+
+        specialinvoke r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: void handleEncodingResult(java.nio.charset.CoderResult)>($r11);
+
+        goto label4;
+
+     label5:
+        $r6 = r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: java.nio.charset.CharsetEncoder encoder>;
+
+        $r5 = r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: java.nio.ByteBuffer bbuf>;
+
+        $r7 = virtualinvoke $r6.<java.nio.charset.CharsetEncoder: java.nio.charset.CoderResult flush(java.nio.ByteBuffer)>($r5);
+
+        specialinvoke r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: void handleEncodingResult(java.nio.charset.CoderResult)>($r7);
+
+        $r8 = r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: java.nio.ByteBuffer bbuf>;
+
+        virtualinvoke $r8.<java.nio.ByteBuffer: java.nio.Buffer clear()>();
+
+        return;
+    }
+
+    private void handleEncodingResult(java.nio.charset.CoderResult) throws java.io.IOException
+    {
+        org.apache.http.impl.io.AbstractSessionOutputBuffer r1;
+        java.nio.ByteBuffer $r2, $r3, $r4, $r5;
+        java.nio.charset.CoderResult r0;
+        byte $b0;
+        int $i1;
+        boolean $z0, $z1;
+
+        r1 := @this: org.apache.http.impl.io.AbstractSessionOutputBuffer;
+
+        r0 := @parameter0: java.nio.charset.CoderResult;
+
+        $z0 = virtualinvoke r0.<java.nio.charset.CoderResult: boolean isError()>();
+
+        if $z0 == 0 goto label1;
+
+        virtualinvoke r0.<java.nio.charset.CoderResult: void throwException()>();
+
+     label1:
+        $r2 = r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: java.nio.ByteBuffer bbuf>;
+
+        virtualinvoke $r2.<java.nio.ByteBuffer: java.nio.Buffer flip()>();
+
+     label2:
+        $r5 = r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: java.nio.ByteBuffer bbuf>;
+
+        $z1 = virtualinvoke $r5.<java.nio.ByteBuffer: boolean hasRemaining()>();
+
+        if $z1 == 0 goto label3;
+
+        $r4 = r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: java.nio.ByteBuffer bbuf>;
+
+        $b0 = virtualinvoke $r4.<java.nio.ByteBuffer: byte get()>();
+
+        $i1 = (int) $b0;
+
+        virtualinvoke r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: void write(int)>($i1);
+
+        goto label2;
+
+     label3:
+        $r3 = r1.<org.apache.http.impl.io.AbstractSessionOutputBuffer: java.nio.ByteBuffer bbuf>;
+
+        virtualinvoke $r3.<java.nio.ByteBuffer: java.nio.ByteBuffer compact()>();
+
+        return;
+    }
+
+    public org.apache.http.io.HttpTransportMetrics getMetrics()
+    {
+        org.apache.http.impl.io.AbstractSessionOutputBuffer r0;
+        org.apache.http.impl.io.HttpTransportMetricsImpl $r1;
+
+        r0 := @this: org.apache.http.impl.io.AbstractSessionOutputBuffer;
+
+        $r1 = r0.<org.apache.http.impl.io.AbstractSessionOutputBuffer: org.apache.http.impl.io.HttpTransportMetricsImpl metrics>;
+
+        return $r1;
+    }
+
+    static void <clinit>()
+    {
+        byte[] $r1;
+        java.nio.charset.Charset $r0;
+
+        $r0 = staticinvoke <java.nio.charset.Charset: java.nio.charset.Charset forName(java.lang.String)>("US-ASCII");
+
+        <org.apache.http.impl.io.AbstractSessionOutputBuffer: java.nio.charset.Charset ASCII> = $r0;
+
+        $r1 = newarray (byte)[2];
+
+        $r1[0] = 13;
+
+        $r1[1] = 10;
+
+        <org.apache.http.impl.io.AbstractSessionOutputBuffer: byte[] CRLF> = $r1;
+
+        return;
+    }
+}

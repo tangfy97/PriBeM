@@ -1,0 +1,750 @@
+public class org.apache.lucene.codecs.lucene40.Lucene40PostingsReader extends org.apache.lucene.codecs.PostingsReaderBase
+{
+    static final java.lang.String TERMS_CODEC;
+    static final java.lang.String FRQ_CODEC;
+    static final java.lang.String PRX_CODEC;
+    static final int VERSION_START;
+    static final int VERSION_LONG_SKIP;
+    static final int VERSION_CURRENT;
+    private final org.apache.lucene.store.IndexInput freqIn;
+    private final org.apache.lucene.store.IndexInput proxIn;
+    int skipInterval;
+    int maxSkipLevels;
+    int skipMinimum;
+    static final int BUFFERSIZE;
+    static final boolean $assertionsDisabled;
+
+    public void <init>(org.apache.lucene.store.Directory, org.apache.lucene.index.FieldInfos, org.apache.lucene.index.SegmentInfo, org.apache.lucene.store.IOContext, java.lang.String) throws java.io.IOException
+    {
+        java.lang.Throwable $r13;
+        org.apache.lucene.store.Directory r1;
+        java.io.Closeable[] $r9, $r14;
+        java.lang.String r3, $r4, $r5, $r10, $r11;
+        org.apache.lucene.index.FieldInfos r8;
+        org.apache.lucene.store.IOContext r6;
+        boolean $z0;
+        org.apache.lucene.store.IndexInput $r7, $r12, r15, r16;
+        org.apache.lucene.index.SegmentInfo r2;
+        org.apache.lucene.codecs.lucene40.Lucene40PostingsReader r0;
+
+        r0 := @this: org.apache.lucene.codecs.lucene40.Lucene40PostingsReader;
+
+        r1 := @parameter0: org.apache.lucene.store.Directory;
+
+        r8 := @parameter1: org.apache.lucene.index.FieldInfos;
+
+        r2 := @parameter2: org.apache.lucene.index.SegmentInfo;
+
+        r6 := @parameter3: org.apache.lucene.store.IOContext;
+
+        r3 := @parameter4: java.lang.String;
+
+        specialinvoke r0.<org.apache.lucene.codecs.PostingsReaderBase: void <init>()>();
+
+        r15 = null;
+
+        r16 = null;
+
+     label1:
+        $r4 = r2.<org.apache.lucene.index.SegmentInfo: java.lang.String name>;
+
+        $r5 = staticinvoke <org.apache.lucene.index.IndexFileNames: java.lang.String segmentFileName(java.lang.String,java.lang.String,java.lang.String)>($r4, r3, "frq");
+
+        $r7 = virtualinvoke r1.<org.apache.lucene.store.Directory: org.apache.lucene.store.IndexInput openInput(java.lang.String,org.apache.lucene.store.IOContext)>($r5, r6);
+
+        r15 = $r7;
+
+        staticinvoke <org.apache.lucene.codecs.CodecUtil: int checkHeader(org.apache.lucene.store.DataInput,java.lang.String,int,int)>($r7, "Lucene40PostingsWriterFrq", 0, 1);
+
+        $z0 = virtualinvoke r8.<org.apache.lucene.index.FieldInfos: boolean hasProx()>();
+
+        if $z0 == 0 goto label2;
+
+        $r10 = r2.<org.apache.lucene.index.SegmentInfo: java.lang.String name>;
+
+        $r11 = staticinvoke <org.apache.lucene.index.IndexFileNames: java.lang.String segmentFileName(java.lang.String,java.lang.String,java.lang.String)>($r10, r3, "prx");
+
+        $r12 = virtualinvoke r1.<org.apache.lucene.store.Directory: org.apache.lucene.store.IndexInput openInput(java.lang.String,org.apache.lucene.store.IOContext)>($r11, r6);
+
+        r16 = $r12;
+
+        staticinvoke <org.apache.lucene.codecs.CodecUtil: int checkHeader(org.apache.lucene.store.DataInput,java.lang.String,int,int)>($r12, "Lucene40PostingsWriterPrx", 0, 1);
+
+        goto label3;
+
+     label2:
+        r16 = null;
+
+     label3:
+        r0.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: org.apache.lucene.store.IndexInput freqIn> = $r7;
+
+        r0.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: org.apache.lucene.store.IndexInput proxIn> = r16;
+
+     label4:
+        if 1 != 0 goto label8;
+
+        $r9 = newarray (java.io.Closeable)[2];
+
+        $r9[0] = $r7;
+
+        $r9[1] = r16;
+
+        staticinvoke <org.apache.lucene.util.IOUtils: void closeWhileHandlingException(java.io.Closeable[])>($r9);
+
+        goto label8;
+
+     label5:
+        $r13 := @caughtexception;
+
+     label6:
+        if 0 != 0 goto label7;
+
+        $r14 = newarray (java.io.Closeable)[2];
+
+        $r14[0] = r15;
+
+        $r14[1] = r16;
+
+        staticinvoke <org.apache.lucene.util.IOUtils: void closeWhileHandlingException(java.io.Closeable[])>($r14);
+
+     label7:
+        throw $r13;
+
+     label8:
+        return;
+
+        catch java.lang.Throwable from label1 to label4 with label5;
+        catch java.lang.Throwable from label5 to label6 with label5;
+    }
+
+    public void init(org.apache.lucene.store.IndexInput) throws java.io.IOException
+    {
+        org.apache.lucene.store.IndexInput r0;
+        org.apache.lucene.codecs.lucene40.Lucene40PostingsReader r1;
+        int $i0, $i1, $i2;
+
+        r1 := @this: org.apache.lucene.codecs.lucene40.Lucene40PostingsReader;
+
+        r0 := @parameter0: org.apache.lucene.store.IndexInput;
+
+        staticinvoke <org.apache.lucene.codecs.CodecUtil: int checkHeader(org.apache.lucene.store.DataInput,java.lang.String,int,int)>(r0, "Lucene40PostingsWriterTerms", 0, 1);
+
+        $i0 = virtualinvoke r0.<org.apache.lucene.store.IndexInput: int readInt()>();
+
+        r1.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: int skipInterval> = $i0;
+
+        $i1 = virtualinvoke r0.<org.apache.lucene.store.IndexInput: int readInt()>();
+
+        r1.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: int maxSkipLevels> = $i1;
+
+        $i2 = virtualinvoke r0.<org.apache.lucene.store.IndexInput: int readInt()>();
+
+        r1.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: int skipMinimum> = $i2;
+
+        return;
+    }
+
+    public org.apache.lucene.codecs.BlockTermState newTermState()
+    {
+        org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState $r0;
+        org.apache.lucene.codecs.lucene40.Lucene40PostingsReader r1;
+
+        r1 := @this: org.apache.lucene.codecs.lucene40.Lucene40PostingsReader;
+
+        $r0 = new org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState;
+
+        specialinvoke $r0.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState: void <init>(org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$1)>(null);
+
+        return $r0;
+    }
+
+    public void close() throws java.io.IOException
+    {
+        java.lang.Throwable $r5;
+        org.apache.lucene.store.IndexInput $r1, $r2, $r3, $r4, $r6, $r7;
+        org.apache.lucene.codecs.lucene40.Lucene40PostingsReader r0;
+
+        r0 := @this: org.apache.lucene.codecs.lucene40.Lucene40PostingsReader;
+
+     label1:
+        $r1 = r0.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: org.apache.lucene.store.IndexInput freqIn>;
+
+        if $r1 == null goto label2;
+
+        $r4 = r0.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: org.apache.lucene.store.IndexInput freqIn>;
+
+        virtualinvoke $r4.<org.apache.lucene.store.IndexInput: void close()>();
+
+     label2:
+        $r2 = r0.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: org.apache.lucene.store.IndexInput proxIn>;
+
+        if $r2 == null goto label6;
+
+        $r3 = r0.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: org.apache.lucene.store.IndexInput proxIn>;
+
+        virtualinvoke $r3.<org.apache.lucene.store.IndexInput: void close()>();
+
+        goto label6;
+
+     label3:
+        $r5 := @caughtexception;
+
+     label4:
+        $r6 = r0.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: org.apache.lucene.store.IndexInput proxIn>;
+
+        if $r6 == null goto label5;
+
+        $r7 = r0.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: org.apache.lucene.store.IndexInput proxIn>;
+
+        virtualinvoke $r7.<org.apache.lucene.store.IndexInput: void close()>();
+
+     label5:
+        throw $r5;
+
+     label6:
+        return;
+
+        catch java.lang.Throwable from label1 to label2 with label3;
+        catch java.lang.Throwable from label3 to label4 with label3;
+    }
+
+    public void readTermsBlock(org.apache.lucene.store.IndexInput, org.apache.lucene.index.FieldInfo, org.apache.lucene.codecs.BlockTermState) throws java.io.IOException
+    {
+        byte[] $r3, $r4, $r5, $r6, $r10, $r12;
+        org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState r1;
+        org.apache.lucene.store.ByteArrayDataInput $r7, $r11;
+        int $i0, $i1, $i2, $i3;
+        org.apache.lucene.store.IndexInput r2;
+        org.apache.lucene.codecs.BlockTermState r0;
+        org.apache.lucene.codecs.lucene40.Lucene40PostingsReader r8;
+        org.apache.lucene.index.FieldInfo r9;
+
+        r8 := @this: org.apache.lucene.codecs.lucene40.Lucene40PostingsReader;
+
+        r2 := @parameter0: org.apache.lucene.store.IndexInput;
+
+        r9 := @parameter1: org.apache.lucene.index.FieldInfo;
+
+        r0 := @parameter2: org.apache.lucene.codecs.BlockTermState;
+
+        r1 = (org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState) r0;
+
+        $i0 = virtualinvoke r2.<org.apache.lucene.store.IndexInput: int readVInt()>();
+
+        $r3 = r1.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState: byte[] bytes>;
+
+        if $r3 != null goto label1;
+
+        $i3 = staticinvoke <org.apache.lucene.util.ArrayUtil: int oversize(int,int)>($i0, 1);
+
+        $r6 = newarray (byte)[$i3];
+
+        r1.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState: byte[] bytes> = $r6;
+
+        $r7 = new org.apache.lucene.store.ByteArrayDataInput;
+
+        specialinvoke $r7.<org.apache.lucene.store.ByteArrayDataInput: void <init>()>();
+
+        r1.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState: org.apache.lucene.store.ByteArrayDataInput bytesReader> = $r7;
+
+        goto label2;
+
+     label1:
+        $r4 = r1.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState: byte[] bytes>;
+
+        $i1 = lengthof $r4;
+
+        if $i1 >= $i0 goto label2;
+
+        $i2 = staticinvoke <org.apache.lucene.util.ArrayUtil: int oversize(int,int)>($i0, 1);
+
+        $r5 = newarray (byte)[$i2];
+
+        r1.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState: byte[] bytes> = $r5;
+
+     label2:
+        $r10 = r1.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState: byte[] bytes>;
+
+        virtualinvoke r2.<org.apache.lucene.store.IndexInput: void readBytes(byte[],int,int)>($r10, 0, $i0);
+
+        $r11 = r1.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState: org.apache.lucene.store.ByteArrayDataInput bytesReader>;
+
+        $r12 = r1.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState: byte[] bytes>;
+
+        virtualinvoke $r11.<org.apache.lucene.store.ByteArrayDataInput: void reset(byte[],int,int)>($r12, 0, $i0);
+
+        return;
+    }
+
+    public void nextTerm(org.apache.lucene.index.FieldInfo, org.apache.lucene.codecs.BlockTermState) throws java.io.IOException
+    {
+        org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState r1;
+        org.apache.lucene.store.ByteArrayDataInput $r2, $r5, $r6, $r7, $r12;
+        byte $b15, $b18;
+        boolean z0, $z1, $z2, $z4, $z5;
+        org.apache.lucene.index.FieldInfo$IndexOptions $r13, $r14;
+        org.apache.lucene.codecs.BlockTermState r0;
+        long $l1, $l2, $l3, $l6, $l7, $l8, $l9, $l10, $l11, $l12, $l13, $l14, $l16, $l17, $l19;
+        java.lang.AssertionError $r15, $r16;
+        int $i0, $i4, $i5, $i20, $i21, $i22;
+        org.apache.lucene.store.IndexInput $r8, $r10;
+        org.apache.lucene.codecs.lucene40.Lucene40PostingsReader r3;
+        org.apache.lucene.index.FieldInfo r4;
+
+        r3 := @this: org.apache.lucene.codecs.lucene40.Lucene40PostingsReader;
+
+        r4 := @parameter0: org.apache.lucene.index.FieldInfo;
+
+        r0 := @parameter1: org.apache.lucene.codecs.BlockTermState;
+
+        r1 = (org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState) r0;
+
+        $i0 = r1.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState: int termBlockOrd>;
+
+        if $i0 != 0 goto label1;
+
+        $z5 = 1;
+
+        $z4 = 1;
+
+        goto label2;
+
+     label1:
+        $z5 = 0;
+
+        $z4 = 0;
+
+     label2:
+        z0 = $z5;
+
+        if $z4 == 0 goto label3;
+
+        $r12 = r1.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState: org.apache.lucene.store.ByteArrayDataInput bytesReader>;
+
+        $l19 = virtualinvoke $r12.<org.apache.lucene.store.ByteArrayDataInput: long readVLong()>();
+
+        r1.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState: long freqOffset> = $l19;
+
+        goto label4;
+
+     label3:
+        $l1 = r1.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState: long freqOffset>;
+
+        $r2 = r1.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState: org.apache.lucene.store.ByteArrayDataInput bytesReader>;
+
+        $l2 = virtualinvoke $r2.<org.apache.lucene.store.ByteArrayDataInput: long readVLong()>();
+
+        $l3 = $l1 + $l2;
+
+        r1.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState: long freqOffset> = $l3;
+
+     label4:
+        $z1 = <org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: boolean $assertionsDisabled>;
+
+        if $z1 != 0 goto label5;
+
+        $l16 = r1.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState: long freqOffset>;
+
+        $r10 = r3.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: org.apache.lucene.store.IndexInput freqIn>;
+
+        $l17 = virtualinvoke $r10.<org.apache.lucene.store.IndexInput: long length()>();
+
+        $b18 = $l16 cmp $l17;
+
+        $i21 = (int) $b18;
+
+        if $i21 < 0 goto label5;
+
+        $r15 = new java.lang.AssertionError;
+
+        specialinvoke $r15.<java.lang.AssertionError: void <init>()>();
+
+        throw $r15;
+
+     label5:
+        $i5 = r1.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState: int docFreq>;
+
+        $i4 = r3.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: int skipMinimum>;
+
+        if $i5 < $i4 goto label6;
+
+        $r7 = r1.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState: org.apache.lucene.store.ByteArrayDataInput bytesReader>;
+
+        $l10 = virtualinvoke $r7.<org.apache.lucene.store.ByteArrayDataInput: long readVLong()>();
+
+        r1.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState: long skipOffset> = $l10;
+
+        $z2 = <org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: boolean $assertionsDisabled>;
+
+        if $z2 != 0 goto label6;
+
+        $l12 = r1.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState: long freqOffset>;
+
+        $l11 = r1.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState: long skipOffset>;
+
+        $l13 = $l12 + $l11;
+
+        $r8 = r3.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: org.apache.lucene.store.IndexInput freqIn>;
+
+        $l14 = virtualinvoke $r8.<org.apache.lucene.store.IndexInput: long length()>();
+
+        $b15 = $l13 cmp $l14;
+
+        $i22 = (int) $b15;
+
+        if $i22 < 0 goto label6;
+
+        $r16 = new java.lang.AssertionError;
+
+        specialinvoke $r16.<java.lang.AssertionError: void <init>()>();
+
+        throw $r16;
+
+     label6:
+        $r13 = virtualinvoke r4.<org.apache.lucene.index.FieldInfo: org.apache.lucene.index.FieldInfo$IndexOptions getIndexOptions()>();
+
+        $r14 = <org.apache.lucene.index.FieldInfo$IndexOptions: org.apache.lucene.index.FieldInfo$IndexOptions DOCS_AND_FREQS_AND_POSITIONS>;
+
+        $i20 = virtualinvoke $r13.<org.apache.lucene.index.FieldInfo$IndexOptions: int compareTo(java.lang.Enum)>($r14);
+
+        if $i20 < 0 goto label8;
+
+        if z0 == 0 goto label7;
+
+        $r6 = r1.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState: org.apache.lucene.store.ByteArrayDataInput bytesReader>;
+
+        $l9 = virtualinvoke $r6.<org.apache.lucene.store.ByteArrayDataInput: long readVLong()>();
+
+        r1.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState: long proxOffset> = $l9;
+
+        goto label8;
+
+     label7:
+        $l6 = r1.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState: long proxOffset>;
+
+        $r5 = r1.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState: org.apache.lucene.store.ByteArrayDataInput bytesReader>;
+
+        $l7 = virtualinvoke $r5.<org.apache.lucene.store.ByteArrayDataInput: long readVLong()>();
+
+        $l8 = $l6 + $l7;
+
+        r1.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState: long proxOffset> = $l8;
+
+     label8:
+        return;
+    }
+
+    public org.apache.lucene.index.DocsEnum docs(org.apache.lucene.index.FieldInfo, org.apache.lucene.codecs.BlockTermState, org.apache.lucene.util.Bits, org.apache.lucene.index.DocsEnum, int) throws java.io.IOException
+    {
+        org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState $r5, $r7;
+        org.apache.lucene.codecs.BlockTermState r4;
+        org.apache.lucene.index.DocsEnum r1, $r6, $r9;
+        org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$SegmentDocsEnumBase $r8;
+        org.apache.lucene.codecs.lucene40.Lucene40PostingsReader r0;
+        int i0;
+        org.apache.lucene.index.FieldInfo r3;
+        org.apache.lucene.util.Bits r2;
+        boolean $z0;
+
+        r0 := @this: org.apache.lucene.codecs.lucene40.Lucene40PostingsReader;
+
+        r3 := @parameter0: org.apache.lucene.index.FieldInfo;
+
+        r4 := @parameter1: org.apache.lucene.codecs.BlockTermState;
+
+        r2 := @parameter2: org.apache.lucene.util.Bits;
+
+        r1 := @parameter3: org.apache.lucene.index.DocsEnum;
+
+        i0 := @parameter4: int;
+
+        $z0 = specialinvoke r0.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: boolean canReuse(org.apache.lucene.index.DocsEnum,org.apache.lucene.util.Bits)>(r1, r2);
+
+        if $z0 == 0 goto label1;
+
+        $r8 = (org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$SegmentDocsEnumBase) r1;
+
+        $r7 = (org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState) r4;
+
+        $r9 = virtualinvoke $r8.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$SegmentDocsEnumBase: org.apache.lucene.index.DocsEnum reset(org.apache.lucene.index.FieldInfo,org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState)>(r3, $r7);
+
+        return $r9;
+
+     label1:
+        $r5 = (org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState) r4;
+
+        $r6 = specialinvoke r0.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: org.apache.lucene.index.DocsEnum newDocsEnum(org.apache.lucene.util.Bits,org.apache.lucene.index.FieldInfo,org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState)>(r2, r3, $r5);
+
+        return $r6;
+    }
+
+    private boolean canReuse(org.apache.lucene.index.DocsEnum, org.apache.lucene.util.Bits)
+    {
+        org.apache.lucene.store.IndexInput $r3, $r4;
+        org.apache.lucene.index.DocsEnum r0;
+        org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$SegmentDocsEnumBase r1;
+        org.apache.lucene.codecs.lucene40.Lucene40PostingsReader r2;
+        org.apache.lucene.util.Bits r5, $r6;
+        boolean $z0, $z1;
+
+        r2 := @this: org.apache.lucene.codecs.lucene40.Lucene40PostingsReader;
+
+        r0 := @parameter0: org.apache.lucene.index.DocsEnum;
+
+        r5 := @parameter1: org.apache.lucene.util.Bits;
+
+        if r0 == null goto label3;
+
+        $z0 = r0 instanceof org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$SegmentDocsEnumBase;
+
+        if $z0 == 0 goto label3;
+
+        r1 = (org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$SegmentDocsEnumBase) r0;
+
+        $r4 = r1.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$SegmentDocsEnumBase: org.apache.lucene.store.IndexInput startFreqIn>;
+
+        $r3 = r2.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: org.apache.lucene.store.IndexInput freqIn>;
+
+        if $r4 != $r3 goto label3;
+
+        $r6 = r1.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$SegmentDocsEnumBase: org.apache.lucene.util.Bits liveDocs>;
+
+        if r5 != $r6 goto label1;
+
+        $z1 = 1;
+
+        goto label2;
+
+     label1:
+        $z1 = 0;
+
+     label2:
+        return $z1;
+
+     label3:
+        return 0;
+    }
+
+    private org.apache.lucene.index.DocsEnum newDocsEnum(org.apache.lucene.util.Bits, org.apache.lucene.index.FieldInfo, org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState) throws java.io.IOException
+    {
+        org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$LiveDocsSegmentDocsEnum $r1;
+        org.apache.lucene.store.IndexInput $r3, $r8;
+        org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState r5;
+        org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$AllDocsSegmentDocsEnum $r7;
+        org.apache.lucene.index.DocsEnum $r6, $r9;
+        org.apache.lucene.codecs.lucene40.Lucene40PostingsReader r2;
+        org.apache.lucene.index.FieldInfo r4;
+        org.apache.lucene.util.Bits r0;
+
+        r2 := @this: org.apache.lucene.codecs.lucene40.Lucene40PostingsReader;
+
+        r0 := @parameter0: org.apache.lucene.util.Bits;
+
+        r4 := @parameter1: org.apache.lucene.index.FieldInfo;
+
+        r5 := @parameter2: org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState;
+
+        if r0 != null goto label1;
+
+        $r7 = new org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$AllDocsSegmentDocsEnum;
+
+        $r8 = r2.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: org.apache.lucene.store.IndexInput freqIn>;
+
+        specialinvoke $r7.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$AllDocsSegmentDocsEnum: void <init>(org.apache.lucene.codecs.lucene40.Lucene40PostingsReader,org.apache.lucene.store.IndexInput)>(r2, $r8);
+
+        $r9 = virtualinvoke $r7.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$AllDocsSegmentDocsEnum: org.apache.lucene.index.DocsEnum reset(org.apache.lucene.index.FieldInfo,org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState)>(r4, r5);
+
+        return $r9;
+
+     label1:
+        $r1 = new org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$LiveDocsSegmentDocsEnum;
+
+        $r3 = r2.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: org.apache.lucene.store.IndexInput freqIn>;
+
+        specialinvoke $r1.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$LiveDocsSegmentDocsEnum: void <init>(org.apache.lucene.codecs.lucene40.Lucene40PostingsReader,org.apache.lucene.store.IndexInput,org.apache.lucene.util.Bits)>(r2, $r3, r0);
+
+        $r6 = virtualinvoke $r1.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$LiveDocsSegmentDocsEnum: org.apache.lucene.index.DocsEnum reset(org.apache.lucene.index.FieldInfo,org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState)>(r4, r5);
+
+        return $r6;
+    }
+
+    public org.apache.lucene.index.DocsAndPositionsEnum docsAndPositions(org.apache.lucene.index.FieldInfo, org.apache.lucene.codecs.BlockTermState, org.apache.lucene.util.Bits, org.apache.lucene.index.DocsAndPositionsEnum, int) throws java.io.IOException
+    {
+        org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState $r24, $r27;
+        org.apache.lucene.index.DocsAndPositionsEnum r3;
+        boolean $z0, $z1, $z2, $z3;
+        org.apache.lucene.index.FieldInfo$IndexOptions $r1, $r2;
+        org.apache.lucene.codecs.BlockTermState r8;
+        int $i0, i1;
+        org.apache.lucene.util.Bits r9;
+        org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$SegmentFullPositionsEnum $r4, $r12, r23, $r25;
+        org.apache.lucene.store.IndexInput $r6, $r7, $r10, $r11, $r13, $r14, $r16, $r17, $r18, $r19, $r21, $r22;
+        org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$SegmentDocsAndPositionsEnum $r15, $r20, r26, $r28;
+        org.apache.lucene.codecs.lucene40.Lucene40PostingsReader r5;
+        org.apache.lucene.index.FieldInfo r0;
+
+        r5 := @this: org.apache.lucene.codecs.lucene40.Lucene40PostingsReader;
+
+        r0 := @parameter0: org.apache.lucene.index.FieldInfo;
+
+        r8 := @parameter1: org.apache.lucene.codecs.BlockTermState;
+
+        r9 := @parameter2: org.apache.lucene.util.Bits;
+
+        r3 := @parameter3: org.apache.lucene.index.DocsAndPositionsEnum;
+
+        i1 := @parameter4: int;
+
+        $r1 = virtualinvoke r0.<org.apache.lucene.index.FieldInfo: org.apache.lucene.index.FieldInfo$IndexOptions getIndexOptions()>();
+
+        $r2 = <org.apache.lucene.index.FieldInfo$IndexOptions: org.apache.lucene.index.FieldInfo$IndexOptions DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS>;
+
+        $i0 = virtualinvoke $r1.<org.apache.lucene.index.FieldInfo$IndexOptions: int compareTo(java.lang.Enum)>($r2);
+
+        if $i0 < 0 goto label01;
+
+        $z3 = 1;
+
+        goto label02;
+
+     label01:
+        $z3 = 0;
+
+     label02:
+        $z0 = virtualinvoke r0.<org.apache.lucene.index.FieldInfo: boolean hasPayloads()>();
+
+        if $z0 != 0 goto label03;
+
+        if $z3 == 0 goto label07;
+
+     label03:
+        if r3 == null goto label04;
+
+        $z1 = r3 instanceof org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$SegmentFullPositionsEnum;
+
+        if $z1 != 0 goto label05;
+
+     label04:
+        $r4 = new org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$SegmentFullPositionsEnum;
+
+        $r7 = r5.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: org.apache.lucene.store.IndexInput freqIn>;
+
+        $r6 = r5.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: org.apache.lucene.store.IndexInput proxIn>;
+
+        specialinvoke $r4.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$SegmentFullPositionsEnum: void <init>(org.apache.lucene.codecs.lucene40.Lucene40PostingsReader,org.apache.lucene.store.IndexInput,org.apache.lucene.store.IndexInput)>(r5, $r7, $r6);
+
+        r23 = $r4;
+
+        goto label06;
+
+     label05:
+        r23 = (org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$SegmentFullPositionsEnum) r3;
+
+        $r11 = r23.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$SegmentFullPositionsEnum: org.apache.lucene.store.IndexInput startFreqIn>;
+
+        $r10 = r5.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: org.apache.lucene.store.IndexInput freqIn>;
+
+        if $r11 == $r10 goto label06;
+
+        $r12 = new org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$SegmentFullPositionsEnum;
+
+        $r14 = r5.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: org.apache.lucene.store.IndexInput freqIn>;
+
+        $r13 = r5.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: org.apache.lucene.store.IndexInput proxIn>;
+
+        specialinvoke $r12.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$SegmentFullPositionsEnum: void <init>(org.apache.lucene.codecs.lucene40.Lucene40PostingsReader,org.apache.lucene.store.IndexInput,org.apache.lucene.store.IndexInput)>(r5, $r14, $r13);
+
+        r23 = $r12;
+
+     label06:
+        $r24 = (org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState) r8;
+
+        $r25 = virtualinvoke r23.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$SegmentFullPositionsEnum: org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$SegmentFullPositionsEnum reset(org.apache.lucene.index.FieldInfo,org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState,org.apache.lucene.util.Bits)>(r0, $r24, r9);
+
+        return $r25;
+
+     label07:
+        if r3 == null goto label08;
+
+        $z2 = r3 instanceof org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$SegmentDocsAndPositionsEnum;
+
+        if $z2 != 0 goto label09;
+
+     label08:
+        $r15 = new org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$SegmentDocsAndPositionsEnum;
+
+        $r17 = r5.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: org.apache.lucene.store.IndexInput freqIn>;
+
+        $r16 = r5.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: org.apache.lucene.store.IndexInput proxIn>;
+
+        specialinvoke $r15.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$SegmentDocsAndPositionsEnum: void <init>(org.apache.lucene.codecs.lucene40.Lucene40PostingsReader,org.apache.lucene.store.IndexInput,org.apache.lucene.store.IndexInput)>(r5, $r17, $r16);
+
+        r26 = $r15;
+
+        goto label10;
+
+     label09:
+        r26 = (org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$SegmentDocsAndPositionsEnum) r3;
+
+        $r19 = r26.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$SegmentDocsAndPositionsEnum: org.apache.lucene.store.IndexInput startFreqIn>;
+
+        $r18 = r5.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: org.apache.lucene.store.IndexInput freqIn>;
+
+        if $r19 == $r18 goto label10;
+
+        $r20 = new org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$SegmentDocsAndPositionsEnum;
+
+        $r22 = r5.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: org.apache.lucene.store.IndexInput freqIn>;
+
+        $r21 = r5.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: org.apache.lucene.store.IndexInput proxIn>;
+
+        specialinvoke $r20.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$SegmentDocsAndPositionsEnum: void <init>(org.apache.lucene.codecs.lucene40.Lucene40PostingsReader,org.apache.lucene.store.IndexInput,org.apache.lucene.store.IndexInput)>(r5, $r22, $r21);
+
+        r26 = $r20;
+
+     label10:
+        $r27 = (org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState) r8;
+
+        $r28 = virtualinvoke r26.<org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$SegmentDocsAndPositionsEnum: org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$SegmentDocsAndPositionsEnum reset(org.apache.lucene.index.FieldInfo,org.apache.lucene.codecs.lucene40.Lucene40PostingsReader$StandardTermState,org.apache.lucene.util.Bits)>(r0, $r27, r9);
+
+        return $r28;
+    }
+
+    static void <clinit>()
+    {
+        java.lang.Class $r0;
+        boolean $z0, $z1;
+
+        <org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: int BUFFERSIZE> = 64;
+
+        <org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: int VERSION_CURRENT> = 1;
+
+        <org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: int VERSION_LONG_SKIP> = 1;
+
+        <org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: int VERSION_START> = 0;
+
+        <org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: java.lang.String PRX_CODEC> = "Lucene40PostingsWriterPrx";
+
+        <org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: java.lang.String FRQ_CODEC> = "Lucene40PostingsWriterFrq";
+
+        <org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: java.lang.String TERMS_CODEC> = "Lucene40PostingsWriterTerms";
+
+        $r0 = class "Lorg/apache/lucene/codecs/lucene40/Lucene40PostingsReader;";
+
+        $z0 = virtualinvoke $r0.<java.lang.Class: boolean desiredAssertionStatus()>();
+
+        if $z0 != 0 goto label1;
+
+        $z1 = 1;
+
+        goto label2;
+
+     label1:
+        $z1 = 0;
+
+     label2:
+        <org.apache.lucene.codecs.lucene40.Lucene40PostingsReader: boolean $assertionsDisabled> = $z1;
+
+        return;
+    }
+}

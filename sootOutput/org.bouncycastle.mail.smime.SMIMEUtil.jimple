@@ -1,0 +1,947 @@
+public class org.bouncycastle.mail.smime.SMIMEUtil extends java.lang.Object
+{
+    private static final int BUF_SIZE;
+
+    public void <init>()
+    {
+        org.bouncycastle.mail.smime.SMIMEUtil r0;
+
+        r0 := @this: org.bouncycastle.mail.smime.SMIMEUtil;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        return;
+    }
+
+    static boolean isCanonicalisationRequired(javax.mail.internet.MimeBodyPart, java.lang.String) throws javax.mail.MessagingException
+    {
+        javax.mail.internet.MimeBodyPart r0;
+        java.lang.String[] $r1;
+        java.lang.String r2, r3;
+        boolean $z0, $z1;
+
+        r0 := @parameter0: javax.mail.internet.MimeBodyPart;
+
+        r2 := @parameter1: java.lang.String;
+
+        $r1 = virtualinvoke r0.<javax.mail.internet.MimeBodyPart: java.lang.String[] getHeader(java.lang.String)>("Content-Transfer-Encoding");
+
+        if $r1 != null goto label1;
+
+        r3 = r2;
+
+        goto label2;
+
+     label1:
+        r3 = $r1[0];
+
+     label2:
+        $z0 = virtualinvoke r3.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("binary");
+
+        if $z0 != 0 goto label3;
+
+        $z1 = 1;
+
+        goto label4;
+
+     label3:
+        $z1 = 0;
+
+     label4:
+        return $z1;
+    }
+
+    public static java.security.Provider getProvider(java.lang.String) throws java.security.NoSuchProviderException
+    {
+        java.security.Provider $r1;
+        java.lang.StringBuilder $r3, $r4, $r5, $r6;
+        java.lang.String r0, $r7;
+        java.security.NoSuchProviderException $r2;
+
+        r0 := @parameter0: java.lang.String;
+
+        if r0 == null goto label2;
+
+        $r1 = staticinvoke <java.security.Security: java.security.Provider getProvider(java.lang.String)>(r0);
+
+        if $r1 == null goto label1;
+
+        return $r1;
+
+     label1:
+        $r2 = new java.security.NoSuchProviderException;
+
+        $r3 = new java.lang.StringBuilder;
+
+        specialinvoke $r3.<java.lang.StringBuilder: void <init>()>();
+
+        $r4 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("provider ");
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r0);
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" not found.");
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r2.<java.security.NoSuchProviderException: void <init>(java.lang.String)>($r7);
+
+        throw $r2;
+
+     label2:
+        return null;
+    }
+
+    static void outputPreamble(org.bouncycastle.mail.smime.SMIMEUtil$LineOutputStream, javax.mail.internet.MimeBodyPart, java.lang.String) throws javax.mail.MessagingException, java.io.IOException
+    {
+        javax.mail.internet.MimeBodyPart r0;
+        javax.mail.MessagingException $r3, $r6;
+        org.bouncycastle.mail.smime.SMIMEUtil$LineOutputStream r5;
+        java.lang.String $r2, r4;
+        java.io.InputStream $r1;
+        boolean $z0;
+
+        r5 := @parameter0: org.bouncycastle.mail.smime.SMIMEUtil$LineOutputStream;
+
+        r0 := @parameter1: javax.mail.internet.MimeBodyPart;
+
+        r4 := @parameter2: java.lang.String;
+
+     label1:
+        $r1 = virtualinvoke r0.<javax.mail.internet.MimeBodyPart: java.io.InputStream getRawInputStream()>();
+
+     label2:
+        goto label4;
+
+     label3:
+        $r6 := @caughtexception;
+
+        return;
+
+     label4:
+        $r2 = staticinvoke <org.bouncycastle.mail.smime.SMIMEUtil: java.lang.String readLine(java.io.InputStream)>($r1);
+
+        if $r2 == null goto label6;
+
+        $z0 = virtualinvoke $r2.<java.lang.String: boolean equals(java.lang.Object)>(r4);
+
+        if $z0 == 0 goto label5;
+
+        goto label6;
+
+     label5:
+        virtualinvoke r5.<org.bouncycastle.mail.smime.SMIMEUtil$LineOutputStream: void writeln(java.lang.String)>($r2);
+
+        goto label4;
+
+     label6:
+        virtualinvoke $r1.<java.io.InputStream: void close()>();
+
+        if $r2 != null goto label7;
+
+        $r3 = new javax.mail.MessagingException;
+
+        specialinvoke $r3.<javax.mail.MessagingException: void <init>(java.lang.String)>("no boundary found");
+
+        throw $r3;
+
+     label7:
+        return;
+
+        catch javax.mail.MessagingException from label1 to label2 with label3;
+    }
+
+    static void outputPostamble(org.bouncycastle.mail.smime.SMIMEUtil$LineOutputStream, javax.mail.internet.MimeBodyPart, int, java.lang.String) throws javax.mail.MessagingException, java.io.IOException
+    {
+        javax.mail.internet.MimeBodyPart r0;
+        javax.mail.MessagingException $r9, $r13;
+        int i0, i1, $i3;
+        org.bouncycastle.mail.smime.SMIMEUtil$LineOutputStream r8;
+        java.lang.String r5, $r7, $r10, $r11;
+        boolean $z0;
+        java.lang.StringBuilder $r4, $r6, $r12;
+        java.io.InputStream $r1;
+
+        r8 := @parameter0: org.bouncycastle.mail.smime.SMIMEUtil$LineOutputStream;
+
+        r0 := @parameter1: javax.mail.internet.MimeBodyPart;
+
+        i0 := @parameter2: int;
+
+        r5 := @parameter3: java.lang.String;
+
+     label1:
+        $r1 = virtualinvoke r0.<javax.mail.internet.MimeBodyPart: java.io.InputStream getRawInputStream()>();
+
+     label2:
+        goto label4;
+
+     label3:
+        $r9 := @caughtexception;
+
+        return;
+
+     label4:
+        i1 = i0 + 1;
+
+     label5:
+        $r10 = staticinvoke <org.bouncycastle.mail.smime.SMIMEUtil: java.lang.String readLine(java.io.InputStream)>($r1);
+
+        if $r10 == null goto label6;
+
+        $z0 = virtualinvoke $r10.<java.lang.String: boolean startsWith(java.lang.String)>(r5);
+
+        if $z0 == 0 goto label5;
+
+        $i3 = (int) -1;
+
+        i1 = i1 + $i3;
+
+        if i1 != 0 goto label5;
+
+        goto label6;
+
+     label6:
+        $r11 = staticinvoke <org.bouncycastle.mail.smime.SMIMEUtil: java.lang.String readLine(java.io.InputStream)>($r1);
+
+        if $r11 == null goto label7;
+
+        virtualinvoke r8.<org.bouncycastle.mail.smime.SMIMEUtil$LineOutputStream: void writeln(java.lang.String)>($r11);
+
+        goto label6;
+
+     label7:
+        virtualinvoke $r1.<java.io.InputStream: void close()>();
+
+        if i1 == 0 goto label8;
+
+        $r13 = new javax.mail.MessagingException;
+
+        $r12 = new java.lang.StringBuilder;
+
+        specialinvoke $r12.<java.lang.StringBuilder: void <init>()>();
+
+        $r4 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("all boundaries not found for: ");
+
+        $r6 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r5);
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r13.<javax.mail.MessagingException: void <init>(java.lang.String)>($r7);
+
+        throw $r13;
+
+     label8:
+        return;
+
+        catch javax.mail.MessagingException from label1 to label2 with label3;
+    }
+
+    static void outputPostamble(org.bouncycastle.mail.smime.SMIMEUtil$LineOutputStream, javax.mail.BodyPart, java.lang.String, javax.mail.BodyPart) throws javax.mail.MessagingException, java.io.IOException
+    {
+        javax.mail.internet.ContentType $r18;
+        javax.mail.internet.MimeBodyPart $r1;
+        javax.mail.MessagingException $r15;
+        javax.mail.BodyPart r0, r3;
+        int $i0, i1, $i3;
+        org.bouncycastle.mail.smime.SMIMEUtil$LineOutputStream r13;
+        java.lang.String $r6, $r9, $r11, r12, $r14, $r17;
+        boolean $z0, $z1;
+        javax.mail.internet.MimeMultipart r16;
+        java.lang.Object $r4;
+        java.lang.StringBuilder $r8, $r10, $r19;
+        java.io.InputStream $r2;
+
+        r13 := @parameter0: org.bouncycastle.mail.smime.SMIMEUtil$LineOutputStream;
+
+        r0 := @parameter1: javax.mail.BodyPart;
+
+        r12 := @parameter2: java.lang.String;
+
+        r3 := @parameter3: javax.mail.BodyPart;
+
+     label1:
+        $r1 = (javax.mail.internet.MimeBodyPart) r0;
+
+        $r2 = virtualinvoke $r1.<javax.mail.internet.MimeBodyPart: java.io.InputStream getRawInputStream()>();
+
+     label2:
+        goto label4;
+
+     label3:
+        $r15 := @caughtexception;
+
+        return;
+
+     label4:
+        $r4 = virtualinvoke r3.<javax.mail.BodyPart: java.lang.Object getContent()>();
+
+        r16 = (javax.mail.internet.MimeMultipart) $r4;
+
+        $r18 = new javax.mail.internet.ContentType;
+
+        $r6 = virtualinvoke r16.<javax.mail.internet.MimeMultipart: java.lang.String getContentType()>();
+
+        specialinvoke $r18.<javax.mail.internet.ContentType: void <init>(java.lang.String)>($r6);
+
+        $r19 = new java.lang.StringBuilder;
+
+        specialinvoke $r19.<java.lang.StringBuilder: void <init>()>();
+
+        $r8 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("--");
+
+        $r9 = virtualinvoke $r18.<javax.mail.internet.ContentType: java.lang.String getParameter(java.lang.String)>("boundary");
+
+        $r10 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r9);
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $i0 = virtualinvoke r16.<javax.mail.internet.MimeMultipart: int getCount()>();
+
+        i1 = $i0 + 1;
+
+     label5:
+        if i1 == 0 goto label6;
+
+        $r14 = staticinvoke <org.bouncycastle.mail.smime.SMIMEUtil: java.lang.String readLine(java.io.InputStream)>($r2);
+
+        if $r14 == null goto label6;
+
+        $z1 = virtualinvoke $r14.<java.lang.String: boolean startsWith(java.lang.String)>($r11);
+
+        if $z1 == 0 goto label5;
+
+        $i3 = (int) -1;
+
+        i1 = i1 + $i3;
+
+        goto label5;
+
+     label6:
+        $r17 = staticinvoke <org.bouncycastle.mail.smime.SMIMEUtil: java.lang.String readLine(java.io.InputStream)>($r2);
+
+        if $r17 == null goto label8;
+
+        $z0 = virtualinvoke $r17.<java.lang.String: boolean startsWith(java.lang.String)>(r12);
+
+        if $z0 == 0 goto label7;
+
+        goto label8;
+
+     label7:
+        virtualinvoke r13.<org.bouncycastle.mail.smime.SMIMEUtil$LineOutputStream: void writeln(java.lang.String)>($r17);
+
+        goto label6;
+
+     label8:
+        virtualinvoke $r2.<java.io.InputStream: void close()>();
+
+        return;
+
+        catch javax.mail.MessagingException from label1 to label2 with label3;
+    }
+
+    private static java.lang.String readLine(java.io.InputStream) throws java.io.IOException
+    {
+        java.lang.StringBuffer $r0;
+        int $i0, $i2;
+        char $c1;
+        java.lang.String $r2;
+        java.io.InputStream r1;
+
+        r1 := @parameter0: java.io.InputStream;
+
+        $r0 = new java.lang.StringBuffer;
+
+        specialinvoke $r0.<java.lang.StringBuffer: void <init>()>();
+
+     label1:
+        $i2 = virtualinvoke r1.<java.io.InputStream: int read()>();
+
+        if $i2 < 0 goto label2;
+
+        if $i2 == 10 goto label2;
+
+        if $i2 == 13 goto label1;
+
+        $c1 = (char) $i2;
+
+        virtualinvoke $r0.<java.lang.StringBuffer: java.lang.StringBuffer append(char)>($c1);
+
+        goto label1;
+
+     label2:
+        if $i2 >= 0 goto label3;
+
+        $i0 = virtualinvoke $r0.<java.lang.StringBuffer: int length()>();
+
+        if $i0 != 0 goto label3;
+
+        return null;
+
+     label3:
+        $r2 = virtualinvoke $r0.<java.lang.StringBuffer: java.lang.String toString()>();
+
+        return $r2;
+    }
+
+    static void outputBodyPart(java.io.OutputStream, javax.mail.BodyPart, java.lang.String) throws javax.mail.MessagingException, java.io.IOException
+    {
+        byte[] $r11;
+        org.bouncycastle.mail.smime.SMIMEUtil$Base64CRLFOutputStream $r10;
+        java.util.Enumeration $r8, $r23;
+        javax.mail.MessagingException $r31;
+        org.bouncycastle.mail.smime.SMIMEUtil$LineOutputStream $r7, $r22;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9;
+        javax.mail.internet.MimeMultipart r34;
+        java.io.FilterOutputStream r38;
+        java.lang.StringBuilder $r17, $r18, $r20, $r24, $r25, $r26;
+        javax.mail.internet.ContentType $r15;
+        javax.mail.internet.MimeBodyPart r3;
+        java.lang.String[] $r4;
+        javax.mail.BodyPart r0, $r28;
+        int $i0, $i1, i2, $i3, $i4;
+        java.lang.String r1, $r16, $r19, $r21, $r27, r35, r36, r37;
+        org.bouncycastle.mail.smime.util.CRLFOutputStream $r2, $r9, $r13, $r32;
+        java.io.OutputStream r33;
+        java.lang.Object $r5, $r12, $r14, $r29, $r30;
+        java.io.InputStream $r6;
+
+        r33 := @parameter0: java.io.OutputStream;
+
+        r0 := @parameter1: javax.mail.BodyPart;
+
+        r1 := @parameter2: java.lang.String;
+
+        $z0 = r0 instanceof javax.mail.internet.MimeBodyPart;
+
+        if $z0 == 0 goto label22;
+
+        r3 = (javax.mail.internet.MimeBodyPart) r0;
+
+        $r4 = virtualinvoke r3.<javax.mail.internet.MimeBodyPart: java.lang.String[] getHeader(java.lang.String)>("Content-Transfer-Encoding");
+
+        $r5 = virtualinvoke r3.<javax.mail.internet.MimeBodyPart: java.lang.Object getContent()>();
+
+        $z2 = $r5 instanceof javax.mail.internet.MimeMultipart;
+
+        if $z2 == 0 goto label07;
+
+        $r14 = virtualinvoke r0.<javax.mail.BodyPart: java.lang.Object getContent()>();
+
+        r34 = (javax.mail.internet.MimeMultipart) $r14;
+
+        $r15 = new javax.mail.internet.ContentType;
+
+        $r16 = virtualinvoke r34.<javax.mail.internet.MimeMultipart: java.lang.String getContentType()>();
+
+        specialinvoke $r15.<javax.mail.internet.ContentType: void <init>(java.lang.String)>($r16);
+
+        $r17 = new java.lang.StringBuilder;
+
+        specialinvoke $r17.<java.lang.StringBuilder: void <init>()>();
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("--");
+
+        $r19 = virtualinvoke $r15.<javax.mail.internet.ContentType: java.lang.String getParameter(java.lang.String)>("boundary");
+
+        $r20 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r19);
+
+        $r21 = virtualinvoke $r20.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r22 = new org.bouncycastle.mail.smime.SMIMEUtil$LineOutputStream;
+
+        specialinvoke $r22.<org.bouncycastle.mail.smime.SMIMEUtil$LineOutputStream: void <init>(java.io.OutputStream)>(r33);
+
+        $r23 = virtualinvoke r3.<javax.mail.internet.MimeBodyPart: java.util.Enumeration getAllHeaderLines()>();
+
+     label01:
+        $z8 = interfaceinvoke $r23.<java.util.Enumeration: boolean hasMoreElements()>();
+
+        if $z8 == 0 goto label02;
+
+        $r30 = interfaceinvoke $r23.<java.util.Enumeration: java.lang.Object nextElement()>();
+
+        r35 = (java.lang.String) $r30;
+
+        virtualinvoke $r22.<org.bouncycastle.mail.smime.SMIMEUtil$LineOutputStream: void writeln(java.lang.String)>(r35);
+
+        goto label01;
+
+     label02:
+        virtualinvoke $r22.<org.bouncycastle.mail.smime.SMIMEUtil$LineOutputStream: void writeln()>();
+
+        staticinvoke <org.bouncycastle.mail.smime.SMIMEUtil: void outputPreamble(org.bouncycastle.mail.smime.SMIMEUtil$LineOutputStream,javax.mail.internet.MimeBodyPart,java.lang.String)>($r22, r3, $r21);
+
+        i2 = 0;
+
+     label03:
+        $i0 = virtualinvoke r34.<javax.mail.internet.MimeMultipart: int getCount()>();
+
+        if i2 >= $i0 goto label06;
+
+        virtualinvoke $r22.<org.bouncycastle.mail.smime.SMIMEUtil$LineOutputStream: void writeln(java.lang.String)>($r21);
+
+        $r28 = virtualinvoke r34.<javax.mail.internet.MimeMultipart: javax.mail.BodyPart getBodyPart(int)>(i2);
+
+        staticinvoke <org.bouncycastle.mail.smime.SMIMEUtil: void outputBodyPart(java.io.OutputStream,javax.mail.BodyPart,java.lang.String)>(r33, $r28, r1);
+
+        $r29 = virtualinvoke $r28.<javax.mail.BodyPart: java.lang.Object getContent()>();
+
+        $z9 = $r29 instanceof javax.mail.internet.MimeMultipart;
+
+        if $z9 != 0 goto label04;
+
+        virtualinvoke $r22.<org.bouncycastle.mail.smime.SMIMEUtil$LineOutputStream: void writeln()>();
+
+        goto label05;
+
+     label04:
+        staticinvoke <org.bouncycastle.mail.smime.SMIMEUtil: void outputPostamble(org.bouncycastle.mail.smime.SMIMEUtil$LineOutputStream,javax.mail.BodyPart,java.lang.String,javax.mail.BodyPart)>($r22, r3, $r21, $r28);
+
+     label05:
+        i2 = i2 + 1;
+
+        goto label03;
+
+     label06:
+        $r24 = new java.lang.StringBuilder;
+
+        specialinvoke $r24.<java.lang.StringBuilder: void <init>()>();
+
+        $r25 = virtualinvoke $r24.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r21);
+
+        $r26 = virtualinvoke $r25.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("--");
+
+        $r27 = virtualinvoke $r26.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r22.<org.bouncycastle.mail.smime.SMIMEUtil$LineOutputStream: void writeln(java.lang.String)>($r27);
+
+        $i1 = virtualinvoke r34.<javax.mail.internet.MimeMultipart: int getCount()>();
+
+        staticinvoke <org.bouncycastle.mail.smime.SMIMEUtil: void outputPostamble(org.bouncycastle.mail.smime.SMIMEUtil$LineOutputStream,javax.mail.internet.MimeBodyPart,int,java.lang.String)>($r22, r3, $i1, $r21);
+
+        return;
+
+     label07:
+        if $r4 != null goto label08;
+
+        r36 = r1;
+
+        goto label09;
+
+     label08:
+        r36 = $r4[0];
+
+     label09:
+        $z3 = virtualinvoke r36.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("base64");
+
+        if $z3 != 0 goto label11;
+
+        $z6 = virtualinvoke r36.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("quoted-printable");
+
+        if $z6 != 0 goto label11;
+
+        $z7 = virtualinvoke r36.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("binary");
+
+        if $z7 != 0 goto label10;
+
+        $r13 = new org.bouncycastle.mail.smime.util.CRLFOutputStream;
+
+        specialinvoke $r13.<org.bouncycastle.mail.smime.util.CRLFOutputStream: void <init>(java.io.OutputStream)>(r33);
+
+        r33 = $r13;
+
+     label10:
+        virtualinvoke r0.<javax.mail.BodyPart: void writeTo(java.io.OutputStream)>(r33);
+
+        virtualinvoke r33.<java.io.OutputStream: void flush()>();
+
+        return;
+
+     label11:
+        $z4 = virtualinvoke r36.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("base64");
+
+     label12:
+        $r6 = virtualinvoke r3.<javax.mail.internet.MimeBodyPart: java.io.InputStream getRawInputStream()>();
+
+     label13:
+        goto label15;
+
+     label14:
+        $r31 := @caughtexception;
+
+        $r32 = new org.bouncycastle.mail.smime.util.CRLFOutputStream;
+
+        specialinvoke $r32.<org.bouncycastle.mail.smime.util.CRLFOutputStream: void <init>(java.io.OutputStream)>(r33);
+
+        virtualinvoke r0.<javax.mail.BodyPart: void writeTo(java.io.OutputStream)>($r32);
+
+        virtualinvoke $r32.<java.io.OutputStream: void flush()>();
+
+        return;
+
+     label15:
+        $r7 = new org.bouncycastle.mail.smime.SMIMEUtil$LineOutputStream;
+
+        specialinvoke $r7.<org.bouncycastle.mail.smime.SMIMEUtil$LineOutputStream: void <init>(java.io.OutputStream)>(r33);
+
+        $r8 = virtualinvoke r3.<javax.mail.internet.MimeBodyPart: java.util.Enumeration getAllHeaderLines()>();
+
+     label16:
+        $z5 = interfaceinvoke $r8.<java.util.Enumeration: boolean hasMoreElements()>();
+
+        if $z5 == 0 goto label17;
+
+        $r12 = interfaceinvoke $r8.<java.util.Enumeration: java.lang.Object nextElement()>();
+
+        r37 = (java.lang.String) $r12;
+
+        virtualinvoke $r7.<org.bouncycastle.mail.smime.SMIMEUtil$LineOutputStream: void writeln(java.lang.String)>(r37);
+
+        goto label16;
+
+     label17:
+        virtualinvoke $r7.<org.bouncycastle.mail.smime.SMIMEUtil$LineOutputStream: void writeln()>();
+
+        virtualinvoke $r7.<org.bouncycastle.mail.smime.SMIMEUtil$LineOutputStream: void flush()>();
+
+        if $z4 == 0 goto label18;
+
+        $r10 = new org.bouncycastle.mail.smime.SMIMEUtil$Base64CRLFOutputStream;
+
+        specialinvoke $r10.<org.bouncycastle.mail.smime.SMIMEUtil$Base64CRLFOutputStream: void <init>(java.io.OutputStream)>(r33);
+
+        r38 = $r10;
+
+        goto label19;
+
+     label18:
+        $r9 = new org.bouncycastle.mail.smime.util.CRLFOutputStream;
+
+        specialinvoke $r9.<org.bouncycastle.mail.smime.util.CRLFOutputStream: void <init>(java.io.OutputStream)>(r33);
+
+        r38 = $r9;
+
+     label19:
+        $r11 = newarray (byte)[32760];
+
+     label20:
+        $i3 = lengthof $r11;
+
+        $i4 = virtualinvoke $r6.<java.io.InputStream: int read(byte[],int,int)>($r11, 0, $i3);
+
+        if $i4 <= 0 goto label21;
+
+        virtualinvoke r38.<java.io.OutputStream: void write(byte[],int,int)>($r11, 0, $i4);
+
+        goto label20;
+
+     label21:
+        virtualinvoke r38.<java.io.OutputStream: void flush()>();
+
+        goto label24;
+
+     label22:
+        $z1 = virtualinvoke r1.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("binary");
+
+        if $z1 != 0 goto label23;
+
+        $r2 = new org.bouncycastle.mail.smime.util.CRLFOutputStream;
+
+        specialinvoke $r2.<org.bouncycastle.mail.smime.util.CRLFOutputStream: void <init>(java.io.OutputStream)>(r33);
+
+        r33 = $r2;
+
+     label23:
+        virtualinvoke r0.<javax.mail.BodyPart: void writeTo(java.io.OutputStream)>(r33);
+
+        virtualinvoke r33.<java.io.OutputStream: void flush()>();
+
+     label24:
+        return;
+
+        catch javax.mail.MessagingException from label12 to label13 with label14;
+    }
+
+    public static javax.mail.internet.MimeBodyPart toMimeBodyPart(byte[]) throws org.bouncycastle.mail.smime.SMIMEException
+    {
+        byte[] r1;
+        java.io.ByteArrayInputStream $r0;
+        javax.mail.internet.MimeBodyPart $r2;
+
+        r1 := @parameter0: byte[];
+
+        $r0 = new java.io.ByteArrayInputStream;
+
+        specialinvoke $r0.<java.io.ByteArrayInputStream: void <init>(byte[])>(r1);
+
+        $r2 = staticinvoke <org.bouncycastle.mail.smime.SMIMEUtil: javax.mail.internet.MimeBodyPart toMimeBodyPart(java.io.InputStream)>($r0);
+
+        return $r2;
+    }
+
+    public static javax.mail.internet.MimeBodyPart toMimeBodyPart(java.io.InputStream) throws org.bouncycastle.mail.smime.SMIMEException
+    {
+        javax.mail.internet.MimeBodyPart $r0;
+        javax.mail.MessagingException $r2;
+        org.bouncycastle.mail.smime.SMIMEException $r3;
+        java.io.InputStream r1;
+
+        r1 := @parameter0: java.io.InputStream;
+
+     label1:
+        $r0 = new javax.mail.internet.MimeBodyPart;
+
+        specialinvoke $r0.<javax.mail.internet.MimeBodyPart: void <init>(java.io.InputStream)>(r1);
+
+     label2:
+        return $r0;
+
+     label3:
+        $r2 := @caughtexception;
+
+        $r3 = new org.bouncycastle.mail.smime.SMIMEException;
+
+        specialinvoke $r3.<org.bouncycastle.mail.smime.SMIMEException: void <init>(java.lang.String,java.lang.Exception)>("exception creating body part.", $r2);
+
+        throw $r3;
+
+        catch javax.mail.MessagingException from label1 to label2 with label3;
+    }
+
+    static org.bouncycastle.mail.smime.util.FileBackedMimeBodyPart toWriteOnceBodyPart(org.bouncycastle.cms.CMSTypedStream) throws org.bouncycastle.mail.smime.SMIMEException
+    {
+        javax.mail.MessagingException $r4;
+        java.lang.String $r9, $r14, $r16;
+        java.io.IOException $r10;
+        java.io.File $r3;
+        org.bouncycastle.mail.smime.SMIMEUtil$WriteOnceFileBackedMimeBodyPart $r0;
+        org.bouncycastle.cms.CMSTypedStream r1;
+        org.bouncycastle.mail.smime.SMIMEException $r5, $r11;
+        java.lang.StringBuilder $r6, $r7, $r8, $r12, $r13, $r15;
+        java.io.InputStream $r2;
+
+        r1 := @parameter0: org.bouncycastle.cms.CMSTypedStream;
+
+     label1:
+        $r0 = new org.bouncycastle.mail.smime.SMIMEUtil$WriteOnceFileBackedMimeBodyPart;
+
+        $r2 = virtualinvoke r1.<org.bouncycastle.cms.CMSTypedStream: java.io.InputStream getContentStream()>();
+
+        $r3 = staticinvoke <java.io.File: java.io.File createTempFile(java.lang.String,java.lang.String)>("bcMail", ".mime");
+
+        specialinvoke $r0.<org.bouncycastle.mail.smime.SMIMEUtil$WriteOnceFileBackedMimeBodyPart: void <init>(java.io.InputStream,java.io.File)>($r2, $r3);
+
+     label2:
+        return $r0;
+
+     label3:
+        $r10 := @caughtexception;
+
+        $r11 = new org.bouncycastle.mail.smime.SMIMEException;
+
+        $r12 = new java.lang.StringBuilder;
+
+        specialinvoke $r12.<java.lang.StringBuilder: void <init>()>();
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("IOException creating tmp file:");
+
+        $r14 = virtualinvoke $r10.<java.io.IOException: java.lang.String getMessage()>();
+
+        $r15 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r14);
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r11.<org.bouncycastle.mail.smime.SMIMEException: void <init>(java.lang.String,java.lang.Exception)>($r16, $r10);
+
+        throw $r11;
+
+     label4:
+        $r4 := @caughtexception;
+
+        $r5 = new org.bouncycastle.mail.smime.SMIMEException;
+
+        $r6 = new java.lang.StringBuilder;
+
+        specialinvoke $r6.<java.lang.StringBuilder: void <init>()>();
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("can\'t create part: ");
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r4);
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r5.<org.bouncycastle.mail.smime.SMIMEException: void <init>(java.lang.String,java.lang.Exception)>($r9, $r4);
+
+        throw $r5;
+
+        catch java.io.IOException from label1 to label2 with label3;
+        catch javax.mail.MessagingException from label1 to label2 with label4;
+    }
+
+    public static org.bouncycastle.mail.smime.util.FileBackedMimeBodyPart toMimeBodyPart(org.bouncycastle.cms.CMSTypedStream) throws org.bouncycastle.mail.smime.SMIMEException
+    {
+        java.io.IOException $r3;
+        java.io.File $r1;
+        org.bouncycastle.mail.smime.util.FileBackedMimeBodyPart $r2;
+        org.bouncycastle.cms.CMSTypedStream r0;
+        org.bouncycastle.mail.smime.SMIMEException $r4;
+        java.lang.StringBuilder $r5, $r6, $r8;
+        java.lang.String $r7, $r9;
+
+        r0 := @parameter0: org.bouncycastle.cms.CMSTypedStream;
+
+     label1:
+        $r1 = staticinvoke <java.io.File: java.io.File createTempFile(java.lang.String,java.lang.String)>("bcMail", ".mime");
+
+        $r2 = staticinvoke <org.bouncycastle.mail.smime.SMIMEUtil: org.bouncycastle.mail.smime.util.FileBackedMimeBodyPart toMimeBodyPart(org.bouncycastle.cms.CMSTypedStream,java.io.File)>(r0, $r1);
+
+     label2:
+        return $r2;
+
+     label3:
+        $r3 := @caughtexception;
+
+        $r4 = new org.bouncycastle.mail.smime.SMIMEException;
+
+        $r5 = new java.lang.StringBuilder;
+
+        specialinvoke $r5.<java.lang.StringBuilder: void <init>()>();
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("IOException creating tmp file:");
+
+        $r7 = virtualinvoke $r3.<java.io.IOException: java.lang.String getMessage()>();
+
+        $r8 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r7);
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r4.<org.bouncycastle.mail.smime.SMIMEException: void <init>(java.lang.String,java.lang.Exception)>($r9, $r3);
+
+        throw $r4;
+
+        catch java.io.IOException from label1 to label2 with label3;
+    }
+
+    public static org.bouncycastle.mail.smime.util.FileBackedMimeBodyPart toMimeBodyPart(org.bouncycastle.cms.CMSTypedStream, java.io.File) throws org.bouncycastle.mail.smime.SMIMEException
+    {
+        javax.mail.MessagingException $r4;
+        java.lang.String $r9, $r15;
+        java.io.IOException $r10;
+        java.io.File r3;
+        org.bouncycastle.mail.smime.util.FileBackedMimeBodyPart $r0;
+        org.bouncycastle.cms.CMSTypedStream r1;
+        org.bouncycastle.mail.smime.SMIMEException $r5, $r11;
+        java.lang.StringBuilder $r6, $r7, $r8, $r12, $r13, $r14;
+        java.io.InputStream $r2;
+
+        r1 := @parameter0: org.bouncycastle.cms.CMSTypedStream;
+
+        r3 := @parameter1: java.io.File;
+
+     label1:
+        $r0 = new org.bouncycastle.mail.smime.util.FileBackedMimeBodyPart;
+
+        $r2 = virtualinvoke r1.<org.bouncycastle.cms.CMSTypedStream: java.io.InputStream getContentStream()>();
+
+        specialinvoke $r0.<org.bouncycastle.mail.smime.util.FileBackedMimeBodyPart: void <init>(java.io.InputStream,java.io.File)>($r2, r3);
+
+     label2:
+        return $r0;
+
+     label3:
+        $r10 := @caughtexception;
+
+        $r11 = new org.bouncycastle.mail.smime.SMIMEException;
+
+        $r12 = new java.lang.StringBuilder;
+
+        specialinvoke $r12.<java.lang.StringBuilder: void <init>()>();
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("can\'t save content to file: ");
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r10);
+
+        $r15 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r11.<org.bouncycastle.mail.smime.SMIMEException: void <init>(java.lang.String,java.lang.Exception)>($r15, $r10);
+
+        throw $r11;
+
+     label4:
+        $r4 := @caughtexception;
+
+        $r5 = new org.bouncycastle.mail.smime.SMIMEException;
+
+        $r6 = new java.lang.StringBuilder;
+
+        specialinvoke $r6.<java.lang.StringBuilder: void <init>()>();
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("can\'t create part: ");
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r4);
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r5.<org.bouncycastle.mail.smime.SMIMEException: void <init>(java.lang.String,java.lang.Exception)>($r9, $r4);
+
+        throw $r5;
+
+        catch java.io.IOException from label1 to label2 with label3;
+        catch javax.mail.MessagingException from label1 to label2 with label4;
+    }
+
+    public static org.bouncycastle.asn1.cms.IssuerAndSerialNumber createIssuerAndSerialNumberFor(java.security.cert.X509Certificate) throws java.security.cert.CertificateParsingException
+    {
+        java.security.cert.X509Certificate r1;
+        org.bouncycastle.jce.X509Principal $r2;
+        java.security.cert.CertificateParsingException $r5;
+        java.lang.Exception $r4;
+        org.bouncycastle.asn1.cms.IssuerAndSerialNumber $r0;
+        java.math.BigInteger $r3;
+        java.lang.StringBuilder $r6, $r7, $r8;
+        java.lang.String $r9;
+
+        r1 := @parameter0: java.security.cert.X509Certificate;
+
+     label1:
+        $r0 = new org.bouncycastle.asn1.cms.IssuerAndSerialNumber;
+
+        $r2 = staticinvoke <org.bouncycastle.jce.PrincipalUtil: org.bouncycastle.jce.X509Principal getIssuerX509Principal(java.security.cert.X509Certificate)>(r1);
+
+        $r3 = virtualinvoke r1.<java.security.cert.X509Certificate: java.math.BigInteger getSerialNumber()>();
+
+        specialinvoke $r0.<org.bouncycastle.asn1.cms.IssuerAndSerialNumber: void <init>(org.bouncycastle.asn1.x509.X509Name,java.math.BigInteger)>($r2, $r3);
+
+     label2:
+        return $r0;
+
+     label3:
+        $r4 := @caughtexception;
+
+        $r5 = new java.security.cert.CertificateParsingException;
+
+        $r6 = new java.lang.StringBuilder;
+
+        specialinvoke $r6.<java.lang.StringBuilder: void <init>()>();
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("exception extracting issuer and serial number: ");
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r4);
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r5.<java.security.cert.CertificateParsingException: void <init>(java.lang.String)>($r9);
+
+        throw $r5;
+
+        catch java.lang.Exception from label1 to label2 with label3;
+    }
+
+    public static void <clinit>()
+    {
+        <org.bouncycastle.mail.smime.SMIMEUtil: int BUF_SIZE> = 32760;
+
+        return;
+    }
+}

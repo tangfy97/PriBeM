@@ -1,0 +1,2007 @@
+public class org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl extends java.lang.Object implements org.waveprotocol.wave.concurrencycontrol.client.ServerConnectionListener
+{
+    private final org.waveprotocol.wave.concurrencycontrol.common.UnsavedDataListener$UnsavedDataInfo unsavedDataInfo;
+    private final org.waveprotocol.wave.common.logging.LoggerBundle logger;
+    private org.waveprotocol.wave.model.version.HashedVersion startSignature;
+    private org.waveprotocol.wave.model.version.HashedVersion endOfStartingDelta;
+    private final java.util.LinkedList inferredServerPath;
+    private final java.util.LinkedList acks;
+    private long lastCommitVersion;
+    private org.waveprotocol.wave.model.operation.wave.WaveletDelta unacknowledged;
+    private final org.waveprotocol.wave.concurrencycontrol.client.OperationQueue clientOperationQueue;
+    private java.util.List serverOperations;
+    private org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$ConnectionListener clientListener;
+    private org.waveprotocol.wave.concurrencycontrol.client.ServerConnection serverConnection;
+    private boolean pauseSendForFlush;
+    private org.waveprotocol.wave.concurrencycontrol.common.UnsavedDataListener unsavedDataListener;
+
+    public void <init>(org.waveprotocol.wave.common.logging.LoggerBundle, org.waveprotocol.wave.model.version.HashedVersion)
+    {
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$1 $r1;
+        org.waveprotocol.wave.common.logging.LoggerBundle r7;
+        org.waveprotocol.wave.model.version.HashedVersion r6;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl r0;
+        java.util.LinkedList $r2, $r3, $r5;
+        org.waveprotocol.wave.concurrencycontrol.client.OperationQueue $r4;
+
+        r0 := @this: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl;
+
+        r7 := @parameter0: org.waveprotocol.wave.common.logging.LoggerBundle;
+
+        r6 := @parameter1: org.waveprotocol.wave.model.version.HashedVersion;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        $r1 = new org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$1;
+
+        specialinvoke $r1.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$1: void <init>(org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl)>(r0);
+
+        r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.concurrencycontrol.common.UnsavedDataListener$UnsavedDataInfo unsavedDataInfo> = $r1;
+
+        $r2 = staticinvoke <org.waveprotocol.wave.model.util.CollectionUtils: java.util.LinkedList newLinkedList()>();
+
+        r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.LinkedList inferredServerPath> = $r2;
+
+        $r3 = staticinvoke <org.waveprotocol.wave.model.util.CollectionUtils: java.util.LinkedList newLinkedList()>();
+
+        r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.LinkedList acks> = $r3;
+
+        r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: long lastCommitVersion> = 0L;
+
+        $r4 = new org.waveprotocol.wave.concurrencycontrol.client.OperationQueue;
+
+        specialinvoke $r4.<org.waveprotocol.wave.concurrencycontrol.client.OperationQueue: void <init>()>();
+
+        r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.concurrencycontrol.client.OperationQueue clientOperationQueue> = $r4;
+
+        $r5 = staticinvoke <org.waveprotocol.wave.model.util.CollectionUtils: java.util.LinkedList newLinkedList()>();
+
+        r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.List serverOperations> = $r5;
+
+        r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$ConnectionListener clientListener> = null;
+
+        r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: boolean pauseSendForFlush> = 0;
+
+        staticinvoke <org.waveprotocol.wave.model.util.Preconditions: java.lang.Object checkNotNull(java.lang.Object,java.lang.Object)>(r6, "startSignature cannot be null");
+
+        r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.common.logging.LoggerBundle logger> = r7;
+
+        r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.version.HashedVersion startSignature> = r6;
+
+        return;
+    }
+
+    public void initialise(org.waveprotocol.wave.concurrencycontrol.client.ServerConnection, org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$ConnectionListener)
+    {
+        org.waveprotocol.wave.concurrencycontrol.client.ServerConnection r1;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$ConnectionListener r0;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl r2;
+
+        r2 := @this: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl;
+
+        r1 := @parameter0: org.waveprotocol.wave.concurrencycontrol.client.ServerConnection;
+
+        r0 := @parameter1: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$ConnectionListener;
+
+        staticinvoke <org.waveprotocol.wave.model.util.Preconditions: java.lang.Object checkNotNull(java.lang.Object,java.lang.Object)>(r0, "CC initialised with null connection listener");
+
+        staticinvoke <org.waveprotocol.wave.model.util.Preconditions: java.lang.Object checkNotNull(java.lang.Object,java.lang.Object)>(r1, "CC initialised with null server connection");
+
+        r2.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$ConnectionListener clientListener> = r0;
+
+        r2.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.concurrencycontrol.client.ServerConnection serverConnection> = r1;
+
+        return;
+    }
+
+    public void setUnsavedDataListener(org.waveprotocol.wave.concurrencycontrol.common.UnsavedDataListener)
+    {
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl r0;
+        org.waveprotocol.wave.concurrencycontrol.common.UnsavedDataListener r1;
+
+        r0 := @this: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl;
+
+        r1 := @parameter0: org.waveprotocol.wave.concurrencycontrol.common.UnsavedDataListener;
+
+        r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.concurrencycontrol.common.UnsavedDataListener unsavedDataListener> = r1;
+
+        return;
+    }
+
+    public void close()
+    {
+        org.waveprotocol.wave.common.logging.Logger $r4;
+        org.waveprotocol.wave.concurrencycontrol.common.UnsavedDataListener $r1, $r5;
+        org.waveprotocol.wave.common.logging.LoggerBundle $r3;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl r0;
+        org.waveprotocol.wave.concurrencycontrol.client.OperationQueue $r2;
+        boolean $z0, $z1;
+
+        r0 := @this: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl;
+
+        $r1 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.concurrencycontrol.common.UnsavedDataListener unsavedDataListener>;
+
+        if $r1 == null goto label1;
+
+        $r5 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.concurrencycontrol.common.UnsavedDataListener unsavedDataListener>;
+
+        $z1 = specialinvoke r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: boolean everythingIsCommitted()>();
+
+        interfaceinvoke $r5.<org.waveprotocol.wave.concurrencycontrol.common.UnsavedDataListener: void onClose(boolean)>($z1);
+
+     label1:
+        $r2 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.concurrencycontrol.client.OperationQueue clientOperationQueue>;
+
+        $z0 = virtualinvoke $r2.<org.waveprotocol.wave.concurrencycontrol.client.OperationQueue: boolean isEmpty()>();
+
+        if $z0 != 0 goto label2;
+
+        $r3 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.common.logging.LoggerBundle logger>;
+
+        $r4 = interfaceinvoke $r3.<org.waveprotocol.wave.common.logging.LoggerBundle: org.waveprotocol.wave.common.logging.Logger error()>();
+
+        interfaceinvoke $r4.<org.waveprotocol.wave.common.logging.Logger: void log(java.lang.String)>("Concurrency control closed with pending operations. Data has been lost");
+
+     label2:
+        return;
+    }
+
+    public void onOpen(org.waveprotocol.wave.model.version.HashedVersion, org.waveprotocol.wave.model.version.HashedVersion) throws org.waveprotocol.wave.concurrencycontrol.common.ChannelException
+    {
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckInfo $r22;
+        byte $b1, $b4;
+        boolean $z0, $z1, $z2, $z3;
+        org.waveprotocol.wave.concurrencycontrol.common.ChannelException $r34, $r36;
+        org.waveprotocol.wave.common.logging.LoggerBundle $r8;
+        java.lang.StringBuilder $r12, $r13, $r14, $r15, $r16, $r17, $r26, $r27, $r28, $r29, $r33, $r35;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl r2;
+        org.waveprotocol.wave.concurrencycontrol.common.Recoverable $r19, $r31;
+        org.waveprotocol.wave.common.logging.Logger $r9;
+        long $l0, $l2, $l3, $l9;
+        org.waveprotocol.wave.model.version.HashedVersion r0, r1, $r3, $r23, $r32;
+        int $i5, $i6, i7, i8, $i10, $i11, $i13;
+        java.lang.String $r18, $r30;
+        java.util.LinkedList $r4, $r6, $r7;
+        java.util.Iterator $r5;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckedDelta $r21;
+        java.lang.Object $r20;
+
+        r2 := @this: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl;
+
+        r0 := @parameter0: org.waveprotocol.wave.model.version.HashedVersion;
+
+        r1 := @parameter1: org.waveprotocol.wave.model.version.HashedVersion;
+
+        if r0 == null goto label01;
+
+        if r1 == null goto label01;
+
+        $l0 = virtualinvoke r0.<org.waveprotocol.wave.model.version.HashedVersion: long getVersion()>();
+
+        $b1 = $l0 cmp 0L;
+
+        $i10 = (int) $b1;
+
+        if $i10 < 0 goto label01;
+
+        $l2 = virtualinvoke r1.<org.waveprotocol.wave.model.version.HashedVersion: long getVersion()>();
+
+        $l3 = virtualinvoke r0.<org.waveprotocol.wave.model.version.HashedVersion: long getVersion()>();
+
+        $b4 = $l2 cmp $l3;
+
+        $i11 = (int) $b4;
+
+        if $i11 >= 0 goto label02;
+
+     label01:
+        $r34 = new org.waveprotocol.wave.concurrencycontrol.common.ChannelException;
+
+        $r33 = new java.lang.StringBuilder;
+
+        specialinvoke $r33.<java.lang.StringBuilder: void <init>()>();
+
+        $r26 = virtualinvoke $r33.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("ConcurrencyControl onOpen received invalid versions, connect version: ");
+
+        $r27 = virtualinvoke $r26.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r0);
+
+        $r28 = virtualinvoke $r27.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(", current version: ");
+
+        $r29 = virtualinvoke $r28.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r1);
+
+        $r30 = virtualinvoke $r29.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r31 = <org.waveprotocol.wave.concurrencycontrol.common.Recoverable: org.waveprotocol.wave.concurrencycontrol.common.Recoverable NOT_RECOVERABLE>;
+
+        specialinvoke $r34.<org.waveprotocol.wave.concurrencycontrol.common.ChannelException: void <init>(java.lang.String,org.waveprotocol.wave.concurrencycontrol.common.Recoverable)>($r30, $r31);
+
+        throw $r34;
+
+     label02:
+        $i13 = (int) -1;
+
+        i7 = $i13;
+
+        $r3 = r2.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.version.HashedVersion startSignature>;
+
+        $z0 = virtualinvoke $r3.<org.waveprotocol.wave.model.version.HashedVersion: boolean equals(java.lang.Object)>(r0);
+
+        if $z0 == 0 goto label03;
+
+        i7 = 0;
+
+        goto label06;
+
+     label03:
+        i8 = 0;
+
+        $r4 = r2.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.LinkedList inferredServerPath>;
+
+        $r5 = virtualinvoke $r4.<java.util.LinkedList: java.util.Iterator iterator()>();
+
+     label04:
+        $z1 = interfaceinvoke $r5.<java.util.Iterator: boolean hasNext()>();
+
+        if $z1 == 0 goto label06;
+
+        $r20 = interfaceinvoke $r5.<java.util.Iterator: java.lang.Object next()>();
+
+        $r21 = (org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckedDelta) $r20;
+
+        $r22 = $r21.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckedDelta: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckInfo ack>;
+
+        $r23 = $r22.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckInfo: org.waveprotocol.wave.model.version.HashedVersion ackedVersion>;
+
+        $z3 = virtualinvoke r0.<org.waveprotocol.wave.model.version.HashedVersion: boolean equals(java.lang.Object)>($r23);
+
+        if $z3 == 0 goto label05;
+
+        i7 = i8 + 1;
+
+        goto label06;
+
+     label05:
+        i8 = i8 + 1;
+
+        goto label04;
+
+     label06:
+        if i7 >= 0 goto label07;
+
+        $r36 = new org.waveprotocol.wave.concurrencycontrol.common.ChannelException;
+
+        $r35 = new java.lang.StringBuilder;
+
+        specialinvoke $r35.<java.lang.StringBuilder: void <init>()>();
+
+        $r12 = virtualinvoke $r35.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Failed to recover from reconnection to server. No matching signatures. [Received startSignature:");
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r0);
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" endSignature:");
+
+        $r15 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r1);
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("] ");
+
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r2);
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r19 = <org.waveprotocol.wave.concurrencycontrol.common.Recoverable: org.waveprotocol.wave.concurrencycontrol.common.Recoverable NOT_RECOVERABLE>;
+
+        specialinvoke $r36.<org.waveprotocol.wave.concurrencycontrol.common.ChannelException: void <init>(java.lang.String,org.waveprotocol.wave.concurrencycontrol.common.Recoverable)>($r18, $r19);
+
+        throw $r36;
+
+     label07:
+        $r6 = r2.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.LinkedList inferredServerPath>;
+
+        $i5 = virtualinvoke $r6.<java.util.LinkedList: int size()>();
+
+        if i7 >= $i5 goto label08;
+
+        specialinvoke r2.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: void mergeToClientQueue(int)>(i7);
+
+        goto label10;
+
+     label08:
+        $r7 = r2.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.LinkedList inferredServerPath>;
+
+        $i6 = virtualinvoke $r7.<java.util.LinkedList: int size()>();
+
+        if i7 != $i6 goto label09;
+
+        $z2 = virtualinvoke r0.<org.waveprotocol.wave.model.version.HashedVersion: boolean equals(java.lang.Object)>(r1);
+
+        if $z2 == 0 goto label09;
+
+        specialinvoke r2.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: void mergeToClientQueue(int)>(i7);
+
+        goto label10;
+
+     label09:
+        $r8 = r2.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.common.logging.LoggerBundle logger>;
+
+        $r9 = interfaceinvoke $r8.<org.waveprotocol.wave.common.logging.LoggerBundle: org.waveprotocol.wave.common.logging.Logger trace()>();
+
+        interfaceinvoke $r9.<org.waveprotocol.wave.common.logging.Logger: void log(java.lang.String)>("All signatures in CC queue matched on reconnection to server.");
+
+     label10:
+        $r32 = r2.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.version.HashedVersion startSignature>;
+
+        $l9 = virtualinvoke $r32.<org.waveprotocol.wave.model.version.HashedVersion: long getVersion()>();
+
+        specialinvoke r2.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: void forgetAcksAfter(long)>($l9);
+
+        r2.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.version.HashedVersion endOfStartingDelta> = r1;
+
+        specialinvoke r2.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: void sendDelta()>();
+
+        return;
+    }
+
+    private void mergeToClientQueue(int)
+    {
+        java.util.ListIterator $r10;
+        java.util.ArrayList $r0;
+        int i0, $i1;
+        java.util.LinkedList $r2, $r9;
+        org.waveprotocol.wave.concurrencycontrol.client.OperationQueue $r7;
+        boolean $z0, $z1;
+        java.util.Iterator $r4;
+        org.waveprotocol.wave.model.operation.wave.WaveletDelta $r3, r6, $r8, $r13;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckedDelta $r12;
+        java.lang.Object $r5, $r11;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl r1;
+
+        r1 := @this: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl;
+
+        i0 := @parameter0: int;
+
+        $r0 = staticinvoke <org.waveprotocol.wave.model.util.CollectionUtils: java.util.ArrayList newArrayList()>();
+
+        $r2 = r1.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.LinkedList inferredServerPath>;
+
+        $i1 = virtualinvoke $r2.<java.util.LinkedList: int size()>();
+
+        if i0 >= $i1 goto label2;
+
+        $r9 = r1.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.LinkedList inferredServerPath>;
+
+        $r10 = virtualinvoke $r9.<java.util.LinkedList: java.util.ListIterator listIterator(int)>(i0);
+
+     label1:
+        $z0 = interfaceinvoke $r10.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label2;
+
+        $r11 = interfaceinvoke $r10.<java.util.Iterator: java.lang.Object next()>();
+
+        $r12 = (org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckedDelta) $r11;
+
+        $r13 = $r12.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckedDelta: org.waveprotocol.wave.model.operation.wave.WaveletDelta delta>;
+
+        interfaceinvoke $r0.<java.util.List: boolean add(java.lang.Object)>($r13);
+
+        interfaceinvoke $r10.<java.util.Iterator: void remove()>();
+
+        goto label1;
+
+     label2:
+        $r3 = r1.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.operation.wave.WaveletDelta unacknowledged>;
+
+        if $r3 == null goto label3;
+
+        $r8 = r1.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.operation.wave.WaveletDelta unacknowledged>;
+
+        interfaceinvoke $r0.<java.util.List: boolean add(java.lang.Object)>($r8);
+
+        r1.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.operation.wave.WaveletDelta unacknowledged> = null;
+
+     label3:
+        staticinvoke <java.util.Collections: void reverse(java.util.List)>($r0);
+
+        $r4 = interfaceinvoke $r0.<java.util.List: java.util.Iterator iterator()>();
+
+     label4:
+        $z1 = interfaceinvoke $r4.<java.util.Iterator: boolean hasNext()>();
+
+        if $z1 == 0 goto label5;
+
+        $r5 = interfaceinvoke $r4.<java.util.Iterator: java.lang.Object next()>();
+
+        r6 = (org.waveprotocol.wave.model.operation.wave.WaveletDelta) $r5;
+
+        $r7 = r1.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.concurrencycontrol.client.OperationQueue clientOperationQueue>;
+
+        virtualinvoke $r7.<org.waveprotocol.wave.concurrencycontrol.client.OperationQueue: void insertHead(java.util.List)>(r6);
+
+        goto label4;
+
+     label5:
+        return;
+    }
+
+    private void forgetAcksAfter(long)
+    {
+        java.util.Iterator $r2;
+        long $l0, l1;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckInfo $r4;
+        byte $b2;
+        org.waveprotocol.wave.model.version.HashedVersion $r5;
+        int $i3;
+        java.lang.Object $r3;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl r0;
+        java.util.LinkedList $r1;
+        boolean $z0;
+
+        r0 := @this: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl;
+
+        l1 := @parameter0: long;
+
+        $r1 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.LinkedList acks>;
+
+        $r2 = virtualinvoke $r1.<java.util.LinkedList: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r2.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label2;
+
+        $r3 = interfaceinvoke $r2.<java.util.Iterator: java.lang.Object next()>();
+
+        $r4 = (org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckInfo) $r3;
+
+        $r5 = $r4.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckInfo: org.waveprotocol.wave.model.version.HashedVersion ackedVersion>;
+
+        $l0 = virtualinvoke $r5.<org.waveprotocol.wave.model.version.HashedVersion: long getVersion()>();
+
+        $b2 = $l0 cmp l1;
+
+        $i3 = (int) $b2;
+
+        if $i3 <= 0 goto label1;
+
+        interfaceinvoke $r2.<java.util.Iterator: void remove()>();
+
+        goto label1;
+
+     label2:
+        return;
+    }
+
+    private void sendDelta()
+    {
+        org.waveprotocol.wave.model.wave.ParticipantId $r9;
+        java.lang.Long $r29;
+        org.waveprotocol.wave.concurrencycontrol.client.OperationQueue $r2, $r3;
+        boolean $z0, $z1, $z2, $z3;
+        org.waveprotocol.wave.model.operation.wave.WaveletOperationContext $r8;
+        org.waveprotocol.wave.common.logging.LoggerBundle $r11, $r12, $r14, $r23, $r25;
+        java.util.List $r4;
+        java.lang.StringBuilder $r16, $r17, $r20;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl r0;
+        org.waveprotocol.wave.model.operation.wave.WaveletOperation $r7;
+        org.waveprotocol.wave.common.logging.Logger $r13, $r15, $r24, $r26;
+        long $l0;
+        org.waveprotocol.wave.concurrencycontrol.client.ServerConnection $r30;
+        org.waveprotocol.wave.model.version.HashedVersion $r10, $r19, $r28;
+        java.lang.String $r21;
+        org.waveprotocol.wave.model.operation.wave.WaveletDelta $r1, $r5, $r18, $r22, $r27, $r31;
+        java.lang.Object $r6;
+
+        r0 := @this: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl;
+
+        $z0 = specialinvoke r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: boolean isReadyToSend()>();
+
+        if $z0 != 0 goto label1;
+
+        return;
+
+     label1:
+        $r1 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.operation.wave.WaveletDelta unacknowledged>;
+
+        if $r1 == null goto label2;
+
+        $r25 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.common.logging.LoggerBundle logger>;
+
+        $r26 = interfaceinvoke $r25.<org.waveprotocol.wave.common.logging.LoggerBundle: org.waveprotocol.wave.common.logging.Logger trace()>();
+
+        $r27 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.operation.wave.WaveletDelta unacknowledged>;
+
+        $r28 = virtualinvoke $r27.<org.waveprotocol.wave.model.operation.wave.WaveletDelta: org.waveprotocol.wave.model.version.HashedVersion getTargetVersion()>();
+
+        $l0 = virtualinvoke $r28.<org.waveprotocol.wave.model.version.HashedVersion: long getVersion()>();
+
+        $r29 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l0);
+
+        interfaceinvoke $r26.<org.waveprotocol.wave.common.logging.Logger: void log(java.lang.String,java.lang.Object)>("Unacknowledged delta, expected to be applied at version ", $r29);
+
+        return;
+
+     label2:
+        $r2 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.concurrencycontrol.client.OperationQueue clientOperationQueue>;
+
+        $z1 = virtualinvoke $r2.<org.waveprotocol.wave.concurrencycontrol.client.OperationQueue: boolean isEmpty()>();
+
+        if $z1 == 0 goto label3;
+
+        $r23 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.common.logging.LoggerBundle logger>;
+
+        $r24 = interfaceinvoke $r23.<org.waveprotocol.wave.common.logging.LoggerBundle: org.waveprotocol.wave.common.logging.Logger trace()>();
+
+        interfaceinvoke $r24.<org.waveprotocol.wave.common.logging.Logger: void log(java.lang.String)>("Nothing to send");
+
+        specialinvoke r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: void triggerUnsavedDataListener()>();
+
+        return;
+
+     label3:
+        r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.version.HashedVersion endOfStartingDelta> = null;
+
+        $r3 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.concurrencycontrol.client.OperationQueue clientOperationQueue>;
+
+        $r4 = virtualinvoke $r3.<org.waveprotocol.wave.concurrencycontrol.client.OperationQueue: java.util.List take()>();
+
+        $r5 = new org.waveprotocol.wave.model.operation.wave.WaveletDelta;
+
+        $r6 = interfaceinvoke $r4.<java.util.List: java.lang.Object get(int)>(0);
+
+        $r7 = (org.waveprotocol.wave.model.operation.wave.WaveletOperation) $r6;
+
+        $r8 = virtualinvoke $r7.<org.waveprotocol.wave.model.operation.wave.WaveletOperation: org.waveprotocol.wave.model.operation.wave.WaveletOperationContext getContext()>();
+
+        $r9 = virtualinvoke $r8.<org.waveprotocol.wave.model.operation.wave.WaveletOperationContext: org.waveprotocol.wave.model.wave.ParticipantId getCreator()>();
+
+        $r10 = specialinvoke r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.version.HashedVersion getLastSignature()>();
+
+        specialinvoke $r5.<org.waveprotocol.wave.model.operation.wave.WaveletDelta: void <init>(org.waveprotocol.wave.model.wave.ParticipantId,org.waveprotocol.wave.model.version.HashedVersion,java.lang.Iterable)>($r9, $r10, $r4);
+
+        r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.operation.wave.WaveletDelta unacknowledged> = $r5;
+
+        $r11 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.common.logging.LoggerBundle logger>;
+
+        $z2 = interfaceinvoke $r11.<org.waveprotocol.wave.common.logging.LoggerBundle: boolean isModuleEnabled()>();
+
+        if $z2 == 0 goto label4;
+
+        $r12 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.common.logging.LoggerBundle logger>;
+
+        $r13 = interfaceinvoke $r12.<org.waveprotocol.wave.common.logging.LoggerBundle: org.waveprotocol.wave.common.logging.Logger trace()>();
+
+        $z3 = interfaceinvoke $r13.<org.waveprotocol.wave.common.logging.Logger: boolean shouldLog()>();
+
+        if $z3 == 0 goto label4;
+
+        $r14 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.common.logging.LoggerBundle logger>;
+
+        $r15 = interfaceinvoke $r14.<org.waveprotocol.wave.common.logging.LoggerBundle: org.waveprotocol.wave.common.logging.Logger trace()>();
+
+        $r16 = new java.lang.StringBuilder;
+
+        specialinvoke $r16.<java.lang.StringBuilder: void <init>()>();
+
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Sending delta to server with last known server version ");
+
+        $r18 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.operation.wave.WaveletDelta unacknowledged>;
+
+        $r19 = virtualinvoke $r18.<org.waveprotocol.wave.model.operation.wave.WaveletDelta: org.waveprotocol.wave.model.version.HashedVersion getTargetVersion()>();
+
+        $r20 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r19);
+
+        $r21 = virtualinvoke $r20.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r22 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.operation.wave.WaveletDelta unacknowledged>;
+
+        interfaceinvoke $r15.<org.waveprotocol.wave.common.logging.Logger: void log(java.lang.String,java.lang.Object)>($r21, $r22);
+
+     label4:
+        $r30 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.concurrencycontrol.client.ServerConnection serverConnection>;
+
+        $r31 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.operation.wave.WaveletDelta unacknowledged>;
+
+        interfaceinvoke $r30.<org.waveprotocol.wave.concurrencycontrol.client.ServerConnection: void send(org.waveprotocol.wave.model.operation.wave.WaveletDelta)>($r31);
+
+        specialinvoke r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: void triggerUnsavedDataListener()>();
+
+        return;
+    }
+
+    private void transformOperationsAndNotify(org.waveprotocol.wave.model.operation.wave.TransformedWaveletDelta) throws org.waveprotocol.wave.model.operation.TransformException, org.waveprotocol.wave.model.operation.OperationException
+    {
+        org.waveprotocol.wave.model.operation.wave.TransformedWaveletDelta r3;
+        org.waveprotocol.wave.model.operation.TransformException $r52;
+        org.waveprotocol.wave.model.wave.ParticipantId $r20;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckInfo $r46;
+        byte $b2, $b5;
+        org.waveprotocol.wave.concurrencycontrol.client.OperationQueue $r7;
+        boolean $z0, $z1;
+        java.util.List $r8, $r12, $r22, r48;
+        java.lang.StringBuilder $r25, $r26, $r27, $r30, $r31, $r32, $r33, $r34, $r38, $r39, $r40, $r41, $r49, $r51;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl r0;
+        org.waveprotocol.wave.model.operation.wave.WaveletOperation r11;
+        long $l1, $l3, $l4, $l6, $l7;
+        org.waveprotocol.wave.concurrencycontrol.common.DeltaPair $r17, $r53;
+        org.waveprotocol.wave.model.operation.OperationException $r50;
+        int $i0, $i8;
+        org.waveprotocol.wave.model.version.HashedVersion $r2, $r5, $r14, $r21, $r29, $r47;
+        java.lang.String $r35, $r42;
+        java.util.LinkedList $r1, $r4, $r43;
+        java.util.Iterator $r9;
+        org.waveprotocol.wave.model.operation.wave.WaveletDelta $r6, $r13, $r16, $r19, $r28, $r54;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckedDelta $r45;
+        java.lang.Object $r10, $r44;
+
+        r0 := @this: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl;
+
+        r3 := @parameter0: org.waveprotocol.wave.model.operation.wave.TransformedWaveletDelta;
+
+        $r1 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.LinkedList inferredServerPath>;
+
+        $i0 = virtualinvoke $r1.<java.util.LinkedList: int size()>();
+
+        if $i0 <= 0 goto label1;
+
+        $r43 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.LinkedList inferredServerPath>;
+
+        $r44 = virtualinvoke $r43.<java.util.LinkedList: java.lang.Object getLast()>();
+
+        $r45 = (org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckedDelta) $r44;
+
+        $r46 = $r45.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckedDelta: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckInfo ack>;
+
+        $r47 = $r46.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckInfo: org.waveprotocol.wave.model.version.HashedVersion ackedVersion>;
+
+        $l7 = virtualinvoke $r47.<org.waveprotocol.wave.model.version.HashedVersion: long getVersion()>();
+
+        goto label2;
+
+     label1:
+        $r2 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.version.HashedVersion startSignature>;
+
+        $l7 = virtualinvoke $r2.<org.waveprotocol.wave.model.version.HashedVersion: long getVersion()>();
+
+     label2:
+        $l1 = virtualinvoke r3.<org.waveprotocol.wave.model.operation.wave.TransformedWaveletDelta: long getAppliedAtVersion()>();
+
+        $b2 = $l1 cmp $l7;
+
+        $i8 = (int) $b2;
+
+        if $i8 >= 0 goto label3;
+
+        $r50 = new org.waveprotocol.wave.model.operation.OperationException;
+
+        $r49 = new java.lang.StringBuilder;
+
+        specialinvoke $r49.<java.lang.StringBuilder: void <init>()>();
+
+        $r38 = virtualinvoke $r49.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Server sent a delta containing a version that is older than the version at end of inferred server path. [Received serverDelta");
+
+        $r39 = virtualinvoke $r38.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r3);
+
+        $r40 = virtualinvoke $r39.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("] ");
+
+        $r41 = virtualinvoke $r40.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r0);
+
+        $r42 = virtualinvoke $r41.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r50.<org.waveprotocol.wave.model.operation.OperationException: void <init>(java.lang.String)>($r42);
+
+        throw $r50;
+
+     label3:
+        $z0 = specialinvoke r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: boolean detectEchoBack(org.waveprotocol.wave.model.operation.wave.TransformedWaveletDelta)>(r3);
+
+        if $z0 == 0 goto label4;
+
+        return;
+
+     label4:
+        $r4 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.LinkedList inferredServerPath>;
+
+        virtualinvoke $r4.<java.util.LinkedList: void clear()>();
+
+        $r5 = virtualinvoke r3.<org.waveprotocol.wave.model.operation.wave.TransformedWaveletDelta: org.waveprotocol.wave.model.version.HashedVersion getResultingVersion()>();
+
+        r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.version.HashedVersion startSignature> = $r5;
+
+        r48 = r3;
+
+        $r6 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.operation.wave.WaveletDelta unacknowledged>;
+
+        if $r6 == null goto label6;
+
+        $l3 = virtualinvoke r3.<org.waveprotocol.wave.model.operation.wave.TransformedWaveletDelta: long getAppliedAtVersion()>();
+
+        $r13 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.operation.wave.WaveletDelta unacknowledged>;
+
+        $r14 = virtualinvoke $r13.<org.waveprotocol.wave.model.operation.wave.WaveletDelta: org.waveprotocol.wave.model.version.HashedVersion getTargetVersion()>();
+
+        $l4 = virtualinvoke $r14.<org.waveprotocol.wave.model.version.HashedVersion: long getVersion()>();
+
+        $b5 = $l3 cmp $l4;
+
+        if $b5 == 0 goto label5;
+
+        $r52 = new org.waveprotocol.wave.model.operation.TransformException;
+
+        $r51 = new java.lang.StringBuilder;
+
+        specialinvoke $r51.<java.lang.StringBuilder: void <init>()>();
+
+        $r25 = virtualinvoke $r51.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Cannot accept server version newer than unacknowledged. server version:");
+
+        $l6 = virtualinvoke r3.<org.waveprotocol.wave.model.operation.wave.TransformedWaveletDelta: long getAppliedAtVersion()>();
+
+        $r26 = virtualinvoke $r25.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l6);
+
+        $r27 = virtualinvoke $r26.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" unacknowledged version:");
+
+        $r28 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.operation.wave.WaveletDelta unacknowledged>;
+
+        $r29 = virtualinvoke $r28.<org.waveprotocol.wave.model.operation.wave.WaveletDelta: org.waveprotocol.wave.model.version.HashedVersion getTargetVersion()>();
+
+        $r30 = virtualinvoke $r27.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r29);
+
+        $r31 = virtualinvoke $r30.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(". [Received serverDelta:");
+
+        $r32 = virtualinvoke $r31.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r3);
+
+        $r33 = virtualinvoke $r32.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("] ");
+
+        $r34 = virtualinvoke $r33.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r0);
+
+        $r35 = virtualinvoke $r34.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r52.<org.waveprotocol.wave.model.operation.TransformException: void <init>(java.lang.String)>($r35);
+
+        throw $r52;
+
+     label5:
+        $r53 = new org.waveprotocol.wave.concurrencycontrol.common.DeltaPair;
+
+        $r16 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.operation.wave.WaveletDelta unacknowledged>;
+
+        specialinvoke $r53.<org.waveprotocol.wave.concurrencycontrol.common.DeltaPair: void <init>(java.lang.Iterable,java.lang.Iterable)>($r16, r3);
+
+        $r17 = virtualinvoke $r53.<org.waveprotocol.wave.concurrencycontrol.common.DeltaPair: org.waveprotocol.wave.concurrencycontrol.common.DeltaPair transform()>();
+
+        r48 = virtualinvoke $r17.<org.waveprotocol.wave.concurrencycontrol.common.DeltaPair: java.util.List getServer()>();
+
+        $r54 = new org.waveprotocol.wave.model.operation.wave.WaveletDelta;
+
+        $r19 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.operation.wave.WaveletDelta unacknowledged>;
+
+        $r20 = virtualinvoke $r19.<org.waveprotocol.wave.model.operation.wave.WaveletDelta: org.waveprotocol.wave.model.wave.ParticipantId getAuthor()>();
+
+        $r21 = virtualinvoke r3.<org.waveprotocol.wave.model.operation.wave.TransformedWaveletDelta: org.waveprotocol.wave.model.version.HashedVersion getResultingVersion()>();
+
+        $r22 = virtualinvoke $r17.<org.waveprotocol.wave.concurrencycontrol.common.DeltaPair: java.util.List getClient()>();
+
+        specialinvoke $r54.<org.waveprotocol.wave.model.operation.wave.WaveletDelta: void <init>(org.waveprotocol.wave.model.wave.ParticipantId,org.waveprotocol.wave.model.version.HashedVersion,java.lang.Iterable)>($r20, $r21, $r22);
+
+        r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.operation.wave.WaveletDelta unacknowledged> = $r54;
+
+     label6:
+        $r7 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.concurrencycontrol.client.OperationQueue clientOperationQueue>;
+
+        $r8 = virtualinvoke $r7.<org.waveprotocol.wave.concurrencycontrol.client.OperationQueue: java.util.List transform(java.util.List)>(r48);
+
+        $r9 = interfaceinvoke $r8.<java.util.List: java.util.Iterator iterator()>();
+
+     label7:
+        $z1 = interfaceinvoke $r9.<java.util.Iterator: boolean hasNext()>();
+
+        if $z1 == 0 goto label8;
+
+        $r10 = interfaceinvoke $r9.<java.util.Iterator: java.lang.Object next()>();
+
+        r11 = (org.waveprotocol.wave.model.operation.wave.WaveletOperation) $r10;
+
+        $r12 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.List serverOperations>;
+
+        interfaceinvoke $r12.<java.util.List: boolean add(java.lang.Object)>(r11);
+
+        goto label7;
+
+     label8:
+        return;
+    }
+
+    private boolean detectEchoBack(org.waveprotocol.wave.model.operation.wave.TransformedWaveletDelta) throws org.waveprotocol.wave.model.operation.TransformException
+    {
+        org.waveprotocol.wave.model.operation.wave.TransformedWaveletDelta r3;
+        long $l0, $l1;
+        byte $b2;
+        org.waveprotocol.wave.model.version.HashedVersion $r1, $r2, $r5, $r6, $r9;
+        int $i3, $i4, $i5;
+        java.util.LinkedList $r7;
+        boolean $z0, $z1;
+        org.waveprotocol.wave.model.operation.wave.WaveletDelta $r4, $r8;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl r0;
+
+        r0 := @this: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl;
+
+        r3 := @parameter0: org.waveprotocol.wave.model.operation.wave.TransformedWaveletDelta;
+
+        $r1 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.version.HashedVersion endOfStartingDelta>;
+
+        if $r1 == null goto label1;
+
+        $r2 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.version.HashedVersion endOfStartingDelta>;
+
+        $l0 = virtualinvoke $r2.<org.waveprotocol.wave.model.version.HashedVersion: long getVersion()>();
+
+        $l1 = virtualinvoke r3.<org.waveprotocol.wave.model.operation.wave.TransformedWaveletDelta: long getAppliedAtVersion()>();
+
+        $b2 = $l0 cmp $l1;
+
+        $i5 = (int) $b2;
+
+        if $i5 > 0 goto label2;
+
+     label1:
+        return 0;
+
+     label2:
+        $r4 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.operation.wave.WaveletDelta unacknowledged>;
+
+        if $r4 == null goto label3;
+
+        $r8 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.operation.wave.WaveletDelta unacknowledged>;
+
+        $z1 = staticinvoke <org.waveprotocol.wave.concurrencycontrol.common.DeltaPair: boolean areSame(java.util.List,java.util.List)>(r3, $r8);
+
+        if $z1 == 0 goto label3;
+
+        $i4 = virtualinvoke r3.<org.waveprotocol.wave.model.operation.wave.TransformedWaveletDelta: int size()>();
+
+        $r9 = virtualinvoke r3.<org.waveprotocol.wave.model.operation.wave.TransformedWaveletDelta: org.waveprotocol.wave.model.version.HashedVersion getResultingVersion()>();
+
+        virtualinvoke r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: void onSuccess(int,org.waveprotocol.wave.model.version.HashedVersion)>($i4, $r9);
+
+        return 1;
+
+     label3:
+        $r5 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.version.HashedVersion endOfStartingDelta>;
+
+        $r6 = virtualinvoke r3.<org.waveprotocol.wave.model.operation.wave.TransformedWaveletDelta: org.waveprotocol.wave.model.version.HashedVersion getResultingVersion()>();
+
+        $z0 = virtualinvoke $r5.<org.waveprotocol.wave.model.version.HashedVersion: boolean equals(java.lang.Object)>($r6);
+
+        if $z0 == 0 goto label4;
+
+        $r7 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.LinkedList inferredServerPath>;
+
+        $i3 = virtualinvoke $r7.<java.util.LinkedList: int size()>();
+
+        specialinvoke r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: void mergeToClientQueue(int)>($i3);
+
+     label4:
+        return 0;
+    }
+
+    public void onSuccess(int, org.waveprotocol.wave.model.version.HashedVersion) throws org.waveprotocol.wave.model.operation.TransformException
+    {
+        org.waveprotocol.wave.model.operation.TransformException $r83, $r85, $r87;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckInfo $r31, $r39, $r90;
+        byte $b2, $b9, $b17;
+        java.lang.StringBuilder $r15, $r18, $r19, $r21, $r22, $r23, $r24, $r25, $r26, $r27, $r34, $r35, $r36, $r41, $r45, $r47, $r48, $r49, $r50, $r51, $r55, $r57, $r58, $r60, $r61, $r62, $r63, $r64, $r65, $r66, $r67, $r68, $r69, $r70, $r71, $r72, $r76, $r77, $r82, $r84, $r86, $r88, $r89;
+        org.waveprotocol.wave.common.logging.Logger $r13;
+        long $l0, $l1, $l6, $l7, $l8, $l10, $l12, $l14, $l15, $l16;
+        org.waveprotocol.wave.model.version.HashedVersion r3, $r17, $r20, $r32, $r40, $r80, $r81;
+        java.lang.String $r28, $r42, $r52, $r73, $r78;
+        org.waveprotocol.wave.model.operation.wave.WaveletDelta $r1, $r2, $r4, $r7, $r10, $r16, $r46, $r56, $r59, $r79;
+        boolean $z0, $z1;
+        org.waveprotocol.wave.common.logging.LoggerBundle $r12;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl r0;
+        int i3, $i4, $i5, $i11, $i13, $i18, $i19;
+        java.util.LinkedList $r5, $r8, $r11, $r29, $r37;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckedDelta $r91;
+        java.lang.Object $r30, $r38;
+
+        r0 := @this: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl;
+
+        i3 := @parameter0: int;
+
+        r3 := @parameter1: org.waveprotocol.wave.model.version.HashedVersion;
+
+        $r1 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.operation.wave.WaveletDelta unacknowledged>;
+
+        if $r1 != null goto label1;
+
+        $r83 = new org.waveprotocol.wave.model.operation.TransformException;
+
+        $r82 = new java.lang.StringBuilder;
+
+        specialinvoke $r82.<java.lang.StringBuilder: void <init>()>();
+
+        $r76 = virtualinvoke $r82.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Got ACK from server, but we had not sent anything. ");
+
+        $r77 = virtualinvoke $r76.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r0);
+
+        $r78 = virtualinvoke $r77.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r83.<org.waveprotocol.wave.model.operation.TransformException: void <init>(java.lang.String)>($r78);
+
+        throw $r83;
+
+     label1:
+        $r2 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.operation.wave.WaveletDelta unacknowledged>;
+
+        $l0 = virtualinvoke $r2.<org.waveprotocol.wave.model.operation.wave.WaveletDelta: long getResultingVersion()>();
+
+        $l1 = virtualinvoke r3.<org.waveprotocol.wave.model.version.HashedVersion: long getVersion()>();
+
+        $b2 = $l0 cmp $l1;
+
+        if $b2 == 0 goto label2;
+
+        $r85 = new org.waveprotocol.wave.model.operation.TransformException;
+
+        $r84 = new java.lang.StringBuilder;
+
+        specialinvoke $r84.<java.lang.StringBuilder: void <init>()>();
+
+        $r55 = virtualinvoke $r84.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Got ACK from server, but we don\'t have the same version. Client expects new version ");
+
+        $r56 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.operation.wave.WaveletDelta unacknowledged>;
+
+        $l12 = virtualinvoke $r56.<org.waveprotocol.wave.model.operation.wave.WaveletDelta: long getResultingVersion()>();
+
+        $r57 = virtualinvoke $r55.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l12);
+
+        $r58 = virtualinvoke $r57.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" and ");
+
+        $r59 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.operation.wave.WaveletDelta unacknowledged>;
+
+        $i13 = virtualinvoke $r59.<org.waveprotocol.wave.model.operation.wave.WaveletDelta: int size()>();
+
+        $r60 = virtualinvoke $r58.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i13);
+
+        $r61 = virtualinvoke $r60.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" acked ops, ");
+
+        $r62 = virtualinvoke $r61.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" Server acked ");
+
+        $r63 = virtualinvoke $r62.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>(i3);
+
+        $r64 = virtualinvoke $r63.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(", new version ");
+
+        $l14 = virtualinvoke r3.<org.waveprotocol.wave.model.version.HashedVersion: long getVersion()>();
+
+        $r65 = virtualinvoke $r64.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l14);
+
+        $r66 = virtualinvoke $r65.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(". ");
+
+        $r67 = virtualinvoke $r66.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("[Received signature:");
+
+        $r68 = virtualinvoke $r67.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r3);
+
+        $r69 = virtualinvoke $r68.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("] [Received opsApplied:");
+
+        $r70 = virtualinvoke $r69.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>(i3);
+
+        $r71 = virtualinvoke $r70.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("] ");
+
+        $r72 = virtualinvoke $r71.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r0);
+
+        $r73 = virtualinvoke $r72.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r85.<org.waveprotocol.wave.model.operation.TransformException: void <init>(java.lang.String)>($r73);
+
+        throw $r85;
+
+     label2:
+        $r4 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.operation.wave.WaveletDelta unacknowledged>;
+
+        $i4 = virtualinvoke $r4.<org.waveprotocol.wave.model.operation.wave.WaveletDelta: int size()>();
+
+        if i3 == $i4 goto label3;
+
+        $r87 = new org.waveprotocol.wave.model.operation.TransformException;
+
+        $r86 = new java.lang.StringBuilder;
+
+        specialinvoke $r86.<java.lang.StringBuilder: void <init>()>();
+
+        $r45 = virtualinvoke $r86.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Unable to accept ACK of different number of operations than client issued. Client sent = ");
+
+        $r46 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.operation.wave.WaveletDelta unacknowledged>;
+
+        $i11 = virtualinvoke $r46.<org.waveprotocol.wave.model.operation.wave.WaveletDelta: int size()>();
+
+        $r47 = virtualinvoke $r45.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i11);
+
+        $r48 = virtualinvoke $r47.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" Server acked = ");
+
+        $r49 = virtualinvoke $r48.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>(i3);
+
+        $r50 = virtualinvoke $r49.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(". ");
+
+        $r51 = virtualinvoke $r50.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r0);
+
+        $r52 = virtualinvoke $r51.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r87.<org.waveprotocol.wave.model.operation.TransformException: void <init>(java.lang.String)>($r52);
+
+        throw $r87;
+
+     label3:
+        $r5 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.LinkedList acks>;
+
+        $z0 = virtualinvoke $r5.<java.util.LinkedList: boolean isEmpty()>();
+
+        if $z0 != 0 goto label6;
+
+        $l7 = virtualinvoke r3.<org.waveprotocol.wave.model.version.HashedVersion: long getVersion()>();
+
+        $r29 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.LinkedList acks>;
+
+        $r30 = virtualinvoke $r29.<java.util.LinkedList: java.lang.Object getLast()>();
+
+        $r31 = (org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckInfo) $r30;
+
+        $r32 = $r31.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckInfo: org.waveprotocol.wave.model.version.HashedVersion ackedVersion>;
+
+        $l8 = virtualinvoke $r32.<org.waveprotocol.wave.model.version.HashedVersion: long getVersion()>();
+
+        $b9 = $l7 cmp $l8;
+
+        $i18 = (int) $b9;
+
+        if $i18 <= 0 goto label4;
+
+        $z1 = 1;
+
+        goto label5;
+
+     label4:
+        $z1 = 0;
+
+     label5:
+        $r88 = new java.lang.StringBuilder;
+
+        specialinvoke $r88.<java.lang.StringBuilder: void <init>()>();
+
+        $r34 = virtualinvoke $r88.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Unexpected ack for version ");
+
+        $l10 = virtualinvoke r3.<org.waveprotocol.wave.model.version.HashedVersion: long getVersion()>();
+
+        $r35 = virtualinvoke $r34.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l10);
+
+        $r36 = virtualinvoke $r35.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" less than last acked version ");
+
+        $r37 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.LinkedList acks>;
+
+        $r38 = virtualinvoke $r37.<java.util.LinkedList: java.lang.Object getLast()>();
+
+        $r39 = (org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckInfo) $r38;
+
+        $r40 = $r39.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckInfo: org.waveprotocol.wave.model.version.HashedVersion ackedVersion>;
+
+        $r41 = virtualinvoke $r36.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r40);
+
+        $r42 = virtualinvoke $r41.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        staticinvoke <org.waveprotocol.wave.model.util.Preconditions: void checkState(boolean,java.lang.Object)>($z1, $r42);
+
+     label6:
+        $r79 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.operation.wave.WaveletDelta unacknowledged>;
+
+        $r80 = virtualinvoke $r79.<org.waveprotocol.wave.model.operation.wave.WaveletDelta: org.waveprotocol.wave.model.version.HashedVersion getTargetVersion()>();
+
+        $l15 = virtualinvoke $r80.<org.waveprotocol.wave.model.version.HashedVersion: long getVersion()>();
+
+        $r81 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.version.HashedVersion startSignature>;
+
+        $l16 = virtualinvoke $r81.<org.waveprotocol.wave.model.version.HashedVersion: long getVersion()>();
+
+        $b17 = $l15 cmp $l16;
+
+        $i19 = (int) $b17;
+
+        if $i19 >= 0 goto label7;
+
+        $r12 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.common.logging.LoggerBundle logger>;
+
+        $r13 = interfaceinvoke $r12.<org.waveprotocol.wave.common.logging.LoggerBundle: org.waveprotocol.wave.common.logging.Logger error()>();
+
+        $r89 = new java.lang.StringBuilder;
+
+        specialinvoke $r89.<java.lang.StringBuilder: void <init>()>();
+
+        $r15 = virtualinvoke $r89.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("unexpected ack for version ");
+
+        $r16 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.operation.wave.WaveletDelta unacknowledged>;
+
+        $r17 = virtualinvoke $r16.<org.waveprotocol.wave.model.operation.wave.WaveletDelta: org.waveprotocol.wave.model.version.HashedVersion getTargetVersion()>();
+
+        $r18 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r17);
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" before start version ");
+
+        $r20 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.version.HashedVersion startSignature>;
+
+        $l6 = virtualinvoke $r20.<org.waveprotocol.wave.model.version.HashedVersion: long getVersion()>();
+
+        $r21 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l6);
+
+        $r22 = virtualinvoke $r21.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(". [Received signature:");
+
+        $r23 = virtualinvoke $r22.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r3);
+
+        $r24 = virtualinvoke $r23.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("] [Received opsApplied:");
+
+        $r25 = virtualinvoke $r24.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>(i3);
+
+        $r26 = virtualinvoke $r25.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("] ");
+
+        $r27 = virtualinvoke $r26.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r0);
+
+        $r28 = virtualinvoke $r27.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r13.<org.waveprotocol.wave.common.logging.Logger: void log(java.lang.String)>($r28);
+
+     label7:
+        $r90 = new org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckInfo;
+
+        specialinvoke $r90.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckInfo: void <init>(int,org.waveprotocol.wave.model.version.HashedVersion)>(i3, r3);
+
+        $r7 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.operation.wave.WaveletDelta unacknowledged>;
+
+        $i5 = virtualinvoke $r7.<org.waveprotocol.wave.model.operation.wave.WaveletDelta: int size()>();
+
+        if $i5 <= 0 goto label8;
+
+        $r11 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.LinkedList inferredServerPath>;
+
+        $r91 = new org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckedDelta;
+
+        $r10 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.operation.wave.WaveletDelta unacknowledged>;
+
+        specialinvoke $r91.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckedDelta: void <init>(org.waveprotocol.wave.model.operation.wave.WaveletDelta,org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckInfo)>($r10, $r90);
+
+        virtualinvoke $r11.<java.util.LinkedList: boolean add(java.lang.Object)>($r91);
+
+     label8:
+        $r8 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.LinkedList acks>;
+
+        virtualinvoke $r8.<java.util.LinkedList: boolean add(java.lang.Object)>($r90);
+
+        specialinvoke r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: void makeFakeServerOpsFromAckAndNotify(org.waveprotocol.wave.model.version.HashedVersion)>(r3);
+
+        r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.operation.wave.WaveletDelta unacknowledged> = null;
+
+        specialinvoke r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: void triggerUnsavedDataListener()>();
+
+        specialinvoke r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: void sendDelta()>();
+
+        return;
+    }
+
+    private void makeFakeServerOpsFromAckAndNotify(org.waveprotocol.wave.model.version.HashedVersion) throws org.waveprotocol.wave.model.operation.TransformException
+    {
+        org.waveprotocol.wave.model.operation.wave.WaveletOperation r14, r16;
+        org.waveprotocol.wave.common.logging.Logger $r10;
+        java.util.ArrayList $r0;
+        org.waveprotocol.wave.model.version.HashedVersion r12, $r15;
+        org.waveprotocol.wave.model.operation.wave.VersionUpdateOp $r13;
+        org.waveprotocol.wave.concurrencycontrol.client.OperationQueue $r4;
+        boolean $z0, $z1, $z2, $z3;
+        java.util.Iterator $r3, $r5;
+        org.waveprotocol.wave.model.operation.wave.WaveletDelta $r2;
+        org.waveprotocol.wave.common.logging.LoggerBundle $r9;
+        java.util.List $r6, $r8;
+        java.lang.Object $r7, $r11;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl r1;
+
+        r1 := @this: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl;
+
+        r12 := @parameter0: org.waveprotocol.wave.model.version.HashedVersion;
+
+        $r0 = staticinvoke <org.waveprotocol.wave.model.util.CollectionUtils: java.util.ArrayList newArrayList()>();
+
+        $r2 = r1.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.operation.wave.WaveletDelta unacknowledged>;
+
+        $r3 = virtualinvoke $r2.<org.waveprotocol.wave.model.operation.wave.WaveletDelta: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r3.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label4;
+
+        $r11 = interfaceinvoke $r3.<java.util.Iterator: java.lang.Object next()>();
+
+        r14 = (org.waveprotocol.wave.model.operation.wave.WaveletOperation) $r11;
+
+        $z3 = interfaceinvoke $r3.<java.util.Iterator: boolean hasNext()>();
+
+        if $z3 == 0 goto label2;
+
+        $r15 = null;
+
+        goto label3;
+
+     label2:
+        $r15 = r12;
+
+     label3:
+        $r13 = virtualinvoke r14.<org.waveprotocol.wave.model.operation.wave.WaveletOperation: org.waveprotocol.wave.model.operation.wave.VersionUpdateOp createVersionUpdateOp(long,org.waveprotocol.wave.model.version.HashedVersion)>(1L, $r15);
+
+        interfaceinvoke $r0.<java.util.List: boolean add(java.lang.Object)>($r13);
+
+        goto label1;
+
+     label4:
+        $r4 = r1.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.concurrencycontrol.client.OperationQueue clientOperationQueue>;
+
+        virtualinvoke $r4.<org.waveprotocol.wave.concurrencycontrol.client.OperationQueue: java.util.List transform(java.util.List)>($r0);
+
+        $r5 = interfaceinvoke $r0.<java.util.List: java.util.Iterator iterator()>();
+
+     label5:
+        $z1 = interfaceinvoke $r5.<java.util.Iterator: boolean hasNext()>();
+
+        if $z1 == 0 goto label6;
+
+        $r7 = interfaceinvoke $r5.<java.util.Iterator: java.lang.Object next()>();
+
+        r16 = (org.waveprotocol.wave.model.operation.wave.WaveletOperation) $r7;
+
+        $r8 = r1.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.List serverOperations>;
+
+        interfaceinvoke $r8.<java.util.List: boolean add(java.lang.Object)>(r16);
+
+        $r9 = r1.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.common.logging.LoggerBundle logger>;
+
+        $r10 = interfaceinvoke $r9.<org.waveprotocol.wave.common.logging.LoggerBundle: org.waveprotocol.wave.common.logging.Logger trace()>();
+
+        interfaceinvoke $r10.<org.waveprotocol.wave.common.logging.Logger: void log(java.lang.String,java.lang.Object)>("Fake version update op ", r16);
+
+        goto label5;
+
+     label6:
+        $r6 = r1.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.List serverOperations>;
+
+        $z2 = interfaceinvoke $r6.<java.util.List: boolean isEmpty()>();
+
+        if $z2 != 0 goto label7;
+
+        specialinvoke r1.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: void onOperationReceived()>();
+
+     label7:
+        return;
+    }
+
+    public void onServerDelta(org.waveprotocol.wave.model.operation.wave.TransformedWaveletDelta) throws org.waveprotocol.wave.model.operation.TransformException, org.waveprotocol.wave.model.operation.OperationException
+    {
+        java.util.List $r2;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl r0;
+        org.waveprotocol.wave.model.operation.wave.TransformedWaveletDelta r1;
+
+        r0 := @this: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl;
+
+        r1 := @parameter0: org.waveprotocol.wave.model.operation.wave.TransformedWaveletDelta;
+
+        $r2 = staticinvoke <java.util.Collections: java.util.List singletonList(java.lang.Object)>(r1);
+
+        virtualinvoke r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: void onServerDeltas(java.util.List)>($r2);
+
+        return;
+    }
+
+    public void onServerDeltas(java.util.List) throws org.waveprotocol.wave.model.operation.TransformException, org.waveprotocol.wave.model.operation.OperationException
+    {
+        java.lang.Object[] $r6;
+        org.waveprotocol.wave.common.logging.Logger $r3, $r5, $r12;
+        org.waveprotocol.wave.model.operation.wave.TransformedWaveletDelta r10;
+        boolean $z0, $z1, $z2;
+        java.util.Iterator $r7;
+        org.waveprotocol.wave.common.logging.LoggerBundle $r2, $r4, $r11;
+        java.util.List r0, $r8;
+        java.lang.Object $r9;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl r1;
+
+        r1 := @this: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl;
+
+        r0 := @parameter0: java.util.List;
+
+        $z0 = interfaceinvoke r0.<java.util.List: boolean isEmpty()>();
+
+        if $z0 == 0 goto label1;
+
+        $r11 = r1.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.common.logging.LoggerBundle logger>;
+
+        $r12 = interfaceinvoke $r11.<org.waveprotocol.wave.common.logging.LoggerBundle: org.waveprotocol.wave.common.logging.Logger error()>();
+
+        interfaceinvoke $r12.<org.waveprotocol.wave.common.logging.Logger: void log(java.lang.String)>("Unexpected empty deltas.");
+
+        return;
+
+     label1:
+        $r2 = r1.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.common.logging.LoggerBundle logger>;
+
+        $r3 = interfaceinvoke $r2.<org.waveprotocol.wave.common.logging.LoggerBundle: org.waveprotocol.wave.common.logging.Logger trace()>();
+
+        interfaceinvoke $r3.<org.waveprotocol.wave.common.logging.Logger: void log(java.lang.String)>("Server deltas received: ");
+
+        $r4 = r1.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.common.logging.LoggerBundle logger>;
+
+        $r5 = interfaceinvoke $r4.<org.waveprotocol.wave.common.logging.LoggerBundle: org.waveprotocol.wave.common.logging.Logger trace()>();
+
+        $r6 = interfaceinvoke r0.<java.util.List: java.lang.Object[] toArray()>();
+
+        interfaceinvoke $r5.<org.waveprotocol.wave.common.logging.Logger: void log(java.lang.Object[])>($r6);
+
+        $r7 = interfaceinvoke r0.<java.util.List: java.util.Iterator iterator()>();
+
+     label2:
+        $z1 = interfaceinvoke $r7.<java.util.Iterator: boolean hasNext()>();
+
+        if $z1 == 0 goto label3;
+
+        $r9 = interfaceinvoke $r7.<java.util.Iterator: java.lang.Object next()>();
+
+        r10 = (org.waveprotocol.wave.model.operation.wave.TransformedWaveletDelta) $r9;
+
+        specialinvoke r1.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: void transformOperationsAndNotify(org.waveprotocol.wave.model.operation.wave.TransformedWaveletDelta)>(r10);
+
+        goto label2;
+
+     label3:
+        $r8 = r1.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.List serverOperations>;
+
+        $z2 = interfaceinvoke $r8.<java.util.List: boolean isEmpty()>();
+
+        if $z2 != 0 goto label4;
+
+        specialinvoke r1.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: void onOperationReceived()>();
+
+     label4:
+        specialinvoke r1.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: void sendDelta()>();
+
+        return;
+    }
+
+    public java.util.List getReconnectionVersions()
+    {
+        java.util.Iterator $r4;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckedDelta r6;
+        java.util.ArrayList $r0;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckInfo $r7;
+        org.waveprotocol.wave.model.version.HashedVersion $r2, $r8;
+        java.lang.Object $r5;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl r1;
+        java.util.LinkedList $r3;
+        boolean $z0;
+
+        r1 := @this: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl;
+
+        $r0 = staticinvoke <org.waveprotocol.wave.model.util.CollectionUtils: java.util.ArrayList newArrayList()>();
+
+        $r2 = r1.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.version.HashedVersion startSignature>;
+
+        virtualinvoke $r0.<java.util.ArrayList: boolean add(java.lang.Object)>($r2);
+
+        $r3 = r1.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.LinkedList inferredServerPath>;
+
+        $r4 = virtualinvoke $r3.<java.util.LinkedList: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r4.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label2;
+
+        $r5 = interfaceinvoke $r4.<java.util.Iterator: java.lang.Object next()>();
+
+        r6 = (org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckedDelta) $r5;
+
+        $r7 = r6.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckedDelta: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckInfo ack>;
+
+        $r8 = $r7.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckInfo: org.waveprotocol.wave.model.version.HashedVersion ackedVersion>;
+
+        virtualinvoke $r0.<java.util.ArrayList: boolean add(java.lang.Object)>($r8);
+
+        goto label1;
+
+     label2:
+        return $r0;
+    }
+
+    private boolean isReadyToSend()
+    {
+        java.lang.Object[] $r3;
+        org.waveprotocol.wave.common.logging.Logger $r2;
+        org.waveprotocol.wave.common.logging.LoggerBundle $r1;
+        org.waveprotocol.wave.concurrencycontrol.client.ServerConnection $r5, $r6;
+        java.lang.Boolean $r4;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl r0;
+        java.lang.String $r7;
+        boolean $z0, z1, $z2, $z3, $z4, $z6, $z7;
+
+        r0 := @this: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl;
+
+        $z0 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: boolean pauseSendForFlush>;
+
+        if $z0 != 0 goto label1;
+
+        $r6 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.concurrencycontrol.client.ServerConnection serverConnection>;
+
+        $z4 = interfaceinvoke $r6.<org.waveprotocol.wave.concurrencycontrol.client.ServerConnection: boolean isOpen()>();
+
+        if $z4 == 0 goto label1;
+
+        $z7 = 1;
+
+        $z6 = 1;
+
+        goto label2;
+
+     label1:
+        $z7 = 0;
+
+        $z6 = 0;
+
+     label2:
+        z1 = $z7;
+
+        if $z6 != 0 goto label5;
+
+        $r1 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.common.logging.LoggerBundle logger>;
+
+        $r2 = interfaceinvoke $r1.<org.waveprotocol.wave.common.logging.LoggerBundle: org.waveprotocol.wave.common.logging.Logger trace()>();
+
+        $r3 = newarray (java.lang.Object)[5];
+
+        $r3[0] = "Not ready to send, pauseSendForFlush is ";
+
+        $z2 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: boolean pauseSendForFlush>;
+
+        $r4 = staticinvoke <java.lang.Boolean: java.lang.Boolean valueOf(boolean)>($z2);
+
+        $r3[1] = $r4;
+
+        $r3[2] = " server connection ";
+
+        $r5 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.concurrencycontrol.client.ServerConnection serverConnection>;
+
+        $z3 = interfaceinvoke $r5.<org.waveprotocol.wave.concurrencycontrol.client.ServerConnection: boolean isOpen()>();
+
+        if $z3 == 0 goto label3;
+
+        $r7 = "IS";
+
+        goto label4;
+
+     label3:
+        $r7 = "is NOT";
+
+     label4:
+        $r3[3] = $r7;
+
+        $r3[4] = " open";
+
+        interfaceinvoke $r2.<org.waveprotocol.wave.common.logging.Logger: void log(java.lang.Object[])>($r3);
+
+     label5:
+        return z1;
+    }
+
+    public void onClientOperations(org.waveprotocol.wave.model.operation.wave.WaveletOperation[]) throws org.waveprotocol.wave.model.operation.TransformException
+    {
+        org.waveprotocol.wave.model.operation.wave.WaveletOperation r10;
+        java.util.Iterator $r8;
+        org.waveprotocol.wave.concurrencycontrol.common.DeltaPair $r0, $r5;
+        java.util.List $r2, $r4, $r6, $r7;
+        org.waveprotocol.wave.model.operation.wave.WaveletOperation[] r1;
+        java.lang.Object $r9;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl r3;
+        org.waveprotocol.wave.concurrencycontrol.client.OperationQueue $r11;
+        boolean $z0;
+
+        r3 := @this: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl;
+
+        r1 := @parameter0: org.waveprotocol.wave.model.operation.wave.WaveletOperation[];
+
+        $r0 = new org.waveprotocol.wave.concurrencycontrol.common.DeltaPair;
+
+        $r2 = staticinvoke <java.util.Arrays: java.util.List asList(java.lang.Object[])>(r1);
+
+        $r4 = r3.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.List serverOperations>;
+
+        specialinvoke $r0.<org.waveprotocol.wave.concurrencycontrol.common.DeltaPair: void <init>(java.lang.Iterable,java.lang.Iterable)>($r2, $r4);
+
+        $r5 = virtualinvoke $r0.<org.waveprotocol.wave.concurrencycontrol.common.DeltaPair: org.waveprotocol.wave.concurrencycontrol.common.DeltaPair transform()>();
+
+        $r6 = virtualinvoke $r5.<org.waveprotocol.wave.concurrencycontrol.common.DeltaPair: java.util.List getServer()>();
+
+        r3.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.List serverOperations> = $r6;
+
+        $r7 = virtualinvoke $r5.<org.waveprotocol.wave.concurrencycontrol.common.DeltaPair: java.util.List getClient()>();
+
+        $r8 = interfaceinvoke $r7.<java.util.List: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r8.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label2;
+
+        $r9 = interfaceinvoke $r8.<java.util.Iterator: java.lang.Object next()>();
+
+        r10 = (org.waveprotocol.wave.model.operation.wave.WaveletOperation) $r9;
+
+        $r11 = r3.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.concurrencycontrol.client.OperationQueue clientOperationQueue>;
+
+        virtualinvoke $r11.<org.waveprotocol.wave.concurrencycontrol.client.OperationQueue: void add(org.waveprotocol.wave.model.operation.wave.WaveletOperation)>(r10);
+
+        goto label1;
+
+     label2:
+        specialinvoke r3.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: void triggerUnsavedDataListener()>();
+
+        specialinvoke r3.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: void sendDelta()>();
+
+        return;
+    }
+
+    public void onCommit(long)
+    {
+        java.lang.Integer $r7;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckInfo $r12, $r19;
+        byte $b3, $b5;
+        java.lang.Long $r5;
+        boolean $z0, $z1, $z2;
+        org.waveprotocol.wave.common.logging.LoggerBundle $r2;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl r0;
+        java.lang.Object[] $r4;
+        org.waveprotocol.wave.common.logging.Logger $r3;
+        long l0, $l2, $l4;
+        int $i1, $i6, $i7;
+        org.waveprotocol.wave.model.version.HashedVersion $r13, $r20;
+        java.lang.Boolean $r9;
+        java.util.LinkedList $r1, $r6, $r10, $r14, $r15, $r21, $r22;
+        org.waveprotocol.wave.model.operation.wave.WaveletDelta $r8, $r18;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckedDelta r17;
+        java.lang.Object $r11, $r16;
+
+        r0 := @this: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl;
+
+        l0 := @parameter0: long;
+
+     label1:
+        $r1 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.LinkedList inferredServerPath>;
+
+        $z0 = virtualinvoke $r1.<java.util.LinkedList: boolean isEmpty()>();
+
+        if $z0 != 0 goto label2;
+
+        $r15 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.LinkedList inferredServerPath>;
+
+        $r16 = virtualinvoke $r15.<java.util.LinkedList: java.lang.Object getFirst()>();
+
+        r17 = (org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckedDelta) $r16;
+
+        $r18 = r17.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckedDelta: org.waveprotocol.wave.model.operation.wave.WaveletDelta delta>;
+
+        $l4 = virtualinvoke $r18.<org.waveprotocol.wave.model.operation.wave.WaveletDelta: long getResultingVersion()>();
+
+        $b5 = $l4 cmp l0;
+
+        $i6 = (int) $b5;
+
+        if $i6 > 0 goto label2;
+
+        $r19 = r17.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckedDelta: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckInfo ack>;
+
+        $r20 = $r19.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckInfo: org.waveprotocol.wave.model.version.HashedVersion ackedVersion>;
+
+        r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.version.HashedVersion startSignature> = $r20;
+
+        $r21 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.LinkedList inferredServerPath>;
+
+        virtualinvoke $r21.<java.util.LinkedList: java.lang.Object removeFirst()>();
+
+        goto label1;
+
+     label2:
+        $r22 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.LinkedList acks>;
+
+        $z1 = virtualinvoke $r22.<java.util.LinkedList: boolean isEmpty()>();
+
+        if $z1 != 0 goto label3;
+
+        $r10 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.LinkedList acks>;
+
+        $r11 = virtualinvoke $r10.<java.util.LinkedList: java.lang.Object getFirst()>();
+
+        $r12 = (org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckInfo) $r11;
+
+        $r13 = $r12.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckInfo: org.waveprotocol.wave.model.version.HashedVersion ackedVersion>;
+
+        $l2 = virtualinvoke $r13.<org.waveprotocol.wave.model.version.HashedVersion: long getVersion()>();
+
+        $b3 = $l2 cmp l0;
+
+        $i7 = (int) $b3;
+
+        if $i7 > 0 goto label3;
+
+        $r14 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.LinkedList acks>;
+
+        virtualinvoke $r14.<java.util.LinkedList: java.lang.Object remove()>();
+
+        goto label2;
+
+     label3:
+        r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: long lastCommitVersion> = l0;
+
+        $r2 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.common.logging.LoggerBundle logger>;
+
+        $r3 = interfaceinvoke $r2.<org.waveprotocol.wave.common.logging.LoggerBundle: org.waveprotocol.wave.common.logging.Logger trace()>();
+
+        $r4 = newarray (java.lang.Object)[6];
+
+        $r4[0] = "onCommit: version =";
+
+        $r5 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>(l0);
+
+        $r4[1] = $r5;
+
+        $r4[2] = " serverpathsize =";
+
+        $r6 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.LinkedList inferredServerPath>;
+
+        $i1 = virtualinvoke $r6.<java.util.LinkedList: int size()>();
+
+        $r7 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i1);
+
+        $r4[3] = $r7;
+
+        $r4[4] = " any unacknowledged ? ";
+
+        $r8 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.operation.wave.WaveletDelta unacknowledged>;
+
+        if $r8 != null goto label4;
+
+        $z2 = 1;
+
+        goto label5;
+
+     label4:
+        $z2 = 0;
+
+     label5:
+        $r9 = staticinvoke <java.lang.Boolean: java.lang.Boolean valueOf(boolean)>($z2);
+
+        $r4[5] = $r9;
+
+        interfaceinvoke $r3.<org.waveprotocol.wave.common.logging.Logger: void log(java.lang.Object[])>($r4);
+
+        specialinvoke r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: void triggerUnsavedDataListener()>();
+
+        return;
+    }
+
+    private void onOperationReceived()
+    {
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$ConnectionListener $r1, $r2;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl r0;
+        boolean z0;
+
+        r0 := @this: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl;
+
+        z0 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: boolean pauseSendForFlush>;
+
+        r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: boolean pauseSendForFlush> = 1;
+
+        $r1 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$ConnectionListener clientListener>;
+
+        if $r1 == null goto label1;
+
+        $r2 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$ConnectionListener clientListener>;
+
+        interfaceinvoke $r2.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$ConnectionListener: void onOperationReceived()>();
+
+     label1:
+        r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: boolean pauseSendForFlush> = z0;
+
+        return;
+    }
+
+    public org.waveprotocol.wave.model.operation.wave.WaveletOperation receive()
+    {
+        org.waveprotocol.wave.model.operation.wave.WaveletOperation r4;
+        org.waveprotocol.wave.common.logging.Logger $r6;
+        org.waveprotocol.wave.common.logging.LoggerBundle $r5;
+        java.util.List $r1, $r2;
+        java.lang.Object $r3;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl r0;
+        boolean $z0;
+
+        r0 := @this: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl;
+
+        $r1 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.List serverOperations>;
+
+        $z0 = interfaceinvoke $r1.<java.util.List: boolean isEmpty()>();
+
+        if $z0 == 0 goto label1;
+
+        return null;
+
+     label1:
+        $r2 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.List serverOperations>;
+
+        $r3 = interfaceinvoke $r2.<java.util.List: java.lang.Object remove(int)>(0);
+
+        r4 = (org.waveprotocol.wave.model.operation.wave.WaveletOperation) $r3;
+
+        $r5 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.common.logging.LoggerBundle logger>;
+
+        $r6 = interfaceinvoke $r5.<org.waveprotocol.wave.common.logging.LoggerBundle: org.waveprotocol.wave.common.logging.Logger trace()>();
+
+        interfaceinvoke $r6.<org.waveprotocol.wave.common.logging.Logger: void log(java.lang.String,java.lang.Object)>("Processing server op ", r4);
+
+        return r4;
+    }
+
+    public org.waveprotocol.wave.model.operation.wave.WaveletOperation peek()
+    {
+        org.waveprotocol.wave.model.operation.wave.WaveletOperation $r4;
+        java.util.List $r1, $r2;
+        java.lang.Object $r3;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl r0;
+        boolean $z0;
+
+        r0 := @this: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl;
+
+        $r1 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.List serverOperations>;
+
+        $z0 = interfaceinvoke $r1.<java.util.List: boolean isEmpty()>();
+
+        if $z0 == 0 goto label1;
+
+        $r4 = null;
+
+        goto label2;
+
+     label1:
+        $r2 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.List serverOperations>;
+
+        $r3 = interfaceinvoke $r2.<java.util.List: java.lang.Object get(int)>(0);
+
+        $r4 = (org.waveprotocol.wave.model.operation.wave.WaveletOperation) $r3;
+
+     label2:
+        return $r4;
+    }
+
+    private org.waveprotocol.wave.model.version.HashedVersion getLastSignature()
+    {
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckedDelta $r4;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckInfo $r5;
+        int $i0;
+        org.waveprotocol.wave.model.version.HashedVersion $r6;
+        java.lang.Object $r3;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl r0;
+        java.util.LinkedList $r1, $r2;
+
+        r0 := @this: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl;
+
+        $r1 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.LinkedList inferredServerPath>;
+
+        $i0 = virtualinvoke $r1.<java.util.LinkedList: int size()>();
+
+        if $i0 != 0 goto label1;
+
+        $r6 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.version.HashedVersion startSignature>;
+
+        goto label2;
+
+     label1:
+        $r2 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.LinkedList inferredServerPath>;
+
+        $r3 = virtualinvoke $r2.<java.util.LinkedList: java.lang.Object getLast()>();
+
+        $r4 = (org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckedDelta) $r3;
+
+        $r5 = $r4.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckedDelta: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckInfo ack>;
+
+        $r6 = $r5.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl$AckInfo: org.waveprotocol.wave.model.version.HashedVersion ackedVersion>;
+
+     label2:
+        return $r6;
+    }
+
+    private boolean everythingIsCommitted()
+    {
+        org.waveprotocol.wave.model.operation.wave.WaveletDelta $r2;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl r0;
+        java.util.LinkedList $r1;
+        boolean $z0, $z1;
+
+        r0 := @this: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl;
+
+        $r1 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.LinkedList acks>;
+
+        $z0 = virtualinvoke $r1.<java.util.LinkedList: boolean isEmpty()>();
+
+        if $z0 == 0 goto label1;
+
+        $r2 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.operation.wave.WaveletDelta unacknowledged>;
+
+        if $r2 != null goto label1;
+
+        $z1 = 1;
+
+        goto label2;
+
+     label1:
+        $z1 = 0;
+
+     label2:
+        return $z1;
+    }
+
+    private void triggerUnsavedDataListener()
+    {
+        org.waveprotocol.wave.concurrencycontrol.common.UnsavedDataListener $r1, $r3;
+        org.waveprotocol.wave.concurrencycontrol.common.UnsavedDataListener$UnsavedDataInfo $r2;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl r0;
+
+        r0 := @this: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl;
+
+        $r1 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.concurrencycontrol.common.UnsavedDataListener unsavedDataListener>;
+
+        if $r1 == null goto label1;
+
+        $r3 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.concurrencycontrol.common.UnsavedDataListener unsavedDataListener>;
+
+        $r2 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.concurrencycontrol.common.UnsavedDataListener$UnsavedDataInfo unsavedDataInfo>;
+
+        interfaceinvoke $r3.<org.waveprotocol.wave.concurrencycontrol.common.UnsavedDataListener: void onUpdate(org.waveprotocol.wave.concurrencycontrol.common.UnsavedDataListener$UnsavedDataInfo)>($r2);
+
+     label1:
+        return;
+    }
+
+    public java.lang.String toString()
+    {
+        long $l0;
+        org.waveprotocol.wave.model.version.HashedVersion $r3, $r7;
+        java.lang.String $r29;
+        java.util.LinkedList $r14;
+        org.waveprotocol.wave.concurrencycontrol.client.OperationQueue $r22;
+        org.waveprotocol.wave.model.operation.wave.WaveletDelta $r18;
+        java.util.List $r26;
+        java.lang.StringBuilder $r0, $r1, $r4, $r5, $r6, $r8, $r9, $r10, $r11, $r12, $r13, $r15, $r16, $r17, $r19, $r20, $r21, $r23, $r24, $r25, $r27, $r28;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl r2;
+
+        r2 := @this: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl;
+
+        $r0 = new java.lang.StringBuilder;
+
+        specialinvoke $r0.<java.lang.StringBuilder: void <init>()>();
+
+        $r1 = virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Client CC State = [startSignature:");
+
+        $r3 = r2.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.version.HashedVersion startSignature>;
+
+        $r4 = virtualinvoke $r1.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r3);
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("] \n");
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("[endOfStartingDelta:");
+
+        $r7 = r2.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.version.HashedVersion endOfStartingDelta>;
+
+        $r8 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r7);
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("] \n");
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("[lastCommittedVersion: ");
+
+        $l0 = r2.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: long lastCommitVersion>;
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l0);
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("] \n");
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("[inferredServerPath:");
+
+        $r14 = r2.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.LinkedList inferredServerPath>;
+
+        $r15 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r14);
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("] \n");
+
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("[unacknowledged:");
+
+        $r18 = r2.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.operation.wave.WaveletDelta unacknowledged>;
+
+        $r19 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r18);
+
+        $r20 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("] \n");
+
+        $r21 = virtualinvoke $r20.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("[clientOperationQueue:");
+
+        $r22 = r2.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.concurrencycontrol.client.OperationQueue clientOperationQueue>;
+
+        $r23 = virtualinvoke $r21.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r22);
+
+        $r24 = virtualinvoke $r23.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("] \n");
+
+        $r25 = virtualinvoke $r24.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("[serverOperations:");
+
+        $r26 = r2.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.List serverOperations>;
+
+        $r27 = virtualinvoke $r25.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r26);
+
+        $r28 = virtualinvoke $r27.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("] \n");
+
+        $r29 = virtualinvoke $r28.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        return $r29;
+    }
+
+    static org.waveprotocol.wave.model.operation.wave.WaveletDelta access$000(org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl)
+    {
+        org.waveprotocol.wave.model.operation.wave.WaveletDelta $r1;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl r0;
+
+        r0 := @parameter0: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl;
+
+        $r1 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.model.operation.wave.WaveletDelta unacknowledged>;
+
+        return $r1;
+    }
+
+    static org.waveprotocol.wave.concurrencycontrol.client.OperationQueue access$100(org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl)
+    {
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl r0;
+        org.waveprotocol.wave.concurrencycontrol.client.OperationQueue $r1;
+
+        r0 := @parameter0: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl;
+
+        $r1 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.concurrencycontrol.client.OperationQueue clientOperationQueue>;
+
+        return $r1;
+    }
+
+    static java.util.LinkedList access$200(org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl)
+    {
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl r0;
+        java.util.LinkedList $r1;
+
+        r0 := @parameter0: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl;
+
+        $r1 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: java.util.LinkedList acks>;
+
+        return $r1;
+    }
+
+    static long access$300(org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl)
+    {
+        long $l0;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl r0;
+
+        r0 := @parameter0: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl;
+
+        $l0 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: long lastCommitVersion>;
+
+        return $l0;
+    }
+
+    static org.waveprotocol.wave.concurrencycontrol.client.ServerConnection access$400(org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl)
+    {
+        org.waveprotocol.wave.concurrencycontrol.client.ServerConnection $r1;
+        org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl r0;
+
+        r0 := @parameter0: org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl;
+
+        $r1 = r0.<org.waveprotocol.wave.concurrencycontrol.client.ConcurrencyControl: org.waveprotocol.wave.concurrencycontrol.client.ServerConnection serverConnection>;
+
+        return $r1;
+    }
+}

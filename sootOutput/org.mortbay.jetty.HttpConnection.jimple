@@ -1,0 +1,2949 @@
+public class org.mortbay.jetty.HttpConnection extends java.lang.Object implements org.mortbay.io.Connection
+{
+    private static int UNKNOWN;
+    private static java.lang.ThreadLocal __currentConnection;
+    private long _timeStamp;
+    private int _requests;
+    private boolean _handling;
+    private boolean _destroy;
+    protected final org.mortbay.jetty.Connector _connector;
+    protected final org.mortbay.io.EndPoint _endp;
+    protected final org.mortbay.jetty.Server _server;
+    protected final org.mortbay.jetty.HttpURI _uri;
+    protected final org.mortbay.jetty.Parser _parser;
+    protected final org.mortbay.jetty.HttpFields _requestFields;
+    protected final org.mortbay.jetty.Request _request;
+    protected javax.servlet.ServletInputStream _in;
+    protected final org.mortbay.jetty.Generator _generator;
+    protected final org.mortbay.jetty.HttpFields _responseFields;
+    protected final org.mortbay.jetty.Response _response;
+    protected org.mortbay.jetty.HttpConnection$Output _out;
+    protected org.mortbay.jetty.HttpConnection$OutputWriter _writer;
+    protected java.io.PrintWriter _printWriter;
+    int _include;
+    private java.lang.Object _associatedObject;
+    private transient int _expect;
+    private transient int _version;
+    private transient boolean _head;
+    private transient boolean _host;
+    private transient boolean _delayedHandling;
+
+    public static org.mortbay.jetty.HttpConnection getCurrentConnection()
+    {
+        java.lang.ThreadLocal $r0;
+        java.lang.Object $r1;
+        org.mortbay.jetty.HttpConnection $r2;
+
+        $r0 = <org.mortbay.jetty.HttpConnection: java.lang.ThreadLocal __currentConnection>;
+
+        $r1 = virtualinvoke $r0.<java.lang.ThreadLocal: java.lang.Object get()>();
+
+        $r2 = (org.mortbay.jetty.HttpConnection) $r1;
+
+        return $r2;
+    }
+
+    protected static void setCurrentConnection(org.mortbay.jetty.HttpConnection)
+    {
+        java.lang.ThreadLocal $r1;
+        org.mortbay.jetty.HttpConnection r0;
+
+        r0 := @parameter0: org.mortbay.jetty.HttpConnection;
+
+        $r1 = <org.mortbay.jetty.HttpConnection: java.lang.ThreadLocal __currentConnection>;
+
+        virtualinvoke $r1.<java.lang.ThreadLocal: void set(java.lang.Object)>(r0);
+
+        return;
+    }
+
+    public void <init>(org.mortbay.jetty.Connector, org.mortbay.io.EndPoint, org.mortbay.jetty.Server)
+    {
+        org.mortbay.jetty.HttpFields $r26, $r27;
+        org.mortbay.jetty.Server r19;
+        boolean $z0;
+        org.mortbay.jetty.Generator $r20;
+        org.mortbay.jetty.HttpConnection$RequestHandler $r24;
+        org.mortbay.jetty.Connector r3, $r7, $r8, $r9, $r15, $r16, $r18;
+        org.mortbay.jetty.HttpParser $r25;
+        long $l0;
+        org.mortbay.jetty.HttpURI $r21, $r22;
+        org.mortbay.jetty.Request $r28;
+        org.mortbay.jetty.HttpGenerator $r30;
+        org.mortbay.jetty.EncodedHttpURI $r23;
+        int $i1, $i2, $i3, $i4, $i5, $i6;
+        java.lang.String $r1, $r2;
+        org.mortbay.jetty.HttpConnection r0;
+        org.mortbay.jetty.Response $r29;
+        org.mortbay.io.EndPoint r4, $r17;
+
+        r0 := @this: org.mortbay.jetty.HttpConnection;
+
+        r3 := @parameter0: org.mortbay.jetty.Connector;
+
+        r4 := @parameter1: org.mortbay.io.EndPoint;
+
+        r19 := @parameter2: org.mortbay.jetty.Server;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        $l0 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        r0.<org.mortbay.jetty.HttpConnection: long _timeStamp> = $l0;
+
+        $i1 = <org.mortbay.jetty.HttpConnection: int UNKNOWN>;
+
+        r0.<org.mortbay.jetty.HttpConnection: int _expect> = $i1;
+
+        $i2 = <org.mortbay.jetty.HttpConnection: int UNKNOWN>;
+
+        r0.<org.mortbay.jetty.HttpConnection: int _version> = $i2;
+
+        r0.<org.mortbay.jetty.HttpConnection: boolean _head> = 0;
+
+        r0.<org.mortbay.jetty.HttpConnection: boolean _host> = 0;
+
+        r0.<org.mortbay.jetty.HttpConnection: boolean _delayedHandling> = 0;
+
+        $r1 = <org.mortbay.util.URIUtil: java.lang.String __CHARSET>;
+
+        if $r1 != "UTF-8" goto label1;
+
+        $r22 = new org.mortbay.jetty.HttpURI;
+
+        $r21 = $r22;
+
+        specialinvoke $r22.<org.mortbay.jetty.HttpURI: void <init>()>();
+
+        goto label2;
+
+     label1:
+        $r23 = new org.mortbay.jetty.EncodedHttpURI;
+
+        $r21 = $r23;
+
+        $r2 = <org.mortbay.util.URIUtil: java.lang.String __CHARSET>;
+
+        specialinvoke $r23.<org.mortbay.jetty.EncodedHttpURI: void <init>(java.lang.String)>($r2);
+
+     label2:
+        r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpURI _uri> = $r21;
+
+        r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Connector _connector> = r3;
+
+        r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp> = r4;
+
+        $r25 = new org.mortbay.jetty.HttpParser;
+
+        $r7 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Connector _connector>;
+
+        $r24 = new org.mortbay.jetty.HttpConnection$RequestHandler;
+
+        specialinvoke $r24.<org.mortbay.jetty.HttpConnection$RequestHandler: void <init>(org.mortbay.jetty.HttpConnection,org.mortbay.jetty.HttpConnection$1)>(r0, null);
+
+        $r8 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Connector _connector>;
+
+        $i3 = interfaceinvoke $r8.<org.mortbay.jetty.Connector: int getHeaderBufferSize()>();
+
+        $r9 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Connector _connector>;
+
+        $i4 = interfaceinvoke $r9.<org.mortbay.jetty.Connector: int getRequestBufferSize()>();
+
+        specialinvoke $r25.<org.mortbay.jetty.HttpParser: void <init>(org.mortbay.io.Buffers,org.mortbay.io.EndPoint,org.mortbay.jetty.HttpParser$EventHandler,int,int)>($r7, r4, $r24, $i3, $i4);
+
+        r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Parser _parser> = $r25;
+
+        $r26 = new org.mortbay.jetty.HttpFields;
+
+        specialinvoke $r26.<org.mortbay.jetty.HttpFields: void <init>()>();
+
+        r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpFields _requestFields> = $r26;
+
+        $r27 = new org.mortbay.jetty.HttpFields;
+
+        specialinvoke $r27.<org.mortbay.jetty.HttpFields: void <init>()>();
+
+        r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpFields _responseFields> = $r27;
+
+        $r28 = new org.mortbay.jetty.Request;
+
+        specialinvoke $r28.<org.mortbay.jetty.Request: void <init>(org.mortbay.jetty.HttpConnection)>(r0);
+
+        r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request> = $r28;
+
+        $r29 = new org.mortbay.jetty.Response;
+
+        specialinvoke $r29.<org.mortbay.jetty.Response: void <init>(org.mortbay.jetty.HttpConnection)>(r0);
+
+        r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response> = $r29;
+
+        $r30 = new org.mortbay.jetty.HttpGenerator;
+
+        $r16 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Connector _connector>;
+
+        $r17 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        $r15 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Connector _connector>;
+
+        $i5 = interfaceinvoke $r15.<org.mortbay.jetty.Connector: int getHeaderBufferSize()>();
+
+        $r18 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Connector _connector>;
+
+        $i6 = interfaceinvoke $r18.<org.mortbay.jetty.Connector: int getResponseBufferSize()>();
+
+        specialinvoke $r30.<org.mortbay.jetty.HttpGenerator: void <init>(org.mortbay.io.Buffers,org.mortbay.io.EndPoint,int,int)>($r16, $r17, $i5, $i6);
+
+        r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator> = $r30;
+
+        $r20 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $z0 = virtualinvoke r19.<org.mortbay.jetty.Server: boolean getSendServerVersion()>();
+
+        interfaceinvoke $r20.<org.mortbay.jetty.Generator: void setSendServerVersion(boolean)>($z0);
+
+        r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Server _server> = r19;
+
+        return;
+    }
+
+    protected void <init>(org.mortbay.jetty.Connector, org.mortbay.io.EndPoint, org.mortbay.jetty.Server, org.mortbay.jetty.Parser, org.mortbay.jetty.Generator, org.mortbay.jetty.Request)
+    {
+        org.mortbay.jetty.Connector r3;
+        long $l0;
+        org.mortbay.jetty.HttpURI $r13, $r14;
+        org.mortbay.jetty.HttpFields $r16, $r17;
+        org.mortbay.jetty.Request r8;
+        org.mortbay.jetty.Server r11;
+        org.mortbay.jetty.EncodedHttpURI $r15;
+        int $i1, $i2;
+        java.lang.String $r1, $r2;
+        org.mortbay.jetty.Parser r5;
+        boolean $z0;
+        org.mortbay.jetty.Generator r10, $r12;
+        org.mortbay.jetty.HttpConnection r0;
+        org.mortbay.jetty.Response $r18;
+        org.mortbay.io.EndPoint r4;
+
+        r0 := @this: org.mortbay.jetty.HttpConnection;
+
+        r3 := @parameter0: org.mortbay.jetty.Connector;
+
+        r4 := @parameter1: org.mortbay.io.EndPoint;
+
+        r11 := @parameter2: org.mortbay.jetty.Server;
+
+        r5 := @parameter3: org.mortbay.jetty.Parser;
+
+        r10 := @parameter4: org.mortbay.jetty.Generator;
+
+        r8 := @parameter5: org.mortbay.jetty.Request;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        $l0 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        r0.<org.mortbay.jetty.HttpConnection: long _timeStamp> = $l0;
+
+        $i1 = <org.mortbay.jetty.HttpConnection: int UNKNOWN>;
+
+        r0.<org.mortbay.jetty.HttpConnection: int _expect> = $i1;
+
+        $i2 = <org.mortbay.jetty.HttpConnection: int UNKNOWN>;
+
+        r0.<org.mortbay.jetty.HttpConnection: int _version> = $i2;
+
+        r0.<org.mortbay.jetty.HttpConnection: boolean _head> = 0;
+
+        r0.<org.mortbay.jetty.HttpConnection: boolean _host> = 0;
+
+        r0.<org.mortbay.jetty.HttpConnection: boolean _delayedHandling> = 0;
+
+        $r1 = <org.mortbay.util.URIUtil: java.lang.String __CHARSET>;
+
+        if $r1 != "UTF-8" goto label1;
+
+        $r14 = new org.mortbay.jetty.HttpURI;
+
+        $r13 = $r14;
+
+        specialinvoke $r14.<org.mortbay.jetty.HttpURI: void <init>()>();
+
+        goto label2;
+
+     label1:
+        $r15 = new org.mortbay.jetty.EncodedHttpURI;
+
+        $r13 = $r15;
+
+        $r2 = <org.mortbay.util.URIUtil: java.lang.String __CHARSET>;
+
+        specialinvoke $r15.<org.mortbay.jetty.EncodedHttpURI: void <init>(java.lang.String)>($r2);
+
+     label2:
+        r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpURI _uri> = $r13;
+
+        r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Connector _connector> = r3;
+
+        r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp> = r4;
+
+        r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Parser _parser> = r5;
+
+        $r16 = new org.mortbay.jetty.HttpFields;
+
+        specialinvoke $r16.<org.mortbay.jetty.HttpFields: void <init>()>();
+
+        r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpFields _requestFields> = $r16;
+
+        $r17 = new org.mortbay.jetty.HttpFields;
+
+        specialinvoke $r17.<org.mortbay.jetty.HttpFields: void <init>()>();
+
+        r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpFields _responseFields> = $r17;
+
+        r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request> = r8;
+
+        $r18 = new org.mortbay.jetty.Response;
+
+        specialinvoke $r18.<org.mortbay.jetty.Response: void <init>(org.mortbay.jetty.HttpConnection)>(r0);
+
+        r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response> = $r18;
+
+        r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator> = r10;
+
+        $r12 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $z0 = virtualinvoke r11.<org.mortbay.jetty.Server: boolean getSendServerVersion()>();
+
+        interfaceinvoke $r12.<org.mortbay.jetty.Generator: void setSendServerVersion(boolean)>($z0);
+
+        r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Server _server> = r11;
+
+        return;
+    }
+
+    public void destroy()
+    {
+        java.lang.Throwable $r9;
+        org.mortbay.jetty.Generator $r2, $r7;
+        org.mortbay.jetty.HttpConnection r0;
+        org.mortbay.jetty.HttpFields $r3, $r4, $r5, $r6;
+        boolean $z0;
+        org.mortbay.jetty.Parser $r1, $r8;
+
+        r0 := @this: org.mortbay.jetty.HttpConnection;
+
+        entermonitor r0;
+
+     label1:
+        r0.<org.mortbay.jetty.HttpConnection: boolean _destroy> = 1;
+
+        $z0 = r0.<org.mortbay.jetty.HttpConnection: boolean _handling>;
+
+        if $z0 != 0 goto label5;
+
+        $r1 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Parser _parser>;
+
+        if $r1 == null goto label2;
+
+        $r8 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Parser _parser>;
+
+        interfaceinvoke $r8.<org.mortbay.jetty.Parser: void reset(boolean)>(1);
+
+     label2:
+        $r2 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        if $r2 == null goto label3;
+
+        $r7 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        interfaceinvoke $r7.<org.mortbay.jetty.Generator: void reset(boolean)>(1);
+
+     label3:
+        $r3 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpFields _requestFields>;
+
+        if $r3 == null goto label4;
+
+        $r6 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpFields _requestFields>;
+
+        virtualinvoke $r6.<org.mortbay.jetty.HttpFields: void destroy()>();
+
+     label4:
+        $r4 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpFields _responseFields>;
+
+        if $r4 == null goto label5;
+
+        $r5 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpFields _responseFields>;
+
+        virtualinvoke $r5.<org.mortbay.jetty.HttpFields: void destroy()>();
+
+     label5:
+        exitmonitor r0;
+
+     label6:
+        goto label9;
+
+     label7:
+        $r9 := @caughtexception;
+
+        exitmonitor r0;
+
+     label8:
+        throw $r9;
+
+     label9:
+        return;
+
+        catch java.lang.Throwable from label1 to label6 with label7;
+        catch java.lang.Throwable from label7 to label8 with label7;
+    }
+
+    public org.mortbay.jetty.Parser getParser()
+    {
+        org.mortbay.jetty.HttpConnection r0;
+        org.mortbay.jetty.Parser $r1;
+
+        r0 := @this: org.mortbay.jetty.HttpConnection;
+
+        $r1 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Parser _parser>;
+
+        return $r1;
+    }
+
+    public int getRequests()
+    {
+        int $i0;
+        org.mortbay.jetty.HttpConnection r0;
+
+        r0 := @this: org.mortbay.jetty.HttpConnection;
+
+        $i0 = r0.<org.mortbay.jetty.HttpConnection: int _requests>;
+
+        return $i0;
+    }
+
+    public long getTimeStamp()
+    {
+        long $l0;
+        org.mortbay.jetty.HttpConnection r0;
+
+        r0 := @this: org.mortbay.jetty.HttpConnection;
+
+        $l0 = r0.<org.mortbay.jetty.HttpConnection: long _timeStamp>;
+
+        return $l0;
+    }
+
+    public java.lang.Object getAssociatedObject()
+    {
+        java.lang.Object $r1;
+        org.mortbay.jetty.HttpConnection r0;
+
+        r0 := @this: org.mortbay.jetty.HttpConnection;
+
+        $r1 = r0.<org.mortbay.jetty.HttpConnection: java.lang.Object _associatedObject>;
+
+        return $r1;
+    }
+
+    public void setAssociatedObject(java.lang.Object)
+    {
+        java.lang.Object r1;
+        org.mortbay.jetty.HttpConnection r0;
+
+        r0 := @this: org.mortbay.jetty.HttpConnection;
+
+        r1 := @parameter0: java.lang.Object;
+
+        r0.<org.mortbay.jetty.HttpConnection: java.lang.Object _associatedObject> = r1;
+
+        return;
+    }
+
+    public org.mortbay.jetty.Connector getConnector()
+    {
+        org.mortbay.jetty.Connector $r1;
+        org.mortbay.jetty.HttpConnection r0;
+
+        r0 := @this: org.mortbay.jetty.HttpConnection;
+
+        $r1 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Connector _connector>;
+
+        return $r1;
+    }
+
+    public org.mortbay.jetty.HttpFields getRequestFields()
+    {
+        org.mortbay.jetty.HttpFields $r1;
+        org.mortbay.jetty.HttpConnection r0;
+
+        r0 := @this: org.mortbay.jetty.HttpConnection;
+
+        $r1 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpFields _requestFields>;
+
+        return $r1;
+    }
+
+    public org.mortbay.jetty.HttpFields getResponseFields()
+    {
+        org.mortbay.jetty.HttpFields $r1;
+        org.mortbay.jetty.HttpConnection r0;
+
+        r0 := @this: org.mortbay.jetty.HttpConnection;
+
+        $r1 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpFields _responseFields>;
+
+        return $r1;
+    }
+
+    public boolean isConfidential(org.mortbay.jetty.Request)
+    {
+        org.mortbay.jetty.Connector $r1, $r3;
+        org.mortbay.jetty.HttpConnection r0;
+        org.mortbay.jetty.Request r2;
+        boolean $z0;
+
+        r0 := @this: org.mortbay.jetty.HttpConnection;
+
+        r2 := @parameter0: org.mortbay.jetty.Request;
+
+        $r1 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Connector _connector>;
+
+        if $r1 == null goto label1;
+
+        $r3 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Connector _connector>;
+
+        $z0 = interfaceinvoke $r3.<org.mortbay.jetty.Connector: boolean isConfidential(org.mortbay.jetty.Request)>(r2);
+
+        return $z0;
+
+     label1:
+        return 0;
+    }
+
+    public boolean isIntegral(org.mortbay.jetty.Request)
+    {
+        org.mortbay.jetty.Connector $r1, $r3;
+        org.mortbay.jetty.HttpConnection r0;
+        org.mortbay.jetty.Request r2;
+        boolean $z0;
+
+        r0 := @this: org.mortbay.jetty.HttpConnection;
+
+        r2 := @parameter0: org.mortbay.jetty.Request;
+
+        $r1 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Connector _connector>;
+
+        if $r1 == null goto label1;
+
+        $r3 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Connector _connector>;
+
+        $z0 = interfaceinvoke $r3.<org.mortbay.jetty.Connector: boolean isIntegral(org.mortbay.jetty.Request)>(r2);
+
+        return $z0;
+
+     label1:
+        return 0;
+    }
+
+    public org.mortbay.io.EndPoint getEndPoint()
+    {
+        org.mortbay.io.EndPoint $r1;
+        org.mortbay.jetty.HttpConnection r0;
+
+        r0 := @this: org.mortbay.jetty.HttpConnection;
+
+        $r1 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        return $r1;
+    }
+
+    public boolean getResolveNames()
+    {
+        org.mortbay.jetty.Connector $r1;
+        org.mortbay.jetty.HttpConnection r0;
+        boolean $z0;
+
+        r0 := @this: org.mortbay.jetty.HttpConnection;
+
+        $r1 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Connector _connector>;
+
+        $z0 = interfaceinvoke $r1.<org.mortbay.jetty.Connector: boolean getResolveNames()>();
+
+        return $z0;
+    }
+
+    public org.mortbay.jetty.Request getRequest()
+    {
+        org.mortbay.jetty.Request $r1;
+        org.mortbay.jetty.HttpConnection r0;
+
+        r0 := @this: org.mortbay.jetty.HttpConnection;
+
+        $r1 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request>;
+
+        return $r1;
+    }
+
+    public org.mortbay.jetty.Response getResponse()
+    {
+        org.mortbay.jetty.Response $r1;
+        org.mortbay.jetty.HttpConnection r0;
+
+        r0 := @this: org.mortbay.jetty.HttpConnection;
+
+        $r1 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        return $r1;
+    }
+
+    public javax.servlet.ServletInputStream getInputStream()
+    {
+        org.mortbay.jetty.Connector $r5;
+        org.mortbay.jetty.HttpConnection r0;
+        org.mortbay.jetty.HttpParser $r6;
+        javax.servlet.ServletInputStream $r1, $r2;
+        org.mortbay.jetty.HttpParser$Input $r3;
+        long $l1;
+        int $i0;
+        org.mortbay.jetty.Parser $r4;
+
+        r0 := @this: org.mortbay.jetty.HttpConnection;
+
+        $r1 = r0.<org.mortbay.jetty.HttpConnection: javax.servlet.ServletInputStream _in>;
+
+        if $r1 != null goto label1;
+
+        $r3 = new org.mortbay.jetty.HttpParser$Input;
+
+        $r4 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Parser _parser>;
+
+        $r6 = (org.mortbay.jetty.HttpParser) $r4;
+
+        $r5 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Connector _connector>;
+
+        $i0 = interfaceinvoke $r5.<org.mortbay.jetty.Connector: int getMaxIdleTime()>();
+
+        $l1 = (long) $i0;
+
+        specialinvoke $r3.<org.mortbay.jetty.HttpParser$Input: void <init>(org.mortbay.jetty.HttpParser,long)>($r6, $l1);
+
+        r0.<org.mortbay.jetty.HttpConnection: javax.servlet.ServletInputStream _in> = $r3;
+
+     label1:
+        $r2 = r0.<org.mortbay.jetty.HttpConnection: javax.servlet.ServletInputStream _in>;
+
+        return $r2;
+    }
+
+    public javax.servlet.ServletOutputStream getOutputStream()
+    {
+        org.mortbay.jetty.HttpConnection r0;
+        org.mortbay.jetty.HttpConnection$Output $r1, $r2, $r3;
+
+        r0 := @this: org.mortbay.jetty.HttpConnection;
+
+        $r1 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpConnection$Output _out>;
+
+        if $r1 != null goto label1;
+
+        $r3 = new org.mortbay.jetty.HttpConnection$Output;
+
+        specialinvoke $r3.<org.mortbay.jetty.HttpConnection$Output: void <init>(org.mortbay.jetty.HttpConnection)>(r0);
+
+        r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpConnection$Output _out> = $r3;
+
+     label1:
+        $r2 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpConnection$Output _out>;
+
+        return $r2;
+    }
+
+    public java.io.PrintWriter getPrintWriter(java.lang.String)
+    {
+        java.io.PrintWriter $r4;
+        org.mortbay.jetty.HttpConnection$OutputWriter $r1, $r3, $r5, $r7;
+        org.mortbay.jetty.HttpConnection$1 $r6;
+        org.mortbay.jetty.HttpConnection r0;
+        java.lang.String r2;
+
+        r0 := @this: org.mortbay.jetty.HttpConnection;
+
+        r2 := @parameter0: java.lang.String;
+
+        virtualinvoke r0.<org.mortbay.jetty.HttpConnection: javax.servlet.ServletOutputStream getOutputStream()>();
+
+        $r1 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpConnection$OutputWriter _writer>;
+
+        if $r1 != null goto label1;
+
+        $r5 = new org.mortbay.jetty.HttpConnection$OutputWriter;
+
+        specialinvoke $r5.<org.mortbay.jetty.HttpConnection$OutputWriter: void <init>(org.mortbay.jetty.HttpConnection)>(r0);
+
+        r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpConnection$OutputWriter _writer> = $r5;
+
+        $r6 = new org.mortbay.jetty.HttpConnection$1;
+
+        $r7 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpConnection$OutputWriter _writer>;
+
+        specialinvoke $r6.<org.mortbay.jetty.HttpConnection$1: void <init>(org.mortbay.jetty.HttpConnection,java.io.Writer)>(r0, $r7);
+
+        r0.<org.mortbay.jetty.HttpConnection: java.io.PrintWriter _printWriter> = $r6;
+
+     label1:
+        $r3 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpConnection$OutputWriter _writer>;
+
+        virtualinvoke $r3.<org.mortbay.jetty.HttpConnection$OutputWriter: void setCharacterEncoding(java.lang.String)>(r2);
+
+        $r4 = r0.<org.mortbay.jetty.HttpConnection: java.io.PrintWriter _printWriter>;
+
+        return $r4;
+    }
+
+    public boolean isResponseCommitted()
+    {
+        org.mortbay.jetty.Generator $r1;
+        org.mortbay.jetty.HttpConnection r0;
+        boolean $z0;
+
+        r0 := @this: org.mortbay.jetty.HttpConnection;
+
+        $r1 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $z0 = interfaceinvoke $r1.<org.mortbay.jetty.Generator: boolean isCommitted()>();
+
+        return $z0;
+    }
+
+    public void handle() throws java.io.IOException
+    {
+        byte $b2, $b6;
+        org.mortbay.util.ajax.Continuation $r2, $r80, $r82, $r84;
+        long $l1, l5;
+        java.lang.StringBuffer $r67, $r69, $r72, $r74, $r87, $r88;
+        org.mortbay.jetty.HttpFields $r73;
+        org.mortbay.jetty.HttpException $r61;
+        int $i0, $i3, i4, $i7, $i8;
+        org.mortbay.jetty.HttpConnection r0;
+        java.lang.Throwable $r43, $r44, $r45, $r46, $r76;
+        org.mortbay.jetty.HttpURI $r68;
+        org.mortbay.jetty.Request $r1, $r39, $r79, $r81, $r83;
+        java.lang.String $r40, $r63, $r70, $r75;
+        org.mortbay.io.EndPoint $r8, $r9, $r12, $r15, $r17, $r22, $r23, $r26, $r29, $r31, $r32, $r33, $r36, $r37, $r51, $r52, $r55, $r58, $r60, $r65, $r78;
+        org.mortbay.io.nio.SelectChannelEndPoint $r10, $r24, $r53;
+        java.lang.IllegalStateException $r85, $r86;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9, $z10, $z11, $z12, $z13, $z14, $z15, $z16, $z17, $z18, $z19, $z20, $z21, $z22, $z23, $z24, $z25, $z26, $z27, $z28, $z29, $z30, $z31, $z32, $z33, $z34, $z35, $z36, $z37, $z38, $z39, $z40, $z41, $z42, $z43, $z44, $z45, z46, $z47, $z48, $z49, z50, $z51, $z52, $z53, z54;
+        org.mortbay.jetty.Generator $r6, $r7, $r11, $r13, $r20, $r21, $r25, $r27, $r34, $r35, $r49, $r50, $r54, $r56, $r62, $r77;
+        org.mortbay.jetty.Parser $r3, $r4, $r5, $r14, $r16, $r18, $r19, $r28, $r30, $r38, $r47, $r48, $r57, $r59, $r64;
+
+        r0 := @this: org.mortbay.jetty.HttpConnection;
+
+        z46 = 1;
+
+        i4 = 0;
+
+     label01:
+        if z46 == 0 goto label25;
+
+     label02:
+        entermonitor r0;
+
+     label03:
+        $z0 = r0.<org.mortbay.jetty.HttpConnection: boolean _handling>;
+
+        if $z0 == 0 goto label04;
+
+        $r85 = new java.lang.IllegalStateException;
+
+        specialinvoke $r85.<java.lang.IllegalStateException: void <init>()>();
+
+        throw $r85;
+
+     label04:
+        r0.<org.mortbay.jetty.HttpConnection: boolean _handling> = 1;
+
+        exitmonitor r0;
+
+     label05:
+        goto label08;
+
+     label06:
+        $r76 := @caughtexception;
+
+        exitmonitor r0;
+
+     label07:
+        throw $r76;
+
+     label08:
+        staticinvoke <org.mortbay.jetty.HttpConnection: void setCurrentConnection(org.mortbay.jetty.HttpConnection)>(r0);
+
+        l5 = 0L;
+
+        $r1 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request>;
+
+        $r2 = virtualinvoke $r1.<org.mortbay.jetty.Request: org.mortbay.util.ajax.Continuation getContinuation()>();
+
+        if $r2 == null goto label10;
+
+        $z31 = interfaceinvoke $r2.<org.mortbay.util.ajax.Continuation: boolean isPending()>();
+
+        if $z31 == 0 goto label10;
+
+        staticinvoke <org.mortbay.log.Log: void debug(java.lang.String,java.lang.Object)>("resume continuation {}", $r2);
+
+        $r39 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request>;
+
+        $r40 = virtualinvoke $r39.<org.mortbay.jetty.Request: java.lang.String getMethod()>();
+
+        if $r40 != null goto label09;
+
+        $r86 = new java.lang.IllegalStateException;
+
+        specialinvoke $r86.<java.lang.IllegalStateException: void <init>()>();
+
+        throw $r86;
+
+     label09:
+        virtualinvoke r0.<org.mortbay.jetty.HttpConnection: void handleRequest()>();
+
+        goto label18;
+
+     label10:
+        $r3 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Parser _parser>;
+
+        $z1 = interfaceinvoke $r3.<org.mortbay.jetty.Parser: boolean isComplete()>();
+
+        if $z1 != 0 goto label11;
+
+        $r38 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Parser _parser>;
+
+        l5 = interfaceinvoke $r38.<org.mortbay.jetty.Parser: long parseAvailable()>();
+
+     label11:
+        $r77 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $z47 = interfaceinvoke $r77.<org.mortbay.jetty.Generator: boolean isCommitted()>();
+
+        if $z47 == 0 goto label14;
+
+        $r34 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $z29 = interfaceinvoke $r34.<org.mortbay.jetty.Generator: boolean isComplete()>();
+
+        if $z29 != 0 goto label14;
+
+        $r35 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $l1 = interfaceinvoke $r35.<org.mortbay.jetty.Generator: long flush()>();
+
+        l5 = l5 + $l1;
+
+        $b2 = $l1 cmp 0L;
+
+        $i7 = (int) $b2;
+
+        if $i7 > 0 goto label12;
+
+        goto label14;
+
+     label12:
+        $r36 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        $z30 = interfaceinvoke $r36.<org.mortbay.io.EndPoint: boolean isBufferingOutput()>();
+
+        if $z30 == 0 goto label13;
+
+        $r37 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        interfaceinvoke $r37.<org.mortbay.io.EndPoint: void flush()>();
+
+     label13:
+        goto label11;
+
+     label14:
+        $r78 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        $z48 = interfaceinvoke $r78.<org.mortbay.io.EndPoint: boolean isBufferingOutput()>();
+
+        if $z48 == 0 goto label15;
+
+        $r32 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        interfaceinvoke $r32.<org.mortbay.io.EndPoint: void flush()>();
+
+        $r33 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        $z28 = interfaceinvoke $r33.<org.mortbay.io.EndPoint: boolean isBufferingOutput()>();
+
+        if $z28 != 0 goto label15;
+
+        i4 = 0;
+
+     label15:
+        $b6 = l5 cmp 0L;
+
+        $i8 = (int) $b6;
+
+        if $i8 <= 0 goto label16;
+
+        i4 = 0;
+
+        goto label18;
+
+     label16:
+        $i0 = i4;
+
+        i4 = i4 + 1;
+
+        if $i0 < 2 goto label18;
+
+        goto label26;
+
+     label17:
+        return;
+
+     label18:
+        goto label44;
+
+     label19:
+        goto label24;
+
+     label20:
+        $r61 := @caughtexception;
+
+        $z45 = staticinvoke <org.mortbay.log.Log: boolean isDebugEnabled()>();
+
+        if $z45 == 0 goto label21;
+
+        $r87 = new java.lang.StringBuffer;
+
+        specialinvoke $r87.<java.lang.StringBuffer: void <init>()>();
+
+        $r67 = virtualinvoke $r87.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>("uri=");
+
+        $r68 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpURI _uri>;
+
+        $r69 = virtualinvoke $r67.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.Object)>($r68);
+
+        $r70 = virtualinvoke $r69.<java.lang.StringBuffer: java.lang.String toString()>();
+
+        staticinvoke <org.mortbay.log.Log: void debug(java.lang.String)>($r70);
+
+        $r88 = new java.lang.StringBuffer;
+
+        specialinvoke $r88.<java.lang.StringBuffer: void <init>()>();
+
+        $r72 = virtualinvoke $r88.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>("fields=");
+
+        $r73 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpFields _requestFields>;
+
+        $r74 = virtualinvoke $r72.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.Object)>($r73);
+
+        $r75 = virtualinvoke $r74.<java.lang.StringBuffer: java.lang.String toString()>();
+
+        staticinvoke <org.mortbay.log.Log: void debug(java.lang.String)>($r75);
+
+        staticinvoke <org.mortbay.log.Log: void debug(java.lang.Throwable)>($r61);
+
+     label21:
+        $r62 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $i3 = virtualinvoke $r61.<org.mortbay.jetty.HttpException: int getStatus()>();
+
+        $r63 = virtualinvoke $r61.<org.mortbay.jetty.HttpException: java.lang.String getReason()>();
+
+        interfaceinvoke $r62.<org.mortbay.jetty.Generator: void sendError(int,java.lang.String,java.lang.String,boolean)>($i3, $r63, null, 1);
+
+        $r64 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Parser _parser>;
+
+        interfaceinvoke $r64.<org.mortbay.jetty.Parser: void reset(boolean)>(1);
+
+        $r65 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        interfaceinvoke $r65.<org.mortbay.io.EndPoint: void close()>();
+
+        throw $r61;
+
+     label22:
+        $r46 := @caughtexception;
+
+        goto label64;
+
+     label23:
+        throw $r46;
+
+     label24:
+        goto label01;
+
+     label25:
+        return;
+
+     label26:
+        staticinvoke <org.mortbay.jetty.HttpConnection: void setCurrentConnection(org.mortbay.jetty.HttpConnection)>(null);
+
+        $r18 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Parser _parser>;
+
+        $z15 = interfaceinvoke $r18.<org.mortbay.jetty.Parser: boolean isMoreInBuffer()>();
+
+        if $z15 != 0 goto label27;
+
+        $r31 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        $z27 = interfaceinvoke $r31.<org.mortbay.io.EndPoint: boolean isBufferingInput()>();
+
+        if $z27 == 0 goto label28;
+
+     label27:
+        $z49 = 1;
+
+        goto label29;
+
+     label28:
+        $z49 = 0;
+
+     label29:
+        z50 = $z49;
+
+        entermonitor r0;
+
+     label30:
+        r0.<org.mortbay.jetty.HttpConnection: boolean _handling> = 0;
+
+        $z16 = r0.<org.mortbay.jetty.HttpConnection: boolean _destroy>;
+
+        if $z16 == 0 goto label32;
+
+        virtualinvoke r0.<org.mortbay.jetty.HttpConnection: void destroy()>();
+
+        exitmonitor r0;
+
+     label31:
+        return;
+
+     label32:
+        exitmonitor r0;
+
+     label33:
+        goto label36;
+
+     label34:
+        $r45 := @caughtexception;
+
+        exitmonitor r0;
+
+     label35:
+        throw $r45;
+
+     label36:
+        $r19 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Parser _parser>;
+
+        $z17 = interfaceinvoke $r19.<org.mortbay.jetty.Parser: boolean isComplete()>();
+
+        if $z17 == 0 goto label41;
+
+        $r25 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $z22 = interfaceinvoke $r25.<org.mortbay.jetty.Generator: boolean isComplete()>();
+
+        if $z22 == 0 goto label41;
+
+        $r26 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        $z23 = interfaceinvoke $r26.<org.mortbay.io.EndPoint: boolean isBufferingOutput()>();
+
+        if $z23 != 0 goto label41;
+
+        $r27 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $z24 = interfaceinvoke $r27.<org.mortbay.jetty.Generator: boolean isPersistent()>();
+
+        if $z24 != 0 goto label37;
+
+        $r30 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Parser _parser>;
+
+        interfaceinvoke $r30.<org.mortbay.jetty.Parser: void reset(boolean)>(1);
+
+        z50 = 0;
+
+     label37:
+        if z50 == 0 goto label40;
+
+        virtualinvoke r0.<org.mortbay.jetty.HttpConnection: void reset(boolean)>(0);
+
+        $r28 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Parser _parser>;
+
+        $z25 = interfaceinvoke $r28.<org.mortbay.jetty.Parser: boolean isMoreInBuffer()>();
+
+        if $z25 != 0 goto label38;
+
+        $r29 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        $z26 = interfaceinvoke $r29.<org.mortbay.io.EndPoint: boolean isBufferingInput()>();
+
+        if $z26 == 0 goto label39;
+
+     label38:
+        goto label39;
+
+     label39:
+        goto label41;
+
+     label40:
+        virtualinvoke r0.<org.mortbay.jetty.HttpConnection: void reset(boolean)>(1);
+
+     label41:
+        $r79 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request>;
+
+        $r80 = virtualinvoke $r79.<org.mortbay.jetty.Request: org.mortbay.util.ajax.Continuation getContinuation()>();
+
+        if $r80 == null goto label42;
+
+        $z21 = interfaceinvoke $r80.<org.mortbay.util.ajax.Continuation: boolean isPending()>();
+
+        if $z21 == 0 goto label42;
+
+        goto label25;
+
+     label42:
+        $r20 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $z18 = interfaceinvoke $r20.<org.mortbay.jetty.Generator: boolean isCommitted()>();
+
+        if $z18 == 0 goto label43;
+
+        $r21 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $z19 = interfaceinvoke $r21.<org.mortbay.jetty.Generator: boolean isComplete()>();
+
+        if $z19 != 0 goto label43;
+
+        $r22 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        $z20 = $r22 instanceof org.mortbay.io.nio.SelectChannelEndPoint;
+
+        if $z20 == 0 goto label43;
+
+        $r23 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        $r24 = (org.mortbay.io.nio.SelectChannelEndPoint) $r23;
+
+        virtualinvoke $r24.<org.mortbay.io.nio.SelectChannelEndPoint: void setWritable(boolean)>(0);
+
+     label43:
+        goto label17;
+
+     label44:
+        staticinvoke <org.mortbay.jetty.HttpConnection: void setCurrentConnection(org.mortbay.jetty.HttpConnection)>(null);
+
+        $r4 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Parser _parser>;
+
+        $z2 = interfaceinvoke $r4.<org.mortbay.jetty.Parser: boolean isMoreInBuffer()>();
+
+        if $z2 != 0 goto label45;
+
+        $r17 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        $z14 = interfaceinvoke $r17.<org.mortbay.io.EndPoint: boolean isBufferingInput()>();
+
+        if $z14 == 0 goto label46;
+
+     label45:
+        $z51 = 1;
+
+        goto label47;
+
+     label46:
+        $z51 = 0;
+
+     label47:
+        z46 = $z51;
+
+        entermonitor r0;
+
+     label48:
+        r0.<org.mortbay.jetty.HttpConnection: boolean _handling> = 0;
+
+        $z3 = r0.<org.mortbay.jetty.HttpConnection: boolean _destroy>;
+
+        if $z3 == 0 goto label50;
+
+        virtualinvoke r0.<org.mortbay.jetty.HttpConnection: void destroy()>();
+
+        exitmonitor r0;
+
+     label49:
+        return;
+
+     label50:
+        exitmonitor r0;
+
+     label51:
+        goto label54;
+
+     label52:
+        $r44 := @caughtexception;
+
+        exitmonitor r0;
+
+     label53:
+        throw $r44;
+
+     label54:
+        $r5 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Parser _parser>;
+
+        $z4 = interfaceinvoke $r5.<org.mortbay.jetty.Parser: boolean isComplete()>();
+
+        if $z4 == 0 goto label61;
+
+        $r11 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $z9 = interfaceinvoke $r11.<org.mortbay.jetty.Generator: boolean isComplete()>();
+
+        if $z9 == 0 goto label61;
+
+        $r12 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        $z10 = interfaceinvoke $r12.<org.mortbay.io.EndPoint: boolean isBufferingOutput()>();
+
+        if $z10 != 0 goto label61;
+
+        $r13 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $z11 = interfaceinvoke $r13.<org.mortbay.jetty.Generator: boolean isPersistent()>();
+
+        if $z11 != 0 goto label55;
+
+        $r16 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Parser _parser>;
+
+        interfaceinvoke $r16.<org.mortbay.jetty.Parser: void reset(boolean)>(1);
+
+        z46 = 0;
+
+     label55:
+        if z46 == 0 goto label59;
+
+        virtualinvoke r0.<org.mortbay.jetty.HttpConnection: void reset(boolean)>(0);
+
+        $r14 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Parser _parser>;
+
+        $z12 = interfaceinvoke $r14.<org.mortbay.jetty.Parser: boolean isMoreInBuffer()>();
+
+        if $z12 != 0 goto label56;
+
+        $r15 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        $z13 = interfaceinvoke $r15.<org.mortbay.io.EndPoint: boolean isBufferingInput()>();
+
+        if $z13 == 0 goto label57;
+
+     label56:
+        $z52 = 1;
+
+        goto label58;
+
+     label57:
+        $z52 = 0;
+
+     label58:
+        z46 = $z52;
+
+        goto label60;
+
+     label59:
+        virtualinvoke r0.<org.mortbay.jetty.HttpConnection: void reset(boolean)>(1);
+
+     label60:
+        i4 = 0;
+
+     label61:
+        $r81 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request>;
+
+        $r82 = virtualinvoke $r81.<org.mortbay.jetty.Request: org.mortbay.util.ajax.Continuation getContinuation()>();
+
+        if $r82 == null goto label62;
+
+        $z8 = interfaceinvoke $r82.<org.mortbay.util.ajax.Continuation: boolean isPending()>();
+
+        if $z8 == 0 goto label62;
+
+        goto label25;
+
+     label62:
+        $r6 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $z5 = interfaceinvoke $r6.<org.mortbay.jetty.Generator: boolean isCommitted()>();
+
+        if $z5 == 0 goto label63;
+
+        $r7 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $z6 = interfaceinvoke $r7.<org.mortbay.jetty.Generator: boolean isComplete()>();
+
+        if $z6 != 0 goto label63;
+
+        $r8 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        $z7 = $r8 instanceof org.mortbay.io.nio.SelectChannelEndPoint;
+
+        if $z7 == 0 goto label63;
+
+        $r9 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        $r10 = (org.mortbay.io.nio.SelectChannelEndPoint) $r9;
+
+        virtualinvoke $r10.<org.mortbay.io.nio.SelectChannelEndPoint: void setWritable(boolean)>(0);
+
+     label63:
+        goto label19;
+
+     label64:
+        staticinvoke <org.mortbay.jetty.HttpConnection: void setCurrentConnection(org.mortbay.jetty.HttpConnection)>(null);
+
+        $r47 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Parser _parser>;
+
+        $z32 = interfaceinvoke $r47.<org.mortbay.jetty.Parser: boolean isMoreInBuffer()>();
+
+        if $z32 != 0 goto label65;
+
+        $r60 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        $z44 = interfaceinvoke $r60.<org.mortbay.io.EndPoint: boolean isBufferingInput()>();
+
+        if $z44 == 0 goto label66;
+
+     label65:
+        $z53 = 1;
+
+        goto label67;
+
+     label66:
+        $z53 = 0;
+
+     label67:
+        z54 = $z53;
+
+        entermonitor r0;
+
+     label68:
+        r0.<org.mortbay.jetty.HttpConnection: boolean _handling> = 0;
+
+        $z33 = r0.<org.mortbay.jetty.HttpConnection: boolean _destroy>;
+
+        if $z33 == 0 goto label70;
+
+        virtualinvoke r0.<org.mortbay.jetty.HttpConnection: void destroy()>();
+
+        exitmonitor r0;
+
+     label69:
+        return;
+
+     label70:
+        exitmonitor r0;
+
+     label71:
+        goto label74;
+
+     label72:
+        $r43 := @caughtexception;
+
+        exitmonitor r0;
+
+     label73:
+        throw $r43;
+
+     label74:
+        $r48 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Parser _parser>;
+
+        $z34 = interfaceinvoke $r48.<org.mortbay.jetty.Parser: boolean isComplete()>();
+
+        if $z34 == 0 goto label79;
+
+        $r54 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $z39 = interfaceinvoke $r54.<org.mortbay.jetty.Generator: boolean isComplete()>();
+
+        if $z39 == 0 goto label79;
+
+        $r55 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        $z40 = interfaceinvoke $r55.<org.mortbay.io.EndPoint: boolean isBufferingOutput()>();
+
+        if $z40 != 0 goto label79;
+
+        $r56 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $z41 = interfaceinvoke $r56.<org.mortbay.jetty.Generator: boolean isPersistent()>();
+
+        if $z41 != 0 goto label75;
+
+        $r59 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Parser _parser>;
+
+        interfaceinvoke $r59.<org.mortbay.jetty.Parser: void reset(boolean)>(1);
+
+        z54 = 0;
+
+     label75:
+        if z54 == 0 goto label78;
+
+        virtualinvoke r0.<org.mortbay.jetty.HttpConnection: void reset(boolean)>(0);
+
+        $r57 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Parser _parser>;
+
+        $z42 = interfaceinvoke $r57.<org.mortbay.jetty.Parser: boolean isMoreInBuffer()>();
+
+        if $z42 != 0 goto label76;
+
+        $r58 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        $z43 = interfaceinvoke $r58.<org.mortbay.io.EndPoint: boolean isBufferingInput()>();
+
+        if $z43 == 0 goto label77;
+
+     label76:
+        goto label77;
+
+     label77:
+        goto label79;
+
+     label78:
+        virtualinvoke r0.<org.mortbay.jetty.HttpConnection: void reset(boolean)>(1);
+
+     label79:
+        $r83 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request>;
+
+        $r84 = virtualinvoke $r83.<org.mortbay.jetty.Request: org.mortbay.util.ajax.Continuation getContinuation()>();
+
+        if $r84 == null goto label80;
+
+        $z38 = interfaceinvoke $r84.<org.mortbay.util.ajax.Continuation: boolean isPending()>();
+
+        if $z38 == 0 goto label80;
+
+        goto label25;
+
+     label80:
+        $r49 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $z35 = interfaceinvoke $r49.<org.mortbay.jetty.Generator: boolean isCommitted()>();
+
+        if $z35 == 0 goto label81;
+
+        $r50 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $z36 = interfaceinvoke $r50.<org.mortbay.jetty.Generator: boolean isComplete()>();
+
+        if $z36 != 0 goto label81;
+
+        $r51 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        $z37 = $r51 instanceof org.mortbay.io.nio.SelectChannelEndPoint;
+
+        if $z37 == 0 goto label81;
+
+        $r52 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        $r53 = (org.mortbay.io.nio.SelectChannelEndPoint) $r52;
+
+        virtualinvoke $r53.<org.mortbay.io.nio.SelectChannelEndPoint: void setWritable(boolean)>(0);
+
+     label81:
+        goto label23;
+
+        catch java.lang.Throwable from label03 to label05 with label06;
+        catch java.lang.Throwable from label06 to label07 with label06;
+        catch org.mortbay.jetty.HttpException from label02 to label17 with label20;
+        catch java.lang.Throwable from label02 to label17 with label22;
+        catch java.lang.Throwable from label18 to label19 with label22;
+        catch java.lang.Throwable from label20 to label23 with label22;
+        catch java.lang.Throwable from label30 to label31 with label34;
+        catch java.lang.Throwable from label32 to label33 with label34;
+        catch java.lang.Throwable from label34 to label35 with label34;
+        catch java.lang.Throwable from label48 to label49 with label52;
+        catch java.lang.Throwable from label50 to label51 with label52;
+        catch java.lang.Throwable from label52 to label53 with label52;
+        catch java.lang.Throwable from label68 to label69 with label72;
+        catch java.lang.Throwable from label70 to label71 with label72;
+        catch java.lang.Throwable from label72 to label73 with label72;
+    }
+
+    public void reset(boolean)
+    {
+        org.mortbay.jetty.Generator $r4;
+        org.mortbay.jetty.HttpConnection r0;
+        org.mortbay.jetty.HttpFields $r2, $r5;
+        org.mortbay.jetty.HttpURI $r7;
+        org.mortbay.jetty.Request $r3;
+        org.mortbay.jetty.Response $r6;
+        boolean z0;
+        org.mortbay.jetty.Parser $r1;
+
+        r0 := @this: org.mortbay.jetty.HttpConnection;
+
+        z0 := @parameter0: boolean;
+
+        $r1 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Parser _parser>;
+
+        interfaceinvoke $r1.<org.mortbay.jetty.Parser: void reset(boolean)>(z0);
+
+        $r2 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpFields _requestFields>;
+
+        virtualinvoke $r2.<org.mortbay.jetty.HttpFields: void clear()>();
+
+        $r3 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request>;
+
+        virtualinvoke $r3.<org.mortbay.jetty.Request: void recycle()>();
+
+        $r4 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        interfaceinvoke $r4.<org.mortbay.jetty.Generator: void reset(boolean)>(z0);
+
+        $r5 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpFields _responseFields>;
+
+        virtualinvoke $r5.<org.mortbay.jetty.HttpFields: void clear()>();
+
+        $r6 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        virtualinvoke $r6.<org.mortbay.jetty.Response: void recycle()>();
+
+        $r7 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpURI _uri>;
+
+        virtualinvoke $r7.<org.mortbay.jetty.HttpURI: void clear()>();
+
+        return;
+    }
+
+    protected void handleRequest() throws java.io.IOException
+    {
+        java.lang.Thread $r24, $r25, $r27, $r50, $r72, $r97, $r115, $r130, $r145;
+        java.lang.ThreadDeath $r81;
+        org.mortbay.util.ajax.Continuation $r12, $r23, $r38, $r49, $r60, $r71, $r85, $r96, $r103, $r114, $r118, $r129, $r133, $r144;
+        java.lang.StringBuffer $r28, $r29, $r30, $r32, $r52, $r53, $r55, $r73, $r75, $r76, $r77;
+        org.mortbay.jetty.HttpConnection$Output $r6, $r34;
+        org.mortbay.jetty.EofException $r116;
+        org.mortbay.jetty.HttpException $r35, $r98;
+        org.mortbay.jetty.RetryRequest $r131;
+        int $i0;
+        org.mortbay.jetty.HttpConnection r0;
+        org.mortbay.jetty.Response $r14, $r16, $r18, $r40, $r42, $r44, $r62, $r64, $r66, $r87, $r89, $r91, $r100, $r105, $r107, $r109, $r120, $r122, $r124, $r135, $r137, $r139, $r148, $r149, $r150, $r151, $r152, $r153, $r154;
+        java.lang.Throwable $r36, $r51;
+        org.mortbay.jetty.HttpURI $r2, $r31, $r54, $r74;
+        org.mortbay.jetty.Request $r5, $r7, $r11, $r17, $r22, $r37, $r43, $r48, $r57, $r59, $r65, $r70, $r79, $r83, $r84, $r90, $r95, $r99, $r102, $r108, $r113, $r117, $r123, $r128, $r132, $r138, $r143;
+        java.lang.String $r3, $r4, $r26, $r33, $r56, $r78, $r101, r146, r147;
+        org.mortbay.io.RuntimeIOException $r82;
+        org.mortbay.io.EndPoint $r8, $r13, $r19, $r20, $r39, $r45, $r46, $r61, $r67, $r68, $r86, $r92, $r93, $r104, $r110, $r111, $r119, $r125, $r126, $r134, $r140, $r141;
+        org.mortbay.jetty.Server $r1, $r10;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9, $z10, $z11, $z12, $z13, $z14, $z15, $z16, $z17, $z18, $z19, $z20, $z21, $z22, $z23, $z24, $z25, $z26, $z27, $z28, $z29, $z30, $z31, z32, z33;
+        org.mortbay.jetty.Generator $r15, $r41, $r58, $r63, $r80, $r88, $r106, $r121, $r136;
+        org.mortbay.jetty.Connector $r9, $r21, $r47, $r69, $r94, $r112, $r127, $r142;
+
+        r0 := @this: org.mortbay.jetty.HttpConnection;
+
+        $r1 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Server _server>;
+
+        $z0 = virtualinvoke $r1.<org.mortbay.jetty.Server: boolean isRunning()>();
+
+        if $z0 == 0 goto label23;
+
+        z32 = 0;
+
+        z33 = 0;
+
+        r146 = null;
+
+        r147 = null;
+
+     label01:
+        $r2 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpURI _uri>;
+
+        $r3 = virtualinvoke $r2.<org.mortbay.jetty.HttpURI: java.lang.String getDecodedPath()>();
+
+        $r4 = staticinvoke <org.mortbay.util.URIUtil: java.lang.String canonicalPath(java.lang.String)>($r3);
+
+        r147 = $r4;
+
+        if $r4 != null goto label02;
+
+        $r35 = new org.mortbay.jetty.HttpException;
+
+        specialinvoke $r35.<org.mortbay.jetty.HttpException: void <init>(int)>(400);
+
+        throw $r35;
+
+     label02:
+        $r5 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request>;
+
+        virtualinvoke $r5.<org.mortbay.jetty.Request: void setPathInfo(java.lang.String)>($r4);
+
+        $r6 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpConnection$Output _out>;
+
+        if $r6 == null goto label03;
+
+        $r34 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpConnection$Output _out>;
+
+        virtualinvoke $r34.<org.mortbay.jetty.HttpConnection$Output: void reopen()>();
+
+     label03:
+        $z1 = staticinvoke <org.mortbay.log.Log: boolean isDebugEnabled()>();
+
+        if $z1 == 0 goto label04;
+
+        $r25 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        $r26 = virtualinvoke $r25.<java.lang.Thread: java.lang.String getName()>();
+
+        r146 = $r26;
+
+        $r27 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        $r28 = new java.lang.StringBuffer;
+
+        specialinvoke $r28.<java.lang.StringBuffer: void <init>()>();
+
+        $r29 = virtualinvoke $r28.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>($r26);
+
+        $r30 = virtualinvoke $r29.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>(" - ");
+
+        $r31 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpURI _uri>;
+
+        $r32 = virtualinvoke $r30.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.Object)>($r31);
+
+        $r33 = virtualinvoke $r32.<java.lang.StringBuffer: java.lang.String toString()>();
+
+        virtualinvoke $r27.<java.lang.Thread: void setName(java.lang.String)>($r33);
+
+     label04:
+        $r9 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Connector _connector>;
+
+        $r8 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        $r7 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request>;
+
+        interfaceinvoke $r9.<org.mortbay.jetty.Connector: void customize(org.mortbay.io.EndPoint,org.mortbay.jetty.Request)>($r8, $r7);
+
+        $r10 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Server _server>;
+
+        virtualinvoke $r10.<org.mortbay.jetty.Server: void handle(org.mortbay.jetty.HttpConnection)>(r0);
+
+     label05:
+        goto label24;
+
+     label06:
+        goto label23;
+
+     label07:
+        $r131 := @caughtexception;
+
+        $z27 = staticinvoke <org.mortbay.log.Log: boolean isDebugEnabled()>();
+
+        if $z27 == 0 goto label08;
+
+        staticinvoke <org.mortbay.log.Log: void ignore(java.lang.Throwable)>($r131);
+
+     label08:
+        z32 = 1;
+
+        goto label32;
+
+     label09:
+        goto label23;
+
+     label10:
+        $r116 := @caughtexception;
+
+        staticinvoke <org.mortbay.log.Log: void ignore(java.lang.Throwable)>($r116);
+
+        z33 = 1;
+
+        goto label40;
+
+     label11:
+        goto label23;
+
+     label12:
+        $r98 := @caughtexception;
+
+        staticinvoke <org.mortbay.log.Log: void debug(java.lang.Throwable)>($r98);
+
+        $r99 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request>;
+
+        virtualinvoke $r99.<org.mortbay.jetty.Request: void setHandled(boolean)>(1);
+
+        $r100 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        $i0 = virtualinvoke $r98.<org.mortbay.jetty.HttpException: int getStatus()>();
+
+        $r101 = virtualinvoke $r98.<org.mortbay.jetty.HttpException: java.lang.String getReason()>();
+
+        virtualinvoke $r100.<org.mortbay.jetty.Response: void sendError(int,java.lang.String)>($i0, $r101);
+
+        z33 = 1;
+
+        goto label48;
+
+     label13:
+        goto label23;
+
+     label14:
+        $r82 := @caughtexception;
+
+        staticinvoke <org.mortbay.log.Log: void debug(java.lang.Throwable)>($r82);
+
+        $r83 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request>;
+
+        virtualinvoke $r83.<org.mortbay.jetty.Request: void setHandled(boolean)>(1);
+
+        z33 = 1;
+
+        goto label56;
+
+     label15:
+        goto label23;
+
+     label16:
+        $r51 := @caughtexception;
+
+        $z10 = $r51 instanceof java.lang.ThreadDeath;
+
+        if $z10 == 0 goto label17;
+
+        $r81 = (java.lang.ThreadDeath) $r51;
+
+        throw $r81;
+
+     label17:
+        if r147 != null goto label18;
+
+        $r73 = new java.lang.StringBuffer;
+
+        specialinvoke $r73.<java.lang.StringBuffer: void <init>()>();
+
+        $r74 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpURI _uri>;
+
+        $r75 = virtualinvoke $r73.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.Object)>($r74);
+
+        $r76 = virtualinvoke $r75.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>(": ");
+
+        $r77 = virtualinvoke $r76.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.Object)>($r51);
+
+        $r78 = virtualinvoke $r77.<java.lang.StringBuffer: java.lang.String toString()>();
+
+        staticinvoke <org.mortbay.log.Log: void warn(java.lang.String)>($r78);
+
+        staticinvoke <org.mortbay.log.Log: void debug(java.lang.Throwable)>($r51);
+
+        $r79 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request>;
+
+        virtualinvoke $r79.<org.mortbay.jetty.Request: void setHandled(boolean)>(1);
+
+        $r80 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        interfaceinvoke $r80.<org.mortbay.jetty.Generator: void sendError(int,java.lang.String,java.lang.String,boolean)>(400, null, null, 1);
+
+        goto label19;
+
+     label18:
+        $r52 = new java.lang.StringBuffer;
+
+        specialinvoke $r52.<java.lang.StringBuffer: void <init>()>();
+
+        $r53 = virtualinvoke $r52.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>("");
+
+        $r54 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpURI _uri>;
+
+        $r55 = virtualinvoke $r53.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.Object)>($r54);
+
+        $r56 = virtualinvoke $r55.<java.lang.StringBuffer: java.lang.String toString()>();
+
+        staticinvoke <org.mortbay.log.Log: void warn(java.lang.String,java.lang.Throwable)>($r56, $r51);
+
+        $r57 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request>;
+
+        virtualinvoke $r57.<org.mortbay.jetty.Request: void setHandled(boolean)>(1);
+
+        $r58 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        interfaceinvoke $r58.<org.mortbay.jetty.Generator: void sendError(int,java.lang.String,java.lang.String,boolean)>(500, null, null, 1);
+
+     label19:
+        z33 = 1;
+
+        goto label64;
+
+     label20:
+        goto label23;
+
+     label21:
+        $r36 := @caughtexception;
+
+        goto label72;
+
+     label22:
+        throw $r36;
+
+     label23:
+        return;
+
+     label24:
+        if r146 == null goto label25;
+
+        $r24 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        virtualinvoke $r24.<java.lang.Thread: void setName(java.lang.String)>(r146);
+
+     label25:
+        if 0 != 0 goto label31;
+
+        $r11 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request>;
+
+        $r12 = virtualinvoke $r11.<org.mortbay.jetty.Request: org.mortbay.util.ajax.Continuation getContinuation()>();
+
+        if $r12 == null goto label26;
+
+        staticinvoke <org.mortbay.log.Log: void debug(java.lang.String)>("continuation still pending {}");
+
+        $r22 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request>;
+
+        $r23 = virtualinvoke $r22.<org.mortbay.jetty.Request: org.mortbay.util.ajax.Continuation getContinuation()>();
+
+        interfaceinvoke $r23.<org.mortbay.util.ajax.Continuation: void reset()>();
+
+     label26:
+        $r13 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        $z2 = interfaceinvoke $r13.<org.mortbay.io.EndPoint: boolean isOpen()>();
+
+        if $z2 == 0 goto label30;
+
+        $r15 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $z3 = interfaceinvoke $r15.<org.mortbay.jetty.Generator: boolean isPersistent()>();
+
+        if $z3 == 0 goto label27;
+
+        $r21 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Connector _connector>;
+
+        $r20 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        interfaceinvoke $r21.<org.mortbay.jetty.Connector: void persist(org.mortbay.io.EndPoint)>($r20);
+
+     label27:
+        if 0 == 0 goto label28;
+
+        $r19 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        interfaceinvoke $r19.<org.mortbay.io.EndPoint: void close()>();
+
+        goto label31;
+
+     label28:
+        $r16 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        $z4 = virtualinvoke $r16.<org.mortbay.jetty.Response: boolean isCommitted()>();
+
+        if $z4 != 0 goto label29;
+
+        $r17 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request>;
+
+        $z5 = virtualinvoke $r17.<org.mortbay.jetty.Request: boolean isHandled()>();
+
+        if $z5 != 0 goto label29;
+
+        $r18 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        virtualinvoke $r18.<org.mortbay.jetty.Response: void sendError(int)>(404);
+
+     label29:
+        $r148 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        virtualinvoke $r148.<org.mortbay.jetty.Response: void complete()>();
+
+        goto label31;
+
+     label30:
+        $r14 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        virtualinvoke $r14.<org.mortbay.jetty.Response: void complete()>();
+
+     label31:
+        goto label06;
+
+     label32:
+        if r146 == null goto label33;
+
+        $r145 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        virtualinvoke $r145.<java.lang.Thread: void setName(java.lang.String)>(r146);
+
+     label33:
+        if 1 != 0 goto label39;
+
+        $r132 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request>;
+
+        $r133 = virtualinvoke $r132.<org.mortbay.jetty.Request: org.mortbay.util.ajax.Continuation getContinuation()>();
+
+        if $r133 == null goto label34;
+
+        staticinvoke <org.mortbay.log.Log: void debug(java.lang.String)>("continuation still pending {}");
+
+        $r143 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request>;
+
+        $r144 = virtualinvoke $r143.<org.mortbay.jetty.Request: org.mortbay.util.ajax.Continuation getContinuation()>();
+
+        interfaceinvoke $r144.<org.mortbay.util.ajax.Continuation: void reset()>();
+
+     label34:
+        $r134 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        $z28 = interfaceinvoke $r134.<org.mortbay.io.EndPoint: boolean isOpen()>();
+
+        if $z28 == 0 goto label38;
+
+        $r136 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $z29 = interfaceinvoke $r136.<org.mortbay.jetty.Generator: boolean isPersistent()>();
+
+        if $z29 == 0 goto label35;
+
+        $r142 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Connector _connector>;
+
+        $r141 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        interfaceinvoke $r142.<org.mortbay.jetty.Connector: void persist(org.mortbay.io.EndPoint)>($r141);
+
+     label35:
+        if 0 == 0 goto label36;
+
+        $r140 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        interfaceinvoke $r140.<org.mortbay.io.EndPoint: void close()>();
+
+        goto label39;
+
+     label36:
+        $r137 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        $z30 = virtualinvoke $r137.<org.mortbay.jetty.Response: boolean isCommitted()>();
+
+        if $z30 != 0 goto label37;
+
+        $r138 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request>;
+
+        $z31 = virtualinvoke $r138.<org.mortbay.jetty.Request: boolean isHandled()>();
+
+        if $z31 != 0 goto label37;
+
+        $r139 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        virtualinvoke $r139.<org.mortbay.jetty.Response: void sendError(int)>(404);
+
+     label37:
+        $r149 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        virtualinvoke $r149.<org.mortbay.jetty.Response: void complete()>();
+
+        goto label39;
+
+     label38:
+        $r135 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        virtualinvoke $r135.<org.mortbay.jetty.Response: void complete()>();
+
+     label39:
+        goto label09;
+
+     label40:
+        if r146 == null goto label41;
+
+        $r130 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        virtualinvoke $r130.<java.lang.Thread: void setName(java.lang.String)>(r146);
+
+     label41:
+        if 0 != 0 goto label47;
+
+        $r117 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request>;
+
+        $r118 = virtualinvoke $r117.<org.mortbay.jetty.Request: org.mortbay.util.ajax.Continuation getContinuation()>();
+
+        if $r118 == null goto label42;
+
+        staticinvoke <org.mortbay.log.Log: void debug(java.lang.String)>("continuation still pending {}");
+
+        $r128 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request>;
+
+        $r129 = virtualinvoke $r128.<org.mortbay.jetty.Request: org.mortbay.util.ajax.Continuation getContinuation()>();
+
+        interfaceinvoke $r129.<org.mortbay.util.ajax.Continuation: void reset()>();
+
+     label42:
+        $r119 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        $z23 = interfaceinvoke $r119.<org.mortbay.io.EndPoint: boolean isOpen()>();
+
+        if $z23 == 0 goto label46;
+
+        $r121 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $z24 = interfaceinvoke $r121.<org.mortbay.jetty.Generator: boolean isPersistent()>();
+
+        if $z24 == 0 goto label43;
+
+        $r127 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Connector _connector>;
+
+        $r126 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        interfaceinvoke $r127.<org.mortbay.jetty.Connector: void persist(org.mortbay.io.EndPoint)>($r126);
+
+     label43:
+        if 1 == 0 goto label44;
+
+        $r125 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        interfaceinvoke $r125.<org.mortbay.io.EndPoint: void close()>();
+
+        goto label47;
+
+     label44:
+        $r122 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        $z25 = virtualinvoke $r122.<org.mortbay.jetty.Response: boolean isCommitted()>();
+
+        if $z25 != 0 goto label45;
+
+        $r123 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request>;
+
+        $z26 = virtualinvoke $r123.<org.mortbay.jetty.Request: boolean isHandled()>();
+
+        if $z26 != 0 goto label45;
+
+        $r124 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        virtualinvoke $r124.<org.mortbay.jetty.Response: void sendError(int)>(404);
+
+     label45:
+        $r150 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        virtualinvoke $r150.<org.mortbay.jetty.Response: void complete()>();
+
+        goto label47;
+
+     label46:
+        $r120 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        virtualinvoke $r120.<org.mortbay.jetty.Response: void complete()>();
+
+     label47:
+        goto label11;
+
+     label48:
+        if r146 == null goto label49;
+
+        $r115 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        virtualinvoke $r115.<java.lang.Thread: void setName(java.lang.String)>(r146);
+
+     label49:
+        if 0 != 0 goto label55;
+
+        $r102 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request>;
+
+        $r103 = virtualinvoke $r102.<org.mortbay.jetty.Request: org.mortbay.util.ajax.Continuation getContinuation()>();
+
+        if $r103 == null goto label50;
+
+        staticinvoke <org.mortbay.log.Log: void debug(java.lang.String)>("continuation still pending {}");
+
+        $r113 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request>;
+
+        $r114 = virtualinvoke $r113.<org.mortbay.jetty.Request: org.mortbay.util.ajax.Continuation getContinuation()>();
+
+        interfaceinvoke $r114.<org.mortbay.util.ajax.Continuation: void reset()>();
+
+     label50:
+        $r104 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        $z19 = interfaceinvoke $r104.<org.mortbay.io.EndPoint: boolean isOpen()>();
+
+        if $z19 == 0 goto label54;
+
+        $r106 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $z20 = interfaceinvoke $r106.<org.mortbay.jetty.Generator: boolean isPersistent()>();
+
+        if $z20 == 0 goto label51;
+
+        $r112 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Connector _connector>;
+
+        $r111 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        interfaceinvoke $r112.<org.mortbay.jetty.Connector: void persist(org.mortbay.io.EndPoint)>($r111);
+
+     label51:
+        if 1 == 0 goto label52;
+
+        $r110 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        interfaceinvoke $r110.<org.mortbay.io.EndPoint: void close()>();
+
+        goto label55;
+
+     label52:
+        $r107 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        $z21 = virtualinvoke $r107.<org.mortbay.jetty.Response: boolean isCommitted()>();
+
+        if $z21 != 0 goto label53;
+
+        $r108 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request>;
+
+        $z22 = virtualinvoke $r108.<org.mortbay.jetty.Request: boolean isHandled()>();
+
+        if $z22 != 0 goto label53;
+
+        $r109 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        virtualinvoke $r109.<org.mortbay.jetty.Response: void sendError(int)>(404);
+
+     label53:
+        $r151 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        virtualinvoke $r151.<org.mortbay.jetty.Response: void complete()>();
+
+        goto label55;
+
+     label54:
+        $r105 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        virtualinvoke $r105.<org.mortbay.jetty.Response: void complete()>();
+
+     label55:
+        goto label13;
+
+     label56:
+        if r146 == null goto label57;
+
+        $r97 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        virtualinvoke $r97.<java.lang.Thread: void setName(java.lang.String)>(r146);
+
+     label57:
+        if 0 != 0 goto label63;
+
+        $r84 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request>;
+
+        $r85 = virtualinvoke $r84.<org.mortbay.jetty.Request: org.mortbay.util.ajax.Continuation getContinuation()>();
+
+        if $r85 == null goto label58;
+
+        staticinvoke <org.mortbay.log.Log: void debug(java.lang.String)>("continuation still pending {}");
+
+        $r95 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request>;
+
+        $r96 = virtualinvoke $r95.<org.mortbay.jetty.Request: org.mortbay.util.ajax.Continuation getContinuation()>();
+
+        interfaceinvoke $r96.<org.mortbay.util.ajax.Continuation: void reset()>();
+
+     label58:
+        $r86 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        $z15 = interfaceinvoke $r86.<org.mortbay.io.EndPoint: boolean isOpen()>();
+
+        if $z15 == 0 goto label62;
+
+        $r88 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $z16 = interfaceinvoke $r88.<org.mortbay.jetty.Generator: boolean isPersistent()>();
+
+        if $z16 == 0 goto label59;
+
+        $r94 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Connector _connector>;
+
+        $r93 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        interfaceinvoke $r94.<org.mortbay.jetty.Connector: void persist(org.mortbay.io.EndPoint)>($r93);
+
+     label59:
+        if 1 == 0 goto label60;
+
+        $r92 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        interfaceinvoke $r92.<org.mortbay.io.EndPoint: void close()>();
+
+        goto label63;
+
+     label60:
+        $r89 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        $z17 = virtualinvoke $r89.<org.mortbay.jetty.Response: boolean isCommitted()>();
+
+        if $z17 != 0 goto label61;
+
+        $r90 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request>;
+
+        $z18 = virtualinvoke $r90.<org.mortbay.jetty.Request: boolean isHandled()>();
+
+        if $z18 != 0 goto label61;
+
+        $r91 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        virtualinvoke $r91.<org.mortbay.jetty.Response: void sendError(int)>(404);
+
+     label61:
+        $r152 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        virtualinvoke $r152.<org.mortbay.jetty.Response: void complete()>();
+
+        goto label63;
+
+     label62:
+        $r87 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        virtualinvoke $r87.<org.mortbay.jetty.Response: void complete()>();
+
+     label63:
+        goto label15;
+
+     label64:
+        if r146 == null goto label65;
+
+        $r72 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        virtualinvoke $r72.<java.lang.Thread: void setName(java.lang.String)>(r146);
+
+     label65:
+        if 0 != 0 goto label71;
+
+        $r59 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request>;
+
+        $r60 = virtualinvoke $r59.<org.mortbay.jetty.Request: org.mortbay.util.ajax.Continuation getContinuation()>();
+
+        if $r60 == null goto label66;
+
+        staticinvoke <org.mortbay.log.Log: void debug(java.lang.String)>("continuation still pending {}");
+
+        $r70 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request>;
+
+        $r71 = virtualinvoke $r70.<org.mortbay.jetty.Request: org.mortbay.util.ajax.Continuation getContinuation()>();
+
+        interfaceinvoke $r71.<org.mortbay.util.ajax.Continuation: void reset()>();
+
+     label66:
+        $r61 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        $z11 = interfaceinvoke $r61.<org.mortbay.io.EndPoint: boolean isOpen()>();
+
+        if $z11 == 0 goto label70;
+
+        $r63 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $z12 = interfaceinvoke $r63.<org.mortbay.jetty.Generator: boolean isPersistent()>();
+
+        if $z12 == 0 goto label67;
+
+        $r69 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Connector _connector>;
+
+        $r68 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        interfaceinvoke $r69.<org.mortbay.jetty.Connector: void persist(org.mortbay.io.EndPoint)>($r68);
+
+     label67:
+        if 1 == 0 goto label68;
+
+        $r67 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        interfaceinvoke $r67.<org.mortbay.io.EndPoint: void close()>();
+
+        goto label71;
+
+     label68:
+        $r64 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        $z13 = virtualinvoke $r64.<org.mortbay.jetty.Response: boolean isCommitted()>();
+
+        if $z13 != 0 goto label69;
+
+        $r65 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request>;
+
+        $z14 = virtualinvoke $r65.<org.mortbay.jetty.Request: boolean isHandled()>();
+
+        if $z14 != 0 goto label69;
+
+        $r66 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        virtualinvoke $r66.<org.mortbay.jetty.Response: void sendError(int)>(404);
+
+     label69:
+        $r153 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        virtualinvoke $r153.<org.mortbay.jetty.Response: void complete()>();
+
+        goto label71;
+
+     label70:
+        $r62 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        virtualinvoke $r62.<org.mortbay.jetty.Response: void complete()>();
+
+     label71:
+        goto label20;
+
+     label72:
+        if r146 == null goto label73;
+
+        $r50 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        virtualinvoke $r50.<java.lang.Thread: void setName(java.lang.String)>(r146);
+
+     label73:
+        if z32 != 0 goto label79;
+
+        $r37 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request>;
+
+        $r38 = virtualinvoke $r37.<org.mortbay.jetty.Request: org.mortbay.util.ajax.Continuation getContinuation()>();
+
+        if $r38 == null goto label74;
+
+        staticinvoke <org.mortbay.log.Log: void debug(java.lang.String)>("continuation still pending {}");
+
+        $r48 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request>;
+
+        $r49 = virtualinvoke $r48.<org.mortbay.jetty.Request: org.mortbay.util.ajax.Continuation getContinuation()>();
+
+        interfaceinvoke $r49.<org.mortbay.util.ajax.Continuation: void reset()>();
+
+     label74:
+        $r39 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        $z6 = interfaceinvoke $r39.<org.mortbay.io.EndPoint: boolean isOpen()>();
+
+        if $z6 == 0 goto label78;
+
+        $r41 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $z7 = interfaceinvoke $r41.<org.mortbay.jetty.Generator: boolean isPersistent()>();
+
+        if $z7 == 0 goto label75;
+
+        $r47 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Connector _connector>;
+
+        $r46 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        interfaceinvoke $r47.<org.mortbay.jetty.Connector: void persist(org.mortbay.io.EndPoint)>($r46);
+
+     label75:
+        if z33 == 0 goto label76;
+
+        $r45 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.io.EndPoint _endp>;
+
+        interfaceinvoke $r45.<org.mortbay.io.EndPoint: void close()>();
+
+        goto label79;
+
+     label76:
+        $r42 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        $z8 = virtualinvoke $r42.<org.mortbay.jetty.Response: boolean isCommitted()>();
+
+        if $z8 != 0 goto label77;
+
+        $r43 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Request _request>;
+
+        $z9 = virtualinvoke $r43.<org.mortbay.jetty.Request: boolean isHandled()>();
+
+        if $z9 != 0 goto label77;
+
+        $r44 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        virtualinvoke $r44.<org.mortbay.jetty.Response: void sendError(int)>(404);
+
+     label77:
+        $r154 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        virtualinvoke $r154.<org.mortbay.jetty.Response: void complete()>();
+
+        goto label79;
+
+     label78:
+        $r40 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        virtualinvoke $r40.<org.mortbay.jetty.Response: void complete()>();
+
+     label79:
+        goto label22;
+
+        catch org.mortbay.jetty.RetryRequest from label01 to label05 with label07;
+        catch org.mortbay.jetty.EofException from label01 to label05 with label10;
+        catch org.mortbay.jetty.HttpException from label01 to label05 with label12;
+        catch org.mortbay.io.RuntimeIOException from label01 to label05 with label14;
+        catch java.lang.Throwable from label01 to label05 with label16;
+        catch java.lang.Throwable from label01 to label06 with label21;
+        catch java.lang.Throwable from label07 to label09 with label21;
+        catch java.lang.Throwable from label10 to label11 with label21;
+        catch java.lang.Throwable from label12 to label13 with label21;
+        catch java.lang.Throwable from label14 to label15 with label21;
+        catch java.lang.Throwable from label16 to label20 with label21;
+        catch java.lang.Throwable from label21 to label22 with label21;
+    }
+
+    public void commitResponse(boolean) throws java.io.IOException
+    {
+        org.mortbay.jetty.HttpFields $r7, $r24;
+        org.mortbay.jetty.HttpGenerator $r16;
+        java.lang.StringBuffer $r10, $r11, $r12;
+        int $i0;
+        java.lang.String $r6, $r13, $r18;
+        boolean $z0, z1, $z2, $z3;
+        org.mortbay.jetty.Generator $r1, $r2, $r4, $r8, $r14, $r15, $r21, $r22, $r23, $r25;
+        org.mortbay.io.Buffer $r17;
+        org.mortbay.jetty.HttpConnection r0;
+        java.io.IOException $r19;
+        java.lang.RuntimeException $r9;
+        org.mortbay.jetty.Response $r3, $r5, $r20;
+
+        r0 := @this: org.mortbay.jetty.HttpConnection;
+
+        z1 := @parameter0: boolean;
+
+        $r1 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $z0 = interfaceinvoke $r1.<org.mortbay.jetty.Generator: boolean isCommitted()>();
+
+        if $z0 != 0 goto label6;
+
+        $r4 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $r3 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        $i0 = virtualinvoke $r3.<org.mortbay.jetty.Response: int getStatus()>();
+
+        $r5 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        $r6 = virtualinvoke $r5.<org.mortbay.jetty.Response: java.lang.String getReason()>();
+
+        interfaceinvoke $r4.<org.mortbay.jetty.Generator: void setResponse(int,java.lang.String)>($i0, $r6);
+
+     label1:
+        $r8 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $r7 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpFields _responseFields>;
+
+        interfaceinvoke $r8.<org.mortbay.jetty.Generator: void completeHeader(org.mortbay.jetty.HttpFields,boolean)>($r7, z1);
+
+     label2:
+        goto label6;
+
+     label3:
+        $r19 := @caughtexception;
+
+        throw $r19;
+
+     label4:
+        $r9 := @caughtexception;
+
+        $r10 = new java.lang.StringBuffer;
+
+        specialinvoke $r10.<java.lang.StringBuffer: void <init>()>();
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>("header full: ");
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.Object)>($r9);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuffer: java.lang.String toString()>();
+
+        staticinvoke <org.mortbay.log.Log: void warn(java.lang.String)>($r13);
+
+        $z2 = staticinvoke <org.mortbay.log.Log: boolean isDebugEnabled()>();
+
+        if $z2 == 0 goto label5;
+
+        $r14 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $z3 = $r14 instanceof org.mortbay.jetty.HttpGenerator;
+
+        if $z3 == 0 goto label5;
+
+        $r15 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $r16 = (org.mortbay.jetty.HttpGenerator) $r15;
+
+        $r17 = $r16.<org.mortbay.jetty.HttpGenerator: org.mortbay.io.Buffer _header>;
+
+        $r18 = interfaceinvoke $r17.<org.mortbay.io.Buffer: java.lang.String toDetailString()>();
+
+        staticinvoke <org.mortbay.log.Log: void debug(java.lang.String,java.lang.Object)>($r18, $r9);
+
+     label5:
+        $r20 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        virtualinvoke $r20.<org.mortbay.jetty.Response: void reset()>();
+
+        $r21 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        interfaceinvoke $r21.<org.mortbay.jetty.Generator: void reset(boolean)>(1);
+
+        $r22 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        interfaceinvoke $r22.<org.mortbay.jetty.Generator: void setResponse(int,java.lang.String)>(500, null);
+
+        $r23 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $r24 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpFields _responseFields>;
+
+        interfaceinvoke $r23.<org.mortbay.jetty.Generator: void completeHeader(org.mortbay.jetty.HttpFields,boolean)>($r24, 1);
+
+        $r25 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        interfaceinvoke $r25.<org.mortbay.jetty.Generator: void complete()>();
+
+        throw $r9;
+
+     label6:
+        if z1 == 0 goto label7;
+
+        $r2 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        interfaceinvoke $r2.<org.mortbay.jetty.Generator: void complete()>();
+
+     label7:
+        return;
+
+        catch java.io.IOException from label1 to label2 with label3;
+        catch java.lang.RuntimeException from label1 to label2 with label4;
+    }
+
+    public void completeResponse() throws java.io.IOException
+    {
+        org.mortbay.jetty.HttpFields $r7, $r17;
+        java.lang.StringBuffer $r10, $r11, $r12;
+        int $i0;
+        java.lang.String $r6, $r13;
+        boolean $z0;
+        org.mortbay.jetty.Generator $r1, $r2, $r4, $r8, $r15, $r16, $r18, $r19;
+        org.mortbay.jetty.HttpConnection r0;
+        java.io.IOException $r20;
+        java.lang.RuntimeException $r9;
+        org.mortbay.jetty.Response $r3, $r5, $r14;
+
+        r0 := @this: org.mortbay.jetty.HttpConnection;
+
+        $r1 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $z0 = interfaceinvoke $r1.<org.mortbay.jetty.Generator: boolean isCommitted()>();
+
+        if $z0 != 0 goto label5;
+
+        $r4 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $r3 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        $i0 = virtualinvoke $r3.<org.mortbay.jetty.Response: int getStatus()>();
+
+        $r5 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        $r6 = virtualinvoke $r5.<org.mortbay.jetty.Response: java.lang.String getReason()>();
+
+        interfaceinvoke $r4.<org.mortbay.jetty.Generator: void setResponse(int,java.lang.String)>($i0, $r6);
+
+     label1:
+        $r8 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $r7 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpFields _responseFields>;
+
+        interfaceinvoke $r8.<org.mortbay.jetty.Generator: void completeHeader(org.mortbay.jetty.HttpFields,boolean)>($r7, 1);
+
+     label2:
+        goto label5;
+
+     label3:
+        $r20 := @caughtexception;
+
+        throw $r20;
+
+     label4:
+        $r9 := @caughtexception;
+
+        $r10 = new java.lang.StringBuffer;
+
+        specialinvoke $r10.<java.lang.StringBuffer: void <init>()>();
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>("header full: ");
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.Object)>($r9);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuffer: java.lang.String toString()>();
+
+        staticinvoke <org.mortbay.log.Log: void warn(java.lang.String)>($r13);
+
+        staticinvoke <org.mortbay.log.Log: void debug(java.lang.Throwable)>($r9);
+
+        $r14 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Response _response>;
+
+        virtualinvoke $r14.<org.mortbay.jetty.Response: void reset()>();
+
+        $r15 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        interfaceinvoke $r15.<org.mortbay.jetty.Generator: void reset(boolean)>(1);
+
+        $r16 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        interfaceinvoke $r16.<org.mortbay.jetty.Generator: void setResponse(int,java.lang.String)>(500, null);
+
+        $r18 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $r17 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpFields _responseFields>;
+
+        interfaceinvoke $r18.<org.mortbay.jetty.Generator: void completeHeader(org.mortbay.jetty.HttpFields,boolean)>($r17, 1);
+
+        $r19 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        interfaceinvoke $r19.<org.mortbay.jetty.Generator: void complete()>();
+
+        throw $r9;
+
+     label5:
+        $r2 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        interfaceinvoke $r2.<org.mortbay.jetty.Generator: void complete()>();
+
+        return;
+
+        catch java.io.IOException from label1 to label2 with label3;
+        catch java.lang.RuntimeException from label1 to label2 with label4;
+    }
+
+    public void flushResponse() throws java.io.IOException
+    {
+        org.mortbay.jetty.Generator $r1;
+        org.mortbay.jetty.EofException $r4;
+        org.mortbay.jetty.HttpConnection r0;
+        java.io.IOException $r2, $r3;
+        boolean $z0;
+
+        r0 := @this: org.mortbay.jetty.HttpConnection;
+
+     label1:
+        virtualinvoke r0.<org.mortbay.jetty.HttpConnection: void commitResponse(boolean)>(0);
+
+        $r1 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        interfaceinvoke $r1.<org.mortbay.jetty.Generator: long flush()>();
+
+     label2:
+        goto label6;
+
+     label3:
+        $r2 := @caughtexception;
+
+        $z0 = $r2 instanceof org.mortbay.jetty.EofException;
+
+        if $z0 == 0 goto label4;
+
+        $r3 = $r2;
+
+        goto label5;
+
+     label4:
+        $r4 = new org.mortbay.jetty.EofException;
+
+        $r3 = $r4;
+
+        specialinvoke $r4.<org.mortbay.jetty.EofException: void <init>(java.lang.Throwable)>($r2);
+
+     label5:
+        throw $r3;
+
+     label6:
+        return;
+
+        catch java.io.IOException from label1 to label2 with label3;
+    }
+
+    public org.mortbay.jetty.Generator getGenerator()
+    {
+        org.mortbay.jetty.Generator $r1;
+        org.mortbay.jetty.HttpConnection r0;
+
+        r0 := @this: org.mortbay.jetty.HttpConnection;
+
+        $r1 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        return $r1;
+    }
+
+    public boolean isIncluding()
+    {
+        int $i0;
+        org.mortbay.jetty.HttpConnection r0;
+        boolean $z0;
+
+        r0 := @this: org.mortbay.jetty.HttpConnection;
+
+        $i0 = r0.<org.mortbay.jetty.HttpConnection: int _include>;
+
+        if $i0 <= 0 goto label1;
+
+        $z0 = 1;
+
+        goto label2;
+
+     label1:
+        $z0 = 0;
+
+     label2:
+        return $z0;
+    }
+
+    public void include()
+    {
+        int $i0, $i1;
+        org.mortbay.jetty.HttpConnection r0;
+
+        r0 := @this: org.mortbay.jetty.HttpConnection;
+
+        $i0 = r0.<org.mortbay.jetty.HttpConnection: int _include>;
+
+        $i1 = $i0 + 1;
+
+        r0.<org.mortbay.jetty.HttpConnection: int _include> = $i1;
+
+        return;
+    }
+
+    public void included()
+    {
+        org.mortbay.jetty.HttpConnection r0;
+        int $i0, $i1;
+        org.mortbay.jetty.HttpConnection$Output $r1, $r2;
+
+        r0 := @this: org.mortbay.jetty.HttpConnection;
+
+        $i0 = r0.<org.mortbay.jetty.HttpConnection: int _include>;
+
+        $i1 = $i0 - 1;
+
+        r0.<org.mortbay.jetty.HttpConnection: int _include> = $i1;
+
+        $r1 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpConnection$Output _out>;
+
+        if $r1 == null goto label1;
+
+        $r2 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.HttpConnection$Output _out>;
+
+        virtualinvoke $r2.<org.mortbay.jetty.HttpConnection$Output: void reopen()>();
+
+     label1:
+        return;
+    }
+
+    public boolean isIdle()
+    {
+        org.mortbay.jetty.Generator $r1;
+        org.mortbay.jetty.HttpConnection r0;
+        boolean $z0, $z1, $z2, $z3;
+        org.mortbay.jetty.Parser $r2;
+
+        r0 := @this: org.mortbay.jetty.HttpConnection;
+
+        $r1 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Generator _generator>;
+
+        $z0 = interfaceinvoke $r1.<org.mortbay.jetty.Generator: boolean isIdle()>();
+
+        if $z0 == 0 goto label2;
+
+        $r2 = r0.<org.mortbay.jetty.HttpConnection: org.mortbay.jetty.Parser _parser>;
+
+        $z1 = interfaceinvoke $r2.<org.mortbay.jetty.Parser: boolean isIdle()>();
+
+        if $z1 != 0 goto label1;
+
+        $z2 = r0.<org.mortbay.jetty.HttpConnection: boolean _delayedHandling>;
+
+        if $z2 == 0 goto label2;
+
+     label1:
+        $z3 = 1;
+
+        goto label3;
+
+     label2:
+        $z3 = 0;
+
+     label3:
+        return $z3;
+    }
+
+    static boolean access$102(org.mortbay.jetty.HttpConnection, boolean)
+    {
+        org.mortbay.jetty.HttpConnection r0;
+        boolean z0;
+
+        r0 := @parameter0: org.mortbay.jetty.HttpConnection;
+
+        z0 := @parameter1: boolean;
+
+        r0.<org.mortbay.jetty.HttpConnection: boolean _host> = z0;
+
+        return z0;
+    }
+
+    static int access$202(org.mortbay.jetty.HttpConnection, int)
+    {
+        int i0;
+        org.mortbay.jetty.HttpConnection r0;
+
+        r0 := @parameter0: org.mortbay.jetty.HttpConnection;
+
+        i0 := @parameter1: int;
+
+        r0.<org.mortbay.jetty.HttpConnection: int _expect> = i0;
+
+        return i0;
+    }
+
+    static int access$300()
+    {
+        int $i0;
+
+        $i0 = <org.mortbay.jetty.HttpConnection: int UNKNOWN>;
+
+        return $i0;
+    }
+
+    static boolean access$402(org.mortbay.jetty.HttpConnection, boolean)
+    {
+        org.mortbay.jetty.HttpConnection r0;
+        boolean z0;
+
+        r0 := @parameter0: org.mortbay.jetty.HttpConnection;
+
+        z0 := @parameter1: boolean;
+
+        r0.<org.mortbay.jetty.HttpConnection: boolean _delayedHandling> = z0;
+
+        return z0;
+    }
+
+    static int access$502(org.mortbay.jetty.HttpConnection, int)
+    {
+        int i0;
+        org.mortbay.jetty.HttpConnection r0;
+
+        r0 := @parameter0: org.mortbay.jetty.HttpConnection;
+
+        i0 := @parameter1: int;
+
+        r0.<org.mortbay.jetty.HttpConnection: int _version> = i0;
+
+        return i0;
+    }
+
+    static int access$500(org.mortbay.jetty.HttpConnection)
+    {
+        int $i0;
+        org.mortbay.jetty.HttpConnection r0;
+
+        r0 := @parameter0: org.mortbay.jetty.HttpConnection;
+
+        $i0 = r0.<org.mortbay.jetty.HttpConnection: int _version>;
+
+        return $i0;
+    }
+
+    static boolean access$602(org.mortbay.jetty.HttpConnection, boolean)
+    {
+        org.mortbay.jetty.HttpConnection r0;
+        boolean z0;
+
+        r0 := @parameter0: org.mortbay.jetty.HttpConnection;
+
+        z0 := @parameter1: boolean;
+
+        r0.<org.mortbay.jetty.HttpConnection: boolean _head> = z0;
+
+        return z0;
+    }
+
+    static int access$708(org.mortbay.jetty.HttpConnection)
+    {
+        int $i0, $i1;
+        org.mortbay.jetty.HttpConnection r0;
+
+        r0 := @parameter0: org.mortbay.jetty.HttpConnection;
+
+        $i0 = r0.<org.mortbay.jetty.HttpConnection: int _requests>;
+
+        $i1 = $i0 + 1;
+
+        r0.<org.mortbay.jetty.HttpConnection: int _requests> = $i1;
+
+        return $i0;
+    }
+
+    static boolean access$600(org.mortbay.jetty.HttpConnection)
+    {
+        org.mortbay.jetty.HttpConnection r0;
+        boolean $z0;
+
+        r0 := @parameter0: org.mortbay.jetty.HttpConnection;
+
+        $z0 = r0.<org.mortbay.jetty.HttpConnection: boolean _head>;
+
+        return $z0;
+    }
+
+    static boolean access$100(org.mortbay.jetty.HttpConnection)
+    {
+        org.mortbay.jetty.HttpConnection r0;
+        boolean $z0;
+
+        r0 := @parameter0: org.mortbay.jetty.HttpConnection;
+
+        $z0 = r0.<org.mortbay.jetty.HttpConnection: boolean _host>;
+
+        return $z0;
+    }
+
+    static int access$200(org.mortbay.jetty.HttpConnection)
+    {
+        int $i0;
+        org.mortbay.jetty.HttpConnection r0;
+
+        r0 := @parameter0: org.mortbay.jetty.HttpConnection;
+
+        $i0 = r0.<org.mortbay.jetty.HttpConnection: int _expect>;
+
+        return $i0;
+    }
+
+    static boolean access$400(org.mortbay.jetty.HttpConnection)
+    {
+        org.mortbay.jetty.HttpConnection r0;
+        boolean $z0;
+
+        r0 := @parameter0: org.mortbay.jetty.HttpConnection;
+
+        $z0 = r0.<org.mortbay.jetty.HttpConnection: boolean _delayedHandling>;
+
+        return $z0;
+    }
+
+    static void <clinit>()
+    {
+        int $i1;
+        java.lang.ThreadLocal $r1;
+
+        $i1 = (int) -2;
+
+        <org.mortbay.jetty.HttpConnection: int UNKNOWN> = $i1;
+
+        $r1 = new java.lang.ThreadLocal;
+
+        specialinvoke $r1.<java.lang.ThreadLocal: void <init>()>();
+
+        <org.mortbay.jetty.HttpConnection: java.lang.ThreadLocal __currentConnection> = $r1;
+
+        return;
+    }
+}

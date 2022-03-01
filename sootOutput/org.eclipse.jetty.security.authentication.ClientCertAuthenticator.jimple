@@ -1,0 +1,550 @@
+public class org.eclipse.jetty.security.authentication.ClientCertAuthenticator extends org.eclipse.jetty.security.authentication.LoginAuthenticator
+{
+    private static final java.lang.String PASSWORD_PROPERTY;
+    private java.lang.String _trustStorePath;
+    private java.lang.String _trustStoreProvider;
+    private java.lang.String _trustStoreType;
+    private transient org.eclipse.jetty.util.security.Password _trustStorePassword;
+    private boolean _validateCerts;
+    private java.lang.String _crlPath;
+    private int _maxCertPathLength;
+    private boolean _enableCRLDP;
+    private boolean _enableOCSP;
+    private java.lang.String _ocspResponderURL;
+
+    public void <init>()
+    {
+        int $i1;
+        org.eclipse.jetty.security.authentication.ClientCertAuthenticator r0;
+
+        r0 := @this: org.eclipse.jetty.security.authentication.ClientCertAuthenticator;
+
+        specialinvoke r0.<org.eclipse.jetty.security.authentication.LoginAuthenticator: void <init>()>();
+
+        r0.<org.eclipse.jetty.security.authentication.ClientCertAuthenticator: java.lang.String _trustStoreType> = "JKS";
+
+        $i1 = (int) -1;
+
+        r0.<org.eclipse.jetty.security.authentication.ClientCertAuthenticator: int _maxCertPathLength> = $i1;
+
+        r0.<org.eclipse.jetty.security.authentication.ClientCertAuthenticator: boolean _enableCRLDP> = 0;
+
+        r0.<org.eclipse.jetty.security.authentication.ClientCertAuthenticator: boolean _enableOCSP> = 0;
+
+        return;
+    }
+
+    public java.lang.String getAuthMethod()
+    {
+        org.eclipse.jetty.security.authentication.ClientCertAuthenticator r0;
+
+        r0 := @this: org.eclipse.jetty.security.authentication.ClientCertAuthenticator;
+
+        return "CLIENT_CERT";
+    }
+
+    public org.eclipse.jetty.server.Authentication validateRequest(javax.servlet.ServletRequest, javax.servlet.ServletResponse, boolean) throws org.eclipse.jetty.security.ServerAuthException
+    {
+        java.security.cert.X509Certificate r10;
+        org.eclipse.jetty.util.security.Password $r17, $r18;
+        byte[] $r12;
+        org.eclipse.jetty.security.authentication.DeferredAuthentication $r26;
+        boolean z0, $z1, $z2;
+        java.util.Collection $r24;
+        java.security.KeyStore $r22;
+        java.lang.Exception $r27;
+        java.security.Principal $r11, r31;
+        javax.servlet.ServletResponse r2;
+        java.security.cert.X509Certificate[] $r5, r6;
+        org.eclipse.jetty.server.UserIdentity $r14;
+        javax.servlet.http.HttpServletRequest r1;
+        org.eclipse.jetty.security.authentication.ClientCertAuthenticator r9;
+        int $i0, $i1, i2;
+        java.lang.String $r16, $r19, $r20, $r21, $r23, $r29, $r30, $r32;
+        javax.servlet.ServletRequest r0;
+        javax.servlet.http.HttpServletResponse r3;
+        org.eclipse.jetty.security.UserAuthentication $r15;
+        org.eclipse.jetty.security.ServerAuthException $r28;
+        org.eclipse.jetty.server.Authentication $r7, $r8;
+        char[] $r13;
+        org.eclipse.jetty.util.security.CertificateValidator $r25;
+        java.lang.Object $r4;
+
+        r9 := @this: org.eclipse.jetty.security.authentication.ClientCertAuthenticator;
+
+        r0 := @parameter0: javax.servlet.ServletRequest;
+
+        r2 := @parameter1: javax.servlet.ServletResponse;
+
+        z0 := @parameter2: boolean;
+
+        if z0 != 0 goto label01;
+
+        $r26 = new org.eclipse.jetty.security.authentication.DeferredAuthentication;
+
+        specialinvoke $r26.<org.eclipse.jetty.security.authentication.DeferredAuthentication: void <init>(org.eclipse.jetty.security.authentication.LoginAuthenticator)>(r9);
+
+        return $r26;
+
+     label01:
+        r1 = (javax.servlet.http.HttpServletRequest) r0;
+
+        r3 = (javax.servlet.http.HttpServletResponse) r2;
+
+        $r4 = interfaceinvoke r1.<javax.servlet.http.HttpServletRequest: java.lang.Object getAttribute(java.lang.String)>("javax.servlet.request.X509Certificate");
+
+        $r5 = (java.security.cert.X509Certificate[]) $r4;
+
+        r6 = (java.security.cert.X509Certificate[]) $r5;
+
+     label02:
+        if r6 == null goto label13;
+
+        $i0 = lengthof r6;
+
+        if $i0 <= 0 goto label13;
+
+        $z1 = r9.<org.eclipse.jetty.security.authentication.ClientCertAuthenticator: boolean _validateCerts>;
+
+        if $z1 == 0 goto label05;
+
+        $r19 = r9.<org.eclipse.jetty.security.authentication.ClientCertAuthenticator: java.lang.String _trustStorePath>;
+
+        $r20 = r9.<org.eclipse.jetty.security.authentication.ClientCertAuthenticator: java.lang.String _trustStoreType>;
+
+        $r21 = r9.<org.eclipse.jetty.security.authentication.ClientCertAuthenticator: java.lang.String _trustStoreProvider>;
+
+        $r17 = r9.<org.eclipse.jetty.security.authentication.ClientCertAuthenticator: org.eclipse.jetty.util.security.Password _trustStorePassword>;
+
+        if $r17 != null goto label03;
+
+        $r30 = null;
+
+        goto label04;
+
+     label03:
+        $r18 = r9.<org.eclipse.jetty.security.authentication.ClientCertAuthenticator: org.eclipse.jetty.util.security.Password _trustStorePassword>;
+
+        $r30 = virtualinvoke $r18.<org.eclipse.jetty.util.security.Password: java.lang.String toString()>();
+
+     label04:
+        $r22 = virtualinvoke r9.<org.eclipse.jetty.security.authentication.ClientCertAuthenticator: java.security.KeyStore getKeyStore(java.io.InputStream,java.lang.String,java.lang.String,java.lang.String,java.lang.String)>(null, $r19, $r20, $r21, $r30);
+
+        $r23 = r9.<org.eclipse.jetty.security.authentication.ClientCertAuthenticator: java.lang.String _crlPath>;
+
+        $r24 = virtualinvoke r9.<org.eclipse.jetty.security.authentication.ClientCertAuthenticator: java.util.Collection loadCRL(java.lang.String)>($r23);
+
+        $r25 = new org.eclipse.jetty.util.security.CertificateValidator;
+
+        specialinvoke $r25.<org.eclipse.jetty.util.security.CertificateValidator: void <init>(java.security.KeyStore,java.util.Collection)>($r22, $r24);
+
+        virtualinvoke $r25.<org.eclipse.jetty.util.security.CertificateValidator: void validate(java.security.cert.Certificate[])>(r6);
+
+     label05:
+        $i1 = lengthof r6;
+
+        i2 = 0;
+
+     label06:
+        if i2 >= $i1 goto label13;
+
+        r10 = r6[i2];
+
+        if r10 != null goto label07;
+
+        goto label12;
+
+     label07:
+        $r11 = virtualinvoke r10.<java.security.cert.X509Certificate: java.security.Principal getSubjectDN()>();
+
+        r31 = $r11;
+
+        if $r11 != null goto label08;
+
+        r31 = virtualinvoke r10.<java.security.cert.X509Certificate: java.security.Principal getIssuerDN()>();
+
+     label08:
+        if r31 != null goto label09;
+
+        $r32 = "clientcert";
+
+        goto label10;
+
+     label09:
+        $r32 = interfaceinvoke r31.<java.security.Principal: java.lang.String getName()>();
+
+     label10:
+        $r12 = virtualinvoke r10.<java.security.cert.X509Certificate: byte[] getSignature()>();
+
+        $r13 = staticinvoke <org.eclipse.jetty.util.B64Code: char[] encode(byte[])>($r12);
+
+        $r14 = virtualinvoke r9.<org.eclipse.jetty.security.authentication.ClientCertAuthenticator: org.eclipse.jetty.server.UserIdentity login(java.lang.String,java.lang.Object,javax.servlet.ServletRequest)>($r32, $r13, r0);
+
+        if $r14 == null goto label12;
+
+        $r15 = new org.eclipse.jetty.security.UserAuthentication;
+
+        $r16 = virtualinvoke r9.<org.eclipse.jetty.security.authentication.ClientCertAuthenticator: java.lang.String getAuthMethod()>();
+
+        specialinvoke $r15.<org.eclipse.jetty.security.UserAuthentication: void <init>(java.lang.String,org.eclipse.jetty.server.UserIdentity)>($r16, $r14);
+
+     label11:
+        return $r15;
+
+     label12:
+        i2 = i2 + 1;
+
+        goto label06;
+
+     label13:
+        $z2 = staticinvoke <org.eclipse.jetty.security.authentication.DeferredAuthentication: boolean isDeferred(javax.servlet.http.HttpServletResponse)>(r3);
+
+        if $z2 != 0 goto label15;
+
+        interfaceinvoke r3.<javax.servlet.http.HttpServletResponse: void sendError(int)>(403);
+
+        $r8 = <org.eclipse.jetty.server.Authentication: org.eclipse.jetty.server.Authentication SEND_FAILURE>;
+
+     label14:
+        return $r8;
+
+     label15:
+        $r7 = <org.eclipse.jetty.server.Authentication: org.eclipse.jetty.server.Authentication UNAUTHENTICATED>;
+
+     label16:
+        return $r7;
+
+     label17:
+        $r27 := @caughtexception;
+
+        $r28 = new org.eclipse.jetty.security.ServerAuthException;
+
+        $r29 = virtualinvoke $r27.<java.lang.Exception: java.lang.String getMessage()>();
+
+        specialinvoke $r28.<org.eclipse.jetty.security.ServerAuthException: void <init>(java.lang.String)>($r29);
+
+        throw $r28;
+
+        catch java.lang.Exception from label02 to label11 with label17;
+        catch java.lang.Exception from label12 to label14 with label17;
+        catch java.lang.Exception from label15 to label16 with label17;
+    }
+
+    protected java.security.KeyStore getKeyStore(java.io.InputStream, java.lang.String, java.lang.String, java.lang.String, java.lang.String) throws java.lang.Exception
+    {
+        org.eclipse.jetty.security.authentication.ClientCertAuthenticator r6;
+        java.security.KeyStore $r5;
+        java.lang.String r1, r2, r3, r4;
+        java.io.InputStream r0;
+
+        r6 := @this: org.eclipse.jetty.security.authentication.ClientCertAuthenticator;
+
+        r0 := @parameter0: java.io.InputStream;
+
+        r1 := @parameter1: java.lang.String;
+
+        r2 := @parameter2: java.lang.String;
+
+        r3 := @parameter3: java.lang.String;
+
+        r4 := @parameter4: java.lang.String;
+
+        $r5 = staticinvoke <org.eclipse.jetty.util.security.CertificateUtils: java.security.KeyStore getKeyStore(java.io.InputStream,java.lang.String,java.lang.String,java.lang.String,java.lang.String)>(r0, r1, r2, r3, r4);
+
+        return $r5;
+    }
+
+    protected java.util.Collection loadCRL(java.lang.String) throws java.lang.Exception
+    {
+        java.lang.String r0;
+        java.util.Collection $r1;
+        org.eclipse.jetty.security.authentication.ClientCertAuthenticator r2;
+
+        r2 := @this: org.eclipse.jetty.security.authentication.ClientCertAuthenticator;
+
+        r0 := @parameter0: java.lang.String;
+
+        $r1 = staticinvoke <org.eclipse.jetty.util.security.CertificateUtils: java.util.Collection loadCRL(java.lang.String)>(r0);
+
+        return $r1;
+    }
+
+    public boolean secureResponse(javax.servlet.ServletRequest, javax.servlet.ServletResponse, boolean, org.eclipse.jetty.server.Authentication$User) throws org.eclipse.jetty.security.ServerAuthException
+    {
+        javax.servlet.ServletRequest r1;
+        javax.servlet.ServletResponse r2;
+        org.eclipse.jetty.server.Authentication$User r3;
+        org.eclipse.jetty.security.authentication.ClientCertAuthenticator r0;
+        boolean z0;
+
+        r0 := @this: org.eclipse.jetty.security.authentication.ClientCertAuthenticator;
+
+        r1 := @parameter0: javax.servlet.ServletRequest;
+
+        r2 := @parameter1: javax.servlet.ServletResponse;
+
+        z0 := @parameter2: boolean;
+
+        r3 := @parameter3: org.eclipse.jetty.server.Authentication$User;
+
+        return 1;
+    }
+
+    public boolean isValidateCerts()
+    {
+        org.eclipse.jetty.security.authentication.ClientCertAuthenticator r0;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.security.authentication.ClientCertAuthenticator;
+
+        $z0 = r0.<org.eclipse.jetty.security.authentication.ClientCertAuthenticator: boolean _validateCerts>;
+
+        return $z0;
+    }
+
+    public void setValidateCerts(boolean)
+    {
+        org.eclipse.jetty.security.authentication.ClientCertAuthenticator r0;
+        boolean z0;
+
+        r0 := @this: org.eclipse.jetty.security.authentication.ClientCertAuthenticator;
+
+        z0 := @parameter0: boolean;
+
+        r0.<org.eclipse.jetty.security.authentication.ClientCertAuthenticator: boolean _validateCerts> = z0;
+
+        return;
+    }
+
+    public java.lang.String getTrustStore()
+    {
+        java.lang.String $r1;
+        org.eclipse.jetty.security.authentication.ClientCertAuthenticator r0;
+
+        r0 := @this: org.eclipse.jetty.security.authentication.ClientCertAuthenticator;
+
+        $r1 = r0.<org.eclipse.jetty.security.authentication.ClientCertAuthenticator: java.lang.String _trustStorePath>;
+
+        return $r1;
+    }
+
+    public void setTrustStore(java.lang.String)
+    {
+        java.lang.String r1;
+        org.eclipse.jetty.security.authentication.ClientCertAuthenticator r0;
+
+        r0 := @this: org.eclipse.jetty.security.authentication.ClientCertAuthenticator;
+
+        r1 := @parameter0: java.lang.String;
+
+        r0.<org.eclipse.jetty.security.authentication.ClientCertAuthenticator: java.lang.String _trustStorePath> = r1;
+
+        return;
+    }
+
+    public java.lang.String getTrustStoreProvider()
+    {
+        java.lang.String $r1;
+        org.eclipse.jetty.security.authentication.ClientCertAuthenticator r0;
+
+        r0 := @this: org.eclipse.jetty.security.authentication.ClientCertAuthenticator;
+
+        $r1 = r0.<org.eclipse.jetty.security.authentication.ClientCertAuthenticator: java.lang.String _trustStoreProvider>;
+
+        return $r1;
+    }
+
+    public void setTrustStoreProvider(java.lang.String)
+    {
+        java.lang.String r1;
+        org.eclipse.jetty.security.authentication.ClientCertAuthenticator r0;
+
+        r0 := @this: org.eclipse.jetty.security.authentication.ClientCertAuthenticator;
+
+        r1 := @parameter0: java.lang.String;
+
+        r0.<org.eclipse.jetty.security.authentication.ClientCertAuthenticator: java.lang.String _trustStoreProvider> = r1;
+
+        return;
+    }
+
+    public java.lang.String getTrustStoreType()
+    {
+        java.lang.String $r1;
+        org.eclipse.jetty.security.authentication.ClientCertAuthenticator r0;
+
+        r0 := @this: org.eclipse.jetty.security.authentication.ClientCertAuthenticator;
+
+        $r1 = r0.<org.eclipse.jetty.security.authentication.ClientCertAuthenticator: java.lang.String _trustStoreType>;
+
+        return $r1;
+    }
+
+    public void setTrustStoreType(java.lang.String)
+    {
+        java.lang.String r1;
+        org.eclipse.jetty.security.authentication.ClientCertAuthenticator r0;
+
+        r0 := @this: org.eclipse.jetty.security.authentication.ClientCertAuthenticator;
+
+        r1 := @parameter0: java.lang.String;
+
+        r0.<org.eclipse.jetty.security.authentication.ClientCertAuthenticator: java.lang.String _trustStoreType> = r1;
+
+        return;
+    }
+
+    public void setTrustStorePassword(java.lang.String)
+    {
+        org.eclipse.jetty.util.security.Password $r2;
+        java.lang.String r1;
+        org.eclipse.jetty.security.authentication.ClientCertAuthenticator r0;
+
+        r0 := @this: org.eclipse.jetty.security.authentication.ClientCertAuthenticator;
+
+        r1 := @parameter0: java.lang.String;
+
+        $r2 = staticinvoke <org.eclipse.jetty.util.security.Password: org.eclipse.jetty.util.security.Password getPassword(java.lang.String,java.lang.String,java.lang.String)>("org.eclipse.jetty.ssl.password", r1, null);
+
+        r0.<org.eclipse.jetty.security.authentication.ClientCertAuthenticator: org.eclipse.jetty.util.security.Password _trustStorePassword> = $r2;
+
+        return;
+    }
+
+    public java.lang.String getCrlPath()
+    {
+        java.lang.String $r1;
+        org.eclipse.jetty.security.authentication.ClientCertAuthenticator r0;
+
+        r0 := @this: org.eclipse.jetty.security.authentication.ClientCertAuthenticator;
+
+        $r1 = r0.<org.eclipse.jetty.security.authentication.ClientCertAuthenticator: java.lang.String _crlPath>;
+
+        return $r1;
+    }
+
+    public void setCrlPath(java.lang.String)
+    {
+        java.lang.String r1;
+        org.eclipse.jetty.security.authentication.ClientCertAuthenticator r0;
+
+        r0 := @this: org.eclipse.jetty.security.authentication.ClientCertAuthenticator;
+
+        r1 := @parameter0: java.lang.String;
+
+        r0.<org.eclipse.jetty.security.authentication.ClientCertAuthenticator: java.lang.String _crlPath> = r1;
+
+        return;
+    }
+
+    public int getMaxCertPathLength()
+    {
+        int $i0;
+        org.eclipse.jetty.security.authentication.ClientCertAuthenticator r0;
+
+        r0 := @this: org.eclipse.jetty.security.authentication.ClientCertAuthenticator;
+
+        $i0 = r0.<org.eclipse.jetty.security.authentication.ClientCertAuthenticator: int _maxCertPathLength>;
+
+        return $i0;
+    }
+
+    public void setMaxCertPathLength(int)
+    {
+        int i0;
+        org.eclipse.jetty.security.authentication.ClientCertAuthenticator r0;
+
+        r0 := @this: org.eclipse.jetty.security.authentication.ClientCertAuthenticator;
+
+        i0 := @parameter0: int;
+
+        r0.<org.eclipse.jetty.security.authentication.ClientCertAuthenticator: int _maxCertPathLength> = i0;
+
+        return;
+    }
+
+    public boolean isEnableCRLDP()
+    {
+        org.eclipse.jetty.security.authentication.ClientCertAuthenticator r0;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.security.authentication.ClientCertAuthenticator;
+
+        $z0 = r0.<org.eclipse.jetty.security.authentication.ClientCertAuthenticator: boolean _enableCRLDP>;
+
+        return $z0;
+    }
+
+    public void setEnableCRLDP(boolean)
+    {
+        org.eclipse.jetty.security.authentication.ClientCertAuthenticator r0;
+        boolean z0;
+
+        r0 := @this: org.eclipse.jetty.security.authentication.ClientCertAuthenticator;
+
+        z0 := @parameter0: boolean;
+
+        r0.<org.eclipse.jetty.security.authentication.ClientCertAuthenticator: boolean _enableCRLDP> = z0;
+
+        return;
+    }
+
+    public boolean isEnableOCSP()
+    {
+        org.eclipse.jetty.security.authentication.ClientCertAuthenticator r0;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.security.authentication.ClientCertAuthenticator;
+
+        $z0 = r0.<org.eclipse.jetty.security.authentication.ClientCertAuthenticator: boolean _enableOCSP>;
+
+        return $z0;
+    }
+
+    public void setEnableOCSP(boolean)
+    {
+        org.eclipse.jetty.security.authentication.ClientCertAuthenticator r0;
+        boolean z0;
+
+        r0 := @this: org.eclipse.jetty.security.authentication.ClientCertAuthenticator;
+
+        z0 := @parameter0: boolean;
+
+        r0.<org.eclipse.jetty.security.authentication.ClientCertAuthenticator: boolean _enableOCSP> = z0;
+
+        return;
+    }
+
+    public java.lang.String getOcspResponderURL()
+    {
+        java.lang.String $r1;
+        org.eclipse.jetty.security.authentication.ClientCertAuthenticator r0;
+
+        r0 := @this: org.eclipse.jetty.security.authentication.ClientCertAuthenticator;
+
+        $r1 = r0.<org.eclipse.jetty.security.authentication.ClientCertAuthenticator: java.lang.String _ocspResponderURL>;
+
+        return $r1;
+    }
+
+    public void setOcspResponderURL(java.lang.String)
+    {
+        java.lang.String r1;
+        org.eclipse.jetty.security.authentication.ClientCertAuthenticator r0;
+
+        r0 := @this: org.eclipse.jetty.security.authentication.ClientCertAuthenticator;
+
+        r1 := @parameter0: java.lang.String;
+
+        r0.<org.eclipse.jetty.security.authentication.ClientCertAuthenticator: java.lang.String _ocspResponderURL> = r1;
+
+        return;
+    }
+
+    public static void <clinit>()
+    {
+        <org.eclipse.jetty.security.authentication.ClientCertAuthenticator: java.lang.String PASSWORD_PROPERTY> = "org.eclipse.jetty.ssl.password";
+
+        return;
+    }
+}

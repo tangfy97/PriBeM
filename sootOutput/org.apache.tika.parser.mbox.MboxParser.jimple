@@ -1,0 +1,569 @@
+public class org.apache.tika.parser.mbox.MboxParser extends org.apache.tika.parser.AbstractParser
+{
+    private static final long serialVersionUID;
+    private static final java.util.Set SUPPORTED_TYPES;
+    public static final java.lang.String MBOX_MIME_TYPE;
+    public static final java.lang.String MBOX_RECORD_DIVIDER;
+    public static final int MAIL_MAX_SIZE;
+    private static final java.util.regex.Pattern EMAIL_HEADER_PATTERN;
+    private static final java.util.regex.Pattern EMAIL_ADDRESS_PATTERN;
+    private static final java.lang.String EMAIL_HEADER_METADATA_PREFIX;
+    private static final java.lang.String EMAIL_FROMLINE_METADATA;
+    private boolean tracking;
+    private final java.util.Map trackingMetadata;
+
+    public void <init>()
+    {
+        java.util.HashMap $r1;
+        org.apache.tika.parser.mbox.MboxParser r0;
+
+        r0 := @this: org.apache.tika.parser.mbox.MboxParser;
+
+        specialinvoke r0.<org.apache.tika.parser.AbstractParser: void <init>()>();
+
+        r0.<org.apache.tika.parser.mbox.MboxParser: boolean tracking> = 0;
+
+        $r1 = new java.util.HashMap;
+
+        specialinvoke $r1.<java.util.HashMap: void <init>()>();
+
+        r0.<org.apache.tika.parser.mbox.MboxParser: java.util.Map trackingMetadata> = $r1;
+
+        return;
+    }
+
+    public java.util.Set getSupportedTypes(org.apache.tika.parser.ParseContext)
+    {
+        java.util.Set $r0;
+        org.apache.tika.parser.mbox.MboxParser r1;
+        org.apache.tika.parser.ParseContext r2;
+
+        r1 := @this: org.apache.tika.parser.mbox.MboxParser;
+
+        r2 := @parameter0: org.apache.tika.parser.ParseContext;
+
+        $r0 = <org.apache.tika.parser.mbox.MboxParser: java.util.Set SUPPORTED_TYPES>;
+
+        return $r0;
+    }
+
+    public void parse(java.io.InputStream, org.xml.sax.ContentHandler, org.apache.tika.metadata.Metadata, org.apache.tika.parser.ParseContext) throws java.io.IOException, org.apache.tika.exception.TikaException, org.xml.sax.SAXException
+    {
+        byte[] $r23, $r26;
+        java.lang.Integer $r29;
+        org.apache.tika.metadata.Metadata r4, $r11;
+        java.io.ByteArrayInputStream $r25;
+        java.lang.Thread $r10;
+        java.util.Map $r28;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7;
+        org.apache.tika.extractor.ParsingEmbeddedDocumentExtractor $r1;
+        org.apache.tika.parser.ParseContext r0;
+        java.lang.StringBuilder $r17, $r18, $r19, $r21;
+        org.apache.tika.parser.mbox.MboxParser r27;
+        java.lang.Throwable $r33;
+        java.io.ByteArrayOutputStream $r15;
+        org.apache.tika.extractor.EmbeddedDocumentExtractor r3;
+        int $i0, $i1, $i2, i3;
+        org.xml.sax.ContentHandler r6;
+        java.lang.String $r13, $r14, $r20, $r22, $r24, r31, $r32, r34;
+        java.util.LinkedList $r12;
+        java.util.Iterator $r35;
+        org.apache.tika.sax.XHTMLContentHandler $r5;
+        java.io.InputStreamReader $r7;
+        java.lang.Object $r2, $r16, $r30;
+        java.io.BufferedReader $r9;
+        java.io.InputStream r8;
+
+        r27 := @this: org.apache.tika.parser.mbox.MboxParser;
+
+        r8 := @parameter0: java.io.InputStream;
+
+        r6 := @parameter1: org.xml.sax.ContentHandler;
+
+        r4 := @parameter2: org.apache.tika.metadata.Metadata;
+
+        r0 := @parameter3: org.apache.tika.parser.ParseContext;
+
+        $r1 = new org.apache.tika.extractor.ParsingEmbeddedDocumentExtractor;
+
+        specialinvoke $r1.<org.apache.tika.extractor.ParsingEmbeddedDocumentExtractor: void <init>(org.apache.tika.parser.ParseContext)>(r0);
+
+        $r2 = virtualinvoke r0.<org.apache.tika.parser.ParseContext: java.lang.Object get(java.lang.Class,java.lang.Object)>(class "Lorg/apache/tika/extractor/EmbeddedDocumentExtractor;", $r1);
+
+        r3 = (org.apache.tika.extractor.EmbeddedDocumentExtractor) $r2;
+
+        virtualinvoke r4.<org.apache.tika.metadata.Metadata: void set(java.lang.String,java.lang.String)>("Content-Type", "application/mbox");
+
+        virtualinvoke r4.<org.apache.tika.metadata.Metadata: void set(java.lang.String,java.lang.String)>("Content-Encoding", "windows-1252");
+
+        $r5 = new org.apache.tika.sax.XHTMLContentHandler;
+
+        specialinvoke $r5.<org.apache.tika.sax.XHTMLContentHandler: void <init>(org.xml.sax.ContentHandler,org.apache.tika.metadata.Metadata)>(r6, r4);
+
+        virtualinvoke $r5.<org.apache.tika.sax.XHTMLContentHandler: void startDocument()>();
+
+        $r7 = new java.io.InputStreamReader;
+
+        specialinvoke $r7.<java.io.InputStreamReader: void <init>(java.io.InputStream,java.lang.String)>(r8, "windows-1252");
+
+        $r9 = new java.io.BufferedReader;
+
+        specialinvoke $r9.<java.io.BufferedReader: void <init>(java.io.Reader)>($r7);
+
+     label01:
+        r34 = virtualinvoke $r9.<java.io.BufferedReader: java.lang.String readLine()>();
+
+        i3 = 0;
+
+     label02:
+        $z0 = virtualinvoke r34.<java.lang.String: boolean startsWith(java.lang.String)>("From ");
+
+        if $z0 == 0 goto label12;
+
+        $r11 = new org.apache.tika.metadata.Metadata;
+
+        specialinvoke $r11.<org.apache.tika.metadata.Metadata: void <init>()>();
+
+        $r12 = new java.util.LinkedList;
+
+        specialinvoke $r12.<java.util.LinkedList: void <init>()>();
+
+        $r13 = "From ";
+
+        $i0 = virtualinvoke $r13.<java.lang.String: int length()>();
+
+        $r14 = virtualinvoke r34.<java.lang.String: java.lang.String substring(int)>($i0);
+
+        virtualinvoke $r11.<org.apache.tika.metadata.Metadata: void add(java.lang.String,java.lang.String)>("MboxParser-from", $r14);
+
+        virtualinvoke $r11.<org.apache.tika.metadata.Metadata: void set(java.lang.String,java.lang.String)>("Content-Type", "message/rfc822");
+
+        r34 = virtualinvoke $r9.<java.io.BufferedReader: java.lang.String readLine()>();
+
+        $r15 = new java.io.ByteArrayOutputStream;
+
+        specialinvoke $r15.<java.io.ByteArrayOutputStream: void <init>(int)>(100000);
+
+     label03:
+        $z2 = virtualinvoke r34.<java.lang.String: boolean startsWith(java.lang.String)>(" ");
+
+        if $z2 != 0 goto label04;
+
+        $z6 = virtualinvoke r34.<java.lang.String: boolean startsWith(java.lang.String)>("\t");
+
+        if $z6 == 0 goto label05;
+
+     label04:
+        $r16 = interfaceinvoke $r12.<java.util.Queue: java.lang.Object poll()>();
+
+        $r32 = (java.lang.String) $r16;
+
+        $r17 = new java.lang.StringBuilder;
+
+        specialinvoke $r17.<java.lang.StringBuilder: void <init>()>();
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r32);
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" ");
+
+        $r20 = virtualinvoke r34.<java.lang.String: java.lang.String trim()>();
+
+        $r21 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r20);
+
+        $r22 = virtualinvoke $r21.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r12.<java.util.Queue: boolean add(java.lang.Object)>($r22);
+
+        goto label06;
+
+     label05:
+        interfaceinvoke $r12.<java.util.Queue: boolean add(java.lang.Object)>(r34);
+
+     label06:
+        $r23 = virtualinvoke r34.<java.lang.String: byte[] getBytes(java.lang.String)>("windows-1252");
+
+        virtualinvoke $r15.<java.io.ByteArrayOutputStream: void write(byte[])>($r23);
+
+        virtualinvoke $r15.<java.io.ByteArrayOutputStream: void write(int)>(10);
+
+        $r24 = virtualinvoke $r9.<java.io.BufferedReader: java.lang.String readLine()>();
+
+        r34 = $r24;
+
+        if $r24 == null goto label07;
+
+        $z5 = virtualinvoke $r24.<java.lang.String: boolean startsWith(java.lang.String)>("From ");
+
+        if $z5 != 0 goto label07;
+
+        $i2 = virtualinvoke $r15.<java.io.ByteArrayOutputStream: int size()>();
+
+        if $i2 < 50000000 goto label03;
+
+     label07:
+        $r35 = interfaceinvoke $r12.<java.util.Queue: java.util.Iterator iterator()>();
+
+     label08:
+        $z7 = interfaceinvoke $r35.<java.util.Iterator: boolean hasNext()>();
+
+        if $z7 == 0 goto label09;
+
+        $r30 = interfaceinvoke $r35.<java.util.Iterator: java.lang.Object next()>();
+
+        r31 = (java.lang.String) $r30;
+
+        specialinvoke r27.<org.apache.tika.parser.mbox.MboxParser: void saveHeaderInMetadata(org.apache.tika.metadata.Metadata,java.lang.String)>($r11, r31);
+
+        goto label08;
+
+     label09:
+        $r25 = new java.io.ByteArrayInputStream;
+
+        $r26 = virtualinvoke $r15.<java.io.ByteArrayOutputStream: byte[] toByteArray()>();
+
+        specialinvoke $r25.<java.io.ByteArrayInputStream: void <init>(byte[])>($r26);
+
+        $z3 = interfaceinvoke r3.<org.apache.tika.extractor.EmbeddedDocumentExtractor: boolean shouldParseEmbedded(org.apache.tika.metadata.Metadata)>($r11);
+
+        if $z3 == 0 goto label10;
+
+        interfaceinvoke r3.<org.apache.tika.extractor.EmbeddedDocumentExtractor: void parseEmbedded(java.io.InputStream,org.xml.sax.ContentHandler,org.apache.tika.metadata.Metadata,boolean)>($r25, $r5, $r11, 1);
+
+     label10:
+        $z4 = r27.<org.apache.tika.parser.mbox.MboxParser: boolean tracking>;
+
+        if $z4 == 0 goto label11;
+
+        $r28 = virtualinvoke r27.<org.apache.tika.parser.mbox.MboxParser: java.util.Map getTrackingMetadata()>();
+
+        $i1 = i3;
+
+        i3 = i3 + 1;
+
+        $r29 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i1);
+
+        interfaceinvoke $r28.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>($r29, $r11);
+
+     label11:
+        goto label13;
+
+     label12:
+        r34 = virtualinvoke $r9.<java.io.BufferedReader: java.lang.String readLine()>();
+
+     label13:
+        if r34 == null goto label14;
+
+        $r10 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        $z1 = virtualinvoke $r10.<java.lang.Thread: boolean isInterrupted()>();
+
+        if $z1 == 0 goto label02;
+
+     label14:
+        virtualinvoke $r9.<java.io.BufferedReader: void close()>();
+
+        goto label17;
+
+     label15:
+        $r33 := @caughtexception;
+
+     label16:
+        virtualinvoke $r9.<java.io.BufferedReader: void close()>();
+
+        throw $r33;
+
+     label17:
+        virtualinvoke $r5.<org.apache.tika.sax.XHTMLContentHandler: void endDocument()>();
+
+        return;
+
+        catch java.lang.Throwable from label01 to label14 with label15;
+        catch java.lang.Throwable from label15 to label16 with label15;
+    }
+
+    public static java.util.Date parseDate(java.lang.String) throws java.text.ParseException
+    {
+        java.util.Locale $r1;
+        java.util.Date $r3;
+        java.text.SimpleDateFormat $r0;
+        java.lang.String r2;
+
+        r2 := @parameter0: java.lang.String;
+
+        $r0 = new java.text.SimpleDateFormat;
+
+        $r1 = <java.util.Locale: java.util.Locale US>;
+
+        specialinvoke $r0.<java.text.SimpleDateFormat: void <init>(java.lang.String,java.util.Locale)>("EEE, d MMM yyyy HH:mm:ss Z", $r1);
+
+        $r3 = virtualinvoke $r0.<java.text.SimpleDateFormat: java.util.Date parse(java.lang.String)>(r2);
+
+        return $r3;
+    }
+
+    public boolean isTracking()
+    {
+        org.apache.tika.parser.mbox.MboxParser r0;
+        boolean $z0;
+
+        r0 := @this: org.apache.tika.parser.mbox.MboxParser;
+
+        $z0 = r0.<org.apache.tika.parser.mbox.MboxParser: boolean tracking>;
+
+        return $z0;
+    }
+
+    public void setTracking(boolean)
+    {
+        org.apache.tika.parser.mbox.MboxParser r0;
+        boolean z0;
+
+        r0 := @this: org.apache.tika.parser.mbox.MboxParser;
+
+        z0 := @parameter0: boolean;
+
+        r0.<org.apache.tika.parser.mbox.MboxParser: boolean tracking> = z0;
+
+        return;
+    }
+
+    public java.util.Map getTrackingMetadata()
+    {
+        org.apache.tika.parser.mbox.MboxParser r0;
+        java.util.Map $r1;
+
+        r0 := @this: org.apache.tika.parser.mbox.MboxParser;
+
+        $r1 = r0.<org.apache.tika.parser.mbox.MboxParser: java.util.Map trackingMetadata>;
+
+        return $r1;
+    }
+
+    private void saveHeaderInMetadata(org.apache.tika.metadata.Metadata, java.lang.String)
+    {
+        java.util.Date $r16;
+        org.apache.tika.metadata.Metadata r7;
+        java.util.regex.Matcher $r2, $r22;
+        org.apache.tika.metadata.Property $r13, $r14, $r15, $r17, $r18;
+        java.util.Locale $r4;
+        java.text.ParseException $r19;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9, $z10, $z11, $z12;
+        java.lang.StringBuilder $r10, $r11, $r24;
+        java.util.regex.Pattern $r1, $r21;
+        org.apache.tika.parser.mbox.MboxParser r20;
+        int $i0, $i2;
+        java.lang.String r0, $r3, $r5, $r6, $r8, $r12, r23;
+
+        r20 := @this: org.apache.tika.parser.mbox.MboxParser;
+
+        r7 := @parameter0: org.apache.tika.metadata.Metadata;
+
+        r0 := @parameter1: java.lang.String;
+
+        $r1 = <org.apache.tika.parser.mbox.MboxParser: java.util.regex.Pattern EMAIL_HEADER_PATTERN>;
+
+        $r2 = virtualinvoke $r1.<java.util.regex.Pattern: java.util.regex.Matcher matcher(java.lang.CharSequence)>(r0);
+
+        $z0 = virtualinvoke $r2.<java.util.regex.Matcher: boolean matches()>();
+
+        if $z0 != 0 goto label01;
+
+        return;
+
+     label01:
+        $r3 = virtualinvoke $r2.<java.util.regex.Matcher: java.lang.String group(int)>(1);
+
+        $r4 = <java.util.Locale: java.util.Locale ROOT>;
+
+        $r5 = virtualinvoke $r3.<java.lang.String: java.lang.String toLowerCase(java.util.Locale)>($r4);
+
+        $r6 = virtualinvoke $r2.<java.util.regex.Matcher: java.lang.String group(int)>(2);
+
+        $z1 = virtualinvoke $r5.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("From");
+
+        if $z1 == 0 goto label02;
+
+        $r18 = <org.apache.tika.metadata.TikaCoreProperties: org.apache.tika.metadata.Property CREATOR>;
+
+        virtualinvoke r7.<org.apache.tika.metadata.Metadata: void set(org.apache.tika.metadata.Property,java.lang.String)>($r18, $r6);
+
+        goto label17;
+
+     label02:
+        $z2 = virtualinvoke $r5.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("To");
+
+        if $z2 != 0 goto label03;
+
+        $z4 = virtualinvoke $r5.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("Cc");
+
+        if $z4 != 0 goto label03;
+
+        $z5 = virtualinvoke $r5.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("Bcc");
+
+        if $z5 == 0 goto label08;
+
+     label03:
+        $r21 = <org.apache.tika.parser.mbox.MboxParser: java.util.regex.Pattern EMAIL_ADDRESS_PATTERN>;
+
+        $r22 = virtualinvoke $r21.<java.util.regex.Pattern: java.util.regex.Matcher matcher(java.lang.CharSequence)>($r6);
+
+        $z11 = virtualinvoke $r22.<java.util.regex.Matcher: boolean find()>();
+
+        if $z11 == 0 goto label04;
+
+        $r8 = virtualinvoke $r22.<java.util.regex.Matcher: java.lang.String group(int)>(1);
+
+        virtualinvoke r7.<org.apache.tika.metadata.Metadata: void add(java.lang.String,java.lang.String)>("Message-Recipient-Address", $r8);
+
+        goto label05;
+
+     label04:
+        $i0 = virtualinvoke $r6.<java.lang.String: int indexOf(int)>(64);
+
+        $i2 = (int) -1;
+
+        if $i0 <= $i2 goto label05;
+
+        virtualinvoke r7.<org.apache.tika.metadata.Metadata: void add(java.lang.String,java.lang.String)>("Message-Recipient-Address", $r6);
+
+     label05:
+        r23 = "Message-To";
+
+        $z12 = virtualinvoke $r5.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("Cc");
+
+        if $z12 == 0 goto label06;
+
+        r23 = "Message-Cc";
+
+        goto label07;
+
+     label06:
+        $z3 = virtualinvoke $r5.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("Bcc");
+
+        if $z3 == 0 goto label07;
+
+        r23 = "Message-Bcc";
+
+     label07:
+        virtualinvoke r7.<org.apache.tika.metadata.Metadata: void add(java.lang.String,java.lang.String)>(r23, $r6);
+
+        goto label17;
+
+     label08:
+        $z6 = virtualinvoke $r5.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("Subject");
+
+        if $z6 == 0 goto label09;
+
+        virtualinvoke r7.<org.apache.tika.metadata.Metadata: void add(java.lang.String,java.lang.String)>("subject", $r6);
+
+        goto label17;
+
+     label09:
+        $z7 = virtualinvoke $r5.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("Date");
+
+        if $z7 == 0 goto label13;
+
+     label10:
+        $r16 = staticinvoke <org.apache.tika.parser.mbox.MboxParser: java.util.Date parseDate(java.lang.String)>($r6);
+
+        $r17 = <org.apache.tika.metadata.TikaCoreProperties: org.apache.tika.metadata.Property CREATED>;
+
+        virtualinvoke r7.<org.apache.tika.metadata.Metadata: void set(org.apache.tika.metadata.Property,java.util.Date)>($r17, $r16);
+
+     label11:
+        goto label17;
+
+     label12:
+        $r19 := @caughtexception;
+
+        goto label17;
+
+     label13:
+        $z8 = virtualinvoke $r5.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("Message-Id");
+
+        if $z8 == 0 goto label14;
+
+        $r15 = <org.apache.tika.metadata.TikaCoreProperties: org.apache.tika.metadata.Property IDENTIFIER>;
+
+        virtualinvoke r7.<org.apache.tika.metadata.Metadata: void set(org.apache.tika.metadata.Property,java.lang.String)>($r15, $r6);
+
+        goto label17;
+
+     label14:
+        $z9 = virtualinvoke $r5.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("In-Reply-To");
+
+        if $z9 == 0 goto label15;
+
+        $r14 = <org.apache.tika.metadata.TikaCoreProperties: org.apache.tika.metadata.Property RELATION>;
+
+        virtualinvoke r7.<org.apache.tika.metadata.Metadata: void set(org.apache.tika.metadata.Property,java.lang.String)>($r14, $r6);
+
+        goto label17;
+
+     label15:
+        $z10 = virtualinvoke $r5.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("Content-Type");
+
+        if $z10 == 0 goto label16;
+
+        virtualinvoke r7.<org.apache.tika.metadata.Metadata: void add(java.lang.String,java.lang.String)>("Content-Type", $r6);
+
+        $r13 = <org.apache.tika.metadata.TikaCoreProperties: org.apache.tika.metadata.Property FORMAT>;
+
+        virtualinvoke r7.<org.apache.tika.metadata.Metadata: void set(org.apache.tika.metadata.Property,java.lang.String)>($r13, $r6);
+
+        goto label17;
+
+     label16:
+        $r24 = new java.lang.StringBuilder;
+
+        specialinvoke $r24.<java.lang.StringBuilder: void <init>()>();
+
+        $r10 = virtualinvoke $r24.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("MboxParser-");
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r5);
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke r7.<org.apache.tika.metadata.Metadata: void add(java.lang.String,java.lang.String)>($r12, $r6);
+
+     label17:
+        return;
+
+        catch java.text.ParseException from label10 to label11 with label12;
+    }
+
+    static void <clinit>()
+    {
+        java.util.Set $r1;
+        java.util.regex.Pattern $r2, $r3;
+        org.apache.tika.mime.MediaType $r0;
+
+        <org.apache.tika.parser.mbox.MboxParser: java.lang.String EMAIL_FROMLINE_METADATA> = "MboxParser-from";
+
+        <org.apache.tika.parser.mbox.MboxParser: java.lang.String EMAIL_HEADER_METADATA_PREFIX> = "MboxParser-";
+
+        <org.apache.tika.parser.mbox.MboxParser: int MAIL_MAX_SIZE> = 50000000;
+
+        <org.apache.tika.parser.mbox.MboxParser: java.lang.String MBOX_RECORD_DIVIDER> = "From ";
+
+        <org.apache.tika.parser.mbox.MboxParser: java.lang.String MBOX_MIME_TYPE> = "application/mbox";
+
+        <org.apache.tika.parser.mbox.MboxParser: long serialVersionUID> = -1762689436731160661L;
+
+        $r0 = staticinvoke <org.apache.tika.mime.MediaType: org.apache.tika.mime.MediaType application(java.lang.String)>("mbox");
+
+        $r1 = staticinvoke <java.util.Collections: java.util.Set singleton(java.lang.Object)>($r0);
+
+        <org.apache.tika.parser.mbox.MboxParser: java.util.Set SUPPORTED_TYPES> = $r1;
+
+        $r2 = staticinvoke <java.util.regex.Pattern: java.util.regex.Pattern compile(java.lang.String)>("([^ ]+):[ \t]*(.*)");
+
+        <org.apache.tika.parser.mbox.MboxParser: java.util.regex.Pattern EMAIL_HEADER_PATTERN> = $r2;
+
+        $r3 = staticinvoke <java.util.regex.Pattern: java.util.regex.Pattern compile(java.lang.String)>("<(.*@.*)>");
+
+        <org.apache.tika.parser.mbox.MboxParser: java.util.regex.Pattern EMAIL_ADDRESS_PATTERN> = $r3;
+
+        return;
+    }
+}

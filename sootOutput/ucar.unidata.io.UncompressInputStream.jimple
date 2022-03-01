@@ -1,0 +1,1166 @@
+public class ucar.unidata.io.UncompressInputStream extends java.io.FilterInputStream
+{
+    private static final int TBL_CLEAR;
+    private static final int TBL_FIRST;
+    private int[] tab_prefix;
+    private byte[] tab_suffix;
+    private int[] zeros;
+    private byte[] stack;
+    private boolean block_mode;
+    private int n_bits;
+    private int maxbits;
+    private int maxmaxcode;
+    private int maxcode;
+    private int bitmask;
+    private int oldcode;
+    private byte finchar;
+    private int stackp;
+    private int free_ent;
+    private byte[] data;
+    private int bit_pos;
+    private int end;
+    private int got;
+    private boolean eof;
+    private static final int EXTRA;
+    private byte[] one;
+    private static final int LZW_MAGIC;
+    private static final int MAX_BITS;
+    private static final int INIT_BITS;
+    private static final int HDR_MAXBITS;
+    private static final int HDR_EXTENDED;
+    private static final int HDR_FREE;
+    private static final int HDR_BLOCK_MODE;
+    private static final boolean debug;
+    private static final boolean debugTiming;
+
+    public void <init>(java.io.InputStream) throws java.io.IOException
+    {
+        byte[] $r3, $r4;
+        int[] $r2;
+        ucar.unidata.io.UncompressInputStream r0;
+        java.io.InputStream r1;
+
+        r0 := @this: ucar.unidata.io.UncompressInputStream;
+
+        r1 := @parameter0: java.io.InputStream;
+
+        specialinvoke r0.<java.io.FilterInputStream: void <init>(java.io.InputStream)>(r1);
+
+        $r2 = newarray (int)[256];
+
+        r0.<ucar.unidata.io.UncompressInputStream: int[] zeros> = $r2;
+
+        $r3 = newarray (byte)[10000];
+
+        r0.<ucar.unidata.io.UncompressInputStream: byte[] data> = $r3;
+
+        r0.<ucar.unidata.io.UncompressInputStream: int bit_pos> = 0;
+
+        r0.<ucar.unidata.io.UncompressInputStream: int end> = 0;
+
+        r0.<ucar.unidata.io.UncompressInputStream: int got> = 0;
+
+        r0.<ucar.unidata.io.UncompressInputStream: boolean eof> = 0;
+
+        $r4 = newarray (byte)[1];
+
+        r0.<ucar.unidata.io.UncompressInputStream: byte[] one> = $r4;
+
+        specialinvoke r0.<ucar.unidata.io.UncompressInputStream: void parse_header()>();
+
+        return;
+    }
+
+    public int read() throws java.io.IOException
+    {
+        byte[] $r1, $r2;
+        short $s2, $s3;
+        byte $b1;
+        int $i0, $i4, $i6;
+        ucar.unidata.io.UncompressInputStream r0;
+
+        r0 := @this: ucar.unidata.io.UncompressInputStream;
+
+        $r1 = r0.<ucar.unidata.io.UncompressInputStream: byte[] one>;
+
+        $i0 = virtualinvoke r0.<ucar.unidata.io.UncompressInputStream: int read(byte[],int,int)>($r1, 0, 1);
+
+        if $i0 != 1 goto label1;
+
+        $r2 = r0.<ucar.unidata.io.UncompressInputStream: byte[] one>;
+
+        $b1 = $r2[0];
+
+        $s3 = (short) $b1;
+
+        $s2 = $s3 & 255;
+
+        $i4 = (int) $s2;
+
+        return $i4;
+
+     label1:
+        $i6 = (int) -1;
+
+        return $i6;
+    }
+
+    public int read(byte[], int, int) throws java.io.IOException
+    {
+        byte[] r2, r3, r4, r5;
+        byte $b9, $b11, $b16, $b28, b57;
+        java.lang.StringBuilder $r8, $r9, $r10, $r11, $r17, $r18, $r19, $r21, $r23;
+        short $s12, $s14, $s17, $s81, $s82, $s85;
+        java.lang.String $r12, $r20;
+        java.io.IOException $r22, $r24;
+        int[] r1, $r13, $r14;
+        boolean $z0, $z1;
+        ucar.unidata.io.UncompressInputStream r0;
+        int i0, i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i10, $i13, $i15, $i18, $i19, $i20, $i21, $i22, $i23, $i24, $i25, $i26, $i27, $i29, $i30, $i31, $i32, $i33, $i34, $i35, $i36, $i37, $i38, $i39, $i40, $i41, $i42, $i43, $i44, $i45, $i46, $i47, $i48, $i49, $i50, i51, i52, i53, i54, i55, i56, i58, i59, i60, i61, $i62, $i63, i64, i65, i66, $i67, i68, i69, i70, i71, i72, i73, i74, i75, i76, $i77, $i78, $i80, $i83, $i84, $i86, $i88, $i90, $i92, $i94, $i96;
+
+        r0 := @this: ucar.unidata.io.UncompressInputStream;
+
+        r5 := @parameter0: byte[];
+
+        i51 := @parameter1: int;
+
+        i52 := @parameter2: int;
+
+        $z0 = r0.<ucar.unidata.io.UncompressInputStream: boolean eof>;
+
+        if $z0 == 0 goto label01;
+
+        $i80 = (int) -1;
+
+        return $i80;
+
+     label01:
+        i0 = i51;
+
+        r1 = r0.<ucar.unidata.io.UncompressInputStream: int[] tab_prefix>;
+
+        r2 = r0.<ucar.unidata.io.UncompressInputStream: byte[] tab_suffix>;
+
+        r3 = r0.<ucar.unidata.io.UncompressInputStream: byte[] stack>;
+
+        i53 = r0.<ucar.unidata.io.UncompressInputStream: int n_bits>;
+
+        i54 = r0.<ucar.unidata.io.UncompressInputStream: int maxcode>;
+
+        i1 = r0.<ucar.unidata.io.UncompressInputStream: int maxmaxcode>;
+
+        i55 = r0.<ucar.unidata.io.UncompressInputStream: int bitmask>;
+
+        i56 = r0.<ucar.unidata.io.UncompressInputStream: int oldcode>;
+
+        b57 = r0.<ucar.unidata.io.UncompressInputStream: byte finchar>;
+
+        i58 = r0.<ucar.unidata.io.UncompressInputStream: int stackp>;
+
+        i59 = r0.<ucar.unidata.io.UncompressInputStream: int free_ent>;
+
+        r4 = r0.<ucar.unidata.io.UncompressInputStream: byte[] data>;
+
+        i60 = r0.<ucar.unidata.io.UncompressInputStream: int bit_pos>;
+
+        $i2 = lengthof r3;
+
+        i61 = $i2 - i58;
+
+        if i61 <= 0 goto label04;
+
+        if i61 < i52 goto label02;
+
+        $i62 = i52;
+
+        goto label03;
+
+     label02:
+        $i62 = i61;
+
+     label03:
+        staticinvoke <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)>(r3, i58, r5, i51, $i62);
+
+        i51 = i51 + $i62;
+
+        i52 = i52 - $i62;
+
+        i58 = i58 + $i62;
+
+     label04:
+        if i52 != 0 goto label05;
+
+        r0.<ucar.unidata.io.UncompressInputStream: int stackp> = i58;
+
+        $i50 = i51 - i0;
+
+        return $i50;
+
+     label05:
+        $i3 = r0.<ucar.unidata.io.UncompressInputStream: int end>;
+
+        if $i3 >= 64 goto label06;
+
+        specialinvoke r0.<ucar.unidata.io.UncompressInputStream: void fill()>();
+
+     label06:
+        $i4 = r0.<ucar.unidata.io.UncompressInputStream: int got>;
+
+        if $i4 <= 0 goto label07;
+
+        $i48 = r0.<ucar.unidata.io.UncompressInputStream: int end>;
+
+        $i46 = r0.<ucar.unidata.io.UncompressInputStream: int end>;
+
+        $i47 = $i46 % i53;
+
+        $i49 = $i48 - $i47;
+
+        $i63 = $i49 << 3;
+
+        goto label08;
+
+     label07:
+        $i5 = r0.<ucar.unidata.io.UncompressInputStream: int end>;
+
+        $i7 = $i5 << 3;
+
+        $i6 = i53 - 1;
+
+        $i63 = $i7 - $i6;
+
+     label08:
+        i64 = $i63;
+
+     label09:
+        if i60 >= i64 goto label24;
+
+        if i52 != 0 goto label10;
+
+        r0.<ucar.unidata.io.UncompressInputStream: int n_bits> = i53;
+
+        r0.<ucar.unidata.io.UncompressInputStream: int maxcode> = i54;
+
+        r0.<ucar.unidata.io.UncompressInputStream: int maxmaxcode> = i1;
+
+        r0.<ucar.unidata.io.UncompressInputStream: int bitmask> = i55;
+
+        r0.<ucar.unidata.io.UncompressInputStream: int oldcode> = i56;
+
+        r0.<ucar.unidata.io.UncompressInputStream: byte finchar> = b57;
+
+        r0.<ucar.unidata.io.UncompressInputStream: int stackp> = i58;
+
+        r0.<ucar.unidata.io.UncompressInputStream: int free_ent> = i59;
+
+        r0.<ucar.unidata.io.UncompressInputStream: int bit_pos> = i60;
+
+        $i45 = i51 - i0;
+
+        return $i45;
+
+     label10:
+        if i59 <= i54 goto label13;
+
+        i65 = i53 << 3;
+
+        $i37 = i60 - 1;
+
+        $i41 = $i37 + i65;
+
+        $i38 = i60 - 1;
+
+        $i39 = $i38 + i65;
+
+        $i40 = $i39 % i65;
+
+        i66 = $i41 - $i40;
+
+        i53 = i53 + 1;
+
+        $i42 = r0.<ucar.unidata.io.UncompressInputStream: int maxbits>;
+
+        if i53 != $i42 goto label11;
+
+        $i67 = i1;
+
+        goto label12;
+
+     label11:
+        $i43 = 1 << i53;
+
+        $i67 = $i43 - 1;
+
+     label12:
+        i54 = $i67;
+
+        $i44 = 1 << i53;
+
+        i55 = $i44 - 1;
+
+        i60 = specialinvoke r0.<ucar.unidata.io.UncompressInputStream: int resetbuf(int)>(i66);
+
+        goto label25;
+
+     label13:
+        i68 = i60 >> 3;
+
+        $b9 = r4[i68];
+
+        $s81 = (short) $b9;
+
+        $s14 = $s81 & 255;
+
+        $i10 = i68 + 1;
+
+        $b11 = r4[$i10];
+
+        $s82 = (short) $b11;
+
+        $s12 = $s82 & 255;
+
+        $i83 = (int) $s12;
+
+        $i13 = $i83 << 8;
+
+        $i84 = (int) $s14;
+
+        $i19 = $i84 | $i13;
+
+        $i15 = i68 + 2;
+
+        $b16 = r4[$i15];
+
+        $s85 = (short) $b16;
+
+        $s17 = $s85 & 255;
+
+        $i86 = (int) $s17;
+
+        $i18 = $i86 << 16;
+
+        $i21 = $i19 | $i18;
+
+        $i20 = i60 & 7;
+
+        $i22 = $i21 >> $i20;
+
+        i69 = $i22 & i55;
+
+        i60 = i60 + i53;
+
+        $i88 = (int) -1;
+
+        if i56 != $i88 goto label15;
+
+        if i69 < 256 goto label14;
+
+        $r22 = new java.io.IOException;
+
+        $r21 = new java.lang.StringBuilder;
+
+        specialinvoke $r21.<java.lang.StringBuilder: void <init>()>();
+
+        $r17 = virtualinvoke $r21.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("corrupt input: ");
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>(i69);
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" > 255");
+
+        $r20 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r22.<java.io.IOException: void <init>(java.lang.String)>($r20);
+
+        throw $r22;
+
+     label14:
+        i56 = i69;
+
+        b57 = (byte) i69;
+
+        $i36 = i51;
+
+        i51 = i51 + 1;
+
+        r5[$i36] = b57;
+
+        $i90 = (int) -1;
+
+        i52 = i52 + $i90;
+
+        goto label09;
+
+     label15:
+        if i69 != 256 goto label16;
+
+        $z1 = r0.<ucar.unidata.io.UncompressInputStream: boolean block_mode>;
+
+        if $z1 == 0 goto label16;
+
+        $r14 = r0.<ucar.unidata.io.UncompressInputStream: int[] zeros>;
+
+        $r13 = r0.<ucar.unidata.io.UncompressInputStream: int[] zeros>;
+
+        $i30 = lengthof $r13;
+
+        staticinvoke <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)>($r14, 0, r1, 0, $i30);
+
+        i59 = 256;
+
+        i70 = i53 << 3;
+
+        $i31 = i60 - 1;
+
+        $i35 = $i31 + i70;
+
+        $i32 = i60 - 1;
+
+        $i33 = $i32 + i70;
+
+        $i34 = $i33 % i70;
+
+        i71 = $i35 - $i34;
+
+        i53 = 9;
+
+        i54 = 511;
+
+        i55 = 511;
+
+        i60 = specialinvoke r0.<ucar.unidata.io.UncompressInputStream: int resetbuf(int)>(i71);
+
+        goto label25;
+
+     label16:
+        i72 = i69;
+
+        $i29 = lengthof r3;
+
+        i73 = $i29;
+
+        if i69 < i59 goto label18;
+
+        if i69 <= i59 goto label17;
+
+        $r24 = new java.io.IOException;
+
+        $r23 = new java.lang.StringBuilder;
+
+        specialinvoke $r23.<java.lang.StringBuilder: void <init>()>();
+
+        $r8 = virtualinvoke $r23.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("corrupt input: code=");
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>(i69);
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(", free_ent=");
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>(i59);
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r24.<java.io.IOException: void <init>(java.lang.String)>($r12);
+
+        throw $r24;
+
+     label17:
+        $i92 = (int) -1;
+
+        i73 = $i29 + $i92;
+
+        r3[i73] = b57;
+
+        i69 = i56;
+
+     label18:
+        if i69 < 256 goto label19;
+
+        $i94 = (int) -1;
+
+        i73 = i73 + $i94;
+
+        $b28 = r2[i69];
+
+        r3[i73] = $b28;
+
+        i69 = r1[i69];
+
+        goto label18;
+
+     label19:
+        b57 = r2[i69];
+
+        i74 = i51 + 1;
+
+        r5[i51] = b57;
+
+        $i96 = (int) -1;
+
+        i75 = i52 + $i96;
+
+        $i23 = lengthof r3;
+
+        i76 = $i23 - i73;
+
+        if i76 < i75 goto label20;
+
+        $i77 = i75;
+
+        goto label21;
+
+     label20:
+        $i77 = i76;
+
+     label21:
+        staticinvoke <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)>(r3, i73, r5, i74, $i77);
+
+        $i25 = i74 + $i77;
+
+        i51 = $i25;
+
+        $i26 = i75 - $i77;
+
+        i52 = $i26;
+
+        $i27 = i73 + $i77;
+
+        i58 = $i27;
+
+        if i59 >= i1 goto label22;
+
+        r1[i59] = i56;
+
+        r2[i59] = b57;
+
+        i59 = i59 + 1;
+
+     label22:
+        i56 = i72;
+
+        if $i26 != 0 goto label23;
+
+        r0.<ucar.unidata.io.UncompressInputStream: int n_bits> = i53;
+
+        r0.<ucar.unidata.io.UncompressInputStream: int maxcode> = i54;
+
+        r0.<ucar.unidata.io.UncompressInputStream: int bitmask> = i55;
+
+        r0.<ucar.unidata.io.UncompressInputStream: int oldcode> = i72;
+
+        r0.<ucar.unidata.io.UncompressInputStream: byte finchar> = b57;
+
+        r0.<ucar.unidata.io.UncompressInputStream: int stackp> = $i27;
+
+        r0.<ucar.unidata.io.UncompressInputStream: int free_ent> = i59;
+
+        r0.<ucar.unidata.io.UncompressInputStream: int bit_pos> = i60;
+
+        $i24 = $i25 - i0;
+
+        return $i24;
+
+     label23:
+        goto label09;
+
+     label24:
+        i60 = specialinvoke r0.<ucar.unidata.io.UncompressInputStream: int resetbuf(int)>(i60);
+
+     label25:
+        $i78 = r0.<ucar.unidata.io.UncompressInputStream: int got>;
+
+        if $i78 > 0 goto label05;
+
+        r0.<ucar.unidata.io.UncompressInputStream: int n_bits> = i53;
+
+        r0.<ucar.unidata.io.UncompressInputStream: int maxcode> = i54;
+
+        r0.<ucar.unidata.io.UncompressInputStream: int bitmask> = i55;
+
+        r0.<ucar.unidata.io.UncompressInputStream: int oldcode> = i56;
+
+        r0.<ucar.unidata.io.UncompressInputStream: byte finchar> = b57;
+
+        r0.<ucar.unidata.io.UncompressInputStream: int stackp> = i58;
+
+        r0.<ucar.unidata.io.UncompressInputStream: int free_ent> = i59;
+
+        r0.<ucar.unidata.io.UncompressInputStream: int bit_pos> = i60;
+
+        r0.<ucar.unidata.io.UncompressInputStream: boolean eof> = 1;
+
+        $i8 = i51 - i0;
+
+        return $i8;
+    }
+
+    private int resetbuf(int)
+    {
+        byte[] $r1, $r2;
+        int i0, i1, $i2, $i3, $i4, $i5;
+        ucar.unidata.io.UncompressInputStream r0;
+
+        r0 := @this: ucar.unidata.io.UncompressInputStream;
+
+        i0 := @parameter0: int;
+
+        i1 = i0 >> 3;
+
+        $r2 = r0.<ucar.unidata.io.UncompressInputStream: byte[] data>;
+
+        $r1 = r0.<ucar.unidata.io.UncompressInputStream: byte[] data>;
+
+        $i2 = r0.<ucar.unidata.io.UncompressInputStream: int end>;
+
+        $i3 = $i2 - i1;
+
+        staticinvoke <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)>($r2, i1, $r1, 0, $i3);
+
+        $i4 = r0.<ucar.unidata.io.UncompressInputStream: int end>;
+
+        $i5 = $i4 - i1;
+
+        r0.<ucar.unidata.io.UncompressInputStream: int end> = $i5;
+
+        return 0;
+    }
+
+    private void fill() throws java.io.IOException
+    {
+        byte[] $r1, $r2;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9;
+        ucar.unidata.io.UncompressInputStream r0;
+        java.io.InputStream $r3;
+
+        r0 := @this: ucar.unidata.io.UncompressInputStream;
+
+        $r3 = r0.<ucar.unidata.io.UncompressInputStream: java.io.InputStream in>;
+
+        $r2 = r0.<ucar.unidata.io.UncompressInputStream: byte[] data>;
+
+        $i4 = r0.<ucar.unidata.io.UncompressInputStream: int end>;
+
+        $r1 = r0.<ucar.unidata.io.UncompressInputStream: byte[] data>;
+
+        $i0 = lengthof $r1;
+
+        $i2 = $i0 - 1;
+
+        $i1 = r0.<ucar.unidata.io.UncompressInputStream: int end>;
+
+        $i3 = $i2 - $i1;
+
+        $i5 = virtualinvoke $r3.<java.io.InputStream: int read(byte[],int,int)>($r2, $i4, $i3);
+
+        r0.<ucar.unidata.io.UncompressInputStream: int got> = $i5;
+
+        $i6 = r0.<ucar.unidata.io.UncompressInputStream: int got>;
+
+        if $i6 <= 0 goto label1;
+
+        $i8 = r0.<ucar.unidata.io.UncompressInputStream: int end>;
+
+        $i7 = r0.<ucar.unidata.io.UncompressInputStream: int got>;
+
+        $i9 = $i8 + $i7;
+
+        r0.<ucar.unidata.io.UncompressInputStream: int end> = $i9;
+
+     label1:
+        return;
+    }
+
+    public long skip(long) throws java.io.IOException
+    {
+        byte[] r0;
+        int $i1, $i2, $i3;
+        long l0, $l4;
+        ucar.unidata.io.UncompressInputStream r1;
+
+        r1 := @this: ucar.unidata.io.UncompressInputStream;
+
+        l0 := @parameter0: long;
+
+        $i1 = (int) l0;
+
+        r0 = newarray (byte)[$i1];
+
+        $i2 = (int) l0;
+
+        $i3 = virtualinvoke r1.<ucar.unidata.io.UncompressInputStream: int read(byte[],int,int)>(r0, 0, $i2);
+
+        if $i3 <= 0 goto label1;
+
+        $l4 = (long) $i3;
+
+        return $l4;
+
+     label1:
+        return 0L;
+    }
+
+    public int available() throws java.io.IOException
+    {
+        int $i0, $i1;
+        ucar.unidata.io.UncompressInputStream r0;
+        boolean $z0;
+        java.io.InputStream $r1;
+
+        r0 := @this: ucar.unidata.io.UncompressInputStream;
+
+        $z0 = r0.<ucar.unidata.io.UncompressInputStream: boolean eof>;
+
+        if $z0 == 0 goto label1;
+
+        return 0;
+
+     label1:
+        $r1 = r0.<ucar.unidata.io.UncompressInputStream: java.io.InputStream in>;
+
+        $i0 = virtualinvoke $r1.<java.io.InputStream: int available()>();
+
+        if $i0 != 0 goto label2;
+
+        $i1 = 1;
+
+        goto label3;
+
+     label2:
+        $i1 = $i0;
+
+     label3:
+        return $i1;
+    }
+
+    private void parse_header() throws java.io.IOException
+    {
+        byte[] $r5, $r6, $r7, $r8;
+        byte $b23;
+        int[] $r4;
+        boolean $z0, $z1;
+        java.io.EOFException $r29, $r30, $r33;
+        java.lang.StringBuilder $r13, $r14, $r15, $r16, $r17, $r22, $r24, $r25, $r31, $r34;
+        ucar.unidata.io.UncompressInputStream r0;
+        short $s27;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i10, $i11, $i12, $i13, $i14, $i15, $i16, $i17, $i18, $i19, $i20, $i21, $i22, $i24, i25, i26, i28, $i30, $i32;
+        java.lang.String $r18, $r23, $r26;
+        java.io.IOException $r32, $r35, $r36, $r37;
+        java.io.InputStream $r1, $r2, $r3;
+
+        r0 := @this: ucar.unidata.io.UncompressInputStream;
+
+        $r1 = r0.<ucar.unidata.io.UncompressInputStream: java.io.InputStream in>;
+
+        $i0 = virtualinvoke $r1.<java.io.InputStream: int read()>();
+
+        if $i0 >= 0 goto label01;
+
+        $r29 = new java.io.EOFException;
+
+        specialinvoke $r29.<java.io.EOFException: void <init>(java.lang.String)>("Failed to read magic number");
+
+        throw $r29;
+
+     label01:
+        $i1 = $i0 & 255;
+
+        i25 = $i1 << 8;
+
+        $r2 = r0.<ucar.unidata.io.UncompressInputStream: java.io.InputStream in>;
+
+        $i2 = virtualinvoke $r2.<java.io.InputStream: int read()>();
+
+        if $i2 >= 0 goto label02;
+
+        $r30 = new java.io.EOFException;
+
+        specialinvoke $r30.<java.io.EOFException: void <init>(java.lang.String)>("Failed to read magic number");
+
+        throw $r30;
+
+     label02:
+        $i3 = $i2 & 255;
+
+        i26 = i25 + $i3;
+
+        if i26 == 8093 goto label03;
+
+        $r32 = new java.io.IOException;
+
+        $r31 = new java.lang.StringBuilder;
+
+        specialinvoke $r31.<java.lang.StringBuilder: void <init>()>();
+
+        $r22 = virtualinvoke $r31.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Input not in compress format (read magic number 0x");
+
+        $r23 = staticinvoke <java.lang.Integer: java.lang.String toHexString(int)>(i26);
+
+        $r24 = virtualinvoke $r22.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r23);
+
+        $r25 = virtualinvoke $r24.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(")");
+
+        $r26 = virtualinvoke $r25.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r32.<java.io.IOException: void <init>(java.lang.String)>($r26);
+
+        throw $r32;
+
+     label03:
+        $r3 = r0.<ucar.unidata.io.UncompressInputStream: java.io.InputStream in>;
+
+        $i4 = virtualinvoke $r3.<java.io.InputStream: int read()>();
+
+        if $i4 >= 0 goto label04;
+
+        $r33 = new java.io.EOFException;
+
+        specialinvoke $r33.<java.io.EOFException: void <init>(java.lang.String)>("Failed to read header");
+
+        throw $r33;
+
+     label04:
+        $i5 = $i4 & 128;
+
+        if $i5 <= 0 goto label05;
+
+        $z1 = 1;
+
+        goto label06;
+
+     label05:
+        $z1 = 0;
+
+     label06:
+        r0.<ucar.unidata.io.UncompressInputStream: boolean block_mode> = $z1;
+
+        $i6 = $i4 & 31;
+
+        r0.<ucar.unidata.io.UncompressInputStream: int maxbits> = $i6;
+
+        $i7 = r0.<ucar.unidata.io.UncompressInputStream: int maxbits>;
+
+        if $i7 <= 16 goto label07;
+
+        $r35 = new java.io.IOException;
+
+        $r34 = new java.lang.StringBuilder;
+
+        specialinvoke $r34.<java.lang.StringBuilder: void <init>()>();
+
+        $r13 = virtualinvoke $r34.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Stream compressed with ");
+
+        $i24 = r0.<ucar.unidata.io.UncompressInputStream: int maxbits>;
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i24);
+
+        $r15 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" bits, but can only handle ");
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>(16);
+
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" bits");
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r35.<java.io.IOException: void <init>(java.lang.String)>($r18);
+
+        throw $r35;
+
+     label07:
+        $i8 = $i4 & 32;
+
+        if $i8 <= 0 goto label08;
+
+        $r36 = new java.io.IOException;
+
+        specialinvoke $r36.<java.io.IOException: void <init>(java.lang.String)>("Header extension bit set");
+
+        throw $r36;
+
+     label08:
+        $i9 = $i4 & 64;
+
+        if $i9 <= 0 goto label09;
+
+        $r37 = new java.io.IOException;
+
+        specialinvoke $r37.<java.io.IOException: void <init>(java.lang.String)>("Header bit 6 set");
+
+        throw $r37;
+
+     label09:
+        $i10 = r0.<ucar.unidata.io.UncompressInputStream: int maxbits>;
+
+        $i11 = 1 << $i10;
+
+        r0.<ucar.unidata.io.UncompressInputStream: int maxmaxcode> = $i11;
+
+        r0.<ucar.unidata.io.UncompressInputStream: int n_bits> = 9;
+
+        $i12 = r0.<ucar.unidata.io.UncompressInputStream: int n_bits>;
+
+        $i13 = 1 << $i12;
+
+        $i14 = $i13 - 1;
+
+        r0.<ucar.unidata.io.UncompressInputStream: int maxcode> = $i14;
+
+        $i15 = r0.<ucar.unidata.io.UncompressInputStream: int maxcode>;
+
+        r0.<ucar.unidata.io.UncompressInputStream: int bitmask> = $i15;
+
+        $i30 = (int) -1;
+
+        r0.<ucar.unidata.io.UncompressInputStream: int oldcode> = $i30;
+
+        r0.<ucar.unidata.io.UncompressInputStream: byte finchar> = 0;
+
+        $z0 = r0.<ucar.unidata.io.UncompressInputStream: boolean block_mode>;
+
+        if $z0 == 0 goto label10;
+
+        $s27 = 257;
+
+        goto label11;
+
+     label10:
+        $s27 = 256;
+
+     label11:
+        r0.<ucar.unidata.io.UncompressInputStream: int free_ent> = $s27;
+
+        $i16 = r0.<ucar.unidata.io.UncompressInputStream: int maxbits>;
+
+        $i17 = 1 << $i16;
+
+        $r4 = newarray (int)[$i17];
+
+        r0.<ucar.unidata.io.UncompressInputStream: int[] tab_prefix> = $r4;
+
+        $i18 = r0.<ucar.unidata.io.UncompressInputStream: int maxbits>;
+
+        $i19 = 1 << $i18;
+
+        $r5 = newarray (byte)[$i19];
+
+        r0.<ucar.unidata.io.UncompressInputStream: byte[] tab_suffix> = $r5;
+
+        $i20 = r0.<ucar.unidata.io.UncompressInputStream: int maxbits>;
+
+        $i21 = 1 << $i20;
+
+        $r6 = newarray (byte)[$i21];
+
+        r0.<ucar.unidata.io.UncompressInputStream: byte[] stack> = $r6;
+
+        $r7 = r0.<ucar.unidata.io.UncompressInputStream: byte[] stack>;
+
+        $i22 = lengthof $r7;
+
+        r0.<ucar.unidata.io.UncompressInputStream: int stackp> = $i22;
+
+        i28 = 255;
+
+     label12:
+        if i28 < 0 goto label13;
+
+        $r8 = r0.<ucar.unidata.io.UncompressInputStream: byte[] tab_suffix>;
+
+        $b23 = (byte) i28;
+
+        $r8[i28] = $b23;
+
+        $i32 = (int) -1;
+
+        i28 = i28 + $i32;
+
+        goto label12;
+
+     label13:
+        return;
+    }
+
+    public boolean markSupported()
+    {
+        ucar.unidata.io.UncompressInputStream r0;
+
+        r0 := @this: ucar.unidata.io.UncompressInputStream;
+
+        return 0;
+    }
+
+    public static void uncompress(java.lang.String, java.io.FileOutputStream) throws java.io.IOException
+    {
+        byte[] r3;
+        int $i0, $i2;
+        java.io.FileOutputStream r4;
+        java.lang.String r2;
+        java.io.FileInputStream $r5;
+        ucar.unidata.io.UncompressInputStream $r6;
+
+        r2 := @parameter0: java.lang.String;
+
+        r4 := @parameter1: java.io.FileOutputStream;
+
+        staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        $r6 = new ucar.unidata.io.UncompressInputStream;
+
+        $r5 = new java.io.FileInputStream;
+
+        specialinvoke $r5.<java.io.FileInputStream: void <init>(java.lang.String)>(r2);
+
+        specialinvoke $r6.<ucar.unidata.io.UncompressInputStream: void <init>(java.io.InputStream)>($r5);
+
+        r3 = newarray (byte)[100000];
+
+     label1:
+        $i0 = virtualinvoke $r6.<java.io.InputStream: int read(byte[])>(r3);
+
+        $i2 = (int) -1;
+
+        if $i0 != $i2 goto label2;
+
+        goto label3;
+
+     label2:
+        virtualinvoke r4.<java.io.FileOutputStream: void write(byte[],int,int)>(r3, 0, $i0);
+
+        goto label1;
+
+     label3:
+        virtualinvoke $r6.<java.io.InputStream: void close()>();
+
+        virtualinvoke r4.<java.io.FileOutputStream: void close()>();
+
+        return;
+    }
+
+    public static void main(java.lang.String[]) throws java.lang.Exception
+    {
+        byte[] $r18;
+        java.lang.String[] r0;
+        long $l1, $l2, $l3;
+        int $i0, i4, $i5;
+        java.lang.String $r3, $r10, $r16;
+        double $d0, $d1;
+        java.io.PrintStream $r4, $r6, $r12, $r17;
+        java.io.FileInputStream $r2;
+        java.lang.StringBuilder $r5, $r7, $r8, $r9, $r11, $r13, $r14, $r15;
+        ucar.unidata.io.UncompressInputStream $r1;
+
+        r0 := @parameter0: java.lang.String[];
+
+        $i0 = lengthof r0;
+
+        if $i0 == 1 goto label1;
+
+        $r17 = <java.lang.System: java.io.PrintStream err>;
+
+        virtualinvoke $r17.<java.io.PrintStream: void println(java.lang.String)>("Usage: UncompressInputStream <file>");
+
+        staticinvoke <java.lang.System: void exit(int)>(1);
+
+     label1:
+        $r1 = new ucar.unidata.io.UncompressInputStream;
+
+        $r2 = new java.io.FileInputStream;
+
+        $r3 = r0[0];
+
+        specialinvoke $r2.<java.io.FileInputStream: void <init>(java.lang.String)>($r3);
+
+        specialinvoke $r1.<ucar.unidata.io.UncompressInputStream: void <init>(java.io.InputStream)>($r2);
+
+        $r18 = newarray (byte)[100000];
+
+        i4 = 0;
+
+        $l1 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+     label2:
+        $i5 = virtualinvoke $r1.<java.io.InputStream: int read(byte[])>($r18);
+
+        if $i5 >= 0 goto label3;
+
+        goto label4;
+
+     label3:
+        $r4 = <java.lang.System: java.io.PrintStream out>;
+
+        virtualinvoke $r4.<java.io.PrintStream: void write(byte[],int,int)>($r18, 0, $i5);
+
+        i4 = i4 + $i5;
+
+        goto label2;
+
+     label4:
+        $l2 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        $r6 = <java.lang.System: java.io.PrintStream err>;
+
+        $r5 = new java.lang.StringBuilder;
+
+        specialinvoke $r5.<java.lang.StringBuilder: void <init>()>();
+
+        $r7 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Decompressed ");
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>(i4);
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" bytes");
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r6.<java.io.PrintStream: void println(java.lang.String)>($r10);
+
+        $r12 = <java.lang.System: java.io.PrintStream err>;
+
+        $r11 = new java.lang.StringBuilder;
+
+        specialinvoke $r11.<java.lang.StringBuilder: void <init>()>();
+
+        $r13 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Time: ");
+
+        $l3 = $l2 - $l1;
+
+        $d0 = (double) $l3;
+
+        $d1 = $d0 / 1000.0;
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.StringBuilder append(double)>($d1);
+
+        $r15 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" seconds");
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r12.<java.io.PrintStream: void println(java.lang.String)>($r16);
+
+        return;
+    }
+
+    public static void <clinit>()
+    {
+        <ucar.unidata.io.UncompressInputStream: boolean debugTiming> = 0;
+
+        <ucar.unidata.io.UncompressInputStream: boolean debug> = 0;
+
+        <ucar.unidata.io.UncompressInputStream: int HDR_BLOCK_MODE> = 128;
+
+        <ucar.unidata.io.UncompressInputStream: int HDR_FREE> = 64;
+
+        <ucar.unidata.io.UncompressInputStream: int HDR_EXTENDED> = 32;
+
+        <ucar.unidata.io.UncompressInputStream: int HDR_MAXBITS> = 31;
+
+        <ucar.unidata.io.UncompressInputStream: int INIT_BITS> = 9;
+
+        <ucar.unidata.io.UncompressInputStream: int MAX_BITS> = 16;
+
+        <ucar.unidata.io.UncompressInputStream: int LZW_MAGIC> = 8093;
+
+        <ucar.unidata.io.UncompressInputStream: int EXTRA> = 64;
+
+        <ucar.unidata.io.UncompressInputStream: int TBL_FIRST> = 257;
+
+        <ucar.unidata.io.UncompressInputStream: int TBL_CLEAR> = 256;
+
+        return;
+    }
+}

@@ -1,0 +1,559 @@
+public class org.apache.pdfbox.io.RandomAccessBufferedFileInputStream extends java.io.InputStream implements org.apache.pdfbox.io.RandomAccessRead
+{
+    private int pageSizeShift;
+    private int pageSize;
+    private long pageOffsetMask;
+    private int maxCachedPages;
+    private byte[] lastRemovedCachePage;
+    private final java.util.LinkedHashMap pageCache;
+    private long curPageOffset;
+    private byte[] curPage;
+    private int offsetWithinPage;
+    private final java.io.RandomAccessFile raFile;
+    private final long fileLength;
+    private long fileOffset;
+
+    public void <init>(java.io.File) throws java.io.FileNotFoundException, java.io.IOException
+    {
+        byte[] $r2;
+        java.io.RandomAccessFile $r3;
+        long $l3, $l6;
+        org.apache.pdfbox.io.RandomAccessBufferedFileInputStream$1 $r1;
+        java.io.File r4;
+        int $i0, $i1, $i2, $i4, $i5;
+        org.apache.pdfbox.io.RandomAccessBufferedFileInputStream r0;
+
+        r0 := @this: org.apache.pdfbox.io.RandomAccessBufferedFileInputStream;
+
+        r4 := @parameter0: java.io.File;
+
+        specialinvoke r0.<java.io.InputStream: void <init>()>();
+
+        r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: int pageSizeShift> = 12;
+
+        $i0 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: int pageSizeShift>;
+
+        $i1 = 1 << $i0;
+
+        r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: int pageSize> = $i1;
+
+        $i2 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: int pageSizeShift>;
+
+        $l3 = -1L << $i2;
+
+        r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: long pageOffsetMask> = $l3;
+
+        r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: int maxCachedPages> = 1000;
+
+        r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: byte[] lastRemovedCachePage> = null;
+
+        $r1 = new org.apache.pdfbox.io.RandomAccessBufferedFileInputStream$1;
+
+        $i4 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: int maxCachedPages>;
+
+        specialinvoke $r1.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream$1: void <init>(org.apache.pdfbox.io.RandomAccessBufferedFileInputStream,int,float,boolean)>(r0, $i4, 0.75F, 1);
+
+        r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: java.util.LinkedHashMap pageCache> = $r1;
+
+        r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: long curPageOffset> = -1L;
+
+        $i5 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: int pageSize>;
+
+        $r2 = newarray (byte)[$i5];
+
+        r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: byte[] curPage> = $r2;
+
+        r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: int offsetWithinPage> = 0;
+
+        r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: long fileOffset> = 0L;
+
+        $r3 = new java.io.RandomAccessFile;
+
+        specialinvoke $r3.<java.io.RandomAccessFile: void <init>(java.io.File,java.lang.String)>(r4, "r");
+
+        r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: java.io.RandomAccessFile raFile> = $r3;
+
+        $l6 = virtualinvoke r4.<java.io.File: long length()>();
+
+        r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: long fileLength> = $l6;
+
+        virtualinvoke r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: void seek(long)>(0L);
+
+        return;
+    }
+
+    public long getFilePointer()
+    {
+        long $l0;
+        org.apache.pdfbox.io.RandomAccessBufferedFileInputStream r0;
+
+        r0 := @this: org.apache.pdfbox.io.RandomAccessBufferedFileInputStream;
+
+        $l0 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: long fileOffset>;
+
+        return $l0;
+    }
+
+    public long getPosition()
+    {
+        long $l0;
+        org.apache.pdfbox.io.RandomAccessBufferedFileInputStream r0;
+
+        r0 := @this: org.apache.pdfbox.io.RandomAccessBufferedFileInputStream;
+
+        $l0 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: long fileOffset>;
+
+        return $l0;
+    }
+
+    public void seek(long) throws java.io.IOException
+    {
+        java.io.RandomAccessFile $r4;
+        byte[] $r5, r8;
+        long l0, $l1, l2, $l3, $l5, $l6;
+        java.util.LinkedHashMap $r1, $r6;
+        byte $b4;
+        java.lang.Long $r2, $r7;
+        int $i7;
+        java.lang.Object $r3;
+        org.apache.pdfbox.io.RandomAccessBufferedFileInputStream r0;
+
+        r0 := @this: org.apache.pdfbox.io.RandomAccessBufferedFileInputStream;
+
+        l0 := @parameter0: long;
+
+        $l1 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: long pageOffsetMask>;
+
+        l2 = l0 & $l1;
+
+        $l3 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: long curPageOffset>;
+
+        $b4 = l2 cmp $l3;
+
+        if $b4 == 0 goto label2;
+
+        $r1 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: java.util.LinkedHashMap pageCache>;
+
+        $r2 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>(l2);
+
+        $r3 = virtualinvoke $r1.<java.util.LinkedHashMap: java.lang.Object get(java.lang.Object)>($r2);
+
+        r8 = (byte[]) $r3;
+
+        if r8 != null goto label1;
+
+        $r4 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: java.io.RandomAccessFile raFile>;
+
+        virtualinvoke $r4.<java.io.RandomAccessFile: void seek(long)>(l2);
+
+        $r5 = specialinvoke r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: byte[] readPage()>();
+
+        r8 = $r5;
+
+        $r6 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: java.util.LinkedHashMap pageCache>;
+
+        $r7 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>(l2);
+
+        virtualinvoke $r6.<java.util.LinkedHashMap: java.lang.Object put(java.lang.Object,java.lang.Object)>($r7, $r5);
+
+     label1:
+        r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: long curPageOffset> = l2;
+
+        r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: byte[] curPage> = r8;
+
+     label2:
+        $l5 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: long curPageOffset>;
+
+        $l6 = l0 - $l5;
+
+        $i7 = (int) $l6;
+
+        r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: int offsetWithinPage> = $i7;
+
+        r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: long fileOffset> = l0;
+
+        return;
+    }
+
+    private final byte[] readPage() throws java.io.IOException
+    {
+        byte[] $r1, r3;
+        java.io.RandomAccessFile $r2;
+        int $i0, $i1, $i2, $i3, i4, $i5;
+        org.apache.pdfbox.io.RandomAccessBufferedFileInputStream r0;
+
+        r0 := @this: org.apache.pdfbox.io.RandomAccessBufferedFileInputStream;
+
+        $r1 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: byte[] lastRemovedCachePage>;
+
+        if $r1 == null goto label1;
+
+        r3 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: byte[] lastRemovedCachePage>;
+
+        r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: byte[] lastRemovedCachePage> = null;
+
+        goto label2;
+
+     label1:
+        $i0 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: int pageSize>;
+
+        r3 = newarray (byte)[$i0];
+
+     label2:
+        i4 = 0;
+
+     label3:
+        $i5 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: int pageSize>;
+
+        if i4 >= $i5 goto label5;
+
+        $r2 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: java.io.RandomAccessFile raFile>;
+
+        $i1 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: int pageSize>;
+
+        $i2 = $i1 - i4;
+
+        $i3 = virtualinvoke $r2.<java.io.RandomAccessFile: int read(byte[],int,int)>(r3, i4, $i2);
+
+        if $i3 >= 0 goto label4;
+
+        goto label5;
+
+     label4:
+        i4 = i4 + $i3;
+
+        goto label3;
+
+     label5:
+        return r3;
+    }
+
+    public int read() throws java.io.IOException
+    {
+        byte[] $r1;
+        long $l0, $l1, $l5, $l6, $l11;
+        short $s10, $s15;
+        byte $b2, $b9;
+        int $i3, $i4, $i7, $i8, $i12, $i14, $i16;
+        org.apache.pdfbox.io.RandomAccessBufferedFileInputStream r0;
+
+        r0 := @this: org.apache.pdfbox.io.RandomAccessBufferedFileInputStream;
+
+        $l1 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: long fileOffset>;
+
+        $l0 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: long fileLength>;
+
+        $b2 = $l1 cmp $l0;
+
+        $i12 = (int) $b2;
+
+        if $i12 < 0 goto label1;
+
+        $i14 = (int) -1;
+
+        return $i14;
+
+     label1:
+        $i4 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: int offsetWithinPage>;
+
+        $i3 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: int pageSize>;
+
+        if $i4 != $i3 goto label2;
+
+        $l11 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: long fileOffset>;
+
+        virtualinvoke r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: void seek(long)>($l11);
+
+     label2:
+        $l5 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: long fileOffset>;
+
+        $l6 = $l5 + 1L;
+
+        r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: long fileOffset> = $l6;
+
+        $r1 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: byte[] curPage>;
+
+        $i7 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: int offsetWithinPage>;
+
+        $i8 = $i7 + 1;
+
+        r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: int offsetWithinPage> = $i8;
+
+        $b9 = $r1[$i7];
+
+        $s15 = (short) $b9;
+
+        $s10 = $s15 & 255;
+
+        $i16 = (int) $s10;
+
+        return $i16;
+    }
+
+    public int read(byte[], int, int) throws java.io.IOException
+    {
+        byte[] r1, $r2;
+        byte $b2, $b15;
+        long $l0, $l1, $l10, $l11, $l13, $l14, $l20, $l21, $l22, $l23, $l24, $l25, $l27;
+        int $i3, $i4, $i5, $i6, i7, $i8, $i9, $i12, i16, $i17, $i18, $i19, $i26, i28, $i29, $i31, $i32;
+        org.apache.pdfbox.io.RandomAccessBufferedFileInputStream r0;
+
+        r0 := @this: org.apache.pdfbox.io.RandomAccessBufferedFileInputStream;
+
+        r1 := @parameter0: byte[];
+
+        i16 := @parameter1: int;
+
+        i7 := @parameter2: int;
+
+        $l1 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: long fileOffset>;
+
+        $l0 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: long fileLength>;
+
+        $b2 = $l1 cmp $l0;
+
+        $i29 = (int) $b2;
+
+        if $i29 < 0 goto label1;
+
+        $i31 = (int) -1;
+
+        return $i31;
+
+     label1:
+        $i4 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: int offsetWithinPage>;
+
+        $i3 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: int pageSize>;
+
+        if $i4 != $i3 goto label2;
+
+        $l27 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: long fileOffset>;
+
+        virtualinvoke r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: void seek(long)>($l27);
+
+     label2:
+        $i6 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: int pageSize>;
+
+        $i5 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: int offsetWithinPage>;
+
+        $i8 = $i6 - $i5;
+
+        $i9 = staticinvoke <java.lang.Math: int min(int,int)>($i8, i7);
+
+        i28 = $i9;
+
+        $l11 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: long fileLength>;
+
+        $l10 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: long fileOffset>;
+
+        $l14 = $l11 - $l10;
+
+        $i12 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: int pageSize>;
+
+        $l13 = (long) $i12;
+
+        $b15 = $l14 cmp $l13;
+
+        $i32 = (int) $b15;
+
+        if $i32 >= 0 goto label3;
+
+        $l24 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: long fileLength>;
+
+        $l23 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: long fileOffset>;
+
+        $l25 = $l24 - $l23;
+
+        $i26 = (int) $l25;
+
+        i28 = staticinvoke <java.lang.Math: int min(int,int)>($i9, $i26);
+
+     label3:
+        $r2 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: byte[] curPage>;
+
+        $i17 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: int offsetWithinPage>;
+
+        staticinvoke <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)>($r2, $i17, r1, i16, i28);
+
+        $i18 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: int offsetWithinPage>;
+
+        $i19 = $i18 + i28;
+
+        r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: int offsetWithinPage> = $i19;
+
+        $l21 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: long fileOffset>;
+
+        $l20 = (long) i28;
+
+        $l22 = $l21 + $l20;
+
+        r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: long fileOffset> = $l22;
+
+        return i28;
+    }
+
+    public int available() throws java.io.IOException
+    {
+        int $i4;
+        long $l0, $l1, $l2, $l3;
+        org.apache.pdfbox.io.RandomAccessBufferedFileInputStream r0;
+
+        r0 := @this: org.apache.pdfbox.io.RandomAccessBufferedFileInputStream;
+
+        $l1 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: long fileLength>;
+
+        $l0 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: long fileOffset>;
+
+        $l2 = $l1 - $l0;
+
+        $l3 = staticinvoke <java.lang.Math: long min(long,long)>($l2, 2147483647L);
+
+        $i4 = (int) $l3;
+
+        return $i4;
+    }
+
+    public long skip(long) throws java.io.IOException
+    {
+        long l0, $l1, $l2, $l3, $l6, $l8, $l9, $l11, $l13, $l14, $l17, $l18, $l20, $l21, $l22, $l23, l24;
+        byte $b4, $b7, $b15;
+        int $i5, $i10, $i12, $i16, $i19, $i25, $i26, $i27;
+        org.apache.pdfbox.io.RandomAccessBufferedFileInputStream r0;
+
+        r0 := @this: org.apache.pdfbox.io.RandomAccessBufferedFileInputStream;
+
+        l0 := @parameter0: long;
+
+        l24 = l0;
+
+        $l2 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: long fileLength>;
+
+        $l1 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: long fileOffset>;
+
+        $l3 = $l2 - $l1;
+
+        $b4 = $l3 cmp l0;
+
+        $i25 = (int) $b4;
+
+        if $i25 >= 0 goto label1;
+
+        $l23 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: long fileLength>;
+
+        $l22 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: long fileOffset>;
+
+        l24 = $l23 - $l22;
+
+     label1:
+        $i5 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: int pageSize>;
+
+        $l6 = (long) $i5;
+
+        $b7 = l24 cmp $l6;
+
+        $i26 = (int) $b7;
+
+        if $i26 >= 0 goto label2;
+
+        $i10 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: int offsetWithinPage>;
+
+        $l11 = (long) $i10;
+
+        $l14 = $l11 + l24;
+
+        $i12 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: int pageSize>;
+
+        $l13 = (long) $i12;
+
+        $b15 = $l14 cmp $l13;
+
+        $i27 = (int) $b15;
+
+        if $i27 > 0 goto label2;
+
+        $i16 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: int offsetWithinPage>;
+
+        $l17 = (long) $i16;
+
+        $l18 = $l17 + l24;
+
+        $i19 = (int) $l18;
+
+        r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: int offsetWithinPage> = $i19;
+
+        $l20 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: long fileOffset>;
+
+        $l21 = $l20 + l24;
+
+        r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: long fileOffset> = $l21;
+
+        goto label3;
+
+     label2:
+        $l8 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: long fileOffset>;
+
+        $l9 = $l8 + l24;
+
+        virtualinvoke r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: void seek(long)>($l9);
+
+     label3:
+        return l24;
+    }
+
+    public long length() throws java.io.IOException
+    {
+        long $l0;
+        org.apache.pdfbox.io.RandomAccessBufferedFileInputStream r0;
+
+        r0 := @this: org.apache.pdfbox.io.RandomAccessBufferedFileInputStream;
+
+        $l0 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: long fileLength>;
+
+        return $l0;
+    }
+
+    public void close() throws java.io.IOException
+    {
+        java.util.LinkedHashMap $r2;
+        java.io.RandomAccessFile $r1;
+        org.apache.pdfbox.io.RandomAccessBufferedFileInputStream r0;
+
+        r0 := @this: org.apache.pdfbox.io.RandomAccessBufferedFileInputStream;
+
+        $r1 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: java.io.RandomAccessFile raFile>;
+
+        virtualinvoke $r1.<java.io.RandomAccessFile: void close()>();
+
+        $r2 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: java.util.LinkedHashMap pageCache>;
+
+        virtualinvoke $r2.<java.util.LinkedHashMap: void clear()>();
+
+        return;
+    }
+
+    static int access$000(org.apache.pdfbox.io.RandomAccessBufferedFileInputStream)
+    {
+        int $i0;
+        org.apache.pdfbox.io.RandomAccessBufferedFileInputStream r0;
+
+        r0 := @parameter0: org.apache.pdfbox.io.RandomAccessBufferedFileInputStream;
+
+        $i0 = r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: int maxCachedPages>;
+
+        return $i0;
+    }
+
+    static byte[] access$102(org.apache.pdfbox.io.RandomAccessBufferedFileInputStream, byte[])
+    {
+        byte[] r1;
+        org.apache.pdfbox.io.RandomAccessBufferedFileInputStream r0;
+
+        r0 := @parameter0: org.apache.pdfbox.io.RandomAccessBufferedFileInputStream;
+
+        r1 := @parameter1: byte[];
+
+        r0.<org.apache.pdfbox.io.RandomAccessBufferedFileInputStream: byte[] lastRemovedCachePage> = r1;
+
+        return r1;
+    }
+}

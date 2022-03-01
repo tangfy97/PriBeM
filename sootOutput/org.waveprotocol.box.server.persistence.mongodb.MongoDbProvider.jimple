@@ -1,0 +1,297 @@
+public class org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider extends java.lang.Object
+{
+    private static final java.util.logging.Logger LOG;
+    private static final java.lang.String PROPERTIES_LOC;
+    private static final java.lang.String HOST_PROPERTY;
+    private static final java.lang.String PORT_PROPERTY;
+    private static final java.lang.String DATABASE_NAME_PROPERTY;
+    private com.mongodb.Mongo mongo;
+    private java.util.Properties properties;
+    private org.waveprotocol.box.server.persistence.mongodb.MongoDbStore mongoDbStore;
+    private boolean isRunning;
+
+    public void <init>()
+    {
+        org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider r0;
+
+        r0 := @this: org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        return;
+    }
+
+    private void start()
+    {
+        int $i0;
+        org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider r0;
+        java.lang.String $r2, $r4, $r7;
+        boolean $z0, $z1;
+        java.util.Properties $r1, $r3;
+        com.mongodb.MongoException $r10;
+        com.mongodb.Mongo $r5, $r6;
+        java.util.logging.Logger $r9;
+        java.net.UnknownHostException $r12;
+        org.waveprotocol.box.server.persistence.PersistenceStartException $r11, $r13;
+        com.mongodb.DB $r8;
+
+        r0 := @this: org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider;
+
+        $z0 = virtualinvoke r0.<org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider: boolean isRunning()>();
+
+        if $z0 != 0 goto label1;
+
+        $z1 = 1;
+
+        goto label2;
+
+     label1:
+        $z1 = 0;
+
+     label2:
+        staticinvoke <com.google.common.base.Preconditions: void checkState(boolean,java.lang.Object)>($z1, "Can\'t start after a connection has been established");
+
+        specialinvoke r0.<org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider: void ensurePropertiesLoaded()>();
+
+        $r1 = r0.<org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider: java.util.Properties properties>;
+
+        $r2 = virtualinvoke $r1.<java.util.Properties: java.lang.String getProperty(java.lang.String)>("mongoDbHost");
+
+        $r3 = r0.<org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider: java.util.Properties properties>;
+
+        $r4 = virtualinvoke $r3.<java.util.Properties: java.lang.String getProperty(java.lang.String)>("mongoDbPort");
+
+        $i0 = staticinvoke <java.lang.Integer: int parseInt(java.lang.String)>($r4);
+
+     label3:
+        $r5 = new com.mongodb.Mongo;
+
+        specialinvoke $r5.<com.mongodb.Mongo: void <init>(java.lang.String,int)>($r2, $i0);
+
+        r0.<org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider: com.mongodb.Mongo mongo> = $r5;
+
+     label4:
+        goto label6;
+
+     label5:
+        $r12 := @caughtexception;
+
+        $r13 = new org.waveprotocol.box.server.persistence.PersistenceStartException;
+
+        specialinvoke $r13.<org.waveprotocol.box.server.persistence.PersistenceStartException: void <init>(java.lang.String,java.lang.Throwable)>("Unable to resolve the MongoDb hostname", $r12);
+
+        throw $r13;
+
+     label6:
+        $r6 = r0.<org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider: com.mongodb.Mongo mongo>;
+
+        $r7 = specialinvoke r0.<org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider: java.lang.String getDatabaseName()>();
+
+        $r8 = virtualinvoke $r6.<com.mongodb.Mongo: com.mongodb.DB getDB(java.lang.String)>($r7);
+
+        virtualinvoke $r8.<com.mongodb.DB: com.mongodb.CommandResult command(java.lang.String)>("ping");
+
+     label7:
+        goto label9;
+
+     label8:
+        $r10 := @caughtexception;
+
+        $r11 = new org.waveprotocol.box.server.persistence.PersistenceStartException;
+
+        specialinvoke $r11.<org.waveprotocol.box.server.persistence.PersistenceStartException: void <init>(java.lang.String,java.lang.Throwable)>("Can\'t ping MongoDb", $r10);
+
+        throw $r11;
+
+     label9:
+        r0.<org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider: boolean isRunning> = 1;
+
+        $r9 = <org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider: java.util.logging.Logger LOG>;
+
+        virtualinvoke $r9.<java.util.logging.Logger: void info(java.lang.String)>("Started MongoDb persistence");
+
+        return;
+
+        catch java.net.UnknownHostException from label3 to label4 with label5;
+        catch com.mongodb.MongoException from label6 to label7 with label8;
+    }
+
+    private void ensurePropertiesLoaded()
+    {
+        java.util.Properties $r1, $r2;
+        org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider r0;
+        java.io.IOException $r4;
+        org.waveprotocol.box.server.persistence.PersistenceStartException $r5;
+        java.io.InputStream $r3;
+
+        r0 := @this: org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider;
+
+        $r1 = r0.<org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider: java.util.Properties properties>;
+
+        if $r1 == null goto label1;
+
+        return;
+
+     label1:
+        $r2 = new java.util.Properties;
+
+        specialinvoke $r2.<java.util.Properties: void <init>()>();
+
+     label2:
+        $r3 = staticinvoke <java.lang.ClassLoader: java.io.InputStream getSystemResourceAsStream(java.lang.String)>("org/waveprotocol/box/server/persistence/mongodb/mongodb.properties");
+
+        virtualinvoke $r2.<java.util.Properties: void load(java.io.InputStream)>($r3);
+
+     label3:
+        goto label5;
+
+     label4:
+        $r4 := @caughtexception;
+
+        $r5 = new org.waveprotocol.box.server.persistence.PersistenceStartException;
+
+        specialinvoke $r5.<org.waveprotocol.box.server.persistence.PersistenceStartException: void <init>(java.lang.String,java.lang.Throwable)>("Unable to load Properties for MongoDb", $r4);
+
+        throw $r5;
+
+     label5:
+        r0.<org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider: java.util.Properties properties> = $r2;
+
+        return;
+
+        catch java.io.IOException from label2 to label3 with label4;
+    }
+
+    private com.mongodb.DB getDatabase()
+    {
+        org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider r0;
+        com.mongodb.DB $r2;
+        java.lang.String $r1;
+
+        r0 := @this: org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider;
+
+        $r1 = specialinvoke r0.<org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider: java.lang.String getDatabaseName()>();
+
+        $r2 = virtualinvoke r0.<org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider: com.mongodb.DB getDatabaseForName(java.lang.String)>($r1);
+
+        return $r2;
+    }
+
+    private java.lang.String getDatabaseName()
+    {
+        org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider r0;
+        java.util.Properties $r1;
+        java.lang.String $r2;
+
+        r0 := @this: org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider;
+
+        specialinvoke r0.<org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider: void ensurePropertiesLoaded()>();
+
+        $r1 = r0.<org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider: java.util.Properties properties>;
+
+        $r2 = virtualinvoke $r1.<java.util.Properties: java.lang.String getProperty(java.lang.String)>("mongoDbDatabase");
+
+        return $r2;
+    }
+
+    com.mongodb.DB getDatabaseForName(java.lang.String)
+    {
+        com.mongodb.Mongo $r1;
+        org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider r0;
+        com.mongodb.DB $r3;
+        java.lang.String r2;
+
+        r0 := @this: org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider;
+
+        r2 := @parameter0: java.lang.String;
+
+        $r1 = specialinvoke r0.<org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider: com.mongodb.Mongo getMongo()>();
+
+        $r3 = virtualinvoke $r1.<com.mongodb.Mongo: com.mongodb.DB getDB(java.lang.String)>(r2);
+
+        return $r3;
+    }
+
+    private com.mongodb.Mongo getMongo()
+    {
+        org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider r0;
+        boolean $z0;
+        com.mongodb.Mongo $r1;
+
+        r0 := @this: org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider;
+
+        $z0 = r0.<org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider: boolean isRunning>;
+
+        if $z0 != 0 goto label1;
+
+        specialinvoke r0.<org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider: void start()>();
+
+     label1:
+        $r1 = r0.<org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider: com.mongodb.Mongo mongo>;
+
+        return $r1;
+    }
+
+    public boolean isRunning()
+    {
+        org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider r0;
+        boolean $z0;
+
+        r0 := @this: org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider;
+
+        $z0 = r0.<org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider: boolean isRunning>;
+
+        return $z0;
+    }
+
+    public org.waveprotocol.box.server.persistence.mongodb.MongoDbStore provideMongoDbStore()
+    {
+        org.waveprotocol.box.server.persistence.mongodb.MongoDbStore $r1, $r2, $r3;
+        org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider r0;
+        com.mongodb.DB $r4;
+
+        r0 := @this: org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider;
+
+        $r1 = r0.<org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider: org.waveprotocol.box.server.persistence.mongodb.MongoDbStore mongoDbStore>;
+
+        if $r1 != null goto label1;
+
+        $r3 = new org.waveprotocol.box.server.persistence.mongodb.MongoDbStore;
+
+        $r4 = specialinvoke r0.<org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider: com.mongodb.DB getDatabase()>();
+
+        specialinvoke $r3.<org.waveprotocol.box.server.persistence.mongodb.MongoDbStore: void <init>(com.mongodb.DB)>($r4);
+
+        r0.<org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider: org.waveprotocol.box.server.persistence.mongodb.MongoDbStore mongoDbStore> = $r3;
+
+     label1:
+        $r2 = r0.<org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider: org.waveprotocol.box.server.persistence.mongodb.MongoDbStore mongoDbStore>;
+
+        return $r2;
+    }
+
+    static void <clinit>()
+    {
+        java.lang.Class $r0;
+        java.lang.String $r1;
+        java.util.logging.Logger $r2;
+
+        <org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider: java.lang.String DATABASE_NAME_PROPERTY> = "mongoDbDatabase";
+
+        <org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider: java.lang.String PORT_PROPERTY> = "mongoDbPort";
+
+        <org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider: java.lang.String HOST_PROPERTY> = "mongoDbHost";
+
+        <org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider: java.lang.String PROPERTIES_LOC> = "org/waveprotocol/box/server/persistence/mongodb/mongodb.properties";
+
+        $r0 = class "Lorg/waveprotocol/box/server/persistence/mongodb/MongoDbProvider;";
+
+        $r1 = virtualinvoke $r0.<java.lang.Class: java.lang.String getName()>();
+
+        $r2 = staticinvoke <java.util.logging.Logger: java.util.logging.Logger getLogger(java.lang.String)>($r1);
+
+        <org.waveprotocol.box.server.persistence.mongodb.MongoDbProvider: java.util.logging.Logger LOG> = $r2;
+
+        return;
+    }
+}

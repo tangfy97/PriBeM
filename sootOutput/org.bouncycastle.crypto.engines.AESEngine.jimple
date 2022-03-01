@@ -1,0 +1,5189 @@
+public class org.bouncycastle.crypto.engines.AESEngine extends java.lang.Object implements org.bouncycastle.crypto.BlockCipher
+{
+    private static final byte[] S;
+    private static final byte[] Si;
+    private static final int[] rcon;
+    private static final int[] T0;
+    private static final int[] Tinv0;
+    private static final int m1;
+    private static final int m2;
+    private static final int m3;
+    private int ROUNDS;
+    private int[][] WorkingKey;
+    private int C0;
+    private int C1;
+    private int C2;
+    private int C3;
+    private boolean forEncryption;
+    private static final int BLOCK_SIZE;
+
+    private int shift(int, int)
+    {
+        int i0, i1, $i2, $i3, $i4, $i5;
+        org.bouncycastle.crypto.engines.AESEngine r0;
+
+        r0 := @this: org.bouncycastle.crypto.engines.AESEngine;
+
+        i0 := @parameter0: int;
+
+        i1 := @parameter1: int;
+
+        $i4 = i0 >>> i1;
+
+        $i2 = neg i1;
+
+        $i3 = i0 << $i2;
+
+        $i5 = $i4 | $i3;
+
+        return $i5;
+    }
+
+    private int FFmulX(int)
+    {
+        org.bouncycastle.crypto.engines.AESEngine r0;
+        int i0, $i1, $i2, $i3, $i4, $i5, $i6;
+
+        r0 := @this: org.bouncycastle.crypto.engines.AESEngine;
+
+        i0 := @parameter0: int;
+
+        $i1 = i0 & 2139062143;
+
+        $i5 = $i1 << 1;
+
+        $i2 = i0 & -2139062144;
+
+        $i3 = $i2 >>> 7;
+
+        $i4 = $i3 * 27;
+
+        $i6 = $i5 ^ $i4;
+
+        return $i6;
+    }
+
+    private int inv_mcol(int)
+    {
+        org.bouncycastle.crypto.engines.AESEngine r0;
+        int i0, $i1, $i2, $i3, i4, $i5, $i6, $i7, $i8, $i9, $i10, $i11, $i12, $i13, $i14;
+
+        r0 := @this: org.bouncycastle.crypto.engines.AESEngine;
+
+        i0 := @parameter0: int;
+
+        $i1 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int FFmulX(int)>(i0);
+
+        $i2 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int FFmulX(int)>($i1);
+
+        $i3 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int FFmulX(int)>($i2);
+
+        i4 = i0 ^ $i3;
+
+        $i5 = $i1 ^ $i2;
+
+        $i7 = $i5 ^ $i3;
+
+        $i6 = $i1 ^ i4;
+
+        $i8 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i6, 8);
+
+        $i10 = $i7 ^ $i8;
+
+        $i9 = $i2 ^ i4;
+
+        $i11 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i9, 16);
+
+        $i12 = $i10 ^ $i11;
+
+        $i13 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>(i4, 24);
+
+        $i14 = $i12 ^ $i13;
+
+        return $i14;
+    }
+
+    private int subWord(int)
+    {
+        byte[] $r0, $r1, $r2, $r3;
+        byte $b2, $b5, $b11, $b17;
+        org.bouncycastle.crypto.engines.AESEngine r4;
+        short $s6, $s8, $s12, $s21, $s22, $s25;
+        int i0, $i1, $i3, $i4, $i7, $i9, $i10, $i13, $i14, $i15, $i16, $i18, $i19, $i20, $i23, $i24, $i26, $i27;
+
+        r4 := @this: org.bouncycastle.crypto.engines.AESEngine;
+
+        i0 := @parameter0: int;
+
+        $r0 = <org.bouncycastle.crypto.engines.AESEngine: byte[] S>;
+
+        $i1 = i0 & 255;
+
+        $b2 = $r0[$i1];
+
+        $s21 = (short) $b2;
+
+        $s8 = $s21 & 255;
+
+        $r1 = <org.bouncycastle.crypto.engines.AESEngine: byte[] S>;
+
+        $i3 = i0 >> 8;
+
+        $i4 = $i3 & 255;
+
+        $b5 = $r1[$i4];
+
+        $s22 = (short) $b5;
+
+        $s6 = $s22 & 255;
+
+        $i23 = (int) $s6;
+
+        $i7 = $i23 << 8;
+
+        $i24 = (int) $s8;
+
+        $i14 = $i24 | $i7;
+
+        $r2 = <org.bouncycastle.crypto.engines.AESEngine: byte[] S>;
+
+        $i9 = i0 >> 16;
+
+        $i10 = $i9 & 255;
+
+        $b11 = $r2[$i10];
+
+        $s25 = (short) $b11;
+
+        $s12 = $s25 & 255;
+
+        $i26 = (int) $s12;
+
+        $i13 = $i26 << 16;
+
+        $i19 = $i14 | $i13;
+
+        $r3 = <org.bouncycastle.crypto.engines.AESEngine: byte[] S>;
+
+        $i15 = i0 >> 24;
+
+        $i16 = $i15 & 255;
+
+        $b17 = $r3[$i16];
+
+        $i27 = (int) $b17;
+
+        $i18 = $i27 << 24;
+
+        $i20 = $i19 | $i18;
+
+        return $i20;
+    }
+
+    private int[][] generateWorkingKey(byte[], boolean)
+    {
+        byte[] r0;
+        byte $b24, $b26, $b31, $b36;
+        org.bouncycastle.crypto.engines.AESEngine r1;
+        short $s27, $s29, $s32, $s57, $s58, $s61;
+        int[][] r2;
+        int[] $r3, $r4, $r5, $r6, $r7, $r9, $r10;
+        boolean z0;
+        int $i0, i1, $i2, $i3, $i4, $i5, $i6, $i7, i8, $i9, $i10, $i11, $i12, $i13, $i14, $i15, $i16, $i17, $i18, $i19, $i20, $i21, $i22, $i23, $i25, $i28, $i30, $i33, $i34, $i35, $i37, $i38, $i39, $i40, $i41, $i42, i43, i44, i45, i46, $i47, $i48, $i49, $i50, $i51, $i52, $i53, $i54, i55, i56, $i59, $i60, $i62, $i63;
+        java.lang.IllegalArgumentException $r11;
+
+        r1 := @this: org.bouncycastle.crypto.engines.AESEngine;
+
+        r0 := @parameter0: byte[];
+
+        z0 := @parameter1: boolean;
+
+        $i0 = lengthof r0;
+
+        i1 = $i0 / 4;
+
+        if i1 == 4 goto label01;
+
+        if i1 == 6 goto label01;
+
+        if i1 != 8 goto label02;
+
+     label01:
+        $i41 = i1 * 4;
+
+        $i42 = lengthof r0;
+
+        if $i41 == $i42 goto label03;
+
+     label02:
+        $r11 = new java.lang.IllegalArgumentException;
+
+        specialinvoke $r11.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>("Key length not 128/192/256 bits.");
+
+        throw $r11;
+
+     label03:
+        $i2 = i1 + 6;
+
+        r1.<org.bouncycastle.crypto.engines.AESEngine: int ROUNDS> = $i2;
+
+        $i3 = r1.<org.bouncycastle.crypto.engines.AESEngine: int ROUNDS>;
+
+        $i4 = $i3 + 1;
+
+        r2 = newmultiarray (int)[$i4][4];
+
+        i43 = 0;
+
+        i44 = 0;
+
+     label04:
+        $i5 = lengthof r0;
+
+        if i44 >= $i5 goto label05;
+
+        $i23 = i43 >> 2;
+
+        $r7 = r2[$i23];
+
+        $i40 = i43 & 3;
+
+        $b24 = r0[i44];
+
+        $s57 = (short) $b24;
+
+        $s29 = $s57 & 255;
+
+        $i25 = i44 + 1;
+
+        $b26 = r0[$i25];
+
+        $s58 = (short) $b26;
+
+        $s27 = $s58 & 255;
+
+        $i59 = (int) $s27;
+
+        $i28 = $i59 << 8;
+
+        $i60 = (int) $s29;
+
+        $i34 = $i60 | $i28;
+
+        $i30 = i44 + 2;
+
+        $b31 = r0[$i30];
+
+        $s61 = (short) $b31;
+
+        $s32 = $s61 & 255;
+
+        $i62 = (int) $s32;
+
+        $i33 = $i62 << 16;
+
+        $i38 = $i34 | $i33;
+
+        $i35 = i44 + 3;
+
+        $b36 = r0[$i35];
+
+        $i63 = (int) $b36;
+
+        $i37 = $i63 << 24;
+
+        $i39 = $i38 | $i37;
+
+        $r7[$i40] = $i39;
+
+        i44 = i44 + 4;
+
+        i43 = i43 + 1;
+
+        goto label04;
+
+     label05:
+        $i6 = r1.<org.bouncycastle.crypto.engines.AESEngine: int ROUNDS>;
+
+        $i7 = $i6 + 1;
+
+        i8 = $i7 << 2;
+
+        i45 = i1;
+
+     label06:
+        if i45 >= i8 goto label09;
+
+        $i12 = i45 - 1;
+
+        $i13 = $i12 >> 2;
+
+        $r5 = r2[$i13];
+
+        $i14 = i45 - 1;
+
+        $i15 = $i14 & 3;
+
+        i46 = $r5[$i15];
+
+        $i16 = i45 % i1;
+
+        if $i16 != 0 goto label07;
+
+        $i18 = specialinvoke r1.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>(i46, 8);
+
+        $i19 = specialinvoke r1.<org.bouncycastle.crypto.engines.AESEngine: int subWord(int)>($i18);
+
+        $r6 = <org.bouncycastle.crypto.engines.AESEngine: int[] rcon>;
+
+        $i20 = i45 / i1;
+
+        $i21 = $i20 - 1;
+
+        $i22 = $r6[$i21];
+
+        i46 = $i19 ^ $i22;
+
+        goto label08;
+
+     label07:
+        if i1 <= 6 goto label08;
+
+        $i17 = i45 % i1;
+
+        if $i17 != 4 goto label08;
+
+        i46 = specialinvoke r1.<org.bouncycastle.crypto.engines.AESEngine: int subWord(int)>(i46);
+
+     label08:
+        $i47 = i45 >> 2;
+
+        $r9 = r2[$i47];
+
+        $i48 = i45 & 3;
+
+        $i49 = i45 - i1;
+
+        $i50 = $i49 >> 2;
+
+        $r10 = r2[$i50];
+
+        $i51 = i45 - i1;
+
+        $i52 = $i51 & 3;
+
+        $i53 = $r10[$i52];
+
+        $i54 = $i53 ^ i46;
+
+        $r9[$i48] = $i54;
+
+        i45 = i45 + 1;
+
+        goto label06;
+
+     label09:
+        if z0 != 0 goto label13;
+
+        i55 = 1;
+
+     label10:
+        $i9 = r1.<org.bouncycastle.crypto.engines.AESEngine: int ROUNDS>;
+
+        if i55 >= $i9 goto label13;
+
+        i56 = 0;
+
+     label11:
+        if i56 >= 4 goto label12;
+
+        $r4 = r2[i55];
+
+        $r3 = r2[i55];
+
+        $i10 = $r3[i56];
+
+        $i11 = specialinvoke r1.<org.bouncycastle.crypto.engines.AESEngine: int inv_mcol(int)>($i10);
+
+        $r4[i56] = $i11;
+
+        i56 = i56 + 1;
+
+        goto label11;
+
+     label12:
+        i55 = i55 + 1;
+
+        goto label10;
+
+     label13:
+        return r2;
+    }
+
+    public void <init>()
+    {
+        org.bouncycastle.crypto.engines.AESEngine r0;
+        int[][] $r1;
+
+        r0 := @this: org.bouncycastle.crypto.engines.AESEngine;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        $r1 = (int[][]) null;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int[][] WorkingKey> = $r1;
+
+        return;
+    }
+
+    public void init(boolean, org.bouncycastle.crypto.CipherParameters)
+    {
+        byte[] $r10;
+        int[][] $r11;
+        org.bouncycastle.crypto.engines.AESEngine r8;
+        java.lang.IllegalArgumentException $r1;
+        java.lang.StringBuilder $r2, $r3, $r6;
+        java.lang.Class $r4;
+        java.lang.String $r5, $r7;
+        org.bouncycastle.crypto.params.KeyParameter $r9;
+        org.bouncycastle.crypto.CipherParameters r0;
+        boolean $z0, z1;
+
+        r8 := @this: org.bouncycastle.crypto.engines.AESEngine;
+
+        z1 := @parameter0: boolean;
+
+        r0 := @parameter1: org.bouncycastle.crypto.CipherParameters;
+
+        $z0 = r0 instanceof org.bouncycastle.crypto.params.KeyParameter;
+
+        if $z0 == 0 goto label1;
+
+        $r9 = (org.bouncycastle.crypto.params.KeyParameter) r0;
+
+        $r10 = virtualinvoke $r9.<org.bouncycastle.crypto.params.KeyParameter: byte[] getKey()>();
+
+        $r11 = specialinvoke r8.<org.bouncycastle.crypto.engines.AESEngine: int[][] generateWorkingKey(byte[],boolean)>($r10, z1);
+
+        r8.<org.bouncycastle.crypto.engines.AESEngine: int[][] WorkingKey> = $r11;
+
+        r8.<org.bouncycastle.crypto.engines.AESEngine: boolean forEncryption> = z1;
+
+        return;
+
+     label1:
+        $r1 = new java.lang.IllegalArgumentException;
+
+        $r2 = new java.lang.StringBuilder;
+
+        specialinvoke $r2.<java.lang.StringBuilder: void <init>()>();
+
+        $r3 = virtualinvoke $r2.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("invalid parameter passed to AES init - ");
+
+        $r4 = virtualinvoke r0.<java.lang.Object: java.lang.Class getClass()>();
+
+        $r5 = virtualinvoke $r4.<java.lang.Class: java.lang.String getName()>();
+
+        $r6 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r5);
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r1.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>($r7);
+
+        throw $r1;
+    }
+
+    public java.lang.String getAlgorithmName()
+    {
+        org.bouncycastle.crypto.engines.AESEngine r0;
+
+        r0 := @this: org.bouncycastle.crypto.engines.AESEngine;
+
+        return "AES";
+    }
+
+    public int getBlockSize()
+    {
+        org.bouncycastle.crypto.engines.AESEngine r0;
+
+        r0 := @this: org.bouncycastle.crypto.engines.AESEngine;
+
+        return 16;
+    }
+
+    public int processBlock(byte[], int, byte[], int)
+    {
+        byte[] r2, r3;
+        java.lang.IllegalStateException $r8;
+        int[][] $r1, $r4, $r5;
+        org.bouncycastle.crypto.engines.AESEngine r0;
+        org.bouncycastle.crypto.DataLengthException $r6, $r7;
+        int i0, $i1, $i2, i3, $i4, $i5;
+        boolean $z0;
+
+        r0 := @this: org.bouncycastle.crypto.engines.AESEngine;
+
+        r2 := @parameter0: byte[];
+
+        i0 := @parameter1: int;
+
+        r3 := @parameter2: byte[];
+
+        i3 := @parameter3: int;
+
+        $r1 = r0.<org.bouncycastle.crypto.engines.AESEngine: int[][] WorkingKey>;
+
+        if $r1 != null goto label1;
+
+        $r8 = new java.lang.IllegalStateException;
+
+        specialinvoke $r8.<java.lang.IllegalStateException: void <init>(java.lang.String)>("AES engine not initialised");
+
+        throw $r8;
+
+     label1:
+        $i2 = i0 + 16;
+
+        $i1 = lengthof r2;
+
+        if $i2 <= $i1 goto label2;
+
+        $r7 = new org.bouncycastle.crypto.DataLengthException;
+
+        specialinvoke $r7.<org.bouncycastle.crypto.DataLengthException: void <init>(java.lang.String)>("input buffer too short");
+
+        throw $r7;
+
+     label2:
+        $i5 = i3 + 16;
+
+        $i4 = lengthof r3;
+
+        if $i5 <= $i4 goto label3;
+
+        $r6 = new org.bouncycastle.crypto.DataLengthException;
+
+        specialinvoke $r6.<org.bouncycastle.crypto.DataLengthException: void <init>(java.lang.String)>("output buffer too short");
+
+        throw $r6;
+
+     label3:
+        $z0 = r0.<org.bouncycastle.crypto.engines.AESEngine: boolean forEncryption>;
+
+        if $z0 == 0 goto label4;
+
+        specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: void unpackBlock(byte[],int)>(r2, i0);
+
+        $r5 = r0.<org.bouncycastle.crypto.engines.AESEngine: int[][] WorkingKey>;
+
+        specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: void encryptBlock(int[][])>($r5);
+
+        specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: void packBlock(byte[],int)>(r3, i3);
+
+        goto label5;
+
+     label4:
+        specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: void unpackBlock(byte[],int)>(r2, i0);
+
+        $r4 = r0.<org.bouncycastle.crypto.engines.AESEngine: int[][] WorkingKey>;
+
+        specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: void decryptBlock(int[][])>($r4);
+
+        specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: void packBlock(byte[],int)>(r3, i3);
+
+     label5:
+        return 16;
+    }
+
+    public void reset()
+    {
+        org.bouncycastle.crypto.engines.AESEngine r0;
+
+        r0 := @this: org.bouncycastle.crypto.engines.AESEngine;
+
+        return;
+    }
+
+    private void unpackBlock(byte[], int)
+    {
+        byte[] r1;
+        byte $b1, $b3, $b8, $b13, $b17, $b19, $b24, $b29, $b33, $b35, $b40, $b45, $b49, $b51, $b56, $b61;
+        org.bouncycastle.crypto.engines.AESEngine r0;
+        short $s2, $s4, $s9, $s18, $s20, $s25, $s34, $s36, $s41, $s50, $s52, $s57, $s80, $s82, $s84, $s87, $s89, $s91, $s94, $s96, $s98, $s101, $s103, $s105;
+        int i0, $i5, $i6, $i7, $i10, $i11, $i12, $i14, $i15, $i16, $i21, $i22, $i23, $i26, $i27, $i28, $i30, $i31, $i32, $i37, $i38, $i39, $i42, $i43, $i44, $i46, $i47, $i48, $i53, $i54, $i55, $i58, $i59, $i60, $i62, $i63, $i64, i65, i66, i67, i68, i69, i70, i71, i72, i73, i74, i75, i76, i77, i78, i79, $i81, $i83, $i85, $i86, $i88, $i90, $i92, $i93, $i95, $i97, $i99, $i100, $i102, $i104, $i106, $i107;
+
+        r0 := @this: org.bouncycastle.crypto.engines.AESEngine;
+
+        r1 := @parameter0: byte[];
+
+        i0 := @parameter1: int;
+
+        i65 = i0 + 1;
+
+        $b1 = r1[i0];
+
+        $s80 = (short) $b1;
+
+        $s2 = $s80 & 255;
+
+        $i81 = (int) $s2;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C0> = $i81;
+
+        $i6 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C0>;
+
+        i66 = i65 + 1;
+
+        $b3 = r1[i65];
+
+        $s82 = (short) $b3;
+
+        $s4 = $s82 & 255;
+
+        $i83 = (int) $s4;
+
+        $i5 = $i83 << 8;
+
+        $i7 = $i6 | $i5;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C0> = $i7;
+
+        $i11 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C0>;
+
+        i67 = i66 + 1;
+
+        $b8 = r1[i66];
+
+        $s84 = (short) $b8;
+
+        $s9 = $s84 & 255;
+
+        $i85 = (int) $s9;
+
+        $i10 = $i85 << 16;
+
+        $i12 = $i11 | $i10;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C0> = $i12;
+
+        $i15 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C0>;
+
+        i68 = i67 + 1;
+
+        $b13 = r1[i67];
+
+        $i86 = (int) $b13;
+
+        $i14 = $i86 << 24;
+
+        $i16 = $i15 | $i14;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C0> = $i16;
+
+        i69 = i68 + 1;
+
+        $b17 = r1[i68];
+
+        $s87 = (short) $b17;
+
+        $s18 = $s87 & 255;
+
+        $i88 = (int) $s18;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C1> = $i88;
+
+        $i22 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C1>;
+
+        i70 = i69 + 1;
+
+        $b19 = r1[i69];
+
+        $s89 = (short) $b19;
+
+        $s20 = $s89 & 255;
+
+        $i90 = (int) $s20;
+
+        $i21 = $i90 << 8;
+
+        $i23 = $i22 | $i21;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C1> = $i23;
+
+        $i27 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C1>;
+
+        i71 = i70 + 1;
+
+        $b24 = r1[i70];
+
+        $s91 = (short) $b24;
+
+        $s25 = $s91 & 255;
+
+        $i92 = (int) $s25;
+
+        $i26 = $i92 << 16;
+
+        $i28 = $i27 | $i26;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C1> = $i28;
+
+        $i31 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C1>;
+
+        i72 = i71 + 1;
+
+        $b29 = r1[i71];
+
+        $i93 = (int) $b29;
+
+        $i30 = $i93 << 24;
+
+        $i32 = $i31 | $i30;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C1> = $i32;
+
+        i73 = i72 + 1;
+
+        $b33 = r1[i72];
+
+        $s94 = (short) $b33;
+
+        $s34 = $s94 & 255;
+
+        $i95 = (int) $s34;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C2> = $i95;
+
+        $i38 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C2>;
+
+        i74 = i73 + 1;
+
+        $b35 = r1[i73];
+
+        $s96 = (short) $b35;
+
+        $s36 = $s96 & 255;
+
+        $i97 = (int) $s36;
+
+        $i37 = $i97 << 8;
+
+        $i39 = $i38 | $i37;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C2> = $i39;
+
+        $i43 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C2>;
+
+        i75 = i74 + 1;
+
+        $b40 = r1[i74];
+
+        $s98 = (short) $b40;
+
+        $s41 = $s98 & 255;
+
+        $i99 = (int) $s41;
+
+        $i42 = $i99 << 16;
+
+        $i44 = $i43 | $i42;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C2> = $i44;
+
+        $i47 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C2>;
+
+        i76 = i75 + 1;
+
+        $b45 = r1[i75];
+
+        $i100 = (int) $b45;
+
+        $i46 = $i100 << 24;
+
+        $i48 = $i47 | $i46;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C2> = $i48;
+
+        i77 = i76 + 1;
+
+        $b49 = r1[i76];
+
+        $s101 = (short) $b49;
+
+        $s50 = $s101 & 255;
+
+        $i102 = (int) $s50;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C3> = $i102;
+
+        $i54 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C3>;
+
+        i78 = i77 + 1;
+
+        $b51 = r1[i77];
+
+        $s103 = (short) $b51;
+
+        $s52 = $s103 & 255;
+
+        $i104 = (int) $s52;
+
+        $i53 = $i104 << 8;
+
+        $i55 = $i54 | $i53;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C3> = $i55;
+
+        $i59 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C3>;
+
+        i79 = i78 + 1;
+
+        $b56 = r1[i78];
+
+        $s105 = (short) $b56;
+
+        $s57 = $s105 & 255;
+
+        $i106 = (int) $s57;
+
+        $i58 = $i106 << 16;
+
+        $i60 = $i59 | $i58;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C3> = $i60;
+
+        $i63 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C3>;
+
+        $b61 = r1[i79];
+
+        $i107 = (int) $b61;
+
+        $i62 = $i107 << 24;
+
+        $i64 = $i63 | $i62;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C3> = $i64;
+
+        return;
+    }
+
+    private void packBlock(byte[], int)
+    {
+        byte[] r0;
+        byte $b2, $b5, $b8, $b11, $b13, $b16, $b19, $b22, $b24, $b27, $b30, $b33, $b35, $b38, $b41, $b44;
+        org.bouncycastle.crypto.engines.AESEngine r1;
+        int i0, $i1, $i3, $i4, $i6, $i7, $i9, $i10, $i12, $i14, $i15, $i17, $i18, $i20, $i21, $i23, $i25, $i26, $i28, $i29, $i31, $i32, $i34, $i36, $i37, $i39, $i40, $i42, $i43, i45, i46, i47, i48, i49, i50, i51, i52, i53, i54, i55, i56, i57, i58, i59;
+
+        r1 := @this: org.bouncycastle.crypto.engines.AESEngine;
+
+        r0 := @parameter0: byte[];
+
+        i0 := @parameter1: int;
+
+        i45 = i0 + 1;
+
+        $i1 = r1.<org.bouncycastle.crypto.engines.AESEngine: int C0>;
+
+        $b2 = (byte) $i1;
+
+        r0[i0] = $b2;
+
+        i46 = i45 + 1;
+
+        $i3 = r1.<org.bouncycastle.crypto.engines.AESEngine: int C0>;
+
+        $i4 = $i3 >> 8;
+
+        $b5 = (byte) $i4;
+
+        r0[i45] = $b5;
+
+        i47 = i46 + 1;
+
+        $i6 = r1.<org.bouncycastle.crypto.engines.AESEngine: int C0>;
+
+        $i7 = $i6 >> 16;
+
+        $b8 = (byte) $i7;
+
+        r0[i46] = $b8;
+
+        i48 = i47 + 1;
+
+        $i9 = r1.<org.bouncycastle.crypto.engines.AESEngine: int C0>;
+
+        $i10 = $i9 >> 24;
+
+        $b11 = (byte) $i10;
+
+        r0[i47] = $b11;
+
+        i49 = i48 + 1;
+
+        $i12 = r1.<org.bouncycastle.crypto.engines.AESEngine: int C1>;
+
+        $b13 = (byte) $i12;
+
+        r0[i48] = $b13;
+
+        i50 = i49 + 1;
+
+        $i14 = r1.<org.bouncycastle.crypto.engines.AESEngine: int C1>;
+
+        $i15 = $i14 >> 8;
+
+        $b16 = (byte) $i15;
+
+        r0[i49] = $b16;
+
+        i51 = i50 + 1;
+
+        $i17 = r1.<org.bouncycastle.crypto.engines.AESEngine: int C1>;
+
+        $i18 = $i17 >> 16;
+
+        $b19 = (byte) $i18;
+
+        r0[i50] = $b19;
+
+        i52 = i51 + 1;
+
+        $i20 = r1.<org.bouncycastle.crypto.engines.AESEngine: int C1>;
+
+        $i21 = $i20 >> 24;
+
+        $b22 = (byte) $i21;
+
+        r0[i51] = $b22;
+
+        i53 = i52 + 1;
+
+        $i23 = r1.<org.bouncycastle.crypto.engines.AESEngine: int C2>;
+
+        $b24 = (byte) $i23;
+
+        r0[i52] = $b24;
+
+        i54 = i53 + 1;
+
+        $i25 = r1.<org.bouncycastle.crypto.engines.AESEngine: int C2>;
+
+        $i26 = $i25 >> 8;
+
+        $b27 = (byte) $i26;
+
+        r0[i53] = $b27;
+
+        i55 = i54 + 1;
+
+        $i28 = r1.<org.bouncycastle.crypto.engines.AESEngine: int C2>;
+
+        $i29 = $i28 >> 16;
+
+        $b30 = (byte) $i29;
+
+        r0[i54] = $b30;
+
+        i56 = i55 + 1;
+
+        $i31 = r1.<org.bouncycastle.crypto.engines.AESEngine: int C2>;
+
+        $i32 = $i31 >> 24;
+
+        $b33 = (byte) $i32;
+
+        r0[i55] = $b33;
+
+        i57 = i56 + 1;
+
+        $i34 = r1.<org.bouncycastle.crypto.engines.AESEngine: int C3>;
+
+        $b35 = (byte) $i34;
+
+        r0[i56] = $b35;
+
+        i58 = i57 + 1;
+
+        $i36 = r1.<org.bouncycastle.crypto.engines.AESEngine: int C3>;
+
+        $i37 = $i36 >> 8;
+
+        $b38 = (byte) $i37;
+
+        r0[i57] = $b38;
+
+        i59 = i58 + 1;
+
+        $i39 = r1.<org.bouncycastle.crypto.engines.AESEngine: int C3>;
+
+        $i40 = $i39 >> 16;
+
+        $b41 = (byte) $i40;
+
+        r0[i58] = $b41;
+
+        $i42 = r1.<org.bouncycastle.crypto.engines.AESEngine: int C3>;
+
+        $i43 = $i42 >> 24;
+
+        $b44 = (byte) $i43;
+
+        r0[i59] = $b44;
+
+        return;
+    }
+
+    private void encryptBlock(int[][])
+    {
+        int[] $r2, $r3, $r4, $r5, $r6, $r7, $r8, $r9, $r10, $r11, $r12, $r13, $r14, $r15, $r16, $r17, $r18, $r19, $r20, $r21, $r22, $r23, $r24, $r25, $r30, $r35, $r40, $r45, $r46, $r47, $r48, $r49, $r50, $r51, $r52, $r53, $r54, $r55, $r56, $r57, $r58, $r59, $r60, $r61, $r62, $r63, $r64, $r65, $r66, $r67, $r68, $r69, $r70, $r71, $r72, $r73, $r74, $r75, $r76, $r77, $r78, $r79, $r80, $r81, $r82, $r83, $r84, $r85;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i10, $i11, $i12, $i13, $i14, $i15, $i16, $i17, $i18, $i19, $i20, $i21, $i22, $i23, $i24, $i25, $i26, $i27, $i28, $i29, $i30, $i31, $i32, $i33, $i34, $i35, $i36, $i37, $i38, $i39, $i40, $i41, $i42, $i43, $i44, $i45, $i46, $i47, $i48, $i49, $i50, $i51, $i52, $i53, $i54, $i55, $i56, $i57, $i58, $i59, $i60, $i61, $i62, $i63, $i64, $i65, $i66, $i67, $i68, $i69, $i70, $i71, $i72, $i73, $i74, $i75, $i76, $i77, $i78, $i79, $i80, $i81, $i82, $i83, $i84, $i85, $i86, $i87, $i88, $i89, $i90, $i91, $i92, $i93, $i94, $i95, $i96, $i97, $i98, $i99, $i100, $i101, $i102, $i104, $i105, $i108, $i110, $i111, $i114, $i115, $i116, $i117, $i119, $i120, $i121, $i122, $i123, $i124, $i126, $i127, $i130, $i132, $i133, $i136, $i137, $i138, $i139, $i141, $i142, $i143, $i144, $i145, $i146, $i148, $i149, $i152, $i154, $i155, $i158, $i159, $i160, $i161, $i163, $i164, $i165, $i166, $i167, $i168, $i170, $i171, $i174, $i176, $i177, $i180, $i181, $i182, $i183, $i185, $i186, $i187, $i188, $i189, $i190, $i191, $i192, $i193, $i194, $i195, $i196, $i197, $i198, $i199, $i200, $i201, $i202, $i203, $i204, $i205, $i206, $i207, $i208, $i209, $i210, $i211, $i212, $i213, $i214, $i215, $i216, $i217, $i218, $i219, $i220, $i221, $i222, $i223, $i224, $i225, $i226, $i227, $i228, $i229, $i230, $i231, $i232, $i233, $i234, $i235, $i236, $i237, $i238, $i239, $i240, $i241, $i242, $i243, $i244, $i245, $i246, $i247, $i248, $i249, $i250, $i251, $i252, $i253, $i254, $i255, $i256, $i257, $i258, $i259, $i260, $i261, $i262, $i263, $i264, $i265, $i266, $i267, $i268, $i269, $i270, $i271, $i272, $i273, $i274, $i275, $i276, $i277, $i278, $i279, $i280, $i281, $i282, $i283, $i284, $i285, $i286, $i287, $i288, $i289, $i290, $i291, $i292, $i293, $i294, $i295, $i296, $i297, $i298, $i299, $i300, $i301, $i302, $i303, $i304, $i305, $i306, $i307, $i308, $i309, $i310, $i311, $i312, $i313, $i314, $i315, $i316, $i317, $i318, $i319, $i320, $i321, $i322, $i323, $i324, $i325, $i326, $i327, $i328, $i329, $i330, $i331, $i332, $i333, $i334, $i335, $i336, $i337, $i338, $i339, $i340, $i341, $i342, $i343, $i344, $i345, $i346, $i347, $i348, $i349, $i350, $i351, $i352, $i353, i354, i355, i356, i357, i358, i359, i360, i361, i362, i363, i364, $i367, $i368, $i370, $i371, $i374, $i375, $i377, $i378, $i381, $i382, $i384, $i385, $i388, $i389, $i391, $i392;
+        org.bouncycastle.crypto.engines.AESEngine r0;
+        byte[] $r26, $r27, $r28, $r29, $r31, $r32, $r33, $r34, $r36, $r37, $r38, $r39, $r41, $r42, $r43, $r44;
+        byte $b103, $b106, $b112, $b118, $b125, $b128, $b134, $b140, $b147, $b150, $b156, $b162, $b169, $b172, $b178, $b184;
+        short $s107, $s109, $s113, $s129, $s131, $s135, $s151, $s153, $s157, $s173, $s175, $s179, $s365, $s366, $s369, $s372, $s373, $s376, $s379, $s380, $s383, $s386, $s387, $s390;
+        int[][] r1;
+
+        r0 := @this: org.bouncycastle.crypto.engines.AESEngine;
+
+        r1 := @parameter0: int[][];
+
+        $i1 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C0>;
+
+        $r2 = r1[0];
+
+        $i0 = $r2[0];
+
+        $i2 = $i1 ^ $i0;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C0> = $i2;
+
+        $i4 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C1>;
+
+        $r3 = r1[0];
+
+        $i3 = $r3[1];
+
+        $i5 = $i4 ^ $i3;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C1> = $i5;
+
+        $i7 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C2>;
+
+        $r4 = r1[0];
+
+        $i6 = $r4[2];
+
+        $i8 = $i7 ^ $i6;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C2> = $i8;
+
+        $i10 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C3>;
+
+        $r5 = r1[0];
+
+        $i9 = $r5[3];
+
+        $i11 = $i10 ^ $i9;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C3> = $i11;
+
+        i354 = 1;
+
+     label1:
+        $i12 = r0.<org.bouncycastle.crypto.engines.AESEngine: int ROUNDS>;
+
+        $i13 = $i12 - 1;
+
+        if i354 >= $i13 goto label2;
+
+        $r46 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i190 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C0>;
+
+        $i191 = $i190 & 255;
+
+        $i196 = $r46[$i191];
+
+        $r47 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i192 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C1>;
+
+        $i193 = $i192 >> 8;
+
+        $i194 = $i193 & 255;
+
+        $i195 = $r47[$i194];
+
+        $i197 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i195, 24);
+
+        $i202 = $i196 ^ $i197;
+
+        $r48 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i198 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C2>;
+
+        $i199 = $i198 >> 16;
+
+        $i200 = $i199 & 255;
+
+        $i201 = $r48[$i200];
+
+        $i203 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i201, 16);
+
+        $i208 = $i202 ^ $i203;
+
+        $r49 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i204 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C3>;
+
+        $i205 = $i204 >> 24;
+
+        $i206 = $i205 & 255;
+
+        $i207 = $r49[$i206];
+
+        $i209 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i207, 8);
+
+        $i211 = $i208 ^ $i209;
+
+        $r50 = r1[i354];
+
+        $i210 = $r50[0];
+
+        i355 = $i211 ^ $i210;
+
+        $r51 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i212 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C1>;
+
+        $i213 = $i212 & 255;
+
+        $i218 = $r51[$i213];
+
+        $r52 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i214 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C2>;
+
+        $i215 = $i214 >> 8;
+
+        $i216 = $i215 & 255;
+
+        $i217 = $r52[$i216];
+
+        $i219 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i217, 24);
+
+        $i224 = $i218 ^ $i219;
+
+        $r53 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i220 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C3>;
+
+        $i221 = $i220 >> 16;
+
+        $i222 = $i221 & 255;
+
+        $i223 = $r53[$i222];
+
+        $i225 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i223, 16);
+
+        $i230 = $i224 ^ $i225;
+
+        $r54 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i226 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C0>;
+
+        $i227 = $i226 >> 24;
+
+        $i228 = $i227 & 255;
+
+        $i229 = $r54[$i228];
+
+        $i231 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i229, 8);
+
+        $i233 = $i230 ^ $i231;
+
+        $r55 = r1[i354];
+
+        $i232 = $r55[1];
+
+        i356 = $i233 ^ $i232;
+
+        $r56 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i234 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C2>;
+
+        $i235 = $i234 & 255;
+
+        $i240 = $r56[$i235];
+
+        $r57 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i236 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C3>;
+
+        $i237 = $i236 >> 8;
+
+        $i238 = $i237 & 255;
+
+        $i239 = $r57[$i238];
+
+        $i241 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i239, 24);
+
+        $i246 = $i240 ^ $i241;
+
+        $r58 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i242 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C0>;
+
+        $i243 = $i242 >> 16;
+
+        $i244 = $i243 & 255;
+
+        $i245 = $r58[$i244];
+
+        $i247 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i245, 16);
+
+        $i252 = $i246 ^ $i247;
+
+        $r59 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i248 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C1>;
+
+        $i249 = $i248 >> 24;
+
+        $i250 = $i249 & 255;
+
+        $i251 = $r59[$i250];
+
+        $i253 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i251, 8);
+
+        $i255 = $i252 ^ $i253;
+
+        $r60 = r1[i354];
+
+        $i254 = $r60[2];
+
+        i357 = $i255 ^ $i254;
+
+        $r61 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i256 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C3>;
+
+        $i257 = $i256 & 255;
+
+        $i262 = $r61[$i257];
+
+        $r62 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i258 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C0>;
+
+        $i259 = $i258 >> 8;
+
+        $i260 = $i259 & 255;
+
+        $i261 = $r62[$i260];
+
+        $i263 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i261, 24);
+
+        $i268 = $i262 ^ $i263;
+
+        $r63 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i264 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C1>;
+
+        $i265 = $i264 >> 16;
+
+        $i266 = $i265 & 255;
+
+        $i267 = $r63[$i266];
+
+        $i269 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i267, 16);
+
+        $i274 = $i268 ^ $i269;
+
+        $r64 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i270 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C2>;
+
+        $i271 = $i270 >> 24;
+
+        $i272 = $i271 & 255;
+
+        $i273 = $r64[$i272];
+
+        $i275 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i273, 8);
+
+        $i277 = $i274 ^ $i275;
+
+        i358 = i354 + 1;
+
+        $r65 = r1[i354];
+
+        $i276 = $r65[3];
+
+        i359 = $i277 ^ $i276;
+
+        $r66 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i278 = i355 & 255;
+
+        $i282 = $r66[$i278];
+
+        $r67 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i279 = i356 >> 8;
+
+        $i280 = $i279 & 255;
+
+        $i281 = $r67[$i280];
+
+        $i283 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i281, 24);
+
+        $i287 = $i282 ^ $i283;
+
+        $r68 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i284 = i357 >> 16;
+
+        $i285 = $i284 & 255;
+
+        $i286 = $r68[$i285];
+
+        $i288 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i286, 16);
+
+        $i292 = $i287 ^ $i288;
+
+        $r69 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i289 = i359 >> 24;
+
+        $i290 = $i289 & 255;
+
+        $i291 = $r69[$i290];
+
+        $i293 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i291, 8);
+
+        $i295 = $i292 ^ $i293;
+
+        $r70 = r1[i358];
+
+        $i294 = $r70[0];
+
+        $i296 = $i295 ^ $i294;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C0> = $i296;
+
+        $r71 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i297 = i356 & 255;
+
+        $i301 = $r71[$i297];
+
+        $r72 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i298 = i357 >> 8;
+
+        $i299 = $i298 & 255;
+
+        $i300 = $r72[$i299];
+
+        $i302 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i300, 24);
+
+        $i306 = $i301 ^ $i302;
+
+        $r73 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i303 = i359 >> 16;
+
+        $i304 = $i303 & 255;
+
+        $i305 = $r73[$i304];
+
+        $i307 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i305, 16);
+
+        $i311 = $i306 ^ $i307;
+
+        $r74 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i308 = i355 >> 24;
+
+        $i309 = $i308 & 255;
+
+        $i310 = $r74[$i309];
+
+        $i312 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i310, 8);
+
+        $i314 = $i311 ^ $i312;
+
+        $r75 = r1[i358];
+
+        $i313 = $r75[1];
+
+        $i315 = $i314 ^ $i313;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C1> = $i315;
+
+        $r76 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i316 = i357 & 255;
+
+        $i320 = $r76[$i316];
+
+        $r77 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i317 = i359 >> 8;
+
+        $i318 = $i317 & 255;
+
+        $i319 = $r77[$i318];
+
+        $i321 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i319, 24);
+
+        $i325 = $i320 ^ $i321;
+
+        $r78 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i322 = i355 >> 16;
+
+        $i323 = $i322 & 255;
+
+        $i324 = $r78[$i323];
+
+        $i326 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i324, 16);
+
+        $i330 = $i325 ^ $i326;
+
+        $r79 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i327 = i356 >> 24;
+
+        $i328 = $i327 & 255;
+
+        $i329 = $r79[$i328];
+
+        $i331 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i329, 8);
+
+        $i333 = $i330 ^ $i331;
+
+        $r80 = r1[i358];
+
+        $i332 = $r80[2];
+
+        $i334 = $i333 ^ $i332;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C2> = $i334;
+
+        $r81 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i335 = i359 & 255;
+
+        $i339 = $r81[$i335];
+
+        $r82 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i336 = i355 >> 8;
+
+        $i337 = $i336 & 255;
+
+        $i338 = $r82[$i337];
+
+        $i340 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i338, 24);
+
+        $i344 = $i339 ^ $i340;
+
+        $r83 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i341 = i356 >> 16;
+
+        $i342 = $i341 & 255;
+
+        $i343 = $r83[$i342];
+
+        $i345 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i343, 16);
+
+        $i349 = $i344 ^ $i345;
+
+        $r84 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i346 = i357 >> 24;
+
+        $i347 = $i346 & 255;
+
+        $i348 = $r84[$i347];
+
+        $i350 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i348, 8);
+
+        $i352 = $i349 ^ $i350;
+
+        i354 = i358 + 1;
+
+        $r85 = r1[i358];
+
+        $i351 = $r85[3];
+
+        $i353 = $i352 ^ $i351;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C3> = $i353;
+
+        goto label1;
+
+     label2:
+        $r6 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i14 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C0>;
+
+        $i15 = $i14 & 255;
+
+        $i20 = $r6[$i15];
+
+        $r7 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i16 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C1>;
+
+        $i17 = $i16 >> 8;
+
+        $i18 = $i17 & 255;
+
+        $i19 = $r7[$i18];
+
+        $i21 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i19, 24);
+
+        $i26 = $i20 ^ $i21;
+
+        $r8 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i22 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C2>;
+
+        $i23 = $i22 >> 16;
+
+        $i24 = $i23 & 255;
+
+        $i25 = $r8[$i24];
+
+        $i27 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i25, 16);
+
+        $i32 = $i26 ^ $i27;
+
+        $r9 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i28 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C3>;
+
+        $i29 = $i28 >> 24;
+
+        $i30 = $i29 & 255;
+
+        $i31 = $r9[$i30];
+
+        $i33 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i31, 8);
+
+        $i35 = $i32 ^ $i33;
+
+        $r10 = r1[i354];
+
+        $i34 = $r10[0];
+
+        i360 = $i35 ^ $i34;
+
+        $r11 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i36 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C1>;
+
+        $i37 = $i36 & 255;
+
+        $i42 = $r11[$i37];
+
+        $r12 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i38 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C2>;
+
+        $i39 = $i38 >> 8;
+
+        $i40 = $i39 & 255;
+
+        $i41 = $r12[$i40];
+
+        $i43 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i41, 24);
+
+        $i48 = $i42 ^ $i43;
+
+        $r13 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i44 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C3>;
+
+        $i45 = $i44 >> 16;
+
+        $i46 = $i45 & 255;
+
+        $i47 = $r13[$i46];
+
+        $i49 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i47, 16);
+
+        $i54 = $i48 ^ $i49;
+
+        $r14 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i50 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C0>;
+
+        $i51 = $i50 >> 24;
+
+        $i52 = $i51 & 255;
+
+        $i53 = $r14[$i52];
+
+        $i55 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i53, 8);
+
+        $i57 = $i54 ^ $i55;
+
+        $r15 = r1[i354];
+
+        $i56 = $r15[1];
+
+        i361 = $i57 ^ $i56;
+
+        $r16 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i58 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C2>;
+
+        $i59 = $i58 & 255;
+
+        $i64 = $r16[$i59];
+
+        $r17 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i60 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C3>;
+
+        $i61 = $i60 >> 8;
+
+        $i62 = $i61 & 255;
+
+        $i63 = $r17[$i62];
+
+        $i65 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i63, 24);
+
+        $i70 = $i64 ^ $i65;
+
+        $r18 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i66 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C0>;
+
+        $i67 = $i66 >> 16;
+
+        $i68 = $i67 & 255;
+
+        $i69 = $r18[$i68];
+
+        $i71 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i69, 16);
+
+        $i76 = $i70 ^ $i71;
+
+        $r19 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i72 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C1>;
+
+        $i73 = $i72 >> 24;
+
+        $i74 = $i73 & 255;
+
+        $i75 = $r19[$i74];
+
+        $i77 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i75, 8);
+
+        $i79 = $i76 ^ $i77;
+
+        $r20 = r1[i354];
+
+        $i78 = $r20[2];
+
+        i362 = $i79 ^ $i78;
+
+        $r21 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i80 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C3>;
+
+        $i81 = $i80 & 255;
+
+        $i86 = $r21[$i81];
+
+        $r22 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i82 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C0>;
+
+        $i83 = $i82 >> 8;
+
+        $i84 = $i83 & 255;
+
+        $i85 = $r22[$i84];
+
+        $i87 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i85, 24);
+
+        $i92 = $i86 ^ $i87;
+
+        $r23 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i88 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C1>;
+
+        $i89 = $i88 >> 16;
+
+        $i90 = $i89 & 255;
+
+        $i91 = $r23[$i90];
+
+        $i93 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i91, 16);
+
+        $i98 = $i92 ^ $i93;
+
+        $r24 = <org.bouncycastle.crypto.engines.AESEngine: int[] T0>;
+
+        $i94 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C2>;
+
+        $i95 = $i94 >> 24;
+
+        $i96 = $i95 & 255;
+
+        $i97 = $r24[$i96];
+
+        $i99 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i97, 8);
+
+        $i101 = $i98 ^ $i99;
+
+        i363 = i354 + 1;
+
+        $r25 = r1[i354];
+
+        $i100 = $r25[3];
+
+        i364 = $i101 ^ $i100;
+
+        $r26 = <org.bouncycastle.crypto.engines.AESEngine: byte[] S>;
+
+        $i102 = i360 & 255;
+
+        $b103 = $r26[$i102];
+
+        $s365 = (short) $b103;
+
+        $s109 = $s365 & 255;
+
+        $r27 = <org.bouncycastle.crypto.engines.AESEngine: byte[] S>;
+
+        $i104 = i361 >> 8;
+
+        $i105 = $i104 & 255;
+
+        $b106 = $r27[$i105];
+
+        $s366 = (short) $b106;
+
+        $s107 = $s366 & 255;
+
+        $i367 = (int) $s107;
+
+        $i108 = $i367 << 8;
+
+        $i368 = (int) $s109;
+
+        $i115 = $i368 ^ $i108;
+
+        $r28 = <org.bouncycastle.crypto.engines.AESEngine: byte[] S>;
+
+        $i110 = i362 >> 16;
+
+        $i111 = $i110 & 255;
+
+        $b112 = $r28[$i111];
+
+        $s369 = (short) $b112;
+
+        $s113 = $s369 & 255;
+
+        $i370 = (int) $s113;
+
+        $i114 = $i370 << 16;
+
+        $i120 = $i115 ^ $i114;
+
+        $r29 = <org.bouncycastle.crypto.engines.AESEngine: byte[] S>;
+
+        $i116 = i364 >> 24;
+
+        $i117 = $i116 & 255;
+
+        $b118 = $r29[$i117];
+
+        $i371 = (int) $b118;
+
+        $i119 = $i371 << 24;
+
+        $i122 = $i120 ^ $i119;
+
+        $r30 = r1[i363];
+
+        $i121 = $r30[0];
+
+        $i123 = $i122 ^ $i121;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C0> = $i123;
+
+        $r31 = <org.bouncycastle.crypto.engines.AESEngine: byte[] S>;
+
+        $i124 = i361 & 255;
+
+        $b125 = $r31[$i124];
+
+        $s372 = (short) $b125;
+
+        $s131 = $s372 & 255;
+
+        $r32 = <org.bouncycastle.crypto.engines.AESEngine: byte[] S>;
+
+        $i126 = i362 >> 8;
+
+        $i127 = $i126 & 255;
+
+        $b128 = $r32[$i127];
+
+        $s373 = (short) $b128;
+
+        $s129 = $s373 & 255;
+
+        $i374 = (int) $s129;
+
+        $i130 = $i374 << 8;
+
+        $i375 = (int) $s131;
+
+        $i137 = $i375 ^ $i130;
+
+        $r33 = <org.bouncycastle.crypto.engines.AESEngine: byte[] S>;
+
+        $i132 = i364 >> 16;
+
+        $i133 = $i132 & 255;
+
+        $b134 = $r33[$i133];
+
+        $s376 = (short) $b134;
+
+        $s135 = $s376 & 255;
+
+        $i377 = (int) $s135;
+
+        $i136 = $i377 << 16;
+
+        $i142 = $i137 ^ $i136;
+
+        $r34 = <org.bouncycastle.crypto.engines.AESEngine: byte[] S>;
+
+        $i138 = i360 >> 24;
+
+        $i139 = $i138 & 255;
+
+        $b140 = $r34[$i139];
+
+        $i378 = (int) $b140;
+
+        $i141 = $i378 << 24;
+
+        $i144 = $i142 ^ $i141;
+
+        $r35 = r1[i363];
+
+        $i143 = $r35[1];
+
+        $i145 = $i144 ^ $i143;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C1> = $i145;
+
+        $r36 = <org.bouncycastle.crypto.engines.AESEngine: byte[] S>;
+
+        $i146 = i362 & 255;
+
+        $b147 = $r36[$i146];
+
+        $s379 = (short) $b147;
+
+        $s153 = $s379 & 255;
+
+        $r37 = <org.bouncycastle.crypto.engines.AESEngine: byte[] S>;
+
+        $i148 = i364 >> 8;
+
+        $i149 = $i148 & 255;
+
+        $b150 = $r37[$i149];
+
+        $s380 = (short) $b150;
+
+        $s151 = $s380 & 255;
+
+        $i381 = (int) $s151;
+
+        $i152 = $i381 << 8;
+
+        $i382 = (int) $s153;
+
+        $i159 = $i382 ^ $i152;
+
+        $r38 = <org.bouncycastle.crypto.engines.AESEngine: byte[] S>;
+
+        $i154 = i360 >> 16;
+
+        $i155 = $i154 & 255;
+
+        $b156 = $r38[$i155];
+
+        $s383 = (short) $b156;
+
+        $s157 = $s383 & 255;
+
+        $i384 = (int) $s157;
+
+        $i158 = $i384 << 16;
+
+        $i164 = $i159 ^ $i158;
+
+        $r39 = <org.bouncycastle.crypto.engines.AESEngine: byte[] S>;
+
+        $i160 = i361 >> 24;
+
+        $i161 = $i160 & 255;
+
+        $b162 = $r39[$i161];
+
+        $i385 = (int) $b162;
+
+        $i163 = $i385 << 24;
+
+        $i166 = $i164 ^ $i163;
+
+        $r40 = r1[i363];
+
+        $i165 = $r40[2];
+
+        $i167 = $i166 ^ $i165;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C2> = $i167;
+
+        $r41 = <org.bouncycastle.crypto.engines.AESEngine: byte[] S>;
+
+        $i168 = i364 & 255;
+
+        $b169 = $r41[$i168];
+
+        $s386 = (short) $b169;
+
+        $s175 = $s386 & 255;
+
+        $r42 = <org.bouncycastle.crypto.engines.AESEngine: byte[] S>;
+
+        $i170 = i360 >> 8;
+
+        $i171 = $i170 & 255;
+
+        $b172 = $r42[$i171];
+
+        $s387 = (short) $b172;
+
+        $s173 = $s387 & 255;
+
+        $i388 = (int) $s173;
+
+        $i174 = $i388 << 8;
+
+        $i389 = (int) $s175;
+
+        $i181 = $i389 ^ $i174;
+
+        $r43 = <org.bouncycastle.crypto.engines.AESEngine: byte[] S>;
+
+        $i176 = i361 >> 16;
+
+        $i177 = $i176 & 255;
+
+        $b178 = $r43[$i177];
+
+        $s390 = (short) $b178;
+
+        $s179 = $s390 & 255;
+
+        $i391 = (int) $s179;
+
+        $i180 = $i391 << 16;
+
+        $i186 = $i181 ^ $i180;
+
+        $r44 = <org.bouncycastle.crypto.engines.AESEngine: byte[] S>;
+
+        $i182 = i362 >> 24;
+
+        $i183 = $i182 & 255;
+
+        $b184 = $r44[$i183];
+
+        $i392 = (int) $b184;
+
+        $i185 = $i392 << 24;
+
+        $i188 = $i186 ^ $i185;
+
+        $r45 = r1[i363];
+
+        $i187 = $r45[3];
+
+        $i189 = $i188 ^ $i187;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C3> = $i189;
+
+        return;
+    }
+
+    private void decryptBlock(int[][])
+    {
+        int[] $r2, $r3, $r4, $r5, $r6, $r7, $r8, $r9, $r10, $r11, $r12, $r13, $r14, $r15, $r16, $r17, $r18, $r19, $r20, $r21, $r22, $r23, $r24, $r25, $r30, $r35, $r40, $r45, $r46, $r47, $r48, $r49, $r50, $r51, $r52, $r53, $r54, $r55, $r56, $r57, $r58, $r59, $r60, $r61, $r62, $r63, $r64, $r65, $r66, $r67, $r68, $r69, $r70, $r71, $r72, $r73, $r74, $r75, $r76, $r77, $r78, $r79, $r80, $r81, $r82, $r83, $r84, $r85;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i10, $i11, $i12, $i13, $i14, $i15, $i16, $i17, $i18, $i19, $i20, $i21, $i22, $i23, $i24, $i25, $i26, $i27, $i28, $i29, $i30, $i31, $i32, $i33, $i34, $i35, $i36, $i37, $i38, $i39, $i40, $i41, $i42, $i43, $i44, $i45, $i46, $i47, $i48, $i49, $i50, $i51, $i52, $i53, $i54, $i55, $i56, $i57, $i58, $i59, $i60, $i61, $i62, $i63, $i64, $i65, $i66, $i67, $i68, $i69, $i70, $i71, $i72, $i73, $i74, $i75, $i76, $i77, $i78, $i79, $i80, $i81, $i82, $i83, $i84, $i85, $i86, $i87, $i88, $i89, $i90, $i91, $i92, $i93, $i94, $i95, $i96, $i97, $i98, $i99, $i100, $i101, $i102, $i103, $i104, $i105, $i107, $i108, $i111, $i113, $i114, $i117, $i118, $i119, $i120, $i122, $i123, $i124, $i125, $i126, $i127, $i129, $i130, $i133, $i135, $i136, $i139, $i140, $i141, $i142, $i144, $i145, $i146, $i147, $i148, $i149, $i151, $i152, $i155, $i157, $i158, $i161, $i162, $i163, $i164, $i166, $i167, $i168, $i169, $i170, $i171, $i173, $i174, $i177, $i179, $i180, $i183, $i184, $i185, $i186, $i188, $i189, $i190, $i191, $i192, $i193, $i194, $i195, $i196, $i197, $i198, $i199, $i200, $i201, $i202, $i203, $i204, $i205, $i206, $i207, $i208, $i209, $i210, $i211, $i212, $i213, $i214, $i215, $i216, $i217, $i218, $i219, $i220, $i221, $i222, $i223, $i224, $i225, $i226, $i227, $i228, $i229, $i230, $i231, $i232, $i233, $i234, $i235, $i236, $i237, $i238, $i239, $i240, $i241, $i242, $i243, $i244, $i245, $i246, $i247, $i248, $i249, $i250, $i251, $i252, $i253, $i254, $i255, $i256, $i257, $i258, $i259, $i260, $i261, $i262, $i263, $i264, $i265, $i266, $i267, $i268, $i269, $i270, $i271, $i272, $i273, $i274, $i275, $i276, $i277, $i278, $i279, $i280, $i281, $i282, $i283, $i284, $i285, $i286, $i287, $i288, $i289, $i290, $i291, $i292, $i293, $i294, $i295, $i296, $i297, $i298, $i299, $i300, $i301, $i302, $i303, $i304, $i305, $i306, $i307, $i308, $i309, $i310, $i311, $i312, $i313, $i314, $i315, $i316, $i317, $i318, $i319, $i320, $i321, $i322, $i323, $i324, $i325, $i326, $i327, $i328, $i329, $i330, $i331, $i332, $i333, $i334, $i335, $i336, $i337, $i338, $i339, $i340, $i341, $i342, $i343, $i344, $i345, $i346, $i347, $i348, $i349, $i350, $i351, $i352, $i353, $i354, $i355, $i356, i357, i358, i359, i360, i361, i362, i363, i364, i365, i366, $i369, $i370, $i372, $i373, $i376, $i377, $i379, $i380, $i383, $i384, $i386, $i387, $i390, $i391, $i393, $i394;
+        org.bouncycastle.crypto.engines.AESEngine r0;
+        byte[] $r26, $r27, $r28, $r29, $r31, $r32, $r33, $r34, $r36, $r37, $r38, $r39, $r41, $r42, $r43, $r44;
+        byte $b106, $b109, $b115, $b121, $b128, $b131, $b137, $b143, $b150, $b153, $b159, $b165, $b172, $b175, $b181, $b187;
+        short $s110, $s112, $s116, $s132, $s134, $s138, $s154, $s156, $s160, $s176, $s178, $s182, $s367, $s368, $s371, $s374, $s375, $s378, $s381, $s382, $s385, $s388, $s389, $s392;
+        int[][] r1;
+
+        r0 := @this: org.bouncycastle.crypto.engines.AESEngine;
+
+        r1 := @parameter0: int[][];
+
+        $i2 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C0>;
+
+        $i0 = r0.<org.bouncycastle.crypto.engines.AESEngine: int ROUNDS>;
+
+        $r2 = r1[$i0];
+
+        $i1 = $r2[0];
+
+        $i3 = $i2 ^ $i1;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C0> = $i3;
+
+        $i6 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C1>;
+
+        $i4 = r0.<org.bouncycastle.crypto.engines.AESEngine: int ROUNDS>;
+
+        $r3 = r1[$i4];
+
+        $i5 = $r3[1];
+
+        $i7 = $i6 ^ $i5;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C1> = $i7;
+
+        $i10 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C2>;
+
+        $i8 = r0.<org.bouncycastle.crypto.engines.AESEngine: int ROUNDS>;
+
+        $r4 = r1[$i8];
+
+        $i9 = $r4[2];
+
+        $i11 = $i10 ^ $i9;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C2> = $i11;
+
+        $i14 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C3>;
+
+        $i12 = r0.<org.bouncycastle.crypto.engines.AESEngine: int ROUNDS>;
+
+        $r5 = r1[$i12];
+
+        $i13 = $r5[3];
+
+        $i15 = $i14 ^ $i13;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C3> = $i15;
+
+        $i16 = r0.<org.bouncycastle.crypto.engines.AESEngine: int ROUNDS>;
+
+        i357 = $i16 - 1;
+
+     label1:
+        if i357 <= 1 goto label2;
+
+        $r46 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i193 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C0>;
+
+        $i194 = $i193 & 255;
+
+        $i199 = $r46[$i194];
+
+        $r47 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i195 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C3>;
+
+        $i196 = $i195 >> 8;
+
+        $i197 = $i196 & 255;
+
+        $i198 = $r47[$i197];
+
+        $i200 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i198, 24);
+
+        $i205 = $i199 ^ $i200;
+
+        $r48 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i201 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C2>;
+
+        $i202 = $i201 >> 16;
+
+        $i203 = $i202 & 255;
+
+        $i204 = $r48[$i203];
+
+        $i206 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i204, 16);
+
+        $i211 = $i205 ^ $i206;
+
+        $r49 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i207 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C1>;
+
+        $i208 = $i207 >> 24;
+
+        $i209 = $i208 & 255;
+
+        $i210 = $r49[$i209];
+
+        $i212 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i210, 8);
+
+        $i214 = $i211 ^ $i212;
+
+        $r50 = r1[i357];
+
+        $i213 = $r50[0];
+
+        i358 = $i214 ^ $i213;
+
+        $r51 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i215 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C1>;
+
+        $i216 = $i215 & 255;
+
+        $i221 = $r51[$i216];
+
+        $r52 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i217 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C0>;
+
+        $i218 = $i217 >> 8;
+
+        $i219 = $i218 & 255;
+
+        $i220 = $r52[$i219];
+
+        $i222 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i220, 24);
+
+        $i227 = $i221 ^ $i222;
+
+        $r53 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i223 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C3>;
+
+        $i224 = $i223 >> 16;
+
+        $i225 = $i224 & 255;
+
+        $i226 = $r53[$i225];
+
+        $i228 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i226, 16);
+
+        $i233 = $i227 ^ $i228;
+
+        $r54 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i229 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C2>;
+
+        $i230 = $i229 >> 24;
+
+        $i231 = $i230 & 255;
+
+        $i232 = $r54[$i231];
+
+        $i234 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i232, 8);
+
+        $i236 = $i233 ^ $i234;
+
+        $r55 = r1[i357];
+
+        $i235 = $r55[1];
+
+        i359 = $i236 ^ $i235;
+
+        $r56 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i237 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C2>;
+
+        $i238 = $i237 & 255;
+
+        $i243 = $r56[$i238];
+
+        $r57 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i239 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C1>;
+
+        $i240 = $i239 >> 8;
+
+        $i241 = $i240 & 255;
+
+        $i242 = $r57[$i241];
+
+        $i244 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i242, 24);
+
+        $i249 = $i243 ^ $i244;
+
+        $r58 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i245 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C0>;
+
+        $i246 = $i245 >> 16;
+
+        $i247 = $i246 & 255;
+
+        $i248 = $r58[$i247];
+
+        $i250 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i248, 16);
+
+        $i255 = $i249 ^ $i250;
+
+        $r59 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i251 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C3>;
+
+        $i252 = $i251 >> 24;
+
+        $i253 = $i252 & 255;
+
+        $i254 = $r59[$i253];
+
+        $i256 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i254, 8);
+
+        $i258 = $i255 ^ $i256;
+
+        $r60 = r1[i357];
+
+        $i257 = $r60[2];
+
+        i360 = $i258 ^ $i257;
+
+        $r61 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i259 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C3>;
+
+        $i260 = $i259 & 255;
+
+        $i265 = $r61[$i260];
+
+        $r62 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i261 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C2>;
+
+        $i262 = $i261 >> 8;
+
+        $i263 = $i262 & 255;
+
+        $i264 = $r62[$i263];
+
+        $i266 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i264, 24);
+
+        $i271 = $i265 ^ $i266;
+
+        $r63 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i267 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C1>;
+
+        $i268 = $i267 >> 16;
+
+        $i269 = $i268 & 255;
+
+        $i270 = $r63[$i269];
+
+        $i272 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i270, 16);
+
+        $i277 = $i271 ^ $i272;
+
+        $r64 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i273 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C0>;
+
+        $i274 = $i273 >> 24;
+
+        $i275 = $i274 & 255;
+
+        $i276 = $r64[$i275];
+
+        $i278 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i276, 8);
+
+        $i280 = $i277 ^ $i278;
+
+        i361 = i357 - 1;
+
+        $r65 = r1[i357];
+
+        $i279 = $r65[3];
+
+        i362 = $i280 ^ $i279;
+
+        $r66 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i281 = i358 & 255;
+
+        $i285 = $r66[$i281];
+
+        $r67 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i282 = i362 >> 8;
+
+        $i283 = $i282 & 255;
+
+        $i284 = $r67[$i283];
+
+        $i286 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i284, 24);
+
+        $i290 = $i285 ^ $i286;
+
+        $r68 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i287 = i360 >> 16;
+
+        $i288 = $i287 & 255;
+
+        $i289 = $r68[$i288];
+
+        $i291 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i289, 16);
+
+        $i295 = $i290 ^ $i291;
+
+        $r69 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i292 = i359 >> 24;
+
+        $i293 = $i292 & 255;
+
+        $i294 = $r69[$i293];
+
+        $i296 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i294, 8);
+
+        $i298 = $i295 ^ $i296;
+
+        $r70 = r1[i361];
+
+        $i297 = $r70[0];
+
+        $i299 = $i298 ^ $i297;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C0> = $i299;
+
+        $r71 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i300 = i359 & 255;
+
+        $i304 = $r71[$i300];
+
+        $r72 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i301 = i358 >> 8;
+
+        $i302 = $i301 & 255;
+
+        $i303 = $r72[$i302];
+
+        $i305 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i303, 24);
+
+        $i309 = $i304 ^ $i305;
+
+        $r73 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i306 = i362 >> 16;
+
+        $i307 = $i306 & 255;
+
+        $i308 = $r73[$i307];
+
+        $i310 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i308, 16);
+
+        $i314 = $i309 ^ $i310;
+
+        $r74 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i311 = i360 >> 24;
+
+        $i312 = $i311 & 255;
+
+        $i313 = $r74[$i312];
+
+        $i315 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i313, 8);
+
+        $i317 = $i314 ^ $i315;
+
+        $r75 = r1[i361];
+
+        $i316 = $r75[1];
+
+        $i318 = $i317 ^ $i316;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C1> = $i318;
+
+        $r76 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i319 = i360 & 255;
+
+        $i323 = $r76[$i319];
+
+        $r77 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i320 = i359 >> 8;
+
+        $i321 = $i320 & 255;
+
+        $i322 = $r77[$i321];
+
+        $i324 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i322, 24);
+
+        $i328 = $i323 ^ $i324;
+
+        $r78 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i325 = i358 >> 16;
+
+        $i326 = $i325 & 255;
+
+        $i327 = $r78[$i326];
+
+        $i329 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i327, 16);
+
+        $i333 = $i328 ^ $i329;
+
+        $r79 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i330 = i362 >> 24;
+
+        $i331 = $i330 & 255;
+
+        $i332 = $r79[$i331];
+
+        $i334 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i332, 8);
+
+        $i336 = $i333 ^ $i334;
+
+        $r80 = r1[i361];
+
+        $i335 = $r80[2];
+
+        $i337 = $i336 ^ $i335;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C2> = $i337;
+
+        $r81 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i338 = i362 & 255;
+
+        $i342 = $r81[$i338];
+
+        $r82 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i339 = i360 >> 8;
+
+        $i340 = $i339 & 255;
+
+        $i341 = $r82[$i340];
+
+        $i343 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i341, 24);
+
+        $i347 = $i342 ^ $i343;
+
+        $r83 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i344 = i359 >> 16;
+
+        $i345 = $i344 & 255;
+
+        $i346 = $r83[$i345];
+
+        $i348 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i346, 16);
+
+        $i352 = $i347 ^ $i348;
+
+        $r84 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i349 = i358 >> 24;
+
+        $i350 = $i349 & 255;
+
+        $i351 = $r84[$i350];
+
+        $i353 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i351, 8);
+
+        $i355 = $i352 ^ $i353;
+
+        i357 = i361 - 1;
+
+        $r85 = r1[i361];
+
+        $i354 = $r85[3];
+
+        $i356 = $i355 ^ $i354;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C3> = $i356;
+
+        goto label1;
+
+     label2:
+        $r6 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i17 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C0>;
+
+        $i18 = $i17 & 255;
+
+        $i23 = $r6[$i18];
+
+        $r7 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i19 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C3>;
+
+        $i20 = $i19 >> 8;
+
+        $i21 = $i20 & 255;
+
+        $i22 = $r7[$i21];
+
+        $i24 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i22, 24);
+
+        $i29 = $i23 ^ $i24;
+
+        $r8 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i25 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C2>;
+
+        $i26 = $i25 >> 16;
+
+        $i27 = $i26 & 255;
+
+        $i28 = $r8[$i27];
+
+        $i30 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i28, 16);
+
+        $i35 = $i29 ^ $i30;
+
+        $r9 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i31 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C1>;
+
+        $i32 = $i31 >> 24;
+
+        $i33 = $i32 & 255;
+
+        $i34 = $r9[$i33];
+
+        $i36 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i34, 8);
+
+        $i38 = $i35 ^ $i36;
+
+        $r10 = r1[i357];
+
+        $i37 = $r10[0];
+
+        i363 = $i38 ^ $i37;
+
+        $r11 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i39 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C1>;
+
+        $i40 = $i39 & 255;
+
+        $i45 = $r11[$i40];
+
+        $r12 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i41 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C0>;
+
+        $i42 = $i41 >> 8;
+
+        $i43 = $i42 & 255;
+
+        $i44 = $r12[$i43];
+
+        $i46 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i44, 24);
+
+        $i51 = $i45 ^ $i46;
+
+        $r13 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i47 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C3>;
+
+        $i48 = $i47 >> 16;
+
+        $i49 = $i48 & 255;
+
+        $i50 = $r13[$i49];
+
+        $i52 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i50, 16);
+
+        $i57 = $i51 ^ $i52;
+
+        $r14 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i53 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C2>;
+
+        $i54 = $i53 >> 24;
+
+        $i55 = $i54 & 255;
+
+        $i56 = $r14[$i55];
+
+        $i58 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i56, 8);
+
+        $i60 = $i57 ^ $i58;
+
+        $r15 = r1[i357];
+
+        $i59 = $r15[1];
+
+        i364 = $i60 ^ $i59;
+
+        $r16 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i61 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C2>;
+
+        $i62 = $i61 & 255;
+
+        $i67 = $r16[$i62];
+
+        $r17 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i63 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C1>;
+
+        $i64 = $i63 >> 8;
+
+        $i65 = $i64 & 255;
+
+        $i66 = $r17[$i65];
+
+        $i68 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i66, 24);
+
+        $i73 = $i67 ^ $i68;
+
+        $r18 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i69 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C0>;
+
+        $i70 = $i69 >> 16;
+
+        $i71 = $i70 & 255;
+
+        $i72 = $r18[$i71];
+
+        $i74 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i72, 16);
+
+        $i79 = $i73 ^ $i74;
+
+        $r19 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i75 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C3>;
+
+        $i76 = $i75 >> 24;
+
+        $i77 = $i76 & 255;
+
+        $i78 = $r19[$i77];
+
+        $i80 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i78, 8);
+
+        $i82 = $i79 ^ $i80;
+
+        $r20 = r1[i357];
+
+        $i81 = $r20[2];
+
+        i365 = $i82 ^ $i81;
+
+        $r21 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i83 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C3>;
+
+        $i84 = $i83 & 255;
+
+        $i89 = $r21[$i84];
+
+        $r22 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i85 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C2>;
+
+        $i86 = $i85 >> 8;
+
+        $i87 = $i86 & 255;
+
+        $i88 = $r22[$i87];
+
+        $i90 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i88, 24);
+
+        $i95 = $i89 ^ $i90;
+
+        $r23 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i91 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C1>;
+
+        $i92 = $i91 >> 16;
+
+        $i93 = $i92 & 255;
+
+        $i94 = $r23[$i93];
+
+        $i96 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i94, 16);
+
+        $i101 = $i95 ^ $i96;
+
+        $r24 = <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0>;
+
+        $i97 = r0.<org.bouncycastle.crypto.engines.AESEngine: int C0>;
+
+        $i98 = $i97 >> 24;
+
+        $i99 = $i98 & 255;
+
+        $i100 = $r24[$i99];
+
+        $i102 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESEngine: int shift(int,int)>($i100, 8);
+
+        $i104 = $i101 ^ $i102;
+
+        $r25 = r1[i357];
+
+        $i103 = $r25[3];
+
+        i366 = $i104 ^ $i103;
+
+        $r26 = <org.bouncycastle.crypto.engines.AESEngine: byte[] Si>;
+
+        $i105 = i363 & 255;
+
+        $b106 = $r26[$i105];
+
+        $s367 = (short) $b106;
+
+        $s112 = $s367 & 255;
+
+        $r27 = <org.bouncycastle.crypto.engines.AESEngine: byte[] Si>;
+
+        $i107 = i366 >> 8;
+
+        $i108 = $i107 & 255;
+
+        $b109 = $r27[$i108];
+
+        $s368 = (short) $b109;
+
+        $s110 = $s368 & 255;
+
+        $i369 = (int) $s110;
+
+        $i111 = $i369 << 8;
+
+        $i370 = (int) $s112;
+
+        $i118 = $i370 ^ $i111;
+
+        $r28 = <org.bouncycastle.crypto.engines.AESEngine: byte[] Si>;
+
+        $i113 = i365 >> 16;
+
+        $i114 = $i113 & 255;
+
+        $b115 = $r28[$i114];
+
+        $s371 = (short) $b115;
+
+        $s116 = $s371 & 255;
+
+        $i372 = (int) $s116;
+
+        $i117 = $i372 << 16;
+
+        $i123 = $i118 ^ $i117;
+
+        $r29 = <org.bouncycastle.crypto.engines.AESEngine: byte[] Si>;
+
+        $i119 = i364 >> 24;
+
+        $i120 = $i119 & 255;
+
+        $b121 = $r29[$i120];
+
+        $i373 = (int) $b121;
+
+        $i122 = $i373 << 24;
+
+        $i125 = $i123 ^ $i122;
+
+        $r30 = r1[0];
+
+        $i124 = $r30[0];
+
+        $i126 = $i125 ^ $i124;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C0> = $i126;
+
+        $r31 = <org.bouncycastle.crypto.engines.AESEngine: byte[] Si>;
+
+        $i127 = i364 & 255;
+
+        $b128 = $r31[$i127];
+
+        $s374 = (short) $b128;
+
+        $s134 = $s374 & 255;
+
+        $r32 = <org.bouncycastle.crypto.engines.AESEngine: byte[] Si>;
+
+        $i129 = i363 >> 8;
+
+        $i130 = $i129 & 255;
+
+        $b131 = $r32[$i130];
+
+        $s375 = (short) $b131;
+
+        $s132 = $s375 & 255;
+
+        $i376 = (int) $s132;
+
+        $i133 = $i376 << 8;
+
+        $i377 = (int) $s134;
+
+        $i140 = $i377 ^ $i133;
+
+        $r33 = <org.bouncycastle.crypto.engines.AESEngine: byte[] Si>;
+
+        $i135 = i366 >> 16;
+
+        $i136 = $i135 & 255;
+
+        $b137 = $r33[$i136];
+
+        $s378 = (short) $b137;
+
+        $s138 = $s378 & 255;
+
+        $i379 = (int) $s138;
+
+        $i139 = $i379 << 16;
+
+        $i145 = $i140 ^ $i139;
+
+        $r34 = <org.bouncycastle.crypto.engines.AESEngine: byte[] Si>;
+
+        $i141 = i365 >> 24;
+
+        $i142 = $i141 & 255;
+
+        $b143 = $r34[$i142];
+
+        $i380 = (int) $b143;
+
+        $i144 = $i380 << 24;
+
+        $i147 = $i145 ^ $i144;
+
+        $r35 = r1[0];
+
+        $i146 = $r35[1];
+
+        $i148 = $i147 ^ $i146;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C1> = $i148;
+
+        $r36 = <org.bouncycastle.crypto.engines.AESEngine: byte[] Si>;
+
+        $i149 = i365 & 255;
+
+        $b150 = $r36[$i149];
+
+        $s381 = (short) $b150;
+
+        $s156 = $s381 & 255;
+
+        $r37 = <org.bouncycastle.crypto.engines.AESEngine: byte[] Si>;
+
+        $i151 = i364 >> 8;
+
+        $i152 = $i151 & 255;
+
+        $b153 = $r37[$i152];
+
+        $s382 = (short) $b153;
+
+        $s154 = $s382 & 255;
+
+        $i383 = (int) $s154;
+
+        $i155 = $i383 << 8;
+
+        $i384 = (int) $s156;
+
+        $i162 = $i384 ^ $i155;
+
+        $r38 = <org.bouncycastle.crypto.engines.AESEngine: byte[] Si>;
+
+        $i157 = i363 >> 16;
+
+        $i158 = $i157 & 255;
+
+        $b159 = $r38[$i158];
+
+        $s385 = (short) $b159;
+
+        $s160 = $s385 & 255;
+
+        $i386 = (int) $s160;
+
+        $i161 = $i386 << 16;
+
+        $i167 = $i162 ^ $i161;
+
+        $r39 = <org.bouncycastle.crypto.engines.AESEngine: byte[] Si>;
+
+        $i163 = i366 >> 24;
+
+        $i164 = $i163 & 255;
+
+        $b165 = $r39[$i164];
+
+        $i387 = (int) $b165;
+
+        $i166 = $i387 << 24;
+
+        $i169 = $i167 ^ $i166;
+
+        $r40 = r1[0];
+
+        $i168 = $r40[2];
+
+        $i170 = $i169 ^ $i168;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C2> = $i170;
+
+        $r41 = <org.bouncycastle.crypto.engines.AESEngine: byte[] Si>;
+
+        $i171 = i366 & 255;
+
+        $b172 = $r41[$i171];
+
+        $s388 = (short) $b172;
+
+        $s178 = $s388 & 255;
+
+        $r42 = <org.bouncycastle.crypto.engines.AESEngine: byte[] Si>;
+
+        $i173 = i365 >> 8;
+
+        $i174 = $i173 & 255;
+
+        $b175 = $r42[$i174];
+
+        $s389 = (short) $b175;
+
+        $s176 = $s389 & 255;
+
+        $i390 = (int) $s176;
+
+        $i177 = $i390 << 8;
+
+        $i391 = (int) $s178;
+
+        $i184 = $i391 ^ $i177;
+
+        $r43 = <org.bouncycastle.crypto.engines.AESEngine: byte[] Si>;
+
+        $i179 = i364 >> 16;
+
+        $i180 = $i179 & 255;
+
+        $b181 = $r43[$i180];
+
+        $s392 = (short) $b181;
+
+        $s182 = $s392 & 255;
+
+        $i393 = (int) $s182;
+
+        $i183 = $i393 << 16;
+
+        $i189 = $i184 ^ $i183;
+
+        $r44 = <org.bouncycastle.crypto.engines.AESEngine: byte[] Si>;
+
+        $i185 = i363 >> 24;
+
+        $i186 = $i185 & 255;
+
+        $b187 = $r44[$i186];
+
+        $i394 = (int) $b187;
+
+        $i188 = $i394 << 24;
+
+        $i191 = $i189 ^ $i188;
+
+        $r45 = r1[0];
+
+        $i190 = $r45[3];
+
+        $i192 = $i191 ^ $i190;
+
+        r0.<org.bouncycastle.crypto.engines.AESEngine: int C3> = $i192;
+
+        return;
+    }
+
+    static void <clinit>()
+    {
+        byte[] $r0, $r1;
+        int[] $r2, $r3, $r4;
+
+        <org.bouncycastle.crypto.engines.AESEngine: int BLOCK_SIZE> = 16;
+
+        <org.bouncycastle.crypto.engines.AESEngine: int m3> = 27;
+
+        <org.bouncycastle.crypto.engines.AESEngine: int m2> = 2139062143;
+
+        <org.bouncycastle.crypto.engines.AESEngine: int m1> = -2139062144;
+
+        $r0 = newarray (byte)[256];
+
+        $r0[0] = 99;
+
+        $r0[1] = 124;
+
+        $r0[2] = 119;
+
+        $r0[3] = 123;
+
+        $r0[4] = -14;
+
+        $r0[5] = 107;
+
+        $r0[6] = 111;
+
+        $r0[7] = -59;
+
+        $r0[8] = 48;
+
+        $r0[9] = 1;
+
+        $r0[10] = 103;
+
+        $r0[11] = 43;
+
+        $r0[12] = -2;
+
+        $r0[13] = -41;
+
+        $r0[14] = -85;
+
+        $r0[15] = 118;
+
+        $r0[16] = -54;
+
+        $r0[17] = -126;
+
+        $r0[18] = -55;
+
+        $r0[19] = 125;
+
+        $r0[20] = -6;
+
+        $r0[21] = 89;
+
+        $r0[22] = 71;
+
+        $r0[23] = -16;
+
+        $r0[24] = -83;
+
+        $r0[25] = -44;
+
+        $r0[26] = -94;
+
+        $r0[27] = -81;
+
+        $r0[28] = -100;
+
+        $r0[29] = -92;
+
+        $r0[30] = 114;
+
+        $r0[31] = -64;
+
+        $r0[32] = -73;
+
+        $r0[33] = -3;
+
+        $r0[34] = -109;
+
+        $r0[35] = 38;
+
+        $r0[36] = 54;
+
+        $r0[37] = 63;
+
+        $r0[38] = -9;
+
+        $r0[39] = -52;
+
+        $r0[40] = 52;
+
+        $r0[41] = -91;
+
+        $r0[42] = -27;
+
+        $r0[43] = -15;
+
+        $r0[44] = 113;
+
+        $r0[45] = -40;
+
+        $r0[46] = 49;
+
+        $r0[47] = 21;
+
+        $r0[48] = 4;
+
+        $r0[49] = -57;
+
+        $r0[50] = 35;
+
+        $r0[51] = -61;
+
+        $r0[52] = 24;
+
+        $r0[53] = -106;
+
+        $r0[54] = 5;
+
+        $r0[55] = -102;
+
+        $r0[56] = 7;
+
+        $r0[57] = 18;
+
+        $r0[58] = -128;
+
+        $r0[59] = -30;
+
+        $r0[60] = -21;
+
+        $r0[61] = 39;
+
+        $r0[62] = -78;
+
+        $r0[63] = 117;
+
+        $r0[64] = 9;
+
+        $r0[65] = -125;
+
+        $r0[66] = 44;
+
+        $r0[67] = 26;
+
+        $r0[68] = 27;
+
+        $r0[69] = 110;
+
+        $r0[70] = 90;
+
+        $r0[71] = -96;
+
+        $r0[72] = 82;
+
+        $r0[73] = 59;
+
+        $r0[74] = -42;
+
+        $r0[75] = -77;
+
+        $r0[76] = 41;
+
+        $r0[77] = -29;
+
+        $r0[78] = 47;
+
+        $r0[79] = -124;
+
+        $r0[80] = 83;
+
+        $r0[81] = -47;
+
+        $r0[82] = 0;
+
+        $r0[83] = -19;
+
+        $r0[84] = 32;
+
+        $r0[85] = -4;
+
+        $r0[86] = -79;
+
+        $r0[87] = 91;
+
+        $r0[88] = 106;
+
+        $r0[89] = -53;
+
+        $r0[90] = -66;
+
+        $r0[91] = 57;
+
+        $r0[92] = 74;
+
+        $r0[93] = 76;
+
+        $r0[94] = 88;
+
+        $r0[95] = -49;
+
+        $r0[96] = -48;
+
+        $r0[97] = -17;
+
+        $r0[98] = -86;
+
+        $r0[99] = -5;
+
+        $r0[100] = 67;
+
+        $r0[101] = 77;
+
+        $r0[102] = 51;
+
+        $r0[103] = -123;
+
+        $r0[104] = 69;
+
+        $r0[105] = -7;
+
+        $r0[106] = 2;
+
+        $r0[107] = 127;
+
+        $r0[108] = 80;
+
+        $r0[109] = 60;
+
+        $r0[110] = -97;
+
+        $r0[111] = -88;
+
+        $r0[112] = 81;
+
+        $r0[113] = -93;
+
+        $r0[114] = 64;
+
+        $r0[115] = -113;
+
+        $r0[116] = -110;
+
+        $r0[117] = -99;
+
+        $r0[118] = 56;
+
+        $r0[119] = -11;
+
+        $r0[120] = -68;
+
+        $r0[121] = -74;
+
+        $r0[122] = -38;
+
+        $r0[123] = 33;
+
+        $r0[124] = 16;
+
+        $r0[125] = -1;
+
+        $r0[126] = -13;
+
+        $r0[127] = -46;
+
+        $r0[128] = -51;
+
+        $r0[129] = 12;
+
+        $r0[130] = 19;
+
+        $r0[131] = -20;
+
+        $r0[132] = 95;
+
+        $r0[133] = -105;
+
+        $r0[134] = 68;
+
+        $r0[135] = 23;
+
+        $r0[136] = -60;
+
+        $r0[137] = -89;
+
+        $r0[138] = 126;
+
+        $r0[139] = 61;
+
+        $r0[140] = 100;
+
+        $r0[141] = 93;
+
+        $r0[142] = 25;
+
+        $r0[143] = 115;
+
+        $r0[144] = 96;
+
+        $r0[145] = -127;
+
+        $r0[146] = 79;
+
+        $r0[147] = -36;
+
+        $r0[148] = 34;
+
+        $r0[149] = 42;
+
+        $r0[150] = -112;
+
+        $r0[151] = -120;
+
+        $r0[152] = 70;
+
+        $r0[153] = -18;
+
+        $r0[154] = -72;
+
+        $r0[155] = 20;
+
+        $r0[156] = -34;
+
+        $r0[157] = 94;
+
+        $r0[158] = 11;
+
+        $r0[159] = -37;
+
+        $r0[160] = -32;
+
+        $r0[161] = 50;
+
+        $r0[162] = 58;
+
+        $r0[163] = 10;
+
+        $r0[164] = 73;
+
+        $r0[165] = 6;
+
+        $r0[166] = 36;
+
+        $r0[167] = 92;
+
+        $r0[168] = -62;
+
+        $r0[169] = -45;
+
+        $r0[170] = -84;
+
+        $r0[171] = 98;
+
+        $r0[172] = -111;
+
+        $r0[173] = -107;
+
+        $r0[174] = -28;
+
+        $r0[175] = 121;
+
+        $r0[176] = -25;
+
+        $r0[177] = -56;
+
+        $r0[178] = 55;
+
+        $r0[179] = 109;
+
+        $r0[180] = -115;
+
+        $r0[181] = -43;
+
+        $r0[182] = 78;
+
+        $r0[183] = -87;
+
+        $r0[184] = 108;
+
+        $r0[185] = 86;
+
+        $r0[186] = -12;
+
+        $r0[187] = -22;
+
+        $r0[188] = 101;
+
+        $r0[189] = 122;
+
+        $r0[190] = -82;
+
+        $r0[191] = 8;
+
+        $r0[192] = -70;
+
+        $r0[193] = 120;
+
+        $r0[194] = 37;
+
+        $r0[195] = 46;
+
+        $r0[196] = 28;
+
+        $r0[197] = -90;
+
+        $r0[198] = -76;
+
+        $r0[199] = -58;
+
+        $r0[200] = -24;
+
+        $r0[201] = -35;
+
+        $r0[202] = 116;
+
+        $r0[203] = 31;
+
+        $r0[204] = 75;
+
+        $r0[205] = -67;
+
+        $r0[206] = -117;
+
+        $r0[207] = -118;
+
+        $r0[208] = 112;
+
+        $r0[209] = 62;
+
+        $r0[210] = -75;
+
+        $r0[211] = 102;
+
+        $r0[212] = 72;
+
+        $r0[213] = 3;
+
+        $r0[214] = -10;
+
+        $r0[215] = 14;
+
+        $r0[216] = 97;
+
+        $r0[217] = 53;
+
+        $r0[218] = 87;
+
+        $r0[219] = -71;
+
+        $r0[220] = -122;
+
+        $r0[221] = -63;
+
+        $r0[222] = 29;
+
+        $r0[223] = -98;
+
+        $r0[224] = -31;
+
+        $r0[225] = -8;
+
+        $r0[226] = -104;
+
+        $r0[227] = 17;
+
+        $r0[228] = 105;
+
+        $r0[229] = -39;
+
+        $r0[230] = -114;
+
+        $r0[231] = -108;
+
+        $r0[232] = -101;
+
+        $r0[233] = 30;
+
+        $r0[234] = -121;
+
+        $r0[235] = -23;
+
+        $r0[236] = -50;
+
+        $r0[237] = 85;
+
+        $r0[238] = 40;
+
+        $r0[239] = -33;
+
+        $r0[240] = -116;
+
+        $r0[241] = -95;
+
+        $r0[242] = -119;
+
+        $r0[243] = 13;
+
+        $r0[244] = -65;
+
+        $r0[245] = -26;
+
+        $r0[246] = 66;
+
+        $r0[247] = 104;
+
+        $r0[248] = 65;
+
+        $r0[249] = -103;
+
+        $r0[250] = 45;
+
+        $r0[251] = 15;
+
+        $r0[252] = -80;
+
+        $r0[253] = 84;
+
+        $r0[254] = -69;
+
+        $r0[255] = 22;
+
+        <org.bouncycastle.crypto.engines.AESEngine: byte[] S> = $r0;
+
+        $r1 = newarray (byte)[256];
+
+        $r1[0] = 82;
+
+        $r1[1] = 9;
+
+        $r1[2] = 106;
+
+        $r1[3] = -43;
+
+        $r1[4] = 48;
+
+        $r1[5] = 54;
+
+        $r1[6] = -91;
+
+        $r1[7] = 56;
+
+        $r1[8] = -65;
+
+        $r1[9] = 64;
+
+        $r1[10] = -93;
+
+        $r1[11] = -98;
+
+        $r1[12] = -127;
+
+        $r1[13] = -13;
+
+        $r1[14] = -41;
+
+        $r1[15] = -5;
+
+        $r1[16] = 124;
+
+        $r1[17] = -29;
+
+        $r1[18] = 57;
+
+        $r1[19] = -126;
+
+        $r1[20] = -101;
+
+        $r1[21] = 47;
+
+        $r1[22] = -1;
+
+        $r1[23] = -121;
+
+        $r1[24] = 52;
+
+        $r1[25] = -114;
+
+        $r1[26] = 67;
+
+        $r1[27] = 68;
+
+        $r1[28] = -60;
+
+        $r1[29] = -34;
+
+        $r1[30] = -23;
+
+        $r1[31] = -53;
+
+        $r1[32] = 84;
+
+        $r1[33] = 123;
+
+        $r1[34] = -108;
+
+        $r1[35] = 50;
+
+        $r1[36] = -90;
+
+        $r1[37] = -62;
+
+        $r1[38] = 35;
+
+        $r1[39] = 61;
+
+        $r1[40] = -18;
+
+        $r1[41] = 76;
+
+        $r1[42] = -107;
+
+        $r1[43] = 11;
+
+        $r1[44] = 66;
+
+        $r1[45] = -6;
+
+        $r1[46] = -61;
+
+        $r1[47] = 78;
+
+        $r1[48] = 8;
+
+        $r1[49] = 46;
+
+        $r1[50] = -95;
+
+        $r1[51] = 102;
+
+        $r1[52] = 40;
+
+        $r1[53] = -39;
+
+        $r1[54] = 36;
+
+        $r1[55] = -78;
+
+        $r1[56] = 118;
+
+        $r1[57] = 91;
+
+        $r1[58] = -94;
+
+        $r1[59] = 73;
+
+        $r1[60] = 109;
+
+        $r1[61] = -117;
+
+        $r1[62] = -47;
+
+        $r1[63] = 37;
+
+        $r1[64] = 114;
+
+        $r1[65] = -8;
+
+        $r1[66] = -10;
+
+        $r1[67] = 100;
+
+        $r1[68] = -122;
+
+        $r1[69] = 104;
+
+        $r1[70] = -104;
+
+        $r1[71] = 22;
+
+        $r1[72] = -44;
+
+        $r1[73] = -92;
+
+        $r1[74] = 92;
+
+        $r1[75] = -52;
+
+        $r1[76] = 93;
+
+        $r1[77] = 101;
+
+        $r1[78] = -74;
+
+        $r1[79] = -110;
+
+        $r1[80] = 108;
+
+        $r1[81] = 112;
+
+        $r1[82] = 72;
+
+        $r1[83] = 80;
+
+        $r1[84] = -3;
+
+        $r1[85] = -19;
+
+        $r1[86] = -71;
+
+        $r1[87] = -38;
+
+        $r1[88] = 94;
+
+        $r1[89] = 21;
+
+        $r1[90] = 70;
+
+        $r1[91] = 87;
+
+        $r1[92] = -89;
+
+        $r1[93] = -115;
+
+        $r1[94] = -99;
+
+        $r1[95] = -124;
+
+        $r1[96] = -112;
+
+        $r1[97] = -40;
+
+        $r1[98] = -85;
+
+        $r1[99] = 0;
+
+        $r1[100] = -116;
+
+        $r1[101] = -68;
+
+        $r1[102] = -45;
+
+        $r1[103] = 10;
+
+        $r1[104] = -9;
+
+        $r1[105] = -28;
+
+        $r1[106] = 88;
+
+        $r1[107] = 5;
+
+        $r1[108] = -72;
+
+        $r1[109] = -77;
+
+        $r1[110] = 69;
+
+        $r1[111] = 6;
+
+        $r1[112] = -48;
+
+        $r1[113] = 44;
+
+        $r1[114] = 30;
+
+        $r1[115] = -113;
+
+        $r1[116] = -54;
+
+        $r1[117] = 63;
+
+        $r1[118] = 15;
+
+        $r1[119] = 2;
+
+        $r1[120] = -63;
+
+        $r1[121] = -81;
+
+        $r1[122] = -67;
+
+        $r1[123] = 3;
+
+        $r1[124] = 1;
+
+        $r1[125] = 19;
+
+        $r1[126] = -118;
+
+        $r1[127] = 107;
+
+        $r1[128] = 58;
+
+        $r1[129] = -111;
+
+        $r1[130] = 17;
+
+        $r1[131] = 65;
+
+        $r1[132] = 79;
+
+        $r1[133] = 103;
+
+        $r1[134] = -36;
+
+        $r1[135] = -22;
+
+        $r1[136] = -105;
+
+        $r1[137] = -14;
+
+        $r1[138] = -49;
+
+        $r1[139] = -50;
+
+        $r1[140] = -16;
+
+        $r1[141] = -76;
+
+        $r1[142] = -26;
+
+        $r1[143] = 115;
+
+        $r1[144] = -106;
+
+        $r1[145] = -84;
+
+        $r1[146] = 116;
+
+        $r1[147] = 34;
+
+        $r1[148] = -25;
+
+        $r1[149] = -83;
+
+        $r1[150] = 53;
+
+        $r1[151] = -123;
+
+        $r1[152] = -30;
+
+        $r1[153] = -7;
+
+        $r1[154] = 55;
+
+        $r1[155] = -24;
+
+        $r1[156] = 28;
+
+        $r1[157] = 117;
+
+        $r1[158] = -33;
+
+        $r1[159] = 110;
+
+        $r1[160] = 71;
+
+        $r1[161] = -15;
+
+        $r1[162] = 26;
+
+        $r1[163] = 113;
+
+        $r1[164] = 29;
+
+        $r1[165] = 41;
+
+        $r1[166] = -59;
+
+        $r1[167] = -119;
+
+        $r1[168] = 111;
+
+        $r1[169] = -73;
+
+        $r1[170] = 98;
+
+        $r1[171] = 14;
+
+        $r1[172] = -86;
+
+        $r1[173] = 24;
+
+        $r1[174] = -66;
+
+        $r1[175] = 27;
+
+        $r1[176] = -4;
+
+        $r1[177] = 86;
+
+        $r1[178] = 62;
+
+        $r1[179] = 75;
+
+        $r1[180] = -58;
+
+        $r1[181] = -46;
+
+        $r1[182] = 121;
+
+        $r1[183] = 32;
+
+        $r1[184] = -102;
+
+        $r1[185] = -37;
+
+        $r1[186] = -64;
+
+        $r1[187] = -2;
+
+        $r1[188] = 120;
+
+        $r1[189] = -51;
+
+        $r1[190] = 90;
+
+        $r1[191] = -12;
+
+        $r1[192] = 31;
+
+        $r1[193] = -35;
+
+        $r1[194] = -88;
+
+        $r1[195] = 51;
+
+        $r1[196] = -120;
+
+        $r1[197] = 7;
+
+        $r1[198] = -57;
+
+        $r1[199] = 49;
+
+        $r1[200] = -79;
+
+        $r1[201] = 18;
+
+        $r1[202] = 16;
+
+        $r1[203] = 89;
+
+        $r1[204] = 39;
+
+        $r1[205] = -128;
+
+        $r1[206] = -20;
+
+        $r1[207] = 95;
+
+        $r1[208] = 96;
+
+        $r1[209] = 81;
+
+        $r1[210] = 127;
+
+        $r1[211] = -87;
+
+        $r1[212] = 25;
+
+        $r1[213] = -75;
+
+        $r1[214] = 74;
+
+        $r1[215] = 13;
+
+        $r1[216] = 45;
+
+        $r1[217] = -27;
+
+        $r1[218] = 122;
+
+        $r1[219] = -97;
+
+        $r1[220] = -109;
+
+        $r1[221] = -55;
+
+        $r1[222] = -100;
+
+        $r1[223] = -17;
+
+        $r1[224] = -96;
+
+        $r1[225] = -32;
+
+        $r1[226] = 59;
+
+        $r1[227] = 77;
+
+        $r1[228] = -82;
+
+        $r1[229] = 42;
+
+        $r1[230] = -11;
+
+        $r1[231] = -80;
+
+        $r1[232] = -56;
+
+        $r1[233] = -21;
+
+        $r1[234] = -69;
+
+        $r1[235] = 60;
+
+        $r1[236] = -125;
+
+        $r1[237] = 83;
+
+        $r1[238] = -103;
+
+        $r1[239] = 97;
+
+        $r1[240] = 23;
+
+        $r1[241] = 43;
+
+        $r1[242] = 4;
+
+        $r1[243] = 126;
+
+        $r1[244] = -70;
+
+        $r1[245] = 119;
+
+        $r1[246] = -42;
+
+        $r1[247] = 38;
+
+        $r1[248] = -31;
+
+        $r1[249] = 105;
+
+        $r1[250] = 20;
+
+        $r1[251] = 99;
+
+        $r1[252] = 85;
+
+        $r1[253] = 33;
+
+        $r1[254] = 12;
+
+        $r1[255] = 125;
+
+        <org.bouncycastle.crypto.engines.AESEngine: byte[] Si> = $r1;
+
+        $r2 = newarray (int)[30];
+
+        $r2[0] = 1;
+
+        $r2[1] = 2;
+
+        $r2[2] = 4;
+
+        $r2[3] = 8;
+
+        $r2[4] = 16;
+
+        $r2[5] = 32;
+
+        $r2[6] = 64;
+
+        $r2[7] = 128;
+
+        $r2[8] = 27;
+
+        $r2[9] = 54;
+
+        $r2[10] = 108;
+
+        $r2[11] = 216;
+
+        $r2[12] = 171;
+
+        $r2[13] = 77;
+
+        $r2[14] = 154;
+
+        $r2[15] = 47;
+
+        $r2[16] = 94;
+
+        $r2[17] = 188;
+
+        $r2[18] = 99;
+
+        $r2[19] = 198;
+
+        $r2[20] = 151;
+
+        $r2[21] = 53;
+
+        $r2[22] = 106;
+
+        $r2[23] = 212;
+
+        $r2[24] = 179;
+
+        $r2[25] = 125;
+
+        $r2[26] = 250;
+
+        $r2[27] = 239;
+
+        $r2[28] = 197;
+
+        $r2[29] = 145;
+
+        <org.bouncycastle.crypto.engines.AESEngine: int[] rcon> = $r2;
+
+        $r3 = newarray (int)[256];
+
+        $r3[0] = -1520213050;
+
+        $r3[1] = -2072216328;
+
+        $r3[2] = -1720223762;
+
+        $r3[3] = -1921287178;
+
+        $r3[4] = 234025727;
+
+        $r3[5] = -1117033514;
+
+        $r3[6] = -1318096930;
+
+        $r3[7] = 1422247313;
+
+        $r3[8] = 1345335392;
+
+        $r3[9] = 50397442;
+
+        $r3[10] = -1452841010;
+
+        $r3[11] = 2099981142;
+
+        $r3[12] = 436141799;
+
+        $r3[13] = 1658312629;
+
+        $r3[14] = -424957107;
+
+        $r3[15] = -1703512340;
+
+        $r3[16] = 1170918031;
+
+        $r3[17] = -1652391393;
+
+        $r3[18] = 1086966153;
+
+        $r3[19] = -2021818886;
+
+        $r3[20] = 368769775;
+
+        $r3[21] = -346465870;
+
+        $r3[22] = -918075506;
+
+        $r3[23] = 200339707;
+
+        $r3[24] = -324162239;
+
+        $r3[25] = 1742001331;
+
+        $r3[26] = -39673249;
+
+        $r3[27] = -357585083;
+
+        $r3[28] = -1080255453;
+
+        $r3[29] = -140204973;
+
+        $r3[30] = -1770884380;
+
+        $r3[31] = 1539358875;
+
+        $r3[32] = -1028147339;
+
+        $r3[33] = 486407649;
+
+        $r3[34] = -1366060227;
+
+        $r3[35] = 1780885068;
+
+        $r3[36] = 1513502316;
+
+        $r3[37] = 1094664062;
+
+        $r3[38] = 49805301;
+
+        $r3[39] = 1338821763;
+
+        $r3[40] = 1546925160;
+
+        $r3[41] = -190470831;
+
+        $r3[42] = 887481809;
+
+        $r3[43] = 150073849;
+
+        $r3[44] = -1821281822;
+
+        $r3[45] = 1943591083;
+
+        $r3[46] = 1395732834;
+
+        $r3[47] = 1058346282;
+
+        $r3[48] = 201589768;
+
+        $r3[49] = 1388824469;
+
+        $r3[50] = 1696801606;
+
+        $r3[51] = 1589887901;
+
+        $r3[52] = 672667696;
+
+        $r3[53] = -1583966665;
+
+        $r3[54] = 251987210;
+
+        $r3[55] = -1248159185;
+
+        $r3[56] = 151455502;
+
+        $r3[57] = 907153956;
+
+        $r3[58] = -1686077413;
+
+        $r3[59] = 1038279391;
+
+        $r3[60] = 652995533;
+
+        $r3[61] = 1764173646;
+
+        $r3[62] = -843926913;
+
+        $r3[63] = -1619692054;
+
+        $r3[64] = 453576978;
+
+        $r3[65] = -1635548387;
+
+        $r3[66] = 1949051992;
+
+        $r3[67] = 773462580;
+
+        $r3[68] = 756751158;
+
+        $r3[69] = -1301385508;
+
+        $r3[70] = -296068428;
+
+        $r3[71] = -73359269;
+
+        $r3[72] = -162377052;
+
+        $r3[73] = 1295727478;
+
+        $r3[74] = 1641469623;
+
+        $r3[75] = -827083907;
+
+        $r3[76] = 2066295122;
+
+        $r3[77] = 1055122397;
+
+        $r3[78] = 1898917726;
+
+        $r3[79] = -1752923117;
+
+        $r3[80] = -179088474;
+
+        $r3[81] = 1758581177;
+
+        $r3[82] = 0;
+
+        $r3[83] = 753790401;
+
+        $r3[84] = 1612718144;
+
+        $r3[85] = 536673507;
+
+        $r3[86] = -927878791;
+
+        $r3[87] = -312779850;
+
+        $r3[88] = -1100322092;
+
+        $r3[89] = 1187761037;
+
+        $r3[90] = -641810841;
+
+        $r3[91] = 1262041458;
+
+        $r3[92] = -565556588;
+
+        $r3[93] = -733197160;
+
+        $r3[94] = -396863312;
+
+        $r3[95] = 1255133061;
+
+        $r3[96] = 1808847035;
+
+        $r3[97] = 720367557;
+
+        $r3[98] = -441800113;
+
+        $r3[99] = 385612781;
+
+        $r3[100] = -985447546;
+
+        $r3[101] = -682799718;
+
+        $r3[102] = 1429418854;
+
+        $r3[103] = -1803188975;
+
+        $r3[104] = -817543798;
+
+        $r3[105] = 284817897;
+
+        $r3[106] = 100794884;
+
+        $r3[107] = -2122350594;
+
+        $r3[108] = -263171936;
+
+        $r3[109] = 1144798328;
+
+        $r3[110] = -1163944155;
+
+        $r3[111] = -475486133;
+
+        $r3[112] = -212774494;
+
+        $r3[113] = -22830243;
+
+        $r3[114] = -1069531008;
+
+        $r3[115] = -1970303227;
+
+        $r3[116] = -1382903233;
+
+        $r3[117] = -1130521311;
+
+        $r3[118] = 1211644016;
+
+        $r3[119] = 83228145;
+
+        $r3[120] = -541279133;
+
+        $r3[121] = -1044990345;
+
+        $r3[122] = 1977277103;
+
+        $r3[123] = 1663115586;
+
+        $r3[124] = 806359072;
+
+        $r3[125] = 452984805;
+
+        $r3[126] = 250868733;
+
+        $r3[127] = 1842533055;
+
+        $r3[128] = 1288555905;
+
+        $r3[129] = 336333848;
+
+        $r3[130] = 890442534;
+
+        $r3[131] = 804056259;
+
+        $r3[132] = -513843266;
+
+        $r3[133] = -1567123659;
+
+        $r3[134] = -867941240;
+
+        $r3[135] = 957814574;
+
+        $r3[136] = 1472513171;
+
+        $r3[137] = -223893675;
+
+        $r3[138] = -2105639172;
+
+        $r3[139] = 1195195770;
+
+        $r3[140] = -1402706744;
+
+        $r3[141] = -413311558;
+
+        $r3[142] = 723065138;
+
+        $r3[143] = -1787595802;
+
+        $r3[144] = -1604296512;
+
+        $r3[145] = -1736343271;
+
+        $r3[146] = -783331426;
+
+        $r3[147] = 2145180835;
+
+        $r3[148] = 1713513028;
+
+        $r3[149] = 2116692564;
+
+        $r3[150] = -1416589253;
+
+        $r3[151] = -2088204277;
+
+        $r3[152] = -901364084;
+
+        $r3[153] = 703524551;
+
+        $r3[154] = -742868885;
+
+        $r3[155] = 1007948840;
+
+        $r3[156] = 2044649127;
+
+        $r3[157] = -497131844;
+
+        $r3[158] = 487262998;
+
+        $r3[159] = 1994120109;
+
+        $r3[160] = 1004593371;
+
+        $r3[161] = 1446130276;
+
+        $r3[162] = 1312438900;
+
+        $r3[163] = 503974420;
+
+        $r3[164] = -615954030;
+
+        $r3[165] = 168166924;
+
+        $r3[166] = 1814307912;
+
+        $r3[167] = -463709000;
+
+        $r3[168] = 1573044895;
+
+        $r3[169] = 1859376061;
+
+        $r3[170] = -273896381;
+
+        $r3[171] = -1503501628;
+
+        $r3[172] = -1466855111;
+
+        $r3[173] = -1533700815;
+
+        $r3[174] = 937747667;
+
+        $r3[175] = -1954973198;
+
+        $r3[176] = 854058965;
+
+        $r3[177] = 1137232011;
+
+        $r3[178] = 1496790894;
+
+        $r3[179] = -1217565222;
+
+        $r3[180] = -1936880383;
+
+        $r3[181] = 1691735473;
+
+        $r3[182] = -766620004;
+
+        $r3[183] = -525751991;
+
+        $r3[184] = -1267962664;
+
+        $r3[185] = -95005012;
+
+        $r3[186] = 133494003;
+
+        $r3[187] = 636152527;
+
+        $r3[188] = -1352309302;
+
+        $r3[189] = -1904575756;
+
+        $r3[190] = -374428089;
+
+        $r3[191] = 403179536;
+
+        $r3[192] = -709182865;
+
+        $r3[193] = -2005370640;
+
+        $r3[194] = 1864705354;
+
+        $r3[195] = 1915629148;
+
+        $r3[196] = 605822008;
+
+        $r3[197] = -240736681;
+
+        $r3[198] = -944458637;
+
+        $r3[199] = 1371981463;
+
+        $r3[200] = 602466507;
+
+        $r3[201] = 2094914977;
+
+        $r3[202] = -1670089496;
+
+        $r3[203] = 555687742;
+
+        $r3[204] = -582268010;
+
+        $r3[205] = -591544991;
+
+        $r3[206] = -2037675251;
+
+        $r3[207] = -2054518257;
+
+        $r3[208] = -1871679264;
+
+        $r3[209] = 1111375484;
+
+        $r3[210] = -994724495;
+
+        $r3[211] = -1436129588;
+
+        $r3[212] = -666351472;
+
+        $r3[213] = 84083462;
+
+        $r3[214] = 32962295;
+
+        $r3[215] = 302911004;
+
+        $r3[216] = -1553899070;
+
+        $r3[217] = 1597322602;
+
+        $r3[218] = -111716434;
+
+        $r3[219] = -793134743;
+
+        $r3[220] = -1853454825;
+
+        $r3[221] = 1489093017;
+
+        $r3[222] = 656219450;
+
+        $r3[223] = -1180787161;
+
+        $r3[224] = 954327513;
+
+        $r3[225] = 335083755;
+
+        $r3[226] = -1281845205;
+
+        $r3[227] = 856756514;
+
+        $r3[228] = -1150719534;
+
+        $r3[229] = 1893325225;
+
+        $r3[230] = -1987146233;
+
+        $r3[231] = -1483434957;
+
+        $r3[232] = -1231316179;
+
+        $r3[233] = 572399164;
+
+        $r3[234] = -1836611819;
+
+        $r3[235] = 552200649;
+
+        $r3[236] = 1238290055;
+
+        $r3[237] = -11184726;
+
+        $r3[238] = 2015897680;
+
+        $r3[239] = 2061492133;
+
+        $r3[240] = -1886614525;
+
+        $r3[241] = -123625127;
+
+        $r3[242] = -2138470135;
+
+        $r3[243] = 386731290;
+
+        $r3[244] = -624967835;
+
+        $r3[245] = 837215959;
+
+        $r3[246] = -968736124;
+
+        $r3[247] = -1201116976;
+
+        $r3[248] = -1019133566;
+
+        $r3[249] = -1332111063;
+
+        $r3[250] = 1999449434;
+
+        $r3[251] = 286199582;
+
+        $r3[252] = -877612933;
+
+        $r3[253] = -61582168;
+
+        $r3[254] = -692339859;
+
+        $r3[255] = 974525996;
+
+        <org.bouncycastle.crypto.engines.AESEngine: int[] T0> = $r3;
+
+        $r4 = newarray (int)[256];
+
+        $r4[0] = 1353184337;
+
+        $r4[1] = 1399144830;
+
+        $r4[2] = -1012656358;
+
+        $r4[3] = -1772214470;
+
+        $r4[4] = -882136261;
+
+        $r4[5] = -247096033;
+
+        $r4[6] = -1420232020;
+
+        $r4[7] = -1828461749;
+
+        $r4[8] = 1442459680;
+
+        $r4[9] = -160598355;
+
+        $r4[10] = -1854485368;
+
+        $r4[11] = 625738485;
+
+        $r4[12] = -52959921;
+
+        $r4[13] = -674551099;
+
+        $r4[14] = -2143013594;
+
+        $r4[15] = -1885117771;
+
+        $r4[16] = 1230680542;
+
+        $r4[17] = 1729870373;
+
+        $r4[18] = -1743852987;
+
+        $r4[19] = -507445667;
+
+        $r4[20] = 41234371;
+
+        $r4[21] = 317738113;
+
+        $r4[22] = -1550367091;
+
+        $r4[23] = -956705941;
+
+        $r4[24] = -413167869;
+
+        $r4[25] = -1784901099;
+
+        $r4[26] = -344298049;
+
+        $r4[27] = -631680363;
+
+        $r4[28] = 763608788;
+
+        $r4[29] = -752782248;
+
+        $r4[30] = 694804553;
+
+        $r4[31] = 1154009486;
+
+        $r4[32] = 1787413109;
+
+        $r4[33] = 2021232372;
+
+        $r4[34] = 1799248025;
+
+        $r4[35] = -579749593;
+
+        $r4[36] = -1236278850;
+
+        $r4[37] = 397248752;
+
+        $r4[38] = 1722556617;
+
+        $r4[39] = -1271214467;
+
+        $r4[40] = 407560035;
+
+        $r4[41] = -2110711067;
+
+        $r4[42] = 1613975959;
+
+        $r4[43] = 1165972322;
+
+        $r4[44] = -529046351;
+
+        $r4[45] = -2068943941;
+
+        $r4[46] = 480281086;
+
+        $r4[47] = -1809118983;
+
+        $r4[48] = 1483229296;
+
+        $r4[49] = 436028815;
+
+        $r4[50] = -2022908268;
+
+        $r4[51] = -1208452270;
+
+        $r4[52] = 601060267;
+
+        $r4[53] = -503166094;
+
+        $r4[54] = 1468997603;
+
+        $r4[55] = 715871590;
+
+        $r4[56] = 120122290;
+
+        $r4[57] = 63092015;
+
+        $r4[58] = -1703164538;
+
+        $r4[59] = -1526188077;
+
+        $r4[60] = -226023376;
+
+        $r4[61] = -1297760477;
+
+        $r4[62] = -1167457534;
+
+        $r4[63] = 1552029421;
+
+        $r4[64] = 723308426;
+
+        $r4[65] = -1833666137;
+
+        $r4[66] = -252573709;
+
+        $r4[67] = -1578997426;
+
+        $r4[68] = -839591323;
+
+        $r4[69] = -708967162;
+
+        $r4[70] = 526529745;
+
+        $r4[71] = -1963022652;
+
+        $r4[72] = -1655493068;
+
+        $r4[73] = -1604979806;
+
+        $r4[74] = 853641733;
+
+        $r4[75] = 1978398372;
+
+        $r4[76] = 971801355;
+
+        $r4[77] = -1427152832;
+
+        $r4[78] = 111112542;
+
+        $r4[79] = 1360031421;
+
+        $r4[80] = -108388034;
+
+        $r4[81] = 1023860118;
+
+        $r4[82] = -1375387939;
+
+        $r4[83] = 1186850381;
+
+        $r4[84] = -1249028975;
+
+        $r4[85] = 90031217;
+
+        $r4[86] = 1876166148;
+
+        $r4[87] = -15380384;
+
+        $r4[88] = 620468249;
+
+        $r4[89] = -1746289194;
+
+        $r4[90] = -868007799;
+
+        $r4[91] = 2006899047;
+
+        $r4[92] = -1119688528;
+
+        $r4[93] = -2004121337;
+
+        $r4[94] = 945494503;
+
+        $r4[95] = -605108103;
+
+        $r4[96] = 1191869601;
+
+        $r4[97] = -384875908;
+
+        $r4[98] = -920746760;
+
+        $r4[99] = 0;
+
+        $r4[100] = -2088337399;
+
+        $r4[101] = 1223502642;
+
+        $r4[102] = -1401941730;
+
+        $r4[103] = 1316117100;
+
+        $r4[104] = -67170563;
+
+        $r4[105] = 1446544655;
+
+        $r4[106] = 517320253;
+
+        $r4[107] = 658058550;
+
+        $r4[108] = 1691946762;
+
+        $r4[109] = 564550760;
+
+        $r4[110] = -783000677;
+
+        $r4[111] = 976107044;
+
+        $r4[112] = -1318647284;
+
+        $r4[113] = 266819475;
+
+        $r4[114] = -761860428;
+
+        $r4[115] = -1634624741;
+
+        $r4[116] = 1338359936;
+
+        $r4[117] = -1574904735;
+
+        $r4[118] = 1766553434;
+
+        $r4[119] = 370807324;
+
+        $r4[120] = 179999714;
+
+        $r4[121] = -450191168;
+
+        $r4[122] = 1138762300;
+
+        $r4[123] = 488053522;
+
+        $r4[124] = 185403662;
+
+        $r4[125] = -1379431438;
+
+        $r4[126] = -1180125651;
+
+        $r4[127] = -928440812;
+
+        $r4[128] = -2061897385;
+
+        $r4[129] = 1275557295;
+
+        $r4[130] = -1143105042;
+
+        $r4[131] = -44007517;
+
+        $r4[132] = -1624899081;
+
+        $r4[133] = -1124765092;
+
+        $r4[134] = -985962940;
+
+        $r4[135] = 880737115;
+
+        $r4[136] = 1982415755;
+
+        $r4[137] = -590994485;
+
+        $r4[138] = 1761406390;
+
+        $r4[139] = 1676797112;
+
+        $r4[140] = -891538985;
+
+        $r4[141] = 277177154;
+
+        $r4[142] = 1076008723;
+
+        $r4[143] = 538035844;
+
+        $r4[144] = 2099530373;
+
+        $r4[145] = -130171950;
+
+        $r4[146] = 288553390;
+
+        $r4[147] = 1839278535;
+
+        $r4[148] = 1261411869;
+
+        $r4[149] = -214912292;
+
+        $r4[150] = -330136051;
+
+        $r4[151] = -790380169;
+
+        $r4[152] = 1813426987;
+
+        $r4[153] = -1715900247;
+
+        $r4[154] = -95906799;
+
+        $r4[155] = 577038663;
+
+        $r4[156] = -997393240;
+
+        $r4[157] = 440397984;
+
+        $r4[158] = -668172970;
+
+        $r4[159] = -275762398;
+
+        $r4[160] = -951170681;
+
+        $r4[161] = -1043253031;
+
+        $r4[162] = -22885748;
+
+        $r4[163] = 906744984;
+
+        $r4[164] = -813566554;
+
+        $r4[165] = 685669029;
+
+        $r4[166] = 646887386;
+
+        $r4[167] = -1530942145;
+
+        $r4[168] = -459458004;
+
+        $r4[169] = 227702864;
+
+        $r4[170] = -1681105046;
+
+        $r4[171] = 1648787028;
+
+        $r4[172] = -1038905866;
+
+        $r4[173] = -390539120;
+
+        $r4[174] = 1593260334;
+
+        $r4[175] = -173030526;
+
+        $r4[176] = -1098883681;
+
+        $r4[177] = 2090061929;
+
+        $r4[178] = -1456614033;
+
+        $r4[179] = -1290656305;
+
+        $r4[180] = 999926984;
+
+        $r4[181] = -1484974064;
+
+        $r4[182] = 1852021992;
+
+        $r4[183] = 2075868123;
+
+        $r4[184] = 158869197;
+
+        $r4[185] = -199730834;
+
+        $r4[186] = 28809964;
+
+        $r4[187] = -1466282109;
+
+        $r4[188] = 1701746150;
+
+        $r4[189] = 2129067946;
+
+        $r4[190] = 147831841;
+
+        $r4[191] = -420997649;
+
+        $r4[192] = -644094022;
+
+        $r4[193] = -835293366;
+
+        $r4[194] = -737566742;
+
+        $r4[195] = -696471511;
+
+        $r4[196] = -1347247055;
+
+        $r4[197] = 824393514;
+
+        $r4[198] = 815048134;
+
+        $r4[199] = -1067015627;
+
+        $r4[200] = 935087732;
+
+        $r4[201] = -1496677636;
+
+        $r4[202] = -1328508704;
+
+        $r4[203] = 366520115;
+
+        $r4[204] = 1251476721;
+
+        $r4[205] = -136647615;
+
+        $r4[206] = 240176511;
+
+        $r4[207] = 804688151;
+
+        $r4[208] = -1915335306;
+
+        $r4[209] = 1303441219;
+
+        $r4[210] = 1414376140;
+
+        $r4[211] = -553347356;
+
+        $r4[212] = -474623586;
+
+        $r4[213] = 461924940;
+
+        $r4[214] = -1205916479;
+
+        $r4[215] = 2136040774;
+
+        $r4[216] = 82468509;
+
+        $r4[217] = 1563790337;
+
+        $r4[218] = 1937016826;
+
+        $r4[219] = 776014843;
+
+        $r4[220] = 1511876531;
+
+        $r4[221] = 1389550482;
+
+        $r4[222] = 861278441;
+
+        $r4[223] = 323475053;
+
+        $r4[224] = -1939744870;
+
+        $r4[225] = 2047648055;
+
+        $r4[226] = -1911228327;
+
+        $r4[227] = -1992551445;
+
+        $r4[228] = -299390514;
+
+        $r4[229] = 902390199;
+
+        $r4[230] = -303751967;
+
+        $r4[231] = 1018251130;
+
+        $r4[232] = 1507840668;
+
+        $r4[233] = 1064563285;
+
+        $r4[234] = 2043548696;
+
+        $r4[235] = -1086863501;
+
+        $r4[236] = -355600557;
+
+        $r4[237] = 1537932639;
+
+        $r4[238] = 342834655;
+
+        $r4[239] = -2032450440;
+
+        $r4[240] = -2114736182;
+
+        $r4[241] = 1053059257;
+
+        $r4[242] = 741614648;
+
+        $r4[243] = 1598071746;
+
+        $r4[244] = 1925389590;
+
+        $r4[245] = 203809468;
+
+        $r4[246] = -1958134744;
+
+        $r4[247] = 1100287487;
+
+        $r4[248] = 1895934009;
+
+        $r4[249] = -558691320;
+
+        $r4[250] = -1662733096;
+
+        $r4[251] = -1866377628;
+
+        $r4[252] = 1636092795;
+
+        $r4[253] = 1890988757;
+
+        $r4[254] = 1952214088;
+
+        $r4[255] = 1113045200;
+
+        <org.bouncycastle.crypto.engines.AESEngine: int[] Tinv0> = $r4;
+
+        return;
+    }
+}

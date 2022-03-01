@@ -1,0 +1,591 @@
+public final class org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter extends java.lang.Object implements java.io.Closeable
+{
+    static final int BLOCK_SIZE;
+    final org.apache.lucene.store.IndexOutput fieldsIndexOut;
+    int totalDocs;
+    int blockDocs;
+    int blockChunks;
+    long firstStartPointer;
+    long maxStartPointer;
+    final int[] docBaseDeltas;
+    final long[] startPointerDeltas;
+    static final boolean $assertionsDisabled;
+
+    static long moveSignToLowOrderBit(long)
+    {
+        long l0, $l1, $l2, $l3;
+
+        l0 := @parameter0: long;
+
+        $l2 = l0 >> 63;
+
+        $l1 = l0 << 1;
+
+        $l3 = $l2 ^ $l1;
+
+        return $l3;
+    }
+
+    void <init>(org.apache.lucene.store.IndexOutput) throws java.io.IOException
+    {
+        org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter r0;
+        long[] $r3;
+        int[] $r2;
+        org.apache.lucene.store.IndexOutput r1, $r4;
+
+        r0 := @this: org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter;
+
+        r1 := @parameter0: org.apache.lucene.store.IndexOutput;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: org.apache.lucene.store.IndexOutput fieldsIndexOut> = r1;
+
+        specialinvoke r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: void reset()>();
+
+        r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int totalDocs> = 0;
+
+        $r2 = newarray (int)[1024];
+
+        r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int[] docBaseDeltas> = $r2;
+
+        $r3 = newarray (long)[1024];
+
+        r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: long[] startPointerDeltas> = $r3;
+
+        $r4 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: org.apache.lucene.store.IndexOutput fieldsIndexOut>;
+
+        virtualinvoke $r4.<org.apache.lucene.store.IndexOutput: void writeVInt(int)>(1);
+
+        return;
+    }
+
+    private void reset()
+    {
+        org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter r0;
+
+        r0 := @this: org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter;
+
+        r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int blockChunks> = 0;
+
+        r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int blockDocs> = 0;
+
+        r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: long firstStartPointer> = -1L;
+
+        return;
+    }
+
+    private void writeBlock() throws java.io.IOException
+    {
+        org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter r0;
+        long $l15, $l17, $l18, $l21, $l22, $l26, $l27, $l28, l29, $l30, $l31, $l34, $l35, $l36, $l37, l40, $l41, $l43, $l47, $l48, l53, l59, l60, l61, l64, l65;
+        java.lang.AssertionError $r16, $r19, $r21;
+        org.apache.lucene.util.packed.PackedInts$Format $r6, $r12;
+        int[] $r2, $r18, $r20;
+        boolean $z0, $z1, $z2;
+        float $f0, $f1, $f2;
+        org.apache.lucene.util.packed.PackedInts$Writer $r8, $r14;
+        long[] $r15, $r17;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i10, $i11, $i12, $i13, $i14, $i16, $i19, $i20, $i23, $i24, $i25, $i32, $i33, $i38, $i39, $i42, $i44, $i45, $i46, $i49, $i50, i51, i52, i54, $i55, i56, i57, i58, i62, $i63, i66;
+        org.apache.lucene.store.IndexOutput $r1, $r3, $r4, $r5, $r7, $r9, $r10, $r11, $r13;
+
+        r0 := @this: org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter;
+
+        $z0 = <org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: boolean $assertionsDisabled>;
+
+        if $z0 != 0 goto label01;
+
+        $i50 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int blockChunks>;
+
+        if $i50 > 0 goto label01;
+
+        $r21 = new java.lang.AssertionError;
+
+        specialinvoke $r21.<java.lang.AssertionError: void <init>()>();
+
+        throw $r21;
+
+     label01:
+        $r1 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: org.apache.lucene.store.IndexOutput fieldsIndexOut>;
+
+        $i0 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int blockChunks>;
+
+        virtualinvoke $r1.<org.apache.lucene.store.IndexOutput: void writeVInt(int)>($i0);
+
+        $i1 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int blockChunks>;
+
+        if $i1 != 1 goto label02;
+
+        i51 = 0;
+
+        goto label03;
+
+     label02:
+        $i5 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int blockDocs>;
+
+        $r2 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int[] docBaseDeltas>;
+
+        $i2 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int blockChunks>;
+
+        $i3 = $i2 - 1;
+
+        $i4 = $r2[$i3];
+
+        $i6 = $i5 - $i4;
+
+        $f1 = (float) $i6;
+
+        $i7 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int blockChunks>;
+
+        $i8 = $i7 - 1;
+
+        $f0 = (float) $i8;
+
+        $f2 = $f1 / $f0;
+
+        i51 = staticinvoke <java.lang.Math: int round(float)>($f2);
+
+     label03:
+        $r3 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: org.apache.lucene.store.IndexOutput fieldsIndexOut>;
+
+        $i10 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int totalDocs>;
+
+        $i9 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int blockDocs>;
+
+        $i11 = $i10 - $i9;
+
+        virtualinvoke $r3.<org.apache.lucene.store.IndexOutput: void writeVInt(int)>($i11);
+
+        $r4 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: org.apache.lucene.store.IndexOutput fieldsIndexOut>;
+
+        virtualinvoke $r4.<org.apache.lucene.store.IndexOutput: void writeVInt(int)>(i51);
+
+        i52 = 0;
+
+        l53 = 0L;
+
+        i54 = 0;
+
+     label04:
+        $i55 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int blockChunks>;
+
+        if i54 >= $i55 goto label05;
+
+        $i46 = i51 * i54;
+
+        i56 = i52 - $i46;
+
+        $l47 = (long) i56;
+
+        $l48 = staticinvoke <org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: long moveSignToLowOrderBit(long)>($l47);
+
+        l53 = l53 | $l48;
+
+        $r20 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int[] docBaseDeltas>;
+
+        $i49 = $r20[i54];
+
+        i52 = i52 + $i49;
+
+        i54 = i54 + 1;
+
+        goto label04;
+
+     label05:
+        $i12 = staticinvoke <org.apache.lucene.util.packed.PackedInts: int bitsRequired(long)>(l53);
+
+        $r5 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: org.apache.lucene.store.IndexOutput fieldsIndexOut>;
+
+        virtualinvoke $r5.<org.apache.lucene.store.IndexOutput: void writeVInt(int)>($i12);
+
+        $r7 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: org.apache.lucene.store.IndexOutput fieldsIndexOut>;
+
+        $r6 = <org.apache.lucene.util.packed.PackedInts$Format: org.apache.lucene.util.packed.PackedInts$Format PACKED>;
+
+        $i13 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int blockChunks>;
+
+        $r8 = staticinvoke <org.apache.lucene.util.packed.PackedInts: org.apache.lucene.util.packed.PackedInts$Writer getWriterNoHeader(org.apache.lucene.store.DataOutput,org.apache.lucene.util.packed.PackedInts$Format,int,int,int)>($r7, $r6, $i13, $i12, 1);
+
+        i57 = 0;
+
+        i58 = 0;
+
+     label06:
+        $i14 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int blockChunks>;
+
+        if i58 >= $i14 goto label08;
+
+        $i38 = i51 * i58;
+
+        $i39 = i57 - $i38;
+
+        l40 = (long) $i39;
+
+        $z2 = <org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: boolean $assertionsDisabled>;
+
+        if $z2 != 0 goto label07;
+
+        $l43 = staticinvoke <org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: long moveSignToLowOrderBit(long)>(l40);
+
+        $i44 = staticinvoke <org.apache.lucene.util.packed.PackedInts: int bitsRequired(long)>($l43);
+
+        $i45 = virtualinvoke $r8.<org.apache.lucene.util.packed.PackedInts$Writer: int bitsPerValue()>();
+
+        if $i44 <= $i45 goto label07;
+
+        $r19 = new java.lang.AssertionError;
+
+        specialinvoke $r19.<java.lang.AssertionError: void <init>()>();
+
+        throw $r19;
+
+     label07:
+        $l41 = staticinvoke <org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: long moveSignToLowOrderBit(long)>(l40);
+
+        virtualinvoke $r8.<org.apache.lucene.util.packed.PackedInts$Writer: void add(long)>($l41);
+
+        $r18 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int[] docBaseDeltas>;
+
+        $i42 = $r18[i58];
+
+        i57 = i57 + $i42;
+
+        i58 = i58 + 1;
+
+        goto label06;
+
+     label08:
+        virtualinvoke $r8.<org.apache.lucene.util.packed.PackedInts$Writer: void finish()>();
+
+        $r9 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: org.apache.lucene.store.IndexOutput fieldsIndexOut>;
+
+        $l15 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: long firstStartPointer>;
+
+        virtualinvoke $r9.<org.apache.lucene.store.IndexOutput: void writeVLong(long)>($l15);
+
+        $i16 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int blockChunks>;
+
+        if $i16 != 1 goto label09;
+
+        l59 = 0L;
+
+        goto label10;
+
+     label09:
+        $l18 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: long maxStartPointer>;
+
+        $l17 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: long firstStartPointer>;
+
+        $l22 = $l18 - $l17;
+
+        $i19 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int blockChunks>;
+
+        $i20 = $i19 - 1;
+
+        $l21 = (long) $i20;
+
+        l59 = $l22 / $l21;
+
+     label10:
+        $r10 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: org.apache.lucene.store.IndexOutput fieldsIndexOut>;
+
+        virtualinvoke $r10.<org.apache.lucene.store.IndexOutput: void writeVLong(long)>(l59);
+
+        l60 = 0L;
+
+        l61 = 0L;
+
+        i62 = 0;
+
+     label11:
+        $i63 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int blockChunks>;
+
+        if i62 >= $i63 goto label12;
+
+        $r17 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: long[] startPointerDeltas>;
+
+        $l34 = $r17[i62];
+
+        l60 = l60 + $l34;
+
+        $l35 = (long) i62;
+
+        $l36 = l59 * $l35;
+
+        l64 = l60 - $l36;
+
+        $l37 = staticinvoke <org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: long moveSignToLowOrderBit(long)>(l64);
+
+        l61 = l61 | $l37;
+
+        i62 = i62 + 1;
+
+        goto label11;
+
+     label12:
+        $i23 = staticinvoke <org.apache.lucene.util.packed.PackedInts: int bitsRequired(long)>(l61);
+
+        $r11 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: org.apache.lucene.store.IndexOutput fieldsIndexOut>;
+
+        virtualinvoke $r11.<org.apache.lucene.store.IndexOutput: void writeVInt(int)>($i23);
+
+        $r13 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: org.apache.lucene.store.IndexOutput fieldsIndexOut>;
+
+        $r12 = <org.apache.lucene.util.packed.PackedInts$Format: org.apache.lucene.util.packed.PackedInts$Format PACKED>;
+
+        $i24 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int blockChunks>;
+
+        $r14 = staticinvoke <org.apache.lucene.util.packed.PackedInts: org.apache.lucene.util.packed.PackedInts$Writer getWriterNoHeader(org.apache.lucene.store.DataOutput,org.apache.lucene.util.packed.PackedInts$Format,int,int,int)>($r13, $r12, $i24, $i23, 1);
+
+        l65 = 0L;
+
+        i66 = 0;
+
+     label13:
+        $i25 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int blockChunks>;
+
+        if i66 >= $i25 goto label15;
+
+        $r15 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: long[] startPointerDeltas>;
+
+        $l26 = $r15[i66];
+
+        l65 = l65 + $l26;
+
+        $l27 = (long) i66;
+
+        $l28 = l59 * $l27;
+
+        l29 = l65 - $l28;
+
+        $z1 = <org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: boolean $assertionsDisabled>;
+
+        if $z1 != 0 goto label14;
+
+        $l31 = staticinvoke <org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: long moveSignToLowOrderBit(long)>(l29);
+
+        $i32 = staticinvoke <org.apache.lucene.util.packed.PackedInts: int bitsRequired(long)>($l31);
+
+        $i33 = virtualinvoke $r14.<org.apache.lucene.util.packed.PackedInts$Writer: int bitsPerValue()>();
+
+        if $i32 <= $i33 goto label14;
+
+        $r16 = new java.lang.AssertionError;
+
+        specialinvoke $r16.<java.lang.AssertionError: void <init>()>();
+
+        throw $r16;
+
+     label14:
+        $l30 = staticinvoke <org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: long moveSignToLowOrderBit(long)>(l29);
+
+        virtualinvoke $r14.<org.apache.lucene.util.packed.PackedInts$Writer: void add(long)>($l30);
+
+        i66 = i66 + 1;
+
+        goto label13;
+
+     label15:
+        virtualinvoke $r14.<org.apache.lucene.util.packed.PackedInts$Writer: void finish()>();
+
+        return;
+    }
+
+    void writeIndex(int, long) throws java.io.IOException
+    {
+        org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter r0;
+        long $l1, l5, $l6, $l7, $l15, $l17;
+        java.lang.AssertionError $r4;
+        long[] $r2;
+        byte $b2, $b16, $b18;
+        int[] $r1;
+        int $i0, i3, $i4, $i8, $i9, $i10, $i11, $i12, $i13, $i14, $i19, $i20;
+        boolean $z0;
+
+        r0 := @this: org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter;
+
+        i3 := @parameter0: int;
+
+        l5 := @parameter1: long;
+
+        $i0 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int blockChunks>;
+
+        if $i0 != 1024 goto label1;
+
+        specialinvoke r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: void writeBlock()>();
+
+        specialinvoke r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: void reset()>();
+
+     label1:
+        $l1 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: long firstStartPointer>;
+
+        $b2 = $l1 cmp -1L;
+
+        if $b2 != 0 goto label2;
+
+        r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: long maxStartPointer> = l5;
+
+        r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: long firstStartPointer> = l5;
+
+     label2:
+        $z0 = <org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: boolean $assertionsDisabled>;
+
+        if $z0 != 0 goto label4;
+
+        $l15 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: long firstStartPointer>;
+
+        $b16 = $l15 cmp 0L;
+
+        $i19 = (int) $b16;
+
+        if $i19 <= 0 goto label3;
+
+        $l17 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: long firstStartPointer>;
+
+        $b18 = l5 cmp $l17;
+
+        $i20 = (int) $b18;
+
+        if $i20 >= 0 goto label4;
+
+     label3:
+        $r4 = new java.lang.AssertionError;
+
+        specialinvoke $r4.<java.lang.AssertionError: void <init>()>();
+
+        throw $r4;
+
+     label4:
+        $r1 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int[] docBaseDeltas>;
+
+        $i4 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int blockChunks>;
+
+        $r1[$i4] = i3;
+
+        $r2 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: long[] startPointerDeltas>;
+
+        $i8 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int blockChunks>;
+
+        $l6 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: long maxStartPointer>;
+
+        $l7 = l5 - $l6;
+
+        $r2[$i8] = $l7;
+
+        $i9 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int blockChunks>;
+
+        $i10 = $i9 + 1;
+
+        r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int blockChunks> = $i10;
+
+        $i11 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int blockDocs>;
+
+        $i12 = $i11 + i3;
+
+        r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int blockDocs> = $i12;
+
+        $i13 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int totalDocs>;
+
+        $i14 = $i13 + i3;
+
+        r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int totalDocs> = $i14;
+
+        r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: long maxStartPointer> = l5;
+
+        return;
+    }
+
+    void finish(int) throws java.io.IOException
+    {
+        org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter r0;
+        java.lang.IllegalStateException $r2;
+        int i0, $i1, $i2, $i3;
+        java.lang.StringBuilder $r3, $r4, $r5, $r6, $r7;
+        java.lang.String $r8;
+        org.apache.lucene.store.IndexOutput $r1;
+
+        r0 := @this: org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter;
+
+        i0 := @parameter0: int;
+
+        $i1 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int totalDocs>;
+
+        if i0 == $i1 goto label1;
+
+        $r2 = new java.lang.IllegalStateException;
+
+        $r3 = new java.lang.StringBuilder;
+
+        specialinvoke $r3.<java.lang.StringBuilder: void <init>()>();
+
+        $r4 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Expected ");
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>(i0);
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" docs, but got ");
+
+        $i3 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int totalDocs>;
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i3);
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r2.<java.lang.IllegalStateException: void <init>(java.lang.String)>($r8);
+
+        throw $r2;
+
+     label1:
+        $i2 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int blockChunks>;
+
+        if $i2 <= 0 goto label2;
+
+        specialinvoke r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: void writeBlock()>();
+
+     label2:
+        $r1 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: org.apache.lucene.store.IndexOutput fieldsIndexOut>;
+
+        virtualinvoke $r1.<org.apache.lucene.store.IndexOutput: void writeVInt(int)>(0);
+
+        return;
+    }
+
+    public void close() throws java.io.IOException
+    {
+        org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter r0;
+        org.apache.lucene.store.IndexOutput $r1;
+
+        r0 := @this: org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter;
+
+        $r1 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: org.apache.lucene.store.IndexOutput fieldsIndexOut>;
+
+        virtualinvoke $r1.<org.apache.lucene.store.IndexOutput: void close()>();
+
+        return;
+    }
+
+    static void <clinit>()
+    {
+        java.lang.Class $r0;
+        boolean $z0, $z1;
+
+        <org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: int BLOCK_SIZE> = 1024;
+
+        $r0 = class "Lorg/apache/lucene/codecs/compressing/CompressingStoredFieldsIndexWriter;";
+
+        $z0 = virtualinvoke $r0.<java.lang.Class: boolean desiredAssertionStatus()>();
+
+        if $z0 != 0 goto label1;
+
+        $z1 = 1;
+
+        goto label2;
+
+     label1:
+        $z1 = 0;
+
+     label2:
+        <org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexWriter: boolean $assertionsDisabled> = $z1;
+
+        return;
+    }
+}

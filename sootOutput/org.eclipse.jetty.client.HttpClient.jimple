@@ -1,0 +1,1919 @@
+public class org.eclipse.jetty.client.HttpClient extends org.eclipse.jetty.util.component.AggregateLifeCycle implements org.eclipse.jetty.http.HttpBuffers, org.eclipse.jetty.util.Attributes, org.eclipse.jetty.util.component.Dumpable
+{
+    public static final int CONNECTOR_SOCKET;
+    public static final int CONNECTOR_SELECT_CHANNEL;
+    private int _connectorType;
+    private boolean _useDirectBuffers;
+    private boolean _connectBlocking;
+    private int _maxConnectionsPerAddress;
+    private int _maxQueueSizePerAddress;
+    private java.util.concurrent.ConcurrentMap _destinations;
+    org.eclipse.jetty.util.thread.ThreadPool _threadPool;
+    org.eclipse.jetty.client.HttpClient$Connector _connector;
+    private long _idleTimeout;
+    private long _timeout;
+    private int _connectTimeout;
+    private org.eclipse.jetty.util.thread.Timeout _timeoutQ;
+    private org.eclipse.jetty.util.thread.Timeout _idleTimeoutQ;
+    private org.eclipse.jetty.client.Address _proxy;
+    private org.eclipse.jetty.client.security.Authentication _proxyAuthentication;
+    private java.util.Set _noProxy;
+    private int _maxRetries;
+    private int _maxRedirects;
+    private java.util.LinkedList _registeredListeners;
+    private final org.eclipse.jetty.util.ssl.SslContextFactory _sslContextFactory;
+    private org.eclipse.jetty.client.security.RealmResolver _realmResolver;
+    private org.eclipse.jetty.util.AttributesMap _attributes;
+    private final org.eclipse.jetty.http.HttpBuffersImpl _buffers;
+
+    private void setBufferTypes()
+    {
+        org.eclipse.jetty.io.Buffers$Type $r1, $r4, $r7, $r9, $r11, $r13, $r15, $r16;
+        org.eclipse.jetty.client.HttpClient r0;
+        int $i0;
+        boolean $z0, $z1;
+        org.eclipse.jetty.http.HttpBuffersImpl $r2, $r3, $r5, $r6, $r8, $r10, $r12, $r14;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $i0 = r0.<org.eclipse.jetty.client.HttpClient: int _connectorType>;
+
+        if $i0 != 0 goto label1;
+
+        $r8 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.http.HttpBuffersImpl _buffers>;
+
+        $r7 = <org.eclipse.jetty.io.Buffers$Type: org.eclipse.jetty.io.Buffers$Type BYTE_ARRAY>;
+
+        virtualinvoke $r8.<org.eclipse.jetty.http.HttpBuffersImpl: void setRequestBufferType(org.eclipse.jetty.io.Buffers$Type)>($r7);
+
+        $r10 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.http.HttpBuffersImpl _buffers>;
+
+        $r9 = <org.eclipse.jetty.io.Buffers$Type: org.eclipse.jetty.io.Buffers$Type BYTE_ARRAY>;
+
+        virtualinvoke $r10.<org.eclipse.jetty.http.HttpBuffersImpl: void setRequestHeaderType(org.eclipse.jetty.io.Buffers$Type)>($r9);
+
+        $r12 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.http.HttpBuffersImpl _buffers>;
+
+        $r11 = <org.eclipse.jetty.io.Buffers$Type: org.eclipse.jetty.io.Buffers$Type BYTE_ARRAY>;
+
+        virtualinvoke $r12.<org.eclipse.jetty.http.HttpBuffersImpl: void setResponseBufferType(org.eclipse.jetty.io.Buffers$Type)>($r11);
+
+        $r14 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.http.HttpBuffersImpl _buffers>;
+
+        $r13 = <org.eclipse.jetty.io.Buffers$Type: org.eclipse.jetty.io.Buffers$Type BYTE_ARRAY>;
+
+        virtualinvoke $r14.<org.eclipse.jetty.http.HttpBuffersImpl: void setResponseHeaderType(org.eclipse.jetty.io.Buffers$Type)>($r13);
+
+        goto label6;
+
+     label1:
+        $r2 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.http.HttpBuffersImpl _buffers>;
+
+        $r1 = <org.eclipse.jetty.io.Buffers$Type: org.eclipse.jetty.io.Buffers$Type DIRECT>;
+
+        virtualinvoke $r2.<org.eclipse.jetty.http.HttpBuffersImpl: void setRequestBufferType(org.eclipse.jetty.io.Buffers$Type)>($r1);
+
+        $r3 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.http.HttpBuffersImpl _buffers>;
+
+        $z0 = r0.<org.eclipse.jetty.client.HttpClient: boolean _useDirectBuffers>;
+
+        if $z0 == 0 goto label2;
+
+        $r15 = <org.eclipse.jetty.io.Buffers$Type: org.eclipse.jetty.io.Buffers$Type DIRECT>;
+
+        goto label3;
+
+     label2:
+        $r15 = <org.eclipse.jetty.io.Buffers$Type: org.eclipse.jetty.io.Buffers$Type INDIRECT>;
+
+     label3:
+        virtualinvoke $r3.<org.eclipse.jetty.http.HttpBuffersImpl: void setRequestHeaderType(org.eclipse.jetty.io.Buffers$Type)>($r15);
+
+        $r5 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.http.HttpBuffersImpl _buffers>;
+
+        $r4 = <org.eclipse.jetty.io.Buffers$Type: org.eclipse.jetty.io.Buffers$Type DIRECT>;
+
+        virtualinvoke $r5.<org.eclipse.jetty.http.HttpBuffersImpl: void setResponseBufferType(org.eclipse.jetty.io.Buffers$Type)>($r4);
+
+        $r6 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.http.HttpBuffersImpl _buffers>;
+
+        $z1 = r0.<org.eclipse.jetty.client.HttpClient: boolean _useDirectBuffers>;
+
+        if $z1 == 0 goto label4;
+
+        $r16 = <org.eclipse.jetty.io.Buffers$Type: org.eclipse.jetty.io.Buffers$Type DIRECT>;
+
+        goto label5;
+
+     label4:
+        $r16 = <org.eclipse.jetty.io.Buffers$Type: org.eclipse.jetty.io.Buffers$Type INDIRECT>;
+
+     label5:
+        virtualinvoke $r6.<org.eclipse.jetty.http.HttpBuffersImpl: void setResponseHeaderType(org.eclipse.jetty.io.Buffers$Type)>($r16);
+
+     label6:
+        return;
+    }
+
+    public void <init>()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.util.ssl.SslContextFactory $r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = new org.eclipse.jetty.util.ssl.SslContextFactory;
+
+        specialinvoke $r1.<org.eclipse.jetty.util.ssl.SslContextFactory: void <init>()>();
+
+        specialinvoke r0.<org.eclipse.jetty.client.HttpClient: void <init>(org.eclipse.jetty.util.ssl.SslContextFactory)>($r1);
+
+        return;
+    }
+
+    public void <init>(org.eclipse.jetty.util.ssl.SslContextFactory)
+    {
+        org.eclipse.jetty.util.AttributesMap $r4;
+        org.eclipse.jetty.util.thread.Timeout $r2, $r3;
+        org.eclipse.jetty.util.ssl.SslContextFactory r6, $r7;
+        java.util.concurrent.ConcurrentHashMap $r1;
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.http.HttpBuffersImpl $r5, $r8;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        r6 := @parameter0: org.eclipse.jetty.util.ssl.SslContextFactory;
+
+        specialinvoke r0.<org.eclipse.jetty.util.component.AggregateLifeCycle: void <init>()>();
+
+        r0.<org.eclipse.jetty.client.HttpClient: int _connectorType> = 2;
+
+        r0.<org.eclipse.jetty.client.HttpClient: boolean _useDirectBuffers> = 1;
+
+        r0.<org.eclipse.jetty.client.HttpClient: boolean _connectBlocking> = 1;
+
+        r0.<org.eclipse.jetty.client.HttpClient: int _maxConnectionsPerAddress> = 2147483647;
+
+        r0.<org.eclipse.jetty.client.HttpClient: int _maxQueueSizePerAddress> = 2147483647;
+
+        $r1 = new java.util.concurrent.ConcurrentHashMap;
+
+        specialinvoke $r1.<java.util.concurrent.ConcurrentHashMap: void <init>()>();
+
+        r0.<org.eclipse.jetty.client.HttpClient: java.util.concurrent.ConcurrentMap _destinations> = $r1;
+
+        r0.<org.eclipse.jetty.client.HttpClient: long _idleTimeout> = 20000L;
+
+        r0.<org.eclipse.jetty.client.HttpClient: long _timeout> = 320000L;
+
+        r0.<org.eclipse.jetty.client.HttpClient: int _connectTimeout> = 75000;
+
+        $r2 = new org.eclipse.jetty.util.thread.Timeout;
+
+        specialinvoke $r2.<org.eclipse.jetty.util.thread.Timeout: void <init>()>();
+
+        r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.thread.Timeout _timeoutQ> = $r2;
+
+        $r3 = new org.eclipse.jetty.util.thread.Timeout;
+
+        specialinvoke $r3.<org.eclipse.jetty.util.thread.Timeout: void <init>()>();
+
+        r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.thread.Timeout _idleTimeoutQ> = $r3;
+
+        r0.<org.eclipse.jetty.client.HttpClient: int _maxRetries> = 3;
+
+        r0.<org.eclipse.jetty.client.HttpClient: int _maxRedirects> = 20;
+
+        $r4 = new org.eclipse.jetty.util.AttributesMap;
+
+        specialinvoke $r4.<org.eclipse.jetty.util.AttributesMap: void <init>()>();
+
+        r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.AttributesMap _attributes> = $r4;
+
+        $r5 = new org.eclipse.jetty.http.HttpBuffersImpl;
+
+        specialinvoke $r5.<org.eclipse.jetty.http.HttpBuffersImpl: void <init>()>();
+
+        r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.http.HttpBuffersImpl _buffers> = $r5;
+
+        r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.ssl.SslContextFactory _sslContextFactory> = r6;
+
+        $r7 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.ssl.SslContextFactory _sslContextFactory>;
+
+        virtualinvoke r0.<org.eclipse.jetty.client.HttpClient: boolean addBean(java.lang.Object)>($r7);
+
+        $r8 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.http.HttpBuffersImpl _buffers>;
+
+        virtualinvoke r0.<org.eclipse.jetty.client.HttpClient: boolean addBean(java.lang.Object)>($r8);
+
+        return;
+    }
+
+    public boolean isConnectBlocking()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $z0 = r0.<org.eclipse.jetty.client.HttpClient: boolean _connectBlocking>;
+
+        return $z0;
+    }
+
+    public void setConnectBlocking(boolean)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        boolean z0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        z0 := @parameter0: boolean;
+
+        r0.<org.eclipse.jetty.client.HttpClient: boolean _connectBlocking> = z0;
+
+        return;
+    }
+
+    public void send(org.eclipse.jetty.client.HttpExchange) throws java.io.IOException
+    {
+        org.eclipse.jetty.client.HttpClient r3;
+        org.eclipse.jetty.client.Address $r4;
+        org.eclipse.jetty.io.Buffer $r1, $r2;
+        org.eclipse.jetty.client.HttpExchange r0;
+        boolean $z0;
+        org.eclipse.jetty.client.HttpDestination $r5;
+
+        r3 := @this: org.eclipse.jetty.client.HttpClient;
+
+        r0 := @parameter0: org.eclipse.jetty.client.HttpExchange;
+
+        $r1 = <org.eclipse.jetty.http.HttpSchemes: org.eclipse.jetty.io.Buffer HTTPS_BUFFER>;
+
+        $r2 = virtualinvoke r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.io.Buffer getScheme()>();
+
+        $z0 = interfaceinvoke $r1.<org.eclipse.jetty.io.Buffer: boolean equalsIgnoreCase(org.eclipse.jetty.io.Buffer)>($r2);
+
+        virtualinvoke r0.<org.eclipse.jetty.client.HttpExchange: boolean setStatus(int)>(1);
+
+        $r4 = virtualinvoke r0.<org.eclipse.jetty.client.HttpExchange: org.eclipse.jetty.client.Address getAddress()>();
+
+        $r5 = virtualinvoke r3.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.client.HttpDestination getDestination(org.eclipse.jetty.client.Address,boolean)>($r4, $z0);
+
+        virtualinvoke $r5.<org.eclipse.jetty.client.HttpDestination: void send(org.eclipse.jetty.client.HttpExchange)>(r0);
+
+        return;
+    }
+
+    public org.eclipse.jetty.util.thread.ThreadPool getThreadPool()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.util.thread.ThreadPool $r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.thread.ThreadPool _threadPool>;
+
+        return $r1;
+    }
+
+    public void setThreadPool(org.eclipse.jetty.util.thread.ThreadPool)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.util.thread.ThreadPool $r1, r2, $r3;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        r2 := @parameter0: org.eclipse.jetty.util.thread.ThreadPool;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.thread.ThreadPool _threadPool>;
+
+        virtualinvoke r0.<org.eclipse.jetty.client.HttpClient: boolean removeBean(java.lang.Object)>($r1);
+
+        r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.thread.ThreadPool _threadPool> = r2;
+
+        $r3 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.thread.ThreadPool _threadPool>;
+
+        virtualinvoke r0.<org.eclipse.jetty.client.HttpClient: boolean addBean(java.lang.Object)>($r3);
+
+        return;
+    }
+
+    public java.lang.Object getAttribute(java.lang.String)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.util.AttributesMap $r2;
+        java.lang.Object $r3;
+        java.lang.String r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        r1 := @parameter0: java.lang.String;
+
+        $r2 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.AttributesMap _attributes>;
+
+        $r3 = virtualinvoke $r2.<org.eclipse.jetty.util.AttributesMap: java.lang.Object getAttribute(java.lang.String)>(r1);
+
+        return $r3;
+    }
+
+    public java.util.Enumeration getAttributeNames()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.util.AttributesMap $r1;
+        java.util.Enumeration $r2;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.AttributesMap _attributes>;
+
+        $r2 = virtualinvoke $r1.<org.eclipse.jetty.util.AttributesMap: java.util.Enumeration getAttributeNames()>();
+
+        return $r2;
+    }
+
+    public void removeAttribute(java.lang.String)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.util.AttributesMap $r2;
+        java.lang.String r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        r1 := @parameter0: java.lang.String;
+
+        $r2 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.AttributesMap _attributes>;
+
+        virtualinvoke $r2.<org.eclipse.jetty.util.AttributesMap: void removeAttribute(java.lang.String)>(r1);
+
+        return;
+    }
+
+    public void setAttribute(java.lang.String, java.lang.Object)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.util.AttributesMap $r3;
+        java.lang.Object r2;
+        java.lang.String r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        r1 := @parameter0: java.lang.String;
+
+        r2 := @parameter1: java.lang.Object;
+
+        $r3 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.AttributesMap _attributes>;
+
+        virtualinvoke $r3.<org.eclipse.jetty.util.AttributesMap: void setAttribute(java.lang.String,java.lang.Object)>(r1, r2);
+
+        return;
+    }
+
+    public void clearAttributes()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.util.AttributesMap $r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.AttributesMap _attributes>;
+
+        virtualinvoke $r1.<org.eclipse.jetty.util.AttributesMap: void clearAttributes()>();
+
+        return;
+    }
+
+    public org.eclipse.jetty.client.HttpDestination getDestination(org.eclipse.jetty.client.Address, boolean) throws java.io.IOException
+    {
+        org.eclipse.jetty.client.Address r0, $r5, $r7;
+        java.util.concurrent.ConcurrentMap $r2, $r14;
+        org.eclipse.jetty.client.HttpClient r1;
+        java.lang.String $r11;
+        org.eclipse.jetty.client.security.Authentication $r8, $r9;
+        org.eclipse.jetty.client.HttpDestination $r4, r13, $r16;
+        boolean z0, $z1;
+        java.util.Set $r6, $r10;
+        java.net.UnknownHostException $r12;
+        java.lang.Object $r3, $r15;
+
+        r1 := @this: org.eclipse.jetty.client.HttpClient;
+
+        r0 := @parameter0: org.eclipse.jetty.client.Address;
+
+        z0 := @parameter1: boolean;
+
+        if r0 != null goto label1;
+
+        $r12 = new java.net.UnknownHostException;
+
+        specialinvoke $r12.<java.net.UnknownHostException: void <init>(java.lang.String)>("Remote socket address cannot be null.");
+
+        throw $r12;
+
+     label1:
+        $r2 = r1.<org.eclipse.jetty.client.HttpClient: java.util.concurrent.ConcurrentMap _destinations>;
+
+        $r3 = interfaceinvoke $r2.<java.util.concurrent.ConcurrentMap: java.lang.Object get(java.lang.Object)>(r0);
+
+        r13 = (org.eclipse.jetty.client.HttpDestination) $r3;
+
+        if r13 != null goto label4;
+
+        $r4 = new org.eclipse.jetty.client.HttpDestination;
+
+        specialinvoke $r4.<org.eclipse.jetty.client.HttpDestination: void <init>(org.eclipse.jetty.client.HttpClient,org.eclipse.jetty.client.Address,boolean)>(r1, r0, z0);
+
+        r13 = $r4;
+
+        $r5 = r1.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.client.Address _proxy>;
+
+        if $r5 == null goto label3;
+
+        $r6 = r1.<org.eclipse.jetty.client.HttpClient: java.util.Set _noProxy>;
+
+        if $r6 == null goto label2;
+
+        $r10 = r1.<org.eclipse.jetty.client.HttpClient: java.util.Set _noProxy>;
+
+        $r11 = virtualinvoke r0.<org.eclipse.jetty.client.Address: java.lang.String getHost()>();
+
+        $z1 = interfaceinvoke $r10.<java.util.Set: boolean contains(java.lang.Object)>($r11);
+
+        if $z1 != 0 goto label3;
+
+     label2:
+        $r7 = r1.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.client.Address _proxy>;
+
+        virtualinvoke $r4.<org.eclipse.jetty.client.HttpDestination: void setProxy(org.eclipse.jetty.client.Address)>($r7);
+
+        $r8 = r1.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.client.security.Authentication _proxyAuthentication>;
+
+        if $r8 == null goto label3;
+
+        $r9 = r1.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.client.security.Authentication _proxyAuthentication>;
+
+        virtualinvoke $r4.<org.eclipse.jetty.client.HttpDestination: void setProxyAuthentication(org.eclipse.jetty.client.security.Authentication)>($r9);
+
+     label3:
+        $r14 = r1.<org.eclipse.jetty.client.HttpClient: java.util.concurrent.ConcurrentMap _destinations>;
+
+        $r15 = interfaceinvoke $r14.<java.util.concurrent.ConcurrentMap: java.lang.Object putIfAbsent(java.lang.Object,java.lang.Object)>(r0, $r4);
+
+        $r16 = (org.eclipse.jetty.client.HttpDestination) $r15;
+
+        if $r16 == null goto label4;
+
+        r13 = $r16;
+
+     label4:
+        return r13;
+    }
+
+    public void schedule(org.eclipse.jetty.util.thread.Timeout$Task)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.util.thread.Timeout$Task r1;
+        org.eclipse.jetty.util.thread.Timeout $r2;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        r1 := @parameter0: org.eclipse.jetty.util.thread.Timeout$Task;
+
+        $r2 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.thread.Timeout _timeoutQ>;
+
+        virtualinvoke $r2.<org.eclipse.jetty.util.thread.Timeout: void schedule(org.eclipse.jetty.util.thread.Timeout$Task)>(r1);
+
+        return;
+    }
+
+    public void schedule(org.eclipse.jetty.util.thread.Timeout$Task, long)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.util.thread.Timeout$Task r1;
+        org.eclipse.jetty.util.thread.Timeout $r2, $r3;
+        long l0, $l1, $l2;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        r1 := @parameter0: org.eclipse.jetty.util.thread.Timeout$Task;
+
+        l0 := @parameter1: long;
+
+        $r3 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.thread.Timeout _timeoutQ>;
+
+        $r2 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.thread.Timeout _timeoutQ>;
+
+        $l1 = virtualinvoke $r2.<org.eclipse.jetty.util.thread.Timeout: long getDuration()>();
+
+        $l2 = l0 - $l1;
+
+        virtualinvoke $r3.<org.eclipse.jetty.util.thread.Timeout: void schedule(org.eclipse.jetty.util.thread.Timeout$Task,long)>(r1, $l2);
+
+        return;
+    }
+
+    public void scheduleIdle(org.eclipse.jetty.util.thread.Timeout$Task)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.util.thread.Timeout$Task r1;
+        org.eclipse.jetty.util.thread.Timeout $r2;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        r1 := @parameter0: org.eclipse.jetty.util.thread.Timeout$Task;
+
+        $r2 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.thread.Timeout _idleTimeoutQ>;
+
+        virtualinvoke $r2.<org.eclipse.jetty.util.thread.Timeout: void schedule(org.eclipse.jetty.util.thread.Timeout$Task)>(r1);
+
+        return;
+    }
+
+    public void cancel(org.eclipse.jetty.util.thread.Timeout$Task)
+    {
+        org.eclipse.jetty.client.HttpClient r1;
+        org.eclipse.jetty.util.thread.Timeout$Task r0;
+
+        r1 := @this: org.eclipse.jetty.client.HttpClient;
+
+        r0 := @parameter0: org.eclipse.jetty.util.thread.Timeout$Task;
+
+        virtualinvoke r0.<org.eclipse.jetty.util.thread.Timeout$Task: void cancel()>();
+
+        return;
+    }
+
+    public boolean getUseDirectBuffers()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $z0 = r0.<org.eclipse.jetty.client.HttpClient: boolean _useDirectBuffers>;
+
+        return $z0;
+    }
+
+    public void setRealmResolver(org.eclipse.jetty.client.security.RealmResolver)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.client.security.RealmResolver r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        r1 := @parameter0: org.eclipse.jetty.client.security.RealmResolver;
+
+        r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.client.security.RealmResolver _realmResolver> = r1;
+
+        return;
+    }
+
+    public org.eclipse.jetty.client.security.RealmResolver getRealmResolver()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.client.security.RealmResolver $r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.client.security.RealmResolver _realmResolver>;
+
+        return $r1;
+    }
+
+    public boolean hasRealms()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.client.security.RealmResolver $r1;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.client.security.RealmResolver _realmResolver>;
+
+        if $r1 != null goto label1;
+
+        $z0 = 0;
+
+        goto label2;
+
+     label1:
+        $z0 = 1;
+
+     label2:
+        return $z0;
+    }
+
+    public void registerListener(java.lang.String)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        java.lang.String r2;
+        java.util.LinkedList $r1, $r3, $r4;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        r2 := @parameter0: java.lang.String;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: java.util.LinkedList _registeredListeners>;
+
+        if $r1 != null goto label1;
+
+        $r4 = new java.util.LinkedList;
+
+        specialinvoke $r4.<java.util.LinkedList: void <init>()>();
+
+        r0.<org.eclipse.jetty.client.HttpClient: java.util.LinkedList _registeredListeners> = $r4;
+
+     label1:
+        $r3 = r0.<org.eclipse.jetty.client.HttpClient: java.util.LinkedList _registeredListeners>;
+
+        virtualinvoke $r3.<java.util.LinkedList: boolean add(java.lang.Object)>(r2);
+
+        return;
+    }
+
+    public java.util.LinkedList getRegisteredListeners()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        java.util.LinkedList $r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: java.util.LinkedList _registeredListeners>;
+
+        return $r1;
+    }
+
+    public void setUseDirectBuffers(boolean)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        boolean z0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        z0 := @parameter0: boolean;
+
+        r0.<org.eclipse.jetty.client.HttpClient: boolean _useDirectBuffers> = z0;
+
+        specialinvoke r0.<org.eclipse.jetty.client.HttpClient: void setBufferTypes()>();
+
+        return;
+    }
+
+    public int getConnectorType()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        int $i0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $i0 = r0.<org.eclipse.jetty.client.HttpClient: int _connectorType>;
+
+        return $i0;
+    }
+
+    public void setConnectorType(int)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        int i0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        i0 := @parameter0: int;
+
+        r0.<org.eclipse.jetty.client.HttpClient: int _connectorType> = i0;
+
+        specialinvoke r0.<org.eclipse.jetty.client.HttpClient: void setBufferTypes()>();
+
+        return;
+    }
+
+    public int getMaxConnectionsPerAddress()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        int $i0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $i0 = r0.<org.eclipse.jetty.client.HttpClient: int _maxConnectionsPerAddress>;
+
+        return $i0;
+    }
+
+    public void setMaxConnectionsPerAddress(int)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        int i0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        i0 := @parameter0: int;
+
+        r0.<org.eclipse.jetty.client.HttpClient: int _maxConnectionsPerAddress> = i0;
+
+        return;
+    }
+
+    public int getMaxQueueSizePerAddress()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        int $i0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $i0 = r0.<org.eclipse.jetty.client.HttpClient: int _maxQueueSizePerAddress>;
+
+        return $i0;
+    }
+
+    public void setMaxQueueSizePerAddress(int)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        int i0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        i0 := @parameter0: int;
+
+        r0.<org.eclipse.jetty.client.HttpClient: int _maxQueueSizePerAddress> = i0;
+
+        return;
+    }
+
+    protected void doStart() throws java.lang.Exception
+    {
+        org.eclipse.jetty.client.HttpClient$Connector $r6, $r7, $r12;
+        org.eclipse.jetty.client.HttpClient$LocalQueuedThreadPool $r13;
+        long $l0, $l1;
+        org.eclipse.jetty.client.SelectConnector $r14;
+        org.eclipse.jetty.client.HttpClient r0;
+        int $i2;
+        org.eclipse.jetty.util.thread.Timeout $r1, $r2, $r3, $r4;
+        org.eclipse.jetty.util.thread.ThreadPool $r5, $r9, $r11;
+        org.eclipse.jetty.client.HttpClient$1 $r16;
+        org.eclipse.jetty.client.SocketConnector $r15;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        specialinvoke r0.<org.eclipse.jetty.client.HttpClient: void setBufferTypes()>();
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.thread.Timeout _timeoutQ>;
+
+        $l0 = r0.<org.eclipse.jetty.client.HttpClient: long _timeout>;
+
+        virtualinvoke $r1.<org.eclipse.jetty.util.thread.Timeout: void setDuration(long)>($l0);
+
+        $r2 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.thread.Timeout _timeoutQ>;
+
+        virtualinvoke $r2.<org.eclipse.jetty.util.thread.Timeout: long setNow()>();
+
+        $r3 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.thread.Timeout _idleTimeoutQ>;
+
+        $l1 = r0.<org.eclipse.jetty.client.HttpClient: long _idleTimeout>;
+
+        virtualinvoke $r3.<org.eclipse.jetty.util.thread.Timeout: void setDuration(long)>($l1);
+
+        $r4 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.thread.Timeout _idleTimeoutQ>;
+
+        virtualinvoke $r4.<org.eclipse.jetty.util.thread.Timeout: long setNow()>();
+
+        $r5 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.thread.ThreadPool _threadPool>;
+
+        if $r5 != null goto label1;
+
+        $r13 = new org.eclipse.jetty.client.HttpClient$LocalQueuedThreadPool;
+
+        specialinvoke $r13.<org.eclipse.jetty.client.HttpClient$LocalQueuedThreadPool: void <init>(org.eclipse.jetty.client.HttpClient$1)>(null);
+
+        virtualinvoke $r13.<org.eclipse.jetty.util.thread.QueuedThreadPool: void setMaxThreads(int)>(16);
+
+        virtualinvoke $r13.<org.eclipse.jetty.util.thread.QueuedThreadPool: void setDaemon(boolean)>(1);
+
+        virtualinvoke $r13.<org.eclipse.jetty.util.thread.QueuedThreadPool: void setName(java.lang.String)>("HttpClient");
+
+        r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.thread.ThreadPool _threadPool> = $r13;
+
+        $r11 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.thread.ThreadPool _threadPool>;
+
+        virtualinvoke r0.<org.eclipse.jetty.client.HttpClient: boolean addBean(java.lang.Object,boolean)>($r11, 1);
+
+     label1:
+        $i2 = r0.<org.eclipse.jetty.client.HttpClient: int _connectorType>;
+
+        if $i2 != 2 goto label2;
+
+        $r14 = new org.eclipse.jetty.client.SelectConnector;
+
+        $r12 = $r14;
+
+        specialinvoke $r14.<org.eclipse.jetty.client.SelectConnector: void <init>(org.eclipse.jetty.client.HttpClient)>(r0);
+
+        goto label3;
+
+     label2:
+        $r15 = new org.eclipse.jetty.client.SocketConnector;
+
+        $r12 = $r15;
+
+        specialinvoke $r15.<org.eclipse.jetty.client.SocketConnector: void <init>(org.eclipse.jetty.client.HttpClient)>(r0);
+
+     label3:
+        $r6 = (org.eclipse.jetty.client.HttpClient$Connector) $r12;
+
+        r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.client.HttpClient$Connector _connector> = $r6;
+
+        $r7 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.client.HttpClient$Connector _connector>;
+
+        virtualinvoke r0.<org.eclipse.jetty.client.HttpClient: boolean addBean(java.lang.Object,boolean)>($r7, 1);
+
+        specialinvoke r0.<org.eclipse.jetty.util.component.AggregateLifeCycle: void doStart()>();
+
+        $r9 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.thread.ThreadPool _threadPool>;
+
+        $r16 = new org.eclipse.jetty.client.HttpClient$1;
+
+        specialinvoke $r16.<org.eclipse.jetty.client.HttpClient$1: void <init>(org.eclipse.jetty.client.HttpClient)>(r0);
+
+        interfaceinvoke $r9.<org.eclipse.jetty.util.thread.ThreadPool: boolean dispatch(java.lang.Runnable)>($r16);
+
+        return;
+    }
+
+    protected void doStop() throws java.lang.Exception
+    {
+        org.eclipse.jetty.client.HttpClient$Connector $r7;
+        java.util.Iterator $r3;
+        org.eclipse.jetty.util.thread.Timeout $r4, $r5;
+        java.util.Collection $r2;
+        java.util.concurrent.ConcurrentMap $r1;
+        org.eclipse.jetty.util.thread.ThreadPool $r6, $r8;
+        org.eclipse.jetty.client.HttpClient r0;
+        java.lang.Object $r9;
+        boolean $z0, $z1;
+        org.eclipse.jetty.client.HttpDestination r10;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: java.util.concurrent.ConcurrentMap _destinations>;
+
+        $r2 = interfaceinvoke $r1.<java.util.concurrent.ConcurrentMap: java.util.Collection values()>();
+
+        $r3 = interfaceinvoke $r2.<java.util.Collection: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r3.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label2;
+
+        $r9 = interfaceinvoke $r3.<java.util.Iterator: java.lang.Object next()>();
+
+        r10 = (org.eclipse.jetty.client.HttpDestination) $r9;
+
+        virtualinvoke r10.<org.eclipse.jetty.client.HttpDestination: void close()>();
+
+        goto label1;
+
+     label2:
+        $r4 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.thread.Timeout _timeoutQ>;
+
+        virtualinvoke $r4.<org.eclipse.jetty.util.thread.Timeout: void cancelAll()>();
+
+        $r5 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.thread.Timeout _idleTimeoutQ>;
+
+        virtualinvoke $r5.<org.eclipse.jetty.util.thread.Timeout: void cancelAll()>();
+
+        specialinvoke r0.<org.eclipse.jetty.util.component.AggregateLifeCycle: void doStop()>();
+
+        $r6 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.thread.ThreadPool _threadPool>;
+
+        $z1 = $r6 instanceof org.eclipse.jetty.client.HttpClient$LocalQueuedThreadPool;
+
+        if $z1 == 0 goto label3;
+
+        $r8 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.thread.ThreadPool _threadPool>;
+
+        virtualinvoke r0.<org.eclipse.jetty.client.HttpClient: boolean removeBean(java.lang.Object)>($r8);
+
+        r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.thread.ThreadPool _threadPool> = null;
+
+     label3:
+        $r7 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.client.HttpClient$Connector _connector>;
+
+        virtualinvoke r0.<org.eclipse.jetty.client.HttpClient: boolean removeBean(java.lang.Object)>($r7);
+
+        return;
+    }
+
+    protected javax.net.ssl.SSLContext getSSLContext()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        javax.net.ssl.SSLContext $r2;
+        org.eclipse.jetty.util.ssl.SslContextFactory $r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.ssl.SslContextFactory _sslContextFactory>;
+
+        $r2 = virtualinvoke $r1.<org.eclipse.jetty.util.ssl.SslContextFactory: javax.net.ssl.SSLContext getSslContext()>();
+
+        return $r2;
+    }
+
+    public org.eclipse.jetty.util.ssl.SslContextFactory getSslContextFactory()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.util.ssl.SslContextFactory $r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.ssl.SslContextFactory _sslContextFactory>;
+
+        return $r1;
+    }
+
+    public long getIdleTimeout()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        long $l0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $l0 = r0.<org.eclipse.jetty.client.HttpClient: long _idleTimeout>;
+
+        return $l0;
+    }
+
+    public void setIdleTimeout(long)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        long l0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        l0 := @parameter0: long;
+
+        r0.<org.eclipse.jetty.client.HttpClient: long _idleTimeout> = l0;
+
+        return;
+    }
+
+    public int getSoTimeout()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        java.lang.Long $r1;
+        int $i1;
+        long $l0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $l0 = virtualinvoke r0.<org.eclipse.jetty.client.HttpClient: long getTimeout()>();
+
+        $r1 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l0);
+
+        $i1 = virtualinvoke $r1.<java.lang.Long: int intValue()>();
+
+        return $i1;
+    }
+
+    public void setSoTimeout(int)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        int i0;
+        long $l1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        i0 := @parameter0: int;
+
+        $l1 = (long) i0;
+
+        virtualinvoke r0.<org.eclipse.jetty.client.HttpClient: void setTimeout(long)>($l1);
+
+        return;
+    }
+
+    public long getTimeout()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        long $l0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $l0 = r0.<org.eclipse.jetty.client.HttpClient: long _timeout>;
+
+        return $l0;
+    }
+
+    public void setTimeout(long)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        long l0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        l0 := @parameter0: long;
+
+        r0.<org.eclipse.jetty.client.HttpClient: long _timeout> = l0;
+
+        return;
+    }
+
+    public int getConnectTimeout()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        int $i0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $i0 = r0.<org.eclipse.jetty.client.HttpClient: int _connectTimeout>;
+
+        return $i0;
+    }
+
+    public void setConnectTimeout(int)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        int i0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        i0 := @parameter0: int;
+
+        r0.<org.eclipse.jetty.client.HttpClient: int _connectTimeout> = i0;
+
+        return;
+    }
+
+    public org.eclipse.jetty.client.Address getProxy()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.client.Address $r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.client.Address _proxy>;
+
+        return $r1;
+    }
+
+    public void setProxy(org.eclipse.jetty.client.Address)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.client.Address r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        r1 := @parameter0: org.eclipse.jetty.client.Address;
+
+        r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.client.Address _proxy> = r1;
+
+        return;
+    }
+
+    public org.eclipse.jetty.client.security.Authentication getProxyAuthentication()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.client.security.Authentication $r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.client.security.Authentication _proxyAuthentication>;
+
+        return $r1;
+    }
+
+    public void setProxyAuthentication(org.eclipse.jetty.client.security.Authentication)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.client.security.Authentication r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        r1 := @parameter0: org.eclipse.jetty.client.security.Authentication;
+
+        r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.client.security.Authentication _proxyAuthentication> = r1;
+
+        return;
+    }
+
+    public boolean isProxied()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.client.Address $r1;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.client.Address _proxy>;
+
+        if $r1 == null goto label1;
+
+        $z0 = 1;
+
+        goto label2;
+
+     label1:
+        $z0 = 0;
+
+     label2:
+        return $z0;
+    }
+
+    public java.util.Set getNoProxy()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        java.util.Set $r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: java.util.Set _noProxy>;
+
+        return $r1;
+    }
+
+    public void setNoProxy(java.util.Set)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        java.util.Set r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        r1 := @parameter0: java.util.Set;
+
+        r0.<org.eclipse.jetty.client.HttpClient: java.util.Set _noProxy> = r1;
+
+        return;
+    }
+
+    public int maxRetries()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        int $i0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $i0 = r0.<org.eclipse.jetty.client.HttpClient: int _maxRetries>;
+
+        return $i0;
+    }
+
+    public void setMaxRetries(int)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        int i0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        i0 := @parameter0: int;
+
+        r0.<org.eclipse.jetty.client.HttpClient: int _maxRetries> = i0;
+
+        return;
+    }
+
+    public int maxRedirects()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        int $i0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $i0 = r0.<org.eclipse.jetty.client.HttpClient: int _maxRedirects>;
+
+        return $i0;
+    }
+
+    public void setMaxRedirects(int)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        int i0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        i0 := @parameter0: int;
+
+        r0.<org.eclipse.jetty.client.HttpClient: int _maxRedirects> = i0;
+
+        return;
+    }
+
+    public int getRequestBufferSize()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.http.HttpBuffersImpl $r1;
+        int $i0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.http.HttpBuffersImpl _buffers>;
+
+        $i0 = virtualinvoke $r1.<org.eclipse.jetty.http.HttpBuffersImpl: int getRequestBufferSize()>();
+
+        return $i0;
+    }
+
+    public void setRequestBufferSize(int)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        int i0;
+        org.eclipse.jetty.http.HttpBuffersImpl $r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        i0 := @parameter0: int;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.http.HttpBuffersImpl _buffers>;
+
+        virtualinvoke $r1.<org.eclipse.jetty.http.HttpBuffersImpl: void setRequestBufferSize(int)>(i0);
+
+        return;
+    }
+
+    public int getRequestHeaderSize()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.http.HttpBuffersImpl $r1;
+        int $i0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.http.HttpBuffersImpl _buffers>;
+
+        $i0 = virtualinvoke $r1.<org.eclipse.jetty.http.HttpBuffersImpl: int getRequestHeaderSize()>();
+
+        return $i0;
+    }
+
+    public void setRequestHeaderSize(int)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        int i0;
+        org.eclipse.jetty.http.HttpBuffersImpl $r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        i0 := @parameter0: int;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.http.HttpBuffersImpl _buffers>;
+
+        virtualinvoke $r1.<org.eclipse.jetty.http.HttpBuffersImpl: void setRequestHeaderSize(int)>(i0);
+
+        return;
+    }
+
+    public int getResponseBufferSize()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.http.HttpBuffersImpl $r1;
+        int $i0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.http.HttpBuffersImpl _buffers>;
+
+        $i0 = virtualinvoke $r1.<org.eclipse.jetty.http.HttpBuffersImpl: int getResponseBufferSize()>();
+
+        return $i0;
+    }
+
+    public void setResponseBufferSize(int)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        int i0;
+        org.eclipse.jetty.http.HttpBuffersImpl $r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        i0 := @parameter0: int;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.http.HttpBuffersImpl _buffers>;
+
+        virtualinvoke $r1.<org.eclipse.jetty.http.HttpBuffersImpl: void setResponseBufferSize(int)>(i0);
+
+        return;
+    }
+
+    public int getResponseHeaderSize()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.http.HttpBuffersImpl $r1;
+        int $i0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.http.HttpBuffersImpl _buffers>;
+
+        $i0 = virtualinvoke $r1.<org.eclipse.jetty.http.HttpBuffersImpl: int getResponseHeaderSize()>();
+
+        return $i0;
+    }
+
+    public void setResponseHeaderSize(int)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        int i0;
+        org.eclipse.jetty.http.HttpBuffersImpl $r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        i0 := @parameter0: int;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.http.HttpBuffersImpl _buffers>;
+
+        virtualinvoke $r1.<org.eclipse.jetty.http.HttpBuffersImpl: void setResponseHeaderSize(int)>(i0);
+
+        return;
+    }
+
+    public org.eclipse.jetty.io.Buffers$Type getRequestBufferType()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.http.HttpBuffersImpl $r1;
+        org.eclipse.jetty.io.Buffers$Type $r2;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.http.HttpBuffersImpl _buffers>;
+
+        $r2 = virtualinvoke $r1.<org.eclipse.jetty.http.HttpBuffersImpl: org.eclipse.jetty.io.Buffers$Type getRequestBufferType()>();
+
+        return $r2;
+    }
+
+    public org.eclipse.jetty.io.Buffers$Type getRequestHeaderType()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.http.HttpBuffersImpl $r1;
+        org.eclipse.jetty.io.Buffers$Type $r2;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.http.HttpBuffersImpl _buffers>;
+
+        $r2 = virtualinvoke $r1.<org.eclipse.jetty.http.HttpBuffersImpl: org.eclipse.jetty.io.Buffers$Type getRequestHeaderType()>();
+
+        return $r2;
+    }
+
+    public org.eclipse.jetty.io.Buffers$Type getResponseBufferType()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.http.HttpBuffersImpl $r1;
+        org.eclipse.jetty.io.Buffers$Type $r2;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.http.HttpBuffersImpl _buffers>;
+
+        $r2 = virtualinvoke $r1.<org.eclipse.jetty.http.HttpBuffersImpl: org.eclipse.jetty.io.Buffers$Type getResponseBufferType()>();
+
+        return $r2;
+    }
+
+    public org.eclipse.jetty.io.Buffers$Type getResponseHeaderType()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.http.HttpBuffersImpl $r1;
+        org.eclipse.jetty.io.Buffers$Type $r2;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.http.HttpBuffersImpl _buffers>;
+
+        $r2 = virtualinvoke $r1.<org.eclipse.jetty.http.HttpBuffersImpl: org.eclipse.jetty.io.Buffers$Type getResponseHeaderType()>();
+
+        return $r2;
+    }
+
+    public void setRequestBuffers(org.eclipse.jetty.io.Buffers)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.http.HttpBuffersImpl $r2;
+        org.eclipse.jetty.io.Buffers r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        r1 := @parameter0: org.eclipse.jetty.io.Buffers;
+
+        $r2 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.http.HttpBuffersImpl _buffers>;
+
+        virtualinvoke $r2.<org.eclipse.jetty.http.HttpBuffersImpl: void setRequestBuffers(org.eclipse.jetty.io.Buffers)>(r1);
+
+        return;
+    }
+
+    public void setResponseBuffers(org.eclipse.jetty.io.Buffers)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.http.HttpBuffersImpl $r2;
+        org.eclipse.jetty.io.Buffers r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        r1 := @parameter0: org.eclipse.jetty.io.Buffers;
+
+        $r2 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.http.HttpBuffersImpl _buffers>;
+
+        virtualinvoke $r2.<org.eclipse.jetty.http.HttpBuffersImpl: void setResponseBuffers(org.eclipse.jetty.io.Buffers)>(r1);
+
+        return;
+    }
+
+    public org.eclipse.jetty.io.Buffers getRequestBuffers()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.http.HttpBuffersImpl $r1;
+        org.eclipse.jetty.io.Buffers $r2;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.http.HttpBuffersImpl _buffers>;
+
+        $r2 = virtualinvoke $r1.<org.eclipse.jetty.http.HttpBuffersImpl: org.eclipse.jetty.io.Buffers getRequestBuffers()>();
+
+        return $r2;
+    }
+
+    public org.eclipse.jetty.io.Buffers getResponseBuffers()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.http.HttpBuffersImpl $r1;
+        org.eclipse.jetty.io.Buffers $r2;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.http.HttpBuffersImpl _buffers>;
+
+        $r2 = virtualinvoke $r1.<org.eclipse.jetty.http.HttpBuffersImpl: org.eclipse.jetty.io.Buffers getResponseBuffers()>();
+
+        return $r2;
+    }
+
+    public void setMaxBuffers(int)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        int i0;
+        org.eclipse.jetty.http.HttpBuffersImpl $r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        i0 := @parameter0: int;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.http.HttpBuffersImpl _buffers>;
+
+        virtualinvoke $r1.<org.eclipse.jetty.http.HttpBuffersImpl: void setMaxBuffers(int)>(i0);
+
+        return;
+    }
+
+    public int getMaxBuffers()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.http.HttpBuffersImpl $r1;
+        int $i0;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.http.HttpBuffersImpl _buffers>;
+
+        $i0 = virtualinvoke $r1.<org.eclipse.jetty.http.HttpBuffersImpl: int getMaxBuffers()>();
+
+        return $i0;
+    }
+
+    public java.lang.String getTrustStoreLocation()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        java.lang.String $r2;
+        org.eclipse.jetty.util.ssl.SslContextFactory $r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.ssl.SslContextFactory _sslContextFactory>;
+
+        $r2 = virtualinvoke $r1.<org.eclipse.jetty.util.ssl.SslContextFactory: java.lang.String getTrustStore()>();
+
+        return $r2;
+    }
+
+    public void setTrustStoreLocation(java.lang.String)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        java.lang.String r1;
+        org.eclipse.jetty.util.ssl.SslContextFactory $r2;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        r1 := @parameter0: java.lang.String;
+
+        $r2 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.ssl.SslContextFactory _sslContextFactory>;
+
+        virtualinvoke $r2.<org.eclipse.jetty.util.ssl.SslContextFactory: void setTrustStore(java.lang.String)>(r1);
+
+        return;
+    }
+
+    public java.io.InputStream getTrustStoreInputStream()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.util.ssl.SslContextFactory $r1;
+        java.io.InputStream $r2;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.ssl.SslContextFactory _sslContextFactory>;
+
+        $r2 = virtualinvoke $r1.<org.eclipse.jetty.util.ssl.SslContextFactory: java.io.InputStream getTrustStoreInputStream()>();
+
+        return $r2;
+    }
+
+    public void setTrustStoreInputStream(java.io.InputStream)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.util.ssl.SslContextFactory $r2;
+        java.io.InputStream r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        r1 := @parameter0: java.io.InputStream;
+
+        $r2 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.ssl.SslContextFactory _sslContextFactory>;
+
+        virtualinvoke $r2.<org.eclipse.jetty.util.ssl.SslContextFactory: void setTrustStoreInputStream(java.io.InputStream)>(r1);
+
+        return;
+    }
+
+    public java.lang.String getKeyStoreLocation()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        java.lang.String $r2;
+        org.eclipse.jetty.util.ssl.SslContextFactory $r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.ssl.SslContextFactory _sslContextFactory>;
+
+        $r2 = virtualinvoke $r1.<org.eclipse.jetty.util.ssl.SslContextFactory: java.lang.String getKeyStorePath()>();
+
+        return $r2;
+    }
+
+    public void setKeyStoreLocation(java.lang.String)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        java.lang.String r1;
+        org.eclipse.jetty.util.ssl.SslContextFactory $r2;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        r1 := @parameter0: java.lang.String;
+
+        $r2 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.ssl.SslContextFactory _sslContextFactory>;
+
+        virtualinvoke $r2.<org.eclipse.jetty.util.ssl.SslContextFactory: void setKeyStorePath(java.lang.String)>(r1);
+
+        return;
+    }
+
+    public java.io.InputStream getKeyStoreInputStream()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.util.ssl.SslContextFactory $r1;
+        java.io.InputStream $r2;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.ssl.SslContextFactory _sslContextFactory>;
+
+        $r2 = virtualinvoke $r1.<org.eclipse.jetty.util.ssl.SslContextFactory: java.io.InputStream getKeyStoreInputStream()>();
+
+        return $r2;
+    }
+
+    public void setKeyStoreInputStream(java.io.InputStream)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.util.ssl.SslContextFactory $r2;
+        java.io.InputStream r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        r1 := @parameter0: java.io.InputStream;
+
+        $r2 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.ssl.SslContextFactory _sslContextFactory>;
+
+        virtualinvoke $r2.<org.eclipse.jetty.util.ssl.SslContextFactory: void setKeyStoreInputStream(java.io.InputStream)>(r1);
+
+        return;
+    }
+
+    public void setKeyStorePassword(java.lang.String)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        java.lang.String r1;
+        org.eclipse.jetty.util.ssl.SslContextFactory $r2;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        r1 := @parameter0: java.lang.String;
+
+        $r2 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.ssl.SslContextFactory _sslContextFactory>;
+
+        virtualinvoke $r2.<org.eclipse.jetty.util.ssl.SslContextFactory: void setKeyStorePassword(java.lang.String)>(r1);
+
+        return;
+    }
+
+    public void setKeyManagerPassword(java.lang.String)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        java.lang.String r1;
+        org.eclipse.jetty.util.ssl.SslContextFactory $r2;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        r1 := @parameter0: java.lang.String;
+
+        $r2 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.ssl.SslContextFactory _sslContextFactory>;
+
+        virtualinvoke $r2.<org.eclipse.jetty.util.ssl.SslContextFactory: void setKeyManagerPassword(java.lang.String)>(r1);
+
+        return;
+    }
+
+    public void setTrustStorePassword(java.lang.String)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        java.lang.String r1;
+        org.eclipse.jetty.util.ssl.SslContextFactory $r2;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        r1 := @parameter0: java.lang.String;
+
+        $r2 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.ssl.SslContextFactory _sslContextFactory>;
+
+        virtualinvoke $r2.<org.eclipse.jetty.util.ssl.SslContextFactory: void setTrustStorePassword(java.lang.String)>(r1);
+
+        return;
+    }
+
+    public java.lang.String getKeyStoreType()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        java.lang.String $r2;
+        org.eclipse.jetty.util.ssl.SslContextFactory $r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.ssl.SslContextFactory _sslContextFactory>;
+
+        $r2 = virtualinvoke $r1.<org.eclipse.jetty.util.ssl.SslContextFactory: java.lang.String getKeyStoreType()>();
+
+        return $r2;
+    }
+
+    public void setKeyStoreType(java.lang.String)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        java.lang.String r1;
+        org.eclipse.jetty.util.ssl.SslContextFactory $r2;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        r1 := @parameter0: java.lang.String;
+
+        $r2 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.ssl.SslContextFactory _sslContextFactory>;
+
+        virtualinvoke $r2.<org.eclipse.jetty.util.ssl.SslContextFactory: void setKeyStoreType(java.lang.String)>(r1);
+
+        return;
+    }
+
+    public java.lang.String getTrustStoreType()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        java.lang.String $r2;
+        org.eclipse.jetty.util.ssl.SslContextFactory $r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.ssl.SslContextFactory _sslContextFactory>;
+
+        $r2 = virtualinvoke $r1.<org.eclipse.jetty.util.ssl.SslContextFactory: java.lang.String getTrustStoreType()>();
+
+        return $r2;
+    }
+
+    public void setTrustStoreType(java.lang.String)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        java.lang.String r1;
+        org.eclipse.jetty.util.ssl.SslContextFactory $r2;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        r1 := @parameter0: java.lang.String;
+
+        $r2 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.ssl.SslContextFactory _sslContextFactory>;
+
+        virtualinvoke $r2.<org.eclipse.jetty.util.ssl.SslContextFactory: void setTrustStoreType(java.lang.String)>(r1);
+
+        return;
+    }
+
+    public java.lang.String getKeyManagerAlgorithm()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        java.lang.String $r2;
+        org.eclipse.jetty.util.ssl.SslContextFactory $r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.ssl.SslContextFactory _sslContextFactory>;
+
+        $r2 = virtualinvoke $r1.<org.eclipse.jetty.util.ssl.SslContextFactory: java.lang.String getSslKeyManagerFactoryAlgorithm()>();
+
+        return $r2;
+    }
+
+    public void setKeyManagerAlgorithm(java.lang.String)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        java.lang.String r1;
+        org.eclipse.jetty.util.ssl.SslContextFactory $r2;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        r1 := @parameter0: java.lang.String;
+
+        $r2 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.ssl.SslContextFactory _sslContextFactory>;
+
+        virtualinvoke $r2.<org.eclipse.jetty.util.ssl.SslContextFactory: void setSslKeyManagerFactoryAlgorithm(java.lang.String)>(r1);
+
+        return;
+    }
+
+    public java.lang.String getTrustManagerAlgorithm()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        java.lang.String $r2;
+        org.eclipse.jetty.util.ssl.SslContextFactory $r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.ssl.SslContextFactory _sslContextFactory>;
+
+        $r2 = virtualinvoke $r1.<org.eclipse.jetty.util.ssl.SslContextFactory: java.lang.String getTrustManagerFactoryAlgorithm()>();
+
+        return $r2;
+    }
+
+    public void setTrustManagerAlgorithm(java.lang.String)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        java.lang.String r1;
+        org.eclipse.jetty.util.ssl.SslContextFactory $r2;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        r1 := @parameter0: java.lang.String;
+
+        $r2 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.ssl.SslContextFactory _sslContextFactory>;
+
+        virtualinvoke $r2.<org.eclipse.jetty.util.ssl.SslContextFactory: void setTrustManagerFactoryAlgorithm(java.lang.String)>(r1);
+
+        return;
+    }
+
+    public java.lang.String getProtocol()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        java.lang.String $r2;
+        org.eclipse.jetty.util.ssl.SslContextFactory $r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.ssl.SslContextFactory _sslContextFactory>;
+
+        $r2 = virtualinvoke $r1.<org.eclipse.jetty.util.ssl.SslContextFactory: java.lang.String getProtocol()>();
+
+        return $r2;
+    }
+
+    public void setProtocol(java.lang.String)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        java.lang.String r1;
+        org.eclipse.jetty.util.ssl.SslContextFactory $r2;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        r1 := @parameter0: java.lang.String;
+
+        $r2 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.ssl.SslContextFactory _sslContextFactory>;
+
+        virtualinvoke $r2.<org.eclipse.jetty.util.ssl.SslContextFactory: void setProtocol(java.lang.String)>(r1);
+
+        return;
+    }
+
+    public java.lang.String getProvider()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        java.lang.String $r2;
+        org.eclipse.jetty.util.ssl.SslContextFactory $r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.ssl.SslContextFactory _sslContextFactory>;
+
+        $r2 = virtualinvoke $r1.<org.eclipse.jetty.util.ssl.SslContextFactory: java.lang.String getProvider()>();
+
+        return $r2;
+    }
+
+    public void setProvider(java.lang.String)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        java.lang.String r1;
+        org.eclipse.jetty.util.ssl.SslContextFactory $r2;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        r1 := @parameter0: java.lang.String;
+
+        $r2 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.ssl.SslContextFactory _sslContextFactory>;
+
+        virtualinvoke $r2.<org.eclipse.jetty.util.ssl.SslContextFactory: void setProvider(java.lang.String)>(r1);
+
+        return;
+    }
+
+    public java.lang.String getSecureRandomAlgorithm()
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        java.lang.String $r2;
+        org.eclipse.jetty.util.ssl.SslContextFactory $r1;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.ssl.SslContextFactory _sslContextFactory>;
+
+        $r2 = virtualinvoke $r1.<org.eclipse.jetty.util.ssl.SslContextFactory: java.lang.String getSecureRandomAlgorithm()>();
+
+        return $r2;
+    }
+
+    public void setSecureRandomAlgorithm(java.lang.String)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        java.lang.String r1;
+        org.eclipse.jetty.util.ssl.SslContextFactory $r2;
+
+        r0 := @this: org.eclipse.jetty.client.HttpClient;
+
+        r1 := @parameter0: java.lang.String;
+
+        $r2 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.ssl.SslContextFactory _sslContextFactory>;
+
+        virtualinvoke $r2.<org.eclipse.jetty.util.ssl.SslContextFactory: void setSecureRandomAlgorithm(java.lang.String)>(r1);
+
+        return;
+    }
+
+    static org.eclipse.jetty.util.thread.Timeout access$100(org.eclipse.jetty.client.HttpClient)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.util.thread.Timeout $r1;
+
+        r0 := @parameter0: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.thread.Timeout _timeoutQ>;
+
+        return $r1;
+    }
+
+    static org.eclipse.jetty.util.thread.Timeout access$200(org.eclipse.jetty.client.HttpClient)
+    {
+        org.eclipse.jetty.client.HttpClient r0;
+        org.eclipse.jetty.util.thread.Timeout $r1;
+
+        r0 := @parameter0: org.eclipse.jetty.client.HttpClient;
+
+        $r1 = r0.<org.eclipse.jetty.client.HttpClient: org.eclipse.jetty.util.thread.Timeout _idleTimeoutQ>;
+
+        return $r1;
+    }
+
+    public static void <clinit>()
+    {
+        <org.eclipse.jetty.client.HttpClient: int CONNECTOR_SELECT_CHANNEL> = 2;
+
+        <org.eclipse.jetty.client.HttpClient: int CONNECTOR_SOCKET> = 0;
+
+        return;
+    }
+}

@@ -1,0 +1,1171 @@
+public class org.jivesoftware.whack.ExternalComponent extends java.lang.Object implements org.xmpp.component.Component
+{
+    private static java.lang.String CHARSET;
+    private org.xmpp.component.Component component;
+    private org.jivesoftware.whack.ExternalComponentManager manager;
+    private java.net.Socket socket;
+    private org.dom4j.io.XMLWriter xmlSerializer;
+    private org.xmlpull.v1.XmlPullParserFactory factory;
+    private org.dom4j.io.XPPPacketReader reader;
+    private java.io.Writer writer;
+    private boolean shutdown;
+    private boolean reconnecting;
+    private org.jivesoftware.whack.ExternalComponent$KeepAliveTask keepAliveTask;
+    private org.jivesoftware.whack.ExternalComponent$TimeoutTask timeoutTask;
+    private long lastActive;
+    private java.lang.String connectionID;
+    private java.lang.String domain;
+    private java.lang.String subdomain;
+    private java.lang.String host;
+    private int port;
+    private java.util.concurrent.ThreadPoolExecutor threadPool;
+    private org.jivesoftware.whack.SocketReadThread readerThread;
+    private java.util.Map resultListeners;
+    private java.util.Map resultTimeout;
+
+    public void <init>(org.xmpp.component.Component, org.jivesoftware.whack.ExternalComponentManager)
+    {
+        org.jivesoftware.whack.ExternalComponentManager r2;
+        org.jivesoftware.whack.ExternalComponent r0;
+        org.xmpp.component.Component r1;
+
+        r0 := @this: org.jivesoftware.whack.ExternalComponent;
+
+        r1 := @parameter0: org.xmpp.component.Component;
+
+        r2 := @parameter1: org.jivesoftware.whack.ExternalComponentManager;
+
+        specialinvoke r0.<org.jivesoftware.whack.ExternalComponent: void <init>(org.xmpp.component.Component,org.jivesoftware.whack.ExternalComponentManager,int)>(r1, r2, 25);
+
+        return;
+    }
+
+    public void <init>(org.xmpp.component.Component, org.jivesoftware.whack.ExternalComponentManager, int)
+    {
+        org.jivesoftware.whack.ExternalComponentManager r4;
+        java.util.concurrent.ThreadPoolExecutor$CallerRunsPolicy $r8;
+        java.util.concurrent.ThreadPoolExecutor $r5;
+        java.util.concurrent.ConcurrentHashMap $r1, $r2;
+        long $l0;
+        org.jivesoftware.whack.ExternalComponent r0;
+        java.util.concurrent.LinkedBlockingQueue $r6;
+        java.util.concurrent.TimeUnit $r7;
+        org.xmpp.component.Component r3;
+        int i1;
+
+        r0 := @this: org.jivesoftware.whack.ExternalComponent;
+
+        r3 := @parameter0: org.xmpp.component.Component;
+
+        r4 := @parameter1: org.jivesoftware.whack.ExternalComponentManager;
+
+        i1 := @parameter2: int;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        r0.<org.jivesoftware.whack.ExternalComponent: org.xmlpull.v1.XmlPullParserFactory factory> = null;
+
+        r0.<org.jivesoftware.whack.ExternalComponent: org.dom4j.io.XPPPacketReader reader> = null;
+
+        r0.<org.jivesoftware.whack.ExternalComponent: java.io.Writer writer> = null;
+
+        r0.<org.jivesoftware.whack.ExternalComponent: boolean shutdown> = 0;
+
+        r0.<org.jivesoftware.whack.ExternalComponent: boolean reconnecting> = 0;
+
+        $l0 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        r0.<org.jivesoftware.whack.ExternalComponent: long lastActive> = $l0;
+
+        $r1 = new java.util.concurrent.ConcurrentHashMap;
+
+        specialinvoke $r1.<java.util.concurrent.ConcurrentHashMap: void <init>()>();
+
+        r0.<org.jivesoftware.whack.ExternalComponent: java.util.Map resultListeners> = $r1;
+
+        $r2 = new java.util.concurrent.ConcurrentHashMap;
+
+        specialinvoke $r2.<java.util.concurrent.ConcurrentHashMap: void <init>()>();
+
+        r0.<org.jivesoftware.whack.ExternalComponent: java.util.Map resultTimeout> = $r2;
+
+        r0.<org.jivesoftware.whack.ExternalComponent: org.xmpp.component.Component component> = r3;
+
+        r0.<org.jivesoftware.whack.ExternalComponent: org.jivesoftware.whack.ExternalComponentManager manager> = r4;
+
+        $r5 = new java.util.concurrent.ThreadPoolExecutor;
+
+        $r7 = <java.util.concurrent.TimeUnit: java.util.concurrent.TimeUnit SECONDS>;
+
+        $r6 = new java.util.concurrent.LinkedBlockingQueue;
+
+        specialinvoke $r6.<java.util.concurrent.LinkedBlockingQueue: void <init>()>();
+
+        $r8 = new java.util.concurrent.ThreadPoolExecutor$CallerRunsPolicy;
+
+        specialinvoke $r8.<java.util.concurrent.ThreadPoolExecutor$CallerRunsPolicy: void <init>()>();
+
+        specialinvoke $r5.<java.util.concurrent.ThreadPoolExecutor: void <init>(int,int,long,java.util.concurrent.TimeUnit,java.util.concurrent.BlockingQueue,java.util.concurrent.RejectedExecutionHandler)>(i1, i1, 15L, $r7, $r6, $r8);
+
+        r0.<org.jivesoftware.whack.ExternalComponent: java.util.concurrent.ThreadPoolExecutor threadPool> = $r5;
+
+        return;
+    }
+
+    public void connect(java.lang.String, int, java.lang.String) throws org.xmpp.component.ComponentException
+    {
+        org.xmlpull.v1.XmlPullParser $r14, $r33;
+        org.jivesoftware.whack.ExternalComponent$KeepAliveTask $r55, $r57;
+        org.xmlpull.v1.XmlPullParserFactory $r9, $r11;
+        java.lang.StringBuilder $r24, $r26, $r28, $r38, $r39, $r41, $r44, $r65, $r66, $r67, $r70;
+        org.dom4j.Document $r51;
+        java.lang.String r3, $r7, r8, $r18, $r23, $r27, $r30, $r34, $r35, $r40, $r43, $r45, $r46, $r48, $r53, $r54, $r64, $r69, $r71;
+        org.jivesoftware.whack.ExternalComponent$TimeoutTask $r58, $r60;
+        java.io.BufferedWriter $r19;
+        java.io.IOException $r72, $r74, $r77, $r82, $r86, $r90;
+        java.io.InputStreamReader $r15;
+        java.net.UnknownHostException $r79;
+        org.xmpp.component.ComponentException $r63, $r73, $r78, $r83, $r87, $r91;
+        boolean $z0, $z1;
+        org.jivesoftware.whack.ExternalComponent r0;
+        java.net.InetSocketAddress $r2;
+        org.xmlpull.v1.XmlPullParserException $r84, $r88;
+        org.jivesoftware.whack.util.TaskEngine $r56, $r59;
+        java.io.Writer $r29, $r31, $r37, $r47, $r49;
+        org.jivesoftware.whack.ExternalComponentManager $r5, $r6, $r25, $r42, $r68;
+        java.net.Socket $r1, $r4, $r16, $r21, $r62, $r75, $r76, $r80, $r81, $r85, $r89, $r93;
+        org.dom4j.io.XMLWriter $r36;
+        org.dom4j.DocumentException $r92;
+        int i0, $i1, i2;
+        java.io.OutputStreamWriter $r20;
+        java.io.OutputStream $r22;
+        org.dom4j.io.XPPPacketReader $r10, $r12, $r13, $r32, $r50;
+        org.xmpp.packet.StreamError $r61;
+        org.dom4j.Element $r52;
+        java.io.InputStream $r17;
+
+        r0 := @this: org.jivesoftware.whack.ExternalComponent;
+
+        r3 := @parameter0: java.lang.String;
+
+        i0 := @parameter1: int;
+
+        r8 := @parameter2: java.lang.String;
+
+     label01:
+        $r1 = new java.net.Socket;
+
+        specialinvoke $r1.<java.net.Socket: void <init>()>();
+
+        r0.<org.jivesoftware.whack.ExternalComponent: java.net.Socket socket> = $r1;
+
+        $r4 = r0.<org.jivesoftware.whack.ExternalComponent: java.net.Socket socket>;
+
+        $r2 = new java.net.InetSocketAddress;
+
+        specialinvoke $r2.<java.net.InetSocketAddress: void <init>(java.lang.String,int)>(r3, i0);
+
+        $r5 = r0.<org.jivesoftware.whack.ExternalComponent: org.jivesoftware.whack.ExternalComponentManager manager>;
+
+        $i1 = virtualinvoke $r5.<org.jivesoftware.whack.ExternalComponentManager: int getConnectTimeout()>();
+
+        virtualinvoke $r4.<java.net.Socket: void connect(java.net.SocketAddress,int)>($r2, $i1);
+
+        $r6 = r0.<org.jivesoftware.whack.ExternalComponent: org.jivesoftware.whack.ExternalComponentManager manager>;
+
+        $r7 = virtualinvoke $r6.<org.jivesoftware.whack.ExternalComponentManager: java.lang.String getServerName()>();
+
+        if $r7 == null goto label02;
+
+        $r65 = new java.lang.StringBuilder;
+
+        specialinvoke $r65.<java.lang.StringBuilder: void <init>()>();
+
+        $r66 = virtualinvoke $r65.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r8);
+
+        $r67 = virtualinvoke $r66.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(".");
+
+        $r68 = r0.<org.jivesoftware.whack.ExternalComponent: org.jivesoftware.whack.ExternalComponentManager manager>;
+
+        $r69 = virtualinvoke $r68.<org.jivesoftware.whack.ExternalComponentManager: java.lang.String getServerName()>();
+
+        $r70 = virtualinvoke $r67.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r69);
+
+        $r71 = virtualinvoke $r70.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        r0.<org.jivesoftware.whack.ExternalComponent: java.lang.String domain> = $r71;
+
+        goto label03;
+
+     label02:
+        r0.<org.jivesoftware.whack.ExternalComponent: java.lang.String domain> = r8;
+
+     label03:
+        r0.<org.jivesoftware.whack.ExternalComponent: java.lang.String subdomain> = r8;
+
+        r0.<org.jivesoftware.whack.ExternalComponent: java.lang.String host> = r3;
+
+        r0.<org.jivesoftware.whack.ExternalComponent: int port> = i0;
+
+     label04:
+        $r9 = staticinvoke <org.xmlpull.v1.XmlPullParserFactory: org.xmlpull.v1.XmlPullParserFactory newInstance()>();
+
+        r0.<org.jivesoftware.whack.ExternalComponent: org.xmlpull.v1.XmlPullParserFactory factory> = $r9;
+
+        $r10 = new org.dom4j.io.XPPPacketReader;
+
+        specialinvoke $r10.<org.dom4j.io.XPPPacketReader: void <init>()>();
+
+        r0.<org.jivesoftware.whack.ExternalComponent: org.dom4j.io.XPPPacketReader reader> = $r10;
+
+        $r12 = r0.<org.jivesoftware.whack.ExternalComponent: org.dom4j.io.XPPPacketReader reader>;
+
+        $r11 = r0.<org.jivesoftware.whack.ExternalComponent: org.xmlpull.v1.XmlPullParserFactory factory>;
+
+        virtualinvoke $r12.<org.dom4j.io.XPPPacketReader: void setXPPFactory(org.xmlpull.v1.XmlPullParserFactory)>($r11);
+
+        $r13 = r0.<org.jivesoftware.whack.ExternalComponent: org.dom4j.io.XPPPacketReader reader>;
+
+        $r14 = virtualinvoke $r13.<org.dom4j.io.XPPPacketReader: org.xmlpull.v1.XmlPullParser getXPPParser()>();
+
+        $r15 = new java.io.InputStreamReader;
+
+        $r16 = r0.<org.jivesoftware.whack.ExternalComponent: java.net.Socket socket>;
+
+        $r17 = virtualinvoke $r16.<java.net.Socket: java.io.InputStream getInputStream()>();
+
+        $r18 = <org.jivesoftware.whack.ExternalComponent: java.lang.String CHARSET>;
+
+        specialinvoke $r15.<java.io.InputStreamReader: void <init>(java.io.InputStream,java.lang.String)>($r17, $r18);
+
+        interfaceinvoke $r14.<org.xmlpull.v1.XmlPullParser: void setInput(java.io.Reader)>($r15);
+
+        $r19 = new java.io.BufferedWriter;
+
+        $r20 = new java.io.OutputStreamWriter;
+
+        $r21 = r0.<org.jivesoftware.whack.ExternalComponent: java.net.Socket socket>;
+
+        $r22 = virtualinvoke $r21.<java.net.Socket: java.io.OutputStream getOutputStream()>();
+
+        $r23 = <org.jivesoftware.whack.ExternalComponent: java.lang.String CHARSET>;
+
+        specialinvoke $r20.<java.io.OutputStreamWriter: void <init>(java.io.OutputStream,java.lang.String)>($r22, $r23);
+
+        specialinvoke $r19.<java.io.BufferedWriter: void <init>(java.io.Writer)>($r20);
+
+        r0.<org.jivesoftware.whack.ExternalComponent: java.io.Writer writer> = $r19;
+
+        $r24 = new java.lang.StringBuilder;
+
+        specialinvoke $r24.<java.lang.StringBuilder: void <init>()>();
+
+        virtualinvoke $r24.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("<stream:stream");
+
+        virtualinvoke $r24.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" xmlns=\"jabber:component:accept\"");
+
+        virtualinvoke $r24.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" xmlns:stream=\"http://etherx.jabber.org/streams\"");
+
+        $r25 = r0.<org.jivesoftware.whack.ExternalComponent: org.jivesoftware.whack.ExternalComponentManager manager>;
+
+        $z0 = virtualinvoke $r25.<org.jivesoftware.whack.ExternalComponentManager: boolean isMultipleAllowed(java.lang.String)>(r8);
+
+        if $z0 == 0 goto label05;
+
+        virtualinvoke $r24.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" allowMultiple=\"true\"");
+
+     label05:
+        $r26 = virtualinvoke $r24.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" to=\"");
+
+        $r27 = r0.<org.jivesoftware.whack.ExternalComponent: java.lang.String domain>;
+
+        $r28 = virtualinvoke $r26.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r27);
+
+        virtualinvoke $r28.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("\">");
+
+        $r29 = r0.<org.jivesoftware.whack.ExternalComponent: java.io.Writer writer>;
+
+        $r30 = virtualinvoke $r24.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r29.<java.io.Writer: void write(java.lang.String)>($r30);
+
+        $r31 = r0.<org.jivesoftware.whack.ExternalComponent: java.io.Writer writer>;
+
+        virtualinvoke $r31.<java.io.Writer: void flush()>();
+
+        $r32 = r0.<org.jivesoftware.whack.ExternalComponent: org.dom4j.io.XPPPacketReader reader>;
+
+        $r33 = virtualinvoke $r32.<org.dom4j.io.XPPPacketReader: org.xmlpull.v1.XmlPullParser getXPPParser()>();
+
+        i2 = interfaceinvoke $r33.<org.xmlpull.v1.XmlPullParser: int getEventType()>();
+
+     label06:
+        if i2 == 2 goto label07;
+
+        i2 = interfaceinvoke $r33.<org.xmlpull.v1.XmlPullParser: int next()>();
+
+        goto label06;
+
+     label07:
+        $r34 = interfaceinvoke $r33.<org.xmlpull.v1.XmlPullParser: java.lang.String getAttributeValue(java.lang.String,java.lang.String)>("", "id");
+
+        r0.<org.jivesoftware.whack.ExternalComponent: java.lang.String connectionID> = $r34;
+
+        $r35 = interfaceinvoke $r33.<org.xmlpull.v1.XmlPullParser: java.lang.String getAttributeValue(java.lang.String,java.lang.String)>("", "from");
+
+        if $r35 == null goto label08;
+
+        $r64 = interfaceinvoke $r33.<org.xmlpull.v1.XmlPullParser: java.lang.String getAttributeValue(java.lang.String,java.lang.String)>("", "from");
+
+        r0.<org.jivesoftware.whack.ExternalComponent: java.lang.String domain> = $r64;
+
+     label08:
+        $r36 = new org.dom4j.io.XMLWriter;
+
+        $r37 = r0.<org.jivesoftware.whack.ExternalComponent: java.io.Writer writer>;
+
+        specialinvoke $r36.<org.dom4j.io.XMLWriter: void <init>(java.io.Writer)>($r37);
+
+        r0.<org.jivesoftware.whack.ExternalComponent: org.dom4j.io.XMLWriter xmlSerializer> = $r36;
+
+        $r38 = new java.lang.StringBuilder;
+
+        specialinvoke $r38.<java.lang.StringBuilder: void <init>()>();
+
+        virtualinvoke $r38.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("<handshake>");
+
+        $r39 = new java.lang.StringBuilder;
+
+        specialinvoke $r39.<java.lang.StringBuilder: void <init>()>();
+
+        $r40 = r0.<org.jivesoftware.whack.ExternalComponent: java.lang.String connectionID>;
+
+        $r41 = virtualinvoke $r39.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r40);
+
+        $r42 = r0.<org.jivesoftware.whack.ExternalComponent: org.jivesoftware.whack.ExternalComponentManager manager>;
+
+        $r43 = virtualinvoke $r42.<org.jivesoftware.whack.ExternalComponentManager: java.lang.String getSecretKey(java.lang.String)>(r8);
+
+        $r44 = virtualinvoke $r41.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r43);
+
+        $r45 = virtualinvoke $r44.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r46 = staticinvoke <org.jivesoftware.whack.util.StringUtils: java.lang.String hash(java.lang.String)>($r45);
+
+        virtualinvoke $r38.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r46);
+
+        virtualinvoke $r38.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("</handshake>");
+
+        $r47 = r0.<org.jivesoftware.whack.ExternalComponent: java.io.Writer writer>;
+
+        $r48 = virtualinvoke $r38.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r47.<java.io.Writer: void write(java.lang.String)>($r48);
+
+        $r49 = r0.<org.jivesoftware.whack.ExternalComponent: java.io.Writer writer>;
+
+        virtualinvoke $r49.<java.io.Writer: void flush()>();
+
+     label09:
+        $r50 = r0.<org.jivesoftware.whack.ExternalComponent: org.dom4j.io.XPPPacketReader reader>;
+
+        $r51 = virtualinvoke $r50.<org.dom4j.io.XPPPacketReader: org.dom4j.Document parseDocument()>();
+
+        $r52 = interfaceinvoke $r51.<org.dom4j.Document: org.dom4j.Element getRootElement()>();
+
+        $r53 = "error";
+
+        $r54 = interfaceinvoke $r52.<org.dom4j.Element: java.lang.String getName()>();
+
+        $z1 = virtualinvoke $r53.<java.lang.String: boolean equals(java.lang.Object)>($r54);
+
+        if $z1 == 0 goto label10;
+
+        $r61 = new org.xmpp.packet.StreamError;
+
+        specialinvoke $r61.<org.xmpp.packet.StreamError: void <init>(org.dom4j.Element)>($r52);
+
+        $r62 = r0.<org.jivesoftware.whack.ExternalComponent: java.net.Socket socket>;
+
+        virtualinvoke $r62.<java.net.Socket: void close()>();
+
+        r0.<org.jivesoftware.whack.ExternalComponent: java.net.Socket socket> = null;
+
+        $r63 = new org.xmpp.component.ComponentException;
+
+        specialinvoke $r63.<org.xmpp.component.ComponentException: void <init>(org.xmpp.packet.StreamError)>($r61);
+
+        throw $r63;
+
+     label10:
+        $r55 = new org.jivesoftware.whack.ExternalComponent$KeepAliveTask;
+
+        specialinvoke $r55.<org.jivesoftware.whack.ExternalComponent$KeepAliveTask: void <init>(org.jivesoftware.whack.ExternalComponent,org.jivesoftware.whack.ExternalComponent$1)>(r0, null);
+
+        r0.<org.jivesoftware.whack.ExternalComponent: org.jivesoftware.whack.ExternalComponent$KeepAliveTask keepAliveTask> = $r55;
+
+        $r56 = staticinvoke <org.jivesoftware.whack.util.TaskEngine: org.jivesoftware.whack.util.TaskEngine getInstance()>();
+
+        $r57 = r0.<org.jivesoftware.whack.ExternalComponent: org.jivesoftware.whack.ExternalComponent$KeepAliveTask keepAliveTask>;
+
+        virtualinvoke $r56.<org.jivesoftware.whack.util.TaskEngine: void scheduleAtFixedRate(java.util.TimerTask,long,long)>($r57, 15000L, 30000L);
+
+        $r58 = new org.jivesoftware.whack.ExternalComponent$TimeoutTask;
+
+        specialinvoke $r58.<org.jivesoftware.whack.ExternalComponent$TimeoutTask: void <init>(org.jivesoftware.whack.ExternalComponent,org.jivesoftware.whack.ExternalComponent$1)>(r0, null);
+
+        r0.<org.jivesoftware.whack.ExternalComponent: org.jivesoftware.whack.ExternalComponent$TimeoutTask timeoutTask> = $r58;
+
+        $r59 = staticinvoke <org.jivesoftware.whack.util.TaskEngine: org.jivesoftware.whack.util.TaskEngine getInstance()>();
+
+        $r60 = r0.<org.jivesoftware.whack.ExternalComponent: org.jivesoftware.whack.ExternalComponent$TimeoutTask timeoutTask>;
+
+        virtualinvoke $r59.<org.jivesoftware.whack.util.TaskEngine: void scheduleAtFixedRate(java.util.TimerTask,long,long)>($r60, 2000L, 2000L);
+
+     label11:
+        goto label22;
+
+     label12:
+        $r92 := @caughtexception;
+
+     label13:
+        $r93 = r0.<org.jivesoftware.whack.ExternalComponent: java.net.Socket socket>;
+
+        virtualinvoke $r93.<java.net.Socket: void close()>();
+
+     label14:
+        goto label16;
+
+     label15:
+        $r90 := @caughtexception;
+
+     label16:
+        $r91 = new org.xmpp.component.ComponentException;
+
+        specialinvoke $r91.<org.xmpp.component.ComponentException: void <init>(java.lang.Throwable)>($r92);
+
+        throw $r91;
+
+     label17:
+        $r88 := @caughtexception;
+
+     label18:
+        $r89 = r0.<org.jivesoftware.whack.ExternalComponent: java.net.Socket socket>;
+
+        virtualinvoke $r89.<java.net.Socket: void close()>();
+
+     label19:
+        goto label21;
+
+     label20:
+        $r86 := @caughtexception;
+
+     label21:
+        $r87 = new org.xmpp.component.ComponentException;
+
+        specialinvoke $r87.<org.xmpp.component.ComponentException: void <init>(java.lang.Throwable)>($r88);
+
+        throw $r87;
+
+     label22:
+        goto label28;
+
+     label23:
+        $r84 := @caughtexception;
+
+     label24:
+        $r85 = r0.<org.jivesoftware.whack.ExternalComponent: java.net.Socket socket>;
+
+        virtualinvoke $r85.<java.net.Socket: void close()>();
+
+     label25:
+        goto label27;
+
+     label26:
+        $r82 := @caughtexception;
+
+     label27:
+        $r83 = new org.xmpp.component.ComponentException;
+
+        specialinvoke $r83.<org.xmpp.component.ComponentException: void <init>(java.lang.Throwable)>($r84);
+
+        throw $r83;
+
+     label28:
+        goto label39;
+
+     label29:
+        $r79 := @caughtexception;
+
+     label30:
+        $r80 = r0.<org.jivesoftware.whack.ExternalComponent: java.net.Socket socket>;
+
+        if $r80 == null goto label31;
+
+        $r81 = r0.<org.jivesoftware.whack.ExternalComponent: java.net.Socket socket>;
+
+        virtualinvoke $r81.<java.net.Socket: void close()>();
+
+     label31:
+        goto label33;
+
+     label32:
+        $r77 := @caughtexception;
+
+     label33:
+        $r78 = new org.xmpp.component.ComponentException;
+
+        specialinvoke $r78.<org.xmpp.component.ComponentException: void <init>(java.lang.Throwable)>($r79);
+
+        throw $r78;
+
+     label34:
+        $r74 := @caughtexception;
+
+     label35:
+        $r75 = r0.<org.jivesoftware.whack.ExternalComponent: java.net.Socket socket>;
+
+        if $r75 == null goto label36;
+
+        $r76 = r0.<org.jivesoftware.whack.ExternalComponent: java.net.Socket socket>;
+
+        virtualinvoke $r76.<java.net.Socket: void close()>();
+
+     label36:
+        goto label38;
+
+     label37:
+        $r72 := @caughtexception;
+
+     label38:
+        $r73 = new org.xmpp.component.ComponentException;
+
+        specialinvoke $r73.<org.xmpp.component.ComponentException: void <init>(java.lang.Throwable)>($r74);
+
+        throw $r73;
+
+     label39:
+        return;
+
+        catch org.dom4j.DocumentException from label09 to label11 with label12;
+        catch java.io.IOException from label13 to label14 with label15;
+        catch org.xmlpull.v1.XmlPullParserException from label09 to label11 with label17;
+        catch java.io.IOException from label18 to label19 with label20;
+        catch org.xmlpull.v1.XmlPullParserException from label04 to label22 with label23;
+        catch java.io.IOException from label24 to label25 with label26;
+        catch java.net.UnknownHostException from label01 to label28 with label29;
+        catch java.io.IOException from label30 to label31 with label32;
+        catch java.io.IOException from label01 to label28 with label34;
+        catch java.io.IOException from label35 to label36 with label37;
+    }
+
+    public org.xmpp.component.Component getComponent()
+    {
+        org.jivesoftware.whack.ExternalComponent r0;
+        org.xmpp.component.Component $r1;
+
+        r0 := @this: org.jivesoftware.whack.ExternalComponent;
+
+        $r1 = r0.<org.jivesoftware.whack.ExternalComponent: org.xmpp.component.Component component>;
+
+        return $r1;
+    }
+
+    public java.lang.String getName()
+    {
+        java.lang.String $r2;
+        org.jivesoftware.whack.ExternalComponent r0;
+        org.xmpp.component.Component $r1;
+
+        r0 := @this: org.jivesoftware.whack.ExternalComponent;
+
+        $r1 = r0.<org.jivesoftware.whack.ExternalComponent: org.xmpp.component.Component component>;
+
+        $r2 = interfaceinvoke $r1.<org.xmpp.component.Component: java.lang.String getName()>();
+
+        return $r2;
+    }
+
+    public java.lang.String getDescription()
+    {
+        java.lang.String $r2;
+        org.jivesoftware.whack.ExternalComponent r0;
+        org.xmpp.component.Component $r1;
+
+        r0 := @this: org.jivesoftware.whack.ExternalComponent;
+
+        $r1 = r0.<org.jivesoftware.whack.ExternalComponent: org.xmpp.component.Component component>;
+
+        $r2 = interfaceinvoke $r1.<org.xmpp.component.Component: java.lang.String getDescription()>();
+
+        return $r2;
+    }
+
+    public java.lang.String getDomain()
+    {
+        java.lang.String $r1;
+        org.jivesoftware.whack.ExternalComponent r0;
+
+        r0 := @this: org.jivesoftware.whack.ExternalComponent;
+
+        $r1 = r0.<org.jivesoftware.whack.ExternalComponent: java.lang.String domain>;
+
+        return $r1;
+    }
+
+    public java.lang.String getSubdomain()
+    {
+        java.lang.String $r1;
+        org.jivesoftware.whack.ExternalComponent r0;
+
+        r0 := @this: org.jivesoftware.whack.ExternalComponent;
+
+        $r1 = r0.<org.jivesoftware.whack.ExternalComponent: java.lang.String subdomain>;
+
+        return $r1;
+    }
+
+    org.jivesoftware.whack.ExternalComponentManager getManager()
+    {
+        org.jivesoftware.whack.ExternalComponentManager $r1;
+        org.jivesoftware.whack.ExternalComponent r0;
+
+        r0 := @this: org.jivesoftware.whack.ExternalComponent;
+
+        $r1 = r0.<org.jivesoftware.whack.ExternalComponent: org.jivesoftware.whack.ExternalComponentManager manager>;
+
+        return $r1;
+    }
+
+    public void processPacket(org.xmpp.packet.Packet)
+    {
+        org.jivesoftware.whack.ExternalComponent$1 $r1;
+        java.util.concurrent.ThreadPoolExecutor $r3;
+        org.xmpp.packet.Packet r2;
+        org.jivesoftware.whack.ExternalComponent r0;
+
+        r0 := @this: org.jivesoftware.whack.ExternalComponent;
+
+        r2 := @parameter0: org.xmpp.packet.Packet;
+
+        $r3 = r0.<org.jivesoftware.whack.ExternalComponent: java.util.concurrent.ThreadPoolExecutor threadPool>;
+
+        $r1 = new org.jivesoftware.whack.ExternalComponent$1;
+
+        specialinvoke $r1.<org.jivesoftware.whack.ExternalComponent$1: void <init>(org.jivesoftware.whack.ExternalComponent,org.xmpp.packet.Packet)>(r0, r2);
+
+        virtualinvoke $r3.<java.util.concurrent.ThreadPoolExecutor: void execute(java.lang.Runnable)>($r1);
+
+        return;
+    }
+
+    public void send(org.xmpp.packet.Packet)
+    {
+        java.lang.Throwable $r6;
+        org.jivesoftware.whack.ExternalComponentManager $r8;
+        org.dom4j.io.XMLWriter $r3, $r5;
+        long $l0;
+        java.io.IOException $r7;
+        org.jivesoftware.whack.ExternalComponent r0;
+        org.xmpp.component.Log $r9;
+        org.xmpp.packet.Packet r2;
+        java.io.Writer $r1;
+        org.dom4j.Element $r4;
+        boolean $z0;
+
+        r0 := @this: org.jivesoftware.whack.ExternalComponent;
+
+        r2 := @parameter0: org.xmpp.packet.Packet;
+
+        $r1 = r0.<org.jivesoftware.whack.ExternalComponent: java.io.Writer writer>;
+
+        entermonitor $r1;
+
+     label1:
+        $r3 = r0.<org.jivesoftware.whack.ExternalComponent: org.dom4j.io.XMLWriter xmlSerializer>;
+
+        $r4 = virtualinvoke r2.<org.xmpp.packet.Packet: org.dom4j.Element getElement()>();
+
+        virtualinvoke $r3.<org.dom4j.io.XMLWriter: void write(org.dom4j.Element)>($r4);
+
+        $r5 = r0.<org.jivesoftware.whack.ExternalComponent: org.dom4j.io.XMLWriter xmlSerializer>;
+
+        virtualinvoke $r5.<org.dom4j.io.XMLWriter: void flush()>();
+
+        $l0 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        r0.<org.jivesoftware.whack.ExternalComponent: long lastActive> = $l0;
+
+     label2:
+        goto label4;
+
+     label3:
+        $r7 := @caughtexception;
+
+        $r8 = r0.<org.jivesoftware.whack.ExternalComponent: org.jivesoftware.whack.ExternalComponentManager manager>;
+
+        $r9 = virtualinvoke $r8.<org.jivesoftware.whack.ExternalComponentManager: org.xmpp.component.Log getLog()>();
+
+        interfaceinvoke $r9.<org.xmpp.component.Log: void error(java.lang.Throwable)>($r7);
+
+        $z0 = r0.<org.jivesoftware.whack.ExternalComponent: boolean shutdown>;
+
+        if $z0 != 0 goto label4;
+
+        virtualinvoke r0.<org.jivesoftware.whack.ExternalComponent: void connectionLost()>();
+
+     label4:
+        exitmonitor $r1;
+
+     label5:
+        goto label8;
+
+     label6:
+        $r6 := @caughtexception;
+
+        exitmonitor $r1;
+
+     label7:
+        throw $r6;
+
+     label8:
+        return;
+
+        catch java.io.IOException from label1 to label2 with label3;
+        catch java.lang.Throwable from label1 to label5 with label6;
+        catch java.lang.Throwable from label6 to label7 with label6;
+    }
+
+    public void initialize(org.xmpp.packet.JID, org.xmpp.component.ComponentManager) throws org.xmpp.component.ComponentException
+    {
+        org.xmpp.component.Component $r3;
+        org.xmpp.component.ComponentManager r2;
+        org.jivesoftware.whack.ExternalComponent r0;
+        org.xmpp.packet.JID r1;
+
+        r0 := @this: org.jivesoftware.whack.ExternalComponent;
+
+        r1 := @parameter0: org.xmpp.packet.JID;
+
+        r2 := @parameter1: org.xmpp.component.ComponentManager;
+
+        $r3 = r0.<org.jivesoftware.whack.ExternalComponent: org.xmpp.component.Component component>;
+
+        interfaceinvoke $r3.<org.xmpp.component.Component: void initialize(org.xmpp.packet.JID,org.xmpp.component.ComponentManager)>(r1, r2);
+
+        return;
+    }
+
+    public void start()
+    {
+        org.dom4j.io.XPPPacketReader $r2;
+        org.xmpp.component.Component $r5;
+        org.jivesoftware.whack.SocketReadThread $r1, $r3, $r4;
+        org.jivesoftware.whack.ExternalComponent r0;
+
+        r0 := @this: org.jivesoftware.whack.ExternalComponent;
+
+        $r1 = new org.jivesoftware.whack.SocketReadThread;
+
+        $r2 = r0.<org.jivesoftware.whack.ExternalComponent: org.dom4j.io.XPPPacketReader reader>;
+
+        specialinvoke $r1.<org.jivesoftware.whack.SocketReadThread: void <init>(org.jivesoftware.whack.ExternalComponent,org.dom4j.io.XPPPacketReader)>(r0, $r2);
+
+        r0.<org.jivesoftware.whack.ExternalComponent: org.jivesoftware.whack.SocketReadThread readerThread> = $r1;
+
+        $r3 = r0.<org.jivesoftware.whack.ExternalComponent: org.jivesoftware.whack.SocketReadThread readerThread>;
+
+        virtualinvoke $r3.<org.jivesoftware.whack.SocketReadThread: void setDaemon(boolean)>(1);
+
+        $r4 = r0.<org.jivesoftware.whack.ExternalComponent: org.jivesoftware.whack.SocketReadThread readerThread>;
+
+        virtualinvoke $r4.<org.jivesoftware.whack.SocketReadThread: void start()>();
+
+        $r5 = r0.<org.jivesoftware.whack.ExternalComponent: org.xmpp.component.Component component>;
+
+        interfaceinvoke $r5.<org.xmpp.component.Component: void start()>();
+
+        return;
+    }
+
+    public void shutdown()
+    {
+        org.jivesoftware.whack.ExternalComponent r0;
+
+        r0 := @this: org.jivesoftware.whack.ExternalComponent;
+
+        r0.<org.jivesoftware.whack.ExternalComponent: boolean shutdown> = 1;
+
+        specialinvoke r0.<org.jivesoftware.whack.ExternalComponent: void disconnect()>();
+
+        return;
+    }
+
+    private void disconnect()
+    {
+        org.jivesoftware.whack.ExternalComponentManager $r15;
+        java.lang.Throwable $r18;
+        java.net.Socket $r7, $r8, $r12;
+        java.util.concurrent.ThreadPoolExecutor $r2;
+        org.dom4j.io.XMLWriter $r11;
+        org.xmpp.component.Log $r16;
+        org.jivesoftware.whack.SocketReadThread $r1, $r13;
+        boolean $z0;
+        org.jivesoftware.whack.ExternalComponent$TimeoutTask $r6;
+        java.io.IOException $r19;
+        org.jivesoftware.whack.ExternalComponent$KeepAliveTask $r4;
+        org.jivesoftware.whack.ExternalComponent r0;
+        java.lang.Exception $r14, $r17;
+        org.jivesoftware.whack.util.TaskEngine $r3, $r5;
+        java.io.Writer $r9, $r10;
+
+        r0 := @this: org.jivesoftware.whack.ExternalComponent;
+
+        $r1 = r0.<org.jivesoftware.whack.ExternalComponent: org.jivesoftware.whack.SocketReadThread readerThread>;
+
+        if $r1 == null goto label01;
+
+        $r13 = r0.<org.jivesoftware.whack.ExternalComponent: org.jivesoftware.whack.SocketReadThread readerThread>;
+
+        virtualinvoke $r13.<org.jivesoftware.whack.SocketReadThread: void shutdown()>();
+
+     label01:
+        $r2 = r0.<org.jivesoftware.whack.ExternalComponent: java.util.concurrent.ThreadPoolExecutor threadPool>;
+
+        virtualinvoke $r2.<java.util.concurrent.ThreadPoolExecutor: void shutdown()>();
+
+        $r3 = staticinvoke <org.jivesoftware.whack.util.TaskEngine: org.jivesoftware.whack.util.TaskEngine getInstance()>();
+
+        $r4 = r0.<org.jivesoftware.whack.ExternalComponent: org.jivesoftware.whack.ExternalComponent$KeepAliveTask keepAliveTask>;
+
+        virtualinvoke $r3.<org.jivesoftware.whack.util.TaskEngine: void cancelScheduledTask(java.util.TimerTask)>($r4);
+
+        $r5 = staticinvoke <org.jivesoftware.whack.util.TaskEngine: org.jivesoftware.whack.util.TaskEngine getInstance()>();
+
+        $r6 = r0.<org.jivesoftware.whack.ExternalComponent: org.jivesoftware.whack.ExternalComponent$TimeoutTask timeoutTask>;
+
+        virtualinvoke $r5.<org.jivesoftware.whack.util.TaskEngine: void cancelScheduledTask(java.util.TimerTask)>($r6);
+
+        $r7 = r0.<org.jivesoftware.whack.ExternalComponent: java.net.Socket socket>;
+
+        if $r7 == null goto label15;
+
+        $r8 = r0.<org.jivesoftware.whack.ExternalComponent: java.net.Socket socket>;
+
+        $z0 = virtualinvoke $r8.<java.net.Socket: boolean isClosed()>();
+
+        if $z0 != 0 goto label15;
+
+     label02:
+        $r9 = r0.<org.jivesoftware.whack.ExternalComponent: java.io.Writer writer>;
+
+        entermonitor $r9;
+
+     label03:
+        $r10 = r0.<org.jivesoftware.whack.ExternalComponent: java.io.Writer writer>;
+
+        virtualinvoke $r10.<java.io.Writer: void write(java.lang.String)>("</stream:stream>");
+
+        $r11 = r0.<org.jivesoftware.whack.ExternalComponent: org.dom4j.io.XMLWriter xmlSerializer>;
+
+        virtualinvoke $r11.<org.dom4j.io.XMLWriter: void flush()>();
+
+     label04:
+        goto label06;
+
+     label05:
+        $r19 := @caughtexception;
+
+     label06:
+        exitmonitor $r9;
+
+     label07:
+        goto label10;
+
+     label08:
+        $r18 := @caughtexception;
+
+        exitmonitor $r9;
+
+     label09:
+        throw $r18;
+
+     label10:
+        goto label12;
+
+     label11:
+        $r17 := @caughtexception;
+
+     label12:
+        $r12 = r0.<org.jivesoftware.whack.ExternalComponent: java.net.Socket socket>;
+
+        virtualinvoke $r12.<java.net.Socket: void close()>();
+
+     label13:
+        goto label15;
+
+     label14:
+        $r14 := @caughtexception;
+
+        $r15 = r0.<org.jivesoftware.whack.ExternalComponent: org.jivesoftware.whack.ExternalComponentManager manager>;
+
+        $r16 = virtualinvoke $r15.<org.jivesoftware.whack.ExternalComponentManager: org.xmpp.component.Log getLog()>();
+
+        interfaceinvoke $r16.<org.xmpp.component.Log: void error(java.lang.Throwable)>($r14);
+
+     label15:
+        return;
+
+        catch java.io.IOException from label03 to label04 with label05;
+        catch java.lang.Throwable from label03 to label07 with label08;
+        catch java.lang.Throwable from label08 to label09 with label08;
+        catch java.lang.Exception from label02 to label10 with label11;
+        catch java.lang.Exception from label12 to label13 with label14;
+    }
+
+    public void connectionLost()
+    {
+        org.jivesoftware.whack.ExternalComponentManager $r6;
+        java.lang.Throwable $r8;
+        org.xmpp.component.ComponentException $r5;
+        org.jivesoftware.whack.ExternalComponent r0;
+        org.xmpp.component.Log $r7;
+        org.xmpp.component.Component $r3;
+        java.lang.InterruptedException $r4;
+        int $i0;
+        java.lang.String $r1, $r2;
+        boolean $z0, $z1, $z2, $z3, z4;
+
+        r0 := @this: org.jivesoftware.whack.ExternalComponent;
+
+        entermonitor r0;
+
+     label01:
+        $z0 = r0.<org.jivesoftware.whack.ExternalComponent: boolean reconnecting>;
+
+        if $z0 == 0 goto label03;
+
+        exitmonitor r0;
+
+     label02:
+        return;
+
+     label03:
+        r0.<org.jivesoftware.whack.ExternalComponent: boolean reconnecting> = 1;
+
+        exitmonitor r0;
+
+     label04:
+        goto label07;
+
+     label05:
+        $r8 := @caughtexception;
+
+        exitmonitor r0;
+
+     label06:
+        throw $r8;
+
+     label07:
+        r0.<org.jivesoftware.whack.ExternalComponent: org.jivesoftware.whack.SocketReadThread readerThread> = null;
+
+        z4 = 0;
+
+        $z1 = r0.<org.jivesoftware.whack.ExternalComponent: boolean shutdown>;
+
+        if $z1 != 0 goto label08;
+
+        $r3 = r0.<org.jivesoftware.whack.ExternalComponent: org.xmpp.component.Component component>;
+
+        interfaceinvoke $r3.<org.xmpp.component.Component: void shutdown()>();
+
+     label08:
+        if z4 != 0 goto label17;
+
+        $z2 = r0.<org.jivesoftware.whack.ExternalComponent: boolean shutdown>;
+
+        if $z2 != 0 goto label17;
+
+     label09:
+        $r2 = r0.<org.jivesoftware.whack.ExternalComponent: java.lang.String host>;
+
+        $i0 = r0.<org.jivesoftware.whack.ExternalComponent: int port>;
+
+        $r1 = r0.<org.jivesoftware.whack.ExternalComponent: java.lang.String subdomain>;
+
+        virtualinvoke r0.<org.jivesoftware.whack.ExternalComponent: void connect(java.lang.String,int,java.lang.String)>($r2, $i0, $r1);
+
+        z4 = 1;
+
+        $z3 = r0.<org.jivesoftware.whack.ExternalComponent: boolean shutdown>;
+
+        if $z3 == 0 goto label10;
+
+        specialinvoke r0.<org.jivesoftware.whack.ExternalComponent: void disconnect()>();
+
+        goto label11;
+
+     label10:
+        virtualinvoke r0.<org.jivesoftware.whack.ExternalComponent: void start()>();
+
+     label11:
+        goto label08;
+
+     label12:
+        $r5 := @caughtexception;
+
+        $r6 = r0.<org.jivesoftware.whack.ExternalComponent: org.jivesoftware.whack.ExternalComponentManager manager>;
+
+        $r7 = virtualinvoke $r6.<org.jivesoftware.whack.ExternalComponentManager: org.xmpp.component.Log getLog()>();
+
+        interfaceinvoke $r7.<org.xmpp.component.Log: void error(java.lang.String,java.lang.Throwable)>("Error trying to reconnect with the server", $r5);
+
+     label13:
+        staticinvoke <java.lang.Thread: void sleep(long)>(5000L);
+
+     label14:
+        goto label16;
+
+     label15:
+        $r4 := @caughtexception;
+
+     label16:
+        goto label08;
+
+     label17:
+        r0.<org.jivesoftware.whack.ExternalComponent: boolean reconnecting> = 0;
+
+        return;
+
+        catch java.lang.Throwable from label01 to label02 with label05;
+        catch java.lang.Throwable from label03 to label04 with label05;
+        catch java.lang.Throwable from label05 to label06 with label05;
+        catch org.xmpp.component.ComponentException from label09 to label11 with label12;
+        catch java.lang.InterruptedException from label13 to label14 with label15;
+    }
+
+    void addIQResultListener(java.lang.String, org.jivesoftware.whack.IQResultListener, long)
+    {
+        long $l0, l1, $l2;
+        org.jivesoftware.whack.ExternalComponent r0;
+        org.jivesoftware.whack.IQResultListener r2;
+        java.lang.Long $r5;
+        java.util.Map $r3, $r4;
+        java.lang.String r1;
+
+        r0 := @this: org.jivesoftware.whack.ExternalComponent;
+
+        r1 := @parameter0: java.lang.String;
+
+        r2 := @parameter1: org.jivesoftware.whack.IQResultListener;
+
+        l1 := @parameter2: long;
+
+        $r3 = r0.<org.jivesoftware.whack.ExternalComponent: java.util.Map resultListeners>;
+
+        interfaceinvoke $r3.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>(r1, r2);
+
+        $r4 = r0.<org.jivesoftware.whack.ExternalComponent: java.util.Map resultTimeout>;
+
+        $l0 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        $l2 = $l0 + l1;
+
+        $r5 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l2);
+
+        interfaceinvoke $r4.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>(r1, $r5);
+
+        return;
+    }
+
+    static java.util.Map access$200(org.jivesoftware.whack.ExternalComponent)
+    {
+        org.jivesoftware.whack.ExternalComponent r0;
+        java.util.Map $r1;
+
+        r0 := @parameter0: org.jivesoftware.whack.ExternalComponent;
+
+        $r1 = r0.<org.jivesoftware.whack.ExternalComponent: java.util.Map resultListeners>;
+
+        return $r1;
+    }
+
+    static java.util.Map access$300(org.jivesoftware.whack.ExternalComponent)
+    {
+        org.jivesoftware.whack.ExternalComponent r0;
+        java.util.Map $r1;
+
+        r0 := @parameter0: org.jivesoftware.whack.ExternalComponent;
+
+        $r1 = r0.<org.jivesoftware.whack.ExternalComponent: java.util.Map resultTimeout>;
+
+        return $r1;
+    }
+
+    static org.jivesoftware.whack.ExternalComponentManager access$400(org.jivesoftware.whack.ExternalComponent)
+    {
+        org.jivesoftware.whack.ExternalComponentManager $r1;
+        org.jivesoftware.whack.ExternalComponent r0;
+
+        r0 := @parameter0: org.jivesoftware.whack.ExternalComponent;
+
+        $r1 = r0.<org.jivesoftware.whack.ExternalComponent: org.jivesoftware.whack.ExternalComponentManager manager>;
+
+        return $r1;
+    }
+
+    static org.xmpp.component.Component access$500(org.jivesoftware.whack.ExternalComponent)
+    {
+        org.jivesoftware.whack.ExternalComponent r0;
+        org.xmpp.component.Component $r1;
+
+        r0 := @parameter0: org.jivesoftware.whack.ExternalComponent;
+
+        $r1 = r0.<org.jivesoftware.whack.ExternalComponent: org.xmpp.component.Component component>;
+
+        return $r1;
+    }
+
+    static java.io.Writer access$600(org.jivesoftware.whack.ExternalComponent)
+    {
+        java.io.Writer $r1;
+        org.jivesoftware.whack.ExternalComponent r0;
+
+        r0 := @parameter0: org.jivesoftware.whack.ExternalComponent;
+
+        $r1 = r0.<org.jivesoftware.whack.ExternalComponent: java.io.Writer writer>;
+
+        return $r1;
+    }
+
+    static long access$700(org.jivesoftware.whack.ExternalComponent)
+    {
+        long $l0;
+        org.jivesoftware.whack.ExternalComponent r0;
+
+        r0 := @parameter0: org.jivesoftware.whack.ExternalComponent;
+
+        $l0 = r0.<org.jivesoftware.whack.ExternalComponent: long lastActive>;
+
+        return $l0;
+    }
+
+    static boolean access$800(org.jivesoftware.whack.ExternalComponent)
+    {
+        org.jivesoftware.whack.ExternalComponent r0;
+        boolean $z0;
+
+        r0 := @parameter0: org.jivesoftware.whack.ExternalComponent;
+
+        $z0 = r0.<org.jivesoftware.whack.ExternalComponent: boolean shutdown>;
+
+        return $z0;
+    }
+
+    static void <clinit>()
+    {
+        <org.jivesoftware.whack.ExternalComponent: java.lang.String CHARSET> = "UTF-8";
+
+        return;
+    }
+}

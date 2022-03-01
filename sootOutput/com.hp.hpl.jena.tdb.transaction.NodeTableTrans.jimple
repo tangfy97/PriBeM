@@ -1,0 +1,1250 @@
+public class com.hp.hpl.jena.tdb.transaction.NodeTableTrans extends java.lang.Object implements com.hp.hpl.jena.tdb.nodetable.NodeTable, com.hp.hpl.jena.tdb.transaction.TransactionLifecycle
+{
+    private static org.slf4j.Logger log;
+    private final com.hp.hpl.jena.tdb.nodetable.NodeTable base;
+    private long allocOffset;
+    private com.hp.hpl.jena.tdb.nodetable.NodeTable nodeTableJournal;
+    private static int CacheSize;
+    private boolean passthrough;
+    private com.hp.hpl.jena.tdb.index.Index nodeIndex;
+    private com.hp.hpl.jena.tdb.base.objectfile.ObjectFile journalObjFile;
+    private long journalObjFileStartOffset;
+    private final java.lang.String label;
+    private final com.hp.hpl.jena.tdb.transaction.Transaction txn;
+    public static boolean APPEND_LOG;
+
+    public void <init>(com.hp.hpl.jena.tdb.transaction.Transaction, java.lang.String, com.hp.hpl.jena.tdb.nodetable.NodeTable, com.hp.hpl.jena.tdb.index.Index, com.hp.hpl.jena.tdb.base.objectfile.ObjectFile)
+    {
+        com.hp.hpl.jena.tdb.transaction.NodeTableTrans r0;
+        com.hp.hpl.jena.tdb.nodetable.NodeTable r2;
+        com.hp.hpl.jena.tdb.base.objectfile.ObjectFile r4, $r5;
+        com.hp.hpl.jena.tdb.index.Index r3;
+        java.lang.String r6;
+        com.hp.hpl.jena.tdb.transaction.Transaction r1;
+
+        r0 := @this: com.hp.hpl.jena.tdb.transaction.NodeTableTrans;
+
+        r1 := @parameter0: com.hp.hpl.jena.tdb.transaction.Transaction;
+
+        r6 := @parameter1: java.lang.String;
+
+        r2 := @parameter2: com.hp.hpl.jena.tdb.nodetable.NodeTable;
+
+        r3 := @parameter3: com.hp.hpl.jena.tdb.index.Index;
+
+        r4 := @parameter4: com.hp.hpl.jena.tdb.base.objectfile.ObjectFile;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.nodetable.NodeTable nodeTableJournal> = null;
+
+        r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: boolean passthrough> = 0;
+
+        r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.transaction.Transaction txn> = r1;
+
+        r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.nodetable.NodeTable base> = r2;
+
+        r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.index.Index nodeIndex> = r3;
+
+        r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.base.objectfile.ObjectFile journalObjFile> = r4;
+
+        $r5 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.base.objectfile.ObjectFile journalObjFile>;
+
+        interfaceinvoke $r5.<com.hp.hpl.jena.tdb.base.objectfile.ObjectFile: void truncate(long)>(0L);
+
+        r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: java.lang.String label> = r6;
+
+        return;
+    }
+
+    public void setPassthrough(boolean)
+    {
+        com.hp.hpl.jena.tdb.transaction.NodeTableTrans r0;
+        boolean z0;
+
+        r0 := @this: com.hp.hpl.jena.tdb.transaction.NodeTableTrans;
+
+        z0 := @parameter0: boolean;
+
+        r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: boolean passthrough> = z0;
+
+        return;
+    }
+
+    public com.hp.hpl.jena.tdb.nodetable.NodeTable getBaseNodeTable()
+    {
+        com.hp.hpl.jena.tdb.transaction.NodeTableTrans r0;
+        com.hp.hpl.jena.tdb.nodetable.NodeTable $r1;
+
+        r0 := @this: com.hp.hpl.jena.tdb.transaction.NodeTableTrans;
+
+        $r1 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.nodetable.NodeTable base>;
+
+        return $r1;
+    }
+
+    public com.hp.hpl.jena.tdb.nodetable.NodeTable getJournalTable()
+    {
+        com.hp.hpl.jena.tdb.transaction.NodeTableTrans r0;
+        com.hp.hpl.jena.tdb.nodetable.NodeTable $r1;
+
+        r0 := @this: com.hp.hpl.jena.tdb.transaction.NodeTableTrans;
+
+        $r1 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.nodetable.NodeTable nodeTableJournal>;
+
+        return $r1;
+    }
+
+    public com.hp.hpl.jena.tdb.transaction.Transaction getTransaction()
+    {
+        com.hp.hpl.jena.tdb.transaction.NodeTableTrans r0;
+        com.hp.hpl.jena.tdb.transaction.Transaction $r1;
+
+        r0 := @this: com.hp.hpl.jena.tdb.transaction.NodeTableTrans;
+
+        $r1 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.transaction.Transaction txn>;
+
+        return $r1;
+    }
+
+    public com.hp.hpl.jena.tdb.store.NodeId getAllocateNodeId(com.hp.hpl.jena.graph.Node)
+    {
+        com.hp.hpl.jena.graph.Node r1;
+        com.hp.hpl.jena.tdb.transaction.NodeTableTrans r0;
+        com.hp.hpl.jena.tdb.nodetable.NodeTable $r4;
+        com.hp.hpl.jena.tdb.store.NodeId $r2, $r3, $r5;
+        boolean $z0, $z1;
+
+        r0 := @this: com.hp.hpl.jena.tdb.transaction.NodeTableTrans;
+
+        r1 := @parameter0: com.hp.hpl.jena.graph.Node;
+
+        $z0 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: boolean passthrough>;
+
+        if $z0 == 0 goto label1;
+
+        $r4 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.nodetable.NodeTable base>;
+
+        $r5 = interfaceinvoke $r4.<com.hp.hpl.jena.tdb.nodetable.NodeTable: com.hp.hpl.jena.tdb.store.NodeId getAllocateNodeId(com.hp.hpl.jena.graph.Node)>(r1);
+
+        return $r5;
+
+     label1:
+        $r2 = virtualinvoke r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.store.NodeId getNodeIdForNode(com.hp.hpl.jena.graph.Node)>(r1);
+
+        $z1 = staticinvoke <com.hp.hpl.jena.tdb.store.NodeId: boolean isDoesNotExist(com.hp.hpl.jena.tdb.store.NodeId)>($r2);
+
+        if $z1 != 0 goto label2;
+
+        return $r2;
+
+     label2:
+        $r3 = specialinvoke r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.store.NodeId allocate(com.hp.hpl.jena.graph.Node)>(r1);
+
+        return $r3;
+    }
+
+    public com.hp.hpl.jena.tdb.store.NodeId getNodeIdForNode(com.hp.hpl.jena.graph.Node)
+    {
+        com.hp.hpl.jena.graph.Node r0, $r1;
+        com.hp.hpl.jena.tdb.transaction.NodeTableTrans r2;
+        com.hp.hpl.jena.tdb.nodetable.NodeTable $r3, $r5, $r8;
+        com.hp.hpl.jena.tdb.store.NodeId $r4, $r6, $r7, $r9, $r10;
+        boolean $z0, $z1;
+
+        r2 := @this: com.hp.hpl.jena.tdb.transaction.NodeTableTrans;
+
+        r0 := @parameter0: com.hp.hpl.jena.graph.Node;
+
+        $r1 = <com.hp.hpl.jena.graph.Node: com.hp.hpl.jena.graph.Node ANY>;
+
+        if r0 != $r1 goto label1;
+
+        $r10 = <com.hp.hpl.jena.tdb.store.NodeId: com.hp.hpl.jena.tdb.store.NodeId NodeIdAny>;
+
+        return $r10;
+
+     label1:
+        $z0 = r2.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: boolean passthrough>;
+
+        if $z0 == 0 goto label2;
+
+        $r8 = r2.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.nodetable.NodeTable base>;
+
+        $r9 = interfaceinvoke $r8.<com.hp.hpl.jena.tdb.nodetable.NodeTable: com.hp.hpl.jena.tdb.store.NodeId getNodeIdForNode(com.hp.hpl.jena.graph.Node)>(r0);
+
+        return $r9;
+
+     label2:
+        $r3 = r2.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.nodetable.NodeTable nodeTableJournal>;
+
+        $r4 = interfaceinvoke $r3.<com.hp.hpl.jena.tdb.nodetable.NodeTable: com.hp.hpl.jena.tdb.store.NodeId getNodeIdForNode(com.hp.hpl.jena.graph.Node)>(r0);
+
+        $z1 = staticinvoke <com.hp.hpl.jena.tdb.store.NodeId: boolean isDoesNotExist(com.hp.hpl.jena.tdb.store.NodeId)>($r4);
+
+        if $z1 != 0 goto label3;
+
+        $r7 = specialinvoke r2.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.store.NodeId mapFromJournal(com.hp.hpl.jena.tdb.store.NodeId)>($r4);
+
+        return $r7;
+
+     label3:
+        $r5 = r2.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.nodetable.NodeTable base>;
+
+        $r6 = interfaceinvoke $r5.<com.hp.hpl.jena.tdb.nodetable.NodeTable: com.hp.hpl.jena.tdb.store.NodeId getNodeIdForNode(com.hp.hpl.jena.graph.Node)>(r0);
+
+        return $r6;
+    }
+
+    public com.hp.hpl.jena.graph.Node getNodeForNodeId(com.hp.hpl.jena.tdb.store.NodeId)
+    {
+        long $l0, $l1;
+        com.hp.hpl.jena.graph.Node $r3, $r5, $r7, $r8;
+        byte $b2;
+        com.hp.hpl.jena.tdb.nodetable.NodeTable $r2, $r4, $r6;
+        com.hp.hpl.jena.tdb.store.NodeId $r1, r9;
+        int $i3;
+        boolean $z0, $z1;
+        com.hp.hpl.jena.tdb.transaction.NodeTableTrans r0;
+
+        r0 := @this: com.hp.hpl.jena.tdb.transaction.NodeTableTrans;
+
+        r9 := @parameter0: com.hp.hpl.jena.tdb.store.NodeId;
+
+        $z0 = staticinvoke <com.hp.hpl.jena.tdb.store.NodeId: boolean isAny(com.hp.hpl.jena.tdb.store.NodeId)>(r9);
+
+        if $z0 == 0 goto label1;
+
+        $r8 = <com.hp.hpl.jena.graph.Node: com.hp.hpl.jena.graph.Node ANY>;
+
+        return $r8;
+
+     label1:
+        $z1 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: boolean passthrough>;
+
+        if $z1 == 0 goto label2;
+
+        $r6 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.nodetable.NodeTable base>;
+
+        $r7 = interfaceinvoke $r6.<com.hp.hpl.jena.tdb.nodetable.NodeTable: com.hp.hpl.jena.graph.Node getNodeForNodeId(com.hp.hpl.jena.tdb.store.NodeId)>(r9);
+
+        return $r7;
+
+     label2:
+        $l0 = virtualinvoke r9.<com.hp.hpl.jena.tdb.store.NodeId: long getId()>();
+
+        $l1 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: long allocOffset>;
+
+        $b2 = $l0 cmp $l1;
+
+        $i3 = (int) $b2;
+
+        if $i3 >= 0 goto label3;
+
+        $r4 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.nodetable.NodeTable base>;
+
+        $r5 = interfaceinvoke $r4.<com.hp.hpl.jena.tdb.nodetable.NodeTable: com.hp.hpl.jena.graph.Node getNodeForNodeId(com.hp.hpl.jena.tdb.store.NodeId)>(r9);
+
+        return $r5;
+
+     label3:
+        $r1 = specialinvoke r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.store.NodeId mapToJournal(com.hp.hpl.jena.tdb.store.NodeId)>(r9);
+
+        $r2 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.nodetable.NodeTable nodeTableJournal>;
+
+        $r3 = interfaceinvoke $r2.<com.hp.hpl.jena.tdb.nodetable.NodeTable: com.hp.hpl.jena.graph.Node getNodeForNodeId(com.hp.hpl.jena.tdb.store.NodeId)>($r1);
+
+        return $r3;
+    }
+
+    private com.hp.hpl.jena.tdb.store.NodeId mapToJournal(com.hp.hpl.jena.tdb.store.NodeId)
+    {
+        long $l0, $l1, $l2;
+        com.hp.hpl.jena.tdb.transaction.NodeTableTrans r0;
+        com.hp.hpl.jena.tdb.store.NodeId r1, $r2;
+        com.hp.hpl.jena.tdb.transaction.TDBTransactionException $r3;
+        boolean $z0, $z1;
+
+        r0 := @this: com.hp.hpl.jena.tdb.transaction.NodeTableTrans;
+
+        r1 := @parameter0: com.hp.hpl.jena.tdb.store.NodeId;
+
+        $z0 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: boolean passthrough>;
+
+        if $z0 == 0 goto label1;
+
+        $r3 = new com.hp.hpl.jena.tdb.transaction.TDBTransactionException;
+
+        specialinvoke $r3.<com.hp.hpl.jena.tdb.transaction.TDBTransactionException: void <init>(java.lang.String)>("Not in an active transaction");
+
+        throw $r3;
+
+     label1:
+        $z1 = staticinvoke <com.hp.hpl.jena.tdb.store.NodeId: boolean isInline(com.hp.hpl.jena.tdb.store.NodeId)>(r1);
+
+        if $z1 == 0 goto label2;
+
+        return r1;
+
+     label2:
+        $l0 = virtualinvoke r1.<com.hp.hpl.jena.tdb.store.NodeId: long getId()>();
+
+        $l1 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: long allocOffset>;
+
+        $l2 = $l0 - $l1;
+
+        $r2 = staticinvoke <com.hp.hpl.jena.tdb.store.NodeId: com.hp.hpl.jena.tdb.store.NodeId create(long)>($l2);
+
+        return $r2;
+    }
+
+    private com.hp.hpl.jena.tdb.store.NodeId mapFromJournal(com.hp.hpl.jena.tdb.store.NodeId)
+    {
+        long $l0, $l1, $l2;
+        com.hp.hpl.jena.tdb.transaction.NodeTableTrans r0;
+        com.hp.hpl.jena.tdb.store.NodeId r1, $r2;
+        com.hp.hpl.jena.tdb.transaction.TDBTransactionException $r3;
+        boolean $z0, $z1;
+
+        r0 := @this: com.hp.hpl.jena.tdb.transaction.NodeTableTrans;
+
+        r1 := @parameter0: com.hp.hpl.jena.tdb.store.NodeId;
+
+        $z0 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: boolean passthrough>;
+
+        if $z0 == 0 goto label1;
+
+        $r3 = new com.hp.hpl.jena.tdb.transaction.TDBTransactionException;
+
+        specialinvoke $r3.<com.hp.hpl.jena.tdb.transaction.TDBTransactionException: void <init>(java.lang.String)>("Not in an active transaction");
+
+        throw $r3;
+
+     label1:
+        $z1 = staticinvoke <com.hp.hpl.jena.tdb.store.NodeId: boolean isInline(com.hp.hpl.jena.tdb.store.NodeId)>(r1);
+
+        if $z1 == 0 goto label2;
+
+        return r1;
+
+     label2:
+        $l0 = virtualinvoke r1.<com.hp.hpl.jena.tdb.store.NodeId: long getId()>();
+
+        $l1 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: long allocOffset>;
+
+        $l2 = $l0 + $l1;
+
+        $r2 = staticinvoke <com.hp.hpl.jena.tdb.store.NodeId: com.hp.hpl.jena.tdb.store.NodeId create(long)>($l2);
+
+        return $r2;
+    }
+
+    private com.hp.hpl.jena.tdb.store.NodeId allocate(com.hp.hpl.jena.graph.Node)
+    {
+        com.hp.hpl.jena.tdb.transaction.NodeTableTrans r0;
+        com.hp.hpl.jena.tdb.nodetable.NodeTable $r2;
+        com.hp.hpl.jena.tdb.store.NodeId $r3, $r4;
+        com.hp.hpl.jena.graph.Node r1;
+
+        r0 := @this: com.hp.hpl.jena.tdb.transaction.NodeTableTrans;
+
+        r1 := @parameter0: com.hp.hpl.jena.graph.Node;
+
+        $r2 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.nodetable.NodeTable nodeTableJournal>;
+
+        $r3 = interfaceinvoke $r2.<com.hp.hpl.jena.tdb.nodetable.NodeTable: com.hp.hpl.jena.tdb.store.NodeId getAllocateNodeId(com.hp.hpl.jena.graph.Node)>(r1);
+
+        $r4 = specialinvoke r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.store.NodeId mapFromJournal(com.hp.hpl.jena.tdb.store.NodeId)>($r3);
+
+        return $r4;
+    }
+
+    public com.hp.hpl.jena.tdb.store.NodeId allocOffset()
+    {
+        com.hp.hpl.jena.tdb.transaction.NodeTableTrans r0;
+        com.hp.hpl.jena.tdb.nodetable.NodeTable $r1, $r4;
+        com.hp.hpl.jena.tdb.store.NodeId $r2, $r3, $r5;
+        boolean $z0;
+
+        r0 := @this: com.hp.hpl.jena.tdb.transaction.NodeTableTrans;
+
+        $z0 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: boolean passthrough>;
+
+        if $z0 == 0 goto label1;
+
+        $r4 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.nodetable.NodeTable base>;
+
+        $r5 = interfaceinvoke $r4.<com.hp.hpl.jena.tdb.nodetable.NodeTable: com.hp.hpl.jena.tdb.store.NodeId allocOffset()>();
+
+        return $r5;
+
+     label1:
+        $r1 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.nodetable.NodeTable nodeTableJournal>;
+
+        $r2 = interfaceinvoke $r1.<com.hp.hpl.jena.tdb.nodetable.NodeTable: com.hp.hpl.jena.tdb.store.NodeId allocOffset()>();
+
+        $r3 = specialinvoke r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.store.NodeId mapFromJournal(com.hp.hpl.jena.tdb.store.NodeId)>($r2);
+
+        return $r3;
+    }
+
+    public void begin(com.hp.hpl.jena.tdb.transaction.Transaction)
+    {
+        byte $b2, $b6;
+        com.hp.hpl.jena.tdb.nodetable.NodeTable $r3, $r9, $r10, $r11, $r12;
+        java.lang.Long $r16, $r17;
+        com.hp.hpl.jena.tdb.transaction.Transaction $r1, r2, $r21;
+        boolean $z0;
+        com.hp.hpl.jena.tdb.transaction.NodeTableTrans r0;
+        java.lang.Object[] $r13, $r20;
+        com.hp.hpl.jena.tdb.index.Index $r8;
+        long $l0, $l1, $l3, $l4, $l5, $l7, $l8, $l9, $l12, $l13;
+        com.hp.hpl.jena.tdb.store.NodeId $r4;
+        int $i10, $i11;
+        java.lang.String $r15, $r22, $r23, $r24;
+        org.slf4j.Logger $r14;
+        com.hp.hpl.jena.tdb.TDBException $r18, $r19;
+        com.hp.hpl.jena.tdb.base.objectfile.ObjectFile $r5, $r7;
+        com.hp.hpl.jena.tdb.nodetable.NodeTableNative $r6;
+
+        r0 := @this: com.hp.hpl.jena.tdb.transaction.NodeTableTrans;
+
+        r2 := @parameter0: com.hp.hpl.jena.tdb.transaction.Transaction;
+
+        $r1 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.transaction.Transaction txn>;
+
+        $l0 = virtualinvoke $r1.<com.hp.hpl.jena.tdb.transaction.Transaction: long getTxnId()>();
+
+        $l1 = virtualinvoke r2.<com.hp.hpl.jena.tdb.transaction.Transaction: long getTxnId()>();
+
+        $b2 = $l0 cmp $l1;
+
+        if $b2 == 0 goto label1;
+
+        $r19 = new com.hp.hpl.jena.tdb.TDBException;
+
+        $r20 = newarray (java.lang.Object)[2];
+
+        $r21 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.transaction.Transaction txn>;
+
+        $r22 = virtualinvoke $r21.<com.hp.hpl.jena.tdb.transaction.Transaction: java.lang.String getLabel()>();
+
+        $r20[0] = $r22;
+
+        $r23 = virtualinvoke r2.<com.hp.hpl.jena.tdb.transaction.Transaction: java.lang.String getLabel()>();
+
+        $r20[1] = $r23;
+
+        $r24 = staticinvoke <java.lang.String: java.lang.String format(java.lang.String,java.lang.Object[])>("Different transactions: %s %s", $r20);
+
+        specialinvoke $r19.<com.hp.hpl.jena.tdb.TDBException: void <init>(java.lang.String)>($r24);
+
+        throw $r19;
+
+     label1:
+        $z0 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: boolean passthrough>;
+
+        if $z0 == 0 goto label2;
+
+        $r18 = new com.hp.hpl.jena.tdb.TDBException;
+
+        specialinvoke $r18.<com.hp.hpl.jena.tdb.TDBException: void <init>(java.lang.String)>("Already active");
+
+        throw $r18;
+
+     label2:
+        r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: boolean passthrough> = 0;
+
+        $r3 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.nodetable.NodeTable base>;
+
+        $r4 = interfaceinvoke $r3.<com.hp.hpl.jena.tdb.nodetable.NodeTable: com.hp.hpl.jena.tdb.store.NodeId allocOffset()>();
+
+        $l3 = virtualinvoke $r4.<com.hp.hpl.jena.tdb.store.NodeId: long getId()>();
+
+        r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: long allocOffset> = $l3;
+
+        $r5 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.base.objectfile.ObjectFile journalObjFile>;
+
+        $l4 = interfaceinvoke $r5.<com.hp.hpl.jena.tdb.base.objectfile.ObjectFile: long length()>();
+
+        r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: long journalObjFileStartOffset> = $l4;
+
+        $l5 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: long journalObjFileStartOffset>;
+
+        $b6 = $l5 cmp 0L;
+
+        if $b6 == 0 goto label3;
+
+        $r14 = <com.hp.hpl.jena.tdb.transaction.NodeTableTrans: org.slf4j.Logger log>;
+
+        $r13 = newarray (java.lang.Object)[3];
+
+        $r15 = virtualinvoke r2.<com.hp.hpl.jena.tdb.transaction.Transaction: java.lang.String getLabel()>();
+
+        $r13[0] = $r15;
+
+        $l12 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: long journalObjFileStartOffset>;
+
+        $r16 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l12);
+
+        $r13[1] = $r16;
+
+        $l13 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: long journalObjFileStartOffset>;
+
+        $r17 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l13);
+
+        $r13[2] = $r17;
+
+        staticinvoke <org.apache.jena.atlas.logging.FmtLog: void warn(org.slf4j.Logger,java.lang.String,java.lang.Object[])>($r14, "%s journalStartOffset not zero: %d/0x%02X", $r13);
+
+     label3:
+        $l8 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: long allocOffset>;
+
+        $l7 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: long journalObjFileStartOffset>;
+
+        $l9 = $l8 + $l7;
+
+        r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: long allocOffset> = $l9;
+
+        $r6 = new com.hp.hpl.jena.tdb.nodetable.NodeTableNative;
+
+        $r8 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.index.Index nodeIndex>;
+
+        $r7 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.base.objectfile.ObjectFile journalObjFile>;
+
+        specialinvoke $r6.<com.hp.hpl.jena.tdb.nodetable.NodeTableNative: void <init>(com.hp.hpl.jena.tdb.index.Index,com.hp.hpl.jena.tdb.base.objectfile.ObjectFile)>($r8, $r7);
+
+        r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.nodetable.NodeTable nodeTableJournal> = $r6;
+
+        $r9 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.nodetable.NodeTable nodeTableJournal>;
+
+        $i11 = <com.hp.hpl.jena.tdb.transaction.NodeTableTrans: int CacheSize>;
+
+        $i10 = <com.hp.hpl.jena.tdb.transaction.NodeTableTrans: int CacheSize>;
+
+        $r10 = staticinvoke <com.hp.hpl.jena.tdb.nodetable.NodeTableCache: com.hp.hpl.jena.tdb.nodetable.NodeTable create(com.hp.hpl.jena.tdb.nodetable.NodeTable,int,int,int)>($r9, $i11, $i10, 100);
+
+        r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.nodetable.NodeTable nodeTableJournal> = $r10;
+
+        $r11 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.nodetable.NodeTable nodeTableJournal>;
+
+        $r12 = staticinvoke <com.hp.hpl.jena.tdb.nodetable.NodeTableInline: com.hp.hpl.jena.tdb.nodetable.NodeTable create(com.hp.hpl.jena.tdb.nodetable.NodeTable)>($r11);
+
+        r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.nodetable.NodeTable nodeTableJournal> = $r12;
+
+        return;
+    }
+
+    void append()
+    {
+        java.lang.Object[] $r7;
+        com.hp.hpl.jena.graph.Node $r13;
+        com.hp.hpl.jena.tdb.nodetable.NodeTable $r1, $r9;
+        com.hp.hpl.jena.tdb.store.NodeId $r8, $r10, $r11, $r12;
+        boolean $z0, $z1;
+        java.util.Iterator $r2;
+        com.hp.hpl.jena.tdb.transaction.NodeTableTrans r0;
+        org.apache.jena.atlas.lib.Pair r4, r14;
+        java.lang.Object $r3, $r5, $r6;
+
+        r0 := @this: com.hp.hpl.jena.tdb.transaction.NodeTableTrans;
+
+        $r1 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.nodetable.NodeTable nodeTableJournal>;
+
+        $r2 = interfaceinvoke $r1.<com.hp.hpl.jena.tdb.nodetable.NodeTable: java.util.Iterator all()>();
+
+        r14 = null;
+
+     label1:
+        $z0 = interfaceinvoke $r2.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label4;
+
+        $r3 = interfaceinvoke $r2.<java.util.Iterator: java.lang.Object next()>();
+
+        r4 = (org.apache.jena.atlas.lib.Pair) $r3;
+
+        if r14 != null goto label2;
+
+        r14 = r4;
+
+     label2:
+        $r5 = virtualinvoke r4.<org.apache.jena.atlas.lib.Pair: java.lang.Object getLeft()>();
+
+        $r12 = (com.hp.hpl.jena.tdb.store.NodeId) $r5;
+
+        $r6 = virtualinvoke r4.<org.apache.jena.atlas.lib.Pair: java.lang.Object getRight()>();
+
+        $r13 = (com.hp.hpl.jena.graph.Node) $r6;
+
+        $r7 = newarray (java.lang.Object)[2];
+
+        $r7[0] = r4;
+
+        $r8 = specialinvoke r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.store.NodeId mapFromJournal(com.hp.hpl.jena.tdb.store.NodeId)>($r12);
+
+        $r7[1] = $r8;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: void debug(java.lang.String,java.lang.Object[])>("  append: %s -> %s", $r7);
+
+        $r9 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.nodetable.NodeTable base>;
+
+        $r10 = interfaceinvoke $r9.<com.hp.hpl.jena.tdb.nodetable.NodeTable: com.hp.hpl.jena.tdb.store.NodeId getAllocateNodeId(com.hp.hpl.jena.graph.Node)>($r13);
+
+        $r11 = specialinvoke r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.store.NodeId mapFromJournal(com.hp.hpl.jena.tdb.store.NodeId)>($r12);
+
+        $z1 = virtualinvoke $r10.<com.hp.hpl.jena.tdb.store.NodeId: boolean equals(java.lang.Object)>($r11);
+
+        if $z1 != 0 goto label3;
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: void inconsistent(com.hp.hpl.jena.graph.Node,com.hp.hpl.jena.tdb.store.NodeId,com.hp.hpl.jena.tdb.store.NodeId)>($r13, $r12, $r10);
+
+     label3:
+        goto label1;
+
+     label4:
+        return;
+    }
+
+    private void inconsistent(com.hp.hpl.jena.graph.Node, com.hp.hpl.jena.tdb.store.NodeId, com.hp.hpl.jena.tdb.store.NodeId)
+    {
+        java.io.PrintStream $r7, $r8, $r9, $r10;
+        java.lang.Object[] $r0;
+        com.hp.hpl.jena.tdb.TDBException $r11;
+        com.hp.hpl.jena.graph.Node r1;
+        com.hp.hpl.jena.tdb.transaction.NodeTableTrans r2;
+        com.hp.hpl.jena.tdb.store.NodeId r3, $r4, r5;
+        java.lang.String $r6;
+
+        r2 := @this: com.hp.hpl.jena.tdb.transaction.NodeTableTrans;
+
+        r1 := @parameter0: com.hp.hpl.jena.graph.Node;
+
+        r3 := @parameter1: com.hp.hpl.jena.tdb.store.NodeId;
+
+        r5 := @parameter2: com.hp.hpl.jena.tdb.store.NodeId;
+
+        $r0 = newarray (java.lang.Object)[3];
+
+        $r0[0] = r1;
+
+        $r4 = specialinvoke r2.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.store.NodeId mapFromJournal(com.hp.hpl.jena.tdb.store.NodeId)>(r3);
+
+        $r0[1] = $r4;
+
+        $r0[2] = r5;
+
+        $r6 = staticinvoke <java.lang.String: java.lang.String format(java.lang.String,java.lang.Object[])>("Different ids for %s: allocated: expected %s, got %s", $r0);
+
+        $r7 = <java.lang.System: java.io.PrintStream err>;
+
+        virtualinvoke $r7.<java.io.PrintStream: void println()>();
+
+        $r8 = <java.lang.System: java.io.PrintStream err>;
+
+        virtualinvoke $r8.<java.io.PrintStream: void println()>();
+
+        $r9 = <java.lang.System: java.io.PrintStream err>;
+
+        virtualinvoke $r9.<java.io.PrintStream: void println(java.lang.String)>($r6);
+
+        specialinvoke r2.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: void dump()>();
+
+        $r10 = <java.lang.System: java.io.PrintStream err>;
+
+        virtualinvoke $r10.<java.io.PrintStream: void println()>();
+
+        $r11 = new com.hp.hpl.jena.tdb.TDBException;
+
+        specialinvoke $r11.<com.hp.hpl.jena.tdb.TDBException: void <init>(java.lang.String)>($r6);
+
+        throw $r11;
+    }
+
+    private void dump()
+    {
+        com.hp.hpl.jena.tdb.transaction.Transaction $r11;
+        com.hp.hpl.jena.tdb.transaction.NodeTableTrans r4;
+        java.lang.StringBuilder $r1, $r3, $r6, $r8, $r10, $r12, $r14, $r16, $r17, $r19, $r21, $r22, $r24, $r26, $r29;
+        long $l0, $l1;
+        java.lang.String $r5, $r7, $r13, $r18, $r23, $r28, $r30;
+        java.io.PrintStream $r0, $r2, $r9, $r15, $r20, $r25;
+        com.hp.hpl.jena.tdb.base.objectfile.ObjectFile $r27;
+
+        r4 := @this: com.hp.hpl.jena.tdb.transaction.NodeTableTrans;
+
+        $r0 = <java.lang.System: java.io.PrintStream err>;
+
+        virtualinvoke $r0.<java.io.PrintStream: void println(java.lang.String)>(">>>>>>>>>>");
+
+        $r2 = <java.lang.System: java.io.PrintStream err>;
+
+        $r1 = new java.lang.StringBuilder;
+
+        specialinvoke $r1.<java.lang.StringBuilder: void <init>()>();
+
+        $r3 = virtualinvoke $r1.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("label = ");
+
+        $r5 = r4.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: java.lang.String label>;
+
+        $r6 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r5);
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r2.<java.io.PrintStream: void println(java.lang.String)>($r7);
+
+        $r9 = <java.lang.System: java.io.PrintStream err>;
+
+        $r8 = new java.lang.StringBuilder;
+
+        specialinvoke $r8.<java.lang.StringBuilder: void <init>()>();
+
+        $r10 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("txn = ");
+
+        $r11 = r4.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.transaction.Transaction txn>;
+
+        $r12 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r11);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r9.<java.io.PrintStream: void println(java.lang.String)>($r13);
+
+        $r15 = <java.lang.System: java.io.PrintStream err>;
+
+        $r14 = new java.lang.StringBuilder;
+
+        specialinvoke $r14.<java.lang.StringBuilder: void <init>()>();
+
+        $r16 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("offset = ");
+
+        $l0 = r4.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: long allocOffset>;
+
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l0);
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r15.<java.io.PrintStream: void println(java.lang.String)>($r18);
+
+        $r20 = <java.lang.System: java.io.PrintStream err>;
+
+        $r19 = new java.lang.StringBuilder;
+
+        specialinvoke $r19.<java.lang.StringBuilder: void <init>()>();
+
+        $r21 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("journalStartOffset = ");
+
+        $l1 = r4.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: long journalObjFileStartOffset>;
+
+        $r22 = virtualinvoke $r21.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l1);
+
+        $r23 = virtualinvoke $r22.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r20.<java.io.PrintStream: void println(java.lang.String)>($r23);
+
+        $r25 = <java.lang.System: java.io.PrintStream err>;
+
+        $r24 = new java.lang.StringBuilder;
+
+        specialinvoke $r24.<java.lang.StringBuilder: void <init>()>();
+
+        $r26 = virtualinvoke $r24.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("journal = ");
+
+        $r27 = r4.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.base.objectfile.ObjectFile journalObjFile>;
+
+        $r28 = interfaceinvoke $r27.<com.hp.hpl.jena.tdb.base.objectfile.ObjectFile: java.lang.String getLabel()>();
+
+        $r29 = virtualinvoke $r26.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r28);
+
+        $r30 = virtualinvoke $r29.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r25.<java.io.PrintStream: void println(java.lang.String)>($r30);
+
+        return;
+    }
+
+    public void commitPrepare(com.hp.hpl.jena.tdb.transaction.Transaction)
+    {
+        java.lang.Object[] $r1;
+        long $l0, $l2;
+        byte $b1;
+        com.hp.hpl.jena.tdb.nodetable.NodeTable $r2;
+        com.hp.hpl.jena.tdb.transaction.TDBTransactionException $r6, $r15;
+        java.lang.String $r9, $r14, $r17, $r20;
+        com.hp.hpl.jena.tdb.transaction.Transaction r8;
+        com.hp.hpl.jena.tdb.base.objectfile.ObjectFile $r3, $r4, $r5;
+        com.hp.hpl.jena.tdb.transaction.NodeTableTrans r0;
+        java.lang.StringBuilder $r7, $r10, $r11, $r12, $r13, $r16, $r18, $r19;
+
+        r0 := @this: com.hp.hpl.jena.tdb.transaction.NodeTableTrans;
+
+        r8 := @parameter0: com.hp.hpl.jena.tdb.transaction.Transaction;
+
+        $r1 = newarray (java.lang.Object)[0];
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: void debug(java.lang.String,java.lang.Object[])>("commitPrepare", $r1);
+
+        $r2 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.nodetable.NodeTable nodeTableJournal>;
+
+        if $r2 != null goto label1;
+
+        $r15 = new com.hp.hpl.jena.tdb.transaction.TDBTransactionException;
+
+        $r16 = new java.lang.StringBuilder;
+
+        specialinvoke $r16.<java.lang.StringBuilder: void <init>()>();
+
+        $r17 = virtualinvoke r8.<com.hp.hpl.jena.tdb.transaction.Transaction: java.lang.String getLabel()>();
+
+        $r18 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r17);
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(": Not in a transaction for a commit to happen");
+
+        $r20 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r15.<com.hp.hpl.jena.tdb.transaction.TDBTransactionException: void <init>(java.lang.String)>($r20);
+
+        throw $r15;
+
+     label1:
+        specialinvoke r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: void writeNodeJournal()>();
+
+        $r3 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.base.objectfile.ObjectFile journalObjFile>;
+
+        if $r3 == null goto label2;
+
+        $r4 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.base.objectfile.ObjectFile journalObjFile>;
+
+        $l0 = interfaceinvoke $r4.<com.hp.hpl.jena.tdb.base.objectfile.ObjectFile: long length()>();
+
+        $b1 = $l0 cmp 0L;
+
+        if $b1 == 0 goto label2;
+
+        $r5 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.base.objectfile.ObjectFile journalObjFile>;
+
+        $l2 = interfaceinvoke $r5.<com.hp.hpl.jena.tdb.base.objectfile.ObjectFile: long length()>();
+
+        $r6 = new com.hp.hpl.jena.tdb.transaction.TDBTransactionException;
+
+        $r7 = new java.lang.StringBuilder;
+
+        specialinvoke $r7.<java.lang.StringBuilder: void <init>()>();
+
+        $r9 = virtualinvoke r8.<com.hp.hpl.jena.tdb.transaction.Transaction: java.lang.String getLabel()>();
+
+        $r10 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r9);
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(": journalObjFile not cleared (");
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l2);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(")");
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r6.<com.hp.hpl.jena.tdb.transaction.TDBTransactionException: void <init>(java.lang.String)>($r14);
+
+        throw $r6;
+
+     label2:
+        return;
+    }
+
+    public void commitEnact(com.hp.hpl.jena.tdb.transaction.Transaction)
+    {
+        com.hp.hpl.jena.tdb.transaction.NodeTableTrans r0;
+        java.lang.Object[] $r1;
+        com.hp.hpl.jena.tdb.transaction.Transaction r2;
+
+        r0 := @this: com.hp.hpl.jena.tdb.transaction.NodeTableTrans;
+
+        r2 := @parameter0: com.hp.hpl.jena.tdb.transaction.Transaction;
+
+        $r1 = newarray (java.lang.Object)[0];
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: void debug(java.lang.String,java.lang.Object[])>("commitEnact", $r1);
+
+        return;
+    }
+
+    private void writeNodeJournal()
+    {
+        com.hp.hpl.jena.tdb.index.Index $r4;
+        long $l0, $l1, $l3, $l4;
+        byte $b2;
+        com.hp.hpl.jena.tdb.nodetable.NodeTable $r1, $r7;
+        com.hp.hpl.jena.tdb.store.NodeId $r2;
+        java.lang.String $r14;
+        org.slf4j.Logger $r9;
+        com.hp.hpl.jena.tdb.base.objectfile.ObjectFile $r3, $r5, $r6;
+        com.hp.hpl.jena.tdb.transaction.NodeTableTrans r0;
+        java.lang.StringBuilder $r8, $r10, $r11, $r12, $r13;
+
+        r0 := @this: com.hp.hpl.jena.tdb.transaction.NodeTableTrans;
+
+        $r1 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.nodetable.NodeTable base>;
+
+        $r2 = interfaceinvoke $r1.<com.hp.hpl.jena.tdb.nodetable.NodeTable: com.hp.hpl.jena.tdb.store.NodeId allocOffset()>();
+
+        $l0 = virtualinvoke $r2.<com.hp.hpl.jena.tdb.store.NodeId: long getId()>();
+
+        $r3 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.base.objectfile.ObjectFile journalObjFile>;
+
+        interfaceinvoke $r3.<com.hp.hpl.jena.tdb.base.objectfile.ObjectFile: long length()>();
+
+        $l1 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: long allocOffset>;
+
+        $b2 = $l0 cmp $l1;
+
+        if $b2 == 0 goto label1;
+
+        $r9 = <com.hp.hpl.jena.tdb.transaction.NodeTableTrans: org.slf4j.Logger log>;
+
+        $r8 = new java.lang.StringBuilder;
+
+        specialinvoke $r8.<java.lang.StringBuilder: void <init>()>();
+
+        $r10 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Inconsistency: base.allocOffset() = ");
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l0);
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" : allocOffset = ");
+
+        $l4 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: long allocOffset>;
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l4);
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        staticinvoke <org.apache.jena.atlas.logging.Log: void warn(java.lang.Object,java.lang.String)>($r9, $r14);
+
+     label1:
+        virtualinvoke r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: void append()>();
+
+        $r4 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.index.Index nodeIndex>;
+
+        interfaceinvoke $r4.<com.hp.hpl.jena.tdb.index.Index: void clear()>();
+
+        $r5 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.base.objectfile.ObjectFile journalObjFile>;
+
+        $l3 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: long journalObjFileStartOffset>;
+
+        interfaceinvoke $r5.<com.hp.hpl.jena.tdb.base.objectfile.ObjectFile: void truncate(long)>($l3);
+
+        $r6 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.base.objectfile.ObjectFile journalObjFile>;
+
+        interfaceinvoke $r6.<com.hp.hpl.jena.tdb.base.objectfile.ObjectFile: void close()>();
+
+        r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.base.objectfile.ObjectFile journalObjFile> = null;
+
+        $r7 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.nodetable.NodeTable base>;
+
+        interfaceinvoke $r7.<com.hp.hpl.jena.tdb.nodetable.NodeTable: void sync()>();
+
+        r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: long allocOffset> = -99L;
+
+        r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: boolean passthrough> = 1;
+
+        return;
+    }
+
+    public void commitClearup(com.hp.hpl.jena.tdb.transaction.Transaction)
+    {
+        com.hp.hpl.jena.tdb.transaction.NodeTableTrans r0;
+        java.lang.Object[] $r1;
+        com.hp.hpl.jena.tdb.transaction.Transaction r2;
+
+        r0 := @this: com.hp.hpl.jena.tdb.transaction.NodeTableTrans;
+
+        r2 := @parameter0: com.hp.hpl.jena.tdb.transaction.Transaction;
+
+        $r1 = newarray (java.lang.Object)[0];
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: void debug(java.lang.String,java.lang.Object[])>("commitClearup", $r1);
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: void finish()>();
+
+        return;
+    }
+
+    public void abort(com.hp.hpl.jena.tdb.transaction.Transaction)
+    {
+        java.lang.Object[] $r1;
+        com.hp.hpl.jena.tdb.base.objectfile.ObjectFile $r3, $r4, $r5;
+        long $l0;
+        com.hp.hpl.jena.tdb.transaction.NodeTableTrans r0;
+        com.hp.hpl.jena.tdb.nodetable.NodeTable $r2;
+        com.hp.hpl.jena.tdb.transaction.TDBTransactionException $r6;
+        java.lang.StringBuilder $r7, $r10, $r11;
+        java.lang.String $r9, $r12;
+        com.hp.hpl.jena.tdb.transaction.Transaction r8;
+
+        r0 := @this: com.hp.hpl.jena.tdb.transaction.NodeTableTrans;
+
+        r8 := @parameter0: com.hp.hpl.jena.tdb.transaction.Transaction;
+
+        $r1 = newarray (java.lang.Object)[0];
+
+        specialinvoke r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: void debug(java.lang.String,java.lang.Object[])>("abort", $r1);
+
+        $r2 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.nodetable.NodeTable nodeTableJournal>;
+
+        if $r2 != null goto label1;
+
+        $r6 = new com.hp.hpl.jena.tdb.transaction.TDBTransactionException;
+
+        $r7 = new java.lang.StringBuilder;
+
+        specialinvoke $r7.<java.lang.StringBuilder: void <init>()>();
+
+        $r9 = virtualinvoke r8.<com.hp.hpl.jena.tdb.transaction.Transaction: java.lang.String getLabel()>();
+
+        $r10 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r9);
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(": Not in a transaction for a commit to happen");
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r6.<com.hp.hpl.jena.tdb.transaction.TDBTransactionException: void <init>(java.lang.String)>($r12);
+
+        throw $r6;
+
+     label1:
+        r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.nodetable.NodeTable nodeTableJournal> = null;
+
+        $r3 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.base.objectfile.ObjectFile journalObjFile>;
+
+        if $r3 == null goto label2;
+
+        $r4 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.base.objectfile.ObjectFile journalObjFile>;
+
+        $l0 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: long journalObjFileStartOffset>;
+
+        interfaceinvoke $r4.<com.hp.hpl.jena.tdb.base.objectfile.ObjectFile: void truncate(long)>($l0);
+
+        $r5 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.base.objectfile.ObjectFile journalObjFile>;
+
+        interfaceinvoke $r5.<com.hp.hpl.jena.tdb.base.objectfile.ObjectFile: void sync()>();
+
+     label2:
+        specialinvoke r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: void finish()>();
+
+        return;
+    }
+
+    private void finish()
+    {
+        com.hp.hpl.jena.tdb.transaction.NodeTableTrans r0;
+
+        r0 := @this: com.hp.hpl.jena.tdb.transaction.NodeTableTrans;
+
+        virtualinvoke r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: void close()>();
+
+        r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: boolean passthrough> = 1;
+
+        r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.nodetable.NodeTable nodeTableJournal> = null;
+
+        r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.base.objectfile.ObjectFile journalObjFile> = null;
+
+        return;
+    }
+
+    public java.util.Iterator all()
+    {
+        com.hp.hpl.jena.tdb.transaction.NodeTableTrans r0;
+        java.util.Iterator $r2, $r4, $r5;
+        com.hp.hpl.jena.tdb.nodetable.NodeTable $r1, $r3;
+
+        r0 := @this: com.hp.hpl.jena.tdb.transaction.NodeTableTrans;
+
+        $r1 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.nodetable.NodeTable base>;
+
+        $r2 = interfaceinvoke $r1.<com.hp.hpl.jena.tdb.nodetable.NodeTable: java.util.Iterator all()>();
+
+        $r3 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.nodetable.NodeTable nodeTableJournal>;
+
+        $r4 = interfaceinvoke $r3.<com.hp.hpl.jena.tdb.nodetable.NodeTable: java.util.Iterator all()>();
+
+        $r5 = staticinvoke <org.apache.jena.atlas.iterator.Iter: java.util.Iterator concat(java.util.Iterator,java.util.Iterator)>($r2, $r4);
+
+        return $r5;
+    }
+
+    public boolean isEmpty()
+    {
+        com.hp.hpl.jena.tdb.transaction.NodeTableTrans r0;
+        com.hp.hpl.jena.tdb.nodetable.NodeTable $r1, $r2;
+        boolean $z0, $z1, $z2;
+
+        r0 := @this: com.hp.hpl.jena.tdb.transaction.NodeTableTrans;
+
+        $r1 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.nodetable.NodeTable nodeTableJournal>;
+
+        $z0 = interfaceinvoke $r1.<com.hp.hpl.jena.tdb.nodetable.NodeTable: boolean isEmpty()>();
+
+        if $z0 == 0 goto label1;
+
+        $r2 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.nodetable.NodeTable base>;
+
+        $z1 = interfaceinvoke $r2.<com.hp.hpl.jena.tdb.nodetable.NodeTable: boolean isEmpty()>();
+
+        if $z1 == 0 goto label1;
+
+        $z2 = 1;
+
+        goto label2;
+
+     label1:
+        $z2 = 0;
+
+     label2:
+        return $z2;
+    }
+
+    public void sync()
+    {
+        com.hp.hpl.jena.tdb.transaction.NodeTableTrans r0;
+        com.hp.hpl.jena.tdb.nodetable.NodeTable $r1;
+        boolean $z0;
+
+        r0 := @this: com.hp.hpl.jena.tdb.transaction.NodeTableTrans;
+
+        $z0 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: boolean passthrough>;
+
+        if $z0 == 0 goto label1;
+
+        $r1 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.nodetable.NodeTable base>;
+
+        interfaceinvoke $r1.<com.hp.hpl.jena.tdb.nodetable.NodeTable: void sync()>();
+
+     label1:
+        return;
+    }
+
+    public void close()
+    {
+        com.hp.hpl.jena.tdb.transaction.NodeTableTrans r0;
+        com.hp.hpl.jena.tdb.base.objectfile.ObjectFile $r2, $r3;
+        com.hp.hpl.jena.tdb.index.Index $r1, $r4;
+
+        r0 := @this: com.hp.hpl.jena.tdb.transaction.NodeTableTrans;
+
+        $r1 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.index.Index nodeIndex>;
+
+        if $r1 == null goto label1;
+
+        $r4 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.index.Index nodeIndex>;
+
+        interfaceinvoke $r4.<com.hp.hpl.jena.tdb.index.Index: void close()>();
+
+     label1:
+        r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.index.Index nodeIndex> = null;
+
+        $r2 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.base.objectfile.ObjectFile journalObjFile>;
+
+        if $r2 == null goto label2;
+
+        $r3 = r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.base.objectfile.ObjectFile journalObjFile>;
+
+        interfaceinvoke $r3.<com.hp.hpl.jena.tdb.base.objectfile.ObjectFile: void close()>();
+
+     label2:
+        r0.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: com.hp.hpl.jena.tdb.base.objectfile.ObjectFile journalObjFile> = null;
+
+        return;
+    }
+
+    public java.lang.String toString()
+    {
+        com.hp.hpl.jena.tdb.transaction.NodeTableTrans r2;
+        int $i0;
+        java.lang.StringBuilder $r0, $r1, $r4, $r5, $r7, $r8;
+        java.lang.String $r3, $r6, $r9;
+
+        r2 := @this: com.hp.hpl.jena.tdb.transaction.NodeTableTrans;
+
+        $r0 = new java.lang.StringBuilder;
+
+        specialinvoke $r0.<java.lang.StringBuilder: void <init>()>();
+
+        $r1 = virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("NodeTableTrans:");
+
+        $r3 = r2.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: java.lang.String label>;
+
+        $r4 = virtualinvoke $r1.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r3);
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("(#");
+
+        $i0 = specialinvoke r2.<java.lang.Object: int hashCode()>();
+
+        $r6 = staticinvoke <java.lang.Integer: java.lang.String toHexString(int)>($i0);
+
+        $r7 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r6);
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(")");
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        return $r9;
+    }
+
+    private transient void debug(java.lang.String, java.lang.Object[])
+    {
+        org.slf4j.Logger $r0, $r5;
+        java.lang.Object[] r2;
+        com.hp.hpl.jena.tdb.transaction.NodeTableTrans r6;
+        java.lang.StringBuilder $r4, $r8, $r9, $r10;
+        java.lang.String r1, $r3, $r7, $r11;
+        boolean $z0;
+
+        r6 := @this: com.hp.hpl.jena.tdb.transaction.NodeTableTrans;
+
+        r1 := @parameter0: java.lang.String;
+
+        r2 := @parameter1: java.lang.Object[];
+
+        $r0 = <com.hp.hpl.jena.tdb.transaction.NodeTableTrans: org.slf4j.Logger log>;
+
+        $z0 = interfaceinvoke $r0.<org.slf4j.Logger: boolean isDebugEnabled()>();
+
+        if $z0 == 0 goto label1;
+
+        $r3 = staticinvoke <java.lang.String: java.lang.String format(java.lang.String,java.lang.Object[])>(r1, r2);
+
+        $r5 = <com.hp.hpl.jena.tdb.transaction.NodeTableTrans: org.slf4j.Logger log>;
+
+        $r4 = new java.lang.StringBuilder;
+
+        specialinvoke $r4.<java.lang.StringBuilder: void <init>()>();
+
+        $r7 = r6.<com.hp.hpl.jena.tdb.transaction.NodeTableTrans: java.lang.String label>;
+
+        $r8 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r7);
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(": ");
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r3);
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r5.<org.slf4j.Logger: void debug(java.lang.String)>($r11);
+
+     label1:
+        return;
+    }
+
+    static void <clinit>()
+    {
+        org.slf4j.Logger $r0;
+
+        $r0 = staticinvoke <org.slf4j.LoggerFactory: org.slf4j.Logger getLogger(java.lang.Class)>(class "Lcom/hp/hpl/jena/tdb/transaction/NodeTableTrans;");
+
+        <com.hp.hpl.jena.tdb.transaction.NodeTableTrans: org.slf4j.Logger log> = $r0;
+
+        <com.hp.hpl.jena.tdb.transaction.NodeTableTrans: int CacheSize> = 10000;
+
+        <com.hp.hpl.jena.tdb.transaction.NodeTableTrans: boolean APPEND_LOG> = 0;
+
+        return;
+    }
+}

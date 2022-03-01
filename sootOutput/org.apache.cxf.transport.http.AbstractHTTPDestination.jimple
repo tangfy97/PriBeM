@@ -1,0 +1,2081 @@
+public abstract class org.apache.cxf.transport.http.AbstractHTTPDestination extends org.apache.cxf.transport.AbstractMultiplexDestination implements org.apache.cxf.configuration.Configurable, org.apache.cxf.transport.Assertor
+{
+    public static final java.lang.String HTTP_REQUEST;
+    public static final java.lang.String HTTP_RESPONSE;
+    public static final java.lang.String HTTP_CONTEXT;
+    public static final java.lang.String HTTP_CONFIG;
+    public static final java.lang.String HTTP_CONTEXT_MATCH_STRATEGY;
+    public static final java.lang.String RESPONSE_HEADERS_COPIED;
+    public static final java.lang.String RESPONSE_COMMITED;
+    public static final java.lang.String REQUEST_REDIRECTED;
+    public static final java.lang.String CXF_CONTINUATION_MESSAGE;
+    public static final java.lang.String CXF_ASYNC_CONTEXT;
+    public static final java.lang.String SERVICE_REDIRECTION;
+    private static final java.lang.String HTTP_BASE_PATH;
+    private static final java.lang.String SSL_CIPHER_SUITE_ATTRIBUTE;
+    private static final java.lang.String SSL_PEER_CERT_CHAIN_ATTRIBUTE;
+    private static final java.util.logging.Logger LOG;
+    protected final org.apache.cxf.Bus bus;
+    protected org.apache.cxf.transport.http.DestinationRegistry registry;
+    protected final java.lang.String path;
+    protected org.apache.cxf.transports.http.configuration.HTTPServerPolicy server;
+    protected java.lang.String contextMatchStrategy;
+    protected boolean fixedParameterOrder;
+    protected boolean multiplexWithAddress;
+    protected org.apache.cxf.transport.https.CertConstraints certConstraints;
+    protected boolean isServlet3;
+    protected org.apache.cxf.transport.http.ContinuationProviderFactory cproviderFactory;
+
+    public void <init>(org.apache.cxf.Bus, org.apache.cxf.transport.http.DestinationRegistry, org.apache.cxf.service.model.EndpointInfo, java.lang.String, boolean) throws java.io.IOException
+    {
+        org.apache.cxf.Bus r1;
+        java.lang.Throwable $r9;
+        org.apache.cxf.service.model.EndpointInfo r2, $r3;
+        org.apache.cxf.ws.addressing.EndpointReferenceType $r4;
+        java.lang.Class[] $r7;
+        org.apache.cxf.transport.http.AbstractHTTPDestination r0;
+        org.apache.cxf.transport.http.DestinationRegistry r5;
+        java.lang.Class $r8;
+        java.lang.String r6;
+        boolean z0;
+
+        r0 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        r1 := @parameter0: org.apache.cxf.Bus;
+
+        r5 := @parameter1: org.apache.cxf.transport.http.DestinationRegistry;
+
+        r2 := @parameter2: org.apache.cxf.service.model.EndpointInfo;
+
+        r6 := @parameter3: java.lang.String;
+
+        z0 := @parameter4: boolean;
+
+        $r3 = staticinvoke <org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.service.model.EndpointInfo getAddressValue(org.apache.cxf.service.model.EndpointInfo,boolean)>(r2, z0);
+
+        $r4 = staticinvoke <org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.ws.addressing.EndpointReferenceType getTargetReference(org.apache.cxf.service.model.EndpointInfo,org.apache.cxf.Bus)>($r3, r1);
+
+        specialinvoke r0.<org.apache.cxf.transport.AbstractMultiplexDestination: void <init>(org.apache.cxf.Bus,org.apache.cxf.ws.addressing.EndpointReferenceType,org.apache.cxf.service.model.EndpointInfo)>(r1, $r4, r2);
+
+        r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: java.lang.String contextMatchStrategy> = "stem";
+
+        r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.Bus bus> = r1;
+
+        r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.transport.http.DestinationRegistry registry> = r5;
+
+        r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: java.lang.String path> = r6;
+
+     label1:
+        $r8 = class "Ljavax/servlet/ServletRequest;";
+
+        $r7 = newarray (java.lang.Class)[0];
+
+        virtualinvoke $r8.<java.lang.Class: java.lang.reflect.Method getMethod(java.lang.String,java.lang.Class[])>("isAsyncSupported", $r7);
+
+        r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: boolean isServlet3> = 1;
+
+     label2:
+        goto label4;
+
+     label3:
+        $r9 := @caughtexception;
+
+     label4:
+        specialinvoke r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: void initConfig()>();
+
+        return;
+
+        catch java.lang.Throwable from label1 to label2 with label3;
+    }
+
+    public org.apache.cxf.Bus getBus()
+    {
+        org.apache.cxf.transport.http.AbstractHTTPDestination r0;
+        org.apache.cxf.Bus $r1;
+
+        r0 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        $r1 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.Bus bus>;
+
+        return $r1;
+    }
+
+    private org.apache.cxf.configuration.security.AuthorizationPolicy getAuthorizationPolicyFromMessage(java.lang.String, java.security.Principal)
+    {
+        byte[] $r9;
+        java.lang.String[] $r2;
+        org.apache.cxf.transport.http.AbstractHTTPDestination r11;
+        org.apache.cxf.transport.http.AbstractHTTPDestination$PrincipalAuthorizationPolicy $r18, $r19;
+        int $i0, $i1, $i2, $i3, $i5;
+        java.lang.String r0, $r1, r3, $r4, $r7, r12, r13, r14, $r16;
+        boolean $z0, $z1;
+        java.security.Principal r5;
+        org.apache.cxf.configuration.security.AuthorizationPolicy $r15, $r17;
+        org.apache.cxf.common.util.Base64Exception $r10;
+
+        r11 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        r0 := @parameter0: java.lang.String;
+
+        r5 := @parameter1: java.security.Principal;
+
+        if r0 == null goto label01;
+
+        $r1 = virtualinvoke r0.<java.lang.String: java.lang.String trim()>();
+
+        $z0 = staticinvoke <org.apache.cxf.common.util.StringUtils: boolean isEmpty(java.lang.String)>($r1);
+
+        if $z0 == 0 goto label02;
+
+     label01:
+        return null;
+
+     label02:
+        $r2 = staticinvoke <org.apache.cxf.common.util.StringUtils: java.lang.String[] split(java.lang.String,java.lang.String)>(r0, " ");
+
+        r3 = $r2[0];
+
+        $r4 = "Basic";
+
+        $z1 = virtualinvoke $r4.<java.lang.String: boolean equals(java.lang.Object)>(r3);
+
+        if $z1 == 0 goto label10;
+
+        r12 = $r2[1];
+
+     label03:
+        $r16 = new java.lang.String;
+
+        $r9 = staticinvoke <org.apache.cxf.common.util.Base64Utility: byte[] decode(java.lang.String)>(r12);
+
+        specialinvoke $r16.<java.lang.String: void <init>(byte[])>($r9);
+
+        $i0 = virtualinvoke $r16.<java.lang.String: int indexOf(int)>(58);
+
+        r13 = null;
+
+        $i5 = (int) -1;
+
+        if $i0 != $i5 goto label04;
+
+        r14 = $r16;
+
+        goto label05;
+
+     label04:
+        r14 = virtualinvoke $r16.<java.lang.String: java.lang.String substring(int,int)>(0, $i0);
+
+        $i1 = virtualinvoke $r16.<java.lang.String: int length()>();
+
+        $i2 = $i1 - 1;
+
+        if $i0 >= $i2 goto label05;
+
+        $i3 = $i0 + 1;
+
+        r13 = virtualinvoke $r16.<java.lang.String: java.lang.String substring(int)>($i3);
+
+     label05:
+        if r5 != null goto label06;
+
+        $r17 = new org.apache.cxf.configuration.security.AuthorizationPolicy;
+
+        $r15 = $r17;
+
+        specialinvoke $r17.<org.apache.cxf.configuration.security.AuthorizationPolicy: void <init>()>();
+
+        goto label07;
+
+     label06:
+        $r18 = new org.apache.cxf.transport.http.AbstractHTTPDestination$PrincipalAuthorizationPolicy;
+
+        $r15 = $r18;
+
+        specialinvoke $r18.<org.apache.cxf.transport.http.AbstractHTTPDestination$PrincipalAuthorizationPolicy: void <init>(java.security.Principal)>(r5);
+
+     label07:
+        virtualinvoke $r15.<org.apache.cxf.configuration.security.AuthorizationPolicy: void setUserName(java.lang.String)>(r14);
+
+        virtualinvoke $r15.<org.apache.cxf.configuration.security.AuthorizationPolicy: void setPassword(java.lang.String)>(r13);
+
+        virtualinvoke $r15.<org.apache.cxf.configuration.security.AuthorizationPolicy: void setAuthorizationType(java.lang.String)>(r3);
+
+     label08:
+        return $r15;
+
+     label09:
+        $r10 := @caughtexception;
+
+     label10:
+        if r5 == null goto label11;
+
+        $r19 = new org.apache.cxf.transport.http.AbstractHTTPDestination$PrincipalAuthorizationPolicy;
+
+        specialinvoke $r19.<org.apache.cxf.transport.http.AbstractHTTPDestination$PrincipalAuthorizationPolicy: void <init>(java.security.Principal)>(r5);
+
+        $r7 = interfaceinvoke r5.<java.security.Principal: java.lang.String getName()>();
+
+        virtualinvoke $r19.<org.apache.cxf.configuration.security.AuthorizationPolicy: void setUserName(java.lang.String)>($r7);
+
+        virtualinvoke $r19.<org.apache.cxf.configuration.security.AuthorizationPolicy: void setAuthorization(java.lang.String)>(r0);
+
+        virtualinvoke $r19.<org.apache.cxf.configuration.security.AuthorizationPolicy: void setAuthorizationType(java.lang.String)>(r3);
+
+        return $r19;
+
+     label11:
+        return null;
+
+        catch org.apache.cxf.common.util.Base64Exception from label03 to label08 with label09;
+    }
+
+    protected final boolean isOneWay(org.apache.cxf.message.Message)
+    {
+        org.apache.cxf.transport.http.AbstractHTTPDestination r2;
+        org.apache.cxf.message.Message r0;
+        org.apache.cxf.message.Exchange $r1;
+        boolean $z0;
+
+        r2 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        r0 := @parameter0: org.apache.cxf.message.Message;
+
+        $r1 = interfaceinvoke r0.<org.apache.cxf.message.Message: org.apache.cxf.message.Exchange getExchange()>();
+
+        if $r1 != null goto label1;
+
+        $z0 = 0;
+
+        goto label2;
+
+     label1:
+        $z0 = interfaceinvoke $r1.<org.apache.cxf.message.Exchange: boolean isOneWay()>();
+
+     label2:
+        return $z0;
+    }
+
+    public void invoke(javax.servlet.ServletConfig, javax.servlet.ServletContext, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse) throws java.io.IOException
+    {
+        org.apache.cxf.message.MessageImpl $r6, $r12;
+        org.apache.cxf.transport.http.HTTPSession $r11;
+        org.apache.cxf.continuations.SuspendedInvocationException $r13;
+        org.apache.cxf.transport.http.AbstractHTTPDestination r0;
+        javax.servlet.http.HttpServletRequest r1;
+        javax.servlet.ServletConfig r8;
+        org.apache.cxf.message.Message $r2, r16;
+        org.apache.cxf.message.ExchangeImpl $r7;
+        javax.servlet.http.HttpServletResponse r10;
+        java.lang.RuntimeException $r14, $r15;
+        java.util.logging.Logger $r3, $r5;
+        org.apache.cxf.transport.MessageObserver $r4;
+        javax.servlet.ServletContext r9;
+
+        r0 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        r8 := @parameter0: javax.servlet.ServletConfig;
+
+        r9 := @parameter1: javax.servlet.ServletContext;
+
+        r1 := @parameter2: javax.servlet.http.HttpServletRequest;
+
+        r10 := @parameter3: javax.servlet.http.HttpServletResponse;
+
+        $r2 = virtualinvoke r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.message.Message retrieveFromContinuation(javax.servlet.http.HttpServletRequest)>(r1);
+
+        r16 = $r2;
+
+        if $r2 != null goto label1;
+
+        $r5 = <org.apache.cxf.transport.http.AbstractHTTPDestination: java.util.logging.Logger LOG>;
+
+        virtualinvoke $r5.<java.util.logging.Logger: void fine(java.lang.String)>("Create a new message for processing");
+
+        $r6 = new org.apache.cxf.message.MessageImpl;
+
+        specialinvoke $r6.<org.apache.cxf.message.MessageImpl: void <init>()>();
+
+        r16 = $r6;
+
+        $r7 = new org.apache.cxf.message.ExchangeImpl;
+
+        specialinvoke $r7.<org.apache.cxf.message.ExchangeImpl: void <init>()>();
+
+        virtualinvoke $r7.<org.apache.cxf.message.ExchangeImpl: void setInMessage(org.apache.cxf.message.Message)>($r6);
+
+        virtualinvoke r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: void setupMessage(org.apache.cxf.message.Message,javax.servlet.ServletConfig,javax.servlet.ServletContext,javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse)>($r6, r8, r9, r1, r10);
+
+        $r11 = new org.apache.cxf.transport.http.HTTPSession;
+
+        specialinvoke $r11.<org.apache.cxf.transport.http.HTTPSession: void <init>(javax.servlet.http.HttpServletRequest)>(r1);
+
+        virtualinvoke $r7.<org.apache.cxf.message.ExchangeImpl: void setSession(org.apache.cxf.transport.Session)>($r11);
+
+        $r12 = (org.apache.cxf.message.MessageImpl) $r6;
+
+        virtualinvoke $r12.<org.apache.cxf.message.MessageImpl: void setDestination(org.apache.cxf.transport.Destination)>(r0);
+
+        goto label2;
+
+     label1:
+        $r3 = <org.apache.cxf.transport.http.AbstractHTTPDestination: java.util.logging.Logger LOG>;
+
+        virtualinvoke $r3.<java.util.logging.Logger: void fine(java.lang.String)>("Get the message from the request for processing");
+
+     label2:
+        specialinvoke r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: void copyKnownRequestAttributes(javax.servlet.http.HttpServletRequest,org.apache.cxf.message.Message)>(r1, r16);
+
+     label3:
+        $r4 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.transport.MessageObserver incomingObserver>;
+
+        interfaceinvoke $r4.<org.apache.cxf.transport.MessageObserver: void onMessage(org.apache.cxf.message.Message)>(r16);
+
+     label4:
+        goto label6;
+
+     label5:
+        $r13 := @caughtexception;
+
+        $r14 = virtualinvoke $r13.<org.apache.cxf.continuations.SuspendedInvocationException: java.lang.RuntimeException getRuntimeException()>();
+
+        if $r14 == null goto label6;
+
+        $r15 = virtualinvoke $r13.<org.apache.cxf.continuations.SuspendedInvocationException: java.lang.RuntimeException getRuntimeException()>();
+
+        throw $r15;
+
+     label6:
+        return;
+
+        catch org.apache.cxf.continuations.SuspendedInvocationException from label3 to label4 with label5;
+    }
+
+    private void copyKnownRequestAttributes(javax.servlet.http.HttpServletRequest, org.apache.cxf.message.Message)
+    {
+        org.apache.cxf.transport.http.AbstractHTTPDestination r3;
+        javax.servlet.http.HttpServletRequest r1;
+        org.apache.cxf.message.Message r0;
+        java.lang.Object $r2;
+
+        r3 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        r1 := @parameter0: javax.servlet.http.HttpServletRequest;
+
+        r0 := @parameter1: org.apache.cxf.message.Message;
+
+        $r2 = interfaceinvoke r1.<javax.servlet.http.HttpServletRequest: java.lang.Object getAttribute(java.lang.String)>("http.service.redirection");
+
+        interfaceinvoke r0.<org.apache.cxf.message.Message: java.lang.Object put(java.lang.Object,java.lang.Object)>("http.service.redirection", $r2);
+
+        return;
+    }
+
+    protected void setupMessage(org.apache.cxf.message.Message, javax.servlet.ServletContext, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse) throws java.io.IOException
+    {
+        org.apache.cxf.transport.http.AbstractHTTPDestination r0;
+        javax.servlet.http.HttpServletRequest r3;
+        org.apache.cxf.message.Message r1;
+        javax.servlet.http.HttpServletResponse r4;
+        javax.servlet.ServletContext r2;
+
+        r0 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        r1 := @parameter0: org.apache.cxf.message.Message;
+
+        r2 := @parameter1: javax.servlet.ServletContext;
+
+        r3 := @parameter2: javax.servlet.http.HttpServletRequest;
+
+        r4 := @parameter3: javax.servlet.http.HttpServletResponse;
+
+        virtualinvoke r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: void setupMessage(org.apache.cxf.message.Message,javax.servlet.ServletConfig,javax.servlet.ServletContext,javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse)>(r1, null, r2, r3, r4);
+
+        return;
+    }
+
+    protected void setupMessage(org.apache.cxf.message.Message, javax.servlet.ServletConfig, javax.servlet.ServletContext, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse) throws java.io.IOException
+    {
+        org.apache.cxf.transport.https.CertConstraintsInterceptor $r38;
+        boolean $z0, $z1, $z2, $z3, $z4;
+        javax.servlet.ServletConfig r8;
+        org.apache.cxf.transport.http.Headers $r31;
+        org.apache.cxf.transport.http.AbstractHTTPDestination$1 $r5;
+        org.apache.cxf.transport.http.AbstractHTTPDestination$2 $r30;
+        java.util.List $r40;
+        java.security.Principal $r29;
+        org.apache.cxf.configuration.security.AuthorizationPolicy $r33;
+        java.lang.StringBuilder $r16, $r17, $r18, $r20, $r22, $r24, $r44, $r45, $r46;
+        javax.servlet.ServletInputStream $r6;
+        org.apache.cxf.transport.http.AbstractHTTPDestination r0;
+        org.apache.cxf.interceptor.Interceptor[] $r37;
+        javax.servlet.http.HttpServletRequest r2;
+        java.lang.StringBuffer $r12;
+        int $i0, $i1;
+        java.lang.Boolean $r27, $r28;
+        java.lang.String $r9, $r10, $r11, $r13, $r14, $r15, $r19, $r21, $r23, $r25, $r26, $r32, $r35, $r39, $r41, $r42, $r43, $r47, r48, r49, $r50, $r51, $r52, $r53, $r54;
+        org.apache.cxf.message.Message r1;
+        org.apache.cxf.transport.https.CertConstraints $r36;
+        javax.servlet.http.HttpServletResponse r3;
+        org.apache.cxf.message.Exchange $r4;
+        javax.servlet.ServletContext r7;
+        java.lang.Class $r34;
+
+        r0 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        r1 := @parameter0: org.apache.cxf.message.Message;
+
+        r8 := @parameter1: javax.servlet.ServletConfig;
+
+        r7 := @parameter2: javax.servlet.ServletContext;
+
+        r2 := @parameter3: javax.servlet.http.HttpServletRequest;
+
+        r3 := @parameter4: javax.servlet.http.HttpServletResponse;
+
+        virtualinvoke r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: void setupContinuation(org.apache.cxf.message.Message,javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse)>(r1, r2, r3);
+
+        $r4 = interfaceinvoke r1.<org.apache.cxf.message.Message: org.apache.cxf.message.Exchange getExchange()>();
+
+        $r5 = new org.apache.cxf.transport.http.AbstractHTTPDestination$1;
+
+        $r6 = interfaceinvoke r2.<javax.servlet.http.HttpServletRequest: javax.servlet.ServletInputStream getInputStream()>();
+
+        specialinvoke $r5.<org.apache.cxf.transport.http.AbstractHTTPDestination$1: void <init>(org.apache.cxf.transport.http.AbstractHTTPDestination,java.io.InputStream,org.apache.cxf.message.Exchange,javax.servlet.http.HttpServletRequest)>(r0, $r6, $r4, r2);
+
+        interfaceinvoke r1.<org.apache.cxf.message.Message: void setContent(java.lang.Class,java.lang.Object)>(class "Lorg/apache/cxf/io/DelegatingInputStream;", $r5);
+
+        interfaceinvoke r1.<org.apache.cxf.message.Message: void setContent(java.lang.Class,java.lang.Object)>(class "Ljava/io/InputStream;", $r5);
+
+        interfaceinvoke r1.<org.apache.cxf.message.Message: java.lang.Object put(java.lang.Object,java.lang.Object)>("HTTP.REQUEST", r2);
+
+        interfaceinvoke r1.<org.apache.cxf.message.Message: java.lang.Object put(java.lang.Object,java.lang.Object)>("HTTP.RESPONSE", r3);
+
+        interfaceinvoke r1.<org.apache.cxf.message.Message: java.lang.Object put(java.lang.Object,java.lang.Object)>("HTTP.CONTEXT", r7);
+
+        interfaceinvoke r1.<org.apache.cxf.message.Message: java.lang.Object put(java.lang.Object,java.lang.Object)>("HTTP.CONFIG", r8);
+
+        $r9 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: java.lang.String contextMatchStrategy>;
+
+        interfaceinvoke r1.<org.apache.cxf.message.Message: java.lang.Object put(java.lang.Object,java.lang.Object)>("HTTP_CONTEXT_MATCH_STRATEGY", $r9);
+
+        $r10 = interfaceinvoke r2.<javax.servlet.http.HttpServletRequest: java.lang.String getMethod()>();
+
+        interfaceinvoke r1.<org.apache.cxf.message.Message: java.lang.Object put(java.lang.Object,java.lang.Object)>("org.apache.cxf.request.method", $r10);
+
+        $r11 = interfaceinvoke r2.<javax.servlet.http.HttpServletRequest: java.lang.String getRequestURI()>();
+
+        interfaceinvoke r1.<org.apache.cxf.message.Message: java.lang.Object put(java.lang.Object,java.lang.Object)>("org.apache.cxf.request.uri", $r11);
+
+        $r12 = interfaceinvoke r2.<javax.servlet.http.HttpServletRequest: java.lang.StringBuffer getRequestURL()>();
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuffer: java.lang.String toString()>();
+
+        interfaceinvoke r1.<org.apache.cxf.message.Message: java.lang.Object put(java.lang.Object,java.lang.Object)>("org.apache.cxf.request.url", $r13);
+
+        $r14 = interfaceinvoke r2.<javax.servlet.http.HttpServletRequest: java.lang.String getContextPath()>();
+
+        r48 = $r14;
+
+        if $r14 != null goto label1;
+
+        r48 = "";
+
+     label1:
+        $r15 = interfaceinvoke r2.<javax.servlet.http.HttpServletRequest: java.lang.String getServletPath()>();
+
+        r49 = $r15;
+
+        if $r15 != null goto label2;
+
+        r49 = "";
+
+     label2:
+        $r16 = new java.lang.StringBuilder;
+
+        specialinvoke $r16.<java.lang.StringBuilder: void <init>()>();
+
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r48);
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r49);
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r21 = <org.apache.cxf.message.Message: java.lang.String PATH_INFO>;
+
+        $r20 = new java.lang.StringBuilder;
+
+        specialinvoke $r20.<java.lang.StringBuilder: void <init>()>();
+
+        $r22 = virtualinvoke $r20.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r19);
+
+        $r23 = interfaceinvoke r2.<javax.servlet.http.HttpServletRequest: java.lang.String getPathInfo()>();
+
+        $r24 = virtualinvoke $r22.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r23);
+
+        $r25 = virtualinvoke $r24.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke r1.<org.apache.cxf.message.Message: java.lang.Object put(java.lang.Object,java.lang.Object)>($r21, $r25);
+
+        $z0 = staticinvoke <org.apache.cxf.common.util.StringUtils: boolean isEmpty(java.lang.String)>($r11);
+
+        if $z0 != 0 goto label4;
+
+        $i1 = virtualinvoke $r13.<java.lang.String: int indexOf(java.lang.String)>($r11);
+
+        if $i1 <= 0 goto label3;
+
+        $r43 = virtualinvoke $r13.<java.lang.String: java.lang.String substring(int,int)>(0, $i1);
+
+        $r44 = new java.lang.StringBuilder;
+
+        specialinvoke $r44.<java.lang.StringBuilder: void <init>()>();
+
+        $r45 = virtualinvoke $r44.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r43);
+
+        $r46 = virtualinvoke $r45.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r48);
+
+        $r47 = virtualinvoke $r46.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke r1.<org.apache.cxf.message.Message: java.lang.Object put(java.lang.Object,java.lang.Object)>("http.base.path", $r47);
+
+     label3:
+        goto label5;
+
+     label4:
+        $z1 = staticinvoke <org.apache.cxf.common.util.StringUtils: boolean isEmpty(java.lang.String)>(r49);
+
+        if $z1 != 0 goto label5;
+
+        $z3 = virtualinvoke $r13.<java.lang.String: boolean endsWith(java.lang.String)>(r49);
+
+        if $z3 == 0 goto label5;
+
+        $i0 = virtualinvoke $r13.<java.lang.String: int lastIndexOf(java.lang.String)>(r49);
+
+        if $i0 <= 0 goto label5;
+
+        $r42 = virtualinvoke $r13.<java.lang.String: java.lang.String substring(int,int)>(0, $i0);
+
+        interfaceinvoke r1.<org.apache.cxf.message.Message: java.lang.Object put(java.lang.Object,java.lang.Object)>("http.base.path", $r42);
+
+     label5:
+        $r50 = interfaceinvoke r2.<javax.servlet.http.HttpServletRequest: java.lang.String getContentType()>();
+
+        interfaceinvoke r1.<org.apache.cxf.message.Message: java.lang.Object put(java.lang.Object,java.lang.Object)>("Content-Type", $r50);
+
+        specialinvoke r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: java.lang.String setEncoding(org.apache.cxf.message.Message,javax.servlet.http.HttpServletRequest,java.lang.String)>(r1, r2, $r50);
+
+        $r51 = <org.apache.cxf.message.Message: java.lang.String QUERY_STRING>;
+
+        $r52 = interfaceinvoke r2.<javax.servlet.http.HttpServletRequest: java.lang.String getQueryString()>();
+
+        interfaceinvoke r1.<org.apache.cxf.message.Message: java.lang.Object put(java.lang.Object,java.lang.Object)>($r51, $r52);
+
+        $r53 = interfaceinvoke r2.<javax.servlet.http.HttpServletRequest: java.lang.String getHeader(java.lang.String)>("Accept");
+
+        interfaceinvoke r1.<org.apache.cxf.message.Message: java.lang.Object put(java.lang.Object,java.lang.Object)>("Accept", $r53);
+
+        $r54 = virtualinvoke r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: java.lang.String getBasePath(java.lang.String)>($r19);
+
+        $z4 = staticinvoke <org.apache.cxf.common.util.StringUtils: boolean isEmpty(java.lang.String)>($r54);
+
+        if $z4 != 0 goto label6;
+
+        $r41 = <org.apache.cxf.message.Message: java.lang.String BASE_PATH>;
+
+        interfaceinvoke r1.<org.apache.cxf.message.Message: java.lang.Object put(java.lang.Object,java.lang.Object)>($r41, $r54);
+
+     label6:
+        $r26 = <org.apache.cxf.message.Message: java.lang.String FIXED_PARAMETER_ORDER>;
+
+        $z2 = virtualinvoke r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: boolean isFixedParameterOrder()>();
+
+        $r27 = staticinvoke <java.lang.Boolean: java.lang.Boolean valueOf(boolean)>($z2);
+
+        interfaceinvoke r1.<org.apache.cxf.message.Message: java.lang.Object put(java.lang.Object,java.lang.Object)>($r26, $r27);
+
+        $r28 = <java.lang.Boolean: java.lang.Boolean TRUE>;
+
+        interfaceinvoke r1.<org.apache.cxf.message.Message: java.lang.Object put(java.lang.Object,java.lang.Object)>("org.apache.cxf.async.post.response.dispatch", $r28);
+
+        $r29 = interfaceinvoke r2.<javax.servlet.http.HttpServletRequest: java.security.Principal getUserPrincipal()>();
+
+        $r30 = new org.apache.cxf.transport.http.AbstractHTTPDestination$2;
+
+        specialinvoke $r30.<org.apache.cxf.transport.http.AbstractHTTPDestination$2: void <init>(org.apache.cxf.transport.http.AbstractHTTPDestination,java.security.Principal,javax.servlet.http.HttpServletRequest)>(r0, $r29, r2);
+
+        interfaceinvoke r1.<org.apache.cxf.message.Message: void put(java.lang.Class,java.lang.Object)>(class "Lorg/apache/cxf/security/SecurityContext;", $r30);
+
+        $r31 = new org.apache.cxf.transport.http.Headers;
+
+        specialinvoke $r31.<org.apache.cxf.transport.http.Headers: void <init>(org.apache.cxf.message.Message)>(r1);
+
+        virtualinvoke $r31.<org.apache.cxf.transport.http.Headers: void copyFromRequest(javax.servlet.http.HttpServletRequest)>(r2);
+
+        $r32 = virtualinvoke $r31.<org.apache.cxf.transport.http.Headers: java.lang.String getAuthorization()>();
+
+        $r33 = specialinvoke r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.configuration.security.AuthorizationPolicy getAuthorizationPolicyFromMessage(java.lang.String,java.security.Principal)>($r32, $r29);
+
+        interfaceinvoke r1.<org.apache.cxf.message.Message: void put(java.lang.Class,java.lang.Object)>(class "Lorg/apache/cxf/configuration/security/AuthorizationPolicy;", $r33);
+
+        staticinvoke <org.apache.cxf.transport.http.AbstractHTTPDestination: void propogateSecureSession(javax.servlet.http.HttpServletRequest,org.apache.cxf.message.Message)>(r2, r1);
+
+        $r34 = class "Lorg/apache/cxf/transport/https/CertConstraints;";
+
+        $r35 = virtualinvoke $r34.<java.lang.Class: java.lang.String getName()>();
+
+        $r36 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.transport.https.CertConstraints certConstraints>;
+
+        interfaceinvoke r1.<org.apache.cxf.message.Message: java.lang.Object put(java.lang.Object,java.lang.Object)>($r35, $r36);
+
+        $r39 = <org.apache.cxf.message.Message: java.lang.String IN_INTERCEPTORS>;
+
+        $r37 = newarray (org.apache.cxf.interceptor.Interceptor)[1];
+
+        $r38 = <org.apache.cxf.transport.https.CertConstraintsInterceptor: org.apache.cxf.transport.https.CertConstraintsInterceptor INSTANCE>;
+
+        $r37[0] = $r38;
+
+        $r40 = staticinvoke <java.util.Arrays: java.util.List asList(java.lang.Object[])>($r37);
+
+        interfaceinvoke r1.<org.apache.cxf.message.Message: java.lang.Object put(java.lang.Object,java.lang.Object)>($r39, $r40);
+
+        return;
+    }
+
+    private static void propogateSecureSession(javax.servlet.http.HttpServletRequest, org.apache.cxf.message.Message)
+    {
+        org.apache.cxf.message.Message r6;
+        javax.servlet.http.HttpServletRequest r0;
+        org.apache.cxf.security.transport.TLSSessionInfo $r7;
+        java.lang.Object $r1, $r3;
+        java.security.cert.Certificate[] $r4, r5;
+        java.lang.String r2;
+
+        r0 := @parameter0: javax.servlet.http.HttpServletRequest;
+
+        r6 := @parameter1: org.apache.cxf.message.Message;
+
+        $r1 = interfaceinvoke r0.<javax.servlet.http.HttpServletRequest: java.lang.Object getAttribute(java.lang.String)>("javax.servlet.request.cipher_suite");
+
+        r2 = (java.lang.String) $r1;
+
+        if r2 == null goto label1;
+
+        $r3 = interfaceinvoke r0.<javax.servlet.http.HttpServletRequest: java.lang.Object getAttribute(java.lang.String)>("javax.servlet.request.X509Certificate");
+
+        $r4 = (java.security.cert.Certificate[]) $r3;
+
+        r5 = (java.security.cert.Certificate[]) $r4;
+
+        $r7 = new org.apache.cxf.security.transport.TLSSessionInfo;
+
+        specialinvoke $r7.<org.apache.cxf.security.transport.TLSSessionInfo: void <init>(java.lang.String,javax.net.ssl.SSLSession,java.security.cert.Certificate[])>(r2, null, r5);
+
+        interfaceinvoke r6.<org.apache.cxf.message.Message: void put(java.lang.Class,java.lang.Object)>(class "Lorg/apache/cxf/security/transport/TLSSessionInfo;", $r7);
+
+     label1:
+        return;
+    }
+
+    private java.lang.String setEncoding(org.apache.cxf.message.Message, javax.servlet.http.HttpServletRequest, java.lang.String) throws java.io.IOException
+    {
+        java.lang.Object[] $r5;
+        org.apache.cxf.common.i18n.Message $r4;
+        java.util.logging.Level $r8;
+        org.apache.cxf.transport.http.AbstractHTTPDestination r16;
+        javax.servlet.http.HttpServletRequest r11;
+        int $i0, $i1;
+        java.lang.String r0, $r1, $r3, $r7, $r12, $r13, $r14, $r15, r17, $r18;
+        boolean $z0, $z1, $z2;
+        org.apache.cxf.message.Message r2;
+        java.io.IOException $r10;
+        java.util.logging.Logger $r6, $r9;
+
+        r16 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        r2 := @parameter0: org.apache.cxf.message.Message;
+
+        r11 := @parameter1: javax.servlet.http.HttpServletRequest;
+
+        r0 := @parameter2: java.lang.String;
+
+        $r1 = staticinvoke <org.apache.cxf.helpers.HttpHeaderHelper: java.lang.String findCharset(java.lang.String)>(r0);
+
+        r17 = $r1;
+
+        if $r1 != null goto label1;
+
+        r17 = interfaceinvoke r11.<javax.servlet.http.HttpServletRequest: java.lang.String getCharacterEncoding()>();
+
+     label1:
+        if r17 == null goto label2;
+
+        $z2 = virtualinvoke r17.<java.lang.String: boolean endsWith(java.lang.String)>("\"");
+
+        if $z2 == 0 goto label2;
+
+        $i0 = virtualinvoke r17.<java.lang.String: int length()>();
+
+        $i1 = $i0 - 1;
+
+        r17 = virtualinvoke r17.<java.lang.String: java.lang.String substring(int,int)>(0, $i1);
+
+     label2:
+        if r17 != null goto label3;
+
+        $r12 = "POST";
+
+        $r13 = interfaceinvoke r11.<javax.servlet.http.HttpServletRequest: java.lang.String getMethod()>();
+
+        $z0 = virtualinvoke $r12.<java.lang.String: boolean equals(java.lang.Object)>($r13);
+
+        if $z0 != 0 goto label3;
+
+        $r14 = "PUT";
+
+        $r15 = interfaceinvoke r11.<javax.servlet.http.HttpServletRequest: java.lang.String getMethod()>();
+
+        $z1 = virtualinvoke $r14.<java.lang.String: boolean equals(java.lang.Object)>($r15);
+
+        if $z1 == 0 goto label5;
+
+     label3:
+        $r18 = staticinvoke <org.apache.cxf.helpers.HttpHeaderHelper: java.lang.String mapCharset(java.lang.String)>(r17);
+
+        if $r18 != null goto label4;
+
+        $r4 = new org.apache.cxf.common.i18n.Message;
+
+        $r6 = <org.apache.cxf.transport.http.AbstractHTTPDestination: java.util.logging.Logger LOG>;
+
+        $r5 = newarray (java.lang.Object)[1];
+
+        $r5[0] = r17;
+
+        specialinvoke $r4.<org.apache.cxf.common.i18n.Message: void <init>(java.lang.String,java.util.logging.Logger,java.lang.Object[])>("INVALID_ENCODING_MSG", $r6, $r5);
+
+        $r7 = virtualinvoke $r4.<org.apache.cxf.common.i18n.Message: java.lang.String toString()>();
+
+        $r9 = <org.apache.cxf.transport.http.AbstractHTTPDestination: java.util.logging.Logger LOG>;
+
+        $r8 = <java.util.logging.Level: java.util.logging.Level WARNING>;
+
+        virtualinvoke $r9.<java.util.logging.Logger: void log(java.util.logging.Level,java.lang.String)>($r8, $r7);
+
+        $r10 = new java.io.IOException;
+
+        specialinvoke $r10.<java.io.IOException: void <init>(java.lang.String)>($r7);
+
+        throw $r10;
+
+     label4:
+        $r3 = <org.apache.cxf.message.Message: java.lang.String ENCODING>;
+
+        interfaceinvoke r2.<org.apache.cxf.message.Message: java.lang.Object put(java.lang.Object,java.lang.Object)>($r3, $r18);
+
+     label5:
+        return r0;
+    }
+
+    protected org.apache.cxf.message.Message retrieveFromContinuation(javax.servlet.http.HttpServletRequest)
+    {
+        org.apache.cxf.transport.http.AbstractHTTPDestination r0;
+        javax.servlet.http.HttpServletRequest r1;
+        org.apache.cxf.message.Message $r2, $r5;
+        org.apache.cxf.transport.http.ContinuationProviderFactory $r3, $r4;
+        boolean $z0;
+
+        r0 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        r1 := @parameter0: javax.servlet.http.HttpServletRequest;
+
+        $z0 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: boolean isServlet3>;
+
+        if $z0 != 0 goto label2;
+
+        $r3 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.transport.http.ContinuationProviderFactory cproviderFactory>;
+
+        if $r3 == null goto label1;
+
+        $r4 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.transport.http.ContinuationProviderFactory cproviderFactory>;
+
+        $r5 = interfaceinvoke $r4.<org.apache.cxf.transport.http.ContinuationProviderFactory: org.apache.cxf.message.Message retrieveFromContinuation(javax.servlet.http.HttpServletRequest)>(r1);
+
+        return $r5;
+
+     label1:
+        return null;
+
+     label2:
+        $r2 = virtualinvoke r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.message.Message retrieveFromServlet3Async(javax.servlet.http.HttpServletRequest)>(r1);
+
+        return $r2;
+    }
+
+    protected org.apache.cxf.message.Message retrieveFromServlet3Async(javax.servlet.http.HttpServletRequest)
+    {
+        java.lang.Throwable $r3;
+        org.apache.cxf.transport.http.AbstractHTTPDestination r4;
+        javax.servlet.http.HttpServletRequest r0;
+        org.apache.cxf.message.Message $r2;
+        java.lang.Object $r1;
+
+        r4 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        r0 := @parameter0: javax.servlet.http.HttpServletRequest;
+
+     label1:
+        $r1 = interfaceinvoke r0.<javax.servlet.http.HttpServletRequest: java.lang.Object getAttribute(java.lang.String)>("cxf.continuation.message");
+
+        $r2 = (org.apache.cxf.message.Message) $r1;
+
+     label2:
+        return $r2;
+
+     label3:
+        $r3 := @caughtexception;
+
+        return null;
+
+        catch java.lang.Throwable from label1 to label2 with label3;
+    }
+
+    protected void setupContinuation(org.apache.cxf.message.Message, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+    {
+        java.lang.Throwable $r12;
+        org.apache.cxf.continuations.ContinuationProvider $r6;
+        org.apache.cxf.message.Message r2;
+        javax.servlet.http.HttpServletResponse r4;
+        org.apache.cxf.transport.http.AbstractHTTPDestination r0;
+        javax.servlet.http.HttpServletRequest r3;
+        org.apache.cxf.transport.http.Servlet3ContinuationProvider $r11;
+        org.apache.cxf.transport.http.ContinuationProviderFactory $r1, $r5;
+        java.lang.Class $r7, $r9;
+        java.lang.String $r8, $r10;
+        boolean $z0, $z1;
+
+        r0 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        r2 := @parameter0: org.apache.cxf.message.Message;
+
+        r3 := @parameter1: javax.servlet.http.HttpServletRequest;
+
+        r4 := @parameter2: javax.servlet.http.HttpServletResponse;
+
+     label1:
+        $z0 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: boolean isServlet3>;
+
+        if $z0 == 0 goto label2;
+
+        $z1 = interfaceinvoke r3.<javax.servlet.http.HttpServletRequest: boolean isAsyncSupported()>();
+
+        if $z1 == 0 goto label2;
+
+        $r9 = class "Lorg/apache/cxf/continuations/ContinuationProvider;";
+
+        $r10 = virtualinvoke $r9.<java.lang.Class: java.lang.String getName()>();
+
+        $r11 = new org.apache.cxf.transport.http.Servlet3ContinuationProvider;
+
+        specialinvoke $r11.<org.apache.cxf.transport.http.Servlet3ContinuationProvider: void <init>(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse,org.apache.cxf.message.Message)>(r3, r4, r2);
+
+        interfaceinvoke r2.<org.apache.cxf.message.Message: java.lang.Object put(java.lang.Object,java.lang.Object)>($r10, $r11);
+
+        goto label3;
+
+     label2:
+        $r1 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.transport.http.ContinuationProviderFactory cproviderFactory>;
+
+        if $r1 == null goto label3;
+
+        $r5 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.transport.http.ContinuationProviderFactory cproviderFactory>;
+
+        $r6 = interfaceinvoke $r5.<org.apache.cxf.transport.http.ContinuationProviderFactory: org.apache.cxf.continuations.ContinuationProvider createContinuationProvider(org.apache.cxf.message.Message,javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse)>(r2, r3, r4);
+
+        if $r6 == null goto label3;
+
+        $r7 = class "Lorg/apache/cxf/continuations/ContinuationProvider;";
+
+        $r8 = virtualinvoke $r7.<java.lang.Class: java.lang.String getName()>();
+
+        interfaceinvoke r2.<org.apache.cxf.message.Message: java.lang.Object put(java.lang.Object,java.lang.Object)>($r8, $r6);
+
+     label3:
+        goto label5;
+
+     label4:
+        $r12 := @caughtexception;
+
+     label5:
+        return;
+
+        catch java.lang.Throwable from label1 to label3 with label4;
+    }
+
+    protected java.lang.String getBasePath(java.lang.String) throws java.io.IOException
+    {
+        org.apache.cxf.service.model.EndpointInfo $r1, $r4;
+        java.net.URL $r3;
+        org.apache.cxf.transport.http.AbstractHTTPDestination r0;
+        java.lang.String $r2, $r5, $r6, r7;
+        boolean $z0;
+
+        r0 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        r7 := @parameter0: java.lang.String;
+
+        $r1 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.service.model.EndpointInfo endpointInfo>;
+
+        $r2 = virtualinvoke $r1.<org.apache.cxf.service.model.EndpointInfo: java.lang.String getAddress()>();
+
+        $z0 = staticinvoke <org.apache.cxf.common.util.StringUtils: boolean isEmpty(java.lang.String)>($r2);
+
+        if $z0 == 0 goto label1;
+
+        return "";
+
+     label1:
+        $r3 = new java.net.URL;
+
+        $r4 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.service.model.EndpointInfo endpointInfo>;
+
+        $r5 = virtualinvoke $r4.<org.apache.cxf.service.model.EndpointInfo: java.lang.String getAddress()>();
+
+        specialinvoke $r3.<java.net.URL: void <init>(java.lang.String)>($r5);
+
+        $r6 = virtualinvoke $r3.<java.net.URL: java.lang.String getPath()>();
+
+        return $r6;
+    }
+
+    protected static org.apache.cxf.service.model.EndpointInfo getAddressValue(org.apache.cxf.service.model.EndpointInfo)
+    {
+        org.apache.cxf.service.model.EndpointInfo r0, $r1;
+
+        r0 := @parameter0: org.apache.cxf.service.model.EndpointInfo;
+
+        $r1 = staticinvoke <org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.service.model.EndpointInfo getAddressValue(org.apache.cxf.service.model.EndpointInfo,boolean)>(r0, 1);
+
+        return $r1;
+    }
+
+    protected static org.apache.cxf.service.model.EndpointInfo getAddressValue(org.apache.cxf.service.model.EndpointInfo, boolean)
+    {
+        org.apache.cxf.service.model.EndpointInfo r0;
+        java.io.IOException $r9;
+        java.net.ServerSocket $r4;
+        int $i0;
+        java.lang.StringBuilder $r5, $r6, $r7;
+        java.lang.String $r1, $r2, $r3, $r8;
+        boolean z0;
+
+        r0 := @parameter0: org.apache.cxf.service.model.EndpointInfo;
+
+        z0 := @parameter1: boolean;
+
+        if z0 == 0 goto label5;
+
+        $r1 = virtualinvoke r0.<org.apache.cxf.service.model.EndpointInfo: java.lang.String getAddress()>();
+
+        if $r1 != null goto label4;
+
+     label1:
+        $r4 = new java.net.ServerSocket;
+
+        specialinvoke $r4.<java.net.ServerSocket: void <init>(int)>(0);
+
+        $r5 = new java.lang.StringBuilder;
+
+        specialinvoke $r5.<java.lang.StringBuilder: void <init>()>();
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("http://localhost:");
+
+        $i0 = virtualinvoke $r4.<java.net.ServerSocket: int getLocalPort()>();
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i0);
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke r0.<org.apache.cxf.service.model.EndpointInfo: void setAddress(java.lang.String)>($r8);
+
+        virtualinvoke $r4.<java.net.ServerSocket: void close()>();
+
+     label2:
+        return r0;
+
+     label3:
+        $r9 := @caughtexception;
+
+        virtualinvoke r0.<org.apache.cxf.service.model.EndpointInfo: void setAddress(java.lang.String)>("http://localhost");
+
+     label4:
+        $r2 = virtualinvoke r0.<org.apache.cxf.service.model.EndpointInfo: java.lang.String getAddress()>();
+
+        $r3 = staticinvoke <org.apache.cxf.common.util.StringUtils: java.lang.String addDefaultPortIfMissing(java.lang.String)>($r2);
+
+        if $r3 == null goto label5;
+
+        virtualinvoke r0.<org.apache.cxf.service.model.EndpointInfo: void setAddress(java.lang.String)>($r3);
+
+     label5:
+        return r0;
+
+        catch java.io.IOException from label1 to label2 with label3;
+    }
+
+    protected org.apache.cxf.transport.Conduit getInbuiltBackChannel(org.apache.cxf.message.Message)
+    {
+        org.apache.cxf.transport.http.AbstractHTTPDestination r4;
+        org.apache.cxf.transport.http.AbstractHTTPDestination$BackChannelConduit $r3;
+        org.apache.cxf.message.Message r0;
+        javax.servlet.http.HttpServletResponse r2;
+        java.lang.Object $r1;
+
+        r4 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        r0 := @parameter0: org.apache.cxf.message.Message;
+
+        $r1 = interfaceinvoke r0.<org.apache.cxf.message.Message: java.lang.Object get(java.lang.Object)>("HTTP.RESPONSE");
+
+        r2 = (javax.servlet.http.HttpServletResponse) $r1;
+
+        $r3 = new org.apache.cxf.transport.http.AbstractHTTPDestination$BackChannelConduit;
+
+        specialinvoke $r3.<org.apache.cxf.transport.http.AbstractHTTPDestination$BackChannelConduit: void <init>(org.apache.cxf.transport.http.AbstractHTTPDestination,javax.servlet.http.HttpServletResponse)>(r4, r2);
+
+        return $r3;
+    }
+
+    private void initConfig()
+    {
+        org.apache.cxf.Bus $r1, $r13;
+        org.apache.cxf.transport.http.policy.impl.ServerPolicyCalculator $r9;
+        org.apache.cxf.transport.http.AbstractHTTPDestination r0;
+        org.apache.cxf.transport.http.ContinuationProviderFactory $r15;
+        org.apache.cxf.policy.PolicyDataEngine r3;
+        boolean $z0;
+        org.apache.cxf.service.model.EndpointInfo $r6, $r10;
+        org.apache.cxf.transports.http.configuration.HTTPServerPolicy $r4, $r5, $r8, $r12;
+        java.lang.Object $r2, $r7, $r11, $r14;
+
+        r0 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        $r1 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.Bus bus>;
+
+        $r2 = interfaceinvoke $r1.<org.apache.cxf.Bus: java.lang.Object getExtension(java.lang.Class)>(class "Lorg/apache/cxf/policy/PolicyDataEngine;");
+
+        r3 = (org.apache.cxf.policy.PolicyDataEngine) $r2;
+
+        if r3 == null goto label1;
+
+        $r10 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.service.model.EndpointInfo endpointInfo>;
+
+        $r9 = new org.apache.cxf.transport.http.policy.impl.ServerPolicyCalculator;
+
+        specialinvoke $r9.<org.apache.cxf.transport.http.policy.impl.ServerPolicyCalculator: void <init>()>();
+
+        $r11 = interfaceinvoke r3.<org.apache.cxf.policy.PolicyDataEngine: java.lang.Object getServerEndpointPolicy(org.apache.cxf.service.model.EndpointInfo,org.apache.cxf.transport.Destination,org.apache.cxf.policy.PolicyCalculator)>($r10, r0, $r9);
+
+        $r12 = (org.apache.cxf.transports.http.configuration.HTTPServerPolicy) $r11;
+
+        r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.transports.http.configuration.HTTPServerPolicy server> = $r12;
+
+     label1:
+        $r4 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.transports.http.configuration.HTTPServerPolicy server>;
+
+        if null != $r4 goto label2;
+
+        $z0 = staticinvoke <org.apache.cxf.wsdl.WSDLLibrary: boolean isAvailable()>();
+
+        if $z0 == 0 goto label2;
+
+        $r6 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.service.model.EndpointInfo endpointInfo>;
+
+        $r5 = new org.apache.cxf.transports.http.configuration.HTTPServerPolicy;
+
+        specialinvoke $r5.<org.apache.cxf.transports.http.configuration.HTTPServerPolicy: void <init>()>();
+
+        $r7 = virtualinvoke $r6.<org.apache.cxf.service.model.EndpointInfo: java.lang.Object getTraversedExtensor(java.lang.Object,java.lang.Class)>($r5, class "Lorg/apache/cxf/transports/http/configuration/HTTPServerPolicy;");
+
+        $r8 = (org.apache.cxf.transports.http.configuration.HTTPServerPolicy) $r7;
+
+        r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.transports.http.configuration.HTTPServerPolicy server> = $r8;
+
+     label2:
+        $r13 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.Bus bus>;
+
+        $r14 = interfaceinvoke $r13.<org.apache.cxf.Bus: java.lang.Object getExtension(java.lang.Class)>(class "Lorg/apache/cxf/transport/http/ContinuationProviderFactory;");
+
+        $r15 = (org.apache.cxf.transport.http.ContinuationProviderFactory) $r14;
+
+        r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.transport.http.ContinuationProviderFactory cproviderFactory> = $r15;
+
+        return;
+    }
+
+    private void cacheInput(org.apache.cxf.message.Message)
+    {
+        org.apache.cxf.io.DelegatingInputStream $r7;
+        org.apache.cxf.attachment.AttachmentDataSource $r14;
+        javax.activation.DataHandler $r10, $r12;
+        org.apache.cxf.transport.http.AbstractHTTPDestination r17;
+        org.apache.cxf.message.Attachment r9;
+        org.apache.cxf.interceptor.Fault $r16;
+        boolean $z0, $z1;
+        java.util.Iterator $r6;
+        org.apache.cxf.message.Message r0, $r3;
+        java.util.Collection $r4;
+        java.io.IOException $r15;
+        org.apache.cxf.message.Exchange $r1, $r2;
+        javax.activation.DataSource $r11, $r13;
+        java.lang.Object $r5, $r8;
+
+        r17 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        r0 := @parameter0: org.apache.cxf.message.Message;
+
+        $r1 = interfaceinvoke r0.<org.apache.cxf.message.Message: org.apache.cxf.message.Exchange getExchange()>();
+
+        if $r1 != null goto label1;
+
+        return;
+
+     label1:
+        $r2 = interfaceinvoke r0.<org.apache.cxf.message.Message: org.apache.cxf.message.Exchange getExchange()>();
+
+        $r3 = interfaceinvoke $r2.<org.apache.cxf.message.Exchange: org.apache.cxf.message.Message getInMessage()>();
+
+        if $r3 != null goto label2;
+
+        return;
+
+     label2:
+        $r4 = interfaceinvoke $r3.<org.apache.cxf.message.Message: java.util.Collection getAttachments()>();
+
+        if $r4 == null goto label8;
+
+        $r6 = interfaceinvoke $r4.<java.util.Collection: java.util.Iterator iterator()>();
+
+     label3:
+        $z0 = interfaceinvoke $r6.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label8;
+
+        $r8 = interfaceinvoke $r6.<java.util.Iterator: java.lang.Object next()>();
+
+        r9 = (org.apache.cxf.message.Attachment) $r8;
+
+        $r10 = interfaceinvoke r9.<org.apache.cxf.message.Attachment: javax.activation.DataHandler getDataHandler()>();
+
+        $r11 = virtualinvoke $r10.<javax.activation.DataHandler: javax.activation.DataSource getDataSource()>();
+
+        $z1 = $r11 instanceof org.apache.cxf.attachment.AttachmentDataSource;
+
+        if $z1 == 0 goto label7;
+
+     label4:
+        $r12 = interfaceinvoke r9.<org.apache.cxf.message.Attachment: javax.activation.DataHandler getDataHandler()>();
+
+        $r13 = virtualinvoke $r12.<javax.activation.DataHandler: javax.activation.DataSource getDataSource()>();
+
+        $r14 = (org.apache.cxf.attachment.AttachmentDataSource) $r13;
+
+        virtualinvoke $r14.<org.apache.cxf.attachment.AttachmentDataSource: void cache(org.apache.cxf.message.Message)>($r3);
+
+     label5:
+        goto label7;
+
+     label6:
+        $r15 := @caughtexception;
+
+        $r16 = new org.apache.cxf.interceptor.Fault;
+
+        specialinvoke $r16.<org.apache.cxf.interceptor.Fault: void <init>(java.lang.Throwable)>($r15);
+
+        throw $r16;
+
+     label7:
+        goto label3;
+
+     label8:
+        $r5 = interfaceinvoke $r3.<org.apache.cxf.message.Message: java.lang.Object getContent(java.lang.Class)>(class "Lorg/apache/cxf/io/DelegatingInputStream;");
+
+        $r7 = (org.apache.cxf.io.DelegatingInputStream) $r5;
+
+        if $r7 == null goto label9;
+
+        virtualinvoke $r7.<org.apache.cxf.io.DelegatingInputStream: void cacheInput()>();
+
+     label9:
+        return;
+
+        catch java.io.IOException from label4 to label5 with label6;
+    }
+
+    protected java.io.OutputStream flushHeaders(org.apache.cxf.message.Message) throws java.io.IOException
+    {
+        org.apache.cxf.transport.http.AbstractHTTPDestination r0;
+        java.io.OutputStream $r2;
+        org.apache.cxf.message.Message r1;
+
+        r0 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        r1 := @parameter0: org.apache.cxf.message.Message;
+
+        $r2 = virtualinvoke r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: java.io.OutputStream flushHeaders(org.apache.cxf.message.Message,boolean)>(r1, 1);
+
+        return $r2;
+    }
+
+    protected java.io.OutputStream flushHeaders(org.apache.cxf.message.Message, boolean) throws java.io.IOException
+    {
+        org.apache.cxf.transport.http.AbstractHTTPDestination r0;
+        javax.servlet.ServletOutputStream $r5, $r6, r10;
+        int $i0;
+        boolean $z0, $z1, $z2, z3;
+        org.apache.cxf.message.Message r1;
+        org.apache.cxf.transports.http.configuration.HTTPServerPolicy $r2, $r9;
+        javax.servlet.http.HttpServletResponse $r3;
+        org.apache.cxf.transport.http.Headers $r4, $r7, $r8;
+
+        r0 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        r1 := @parameter0: org.apache.cxf.message.Message;
+
+        z3 := @parameter1: boolean;
+
+        $z0 = specialinvoke r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: boolean isResponseRedirected(org.apache.cxf.message.Message)>(r1);
+
+        if $z0 == 0 goto label1;
+
+        return null;
+
+     label1:
+        specialinvoke r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: void cacheInput(org.apache.cxf.message.Message)>(r1);
+
+        $r2 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.transports.http.configuration.HTTPServerPolicy server>;
+
+        if $r2 == null goto label2;
+
+        $r8 = new org.apache.cxf.transport.http.Headers;
+
+        specialinvoke $r8.<org.apache.cxf.transport.http.Headers: void <init>(org.apache.cxf.message.Message)>(r1);
+
+        $r9 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.transports.http.configuration.HTTPServerPolicy server>;
+
+        virtualinvoke $r8.<org.apache.cxf.transport.http.Headers: void setFromServerPolicy(org.apache.cxf.transports.http.configuration.HTTPServerPolicy)>($r9);
+
+     label2:
+        r10 = null;
+
+        $z1 = virtualinvoke r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: boolean isOneWay(org.apache.cxf.message.Message)>(r1);
+
+        $r3 = specialinvoke r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: javax.servlet.http.HttpServletResponse getHttpResponseFromMessage(org.apache.cxf.message.Message)>(r1);
+
+        $i0 = specialinvoke r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: int getReponseCodeFromMessage(org.apache.cxf.message.Message)>(r1);
+
+        interfaceinvoke $r3.<javax.servlet.http.HttpServletResponse: void setStatus(int)>($i0);
+
+        if 500 != $i0 goto label3;
+
+        $r7 = new org.apache.cxf.transport.http.Headers;
+
+        specialinvoke $r7.<org.apache.cxf.transport.http.Headers: void <init>(org.apache.cxf.message.Message)>(r1);
+
+        virtualinvoke $r7.<org.apache.cxf.transport.http.Headers: void removeContentType()>();
+
+     label3:
+        $r4 = new org.apache.cxf.transport.http.Headers;
+
+        specialinvoke $r4.<org.apache.cxf.transport.http.Headers: void <init>(org.apache.cxf.message.Message)>(r1);
+
+        virtualinvoke $r4.<org.apache.cxf.transport.http.Headers: void copyToResponse(javax.servlet.http.HttpServletResponse)>($r3);
+
+        interfaceinvoke r1.<org.apache.cxf.message.Message: java.lang.Object put(java.lang.Object,java.lang.Object)>("http.headers.copied", "true");
+
+        $z2 = specialinvoke r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: boolean hasNoResponseContent(org.apache.cxf.message.Message)>(r1);
+
+        if $z2 == 0 goto label4;
+
+        interfaceinvoke $r3.<javax.servlet.http.HttpServletResponse: void setContentLength(int)>(0);
+
+        interfaceinvoke $r3.<javax.servlet.http.HttpServletResponse: void flushBuffer()>();
+
+        $r6 = interfaceinvoke $r3.<javax.servlet.http.HttpServletResponse: javax.servlet.ServletOutputStream getOutputStream()>();
+
+        virtualinvoke $r6.<javax.servlet.ServletOutputStream: void close()>();
+
+        goto label6;
+
+     label4:
+        if z3 != 0 goto label5;
+
+        $r5 = interfaceinvoke $r3.<javax.servlet.http.HttpServletResponse: javax.servlet.ServletOutputStream getOutputStream()>();
+
+        virtualinvoke $r5.<javax.servlet.ServletOutputStream: void close()>();
+
+        goto label6;
+
+     label5:
+        r10 = interfaceinvoke $r3.<javax.servlet.http.HttpServletResponse: javax.servlet.ServletOutputStream getOutputStream()>();
+
+     label6:
+        if $z1 == 0 goto label7;
+
+        interfaceinvoke r1.<org.apache.cxf.message.Message: java.lang.Object remove(java.lang.Object)>("HTTP.RESPONSE");
+
+     label7:
+        return r10;
+    }
+
+    private int getReponseCodeFromMessage(org.apache.cxf.message.Message)
+    {
+        org.apache.cxf.message.Message r0;
+        java.lang.Integer r3, $r6;
+        org.apache.cxf.transport.http.AbstractHTTPDestination r4;
+        short $s2, $s3;
+        int $i0;
+        java.lang.Object $r2;
+        java.lang.String $r1, $r5;
+        boolean $z0;
+
+        r4 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        r0 := @parameter0: org.apache.cxf.message.Message;
+
+        $r1 = <org.apache.cxf.message.Message: java.lang.String RESPONSE_CODE>;
+
+        $r2 = interfaceinvoke r0.<org.apache.cxf.message.Message: java.lang.Object get(java.lang.Object)>($r1);
+
+        r3 = (java.lang.Integer) $r2;
+
+        if r3 == null goto label1;
+
+        $i0 = virtualinvoke r3.<java.lang.Integer: int intValue()>();
+
+        return $i0;
+
+     label1:
+        $z0 = specialinvoke r4.<org.apache.cxf.transport.http.AbstractHTTPDestination: boolean hasNoResponseContent(org.apache.cxf.message.Message)>(r0);
+
+        if $z0 == 0 goto label2;
+
+        $s3 = 202;
+
+        $s2 = 202;
+
+        goto label3;
+
+     label2:
+        $s3 = 200;
+
+        $s2 = 200;
+
+     label3:
+        $r5 = <org.apache.cxf.message.Message: java.lang.String RESPONSE_CODE>;
+
+        $r6 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($s3);
+
+        interfaceinvoke r0.<org.apache.cxf.message.Message: java.lang.Object put(java.lang.Object,java.lang.Object)>($r5, $r6);
+
+        return $s2;
+    }
+
+    private boolean hasNoResponseContent(org.apache.cxf.message.Message)
+    {
+        org.apache.cxf.transport.http.AbstractHTTPDestination r0;
+        org.apache.cxf.message.Message r1;
+        boolean $z0, $z1, $z2, $z3;
+
+        r0 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        r1 := @parameter0: org.apache.cxf.message.Message;
+
+        $z0 = virtualinvoke r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: boolean isOneWay(org.apache.cxf.message.Message)>(r1);
+
+        $z1 = staticinvoke <org.apache.cxf.message.MessageUtils: boolean isPartialResponse(org.apache.cxf.message.Message)>(r1);
+
+        $z2 = staticinvoke <org.apache.cxf.message.MessageUtils: boolean isEmptyPartialResponse(org.apache.cxf.message.Message)>(r1);
+
+        if $z0 == 0 goto label1;
+
+        if $z1 == 0 goto label2;
+
+        if $z2 != 0 goto label2;
+
+     label1:
+        if $z0 != 0 goto label3;
+
+        if $z2 == 0 goto label3;
+
+     label2:
+        $z3 = 1;
+
+        goto label4;
+
+     label3:
+        $z3 = 0;
+
+     label4:
+        return $z3;
+    }
+
+    private javax.servlet.http.HttpServletResponse getHttpResponseFromMessage(org.apache.cxf.message.Message) throws java.io.IOException
+    {
+        java.lang.Object[] $r3, $r10;
+        org.apache.cxf.common.i18n.Message $r2, $r9;
+        java.util.logging.Level $r6, $r14;
+        org.apache.cxf.transport.http.AbstractHTTPDestination r18;
+        java.lang.String $r5, $r13;
+        boolean $z0;
+        org.apache.cxf.message.Message r0;
+        javax.servlet.http.HttpServletResponse $r17;
+        java.io.IOException $r8, $r16;
+        java.util.logging.Logger $r4, $r7, $r11, $r15;
+        java.lang.Object $r1;
+        java.lang.Class $r12;
+
+        r18 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        r0 := @parameter0: org.apache.cxf.message.Message;
+
+        $r1 = interfaceinvoke r0.<org.apache.cxf.message.Message: java.lang.Object get(java.lang.Object)>("HTTP.RESPONSE");
+
+        $z0 = $r1 instanceof javax.servlet.http.HttpServletResponse;
+
+        if $z0 == 0 goto label1;
+
+        $r17 = (javax.servlet.http.HttpServletResponse) $r1;
+
+        return $r17;
+
+     label1:
+        if null == $r1 goto label2;
+
+        $r9 = new org.apache.cxf.common.i18n.Message;
+
+        $r11 = <org.apache.cxf.transport.http.AbstractHTTPDestination: java.util.logging.Logger LOG>;
+
+        $r10 = newarray (java.lang.Object)[1];
+
+        $r12 = virtualinvoke $r1.<java.lang.Object: java.lang.Class getClass()>();
+
+        $r10[0] = $r12;
+
+        specialinvoke $r9.<org.apache.cxf.common.i18n.Message: void <init>(java.lang.String,java.util.logging.Logger,java.lang.Object[])>("UNEXPECTED_RESPONSE_TYPE_MSG", $r11, $r10);
+
+        $r13 = virtualinvoke $r9.<org.apache.cxf.common.i18n.Message: java.lang.String toString()>();
+
+        $r15 = <org.apache.cxf.transport.http.AbstractHTTPDestination: java.util.logging.Logger LOG>;
+
+        $r14 = <java.util.logging.Level: java.util.logging.Level WARNING>;
+
+        virtualinvoke $r15.<java.util.logging.Logger: void log(java.util.logging.Level,java.lang.String)>($r14, $r13);
+
+        $r16 = new java.io.IOException;
+
+        specialinvoke $r16.<java.io.IOException: void <init>(java.lang.String)>($r13);
+
+        throw $r16;
+
+     label2:
+        $r2 = new org.apache.cxf.common.i18n.Message;
+
+        $r4 = <org.apache.cxf.transport.http.AbstractHTTPDestination: java.util.logging.Logger LOG>;
+
+        $r3 = newarray (java.lang.Object)[0];
+
+        specialinvoke $r2.<org.apache.cxf.common.i18n.Message: void <init>(java.lang.String,java.util.logging.Logger,java.lang.Object[])>("NULL_RESPONSE_MSG", $r4, $r3);
+
+        $r5 = virtualinvoke $r2.<org.apache.cxf.common.i18n.Message: java.lang.String toString()>();
+
+        $r7 = <org.apache.cxf.transport.http.AbstractHTTPDestination: java.util.logging.Logger LOG>;
+
+        $r6 = <java.util.logging.Level: java.util.logging.Level WARNING>;
+
+        virtualinvoke $r7.<java.util.logging.Logger: void log(java.util.logging.Level,java.lang.String)>($r6, $r5);
+
+        $r8 = new java.io.IOException;
+
+        specialinvoke $r8.<java.io.IOException: void <init>(java.lang.String)>($r5);
+
+        throw $r8;
+    }
+
+    private boolean isResponseRedirected(org.apache.cxf.message.Message)
+    {
+        org.apache.cxf.transport.http.AbstractHTTPDestination r3;
+        org.apache.cxf.message.Message r0;
+        java.lang.Boolean $r1;
+        java.lang.Object $r2;
+        boolean $z0;
+
+        r3 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        r0 := @parameter0: org.apache.cxf.message.Message;
+
+        $r1 = <java.lang.Boolean: java.lang.Boolean TRUE>;
+
+        $r2 = interfaceinvoke r0.<org.apache.cxf.message.Message: java.lang.Object get(java.lang.Object)>("http.request.redirected");
+
+        $z0 = virtualinvoke $r1.<java.lang.Boolean: boolean equals(java.lang.Object)>($r2);
+
+        return $z0;
+    }
+
+    protected boolean contextMatchOnExact()
+    {
+        org.apache.cxf.transport.http.AbstractHTTPDestination r0;
+        java.lang.String $r1, $r2;
+        boolean $z0;
+
+        r0 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        $r2 = "exact";
+
+        $r1 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: java.lang.String contextMatchStrategy>;
+
+        $z0 = virtualinvoke $r2.<java.lang.String: boolean equals(java.lang.Object)>($r1);
+
+        return $z0;
+    }
+
+    public void finalizeConfig()
+    {
+        org.apache.cxf.transport.http.AbstractHTTPDestination r0;
+
+        r0 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        return;
+    }
+
+    public java.lang.String getBeanName()
+    {
+        org.apache.cxf.service.model.EndpointInfo $r1, $r4;
+        org.apache.cxf.transport.http.AbstractHTTPDestination r0;
+        java.lang.StringBuilder $r3, $r7, $r8;
+        javax.xml.namespace.QName $r2, $r5;
+        java.lang.String $r6, r9;
+
+        r0 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        r9 = null;
+
+        $r1 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.service.model.EndpointInfo endpointInfo>;
+
+        $r2 = virtualinvoke $r1.<org.apache.cxf.service.model.EndpointInfo: javax.xml.namespace.QName getName()>();
+
+        if $r2 == null goto label1;
+
+        $r3 = new java.lang.StringBuilder;
+
+        specialinvoke $r3.<java.lang.StringBuilder: void <init>()>();
+
+        $r4 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.service.model.EndpointInfo endpointInfo>;
+
+        $r5 = virtualinvoke $r4.<org.apache.cxf.service.model.EndpointInfo: javax.xml.namespace.QName getName()>();
+
+        $r6 = virtualinvoke $r5.<javax.xml.namespace.QName: java.lang.String toString()>();
+
+        $r7 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r6);
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(".http-destination");
+
+        r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.String toString()>();
+
+     label1:
+        return r9;
+    }
+
+    public org.apache.cxf.ws.addressing.EndpointReferenceType getAddressWithId(java.lang.String)
+    {
+        org.apache.cxf.ws.addressing.EndpointReferenceType $r2, $r4, $r5, r15;
+        org.apache.cxf.transport.http.AbstractHTTPDestination r0;
+        java.lang.String r1, $r3, $r10, $r14;
+        boolean $z0, $z1;
+        java.lang.StringBuilder $r6, $r7, $r8, $r9, $r11, $r12, $r13;
+
+        r0 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        r1 := @parameter0: java.lang.String;
+
+        $z0 = virtualinvoke r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: boolean isMultiplexWithAddress()>();
+
+        if $z0 == 0 goto label3;
+
+        $r2 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.ws.addressing.EndpointReferenceType reference>;
+
+        $r3 = staticinvoke <org.apache.cxf.wsdl.EndpointReferenceUtils: java.lang.String getAddress(org.apache.cxf.ws.addressing.EndpointReferenceType)>($r2);
+
+        $r4 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.ws.addressing.EndpointReferenceType reference>;
+
+        $r5 = staticinvoke <org.apache.cxf.wsdl.EndpointReferenceUtils: org.apache.cxf.ws.addressing.EndpointReferenceType duplicate(org.apache.cxf.ws.addressing.EndpointReferenceType)>($r4);
+
+        r15 = $r5;
+
+        $z1 = virtualinvoke $r3.<java.lang.String: boolean endsWith(java.lang.String)>("/");
+
+        if $z1 == 0 goto label1;
+
+        $r11 = new java.lang.StringBuilder;
+
+        specialinvoke $r11.<java.lang.StringBuilder: void <init>()>();
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r3);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r1);
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        staticinvoke <org.apache.cxf.wsdl.EndpointReferenceUtils: void setAddress(org.apache.cxf.ws.addressing.EndpointReferenceType,java.lang.String)>($r5, $r14);
+
+        goto label2;
+
+     label1:
+        $r6 = new java.lang.StringBuilder;
+
+        specialinvoke $r6.<java.lang.StringBuilder: void <init>()>();
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r3);
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("/");
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r1);
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        staticinvoke <org.apache.cxf.wsdl.EndpointReferenceUtils: void setAddress(org.apache.cxf.ws.addressing.EndpointReferenceType,java.lang.String)>($r5, $r10);
+
+     label2:
+        goto label4;
+
+     label3:
+        r15 = specialinvoke r0.<org.apache.cxf.transport.AbstractMultiplexDestination: org.apache.cxf.ws.addressing.EndpointReferenceType getAddressWithId(java.lang.String)>(r1);
+
+     label4:
+        return r15;
+    }
+
+    public java.lang.String getId(java.util.Map)
+    {
+        java.lang.Object[] $r8;
+        org.apache.cxf.common.i18n.Message $r7;
+        java.util.logging.Level $r10;
+        org.apache.cxf.transport.http.AbstractHTTPDestination r0;
+        java.util.Map r1;
+        int $i0, i1, $i2;
+        java.lang.String $r2, $r3, r5, $r11, r12;
+        boolean $z0;
+        java.util.logging.Logger $r6, $r9;
+        java.lang.Object $r4;
+
+        r0 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        r1 := @parameter0: java.util.Map;
+
+        r12 = null;
+
+        $z0 = virtualinvoke r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: boolean isMultiplexWithAddress()>();
+
+        if $z0 == 0 goto label4;
+
+        $r3 = <org.apache.cxf.message.Message: java.lang.String PATH_INFO>;
+
+        $r4 = interfaceinvoke r1.<java.util.Map: java.lang.Object get(java.lang.Object)>($r3);
+
+        r5 = (java.lang.String) $r4;
+
+        if null == r5 goto label2;
+
+        $i0 = virtualinvoke r5.<java.lang.String: int lastIndexOf(java.lang.String)>("/");
+
+        i1 = $i0 + 1;
+
+        if i1 <= 0 goto label1;
+
+        $i2 = virtualinvoke r5.<java.lang.String: int length()>();
+
+        if i1 >= $i2 goto label1;
+
+        r12 = virtualinvoke r5.<java.lang.String: java.lang.String substring(int)>(i1);
+
+     label1:
+        goto label3;
+
+     label2:
+        $r6 = virtualinvoke r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: java.util.logging.Logger getLogger()>();
+
+        $r10 = <java.util.logging.Level: java.util.logging.Level WARNING>;
+
+        $r7 = new org.apache.cxf.common.i18n.Message;
+
+        $r9 = <org.apache.cxf.transport.http.AbstractHTTPDestination: java.util.logging.Logger LOG>;
+
+        $r8 = newarray (java.lang.Object)[0];
+
+        specialinvoke $r7.<org.apache.cxf.common.i18n.Message: void <init>(java.lang.String,java.util.logging.Logger,java.lang.Object[])>("MISSING_PATH_INFO", $r9, $r8);
+
+        $r11 = virtualinvoke $r7.<org.apache.cxf.common.i18n.Message: java.lang.String toString()>();
+
+        virtualinvoke $r6.<java.util.logging.Logger: void log(java.util.logging.Level,java.lang.String)>($r10, $r11);
+
+     label3:
+        goto label5;
+
+     label4:
+        $r2 = specialinvoke r0.<org.apache.cxf.transport.AbstractMultiplexDestination: java.lang.String getId(java.util.Map)>(r1);
+
+        return $r2;
+
+     label5:
+        return r12;
+    }
+
+    public java.lang.String getContextMatchStrategy()
+    {
+        org.apache.cxf.transport.http.AbstractHTTPDestination r0;
+        java.lang.String $r1;
+
+        r0 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        $r1 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: java.lang.String contextMatchStrategy>;
+
+        return $r1;
+    }
+
+    public void setContextMatchStrategy(java.lang.String)
+    {
+        org.apache.cxf.transport.http.AbstractHTTPDestination r0;
+        java.lang.String r1;
+
+        r0 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        r1 := @parameter0: java.lang.String;
+
+        r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: java.lang.String contextMatchStrategy> = r1;
+
+        return;
+    }
+
+    public boolean isFixedParameterOrder()
+    {
+        org.apache.cxf.transport.http.AbstractHTTPDestination r0;
+        boolean $z0;
+
+        r0 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        $z0 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: boolean fixedParameterOrder>;
+
+        return $z0;
+    }
+
+    public void setFixedParameterOrder(boolean)
+    {
+        org.apache.cxf.transport.http.AbstractHTTPDestination r0;
+        boolean z0;
+
+        r0 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        z0 := @parameter0: boolean;
+
+        r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: boolean fixedParameterOrder> = z0;
+
+        return;
+    }
+
+    public boolean isMultiplexWithAddress()
+    {
+        org.apache.cxf.transport.http.AbstractHTTPDestination r0;
+        boolean $z0;
+
+        r0 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        $z0 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: boolean multiplexWithAddress>;
+
+        return $z0;
+    }
+
+    public void setMultiplexWithAddress(boolean)
+    {
+        org.apache.cxf.transport.http.AbstractHTTPDestination r0;
+        boolean z0;
+
+        r0 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        z0 := @parameter0: boolean;
+
+        r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: boolean multiplexWithAddress> = z0;
+
+        return;
+    }
+
+    public org.apache.cxf.transports.http.configuration.HTTPServerPolicy getServer()
+    {
+        org.apache.cxf.transport.http.AbstractHTTPDestination r0;
+        org.apache.cxf.transports.http.configuration.HTTPServerPolicy $r1;
+
+        r0 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        $r1 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.transports.http.configuration.HTTPServerPolicy server>;
+
+        return $r1;
+    }
+
+    public void setServer(org.apache.cxf.transports.http.configuration.HTTPServerPolicy)
+    {
+        org.apache.cxf.transport.http.AbstractHTTPDestination r0;
+        org.apache.cxf.transports.http.configuration.HTTPServerPolicy r1;
+
+        r0 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        r1 := @parameter0: org.apache.cxf.transports.http.configuration.HTTPServerPolicy;
+
+        r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.transports.http.configuration.HTTPServerPolicy server> = r1;
+
+        return;
+    }
+
+    public void assertMessage(org.apache.cxf.message.Message)
+    {
+        org.apache.cxf.transport.http.AbstractHTTPDestination r0;
+        org.apache.cxf.Bus $r1;
+        org.apache.cxf.message.Message r4;
+        org.apache.cxf.transports.http.configuration.HTTPServerPolicy $r6;
+        java.lang.Object $r2;
+        org.apache.cxf.transport.http.policy.impl.ServerPolicyCalculator $r5;
+        org.apache.cxf.policy.PolicyDataEngine r3;
+
+        r0 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        r4 := @parameter0: org.apache.cxf.message.Message;
+
+        $r1 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.Bus bus>;
+
+        $r2 = interfaceinvoke $r1.<org.apache.cxf.Bus: java.lang.Object getExtension(java.lang.Class)>(class "Lorg/apache/cxf/policy/PolicyDataEngine;");
+
+        r3 = (org.apache.cxf.policy.PolicyDataEngine) $r2;
+
+        $r6 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.transports.http.configuration.HTTPServerPolicy server>;
+
+        $r5 = new org.apache.cxf.transport.http.policy.impl.ServerPolicyCalculator;
+
+        specialinvoke $r5.<org.apache.cxf.transport.http.policy.impl.ServerPolicyCalculator: void <init>()>();
+
+        interfaceinvoke r3.<org.apache.cxf.policy.PolicyDataEngine: void assertMessage(org.apache.cxf.message.Message,java.lang.Object,org.apache.cxf.policy.PolicyCalculator)>(r4, $r6, $r5);
+
+        return;
+    }
+
+    public boolean canAssert(javax.xml.namespace.QName)
+    {
+        org.apache.cxf.transport.http.AbstractHTTPDestination r3;
+        org.apache.cxf.transport.http.policy.impl.ServerPolicyCalculator $r0;
+        javax.xml.namespace.QName $r1, r2;
+        boolean $z0;
+
+        r3 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        r2 := @parameter0: javax.xml.namespace.QName;
+
+        $r0 = new org.apache.cxf.transport.http.policy.impl.ServerPolicyCalculator;
+
+        specialinvoke $r0.<org.apache.cxf.transport.http.policy.impl.ServerPolicyCalculator: void <init>()>();
+
+        $r1 = virtualinvoke $r0.<org.apache.cxf.transport.http.policy.impl.ServerPolicyCalculator: javax.xml.namespace.QName getDataClassName()>();
+
+        $z0 = virtualinvoke $r1.<javax.xml.namespace.QName: boolean equals(java.lang.Object)>(r2);
+
+        return $z0;
+    }
+
+    public void releaseRegistry()
+    {
+        org.apache.cxf.transport.http.AbstractHTTPDestination r0;
+
+        r0 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.transport.http.DestinationRegistry registry> = null;
+
+        return;
+    }
+
+    public java.lang.String getPath()
+    {
+        org.apache.cxf.transport.http.AbstractHTTPDestination r0;
+        java.lang.String $r1;
+
+        r0 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        $r1 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: java.lang.String path>;
+
+        return $r1;
+    }
+
+    protected void activate()
+    {
+        org.apache.cxf.transport.http.AbstractHTTPDestination r0;
+        java.lang.Throwable $r3;
+        org.apache.cxf.transport.http.DestinationRegistry $r1, $r2;
+
+        r0 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        entermonitor r0;
+
+     label1:
+        $r1 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.transport.http.DestinationRegistry registry>;
+
+        if $r1 == null goto label2;
+
+        $r2 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.transport.http.DestinationRegistry registry>;
+
+        interfaceinvoke $r2.<org.apache.cxf.transport.http.DestinationRegistry: void addDestination(org.apache.cxf.transport.http.AbstractHTTPDestination)>(r0);
+
+     label2:
+        exitmonitor r0;
+
+     label3:
+        goto label6;
+
+     label4:
+        $r3 := @caughtexception;
+
+        exitmonitor r0;
+
+     label5:
+        throw $r3;
+
+     label6:
+        return;
+
+        catch java.lang.Throwable from label1 to label3 with label4;
+        catch java.lang.Throwable from label4 to label5 with label4;
+    }
+
+    protected void deactivate()
+    {
+        org.apache.cxf.transport.http.AbstractHTTPDestination r0;
+        java.lang.Throwable $r4;
+        org.apache.cxf.transport.http.DestinationRegistry $r1, $r3;
+        java.lang.String $r2;
+
+        r0 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        entermonitor r0;
+
+     label1:
+        $r1 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.transport.http.DestinationRegistry registry>;
+
+        if $r1 == null goto label2;
+
+        $r3 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.transport.http.DestinationRegistry registry>;
+
+        $r2 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: java.lang.String path>;
+
+        interfaceinvoke $r3.<org.apache.cxf.transport.http.DestinationRegistry: void removeDestination(java.lang.String)>($r2);
+
+     label2:
+        exitmonitor r0;
+
+     label3:
+        goto label6;
+
+     label4:
+        $r4 := @caughtexception;
+
+        exitmonitor r0;
+
+     label5:
+        throw $r4;
+
+     label6:
+        return;
+
+        catch java.lang.Throwable from label1 to label3 with label4;
+        catch java.lang.Throwable from label4 to label5 with label4;
+    }
+
+    public void shutdown()
+    {
+        org.apache.cxf.transport.http.AbstractHTTPDestination r0;
+        java.lang.Throwable $r4;
+        org.apache.cxf.transport.http.DestinationRegistry $r1, $r3;
+        java.lang.String $r2;
+
+        r0 := @this: org.apache.cxf.transport.http.AbstractHTTPDestination;
+
+        entermonitor r0;
+
+     label1:
+        $r1 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.transport.http.DestinationRegistry registry>;
+
+        if $r1 == null goto label2;
+
+        $r3 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: org.apache.cxf.transport.http.DestinationRegistry registry>;
+
+        $r2 = r0.<org.apache.cxf.transport.http.AbstractHTTPDestination: java.lang.String path>;
+
+        interfaceinvoke $r3.<org.apache.cxf.transport.http.DestinationRegistry: void removeDestination(java.lang.String)>($r2);
+
+     label2:
+        exitmonitor r0;
+
+     label3:
+        goto label6;
+
+     label4:
+        $r4 := @caughtexception;
+
+        exitmonitor r0;
+
+     label5:
+        throw $r4;
+
+     label6:
+        specialinvoke r0.<org.apache.cxf.transport.AbstractMultiplexDestination: void shutdown()>();
+
+        return;
+
+        catch java.lang.Throwable from label1 to label3 with label4;
+        catch java.lang.Throwable from label4 to label5 with label4;
+    }
+
+    static void <clinit>()
+    {
+        java.util.logging.Logger $r0;
+
+        <org.apache.cxf.transport.http.AbstractHTTPDestination: java.lang.String SSL_PEER_CERT_CHAIN_ATTRIBUTE> = "javax.servlet.request.X509Certificate";
+
+        <org.apache.cxf.transport.http.AbstractHTTPDestination: java.lang.String SSL_CIPHER_SUITE_ATTRIBUTE> = "javax.servlet.request.cipher_suite";
+
+        <org.apache.cxf.transport.http.AbstractHTTPDestination: java.lang.String HTTP_BASE_PATH> = "http.base.path";
+
+        <org.apache.cxf.transport.http.AbstractHTTPDestination: java.lang.String SERVICE_REDIRECTION> = "http.service.redirection";
+
+        <org.apache.cxf.transport.http.AbstractHTTPDestination: java.lang.String CXF_ASYNC_CONTEXT> = "cxf.async.context";
+
+        <org.apache.cxf.transport.http.AbstractHTTPDestination: java.lang.String CXF_CONTINUATION_MESSAGE> = "cxf.continuation.message";
+
+        <org.apache.cxf.transport.http.AbstractHTTPDestination: java.lang.String REQUEST_REDIRECTED> = "http.request.redirected";
+
+        <org.apache.cxf.transport.http.AbstractHTTPDestination: java.lang.String RESPONSE_COMMITED> = "http.response.done";
+
+        <org.apache.cxf.transport.http.AbstractHTTPDestination: java.lang.String RESPONSE_HEADERS_COPIED> = "http.headers.copied";
+
+        <org.apache.cxf.transport.http.AbstractHTTPDestination: java.lang.String HTTP_CONTEXT_MATCH_STRATEGY> = "HTTP_CONTEXT_MATCH_STRATEGY";
+
+        <org.apache.cxf.transport.http.AbstractHTTPDestination: java.lang.String HTTP_CONFIG> = "HTTP.CONFIG";
+
+        <org.apache.cxf.transport.http.AbstractHTTPDestination: java.lang.String HTTP_CONTEXT> = "HTTP.CONTEXT";
+
+        <org.apache.cxf.transport.http.AbstractHTTPDestination: java.lang.String HTTP_RESPONSE> = "HTTP.RESPONSE";
+
+        <org.apache.cxf.transport.http.AbstractHTTPDestination: java.lang.String HTTP_REQUEST> = "HTTP.REQUEST";
+
+        $r0 = staticinvoke <org.apache.cxf.common.logging.LogUtils: java.util.logging.Logger getL7dLogger(java.lang.Class)>(class "Lorg/apache/cxf/transport/http/AbstractHTTPDestination;");
+
+        <org.apache.cxf.transport.http.AbstractHTTPDestination: java.util.logging.Logger LOG> = $r0;
+
+        return;
+    }
+}

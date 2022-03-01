@@ -1,0 +1,619 @@
+public class org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer extends org.apache.solr.client.solrj.SolrServer
+{
+    private static final long serialVersionUID;
+    static final org.slf4j.Logger log;
+    private org.apache.solr.client.solrj.impl.HttpSolrServer server;
+    final java.util.concurrent.BlockingQueue queue;
+    final java.util.concurrent.ExecutorService scheduler;
+    final java.util.Queue runners;
+    volatile java.util.concurrent.CountDownLatch lock;
+    final int threadCount;
+
+    public void <init>(java.lang.String, int, int)
+    {
+        int i0, i1;
+        org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer r0;
+        java.lang.String r1;
+
+        r0 := @this: org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer;
+
+        r1 := @parameter0: java.lang.String;
+
+        i0 := @parameter1: int;
+
+        i1 := @parameter2: int;
+
+        specialinvoke r0.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: void <init>(java.lang.String,org.apache.http.client.HttpClient,int,int)>(r1, null, i0, i1);
+
+        return;
+    }
+
+    public void <init>(java.lang.String, org.apache.http.client.HttpClient, int, int)
+    {
+        org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer r0;
+        java.util.concurrent.LinkedBlockingQueue $r7;
+        org.apache.http.client.HttpClient r5;
+        int i0, i1;
+        java.lang.String r4;
+        org.apache.solr.common.util.SolrjNamedThreadFactory $r1;
+        java.util.LinkedList $r8;
+        org.apache.solr.client.solrj.impl.HttpSolrServer $r3, $r6;
+        java.util.concurrent.ExecutorService $r2;
+
+        r0 := @this: org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer;
+
+        r4 := @parameter0: java.lang.String;
+
+        r5 := @parameter1: org.apache.http.client.HttpClient;
+
+        i0 := @parameter2: int;
+
+        i1 := @parameter3: int;
+
+        specialinvoke r0.<org.apache.solr.client.solrj.SolrServer: void <init>()>();
+
+        $r1 = new org.apache.solr.common.util.SolrjNamedThreadFactory;
+
+        specialinvoke $r1.<org.apache.solr.common.util.SolrjNamedThreadFactory: void <init>(java.lang.String)>("concurrentUpdateScheduler");
+
+        $r2 = staticinvoke <java.util.concurrent.Executors: java.util.concurrent.ExecutorService newCachedThreadPool(java.util.concurrent.ThreadFactory)>($r1);
+
+        r0.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: java.util.concurrent.ExecutorService scheduler> = $r2;
+
+        r0.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: java.util.concurrent.CountDownLatch lock> = null;
+
+        $r3 = new org.apache.solr.client.solrj.impl.HttpSolrServer;
+
+        specialinvoke $r3.<org.apache.solr.client.solrj.impl.HttpSolrServer: void <init>(java.lang.String,org.apache.http.client.HttpClient)>(r4, r5);
+
+        r0.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: org.apache.solr.client.solrj.impl.HttpSolrServer server> = $r3;
+
+        $r6 = r0.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: org.apache.solr.client.solrj.impl.HttpSolrServer server>;
+
+        virtualinvoke $r6.<org.apache.solr.client.solrj.impl.HttpSolrServer: void setFollowRedirects(boolean)>(0);
+
+        $r7 = new java.util.concurrent.LinkedBlockingQueue;
+
+        specialinvoke $r7.<java.util.concurrent.LinkedBlockingQueue: void <init>(int)>(i0);
+
+        r0.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: java.util.concurrent.BlockingQueue queue> = $r7;
+
+        r0.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: int threadCount> = i1;
+
+        $r8 = new java.util.LinkedList;
+
+        specialinvoke $r8.<java.util.LinkedList: void <init>()>();
+
+        r0.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: java.util.Queue runners> = $r8;
+
+        return;
+    }
+
+    public org.apache.solr.common.util.NamedList request(org.apache.solr.client.solrj.SolrRequest) throws org.apache.solr.client.solrj.SolrServerException, java.io.IOException
+    {
+        org.apache.solr.client.solrj.impl.HttpSolrServer $r4, $r20, $r22;
+        boolean $z0, $z1, $z2, z3, $z4;
+        org.apache.solr.common.params.ModifiableSolrParams $r7;
+        org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer r3;
+        java.util.concurrent.BlockingQueue $r8, $r13, $r14, $r15;
+        java.util.concurrent.CountDownLatch $r18;
+        java.util.List $r2, $r6;
+        java.util.Queue $r10, $r17, $r29, $r30;
+        java.lang.Throwable $r28;
+        org.apache.solr.client.solrj.SolrRequest r0;
+        org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer$Runner $r9;
+        int $i0, $i1, $i2, $i3;
+        java.lang.String $r27;
+        java.util.concurrent.ExecutorService $r11;
+        org.slf4j.Logger $r19, $r25;
+        java.io.IOException $r26;
+        org.apache.solr.common.util.NamedList $r5, $r16, $r21, $r23;
+        java.util.concurrent.TimeUnit $r12;
+        java.lang.InterruptedException $r24;
+        org.apache.solr.client.solrj.request.UpdateRequest r1;
+
+        r3 := @this: org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer;
+
+        r0 := @parameter0: org.apache.solr.client.solrj.SolrRequest;
+
+        $z0 = r0 instanceof org.apache.solr.client.solrj.request.UpdateRequest;
+
+        if $z0 != 0 goto label01;
+
+        $r22 = r3.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: org.apache.solr.client.solrj.impl.HttpSolrServer server>;
+
+        $r23 = virtualinvoke $r22.<org.apache.solr.client.solrj.impl.HttpSolrServer: org.apache.solr.common.util.NamedList request(org.apache.solr.client.solrj.SolrRequest)>(r0);
+
+        return $r23;
+
+     label01:
+        r1 = (org.apache.solr.client.solrj.request.UpdateRequest) r0;
+
+        $r2 = virtualinvoke r1.<org.apache.solr.client.solrj.request.UpdateRequest: java.util.List getDocuments()>();
+
+        if $r2 == null goto label02;
+
+        $r6 = virtualinvoke r1.<org.apache.solr.client.solrj.request.UpdateRequest: java.util.List getDocuments()>();
+
+        $z1 = interfaceinvoke $r6.<java.util.List: boolean isEmpty()>();
+
+        if $z1 == 0 goto label03;
+
+     label02:
+        virtualinvoke r3.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: void blockUntilFinished()>();
+
+        $r4 = r3.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: org.apache.solr.client.solrj.impl.HttpSolrServer server>;
+
+        $r5 = virtualinvoke $r4.<org.apache.solr.client.solrj.impl.HttpSolrServer: org.apache.solr.common.util.NamedList request(org.apache.solr.client.solrj.SolrRequest)>(r0);
+
+        return $r5;
+
+     label03:
+        $r7 = virtualinvoke r1.<org.apache.solr.client.solrj.request.UpdateRequest: org.apache.solr.common.params.ModifiableSolrParams getParams()>();
+
+        if $r7 == null goto label04;
+
+        $z2 = virtualinvoke $r7.<org.apache.solr.common.params.SolrParams: boolean getBool(java.lang.String,boolean)>("waitSearcher", 0);
+
+        if $z2 == 0 goto label04;
+
+        $r19 = <org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: org.slf4j.Logger log>;
+
+        interfaceinvoke $r19.<org.slf4j.Logger: void info(java.lang.String)>("blocking for commit/optimize");
+
+        virtualinvoke r3.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: void blockUntilFinished()>();
+
+        $r20 = r3.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: org.apache.solr.client.solrj.impl.HttpSolrServer server>;
+
+        $r21 = virtualinvoke $r20.<org.apache.solr.client.solrj.impl.HttpSolrServer: org.apache.solr.common.util.NamedList request(org.apache.solr.client.solrj.SolrRequest)>(r0);
+
+        return $r21;
+
+     label04:
+        $r18 = r3.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: java.util.concurrent.CountDownLatch lock>;
+
+        if $r18 == null goto label05;
+
+        virtualinvoke $r18.<java.util.concurrent.CountDownLatch: void await()>();
+
+     label05:
+        $r8 = r3.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: java.util.concurrent.BlockingQueue queue>;
+
+        z3 = interfaceinvoke $r8.<java.util.concurrent.BlockingQueue: boolean offer(java.lang.Object)>(r1);
+
+     label06:
+        $r29 = r3.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: java.util.Queue runners>;
+
+        entermonitor $r29;
+
+     label07:
+        $r30 = r3.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: java.util.Queue runners>;
+
+        $z4 = interfaceinvoke $r30.<java.util.Queue: boolean isEmpty()>();
+
+        if $z4 != 0 goto label08;
+
+        $r14 = r3.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: java.util.concurrent.BlockingQueue queue>;
+
+        $i0 = interfaceinvoke $r14.<java.util.concurrent.BlockingQueue: int remainingCapacity()>();
+
+        $r15 = r3.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: java.util.concurrent.BlockingQueue queue>;
+
+        $i1 = interfaceinvoke $r15.<java.util.concurrent.BlockingQueue: int size()>();
+
+        if $i0 >= $i1 goto label09;
+
+        $r17 = r3.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: java.util.Queue runners>;
+
+        $i2 = interfaceinvoke $r17.<java.util.Queue: int size()>();
+
+        $i3 = r3.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: int threadCount>;
+
+        if $i2 >= $i3 goto label09;
+
+     label08:
+        $r9 = new org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer$Runner;
+
+        specialinvoke $r9.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer$Runner: void <init>(org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer)>(r3);
+
+        $r10 = r3.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: java.util.Queue runners>;
+
+        interfaceinvoke $r10.<java.util.Queue: boolean add(java.lang.Object)>($r9);
+
+        $r11 = r3.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: java.util.concurrent.ExecutorService scheduler>;
+
+        interfaceinvoke $r11.<java.util.concurrent.ExecutorService: void execute(java.lang.Runnable)>($r9);
+
+        goto label11;
+
+     label09:
+        if z3 == 0 goto label11;
+
+        exitmonitor $r29;
+
+     label10:
+        goto label16;
+
+     label11:
+        exitmonitor $r29;
+
+     label12:
+        goto label15;
+
+     label13:
+        $r28 := @caughtexception;
+
+        exitmonitor $r29;
+
+     label14:
+        throw $r28;
+
+     label15:
+        if z3 != 0 goto label06;
+
+        $r13 = r3.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: java.util.concurrent.BlockingQueue queue>;
+
+        $r12 = <java.util.concurrent.TimeUnit: java.util.concurrent.TimeUnit MILLISECONDS>;
+
+        z3 = interfaceinvoke $r13.<java.util.concurrent.BlockingQueue: boolean offer(java.lang.Object,long,java.util.concurrent.TimeUnit)>(r1, 100L, $r12);
+
+        goto label06;
+
+     label16:
+        goto label18;
+
+     label17:
+        $r24 := @caughtexception;
+
+        $r25 = <org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: org.slf4j.Logger log>;
+
+        interfaceinvoke $r25.<org.slf4j.Logger: void error(java.lang.String,java.lang.Throwable)>("interrupted", $r24);
+
+        $r26 = new java.io.IOException;
+
+        $r27 = virtualinvoke $r24.<java.lang.InterruptedException: java.lang.String getLocalizedMessage()>();
+
+        specialinvoke $r26.<java.io.IOException: void <init>(java.lang.String)>($r27);
+
+        throw $r26;
+
+     label18:
+        $r16 = new org.apache.solr.common.util.NamedList;
+
+        specialinvoke $r16.<org.apache.solr.common.util.NamedList: void <init>()>();
+
+        virtualinvoke $r16.<org.apache.solr.common.util.NamedList: void add(java.lang.String,java.lang.Object)>("NOTE", "the request is processed in a background stream");
+
+        return $r16;
+
+        catch java.lang.Throwable from label07 to label10 with label13;
+        catch java.lang.Throwable from label11 to label12 with label13;
+        catch java.lang.Throwable from label13 to label14 with label13;
+        catch java.lang.InterruptedException from label04 to label16 with label17;
+    }
+
+    public synchronized void blockUntilFinished()
+    {
+        java.lang.Throwable $r9, $r11;
+        org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer r0;
+        java.util.concurrent.CountDownLatch $r1, $r8, $r10;
+        java.util.concurrent.locks.Lock $r5, $r6;
+        org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer$Runner $r7;
+        java.lang.Object $r4;
+        java.util.Queue $r2, $r3;
+
+        r0 := @this: org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer;
+
+        $r1 = new java.util.concurrent.CountDownLatch;
+
+        specialinvoke $r1.<java.util.concurrent.CountDownLatch: void <init>(int)>(1);
+
+        r0.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: java.util.concurrent.CountDownLatch lock> = $r1;
+
+     label01:
+        $r2 = r0.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: java.util.Queue runners>;
+
+        entermonitor $r2;
+
+     label02:
+        $r3 = r0.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: java.util.Queue runners>;
+
+        $r4 = interfaceinvoke $r3.<java.util.Queue: java.lang.Object peek()>();
+
+        $r7 = (org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer$Runner) $r4;
+
+        exitmonitor $r2;
+
+     label03:
+        goto label06;
+
+     label04:
+        $r11 := @caughtexception;
+
+        exitmonitor $r2;
+
+     label05:
+        throw $r11;
+
+     label06:
+        if $r7 != null goto label07;
+
+        goto label08;
+
+     label07:
+        $r5 = $r7.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer$Runner: java.util.concurrent.locks.Lock runnerLock>;
+
+        interfaceinvoke $r5.<java.util.concurrent.locks.Lock: void lock()>();
+
+        $r6 = $r7.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer$Runner: java.util.concurrent.locks.Lock runnerLock>;
+
+        interfaceinvoke $r6.<java.util.concurrent.locks.Lock: void unlock()>();
+
+        goto label01;
+
+     label08:
+        $r8 = r0.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: java.util.concurrent.CountDownLatch lock>;
+
+        virtualinvoke $r8.<java.util.concurrent.CountDownLatch: void countDown()>();
+
+        r0.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: java.util.concurrent.CountDownLatch lock> = null;
+
+        goto label11;
+
+     label09:
+        $r9 := @caughtexception;
+
+     label10:
+        $r10 = r0.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: java.util.concurrent.CountDownLatch lock>;
+
+        virtualinvoke $r10.<java.util.concurrent.CountDownLatch: void countDown()>();
+
+        r0.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: java.util.concurrent.CountDownLatch lock> = null;
+
+        throw $r9;
+
+     label11:
+        return;
+
+        catch java.lang.Throwable from label02 to label03 with label04;
+        catch java.lang.Throwable from label04 to label05 with label04;
+        catch java.lang.Throwable from label01 to label08 with label09;
+        catch java.lang.Throwable from label09 to label10 with label09;
+    }
+
+    public void handleError(java.lang.Throwable)
+    {
+        java.lang.Throwable r0;
+        org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer r2;
+        org.slf4j.Logger $r1;
+
+        r2 := @this: org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer;
+
+        r0 := @parameter0: java.lang.Throwable;
+
+        $r1 = <org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: org.slf4j.Logger log>;
+
+        interfaceinvoke $r1.<org.slf4j.Logger: void error(java.lang.String,java.lang.Throwable)>("error", r0);
+
+        return;
+    }
+
+    public void shutdown()
+    {
+        org.slf4j.Logger $r8;
+        org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer r0;
+        java.util.concurrent.TimeUnit $r3, $r6;
+        java.lang.InterruptedException $r9;
+        java.lang.Thread $r11;
+        org.apache.solr.client.solrj.impl.HttpSolrServer $r1;
+        java.util.concurrent.ExecutorService $r2, $r4, $r5, $r7, $r10;
+        boolean $z0, $z1;
+
+        r0 := @this: org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer;
+
+        $r1 = r0.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: org.apache.solr.client.solrj.impl.HttpSolrServer server>;
+
+        virtualinvoke $r1.<org.apache.solr.client.solrj.impl.HttpSolrServer: void shutdown()>();
+
+        $r2 = r0.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: java.util.concurrent.ExecutorService scheduler>;
+
+        interfaceinvoke $r2.<java.util.concurrent.ExecutorService: void shutdown()>();
+
+     label1:
+        $r4 = r0.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: java.util.concurrent.ExecutorService scheduler>;
+
+        $r3 = <java.util.concurrent.TimeUnit: java.util.concurrent.TimeUnit SECONDS>;
+
+        $z0 = interfaceinvoke $r4.<java.util.concurrent.ExecutorService: boolean awaitTermination(long,java.util.concurrent.TimeUnit)>(60L, $r3);
+
+        if $z0 != 0 goto label2;
+
+        $r5 = r0.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: java.util.concurrent.ExecutorService scheduler>;
+
+        interfaceinvoke $r5.<java.util.concurrent.ExecutorService: java.util.List shutdownNow()>();
+
+        $r7 = r0.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: java.util.concurrent.ExecutorService scheduler>;
+
+        $r6 = <java.util.concurrent.TimeUnit: java.util.concurrent.TimeUnit SECONDS>;
+
+        $z1 = interfaceinvoke $r7.<java.util.concurrent.ExecutorService: boolean awaitTermination(long,java.util.concurrent.TimeUnit)>(60L, $r6);
+
+        if $z1 != 0 goto label2;
+
+        $r8 = <org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: org.slf4j.Logger log>;
+
+        interfaceinvoke $r8.<org.slf4j.Logger: void error(java.lang.String)>("ExecutorService did not terminate");
+
+     label2:
+        goto label4;
+
+     label3:
+        $r9 := @caughtexception;
+
+        $r10 = r0.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: java.util.concurrent.ExecutorService scheduler>;
+
+        interfaceinvoke $r10.<java.util.concurrent.ExecutorService: java.util.List shutdownNow()>();
+
+        $r11 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        virtualinvoke $r11.<java.lang.Thread: void interrupt()>();
+
+     label4:
+        return;
+
+        catch java.lang.InterruptedException from label1 to label2 with label3;
+    }
+
+    public void setConnectionTimeout(int)
+    {
+        org.apache.http.client.HttpClient $r2;
+        int i0;
+        org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer r0;
+        org.apache.solr.client.solrj.impl.HttpSolrServer $r1;
+
+        r0 := @this: org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer;
+
+        i0 := @parameter0: int;
+
+        $r1 = r0.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: org.apache.solr.client.solrj.impl.HttpSolrServer server>;
+
+        $r2 = virtualinvoke $r1.<org.apache.solr.client.solrj.impl.HttpSolrServer: org.apache.http.client.HttpClient getHttpClient()>();
+
+        staticinvoke <org.apache.solr.client.solrj.impl.HttpClientUtil: void setConnectionTimeout(org.apache.http.client.HttpClient,int)>($r2, i0);
+
+        return;
+    }
+
+    public void setSoTimeout(int)
+    {
+        org.apache.http.client.HttpClient $r2;
+        int i0;
+        org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer r0;
+        org.apache.solr.client.solrj.impl.HttpSolrServer $r1;
+
+        r0 := @this: org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer;
+
+        i0 := @parameter0: int;
+
+        $r1 = r0.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: org.apache.solr.client.solrj.impl.HttpSolrServer server>;
+
+        $r2 = virtualinvoke $r1.<org.apache.solr.client.solrj.impl.HttpSolrServer: org.apache.http.client.HttpClient getHttpClient()>();
+
+        staticinvoke <org.apache.solr.client.solrj.impl.HttpClientUtil: void setSoTimeout(org.apache.http.client.HttpClient,int)>($r2, i0);
+
+        return;
+    }
+
+    public void shutdownNow()
+    {
+        org.slf4j.Logger $r5;
+        org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer r0;
+        java.util.concurrent.TimeUnit $r3;
+        java.lang.InterruptedException $r6;
+        java.lang.Thread $r8;
+        org.apache.solr.client.solrj.impl.HttpSolrServer $r1;
+        java.util.concurrent.ExecutorService $r2, $r4, $r7;
+        boolean $z0;
+
+        r0 := @this: org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer;
+
+        $r1 = r0.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: org.apache.solr.client.solrj.impl.HttpSolrServer server>;
+
+        virtualinvoke $r1.<org.apache.solr.client.solrj.impl.HttpSolrServer: void shutdown()>();
+
+        $r2 = r0.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: java.util.concurrent.ExecutorService scheduler>;
+
+        interfaceinvoke $r2.<java.util.concurrent.ExecutorService: java.util.List shutdownNow()>();
+
+     label1:
+        $r4 = r0.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: java.util.concurrent.ExecutorService scheduler>;
+
+        $r3 = <java.util.concurrent.TimeUnit: java.util.concurrent.TimeUnit SECONDS>;
+
+        $z0 = interfaceinvoke $r4.<java.util.concurrent.ExecutorService: boolean awaitTermination(long,java.util.concurrent.TimeUnit)>(30L, $r3);
+
+        if $z0 != 0 goto label2;
+
+        $r5 = <org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: org.slf4j.Logger log>;
+
+        interfaceinvoke $r5.<org.slf4j.Logger: void error(java.lang.String)>("ExecutorService did not terminate");
+
+     label2:
+        goto label4;
+
+     label3:
+        $r6 := @caughtexception;
+
+        $r7 = r0.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: java.util.concurrent.ExecutorService scheduler>;
+
+        interfaceinvoke $r7.<java.util.concurrent.ExecutorService: java.util.List shutdownNow()>();
+
+        $r8 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        virtualinvoke $r8.<java.lang.Thread: void interrupt()>();
+
+     label4:
+        return;
+
+        catch java.lang.InterruptedException from label1 to label2 with label3;
+    }
+
+    public void setParser(org.apache.solr.client.solrj.ResponseParser)
+    {
+        org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer r0;
+        org.apache.solr.client.solrj.impl.HttpSolrServer $r2;
+        org.apache.solr.client.solrj.ResponseParser r1;
+
+        r0 := @this: org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer;
+
+        r1 := @parameter0: org.apache.solr.client.solrj.ResponseParser;
+
+        $r2 = r0.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: org.apache.solr.client.solrj.impl.HttpSolrServer server>;
+
+        virtualinvoke $r2.<org.apache.solr.client.solrj.impl.HttpSolrServer: void setParser(org.apache.solr.client.solrj.ResponseParser)>(r1);
+
+        return;
+    }
+
+    public void setRequestWriter(org.apache.solr.client.solrj.request.RequestWriter)
+    {
+        org.apache.solr.client.solrj.request.RequestWriter r1;
+        org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer r0;
+        org.apache.solr.client.solrj.impl.HttpSolrServer $r2;
+
+        r0 := @this: org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer;
+
+        r1 := @parameter0: org.apache.solr.client.solrj.request.RequestWriter;
+
+        $r2 = r0.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: org.apache.solr.client.solrj.impl.HttpSolrServer server>;
+
+        virtualinvoke $r2.<org.apache.solr.client.solrj.impl.HttpSolrServer: void setRequestWriter(org.apache.solr.client.solrj.request.RequestWriter)>(r1);
+
+        return;
+    }
+
+    static org.apache.solr.client.solrj.impl.HttpSolrServer access$000(org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer)
+    {
+        org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer r0;
+        org.apache.solr.client.solrj.impl.HttpSolrServer $r1;
+
+        r0 := @parameter0: org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer;
+
+        $r1 = r0.<org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: org.apache.solr.client.solrj.impl.HttpSolrServer server>;
+
+        return $r1;
+    }
+
+    static void <clinit>()
+    {
+        org.slf4j.Logger $r0;
+
+        <org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: long serialVersionUID> = 1L;
+
+        $r0 = staticinvoke <org.slf4j.LoggerFactory: org.slf4j.Logger getLogger(java.lang.Class)>(class "Lorg/apache/solr/client/solrj/impl/ConcurrentUpdateSolrServer;");
+
+        <org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer: org.slf4j.Logger log> = $r0;
+
+        return;
+    }
+}

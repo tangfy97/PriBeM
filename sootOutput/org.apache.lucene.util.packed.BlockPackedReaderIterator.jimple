@@ -1,0 +1,980 @@
+public final class org.apache.lucene.util.packed.BlockPackedReaderIterator extends java.lang.Object
+{
+    org.apache.lucene.store.DataInput in;
+    final int packedIntsVersion;
+    long valueCount;
+    final int blockSize;
+    final long[] values;
+    final org.apache.lucene.util.LongsRef valuesRef;
+    byte[] blocks;
+    int off;
+    long ord;
+    static final boolean $assertionsDisabled;
+
+    static long zigZagDecode(long)
+    {
+        long l0, $l1, $l2, $l3, $l4;
+
+        l0 := @parameter0: long;
+
+        $l3 = l0 >>> 1;
+
+        $l1 = l0 & 1L;
+
+        $l2 = neg $l1;
+
+        $l4 = $l3 ^ $l2;
+
+        return $l4;
+    }
+
+    static long readVLong(org.apache.lucene.store.DataInput) throws java.io.IOException
+    {
+        byte $b0, $b2, $b6, $b10, $b14, $b18, $b22, $b26, $b30;
+        org.apache.lucene.store.DataInput r0;
+        long $l1, $l3, $l4, $l5, $l7, $l8, $l9, $l11, $l12, $l13, $l15, $l16, $l17, $l19, $l20, $l21, $l23, $l24, $l25, $l27, $l28, $l29, $l31, $l32, $l33, $l34, l35, l36, l37, l38, l39, l40, l41, l42, l43;
+        int $i44, $i45, $i46, $i47, $i48, $i49, $i50, $i51;
+
+        r0 := @parameter0: org.apache.lucene.store.DataInput;
+
+        $b0 = virtualinvoke r0.<org.apache.lucene.store.DataInput: byte readByte()>();
+
+        $i44 = (int) $b0;
+
+        if $i44 < 0 goto label1;
+
+        $l34 = (long) $b0;
+
+        return $l34;
+
+     label1:
+        $l1 = (long) $b0;
+
+        l35 = $l1 & 127L;
+
+        $b2 = virtualinvoke r0.<org.apache.lucene.store.DataInput: byte readByte()>();
+
+        $l3 = (long) $b2;
+
+        $l4 = $l3 & 127L;
+
+        $l5 = $l4 << 7;
+
+        l36 = l35 | $l5;
+
+        $i45 = (int) $b2;
+
+        if $i45 < 0 goto label2;
+
+        return l36;
+
+     label2:
+        $b6 = virtualinvoke r0.<org.apache.lucene.store.DataInput: byte readByte()>();
+
+        $l7 = (long) $b6;
+
+        $l8 = $l7 & 127L;
+
+        $l9 = $l8 << 14;
+
+        l37 = l36 | $l9;
+
+        $i46 = (int) $b6;
+
+        if $i46 < 0 goto label3;
+
+        return l37;
+
+     label3:
+        $b10 = virtualinvoke r0.<org.apache.lucene.store.DataInput: byte readByte()>();
+
+        $l11 = (long) $b10;
+
+        $l12 = $l11 & 127L;
+
+        $l13 = $l12 << 21;
+
+        l38 = l37 | $l13;
+
+        $i47 = (int) $b10;
+
+        if $i47 < 0 goto label4;
+
+        return l38;
+
+     label4:
+        $b14 = virtualinvoke r0.<org.apache.lucene.store.DataInput: byte readByte()>();
+
+        $l15 = (long) $b14;
+
+        $l16 = $l15 & 127L;
+
+        $l17 = $l16 << 28;
+
+        l39 = l38 | $l17;
+
+        $i48 = (int) $b14;
+
+        if $i48 < 0 goto label5;
+
+        return l39;
+
+     label5:
+        $b18 = virtualinvoke r0.<org.apache.lucene.store.DataInput: byte readByte()>();
+
+        $l19 = (long) $b18;
+
+        $l20 = $l19 & 127L;
+
+        $l21 = $l20 << 35;
+
+        l40 = l39 | $l21;
+
+        $i49 = (int) $b18;
+
+        if $i49 < 0 goto label6;
+
+        return l40;
+
+     label6:
+        $b22 = virtualinvoke r0.<org.apache.lucene.store.DataInput: byte readByte()>();
+
+        $l23 = (long) $b22;
+
+        $l24 = $l23 & 127L;
+
+        $l25 = $l24 << 42;
+
+        l41 = l40 | $l25;
+
+        $i50 = (int) $b22;
+
+        if $i50 < 0 goto label7;
+
+        return l41;
+
+     label7:
+        $b26 = virtualinvoke r0.<org.apache.lucene.store.DataInput: byte readByte()>();
+
+        $l27 = (long) $b26;
+
+        $l28 = $l27 & 127L;
+
+        $l29 = $l28 << 49;
+
+        l42 = l41 | $l29;
+
+        $i51 = (int) $b26;
+
+        if $i51 < 0 goto label8;
+
+        return l42;
+
+     label8:
+        $b30 = virtualinvoke r0.<org.apache.lucene.store.DataInput: byte readByte()>();
+
+        $l31 = (long) $b30;
+
+        $l32 = $l31 & 255L;
+
+        $l33 = $l32 << 56;
+
+        l43 = l42 | $l33;
+
+        return l43;
+    }
+
+    public void <init>(org.apache.lucene.store.DataInput, int, int, long)
+    {
+        org.apache.lucene.store.DataInput r4;
+        org.apache.lucene.util.packed.BlockPackedReaderIterator r0;
+        long l2;
+        long[] $r1, $r3;
+        org.apache.lucene.util.LongsRef $r2;
+        int i0, i1;
+
+        r0 := @this: org.apache.lucene.util.packed.BlockPackedReaderIterator;
+
+        r4 := @parameter0: org.apache.lucene.store.DataInput;
+
+        i1 := @parameter1: int;
+
+        i0 := @parameter2: int;
+
+        l2 := @parameter3: long;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        staticinvoke <org.apache.lucene.util.packed.BlockPackedWriter: void checkBlockSize(int)>(i0);
+
+        r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: int packedIntsVersion> = i1;
+
+        r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: int blockSize> = i0;
+
+        $r1 = newarray (long)[i0];
+
+        r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: long[] values> = $r1;
+
+        $r2 = new org.apache.lucene.util.LongsRef;
+
+        $r3 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: long[] values>;
+
+        specialinvoke $r2.<org.apache.lucene.util.LongsRef: void <init>(long[],int,int)>($r3, 0, 0);
+
+        r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: org.apache.lucene.util.LongsRef valuesRef> = $r2;
+
+        virtualinvoke r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: void reset(org.apache.lucene.store.DataInput,long)>(r4, l2);
+
+        return;
+    }
+
+    public void reset(org.apache.lucene.store.DataInput, long)
+    {
+        org.apache.lucene.store.DataInput r1;
+        org.apache.lucene.util.packed.BlockPackedReaderIterator r0;
+        long l0;
+        java.lang.AssertionError $r3;
+        byte $b2;
+        int $i1, $i3;
+        boolean $z0;
+
+        r0 := @this: org.apache.lucene.util.packed.BlockPackedReaderIterator;
+
+        r1 := @parameter0: org.apache.lucene.store.DataInput;
+
+        l0 := @parameter1: long;
+
+        r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: org.apache.lucene.store.DataInput in> = r1;
+
+        $z0 = <org.apache.lucene.util.packed.BlockPackedReaderIterator: boolean $assertionsDisabled>;
+
+        if $z0 != 0 goto label1;
+
+        $b2 = l0 cmp 0L;
+
+        $i3 = (int) $b2;
+
+        if $i3 >= 0 goto label1;
+
+        $r3 = new java.lang.AssertionError;
+
+        specialinvoke $r3.<java.lang.AssertionError: void <init>()>();
+
+        throw $r3;
+
+     label1:
+        r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: long valueCount> = l0;
+
+        $i1 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: int blockSize>;
+
+        r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: int off> = $i1;
+
+        r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: long ord> = 0L;
+
+        return;
+    }
+
+    public void skip(long) throws java.io.IOException
+    {
+        byte $b3, $b6, $b19, $b20, $b29, $b30, $b45, $b50;
+        org.apache.lucene.store.DataInput $r3, $r5;
+        long $l0, $l1, $l2, $l4, $l5, $l10, $l11, $l15, $l16, $l17, $l18, $l21, $l22, $l24, $l25, $l28, $l36, $l38, $l39, $l40, $l42, l46, l47, $l49;
+        java.lang.AssertionError $r9, $r11, $r13;
+        short s31, $s33, $s55;
+        org.apache.lucene.util.packed.BlockPackedReaderIterator r0;
+        org.apache.lucene.util.packed.PackedInts$Format $r4;
+        java.io.IOException $r12;
+        boolean $z0, $z1, $z2;
+        java.io.EOFException $r10;
+        int $i7, $i8, $i9, i12, $i13, $i14, $i23, $i26, $i27, i32, $i34, $i35, $i37, $i41, $i43, $i44, $i48, $i51, $i52, $i53, $i54, $i56, $i57;
+
+        r0 := @this: org.apache.lucene.util.packed.BlockPackedReaderIterator;
+
+        l46 := @parameter0: long;
+
+        $z0 = <org.apache.lucene.util.packed.BlockPackedReaderIterator: boolean $assertionsDisabled>;
+
+        if $z0 != 0 goto label01;
+
+        $b45 = l46 cmp 0L;
+
+        $i51 = (int) $b45;
+
+        if $i51 >= 0 goto label01;
+
+        $r9 = new java.lang.AssertionError;
+
+        specialinvoke $r9.<java.lang.AssertionError: void <init>()>();
+
+        throw $r9;
+
+     label01:
+        $l0 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: long ord>;
+
+        $l2 = $l0 + l46;
+
+        $l1 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: long valueCount>;
+
+        $b3 = $l2 cmp $l1;
+
+        $i52 = (int) $b3;
+
+        if $i52 > 0 goto label02;
+
+        $l4 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: long ord>;
+
+        $l5 = $l4 + l46;
+
+        $b6 = $l5 cmp 0L;
+
+        $i53 = (int) $b6;
+
+        if $i53 >= 0 goto label03;
+
+     label02:
+        $r10 = new java.io.EOFException;
+
+        specialinvoke $r10.<java.io.EOFException: void <init>()>();
+
+        throw $r10;
+
+     label03:
+        $i8 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: int blockSize>;
+
+        $i7 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: int off>;
+
+        $i9 = $i8 - $i7;
+
+        $l10 = (long) $i9;
+
+        $l11 = staticinvoke <java.lang.Math: long min(long,long)>(l46, $l10);
+
+        i12 = (int) $l11;
+
+        $i13 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: int off>;
+
+        $i14 = $i13 + i12;
+
+        r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: int off> = $i14;
+
+        $l16 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: long ord>;
+
+        $l15 = (long) i12;
+
+        $l17 = $l16 + $l15;
+
+        r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: long ord> = $l17;
+
+        $l18 = (long) i12;
+
+        l47 = l46 - $l18;
+
+        $b19 = l47 cmp 0L;
+
+        if $b19 != 0 goto label04;
+
+        return;
+
+     label04:
+        $z1 = <org.apache.lucene.util.packed.BlockPackedReaderIterator: boolean $assertionsDisabled>;
+
+        if $z1 != 0 goto label05;
+
+        $i44 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: int off>;
+
+        $i43 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: int blockSize>;
+
+        if $i44 == $i43 goto label05;
+
+        $r11 = new java.lang.AssertionError;
+
+        specialinvoke $r11.<java.lang.AssertionError: void <init>()>();
+
+        throw $r11;
+
+     label05:
+        $i48 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: int blockSize>;
+
+        $l49 = (long) $i48;
+
+        $b50 = l47 cmp $l49;
+
+        $i54 = (int) $b50;
+
+        if $i54 < 0 goto label08;
+
+        $r3 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: org.apache.lucene.store.DataInput in>;
+
+        $b30 = virtualinvoke $r3.<org.apache.lucene.store.DataInput: byte readByte()>();
+
+        $s55 = (short) $b30;
+
+        s31 = $s55 & 255;
+
+        $i56 = (int) s31;
+
+        i32 = $i56 >>> 1;
+
+        if i32 <= 64 goto label06;
+
+        $r12 = new java.io.IOException;
+
+        specialinvoke $r12.<java.io.IOException: void <init>(java.lang.String)>("Corrupted");
+
+        throw $r12;
+
+     label06:
+        $s33 = s31 & 1;
+
+        if $s33 != 0 goto label07;
+
+        $r5 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: org.apache.lucene.store.DataInput in>;
+
+        staticinvoke <org.apache.lucene.util.packed.BlockPackedReaderIterator: long readVLong(org.apache.lucene.store.DataInput)>($r5);
+
+     label07:
+        $r4 = <org.apache.lucene.util.packed.PackedInts$Format: org.apache.lucene.util.packed.PackedInts$Format PACKED>;
+
+        $i35 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: int packedIntsVersion>;
+
+        $i34 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: int blockSize>;
+
+        $l36 = virtualinvoke $r4.<org.apache.lucene.util.packed.PackedInts$Format: long byteCount(int,int,int)>($i35, $i34, i32);
+
+        specialinvoke r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: void skipBytes(long)>($l36);
+
+        $l39 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: long ord>;
+
+        $i37 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: int blockSize>;
+
+        $l38 = (long) $i37;
+
+        $l40 = $l39 + $l38;
+
+        r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: long ord> = $l40;
+
+        $i41 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: int blockSize>;
+
+        $l42 = (long) $i41;
+
+        l47 = l47 - $l42;
+
+        goto label05;
+
+     label08:
+        $b20 = l47 cmp 0L;
+
+        if $b20 != 0 goto label09;
+
+        return;
+
+     label09:
+        $z2 = <org.apache.lucene.util.packed.BlockPackedReaderIterator: boolean $assertionsDisabled>;
+
+        if $z2 != 0 goto label10;
+
+        $i27 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: int blockSize>;
+
+        $l28 = (long) $i27;
+
+        $b29 = l47 cmp $l28;
+
+        $i57 = (int) $b29;
+
+        if $i57 < 0 goto label10;
+
+        $r13 = new java.lang.AssertionError;
+
+        specialinvoke $r13.<java.lang.AssertionError: void <init>()>();
+
+        throw $r13;
+
+     label10:
+        specialinvoke r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: void refill()>();
+
+        $l21 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: long ord>;
+
+        $l22 = $l21 + l47;
+
+        r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: long ord> = $l22;
+
+        $i23 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: int off>;
+
+        $l24 = (long) $i23;
+
+        $l25 = $l24 + l47;
+
+        $i26 = (int) $l25;
+
+        r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: int off> = $i26;
+
+        return;
+    }
+
+    private void skipBytes(long) throws java.io.IOException
+    {
+        org.apache.lucene.store.DataInput $r1, $r5, $r7;
+        byte[] $r2, $r3, $r4, $r6;
+        long l0, $l2, $l3, $l4, $l6, $l8, $l9, l10;
+        byte $b11;
+        int $i1, i5, $i7, $i12;
+        boolean $z0;
+        org.apache.lucene.util.packed.BlockPackedReaderIterator r0;
+        org.apache.lucene.store.IndexInput r8;
+
+        r0 := @this: org.apache.lucene.util.packed.BlockPackedReaderIterator;
+
+        l0 := @parameter0: long;
+
+        $r1 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: org.apache.lucene.store.DataInput in>;
+
+        $z0 = $r1 instanceof org.apache.lucene.store.IndexInput;
+
+        if $z0 == 0 goto label1;
+
+        $r7 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: org.apache.lucene.store.DataInput in>;
+
+        r8 = (org.apache.lucene.store.IndexInput) $r7;
+
+        $l8 = virtualinvoke r8.<org.apache.lucene.store.IndexInput: long getFilePointer()>();
+
+        $l9 = $l8 + l0;
+
+        virtualinvoke r8.<org.apache.lucene.store.IndexInput: void seek(long)>($l9);
+
+        goto label4;
+
+     label1:
+        $r2 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: byte[] blocks>;
+
+        if $r2 != null goto label2;
+
+        $i7 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: int blockSize>;
+
+        $r6 = newarray (byte)[$i7];
+
+        r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: byte[] blocks> = $r6;
+
+     label2:
+        l10 = 0L;
+
+     label3:
+        $b11 = l10 cmp l0;
+
+        $i12 = (int) $b11;
+
+        if $i12 >= 0 goto label4;
+
+        $r3 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: byte[] blocks>;
+
+        $i1 = lengthof $r3;
+
+        $l3 = (long) $i1;
+
+        $l2 = l0 - l10;
+
+        $l4 = staticinvoke <java.lang.Math: long min(long,long)>($l3, $l2);
+
+        i5 = (int) $l4;
+
+        $r5 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: org.apache.lucene.store.DataInput in>;
+
+        $r4 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: byte[] blocks>;
+
+        virtualinvoke $r5.<org.apache.lucene.store.DataInput: void readBytes(byte[],int,int)>($r4, 0, i5);
+
+        $l6 = (long) i5;
+
+        l10 = l10 + $l6;
+
+        goto label3;
+
+     label4:
+        return;
+    }
+
+    public long next() throws java.io.IOException
+    {
+        org.apache.lucene.util.packed.BlockPackedReaderIterator r0;
+        long $l0, $l1, $l7, $l8, $l9;
+        java.io.EOFException $r2;
+        long[] $r1;
+        byte $b2;
+        int $i3, $i4, $i5, $i6;
+
+        r0 := @this: org.apache.lucene.util.packed.BlockPackedReaderIterator;
+
+        $l1 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: long ord>;
+
+        $l0 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: long valueCount>;
+
+        $b2 = $l1 cmp $l0;
+
+        if $b2 != 0 goto label1;
+
+        $r2 = new java.io.EOFException;
+
+        specialinvoke $r2.<java.io.EOFException: void <init>()>();
+
+        throw $r2;
+
+     label1:
+        $i4 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: int off>;
+
+        $i3 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: int blockSize>;
+
+        if $i4 != $i3 goto label2;
+
+        specialinvoke r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: void refill()>();
+
+     label2:
+        $r1 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: long[] values>;
+
+        $i5 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: int off>;
+
+        $i6 = $i5 + 1;
+
+        r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: int off> = $i6;
+
+        $l9 = $r1[$i5];
+
+        $l7 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: long ord>;
+
+        $l8 = $l7 + 1L;
+
+        r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: long ord> = $l8;
+
+        return $l9;
+    }
+
+    public org.apache.lucene.util.LongsRef next(int) throws java.io.IOException
+    {
+        long $l0, $l1, $l9, $l10, $l11, $l12, $l13, $l17, $l18, $l19;
+        java.lang.AssertionError $r5;
+        byte $b2;
+        int $i3, $i4, $i5, $i6, $i7, $i8, $i14, $i15, $i16, $i20, i21;
+        boolean $z0;
+        org.apache.lucene.util.packed.BlockPackedReaderIterator r0;
+        java.io.EOFException $r4;
+        org.apache.lucene.util.LongsRef $r1, $r2, $r3;
+
+        r0 := @this: org.apache.lucene.util.packed.BlockPackedReaderIterator;
+
+        i21 := @parameter0: int;
+
+        $z0 = <org.apache.lucene.util.packed.BlockPackedReaderIterator: boolean $assertionsDisabled>;
+
+        if $z0 != 0 goto label1;
+
+        if i21 > 0 goto label1;
+
+        $r5 = new java.lang.AssertionError;
+
+        specialinvoke $r5.<java.lang.AssertionError: void <init>()>();
+
+        throw $r5;
+
+     label1:
+        $l1 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: long ord>;
+
+        $l0 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: long valueCount>;
+
+        $b2 = $l1 cmp $l0;
+
+        if $b2 != 0 goto label2;
+
+        $r4 = new java.io.EOFException;
+
+        specialinvoke $r4.<java.io.EOFException: void <init>()>();
+
+        throw $r4;
+
+     label2:
+        $i4 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: int off>;
+
+        $i3 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: int blockSize>;
+
+        if $i4 != $i3 goto label3;
+
+        specialinvoke r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: void refill()>();
+
+     label3:
+        $i6 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: int blockSize>;
+
+        $i5 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: int off>;
+
+        $i7 = $i6 - $i5;
+
+        $i8 = staticinvoke <java.lang.Math: int min(int,int)>(i21, $i7);
+
+        $l12 = (long) $i8;
+
+        $l10 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: long valueCount>;
+
+        $l9 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: long ord>;
+
+        $l11 = $l10 - $l9;
+
+        $l13 = staticinvoke <java.lang.Math: long min(long,long)>($l12, $l11);
+
+        $i20 = (int) $l13;
+
+        $r1 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: org.apache.lucene.util.LongsRef valuesRef>;
+
+        $i14 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: int off>;
+
+        $r1.<org.apache.lucene.util.LongsRef: int offset> = $i14;
+
+        $r2 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: org.apache.lucene.util.LongsRef valuesRef>;
+
+        $r2.<org.apache.lucene.util.LongsRef: int length> = $i20;
+
+        $i15 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: int off>;
+
+        $i16 = $i15 + $i20;
+
+        r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: int off> = $i16;
+
+        $l18 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: long ord>;
+
+        $l17 = (long) $i20;
+
+        $l19 = $l18 + $l17;
+
+        r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: long ord> = $l19;
+
+        $r3 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: org.apache.lucene.util.LongsRef valuesRef>;
+
+        return $r3;
+    }
+
+    private void refill() throws java.io.IOException
+    {
+        byte[] $r5, $r6, $r8, $r14, $r15;
+        org.apache.lucene.util.packed.PackedInts$Decoder $r4;
+        byte $b0, $b15, $b28;
+        boolean z0, $z1, $z3, $z4;
+        org.apache.lucene.store.DataInput $r1, $r2, $r13;
+        long $l3, $l4, l5, $l12, $l13, $l17, $l18, $l19, $l20, $l22, $l23, $l26;
+        java.lang.AssertionError $r18;
+        short s1, $s2, $s30;
+        long[] $r7, $r9, $r16;
+        int $i6, $i7, $i8, i9, $i10, i11, $i14, $i16, $i21, $i24, $i25, $i27, i29, $i31;
+        org.apache.lucene.util.packed.BlockPackedReaderIterator r0;
+        org.apache.lucene.util.packed.PackedInts$Format $r3, $r12;
+        java.io.IOException $r17;
+
+        r0 := @this: org.apache.lucene.util.packed.BlockPackedReaderIterator;
+
+        $r1 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: org.apache.lucene.store.DataInput in>;
+
+        $b0 = virtualinvoke $r1.<org.apache.lucene.store.DataInput: byte readByte()>();
+
+        $s30 = (short) $b0;
+
+        s1 = $s30 & 255;
+
+        $s2 = s1 & 1;
+
+        if $s2 == 0 goto label01;
+
+        $z4 = 1;
+
+        $z3 = 1;
+
+        goto label02;
+
+     label01:
+        $z4 = 0;
+
+        $z3 = 0;
+
+     label02:
+        z0 = $z3;
+
+        $i31 = (int) s1;
+
+        $i16 = $i31 >>> 1;
+
+        if $i16 <= 64 goto label03;
+
+        $r17 = new java.io.IOException;
+
+        specialinvoke $r17.<java.io.IOException: void <init>(java.lang.String)>("Corrupted");
+
+        throw $r17;
+
+     label03:
+        if $z4 == 0 goto label04;
+
+        $l17 = 0L;
+
+        goto label05;
+
+     label04:
+        $r2 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: org.apache.lucene.store.DataInput in>;
+
+        $l3 = staticinvoke <org.apache.lucene.util.packed.BlockPackedReaderIterator: long readVLong(org.apache.lucene.store.DataInput)>($r2);
+
+        $l4 = 1L + $l3;
+
+        $l17 = staticinvoke <org.apache.lucene.util.packed.BlockPackedReaderIterator: long zigZagDecode(long)>($l4);
+
+     label05:
+        l5 = $l17;
+
+        $z1 = <org.apache.lucene.util.packed.BlockPackedReaderIterator: boolean $assertionsDisabled>;
+
+        if $z1 != 0 goto label06;
+
+        if z0 != 0 goto label06;
+
+        $b15 = $l17 cmp 0L;
+
+        if $b15 != 0 goto label06;
+
+        $r18 = new java.lang.AssertionError;
+
+        specialinvoke $r18.<java.lang.AssertionError: void <init>()>();
+
+        throw $r18;
+
+     label06:
+        if $i16 != 0 goto label07;
+
+        $r9 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: long[] values>;
+
+        staticinvoke <java.util.Arrays: void fill(long[],long)>($r9, l5);
+
+        goto label11;
+
+     label07:
+        $r3 = <org.apache.lucene.util.packed.PackedInts$Format: org.apache.lucene.util.packed.PackedInts$Format PACKED>;
+
+        $i6 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: int packedIntsVersion>;
+
+        $r4 = staticinvoke <org.apache.lucene.util.packed.PackedInts: org.apache.lucene.util.packed.PackedInts$Decoder getDecoder(org.apache.lucene.util.packed.PackedInts$Format,int,int)>($r3, $i6, $i16);
+
+        $i7 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: int blockSize>;
+
+        $i8 = interfaceinvoke $r4.<org.apache.lucene.util.packed.PackedInts$Decoder: int byteValueCount()>();
+
+        i9 = $i7 / $i8;
+
+        $i10 = interfaceinvoke $r4.<org.apache.lucene.util.packed.PackedInts$Decoder: int byteBlockCount()>();
+
+        i11 = i9 * $i10;
+
+        $r5 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: byte[] blocks>;
+
+        if $r5 == null goto label08;
+
+        $r8 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: byte[] blocks>;
+
+        $i14 = lengthof $r8;
+
+        if $i14 >= i11 goto label09;
+
+     label08:
+        $r6 = newarray (byte)[i11];
+
+        r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: byte[] blocks> = $r6;
+
+     label09:
+        $l18 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: long valueCount>;
+
+        $l19 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: long ord>;
+
+        $l20 = $l18 - $l19;
+
+        $i21 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: int blockSize>;
+
+        $l22 = (long) $i21;
+
+        $l23 = staticinvoke <java.lang.Math: long min(long,long)>($l20, $l22);
+
+        $i24 = (int) $l23;
+
+        $r12 = <org.apache.lucene.util.packed.PackedInts$Format: org.apache.lucene.util.packed.PackedInts$Format PACKED>;
+
+        $i25 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: int packedIntsVersion>;
+
+        $l26 = virtualinvoke $r12.<org.apache.lucene.util.packed.PackedInts$Format: long byteCount(int,int,int)>($i25, $i24, $i16);
+
+        $i27 = (int) $l26;
+
+        $r13 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: org.apache.lucene.store.DataInput in>;
+
+        $r14 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: byte[] blocks>;
+
+        virtualinvoke $r13.<org.apache.lucene.store.DataInput: void readBytes(byte[],int,int)>($r14, 0, $i27);
+
+        $r15 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: byte[] blocks>;
+
+        $r16 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: long[] values>;
+
+        interfaceinvoke $r4.<org.apache.lucene.util.packed.PackedInts$Decoder: void decode(byte[],int,long[],int,int)>($r15, 0, $r16, 0, i9);
+
+        $b28 = l5 cmp 0L;
+
+        if $b28 == 0 goto label11;
+
+        i29 = 0;
+
+     label10:
+        if i29 >= $i24 goto label11;
+
+        $r7 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: long[] values>;
+
+        $l12 = $r7[i29];
+
+        $l13 = $l12 + l5;
+
+        $r7[i29] = $l13;
+
+        i29 = i29 + 1;
+
+        goto label10;
+
+     label11:
+        r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: int off> = 0;
+
+        return;
+    }
+
+    public long ord()
+    {
+        long $l0;
+        org.apache.lucene.util.packed.BlockPackedReaderIterator r0;
+
+        r0 := @this: org.apache.lucene.util.packed.BlockPackedReaderIterator;
+
+        $l0 = r0.<org.apache.lucene.util.packed.BlockPackedReaderIterator: long ord>;
+
+        return $l0;
+    }
+
+    static void <clinit>()
+    {
+        java.lang.Class $r0;
+        boolean $z0, $z1;
+
+        $r0 = class "Lorg/apache/lucene/util/packed/BlockPackedReaderIterator;";
+
+        $z0 = virtualinvoke $r0.<java.lang.Class: boolean desiredAssertionStatus()>();
+
+        if $z0 != 0 goto label1;
+
+        $z1 = 1;
+
+        goto label2;
+
+     label1:
+        $z1 = 0;
+
+     label2:
+        <org.apache.lucene.util.packed.BlockPackedReaderIterator: boolean $assertionsDisabled> = $z1;
+
+        return;
+    }
+}

@@ -1,0 +1,2468 @@
+public class org.eclipse.jdt.internal.compiler.ast.TryStatement extends org.eclipse.jdt.internal.compiler.ast.SubRoutineStatement
+{
+    private static final char[] SECRET_RETURN_ADDRESS_NAME;
+    private static final char[] SECRET_ANY_HANDLER_NAME;
+    private static final char[] SECRET_RETURN_VALUE_NAME;
+    public org.eclipse.jdt.internal.compiler.ast.Block tryBlock;
+    public org.eclipse.jdt.internal.compiler.ast.Block[] catchBlocks;
+    public org.eclipse.jdt.internal.compiler.ast.Argument[] catchArguments;
+    public org.eclipse.jdt.internal.compiler.ast.Block finallyBlock;
+    org.eclipse.jdt.internal.compiler.lookup.BlockScope scope;
+    public org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo subRoutineInits;
+    org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding[] caughtExceptionTypes;
+    boolean[] catchExits;
+    org.eclipse.jdt.internal.compiler.codegen.BranchLabel subRoutineStartLabel;
+    public org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding anyExceptionVariable;
+    public org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding returnAddressVariable;
+    public org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding secretReturnValue;
+    org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel[] declaredExceptionLabels;
+    private java.lang.Object[] reusableJSRTargets;
+    private org.eclipse.jdt.internal.compiler.codegen.BranchLabel[] reusableJSRSequenceStartLabels;
+    private int[] reusableJSRStateIndexes;
+    private int reusableJSRTargetsCount;
+    private static final int NO_FINALLY;
+    private static final int FINALLY_SUBROUTINE;
+    private static final int FINALLY_DOES_NOT_COMPLETE;
+    private static final int FINALLY_INLINE;
+    int mergedInitStateIndex;
+    int preTryInitStateIndex;
+    int naturalExitMergeInitStateIndex;
+    int[] catchExitInitStateIndexes;
+
+    static void <clinit>()
+    {
+        char[] $r1, $r3, $r5;
+        java.lang.String $r0, $r2, $r4;
+
+        <org.eclipse.jdt.internal.compiler.ast.TryStatement: int FINALLY_INLINE> = 3;
+
+        <org.eclipse.jdt.internal.compiler.ast.TryStatement: int FINALLY_DOES_NOT_COMPLETE> = 2;
+
+        <org.eclipse.jdt.internal.compiler.ast.TryStatement: int FINALLY_SUBROUTINE> = 1;
+
+        <org.eclipse.jdt.internal.compiler.ast.TryStatement: int NO_FINALLY> = 0;
+
+        $r0 = " returnAddress";
+
+        $r1 = virtualinvoke $r0.<java.lang.String: char[] toCharArray()>();
+
+        <org.eclipse.jdt.internal.compiler.ast.TryStatement: char[] SECRET_RETURN_ADDRESS_NAME> = $r1;
+
+        $r2 = " anyExceptionHandler";
+
+        $r3 = virtualinvoke $r2.<java.lang.String: char[] toCharArray()>();
+
+        <org.eclipse.jdt.internal.compiler.ast.TryStatement: char[] SECRET_ANY_HANDLER_NAME> = $r3;
+
+        $r4 = " returnValue";
+
+        $r5 = virtualinvoke $r4.<java.lang.String: char[] toCharArray()>();
+
+        <org.eclipse.jdt.internal.compiler.ast.TryStatement: char[] SECRET_RETURN_VALUE_NAME> = $r5;
+
+        return;
+    }
+
+    public void <init>()
+    {
+        int $i1, $i3, $i5;
+        org.eclipse.jdt.internal.compiler.ast.TryStatement r0;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.ast.TryStatement;
+
+        specialinvoke r0.<org.eclipse.jdt.internal.compiler.ast.SubRoutineStatement: void <init>()>();
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int reusableJSRTargetsCount> = 0;
+
+        $i1 = (int) -1;
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int mergedInitStateIndex> = $i1;
+
+        $i3 = (int) -1;
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int preTryInitStateIndex> = $i3;
+
+        $i5 = (int) -1;
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int naturalExitMergeInitStateIndex> = $i5;
+
+        return;
+    }
+
+    public org.eclipse.jdt.internal.compiler.flow.FlowInfo analyseCode(org.eclipse.jdt.internal.compiler.lookup.BlockScope, org.eclipse.jdt.internal.compiler.flow.FlowContext, org.eclipse.jdt.internal.compiler.flow.FlowInfo)
+    {
+        org.eclipse.jdt.internal.compiler.flow.InsideSubRoutineFlowContext $r7;
+        org.eclipse.jdt.internal.compiler.lookup.MethodScope $r2, $r29, $r32, $r33, $r61, $r87, $r113;
+        org.eclipse.jdt.internal.compiler.lookup.BlockScope r1, $r18, $r74, $r79, $r129, $r133;
+        org.eclipse.jdt.internal.compiler.flow.FlowInfo r3, $r13, $r24, $r25, $r31, $r37, $r48, $r50, $r59, $r69, $r70, $r72, $r85, $r86, $r100, $r102, $r111, $r121, $r122, $r124, r128, r131, r132, r135, $r136;
+        boolean[] $r40, $r62, $r92, $r114;
+        org.eclipse.jdt.internal.compiler.ast.Statement[] $r56, $r108;
+        int[] $r41, $r60, $r93, $r112;
+        org.eclipse.jdt.internal.compiler.codegen.BranchLabel $r6;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i10, $i11, $i12, $i13, $i14, $i15, $i16, $i17, $i18, $i19, $i20, $i21, $i22, $i23, $i24, $i25, $i26, i27, i28;
+        org.eclipse.jdt.internal.compiler.flow.ExceptionHandlingFlowContext $r16, $r77;
+        org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding $r4, $r5, $r73, $r125, $r126, $r127;
+        org.eclipse.jdt.internal.compiler.flow.FlowContext r8;
+        org.eclipse.jdt.internal.compiler.ast.TryStatement r0;
+        org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo $r12, $r14, $r15, $r19, $r21, $r27, $r30, $r36, $r38, $r44, $r47, $r49, $r51, $r52, $r63, $r65, $r68, $r71, $r80, $r82, $r96, $r99, $r101, $r103, $r104, $r115, $r117, $r120, $r123;
+        org.eclipse.jdt.internal.compiler.ast.Block $r10, $r11, $r22, $r23, $r55, $r58, $r76, $r83, $r84, $r107, $r110;
+        org.eclipse.jdt.internal.compiler.problem.ProblemReporter $r75;
+        org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding[] $r17, $r42, $r45, $r66, $r78, $r94, $r97, $r118;
+        org.eclipse.jdt.internal.compiler.ast.Block[] $r39, $r57, $r91, $r109;
+        org.eclipse.jdt.internal.compiler.ast.Argument[] $r53, $r105, $r130, $r134;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5;
+        org.eclipse.jdt.internal.compiler.ast.Argument $r54, $r106;
+        org.eclipse.jdt.internal.compiler.flow.FinallyFlowContext $r9;
+        org.eclipse.jdt.internal.compiler.flow.NullInfoRegistry $r20, $r26, $r28, $r34, $r35, $r64, $r81, $r88, $r89, $r90, $r116;
+        org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding $r43, $r46, $r67, $r95, $r98, $r119;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.ast.TryStatement;
+
+        r1 := @parameter0: org.eclipse.jdt.internal.compiler.lookup.BlockScope;
+
+        r8 := @parameter1: org.eclipse.jdt.internal.compiler.flow.FlowContext;
+
+        r3 := @parameter2: org.eclipse.jdt.internal.compiler.flow.FlowInfo;
+
+        $r2 = virtualinvoke r1.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.lookup.MethodScope methodScope()>();
+
+        $i0 = virtualinvoke $r2.<org.eclipse.jdt.internal.compiler.lookup.MethodScope: int recordInitializationStates(org.eclipse.jdt.internal.compiler.flow.FlowInfo)>(r3);
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int preTryInitStateIndex> = $i0;
+
+        $r4 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding anyExceptionVariable>;
+
+        if $r4 == null goto label01;
+
+        $r127 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding anyExceptionVariable>;
+
+        $r127.<org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding: int useFlag> = 1;
+
+     label01:
+        $r5 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding returnAddressVariable>;
+
+        if $r5 == null goto label02;
+
+        $r126 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding returnAddressVariable>;
+
+        $r126.<org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding: int useFlag> = 1;
+
+     label02:
+        $r6 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel subRoutineStartLabel>;
+
+        if $r6 != null goto label14;
+
+        $r77 = new org.eclipse.jdt.internal.compiler.flow.ExceptionHandlingFlowContext;
+
+        $r78 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding[] caughtExceptionTypes>;
+
+        $r79 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        $r80 = virtualinvoke r3.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo unconditionalInits()>();
+
+        specialinvoke $r77.<org.eclipse.jdt.internal.compiler.flow.ExceptionHandlingFlowContext: void <init>(org.eclipse.jdt.internal.compiler.flow.FlowContext,org.eclipse.jdt.internal.compiler.ast.ASTNode,org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding[],org.eclipse.jdt.internal.compiler.lookup.BlockScope,org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo)>(r8, r0, $r78, $r79, $r80);
+
+        $r81 = new org.eclipse.jdt.internal.compiler.flow.NullInfoRegistry;
+
+        $r82 = virtualinvoke r3.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo unconditionalInits()>();
+
+        specialinvoke $r81.<org.eclipse.jdt.internal.compiler.flow.NullInfoRegistry: void <init>(org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo)>($r82);
+
+        $r77.<org.eclipse.jdt.internal.compiler.flow.ExceptionHandlingFlowContext: org.eclipse.jdt.internal.compiler.flow.NullInfoRegistry initsOnFinally> = $r81;
+
+        $r83 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block tryBlock>;
+
+        $z2 = virtualinvoke $r83.<org.eclipse.jdt.internal.compiler.ast.Block: boolean isEmptyBlock()>();
+
+        if $z2 == 0 goto label03;
+
+        r128 = r3;
+
+        goto label04;
+
+     label03:
+        $r84 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block tryBlock>;
+
+        $r85 = virtualinvoke r3.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.FlowInfo copy()>();
+
+        $r86 = virtualinvoke $r84.<org.eclipse.jdt.internal.compiler.ast.Block: org.eclipse.jdt.internal.compiler.flow.FlowInfo analyseCode(org.eclipse.jdt.internal.compiler.lookup.BlockScope,org.eclipse.jdt.internal.compiler.flow.FlowContext,org.eclipse.jdt.internal.compiler.flow.FlowInfo)>(r1, $r77, $r85);
+
+        r128 = $r86;
+
+        $i17 = $r86.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: int tagBits>;
+
+        $i18 = $i17 & 1;
+
+        if $i18 == 0 goto label04;
+
+        $i25 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int bits>;
+
+        $i26 = $i25 | 536870912;
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int bits> = $i26;
+
+     label04:
+        $r129 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        virtualinvoke $r77.<org.eclipse.jdt.internal.compiler.flow.ExceptionHandlingFlowContext: void complainIfUnusedExceptionHandlers(org.eclipse.jdt.internal.compiler.lookup.BlockScope,org.eclipse.jdt.internal.compiler.ast.TryStatement)>($r129, r0);
+
+        $r130 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Argument[] catchArguments>;
+
+        if $r130 == null goto label12;
+
+        $r91 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block[] catchBlocks>;
+
+        $i20 = lengthof $r91;
+
+        $r92 = newarray (boolean)[$i20];
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: boolean[] catchExits> = $r92;
+
+        $r93 = newarray (int)[$i20];
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int[] catchExitInitStateIndexes> = $r93;
+
+        i27 = 0;
+
+        goto label11;
+
+     label05:
+        $r94 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding[] caughtExceptionTypes>;
+
+        $r95 = $r94[i27];
+
+        $z3 = virtualinvoke $r95.<org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding: boolean isUncheckedException(boolean)>(1);
+
+        if $z3 == 0 goto label06;
+
+        $r116 = $r77.<org.eclipse.jdt.internal.compiler.flow.ExceptionHandlingFlowContext: org.eclipse.jdt.internal.compiler.flow.NullInfoRegistry initsOnFinally>;
+
+        $r117 = virtualinvoke r3.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo unconditionalCopy()>();
+
+        $r118 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding[] caughtExceptionTypes>;
+
+        $r119 = $r118[i27];
+
+        $r120 = virtualinvoke $r77.<org.eclipse.jdt.internal.compiler.flow.ExceptionHandlingFlowContext: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo initsOnException(org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding)>($r119);
+
+        $r121 = virtualinvoke $r117.<org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo: org.eclipse.jdt.internal.compiler.flow.FlowInfo addPotentialInitializationsFrom(org.eclipse.jdt.internal.compiler.flow.FlowInfo)>($r120);
+
+        $r122 = virtualinvoke $r121.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.FlowInfo addPotentialInitializationsFrom(org.eclipse.jdt.internal.compiler.flow.FlowInfo)>(r128);
+
+        $r123 = $r77.<org.eclipse.jdt.internal.compiler.flow.ExceptionHandlingFlowContext: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo initsOnReturn>;
+
+        $r124 = virtualinvoke $r122.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.FlowInfo addPotentialInitializationsFrom(org.eclipse.jdt.internal.compiler.flow.FlowInfo)>($r123);
+
+        r131 = virtualinvoke $r116.<org.eclipse.jdt.internal.compiler.flow.NullInfoRegistry: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo mitigateNullInfoOf(org.eclipse.jdt.internal.compiler.flow.FlowInfo)>($r124);
+
+        goto label07;
+
+     label06:
+        $r96 = virtualinvoke r3.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo unconditionalCopy()>();
+
+        $r97 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding[] caughtExceptionTypes>;
+
+        $r98 = $r97[i27];
+
+        $r99 = virtualinvoke $r77.<org.eclipse.jdt.internal.compiler.flow.ExceptionHandlingFlowContext: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo initsOnException(org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding)>($r98);
+
+        $r100 = virtualinvoke $r96.<org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo: org.eclipse.jdt.internal.compiler.flow.FlowInfo addPotentialInitializationsFrom(org.eclipse.jdt.internal.compiler.flow.FlowInfo)>($r99);
+
+        $r101 = virtualinvoke r128.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo nullInfoLessUnconditionalCopy()>();
+
+        $r102 = virtualinvoke $r100.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.FlowInfo addPotentialInitializationsFrom(org.eclipse.jdt.internal.compiler.flow.FlowInfo)>($r101);
+
+        $r103 = $r77.<org.eclipse.jdt.internal.compiler.flow.ExceptionHandlingFlowContext: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo initsOnReturn>;
+
+        $r104 = virtualinvoke $r103.<org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo nullInfoLessUnconditionalCopy()>();
+
+        r131 = virtualinvoke $r102.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.FlowInfo addPotentialInitializationsFrom(org.eclipse.jdt.internal.compiler.flow.FlowInfo)>($r104);
+
+     label07:
+        $r105 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Argument[] catchArguments>;
+
+        $r106 = $r105[i27];
+
+        $r125 = $r106.<org.eclipse.jdt.internal.compiler.ast.Argument: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding binding>;
+
+        virtualinvoke r131.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: void markAsDefinitelyAssigned(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r125);
+
+        virtualinvoke r131.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: void markAsDefinitelyNonNull(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r125);
+
+        $r107 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block tryBlock>;
+
+        $r108 = $r107.<org.eclipse.jdt.internal.compiler.ast.Block: org.eclipse.jdt.internal.compiler.ast.Statement[] statements>;
+
+        if $r108 != null goto label08;
+
+        virtualinvoke r131.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.FlowInfo setReachMode(int)>(1);
+
+     label08:
+        $r109 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block[] catchBlocks>;
+
+        $r110 = $r109[i27];
+
+        $r111 = virtualinvoke $r110.<org.eclipse.jdt.internal.compiler.ast.Block: org.eclipse.jdt.internal.compiler.flow.FlowInfo analyseCode(org.eclipse.jdt.internal.compiler.lookup.BlockScope,org.eclipse.jdt.internal.compiler.flow.FlowContext,org.eclipse.jdt.internal.compiler.flow.FlowInfo)>(r1, r8, r131);
+
+        $r112 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int[] catchExitInitStateIndexes>;
+
+        $r113 = virtualinvoke r1.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.lookup.MethodScope methodScope()>();
+
+        $i21 = virtualinvoke $r113.<org.eclipse.jdt.internal.compiler.lookup.MethodScope: int recordInitializationStates(org.eclipse.jdt.internal.compiler.flow.FlowInfo)>($r111);
+
+        $r112[i27] = $i21;
+
+        $r114 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: boolean[] catchExits>;
+
+        $i24 = i27;
+
+        $i22 = $r111.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: int tagBits>;
+
+        $i23 = $i22 & 1;
+
+        if $i23 == 0 goto label09;
+
+        $z4 = 1;
+
+        goto label10;
+
+     label09:
+        $z4 = 0;
+
+     label10:
+        $r114[$i24] = $z4;
+
+        $r115 = virtualinvoke $r111.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo unconditionalInits()>();
+
+        r128 = virtualinvoke r128.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo mergedWith(org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo)>($r115);
+
+        i27 = i27 + 1;
+
+     label11:
+        if i27 < $i20 goto label05;
+
+     label12:
+        $r87 = virtualinvoke r1.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.lookup.MethodScope methodScope()>();
+
+        $i19 = virtualinvoke $r87.<org.eclipse.jdt.internal.compiler.lookup.MethodScope: int recordInitializationStates(org.eclipse.jdt.internal.compiler.flow.FlowInfo)>(r128);
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int mergedInitStateIndex> = $i19;
+
+        $r88 = r8.<org.eclipse.jdt.internal.compiler.flow.FlowContext: org.eclipse.jdt.internal.compiler.flow.NullInfoRegistry initsOnFinally>;
+
+        if $r88 == null goto label13;
+
+        $r90 = r8.<org.eclipse.jdt.internal.compiler.flow.FlowContext: org.eclipse.jdt.internal.compiler.flow.NullInfoRegistry initsOnFinally>;
+
+        $r89 = $r77.<org.eclipse.jdt.internal.compiler.flow.ExceptionHandlingFlowContext: org.eclipse.jdt.internal.compiler.flow.NullInfoRegistry initsOnFinally>;
+
+        virtualinvoke $r90.<org.eclipse.jdt.internal.compiler.flow.NullInfoRegistry: org.eclipse.jdt.internal.compiler.flow.NullInfoRegistry add(org.eclipse.jdt.internal.compiler.flow.NullInfoRegistry)>($r89);
+
+     label13:
+        return r128;
+
+     label14:
+        $r7 = new org.eclipse.jdt.internal.compiler.flow.InsideSubRoutineFlowContext;
+
+        specialinvoke $r7.<org.eclipse.jdt.internal.compiler.flow.InsideSubRoutineFlowContext: void <init>(org.eclipse.jdt.internal.compiler.flow.FlowContext,org.eclipse.jdt.internal.compiler.ast.ASTNode)>(r8, r0);
+
+        $r11 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block finallyBlock>;
+
+        $r9 = new org.eclipse.jdt.internal.compiler.flow.FinallyFlowContext;
+
+        $r10 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block finallyBlock>;
+
+        specialinvoke $r9.<org.eclipse.jdt.internal.compiler.flow.FinallyFlowContext: void <init>(org.eclipse.jdt.internal.compiler.flow.FlowContext,org.eclipse.jdt.internal.compiler.ast.ASTNode)>(r8, $r10);
+
+        $r12 = virtualinvoke r3.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo nullInfoLessUnconditionalCopy()>();
+
+        $r13 = virtualinvoke $r11.<org.eclipse.jdt.internal.compiler.ast.Block: org.eclipse.jdt.internal.compiler.flow.FlowInfo analyseCode(org.eclipse.jdt.internal.compiler.lookup.BlockScope,org.eclipse.jdt.internal.compiler.flow.FlowContext,org.eclipse.jdt.internal.compiler.flow.FlowInfo)>(r1, $r9, $r12);
+
+        $r14 = virtualinvoke $r13.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo unconditionalInits()>();
+
+        $r15 = <org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo DEAD_END>;
+
+        if $r14 != $r15 goto label15;
+
+        $i15 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int bits>;
+
+        $i16 = $i15 | 16384;
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int bits> = $i16;
+
+        $r74 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        $r75 = virtualinvoke $r74.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.problem.ProblemReporter problemReporter()>();
+
+        $r76 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block finallyBlock>;
+
+        virtualinvoke $r75.<org.eclipse.jdt.internal.compiler.problem.ProblemReporter: void finallyMustCompleteNormally(org.eclipse.jdt.internal.compiler.ast.Block)>($r76);
+
+     label15:
+        r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo subRoutineInits> = $r14;
+
+        $r16 = new org.eclipse.jdt.internal.compiler.flow.ExceptionHandlingFlowContext;
+
+        $r17 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding[] caughtExceptionTypes>;
+
+        $r18 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        $r19 = virtualinvoke r3.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo unconditionalInits()>();
+
+        specialinvoke $r16.<org.eclipse.jdt.internal.compiler.flow.ExceptionHandlingFlowContext: void <init>(org.eclipse.jdt.internal.compiler.flow.FlowContext,org.eclipse.jdt.internal.compiler.ast.ASTNode,org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding[],org.eclipse.jdt.internal.compiler.lookup.BlockScope,org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo)>($r7, r0, $r17, $r18, $r19);
+
+        $r20 = new org.eclipse.jdt.internal.compiler.flow.NullInfoRegistry;
+
+        $r21 = virtualinvoke r3.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo unconditionalInits()>();
+
+        specialinvoke $r20.<org.eclipse.jdt.internal.compiler.flow.NullInfoRegistry: void <init>(org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo)>($r21);
+
+        $r16.<org.eclipse.jdt.internal.compiler.flow.ExceptionHandlingFlowContext: org.eclipse.jdt.internal.compiler.flow.NullInfoRegistry initsOnFinally> = $r20;
+
+        $r22 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block tryBlock>;
+
+        $z0 = virtualinvoke $r22.<org.eclipse.jdt.internal.compiler.ast.Block: boolean isEmptyBlock()>();
+
+        if $z0 == 0 goto label16;
+
+        r132 = r3;
+
+        goto label17;
+
+     label16:
+        $r23 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block tryBlock>;
+
+        $r24 = virtualinvoke r3.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.FlowInfo copy()>();
+
+        $r25 = virtualinvoke $r23.<org.eclipse.jdt.internal.compiler.ast.Block: org.eclipse.jdt.internal.compiler.flow.FlowInfo analyseCode(org.eclipse.jdt.internal.compiler.lookup.BlockScope,org.eclipse.jdt.internal.compiler.flow.FlowContext,org.eclipse.jdt.internal.compiler.flow.FlowInfo)>(r1, $r16, $r24);
+
+        r132 = $r25;
+
+        $i1 = $r25.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: int tagBits>;
+
+        $i2 = $i1 & 1;
+
+        if $i2 == 0 goto label17;
+
+        $i13 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int bits>;
+
+        $i14 = $i13 | 536870912;
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int bits> = $i14;
+
+     label17:
+        $r133 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        virtualinvoke $r16.<org.eclipse.jdt.internal.compiler.flow.ExceptionHandlingFlowContext: void complainIfUnusedExceptionHandlers(org.eclipse.jdt.internal.compiler.lookup.BlockScope,org.eclipse.jdt.internal.compiler.ast.TryStatement)>($r133, r0);
+
+        $r134 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Argument[] catchArguments>;
+
+        if $r134 == null goto label25;
+
+        $r39 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block[] catchBlocks>;
+
+        $i8 = lengthof $r39;
+
+        $r40 = newarray (boolean)[$i8];
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: boolean[] catchExits> = $r40;
+
+        $r41 = newarray (int)[$i8];
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int[] catchExitInitStateIndexes> = $r41;
+
+        i28 = 0;
+
+        goto label24;
+
+     label18:
+        $r42 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding[] caughtExceptionTypes>;
+
+        $r43 = $r42[i28];
+
+        $z1 = virtualinvoke $r43.<org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding: boolean isUncheckedException(boolean)>(1);
+
+        if $z1 == 0 goto label19;
+
+        $r64 = $r16.<org.eclipse.jdt.internal.compiler.flow.ExceptionHandlingFlowContext: org.eclipse.jdt.internal.compiler.flow.NullInfoRegistry initsOnFinally>;
+
+        $r65 = virtualinvoke r3.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo unconditionalCopy()>();
+
+        $r66 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding[] caughtExceptionTypes>;
+
+        $r67 = $r66[i28];
+
+        $r68 = virtualinvoke $r16.<org.eclipse.jdt.internal.compiler.flow.ExceptionHandlingFlowContext: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo initsOnException(org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding)>($r67);
+
+        $r69 = virtualinvoke $r65.<org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo: org.eclipse.jdt.internal.compiler.flow.FlowInfo addPotentialInitializationsFrom(org.eclipse.jdt.internal.compiler.flow.FlowInfo)>($r68);
+
+        $r70 = virtualinvoke $r69.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.FlowInfo addPotentialInitializationsFrom(org.eclipse.jdt.internal.compiler.flow.FlowInfo)>(r132);
+
+        $r71 = $r16.<org.eclipse.jdt.internal.compiler.flow.ExceptionHandlingFlowContext: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo initsOnReturn>;
+
+        $r72 = virtualinvoke $r70.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.FlowInfo addPotentialInitializationsFrom(org.eclipse.jdt.internal.compiler.flow.FlowInfo)>($r71);
+
+        r135 = virtualinvoke $r64.<org.eclipse.jdt.internal.compiler.flow.NullInfoRegistry: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo mitigateNullInfoOf(org.eclipse.jdt.internal.compiler.flow.FlowInfo)>($r72);
+
+        goto label20;
+
+     label19:
+        $r44 = virtualinvoke r3.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo unconditionalCopy()>();
+
+        $r45 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding[] caughtExceptionTypes>;
+
+        $r46 = $r45[i28];
+
+        $r47 = virtualinvoke $r16.<org.eclipse.jdt.internal.compiler.flow.ExceptionHandlingFlowContext: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo initsOnException(org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding)>($r46);
+
+        $r48 = virtualinvoke $r44.<org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo: org.eclipse.jdt.internal.compiler.flow.FlowInfo addPotentialInitializationsFrom(org.eclipse.jdt.internal.compiler.flow.FlowInfo)>($r47);
+
+        $r49 = virtualinvoke r132.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo nullInfoLessUnconditionalCopy()>();
+
+        $r50 = virtualinvoke $r48.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.FlowInfo addPotentialInitializationsFrom(org.eclipse.jdt.internal.compiler.flow.FlowInfo)>($r49);
+
+        $r51 = $r16.<org.eclipse.jdt.internal.compiler.flow.ExceptionHandlingFlowContext: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo initsOnReturn>;
+
+        $r52 = virtualinvoke $r51.<org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo nullInfoLessUnconditionalCopy()>();
+
+        r135 = virtualinvoke $r50.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.FlowInfo addPotentialInitializationsFrom(org.eclipse.jdt.internal.compiler.flow.FlowInfo)>($r52);
+
+     label20:
+        $r53 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Argument[] catchArguments>;
+
+        $r54 = $r53[i28];
+
+        $r73 = $r54.<org.eclipse.jdt.internal.compiler.ast.Argument: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding binding>;
+
+        virtualinvoke r135.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: void markAsDefinitelyAssigned(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r73);
+
+        virtualinvoke r135.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: void markAsDefinitelyNonNull(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r73);
+
+        $r55 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block tryBlock>;
+
+        $r56 = $r55.<org.eclipse.jdt.internal.compiler.ast.Block: org.eclipse.jdt.internal.compiler.ast.Statement[] statements>;
+
+        if $r56 != null goto label21;
+
+        virtualinvoke r135.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.FlowInfo setReachMode(int)>(1);
+
+     label21:
+        $r57 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block[] catchBlocks>;
+
+        $r58 = $r57[i28];
+
+        $r59 = virtualinvoke $r58.<org.eclipse.jdt.internal.compiler.ast.Block: org.eclipse.jdt.internal.compiler.flow.FlowInfo analyseCode(org.eclipse.jdt.internal.compiler.lookup.BlockScope,org.eclipse.jdt.internal.compiler.flow.FlowContext,org.eclipse.jdt.internal.compiler.flow.FlowInfo)>(r1, $r7, r135);
+
+        $r60 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int[] catchExitInitStateIndexes>;
+
+        $r61 = virtualinvoke r1.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.lookup.MethodScope methodScope()>();
+
+        $i9 = virtualinvoke $r61.<org.eclipse.jdt.internal.compiler.lookup.MethodScope: int recordInitializationStates(org.eclipse.jdt.internal.compiler.flow.FlowInfo)>($r59);
+
+        $r60[i28] = $i9;
+
+        $r62 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: boolean[] catchExits>;
+
+        $i12 = i28;
+
+        $i10 = $r59.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: int tagBits>;
+
+        $i11 = $i10 & 1;
+
+        if $i11 == 0 goto label22;
+
+        $z5 = 1;
+
+        goto label23;
+
+     label22:
+        $z5 = 0;
+
+     label23:
+        $r62[$i12] = $z5;
+
+        $r63 = virtualinvoke $r59.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo unconditionalInits()>();
+
+        r132 = virtualinvoke r132.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo mergedWith(org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo)>($r63);
+
+        i28 = i28 + 1;
+
+     label24:
+        if i28 < $i8 goto label18;
+
+     label25:
+        $r26 = $r16.<org.eclipse.jdt.internal.compiler.flow.ExceptionHandlingFlowContext: org.eclipse.jdt.internal.compiler.flow.NullInfoRegistry initsOnFinally>;
+
+        $i3 = r132.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: int tagBits>;
+
+        $i4 = $i3 & 1;
+
+        if $i4 != 0 goto label26;
+
+        $r36 = virtualinvoke r3.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo unconditionalCopy()>();
+
+        $r37 = virtualinvoke $r36.<org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo: org.eclipse.jdt.internal.compiler.flow.FlowInfo addPotentialInitializationsFrom(org.eclipse.jdt.internal.compiler.flow.FlowInfo)>(r132);
+
+        $r38 = $r7.<org.eclipse.jdt.internal.compiler.flow.InsideSubRoutineFlowContext: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo initsOnReturn>;
+
+        $r136 = virtualinvoke $r37.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.FlowInfo addPotentialInitializationsFrom(org.eclipse.jdt.internal.compiler.flow.FlowInfo)>($r38);
+
+        goto label27;
+
+     label26:
+        $r136 = $r7.<org.eclipse.jdt.internal.compiler.flow.InsideSubRoutineFlowContext: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo initsOnReturn>;
+
+     label27:
+        $r27 = virtualinvoke $r26.<org.eclipse.jdt.internal.compiler.flow.NullInfoRegistry: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo mitigateNullInfoOf(org.eclipse.jdt.internal.compiler.flow.FlowInfo)>($r136);
+
+        virtualinvoke $r9.<org.eclipse.jdt.internal.compiler.flow.FinallyFlowContext: void complainOnDeferredChecks(org.eclipse.jdt.internal.compiler.flow.FlowInfo,org.eclipse.jdt.internal.compiler.lookup.BlockScope)>($r27, r1);
+
+        $r28 = r8.<org.eclipse.jdt.internal.compiler.flow.FlowContext: org.eclipse.jdt.internal.compiler.flow.NullInfoRegistry initsOnFinally>;
+
+        if $r28 == null goto label28;
+
+        $r35 = r8.<org.eclipse.jdt.internal.compiler.flow.FlowContext: org.eclipse.jdt.internal.compiler.flow.NullInfoRegistry initsOnFinally>;
+
+        $r34 = $r16.<org.eclipse.jdt.internal.compiler.flow.ExceptionHandlingFlowContext: org.eclipse.jdt.internal.compiler.flow.NullInfoRegistry initsOnFinally>;
+
+        virtualinvoke $r35.<org.eclipse.jdt.internal.compiler.flow.NullInfoRegistry: org.eclipse.jdt.internal.compiler.flow.NullInfoRegistry add(org.eclipse.jdt.internal.compiler.flow.NullInfoRegistry)>($r34);
+
+     label28:
+        $r29 = virtualinvoke r1.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.lookup.MethodScope methodScope()>();
+
+        $i5 = virtualinvoke $r29.<org.eclipse.jdt.internal.compiler.lookup.MethodScope: int recordInitializationStates(org.eclipse.jdt.internal.compiler.flow.FlowInfo)>(r132);
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int naturalExitMergeInitStateIndex> = $i5;
+
+        $r30 = <org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo DEAD_END>;
+
+        if $r14 != $r30 goto label29;
+
+        $r33 = virtualinvoke r1.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.lookup.MethodScope methodScope()>();
+
+        $i7 = virtualinvoke $r33.<org.eclipse.jdt.internal.compiler.lookup.MethodScope: int recordInitializationStates(org.eclipse.jdt.internal.compiler.flow.FlowInfo)>($r14);
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int mergedInitStateIndex> = $i7;
+
+        return $r14;
+
+     label29:
+        $r31 = virtualinvoke r132.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.FlowInfo addInitializationsFrom(org.eclipse.jdt.internal.compiler.flow.FlowInfo)>($r14);
+
+        $r32 = virtualinvoke r1.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.lookup.MethodScope methodScope()>();
+
+        $i6 = virtualinvoke $r32.<org.eclipse.jdt.internal.compiler.lookup.MethodScope: int recordInitializationStates(org.eclipse.jdt.internal.compiler.flow.FlowInfo)>($r31);
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int mergedInitStateIndex> = $i6;
+
+        return $r31;
+    }
+
+    public org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel enterAnyExceptionHandler(org.eclipse.jdt.internal.compiler.codegen.CodeStream)
+    {
+        org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel $r3;
+        org.eclipse.jdt.internal.compiler.codegen.CodeStream r2;
+        org.eclipse.jdt.internal.compiler.ast.TryStatement r0;
+        org.eclipse.jdt.internal.compiler.codegen.BranchLabel $r1;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.ast.TryStatement;
+
+        r2 := @parameter0: org.eclipse.jdt.internal.compiler.codegen.CodeStream;
+
+        $r1 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel subRoutineStartLabel>;
+
+        if $r1 != null goto label1;
+
+        return null;
+
+     label1:
+        $r3 = specialinvoke r0.<org.eclipse.jdt.internal.compiler.ast.SubRoutineStatement: org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel enterAnyExceptionHandler(org.eclipse.jdt.internal.compiler.codegen.CodeStream)>(r2);
+
+        return $r3;
+    }
+
+    public void enterDeclaredExceptionHandlers(org.eclipse.jdt.internal.compiler.codegen.CodeStream)
+    {
+        org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel[] $r1, $r2, $r3;
+        org.eclipse.jdt.internal.compiler.codegen.CodeStream r5;
+        org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel $r4;
+        int i0, i1, $i2;
+        org.eclipse.jdt.internal.compiler.ast.TryStatement r0;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.ast.TryStatement;
+
+        r5 := @parameter0: org.eclipse.jdt.internal.compiler.codegen.CodeStream;
+
+        i1 = 0;
+
+        $r1 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel[] declaredExceptionLabels>;
+
+        if $r1 != null goto label1;
+
+        $i2 = 0;
+
+        goto label2;
+
+     label1:
+        $r2 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel[] declaredExceptionLabels>;
+
+        $i2 = lengthof $r2;
+
+     label2:
+        i0 = $i2;
+
+        goto label4;
+
+     label3:
+        $r3 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel[] declaredExceptionLabels>;
+
+        $r4 = $r3[i1];
+
+        virtualinvoke $r4.<org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel: void placeStart()>();
+
+        i1 = i1 + 1;
+
+     label4:
+        if i1 < i0 goto label3;
+
+        return;
+    }
+
+    public void exitAnyExceptionHandler()
+    {
+        org.eclipse.jdt.internal.compiler.ast.TryStatement r0;
+        org.eclipse.jdt.internal.compiler.codegen.BranchLabel $r1;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.ast.TryStatement;
+
+        $r1 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel subRoutineStartLabel>;
+
+        if $r1 != null goto label1;
+
+        return;
+
+     label1:
+        specialinvoke r0.<org.eclipse.jdt.internal.compiler.ast.SubRoutineStatement: void exitAnyExceptionHandler()>();
+
+        return;
+    }
+
+    public void exitDeclaredExceptionHandlers(org.eclipse.jdt.internal.compiler.codegen.CodeStream)
+    {
+        org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel[] $r1, $r2, $r3;
+        org.eclipse.jdt.internal.compiler.codegen.CodeStream r5;
+        org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel $r4;
+        int i0, i1, $i2;
+        org.eclipse.jdt.internal.compiler.ast.TryStatement r0;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.ast.TryStatement;
+
+        r5 := @parameter0: org.eclipse.jdt.internal.compiler.codegen.CodeStream;
+
+        i1 = 0;
+
+        $r1 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel[] declaredExceptionLabels>;
+
+        if $r1 != null goto label1;
+
+        $i2 = 0;
+
+        goto label2;
+
+     label1:
+        $r2 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel[] declaredExceptionLabels>;
+
+        $i2 = lengthof $r2;
+
+     label2:
+        i0 = $i2;
+
+        goto label4;
+
+     label3:
+        $r3 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel[] declaredExceptionLabels>;
+
+        $r4 = $r3[i1];
+
+        virtualinvoke $r4.<org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel: void placeEnd()>();
+
+        i1 = i1 + 1;
+
+     label4:
+        if i1 < i0 goto label3;
+
+        return;
+    }
+
+    private int finallyMode()
+    {
+        org.eclipse.jdt.internal.compiler.lookup.BlockScope $r2;
+        org.eclipse.jdt.internal.compiler.ast.TryStatement r0;
+        org.eclipse.jdt.internal.compiler.impl.CompilerOptions $r3;
+        org.eclipse.jdt.internal.compiler.codegen.BranchLabel $r1;
+        boolean $z0, $z1;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.ast.TryStatement;
+
+        $r1 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel subRoutineStartLabel>;
+
+        if $r1 != null goto label1;
+
+        return 0;
+
+     label1:
+        $z0 = virtualinvoke r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: boolean isSubRoutineEscaping()>();
+
+        if $z0 == 0 goto label2;
+
+        return 2;
+
+     label2:
+        $r2 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        $r3 = virtualinvoke $r2.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.impl.CompilerOptions compilerOptions()>();
+
+        $z1 = $r3.<org.eclipse.jdt.internal.compiler.impl.CompilerOptions: boolean inlineJsrBytecode>;
+
+        if $z1 == 0 goto label3;
+
+        return 3;
+
+     label3:
+        return 1;
+    }
+
+    public void generateCode(org.eclipse.jdt.internal.compiler.lookup.BlockScope, org.eclipse.jdt.internal.compiler.codegen.CodeStream)
+    {
+        org.eclipse.jdt.internal.compiler.lookup.BlockScope $r5, r8, $r9, $r14, $r24, $r33, $r41, $r45, $r61, $r65, $r83;
+        org.eclipse.jdt.internal.compiler.codegen.CodeStream r1;
+        boolean[] $r63;
+        org.eclipse.jdt.internal.compiler.codegen.StackMapFrameCodeStream $r26, $r28, $r67, $r70;
+        int[] $r64, $r68, $r69;
+        org.eclipse.jdt.internal.compiler.codegen.BranchLabel $r4, $r7, $r22, $r29, $r31, $r36, $r40, $r71, $r72, $r73, r81, $r87, $r89, $r90;
+        int $i0, $i1, i2, $i3, i4, $i5, $i6, $i7, $i8, $i9, $i10, $i11, $i12, $i13, $i14, $i15, $i16, $i17, $i18, $i19, $i20, $i21, $i22, $i23, $i24, $i25, $i26, $i27, $i28, $i29, $i30, $i31, $i32, $i33, $i34, $i35, $i36, $i37, $i38, $i39, $i40, $i41, $i42, $i43, $i44, $i45, $i46, $i47, $i48, $i49, $i50, $i51, $i52, i53, i54, i55, i56, $i57, i58, i59, i60, i61, i62, i63, $i64, $i66, $i68, $i70, $i72, $i74, $i76, $i78, $i80, $i82, $i84;
+        org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding $r16, $r17, $r20, $r21, $r35, $r38, $r43, $r47, $r57, $r77;
+        org.eclipse.jdt.internal.compiler.lookup.TypeBinding $r53, $r78;
+        org.eclipse.jdt.internal.compiler.ast.TryStatement r0;
+        java.lang.Throwable $r79;
+        org.eclipse.jdt.internal.compiler.ast.Block $r6, $r10, $r18, $r19, $r23, $r25, $r27, $r30, $r32, $r34, $r37, $r39, $r44, $r46, $r48, $r62, $r66, $r82;
+        org.eclipse.jdt.internal.compiler.ast.Block[] $r60;
+        org.eclipse.jdt.internal.compiler.ast.Argument[] $r2, $r3, $r55, $r58, $r75, $r84;
+        boolean z0, $z1, z2, $z3, z4, z5;
+        org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel[] r80;
+        org.eclipse.jdt.internal.compiler.ast.Argument $r56, $r59, $r76;
+        org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel $r12, $r13, $r51, $r52, $r54, $r85, r86, $r88, $r91;
+        org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding $r15, $r42;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.ast.TryStatement;
+
+        r8 := @parameter0: org.eclipse.jdt.internal.compiler.lookup.BlockScope;
+
+        r1 := @parameter1: org.eclipse.jdt.internal.compiler.codegen.CodeStream;
+
+        $i0 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int bits>;
+
+        $i1 = $i0 & -2147483648;
+
+        if $i1 != 0 goto label01;
+
+        return;
+
+     label01:
+        z0 = r1 instanceof org.eclipse.jdt.internal.compiler.codegen.StackMapFrameCodeStream;
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel anyExceptionLabel> = null;
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: java.lang.Object[] reusableJSRTargets> = null;
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel[] reusableJSRSequenceStartLabels> = null;
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int reusableJSRTargetsCount> = 0;
+
+        i2 = r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: int position>;
+
+        $i3 = specialinvoke r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int finallyMode()>();
+
+        z2 = 0;
+
+        z5 = 0;
+
+        z4 = 0;
+
+        $r2 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Argument[] catchArguments>;
+
+        if $r2 != null goto label02;
+
+        $i52 = 0;
+
+        goto label03;
+
+     label02:
+        $r3 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Argument[] catchArguments>;
+
+        $i52 = lengthof $r3;
+
+     label03:
+        i4 = $i52;
+
+        if $i52 <= 0 goto label06;
+
+        r80 = newarray (org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel)[$i52];
+
+        i53 = 0;
+
+        goto label05;
+
+     label04:
+        $r88 = new org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel;
+
+        $r75 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Argument[] catchArguments>;
+
+        $r76 = $r75[i53];
+
+        $r77 = $r76.<org.eclipse.jdt.internal.compiler.ast.Argument: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding binding>;
+
+        $r78 = $r77.<org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding: org.eclipse.jdt.internal.compiler.lookup.TypeBinding type>;
+
+        specialinvoke $r88.<org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel: void <init>(org.eclipse.jdt.internal.compiler.codegen.CodeStream,org.eclipse.jdt.internal.compiler.lookup.TypeBinding)>(r1, $r78);
+
+        virtualinvoke $r88.<org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel: void placeStart()>();
+
+        r80[i53] = $r88;
+
+        i53 = i53 + 1;
+
+     label05:
+        if i53 < i4 goto label04;
+
+        goto label07;
+
+     label06:
+        r80 = (org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel[]) null;
+
+     label07:
+        $r4 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel subRoutineStartLabel>;
+
+        if $r4 == null goto label08;
+
+        $r73 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel subRoutineStartLabel>;
+
+        virtualinvoke $r73.<org.eclipse.jdt.internal.compiler.codegen.BranchLabel: void initialize(org.eclipse.jdt.internal.compiler.codegen.CodeStream)>(r1);
+
+        virtualinvoke r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel enterAnyExceptionHandler(org.eclipse.jdt.internal.compiler.codegen.CodeStream)>(r1);
+
+     label08:
+        r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel[] declaredExceptionLabels> = r80;
+
+        $r6 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block tryBlock>;
+
+        $r5 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        virtualinvoke $r6.<org.eclipse.jdt.internal.compiler.ast.Block: void generateCode(org.eclipse.jdt.internal.compiler.lookup.BlockScope,org.eclipse.jdt.internal.compiler.codegen.CodeStream)>($r5, r1);
+
+        goto label10;
+
+     label09:
+        $r79 := @caughtexception;
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel[] declaredExceptionLabels> = null;
+
+        throw $r79;
+
+     label10:
+        r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel[] declaredExceptionLabels> = null;
+
+        $i5 = r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: int position>;
+
+        if $i5 == i2 goto label11;
+
+        $z3 = 1;
+
+        goto label12;
+
+     label11:
+        $z3 = 0;
+
+     label12:
+        if $z3 == 0 goto label55;
+
+        $r89 = new org.eclipse.jdt.internal.compiler.codegen.BranchLabel;
+
+        specialinvoke $r89.<org.eclipse.jdt.internal.compiler.codegen.BranchLabel: void <init>(org.eclipse.jdt.internal.compiler.codegen.CodeStream)>(r1);
+
+        r81 = null;
+
+        i54 = 0;
+
+        goto label14;
+
+     label13:
+        $r12 = r80[i54];
+
+        virtualinvoke $r12.<org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel: void placeEnd()>();
+
+        i54 = i54 + 1;
+
+     label14:
+        if i54 < i4 goto label13;
+
+        $i9 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int bits>;
+
+        $i10 = $i9 & 536870912;
+
+        if $i10 != 0 goto label21;
+
+        i55 = r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: int position>;
+
+        tableswitch($i3)
+        {
+            case 0: goto label17;
+            case 1: goto label15;
+            case 2: goto label19;
+            case 3: goto label15;
+            default: goto label20;
+        };
+
+     label15:
+        z2 = 1;
+
+        z5 = 1;
+
+        z4 = 1;
+
+        $i46 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int naturalExitMergeInitStateIndex>;
+
+        $i66 = (int) -1;
+
+        if $i46 == $i66 goto label16;
+
+        $i47 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int naturalExitMergeInitStateIndex>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void removeNotDefinitelyAssignedVariables(org.eclipse.jdt.internal.compiler.lookup.Scope,int)>(r8, $i47);
+
+        $i48 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int naturalExitMergeInitStateIndex>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void addDefinitelyAssignedVariables(org.eclipse.jdt.internal.compiler.lookup.Scope,int)>(r8, $i48);
+
+     label16:
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void goto_(org.eclipse.jdt.internal.compiler.codegen.BranchLabel)>($r89);
+
+        goto label20;
+
+     label17:
+        $i49 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int naturalExitMergeInitStateIndex>;
+
+        $i68 = (int) -1;
+
+        if $i49 == $i68 goto label18;
+
+        $i50 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int naturalExitMergeInitStateIndex>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void removeNotDefinitelyAssignedVariables(org.eclipse.jdt.internal.compiler.lookup.Scope,int)>(r8, $i50);
+
+        $i51 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int naturalExitMergeInitStateIndex>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void addDefinitelyAssignedVariables(org.eclipse.jdt.internal.compiler.lookup.Scope,int)>(r8, $i51);
+
+     label18:
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void goto_(org.eclipse.jdt.internal.compiler.codegen.BranchLabel)>($r89);
+
+        goto label20;
+
+     label19:
+        $r72 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel subRoutineStartLabel>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void goto_(org.eclipse.jdt.internal.compiler.codegen.BranchLabel)>($r72);
+
+     label20:
+        $r82 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block tryBlock>;
+
+        $r83 = $r82.<org.eclipse.jdt.internal.compiler.ast.Block: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void updateLastRecordedEndPC(org.eclipse.jdt.internal.compiler.lookup.Scope,int)>($r83, i55);
+
+     label21:
+        virtualinvoke r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: void exitAnyExceptionHandler()>();
+
+        $r84 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Argument[] catchArguments>;
+
+        if $r84 == null goto label36;
+
+        $r90 = new org.eclipse.jdt.internal.compiler.codegen.BranchLabel;
+
+        specialinvoke $r90.<org.eclipse.jdt.internal.compiler.codegen.BranchLabel: void <init>(org.eclipse.jdt.internal.compiler.codegen.CodeStream)>(r1);
+
+        r81 = $r90;
+
+        i56 = 0;
+
+        goto label35;
+
+     label22:
+        $r51 = r80[i56];
+
+        $i31 = $r51.<org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel: int count>;
+
+        if $i31 != 0 goto label23;
+
+        goto label34;
+
+     label23:
+        virtualinvoke r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel enterAnyExceptionHandler(org.eclipse.jdt.internal.compiler.codegen.CodeStream)>(r1);
+
+        $i32 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int preTryInitStateIndex>;
+
+        $i70 = (int) -1;
+
+        if $i32 == $i70 goto label24;
+
+        $i43 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int preTryInitStateIndex>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void removeNotDefinitelyAssignedVariables(org.eclipse.jdt.internal.compiler.lookup.Scope,int)>(r8, $i43);
+
+        $i44 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int preTryInitStateIndex>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void addDefinitelyAssignedVariables(org.eclipse.jdt.internal.compiler.lookup.Scope,int)>(r8, $i44);
+
+     label24:
+        $r52 = r80[i56];
+
+        $r53 = $r52.<org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel: org.eclipse.jdt.internal.compiler.lookup.TypeBinding exceptionType>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void pushExceptionOnStack(org.eclipse.jdt.internal.compiler.lookup.TypeBinding)>($r53);
+
+        $r54 = r80[i56];
+
+        virtualinvoke $r54.<org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel: void place()>();
+
+        $i45 = r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: int position>;
+
+        $r55 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Argument[] catchArguments>;
+
+        $r56 = $r55[i56];
+
+        $r57 = $r56.<org.eclipse.jdt.internal.compiler.ast.Argument: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding binding>;
+
+        $i33 = $r57.<org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding: int resolvedPosition>;
+
+        $i72 = (int) -1;
+
+        if $i33 == $i72 goto label25;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void store(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding,boolean)>($r57, 0);
+
+        $i42 = r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: int position>;
+
+        virtualinvoke $r57.<org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding: void recordInitializationStartPC(int)>($i42);
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void addVisibleLocalVariable(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r57);
+
+        goto label26;
+
+     label25:
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void pop()>();
+
+     label26:
+        $r58 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Argument[] catchArguments>;
+
+        $r59 = $r58[i56];
+
+        $i34 = $r59.<org.eclipse.jdt.internal.compiler.ast.Argument: int sourceStart>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void recordPositionsFrom(int,int)>($i45, $i34);
+
+        $r60 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block[] catchBlocks>;
+
+        $r62 = $r60[i56];
+
+        $r61 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        virtualinvoke $r62.<org.eclipse.jdt.internal.compiler.ast.Block: void generateCode(org.eclipse.jdt.internal.compiler.lookup.BlockScope,org.eclipse.jdt.internal.compiler.codegen.CodeStream)>($r61, r1);
+
+        virtualinvoke r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: void exitAnyExceptionHandler()>();
+
+        $r63 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: boolean[] catchExits>;
+
+        $z1 = $r63[i56];
+
+        if $z1 != 0 goto label34;
+
+        tableswitch($i3)
+        {
+            case 0: goto label31;
+            case 1: goto label30;
+            case 2: goto label33;
+            case 3: goto label27;
+            default: goto label34;
+        };
+
+     label27:
+        if z0 == 0 goto label28;
+
+        $r70 = (org.eclipse.jdt.internal.compiler.codegen.StackMapFrameCodeStream) r1;
+
+        $i38 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int naturalExitMergeInitStateIndex>;
+
+        virtualinvoke $r70.<org.eclipse.jdt.internal.compiler.codegen.StackMapFrameCodeStream: void pushStateIndex(int)>($i38);
+
+     label28:
+        $r64 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int[] catchExitInitStateIndexes>;
+
+        $i35 = $r64[i56];
+
+        $i74 = (int) -1;
+
+        if $i35 == $i74 goto label29;
+
+        $r68 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int[] catchExitInitStateIndexes>;
+
+        $i36 = $r68[i56];
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void removeNotDefinitelyAssignedVariables(org.eclipse.jdt.internal.compiler.lookup.Scope,int)>(r8, $i36);
+
+        $r69 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int[] catchExitInitStateIndexes>;
+
+        $i37 = $r69[i56];
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void addDefinitelyAssignedVariables(org.eclipse.jdt.internal.compiler.lookup.Scope,int)>(r8, $i37);
+
+     label29:
+        $r66 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block finallyBlock>;
+
+        $r65 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        virtualinvoke $r66.<org.eclipse.jdt.internal.compiler.ast.Block: void generateCode(org.eclipse.jdt.internal.compiler.lookup.BlockScope,org.eclipse.jdt.internal.compiler.codegen.CodeStream)>($r65, r1);
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void goto_(org.eclipse.jdt.internal.compiler.codegen.BranchLabel)>($r90);
+
+        if z0 == 0 goto label34;
+
+        $r67 = (org.eclipse.jdt.internal.compiler.codegen.StackMapFrameCodeStream) r1;
+
+        virtualinvoke $r67.<org.eclipse.jdt.internal.compiler.codegen.StackMapFrameCodeStream: void popStateIndex()>();
+
+        goto label34;
+
+     label30:
+        z2 = 1;
+
+        z5 = 1;
+
+        z4 = 1;
+
+     label31:
+        $i39 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int naturalExitMergeInitStateIndex>;
+
+        $i76 = (int) -1;
+
+        if $i39 == $i76 goto label32;
+
+        $i40 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int naturalExitMergeInitStateIndex>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void removeNotDefinitelyAssignedVariables(org.eclipse.jdt.internal.compiler.lookup.Scope,int)>(r8, $i40);
+
+        $i41 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int naturalExitMergeInitStateIndex>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void addDefinitelyAssignedVariables(org.eclipse.jdt.internal.compiler.lookup.Scope,int)>(r8, $i41);
+
+     label32:
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void goto_(org.eclipse.jdt.internal.compiler.codegen.BranchLabel)>($r89);
+
+        goto label34;
+
+     label33:
+        $r71 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel subRoutineStartLabel>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void goto_(org.eclipse.jdt.internal.compiler.codegen.BranchLabel)>($r71);
+
+     label34:
+        i56 = i56 + 1;
+
+     label35:
+        if i56 < i4 goto label22;
+
+     label36:
+        if z5 == 0 goto label37;
+
+        if $i3 != 1 goto label37;
+
+        $r91 = new org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel;
+
+        $r85 = $r91;
+
+        specialinvoke $r91.<org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel: void <init>(org.eclipse.jdt.internal.compiler.codegen.CodeStream,org.eclipse.jdt.internal.compiler.lookup.TypeBinding)>(r1, null);
+
+        goto label38;
+
+     label37:
+        $r85 = null;
+
+     label38:
+        r86 = $r85;
+
+        $i57 = r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: int position>;
+
+        $r87 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel subRoutineStartLabel>;
+
+        if $r87 == null goto label54;
+
+        $r13 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel anyExceptionLabel>;
+
+        $i11 = $r13.<org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel: int count>;
+
+        if $i11 == 0 goto label54;
+
+        $r14 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        $r15 = virtualinvoke $r14.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding getJavaLangThrowable()>();
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void pushExceptionOnStack(org.eclipse.jdt.internal.compiler.lookup.TypeBinding)>($r15);
+
+        $i12 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int preTryInitStateIndex>;
+
+        $i78 = (int) -1;
+
+        if $i12 == $i78 goto label39;
+
+        $i29 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int preTryInitStateIndex>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void removeNotDefinitelyAssignedVariables(org.eclipse.jdt.internal.compiler.lookup.Scope,int)>(r8, $i29);
+
+        $i30 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int preTryInitStateIndex>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void addDefinitelyAssignedVariables(org.eclipse.jdt.internal.compiler.lookup.Scope,int)>(r8, $i30);
+
+     label39:
+        virtualinvoke r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: void placeAllAnyExceptionHandler()>();
+
+        if r86 == null goto label40;
+
+        virtualinvoke r86.<org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel: void place()>();
+
+     label40:
+        tableswitch($i3)
+        {
+            case 1: goto label41;
+            case 2: goto label44;
+            case 3: goto label42;
+            default: goto label45;
+        };
+
+     label41:
+        $r35 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding anyExceptionVariable>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void store(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding,boolean)>($r35, 0);
+
+        $r36 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel subRoutineStartLabel>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void jsr(org.eclipse.jdt.internal.compiler.codegen.BranchLabel)>($r36);
+
+        $r37 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block finallyBlock>;
+
+        $i24 = $r37.<org.eclipse.jdt.internal.compiler.ast.Block: int sourceStart>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void recordPositionsFrom(int,int)>($i57, $i24);
+
+        i58 = r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: int position>;
+
+        $r38 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding anyExceptionVariable>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void throwAnyException(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r38);
+
+        $r39 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block finallyBlock>;
+
+        $i25 = $r39.<org.eclipse.jdt.internal.compiler.ast.Block: int sourceEnd>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void recordPositionsFrom(int,int)>(i58, $i25);
+
+        $r40 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel subRoutineStartLabel>;
+
+        virtualinvoke $r40.<org.eclipse.jdt.internal.compiler.codegen.BranchLabel: void place()>();
+
+        $r41 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        $r42 = virtualinvoke $r41.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding getJavaLangThrowable()>();
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void pushExceptionOnStack(org.eclipse.jdt.internal.compiler.lookup.TypeBinding)>($r42);
+
+        i59 = r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: int position>;
+
+        $r43 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding returnAddressVariable>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void store(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding,boolean)>($r43, 0);
+
+        $r44 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block finallyBlock>;
+
+        $i26 = $r44.<org.eclipse.jdt.internal.compiler.ast.Block: int sourceStart>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void recordPositionsFrom(int,int)>(i59, $i26);
+
+        $r46 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block finallyBlock>;
+
+        $r45 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        virtualinvoke $r46.<org.eclipse.jdt.internal.compiler.ast.Block: void generateCode(org.eclipse.jdt.internal.compiler.lookup.BlockScope,org.eclipse.jdt.internal.compiler.codegen.CodeStream)>($r45, r1);
+
+        i60 = r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: int position>;
+
+        $r47 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding returnAddressVariable>;
+
+        $i27 = $r47.<org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding: int resolvedPosition>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void 'ret'(int)>($i27);
+
+        $r48 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block finallyBlock>;
+
+        $i28 = $r48.<org.eclipse.jdt.internal.compiler.ast.Block: int sourceEnd>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void recordPositionsFrom(int,int)>(i60, $i28);
+
+        goto label45;
+
+     label42:
+        $r16 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding anyExceptionVariable>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void store(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding,boolean)>($r16, 0);
+
+        $r17 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding anyExceptionVariable>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void addVariable(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r17);
+
+        $r18 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block finallyBlock>;
+
+        $i13 = $r18.<org.eclipse.jdt.internal.compiler.ast.Block: int sourceStart>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void recordPositionsFrom(int,int)>($i57, $i13);
+
+        $r19 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block finallyBlock>;
+
+        virtualinvoke $r19.<org.eclipse.jdt.internal.compiler.ast.Block: void generateCode(org.eclipse.jdt.internal.compiler.lookup.BlockScope,org.eclipse.jdt.internal.compiler.codegen.CodeStream)>(r8, r1);
+
+        i61 = r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: int position>;
+
+        $r20 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding anyExceptionVariable>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void throwAnyException(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r20);
+
+        $r21 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding anyExceptionVariable>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void removeVariable(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r21);
+
+        $i14 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int preTryInitStateIndex>;
+
+        $i80 = (int) -1;
+
+        if $i14 == $i80 goto label43;
+
+        $i22 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int preTryInitStateIndex>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void removeNotDefinitelyAssignedVariables(org.eclipse.jdt.internal.compiler.lookup.Scope,int)>(r8, $i22);
+
+     label43:
+        $r22 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel subRoutineStartLabel>;
+
+        virtualinvoke $r22.<org.eclipse.jdt.internal.compiler.codegen.BranchLabel: void place()>();
+
+        $r23 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block finallyBlock>;
+
+        $i15 = $r23.<org.eclipse.jdt.internal.compiler.ast.Block: int sourceEnd>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void recordPositionsFrom(int,int)>(i61, $i15);
+
+        goto label45;
+
+     label44:
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void pop()>();
+
+        $r31 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel subRoutineStartLabel>;
+
+        virtualinvoke $r31.<org.eclipse.jdt.internal.compiler.codegen.BranchLabel: void place()>();
+
+        $r32 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block finallyBlock>;
+
+        $i23 = $r32.<org.eclipse.jdt.internal.compiler.ast.Block: int sourceStart>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void recordPositionsFrom(int,int)>($i57, $i23);
+
+        $r34 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block finallyBlock>;
+
+        $r33 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        virtualinvoke $r34.<org.eclipse.jdt.internal.compiler.ast.Block: void generateCode(org.eclipse.jdt.internal.compiler.lookup.BlockScope,org.eclipse.jdt.internal.compiler.codegen.CodeStream)>($r33, r1);
+
+     label45:
+        if z4 == 0 goto label53;
+
+        tableswitch($i3)
+        {
+            case 1: goto label46;
+            case 2: goto label51;
+            case 3: goto label47;
+            default: goto label52;
+        };
+
+     label46:
+        virtualinvoke $r89.<org.eclipse.jdt.internal.compiler.codegen.BranchLabel: void place()>();
+
+        i62 = r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: int position>;
+
+        virtualinvoke r86.<org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel: void placeStart()>();
+
+        $r29 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel subRoutineStartLabel>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void jsr(org.eclipse.jdt.internal.compiler.codegen.BranchLabel)>($r29);
+
+        virtualinvoke r86.<org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel: void placeEnd()>();
+
+        $r30 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block finallyBlock>;
+
+        $i21 = $r30.<org.eclipse.jdt.internal.compiler.ast.Block: int sourceEnd>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void recordPositionsFrom(int,int)>(i62, $i21);
+
+        goto label53;
+
+     label47:
+        if z0 == 0 goto label48;
+
+        $r28 = (org.eclipse.jdt.internal.compiler.codegen.StackMapFrameCodeStream) r1;
+
+        $i20 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int naturalExitMergeInitStateIndex>;
+
+        virtualinvoke $r28.<org.eclipse.jdt.internal.compiler.codegen.StackMapFrameCodeStream: void pushStateIndex(int)>($i20);
+
+     label48:
+        $i16 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int naturalExitMergeInitStateIndex>;
+
+        $i82 = (int) -1;
+
+        if $i16 == $i82 goto label49;
+
+        $i18 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int naturalExitMergeInitStateIndex>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void removeNotDefinitelyAssignedVariables(org.eclipse.jdt.internal.compiler.lookup.Scope,int)>(r8, $i18);
+
+        $i19 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int naturalExitMergeInitStateIndex>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void addDefinitelyAssignedVariables(org.eclipse.jdt.internal.compiler.lookup.Scope,int)>(r8, $i19);
+
+     label49:
+        virtualinvoke $r89.<org.eclipse.jdt.internal.compiler.codegen.BranchLabel: void place()>();
+
+        $r25 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block finallyBlock>;
+
+        $r24 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        virtualinvoke $r25.<org.eclipse.jdt.internal.compiler.ast.Block: void generateCode(org.eclipse.jdt.internal.compiler.lookup.BlockScope,org.eclipse.jdt.internal.compiler.codegen.CodeStream)>($r24, r1);
+
+        if r81 == null goto label50;
+
+        i63 = r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: int position>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void goto_(org.eclipse.jdt.internal.compiler.codegen.BranchLabel)>(r81);
+
+        $r27 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block finallyBlock>;
+
+        $i17 = $r27.<org.eclipse.jdt.internal.compiler.ast.Block: int sourceEnd>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void recordPositionsFrom(int,int)>(i63, $i17);
+
+     label50:
+        if z0 == 0 goto label53;
+
+        $r26 = (org.eclipse.jdt.internal.compiler.codegen.StackMapFrameCodeStream) r1;
+
+        virtualinvoke $r26.<org.eclipse.jdt.internal.compiler.codegen.StackMapFrameCodeStream: void popStateIndex()>();
+
+        goto label53;
+
+     label51:
+        goto label53;
+
+     label52:
+        virtualinvoke $r89.<org.eclipse.jdt.internal.compiler.codegen.BranchLabel: void place()>();
+
+     label53:
+        if r81 == null goto label56;
+
+        virtualinvoke r81.<org.eclipse.jdt.internal.compiler.codegen.BranchLabel: void place()>();
+
+        goto label56;
+
+     label54:
+        virtualinvoke $r89.<org.eclipse.jdt.internal.compiler.codegen.BranchLabel: void place()>();
+
+        goto label56;
+
+     label55:
+        $r7 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel subRoutineStartLabel>;
+
+        if $r7 == null goto label56;
+
+        $r10 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block finallyBlock>;
+
+        $r9 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        virtualinvoke $r10.<org.eclipse.jdt.internal.compiler.ast.Block: void generateCode(org.eclipse.jdt.internal.compiler.lookup.BlockScope,org.eclipse.jdt.internal.compiler.codegen.CodeStream)>($r9, r1);
+
+     label56:
+        $i64 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int mergedInitStateIndex>;
+
+        $i84 = (int) -1;
+
+        if $i64 == $i84 goto label57;
+
+        $i7 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int mergedInitStateIndex>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void removeNotDefinitelyAssignedVariables(org.eclipse.jdt.internal.compiler.lookup.Scope,int)>(r8, $i7);
+
+        $i8 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int mergedInitStateIndex>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void addDefinitelyAssignedVariables(org.eclipse.jdt.internal.compiler.lookup.Scope,int)>(r8, $i8);
+
+     label57:
+        $i6 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int sourceStart>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void recordPositionsFrom(int,int)>(i2, $i6);
+
+        return;
+
+        catch java.lang.Throwable from label08 to label09 with label09;
+    }
+
+    public boolean generateSubRoutineInvocation(org.eclipse.jdt.internal.compiler.lookup.BlockScope, org.eclipse.jdt.internal.compiler.codegen.CodeStream, java.lang.Object, int, org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)
+    {
+        org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding r5;
+        org.eclipse.jdt.internal.compiler.impl.Constant $r26, $r27;
+        org.eclipse.jdt.internal.compiler.ast.TryStatement r1;
+        org.eclipse.jdt.internal.compiler.lookup.BlockScope r6;
+        java.lang.Object[] $r10, $r13, $r14, $r18, $r19, $r24;
+        org.eclipse.jdt.internal.compiler.codegen.CodeStream r0;
+        org.eclipse.jdt.internal.compiler.codegen.StackMapFrameCodeStream $r8, $r9;
+        org.eclipse.jdt.internal.compiler.ast.Block $r7;
+        int[] $r12, $r16, $r22, $r23, $r28;
+        boolean z0, $z1, $z2, $z3, z4;
+        org.eclipse.jdt.internal.compiler.codegen.BranchLabel[] $r11, $r17, $r20, $r21, $r29;
+        org.eclipse.jdt.internal.compiler.codegen.BranchLabel $r2, $r4, $r30, $r31;
+        int $i0, $i1, $i2, $i3, i4, $i5, $i6, $i7, $i8, $i9, $i10, $i11, $i12, $i13, $i14, $i15, $i16, $i17, $i18, $i19, $i20, $i21, $i22, $i23, i24, $i25, i26, $i28, $i30, $i32;
+        java.lang.Object r3, r25;
+
+        r1 := @this: org.eclipse.jdt.internal.compiler.ast.TryStatement;
+
+        r6 := @parameter0: org.eclipse.jdt.internal.compiler.lookup.BlockScope;
+
+        r0 := @parameter1: org.eclipse.jdt.internal.compiler.codegen.CodeStream;
+
+        r3 := @parameter2: java.lang.Object;
+
+        i4 := @parameter3: int;
+
+        r5 := @parameter4: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding;
+
+        z0 = r0 instanceof org.eclipse.jdt.internal.compiler.codegen.StackMapFrameCodeStream;
+
+        $i0 = specialinvoke r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int finallyMode()>();
+
+        tableswitch($i0)
+        {
+            case 0: goto label02;
+            case 1: goto label03;
+            case 2: goto label01;
+            default: goto label03;
+        };
+
+     label01:
+        $r2 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel subRoutineStartLabel>;
+
+        virtualinvoke r0.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void goto_(org.eclipse.jdt.internal.compiler.codegen.BranchLabel)>($r2);
+
+        return 1;
+
+     label02:
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: void exitDeclaredExceptionHandlers(org.eclipse.jdt.internal.compiler.codegen.CodeStream)>(r0);
+
+        return 0;
+
+     label03:
+        if r3 == null goto label13;
+
+        z4 = 1;
+
+        $i8 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int reusableJSRTargetsCount>;
+
+        if $i8 <= 0 goto label10;
+
+        i26 = 0;
+
+        i24 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int reusableJSRTargetsCount>;
+
+        goto label09;
+
+     label04:
+        $r24 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: java.lang.Object[] reusableJSRTargets>;
+
+        r25 = $r24[i26];
+
+        if r3 != r25 goto label05;
+
+        goto label06;
+
+     label05:
+        $z1 = r3 instanceof org.eclipse.jdt.internal.compiler.impl.Constant;
+
+        if $z1 == 0 goto label08;
+
+        $z2 = r25 instanceof org.eclipse.jdt.internal.compiler.impl.Constant;
+
+        if $z2 == 0 goto label08;
+
+        $r27 = (org.eclipse.jdt.internal.compiler.impl.Constant) r3;
+
+        $r26 = (org.eclipse.jdt.internal.compiler.impl.Constant) r25;
+
+        $z3 = virtualinvoke $r27.<org.eclipse.jdt.internal.compiler.impl.Constant: boolean hasSameValue(org.eclipse.jdt.internal.compiler.impl.Constant)>($r26);
+
+        if $z3 == 0 goto label08;
+
+     label06:
+        $r28 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int[] reusableJSRStateIndexes>;
+
+        $i25 = $r28[i26];
+
+        if $i25 == i4 goto label07;
+
+        if $i0 != 3 goto label07;
+
+        if z0 == 0 goto label07;
+
+        z4 = 0;
+
+        goto label11;
+
+     label07:
+        $r29 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel[] reusableJSRSequenceStartLabels>;
+
+        $r30 = $r29[i26];
+
+        virtualinvoke r0.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void goto_(org.eclipse.jdt.internal.compiler.codegen.BranchLabel)>($r30);
+
+        return 1;
+
+     label08:
+        i26 = i26 + 1;
+
+     label09:
+        if i26 < i24 goto label04;
+
+        goto label11;
+
+     label10:
+        $r10 = newarray (java.lang.Object)[3];
+
+        r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: java.lang.Object[] reusableJSRTargets> = $r10;
+
+        $r11 = newarray (org.eclipse.jdt.internal.compiler.codegen.BranchLabel)[3];
+
+        r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel[] reusableJSRSequenceStartLabels> = $r11;
+
+        $r12 = newarray (int)[3];
+
+        r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int[] reusableJSRStateIndexes> = $r12;
+
+     label11:
+        if z4 == 0 goto label13;
+
+        $i10 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int reusableJSRTargetsCount>;
+
+        $r13 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: java.lang.Object[] reusableJSRTargets>;
+
+        $i9 = lengthof $r13;
+
+        if $i10 != $i9 goto label12;
+
+        $r19 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: java.lang.Object[] reusableJSRTargets>;
+
+        $i15 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int reusableJSRTargetsCount>;
+
+        $i16 = 2 * $i15;
+
+        $r18 = newarray (java.lang.Object)[$i16];
+
+        r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: java.lang.Object[] reusableJSRTargets> = $r18;
+
+        $i17 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int reusableJSRTargetsCount>;
+
+        staticinvoke <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)>($r19, 0, $r18, 0, $i17);
+
+        $r21 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel[] reusableJSRSequenceStartLabels>;
+
+        $i18 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int reusableJSRTargetsCount>;
+
+        $i19 = 2 * $i18;
+
+        $r20 = newarray (org.eclipse.jdt.internal.compiler.codegen.BranchLabel)[$i19];
+
+        r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel[] reusableJSRSequenceStartLabels> = $r20;
+
+        $i20 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int reusableJSRTargetsCount>;
+
+        staticinvoke <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)>($r21, 0, $r20, 0, $i20);
+
+        $r23 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int[] reusableJSRStateIndexes>;
+
+        $i21 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int reusableJSRTargetsCount>;
+
+        $i22 = 2 * $i21;
+
+        $r22 = newarray (int)[$i22];
+
+        r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int[] reusableJSRStateIndexes> = $r22;
+
+        $i23 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int reusableJSRTargetsCount>;
+
+        staticinvoke <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)>($r23, 0, $r22, 0, $i23);
+
+     label12:
+        $r14 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: java.lang.Object[] reusableJSRTargets>;
+
+        $i11 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int reusableJSRTargetsCount>;
+
+        $r14[$i11] = r3;
+
+        $r31 = new org.eclipse.jdt.internal.compiler.codegen.BranchLabel;
+
+        specialinvoke $r31.<org.eclipse.jdt.internal.compiler.codegen.BranchLabel: void <init>(org.eclipse.jdt.internal.compiler.codegen.CodeStream)>(r0);
+
+        virtualinvoke $r31.<org.eclipse.jdt.internal.compiler.codegen.BranchLabel: void place()>();
+
+        $r16 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int[] reusableJSRStateIndexes>;
+
+        $i12 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int reusableJSRTargetsCount>;
+
+        $r16[$i12] = i4;
+
+        $r17 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel[] reusableJSRSequenceStartLabels>;
+
+        $i13 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int reusableJSRTargetsCount>;
+
+        $i14 = $i13 + 1;
+
+        r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int reusableJSRTargetsCount> = $i14;
+
+        $r17[$i13] = $r31;
+
+     label13:
+        if $i0 != 3 goto label18;
+
+        if z0 == 0 goto label15;
+
+        $r9 = (org.eclipse.jdt.internal.compiler.codegen.StackMapFrameCodeStream) r0;
+
+        virtualinvoke $r9.<org.eclipse.jdt.internal.compiler.codegen.StackMapFrameCodeStream: void pushStateIndex(int)>(i4);
+
+        $i5 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int naturalExitMergeInitStateIndex>;
+
+        $i28 = (int) -1;
+
+        if $i5 != $i28 goto label14;
+
+        $i30 = (int) -1;
+
+        if i4 == $i30 goto label16;
+
+     label14:
+        $i6 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int naturalExitMergeInitStateIndex>;
+
+        virtualinvoke r0.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void removeNotDefinitelyAssignedVariables(org.eclipse.jdt.internal.compiler.lookup.Scope,int)>(r6, $i6);
+
+        $i7 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int naturalExitMergeInitStateIndex>;
+
+        virtualinvoke r0.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void addDefinitelyAssignedVariables(org.eclipse.jdt.internal.compiler.lookup.Scope,int)>(r6, $i7);
+
+        goto label16;
+
+     label15:
+        $i1 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int naturalExitMergeInitStateIndex>;
+
+        $i32 = (int) -1;
+
+        if $i1 == $i32 goto label16;
+
+        $i2 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int naturalExitMergeInitStateIndex>;
+
+        virtualinvoke r0.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void removeNotDefinitelyAssignedVariables(org.eclipse.jdt.internal.compiler.lookup.Scope,int)>(r6, $i2);
+
+        $i3 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int naturalExitMergeInitStateIndex>;
+
+        virtualinvoke r0.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void addDefinitelyAssignedVariables(org.eclipse.jdt.internal.compiler.lookup.Scope,int)>(r6, $i3);
+
+     label16:
+        if r5 == null goto label17;
+
+        virtualinvoke r0.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void addVariable(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>(r5);
+
+     label17:
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: void exitAnyExceptionHandler()>();
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: void exitDeclaredExceptionHandlers(org.eclipse.jdt.internal.compiler.codegen.CodeStream)>(r0);
+
+        $r7 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block finallyBlock>;
+
+        virtualinvoke $r7.<org.eclipse.jdt.internal.compiler.ast.Block: void generateCode(org.eclipse.jdt.internal.compiler.lookup.BlockScope,org.eclipse.jdt.internal.compiler.codegen.CodeStream)>(r6, r0);
+
+        if z0 == 0 goto label19;
+
+        $r8 = (org.eclipse.jdt.internal.compiler.codegen.StackMapFrameCodeStream) r0;
+
+        virtualinvoke $r8.<org.eclipse.jdt.internal.compiler.codegen.StackMapFrameCodeStream: void popStateIndex()>();
+
+        goto label19;
+
+     label18:
+        $r4 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel subRoutineStartLabel>;
+
+        virtualinvoke r0.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void jsr(org.eclipse.jdt.internal.compiler.codegen.BranchLabel)>($r4);
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: void exitAnyExceptionHandler()>();
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: void exitDeclaredExceptionHandlers(org.eclipse.jdt.internal.compiler.codegen.CodeStream)>(r0);
+
+     label19:
+        return 0;
+    }
+
+    public boolean isSubRoutineEscaping()
+    {
+        int $i0, $i1;
+        org.eclipse.jdt.internal.compiler.ast.TryStatement r0;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.ast.TryStatement;
+
+        $i0 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: int bits>;
+
+        $i1 = $i0 & 16384;
+
+        if $i1 == 0 goto label1;
+
+        return 1;
+
+     label1:
+        return 0;
+    }
+
+    public java.lang.StringBuffer printStatement(int, java.lang.StringBuffer)
+    {
+        org.eclipse.jdt.internal.compiler.ast.Block $r3, $r5, $r7, $r14;
+        java.lang.StringBuffer r0, $r1, $r6, $r9, $r12;
+        org.eclipse.jdt.internal.compiler.ast.Block[] $r4, $r8, $r13;
+        int i0, $i1, $i2, $i3, $i4, i5;
+        org.eclipse.jdt.internal.compiler.ast.Argument[] $r10;
+        org.eclipse.jdt.internal.compiler.ast.Argument $r11;
+        org.eclipse.jdt.internal.compiler.ast.TryStatement r2;
+
+        r2 := @this: org.eclipse.jdt.internal.compiler.ast.TryStatement;
+
+        i0 := @parameter0: int;
+
+        r0 := @parameter1: java.lang.StringBuffer;
+
+        $r1 = staticinvoke <org.eclipse.jdt.internal.compiler.ast.TryStatement: java.lang.StringBuffer printIndent(int,java.lang.StringBuffer)>(i0, r0);
+
+        virtualinvoke $r1.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>("try \n");
+
+        $r3 = r2.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block tryBlock>;
+
+        $i1 = i0 + 1;
+
+        virtualinvoke $r3.<org.eclipse.jdt.internal.compiler.ast.Block: java.lang.StringBuffer printStatement(int,java.lang.StringBuffer)>($i1, r0);
+
+        $r4 = r2.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block[] catchBlocks>;
+
+        if $r4 == null goto label3;
+
+        i5 = 0;
+
+        goto label2;
+
+     label1:
+        virtualinvoke r0.<java.lang.StringBuffer: java.lang.StringBuffer append(char)>(10);
+
+        $r9 = staticinvoke <org.eclipse.jdt.internal.compiler.ast.TryStatement: java.lang.StringBuffer printIndent(int,java.lang.StringBuffer)>(i0, r0);
+
+        virtualinvoke $r9.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>("catch (");
+
+        $r10 = r2.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Argument[] catchArguments>;
+
+        $r11 = $r10[i5];
+
+        $r12 = virtualinvoke $r11.<org.eclipse.jdt.internal.compiler.ast.Argument: java.lang.StringBuffer print(int,java.lang.StringBuffer)>(0, r0);
+
+        virtualinvoke $r12.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>(") ");
+
+        $r13 = r2.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block[] catchBlocks>;
+
+        $r14 = $r13[i5];
+
+        $i4 = i0 + 1;
+
+        virtualinvoke $r14.<org.eclipse.jdt.internal.compiler.ast.Block: java.lang.StringBuffer printStatement(int,java.lang.StringBuffer)>($i4, r0);
+
+        i5 = i5 + 1;
+
+     label2:
+        $r8 = r2.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block[] catchBlocks>;
+
+        $i3 = lengthof $r8;
+
+        if i5 < $i3 goto label1;
+
+     label3:
+        $r5 = r2.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block finallyBlock>;
+
+        if $r5 == null goto label4;
+
+        virtualinvoke r0.<java.lang.StringBuffer: java.lang.StringBuffer append(char)>(10);
+
+        $r6 = staticinvoke <org.eclipse.jdt.internal.compiler.ast.TryStatement: java.lang.StringBuffer printIndent(int,java.lang.StringBuffer)>(i0, r0);
+
+        virtualinvoke $r6.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>("finally\n");
+
+        $r7 = r2.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block finallyBlock>;
+
+        $i2 = i0 + 1;
+
+        virtualinvoke $r7.<org.eclipse.jdt.internal.compiler.ast.Block: java.lang.StringBuffer printStatement(int,java.lang.StringBuffer)>($i2, r0);
+
+     label4:
+        return r0;
+    }
+
+    public void resolve(org.eclipse.jdt.internal.compiler.lookup.BlockScope)
+    {
+        org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding $r36, $r40, $r42, $r48, $r50, $r52, $r53, $r56, $r58;
+        org.eclipse.jdt.internal.compiler.lookup.MethodScope $r33;
+        org.eclipse.jdt.internal.compiler.lookup.TypeBinding $r13, $r18, $r22, $r27, r66;
+        org.eclipse.jdt.internal.compiler.lookup.MethodBinding r65;
+        org.eclipse.jdt.internal.compiler.impl.Constant $r41, $r51, $r57;
+        org.eclipse.jdt.internal.compiler.ast.TryStatement r0;
+        org.eclipse.jdt.internal.compiler.impl.CompilerOptions $r34;
+        org.eclipse.jdt.internal.compiler.lookup.BlockScope $r1, r2, $r3, $r4, $r7, $r9, $r10, $r24, $r30, $r31, $r32, $r37, $r60, r64;
+        char[] $r38, $r49, $r54;
+        org.eclipse.jdt.internal.compiler.ast.Block $r5, $r15, $r29, $r59, $r62, $r63, $r67, $r69;
+        org.eclipse.jdt.internal.compiler.problem.ProblemReporter $r25, $r61;
+        org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding[] $r6, $r17, $r20, $r21, $r26;
+        org.eclipse.jdt.internal.compiler.ast.Block[] $r14, $r70;
+        org.eclipse.jdt.internal.compiler.ast.Argument[] $r8, $r11, $r43, $r68;
+        boolean $z0, $z1, $z2, $z3, z4;
+        org.eclipse.jdt.internal.compiler.ast.Argument $r12;
+        org.eclipse.jdt.internal.compiler.codegen.BranchLabel $r35;
+        org.eclipse.jdt.internal.compiler.lookup.BlockScope[] $r16, $r44, $r45;
+        org.eclipse.jdt.internal.compiler.impl.ReferenceContext $r46;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, i8, i9, i10, i11;
+        org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding $r19, $r23, $r28, $r39, $r55;
+        org.eclipse.jdt.internal.compiler.lookup.TypeBinding[] r71;
+        org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration $r47;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.ast.TryStatement;
+
+        r2 := @parameter0: org.eclipse.jdt.internal.compiler.lookup.BlockScope;
+
+        $r1 = new org.eclipse.jdt.internal.compiler.lookup.BlockScope;
+
+        specialinvoke $r1.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: void <init>(org.eclipse.jdt.internal.compiler.lookup.BlockScope)>(r2);
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope> = $r1;
+
+        $r3 = new org.eclipse.jdt.internal.compiler.lookup.BlockScope;
+
+        $r4 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        specialinvoke $r3.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: void <init>(org.eclipse.jdt.internal.compiler.lookup.BlockScope)>($r4);
+
+        r64 = null;
+
+        $r5 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block finallyBlock>;
+
+        if $r5 == null goto label06;
+
+        $r29 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block finallyBlock>;
+
+        $z1 = virtualinvoke $r29.<org.eclipse.jdt.internal.compiler.ast.Block: boolean isEmptyBlock()>();
+
+        if $z1 == 0 goto label01;
+
+        $r59 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block finallyBlock>;
+
+        $i3 = $r59.<org.eclipse.jdt.internal.compiler.ast.Block: int bits>;
+
+        $i4 = $i3 & 8;
+
+        if $i4 == 0 goto label06;
+
+        $r60 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        $r61 = virtualinvoke $r60.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.problem.ProblemReporter problemReporter()>();
+
+        $r62 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block finallyBlock>;
+
+        $i6 = $r62.<org.eclipse.jdt.internal.compiler.ast.Block: int sourceStart>;
+
+        $r63 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block finallyBlock>;
+
+        $i5 = $r63.<org.eclipse.jdt.internal.compiler.ast.Block: int sourceEnd>;
+
+        virtualinvoke $r61.<org.eclipse.jdt.internal.compiler.problem.ProblemReporter: void undocumentedEmptyBlock(int,int)>($i6, $i5);
+
+        goto label06;
+
+     label01:
+        $r30 = new org.eclipse.jdt.internal.compiler.lookup.BlockScope;
+
+        $r31 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        specialinvoke $r30.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: void <init>(org.eclipse.jdt.internal.compiler.lookup.BlockScope,boolean)>($r31, 0);
+
+        r64 = $r30;
+
+        $r32 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        $r33 = virtualinvoke $r32.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.lookup.MethodScope methodScope()>();
+
+        $r34 = virtualinvoke r2.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.impl.CompilerOptions compilerOptions()>();
+
+        $z2 = $r34.<org.eclipse.jdt.internal.compiler.impl.CompilerOptions: boolean inlineJsrBytecode>;
+
+        if $z2 != 0 goto label02;
+
+        $r53 = new org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding;
+
+        $r54 = <org.eclipse.jdt.internal.compiler.ast.TryStatement: char[] SECRET_RETURN_ADDRESS_NAME>;
+
+        $r55 = virtualinvoke r2.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding getJavaLangObject()>();
+
+        specialinvoke $r53.<org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding: void <init>(char[],org.eclipse.jdt.internal.compiler.lookup.TypeBinding,int,boolean)>($r54, $r55, 0, 0);
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding returnAddressVariable> = $r53;
+
+        $r56 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding returnAddressVariable>;
+
+        virtualinvoke $r30.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: void addLocalVariable(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r56);
+
+        $r58 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding returnAddressVariable>;
+
+        $r57 = <org.eclipse.jdt.internal.compiler.impl.Constant: org.eclipse.jdt.internal.compiler.impl.Constant NotAConstant>;
+
+        virtualinvoke $r58.<org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding: void setConstant(org.eclipse.jdt.internal.compiler.impl.Constant)>($r57);
+
+     label02:
+        $r35 = new org.eclipse.jdt.internal.compiler.codegen.BranchLabel;
+
+        specialinvoke $r35.<org.eclipse.jdt.internal.compiler.codegen.BranchLabel: void <init>()>();
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel subRoutineStartLabel> = $r35;
+
+        $r36 = new org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding;
+
+        $r38 = <org.eclipse.jdt.internal.compiler.ast.TryStatement: char[] SECRET_ANY_HANDLER_NAME>;
+
+        $r37 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        $r39 = virtualinvoke $r37.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding getJavaLangThrowable()>();
+
+        specialinvoke $r36.<org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding: void <init>(char[],org.eclipse.jdt.internal.compiler.lookup.TypeBinding,int,boolean)>($r38, $r39, 0, 0);
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding anyExceptionVariable> = $r36;
+
+        $r40 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding anyExceptionVariable>;
+
+        virtualinvoke $r30.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: void addLocalVariable(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r40);
+
+        $r42 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding anyExceptionVariable>;
+
+        $r41 = <org.eclipse.jdt.internal.compiler.impl.Constant: org.eclipse.jdt.internal.compiler.impl.Constant NotAConstant>;
+
+        virtualinvoke $r42.<org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding: void setConstant(org.eclipse.jdt.internal.compiler.impl.Constant)>($r41);
+
+        $z3 = virtualinvoke $r33.<org.eclipse.jdt.internal.compiler.lookup.MethodScope: boolean isInsideInitializer()>();
+
+        if $z3 != 0 goto label03;
+
+        $r46 = $r33.<org.eclipse.jdt.internal.compiler.lookup.MethodScope: org.eclipse.jdt.internal.compiler.impl.ReferenceContext referenceContext>;
+
+        $r47 = (org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration) $r46;
+
+        r65 = $r47.<org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration: org.eclipse.jdt.internal.compiler.lookup.MethodBinding binding>;
+
+        if r65 == null goto label03;
+
+        r66 = r65.<org.eclipse.jdt.internal.compiler.lookup.MethodBinding: org.eclipse.jdt.internal.compiler.lookup.TypeBinding returnType>;
+
+        $i2 = r66.<org.eclipse.jdt.internal.compiler.lookup.TypeBinding: int id>;
+
+        if $i2 == 6 goto label03;
+
+        $r48 = new org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding;
+
+        $r49 = <org.eclipse.jdt.internal.compiler.ast.TryStatement: char[] SECRET_RETURN_VALUE_NAME>;
+
+        specialinvoke $r48.<org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding: void <init>(char[],org.eclipse.jdt.internal.compiler.lookup.TypeBinding,int,boolean)>($r49, r66, 0, 0);
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding secretReturnValue> = $r48;
+
+        $r50 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding secretReturnValue>;
+
+        virtualinvoke $r30.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: void addLocalVariable(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r50);
+
+        $r52 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding secretReturnValue>;
+
+        $r51 = <org.eclipse.jdt.internal.compiler.impl.Constant: org.eclipse.jdt.internal.compiler.impl.Constant NotAConstant>;
+
+        virtualinvoke $r52.<org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding: void setConstant(org.eclipse.jdt.internal.compiler.impl.Constant)>($r51);
+
+     label03:
+        $r67 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block finallyBlock>;
+
+        virtualinvoke $r67.<org.eclipse.jdt.internal.compiler.ast.Block: void resolveUsing(org.eclipse.jdt.internal.compiler.lookup.BlockScope)>($r30);
+
+        $r68 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Argument[] catchArguments>;
+
+        if $r68 != null goto label04;
+
+        $i7 = 1;
+
+        goto label05;
+
+     label04:
+        $r43 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Argument[] catchArguments>;
+
+        $i1 = lengthof $r43;
+
+        $i7 = $i1 + 1;
+
+     label05:
+        $r44 = newarray (org.eclipse.jdt.internal.compiler.lookup.BlockScope)[$i7];
+
+        $r30.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.lookup.BlockScope[] shiftScopes> = $r44;
+
+        $r45 = $r30.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.lookup.BlockScope[] shiftScopes>;
+
+        $r45[0] = $r3;
+
+     label06:
+        $r69 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block tryBlock>;
+
+        virtualinvoke $r69.<org.eclipse.jdt.internal.compiler.ast.Block: void resolveUsing(org.eclipse.jdt.internal.compiler.lookup.BlockScope)>($r3);
+
+        $r70 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block[] catchBlocks>;
+
+        if $r70 == null goto label17;
+
+        $r8 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Argument[] catchArguments>;
+
+        i8 = lengthof $r8;
+
+        r71 = newarray (org.eclipse.jdt.internal.compiler.lookup.TypeBinding)[i8];
+
+        z4 = 0;
+
+        i9 = 0;
+
+        goto label10;
+
+     label07:
+        $r9 = new org.eclipse.jdt.internal.compiler.lookup.BlockScope;
+
+        $r10 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        specialinvoke $r9.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: void <init>(org.eclipse.jdt.internal.compiler.lookup.BlockScope)>($r10);
+
+        if r64 == null goto label08;
+
+        $r16 = r64.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.lookup.BlockScope[] shiftScopes>;
+
+        $i0 = i9 + 1;
+
+        $r16[$i0] = $r9;
+
+     label08:
+        $r11 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Argument[] catchArguments>;
+
+        $r12 = $r11[i9];
+
+        $r13 = virtualinvoke $r12.<org.eclipse.jdt.internal.compiler.ast.Argument: org.eclipse.jdt.internal.compiler.lookup.TypeBinding resolveForCatch(org.eclipse.jdt.internal.compiler.lookup.BlockScope)>($r9);
+
+        r71[i9] = $r13;
+
+        if $r13 != null goto label09;
+
+        z4 = 1;
+
+     label09:
+        $r14 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block[] catchBlocks>;
+
+        $r15 = $r14[i9];
+
+        virtualinvoke $r15.<org.eclipse.jdt.internal.compiler.ast.Block: void resolveUsing(org.eclipse.jdt.internal.compiler.lookup.BlockScope)>($r9);
+
+        i9 = i9 + 1;
+
+     label10:
+        if i9 < i8 goto label07;
+
+        if z4 == 0 goto label11;
+
+        return;
+
+     label11:
+        $r17 = newarray (org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding)[i8];
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding[] caughtExceptionTypes> = $r17;
+
+        i10 = 0;
+
+        goto label16;
+
+     label12:
+        $r20 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding[] caughtExceptionTypes>;
+
+        $r18 = r71[i10];
+
+        $r19 = (org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding) $r18;
+
+        $r20[i10] = $r19;
+
+        i11 = 0;
+
+        goto label15;
+
+     label13:
+        $r21 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding[] caughtExceptionTypes>;
+
+        $r23 = $r21[i10];
+
+        $r22 = r71[i11];
+
+        $z0 = virtualinvoke $r23.<org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding: boolean isCompatibleWith(org.eclipse.jdt.internal.compiler.lookup.TypeBinding)>($r22);
+
+        if $z0 == 0 goto label14;
+
+        $r24 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        $r25 = virtualinvoke $r24.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.problem.ProblemReporter problemReporter()>();
+
+        $r26 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding[] caughtExceptionTypes>;
+
+        $r28 = $r26[i10];
+
+        $r27 = r71[i11];
+
+        virtualinvoke $r25.<org.eclipse.jdt.internal.compiler.problem.ProblemReporter: void wrongSequenceOfExceptionTypesError(org.eclipse.jdt.internal.compiler.ast.TryStatement,org.eclipse.jdt.internal.compiler.lookup.TypeBinding,int,org.eclipse.jdt.internal.compiler.lookup.TypeBinding)>(r0, $r28, i10, $r27);
+
+     label14:
+        i11 = i11 + 1;
+
+     label15:
+        if i11 < i10 goto label13;
+
+        i10 = i10 + 1;
+
+     label16:
+        if i10 < i8 goto label12;
+
+        goto label18;
+
+     label17:
+        $r6 = newarray (org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding)[0];
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding[] caughtExceptionTypes> = $r6;
+
+     label18:
+        if r64 == null goto label19;
+
+        $r7 = r0.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        virtualinvoke $r7.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: void addSubscope(org.eclipse.jdt.internal.compiler.lookup.Scope)>(r64);
+
+     label19:
+        return;
+    }
+
+    public void traverse(org.eclipse.jdt.internal.compiler.ASTVisitor, org.eclipse.jdt.internal.compiler.lookup.BlockScope)
+    {
+        org.eclipse.jdt.internal.compiler.lookup.BlockScope r2, $r3, $r7, $r11, $r14;
+        org.eclipse.jdt.internal.compiler.ast.Block $r4, $r6, $r8, $r15;
+        org.eclipse.jdt.internal.compiler.ASTVisitor r0;
+        org.eclipse.jdt.internal.compiler.ast.Block[] $r9, $r13;
+        int i0, i1;
+        org.eclipse.jdt.internal.compiler.ast.Argument[] $r5, $r10;
+        boolean $z0;
+        org.eclipse.jdt.internal.compiler.ast.Argument $r12;
+        org.eclipse.jdt.internal.compiler.ast.TryStatement r1;
+
+        r1 := @this: org.eclipse.jdt.internal.compiler.ast.TryStatement;
+
+        r0 := @parameter0: org.eclipse.jdt.internal.compiler.ASTVisitor;
+
+        r2 := @parameter1: org.eclipse.jdt.internal.compiler.lookup.BlockScope;
+
+        $z0 = virtualinvoke r0.<org.eclipse.jdt.internal.compiler.ASTVisitor: boolean visit(org.eclipse.jdt.internal.compiler.ast.TryStatement,org.eclipse.jdt.internal.compiler.lookup.BlockScope)>(r1, r2);
+
+        if $z0 == 0 goto label4;
+
+        $r4 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block tryBlock>;
+
+        $r3 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        virtualinvoke $r4.<org.eclipse.jdt.internal.compiler.ast.Block: void traverse(org.eclipse.jdt.internal.compiler.ASTVisitor,org.eclipse.jdt.internal.compiler.lookup.BlockScope)>(r0, $r3);
+
+        $r5 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Argument[] catchArguments>;
+
+        if $r5 == null goto label3;
+
+        i1 = 0;
+
+        $r9 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block[] catchBlocks>;
+
+        i0 = lengthof $r9;
+
+        goto label2;
+
+     label1:
+        $r10 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Argument[] catchArguments>;
+
+        $r12 = $r10[i1];
+
+        $r11 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        virtualinvoke $r12.<org.eclipse.jdt.internal.compiler.ast.Argument: void traverse(org.eclipse.jdt.internal.compiler.ASTVisitor,org.eclipse.jdt.internal.compiler.lookup.BlockScope)>(r0, $r11);
+
+        $r13 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block[] catchBlocks>;
+
+        $r15 = $r13[i1];
+
+        $r14 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        virtualinvoke $r15.<org.eclipse.jdt.internal.compiler.ast.Block: void traverse(org.eclipse.jdt.internal.compiler.ASTVisitor,org.eclipse.jdt.internal.compiler.lookup.BlockScope)>(r0, $r14);
+
+        i1 = i1 + 1;
+
+     label2:
+        if i1 < i0 goto label1;
+
+     label3:
+        $r6 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block finallyBlock>;
+
+        if $r6 == null goto label4;
+
+        $r8 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.ast.Block finallyBlock>;
+
+        $r7 = r1.<org.eclipse.jdt.internal.compiler.ast.TryStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        virtualinvoke $r8.<org.eclipse.jdt.internal.compiler.ast.Block: void traverse(org.eclipse.jdt.internal.compiler.ASTVisitor,org.eclipse.jdt.internal.compiler.lookup.BlockScope)>(r0, $r7);
+
+     label4:
+        virtualinvoke r0.<org.eclipse.jdt.internal.compiler.ASTVisitor: void endVisit(org.eclipse.jdt.internal.compiler.ast.TryStatement,org.eclipse.jdt.internal.compiler.lookup.BlockScope)>(r1, r2);
+
+        return;
+    }
+}

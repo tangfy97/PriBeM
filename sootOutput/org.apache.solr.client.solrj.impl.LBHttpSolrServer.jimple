@@ -1,0 +1,1424 @@
+public class org.apache.solr.client.solrj.impl.LBHttpSolrServer extends org.apache.solr.client.solrj.SolrServer
+{
+    private final java.util.Map aliveServers;
+    private final java.util.Map zombieServers;
+    private volatile org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper[] aliveServerList;
+    private java.util.concurrent.ScheduledExecutorService aliveCheckExecutor;
+    private final org.apache.http.client.HttpClient httpClient;
+    private final boolean clientIsInternal;
+    private final java.util.concurrent.atomic.AtomicInteger counter;
+    private static final org.apache.solr.client.solrj.SolrQuery solrQuery;
+    private final org.apache.solr.client.solrj.ResponseParser parser;
+    private int interval;
+    private static final int CHECK_INTERVAL;
+    private static final int NONSTANDARD_PING_LIMIT;
+
+    public transient void <init>(java.lang.String[]) throws java.net.MalformedURLException
+    {
+        java.lang.String[] r1;
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer r0;
+
+        r0 := @this: org.apache.solr.client.solrj.impl.LBHttpSolrServer;
+
+        r1 := @parameter0: java.lang.String[];
+
+        specialinvoke r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: void <init>(org.apache.http.client.HttpClient,java.lang.String[])>(null, r1);
+
+        return;
+    }
+
+    public transient void <init>(org.apache.http.client.HttpClient, java.lang.String[]) throws java.net.MalformedURLException
+    {
+        org.apache.solr.client.solrj.impl.BinaryResponseParser $r2;
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer r0;
+        org.apache.http.client.HttpClient r1;
+        java.lang.String[] r3;
+
+        r0 := @this: org.apache.solr.client.solrj.impl.LBHttpSolrServer;
+
+        r1 := @parameter0: org.apache.http.client.HttpClient;
+
+        r3 := @parameter1: java.lang.String[];
+
+        $r2 = new org.apache.solr.client.solrj.impl.BinaryResponseParser;
+
+        specialinvoke $r2.<org.apache.solr.client.solrj.impl.BinaryResponseParser: void <init>()>();
+
+        specialinvoke r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: void <init>(org.apache.http.client.HttpClient,org.apache.solr.client.solrj.ResponseParser,java.lang.String[])>(r1, $r2, r3);
+
+        return;
+    }
+
+    public transient void <init>(org.apache.http.client.HttpClient, org.apache.solr.client.solrj.ResponseParser, java.lang.String[]) throws java.net.MalformedURLException
+    {
+        org.apache.solr.client.solrj.ResponseParser r6;
+        java.lang.String[] r7;
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper[] $r3;
+        java.util.LinkedHashMap $r15;
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper $r19;
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer r0;
+        org.apache.http.client.HttpClient r5, $r14;
+        java.util.concurrent.atomic.AtomicInteger $r17;
+        java.util.Map $r11;
+        int $i0, i1, $i3, $i5;
+        java.lang.String r8, $r12;
+        org.apache.solr.client.solrj.impl.HttpSolrServer $r10;
+        boolean $z0;
+        org.apache.solr.common.params.ModifiableSolrParams $r18;
+        java.util.concurrent.ConcurrentHashMap $r16;
+
+        r0 := @this: org.apache.solr.client.solrj.impl.LBHttpSolrServer;
+
+        r5 := @parameter0: org.apache.http.client.HttpClient;
+
+        r6 := @parameter1: org.apache.solr.client.solrj.ResponseParser;
+
+        r7 := @parameter2: java.lang.String[];
+
+        specialinvoke r0.<org.apache.solr.client.solrj.SolrServer: void <init>()>();
+
+        $r15 = new java.util.LinkedHashMap;
+
+        specialinvoke $r15.<java.util.LinkedHashMap: void <init>()>();
+
+        r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.util.Map aliveServers> = $r15;
+
+        $r16 = new java.util.concurrent.ConcurrentHashMap;
+
+        specialinvoke $r16.<java.util.concurrent.ConcurrentHashMap: void <init>()>();
+
+        r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.util.Map zombieServers> = $r16;
+
+        $r3 = newarray (org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper)[0];
+
+        r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper[] aliveServerList> = $r3;
+
+        $r17 = new java.util.concurrent.atomic.AtomicInteger;
+
+        $i3 = (int) -1;
+
+        specialinvoke $r17.<java.util.concurrent.atomic.AtomicInteger: void <init>(int)>($i3);
+
+        r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.util.concurrent.atomic.AtomicInteger counter> = $r17;
+
+        $i5 = (int) 60000;
+
+        r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: int interval> = $i5;
+
+        if r5 != null goto label1;
+
+        $z0 = 1;
+
+        goto label2;
+
+     label1:
+        $z0 = 0;
+
+     label2:
+        r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: boolean clientIsInternal> = $z0;
+
+        r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: org.apache.solr.client.solrj.ResponseParser parser> = r6;
+
+        if r5 != null goto label3;
+
+        $r18 = new org.apache.solr.common.params.ModifiableSolrParams;
+
+        specialinvoke $r18.<org.apache.solr.common.params.ModifiableSolrParams: void <init>()>();
+
+        virtualinvoke $r18.<org.apache.solr.common.params.ModifiableSolrParams: org.apache.solr.common.params.ModifiableSolrParams set(java.lang.String,boolean)>("retry", 0);
+
+        $r14 = staticinvoke <org.apache.solr.client.solrj.impl.HttpClientUtil: org.apache.http.client.HttpClient createClient(org.apache.solr.common.params.SolrParams)>($r18);
+
+        r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: org.apache.http.client.HttpClient httpClient> = $r14;
+
+        goto label4;
+
+     label3:
+        r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: org.apache.http.client.HttpClient httpClient> = r5;
+
+     label4:
+        $i0 = lengthof r7;
+
+        i1 = 0;
+
+     label5:
+        if i1 >= $i0 goto label6;
+
+        r8 = r7[i1];
+
+        $r19 = new org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper;
+
+        $r10 = virtualinvoke r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: org.apache.solr.client.solrj.impl.HttpSolrServer makeServer(java.lang.String)>(r8);
+
+        specialinvoke $r19.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper: void <init>(org.apache.solr.client.solrj.impl.HttpSolrServer)>($r10);
+
+        $r11 = r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.util.Map aliveServers>;
+
+        $r12 = virtualinvoke $r19.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper: java.lang.String getKey()>();
+
+        interfaceinvoke $r11.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>($r12, $r19);
+
+        i1 = i1 + 1;
+
+        goto label5;
+
+     label6:
+        specialinvoke r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: void updateAliveList()>();
+
+        return;
+    }
+
+    public static java.lang.String normalize(java.lang.String)
+    {
+        int $i0, $i1;
+        java.lang.String r0;
+        boolean $z0;
+
+        r0 := @parameter0: java.lang.String;
+
+        $z0 = virtualinvoke r0.<java.lang.String: boolean endsWith(java.lang.String)>("/");
+
+        if $z0 == 0 goto label1;
+
+        $i0 = virtualinvoke r0.<java.lang.String: int length()>();
+
+        $i1 = $i0 - 1;
+
+        r0 = virtualinvoke r0.<java.lang.String: java.lang.String substring(int,int)>(0, $i1);
+
+     label1:
+        return r0;
+    }
+
+    protected org.apache.solr.client.solrj.impl.HttpSolrServer makeServer(java.lang.String) throws java.net.MalformedURLException
+    {
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer r2;
+        org.apache.http.client.HttpClient $r4;
+        org.apache.solr.client.solrj.ResponseParser $r3;
+        java.lang.String r1;
+        org.apache.solr.client.solrj.impl.HttpSolrServer $r0;
+
+        r2 := @this: org.apache.solr.client.solrj.impl.LBHttpSolrServer;
+
+        r1 := @parameter0: java.lang.String;
+
+        $r0 = new org.apache.solr.client.solrj.impl.HttpSolrServer;
+
+        $r4 = r2.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: org.apache.http.client.HttpClient httpClient>;
+
+        $r3 = r2.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: org.apache.solr.client.solrj.ResponseParser parser>;
+
+        specialinvoke $r0.<org.apache.solr.client.solrj.impl.HttpSolrServer: void <init>(java.lang.String,org.apache.http.client.HttpClient,org.apache.solr.client.solrj.ResponseParser)>(r1, $r4, $r3);
+
+        return $r0;
+    }
+
+    public org.apache.solr.client.solrj.impl.LBHttpSolrServer$Rsp request(org.apache.solr.client.solrj.impl.LBHttpSolrServer$Req) throws org.apache.solr.client.solrj.SolrServerException, java.io.IOException
+    {
+        org.apache.solr.client.solrj.SolrServerException $r6, $r14, $r29, $r30, $r38, $r39;
+        org.apache.solr.common.SolrException $r34, $r43;
+        java.util.Map $r10, $r19, $r23, $r35;
+        org.apache.solr.client.solrj.impl.HttpSolrServer $r16, $r25;
+        boolean $z0, $z1, $z2, $z3;
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer$Rsp $r0;
+        java.util.Set $r11;
+        java.lang.Exception $r28, $r37, r44;
+        java.util.List $r3;
+        java.lang.StringBuilder $r7, $r8, $r12;
+        java.lang.Throwable $r31, $r40;
+        org.apache.solr.client.solrj.SolrRequest $r17, $r26;
+        java.util.ArrayList $r1;
+        java.net.SocketException $r33, $r42;
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper r46, r47;
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer r9;
+        java.net.SocketTimeoutException $r32, $r41;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i10;
+        java.lang.String $r13, $r20, $r22, $r36, r45;
+        java.util.Iterator $r4, $r5;
+        org.apache.solr.common.util.NamedList $r18, $r27;
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer$Req r2;
+        java.lang.Object $r15, $r21, $r24;
+
+        r9 := @this: org.apache.solr.client.solrj.impl.LBHttpSolrServer;
+
+        r2 := @parameter0: org.apache.solr.client.solrj.impl.LBHttpSolrServer$Req;
+
+        $r0 = new org.apache.solr.client.solrj.impl.LBHttpSolrServer$Rsp;
+
+        specialinvoke $r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$Rsp: void <init>()>();
+
+        r44 = null;
+
+        $r1 = new java.util.ArrayList;
+
+        $i0 = virtualinvoke r2.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$Req: int getNumDeadServersToTry()>();
+
+        specialinvoke $r1.<java.util.ArrayList: void <init>(int)>($i0);
+
+        $r3 = virtualinvoke r2.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$Req: java.util.List getServers()>();
+
+        $r4 = interfaceinvoke $r3.<java.util.List: java.util.Iterator iterator()>();
+
+     label01:
+        $z3 = interfaceinvoke $r4.<java.util.Iterator: boolean hasNext()>();
+
+        if $z3 == 0 goto label16;
+
+        $r21 = interfaceinvoke $r4.<java.util.Iterator: java.lang.Object next()>();
+
+        r45 = (java.lang.String) $r21;
+
+        $r22 = staticinvoke <org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.lang.String normalize(java.lang.String)>(r45);
+
+        $r23 = r9.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.util.Map zombieServers>;
+
+        $r24 = interfaceinvoke $r23.<java.util.Map: java.lang.Object get(java.lang.Object)>($r22);
+
+        r46 = (org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper) $r24;
+
+        if r46 == null goto label02;
+
+        $i1 = interfaceinvoke $r1.<java.util.List: int size()>();
+
+        $i2 = virtualinvoke r2.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$Req: int getNumDeadServersToTry()>();
+
+        if $i1 >= $i2 goto label01;
+
+        interfaceinvoke $r1.<java.util.List: boolean add(java.lang.Object)>(r46);
+
+        goto label01;
+
+     label02:
+        $r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$Rsp: java.lang.String server> = $r22;
+
+        $r25 = virtualinvoke r9.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: org.apache.solr.client.solrj.impl.HttpSolrServer makeServer(java.lang.String)>($r22);
+
+     label03:
+        $r26 = virtualinvoke r2.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$Req: org.apache.solr.client.solrj.SolrRequest getRequest()>();
+
+        $r27 = virtualinvoke $r25.<org.apache.solr.client.solrj.impl.HttpSolrServer: org.apache.solr.common.util.NamedList request(org.apache.solr.client.solrj.SolrRequest)>($r26);
+
+        $r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$Rsp: org.apache.solr.common.util.NamedList rsp> = $r27;
+
+     label04:
+        return $r0;
+
+     label05:
+        $r43 := @caughtexception;
+
+        $i7 = virtualinvoke $r43.<org.apache.solr.common.SolrException: int code()>();
+
+        if $i7 == 404 goto label06;
+
+        $i8 = virtualinvoke $r43.<org.apache.solr.common.SolrException: int code()>();
+
+        if $i8 == 403 goto label06;
+
+        $i9 = virtualinvoke $r43.<org.apache.solr.common.SolrException: int code()>();
+
+        if $i9 == 503 goto label06;
+
+        $i10 = virtualinvoke $r43.<org.apache.solr.common.SolrException: int code()>();
+
+        if $i10 != 500 goto label07;
+
+     label06:
+        r44 = specialinvoke r9.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.lang.Exception addZombie(org.apache.solr.client.solrj.impl.HttpSolrServer,java.lang.Exception)>($r25, $r43);
+
+        goto label08;
+
+     label07:
+        throw $r43;
+
+     label08:
+        goto label15;
+
+     label09:
+        $r42 := @caughtexception;
+
+        r44 = specialinvoke r9.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.lang.Exception addZombie(org.apache.solr.client.solrj.impl.HttpSolrServer,java.lang.Exception)>($r25, $r42);
+
+        goto label15;
+
+     label10:
+        $r41 := @caughtexception;
+
+        r44 = specialinvoke r9.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.lang.Exception addZombie(org.apache.solr.client.solrj.impl.HttpSolrServer,java.lang.Exception)>($r25, $r41);
+
+        goto label15;
+
+     label11:
+        $r39 := @caughtexception;
+
+        $r40 = virtualinvoke $r39.<org.apache.solr.client.solrj.SolrServerException: java.lang.Throwable getRootCause()>();
+
+        $z2 = $r40 instanceof java.io.IOException;
+
+        if $z2 == 0 goto label12;
+
+        r44 = specialinvoke r9.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.lang.Exception addZombie(org.apache.solr.client.solrj.impl.HttpSolrServer,java.lang.Exception)>($r25, $r39);
+
+        goto label13;
+
+     label12:
+        throw $r39;
+
+     label13:
+        goto label15;
+
+     label14:
+        $r37 := @caughtexception;
+
+        $r38 = new org.apache.solr.client.solrj.SolrServerException;
+
+        specialinvoke $r38.<org.apache.solr.client.solrj.SolrServerException: void <init>(java.lang.Throwable)>($r37);
+
+        throw $r38;
+
+     label15:
+        goto label01;
+
+     label16:
+        $r5 = interfaceinvoke $r1.<java.util.List: java.util.Iterator iterator()>();
+
+     label17:
+        $z0 = interfaceinvoke $r5.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label31;
+
+        $r15 = interfaceinvoke $r5.<java.util.Iterator: java.lang.Object next()>();
+
+        r47 = (org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper) $r15;
+
+     label18:
+        $r16 = r47.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper: org.apache.solr.client.solrj.impl.HttpSolrServer solrServer>;
+
+        $r17 = virtualinvoke r2.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$Req: org.apache.solr.client.solrj.SolrRequest getRequest()>();
+
+        $r18 = virtualinvoke $r16.<org.apache.solr.client.solrj.impl.HttpSolrServer: org.apache.solr.common.util.NamedList request(org.apache.solr.client.solrj.SolrRequest)>($r17);
+
+        $r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$Rsp: org.apache.solr.common.util.NamedList rsp> = $r18;
+
+        $r19 = r9.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.util.Map zombieServers>;
+
+        $r20 = virtualinvoke r47.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper: java.lang.String getKey()>();
+
+        interfaceinvoke $r19.<java.util.Map: java.lang.Object remove(java.lang.Object)>($r20);
+
+     label19:
+        return $r0;
+
+     label20:
+        $r34 := @caughtexception;
+
+        $i3 = virtualinvoke $r34.<org.apache.solr.common.SolrException: int code()>();
+
+        if $i3 == 404 goto label21;
+
+        $i4 = virtualinvoke $r34.<org.apache.solr.common.SolrException: int code()>();
+
+        if $i4 == 403 goto label21;
+
+        $i5 = virtualinvoke $r34.<org.apache.solr.common.SolrException: int code()>();
+
+        if $i5 == 503 goto label21;
+
+        $i6 = virtualinvoke $r34.<org.apache.solr.common.SolrException: int code()>();
+
+        if $i6 != 500 goto label22;
+
+     label21:
+        r44 = $r34;
+
+        goto label23;
+
+     label22:
+        $r35 = r9.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.util.Map zombieServers>;
+
+        $r36 = virtualinvoke r47.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper: java.lang.String getKey()>();
+
+        interfaceinvoke $r35.<java.util.Map: java.lang.Object remove(java.lang.Object)>($r36);
+
+        throw $r34;
+
+     label23:
+        goto label30;
+
+     label24:
+        $r33 := @caughtexception;
+
+        r44 = $r33;
+
+        goto label30;
+
+     label25:
+        $r32 := @caughtexception;
+
+        r44 = $r32;
+
+        goto label30;
+
+     label26:
+        $r30 := @caughtexception;
+
+        $r31 = virtualinvoke $r30.<org.apache.solr.client.solrj.SolrServerException: java.lang.Throwable getRootCause()>();
+
+        $z1 = $r31 instanceof java.io.IOException;
+
+        if $z1 == 0 goto label27;
+
+        r44 = $r30;
+
+        goto label28;
+
+     label27:
+        throw $r30;
+
+     label28:
+        goto label30;
+
+     label29:
+        $r28 := @caughtexception;
+
+        $r29 = new org.apache.solr.client.solrj.SolrServerException;
+
+        specialinvoke $r29.<org.apache.solr.client.solrj.SolrServerException: void <init>(java.lang.Throwable)>($r28);
+
+        throw $r29;
+
+     label30:
+        goto label17;
+
+     label31:
+        if r44 != null goto label32;
+
+        $r14 = new org.apache.solr.client.solrj.SolrServerException;
+
+        specialinvoke $r14.<org.apache.solr.client.solrj.SolrServerException: void <init>(java.lang.String)>("No live SolrServers available to handle this request");
+
+        throw $r14;
+
+     label32:
+        $r6 = new org.apache.solr.client.solrj.SolrServerException;
+
+        $r7 = new java.lang.StringBuilder;
+
+        specialinvoke $r7.<java.lang.StringBuilder: void <init>()>();
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("No live SolrServers available to handle this request:");
+
+        $r10 = r9.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.util.Map zombieServers>;
+
+        $r11 = interfaceinvoke $r10.<java.util.Map: java.util.Set keySet()>();
+
+        $r12 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r11);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r6.<org.apache.solr.client.solrj.SolrServerException: void <init>(java.lang.String,java.lang.Throwable)>($r13, r44);
+
+        throw $r6;
+
+        catch org.apache.solr.common.SolrException from label03 to label04 with label05;
+        catch java.net.SocketException from label03 to label04 with label09;
+        catch java.net.SocketTimeoutException from label03 to label04 with label10;
+        catch org.apache.solr.client.solrj.SolrServerException from label03 to label04 with label11;
+        catch java.lang.Exception from label03 to label04 with label14;
+        catch org.apache.solr.common.SolrException from label18 to label19 with label20;
+        catch java.net.SocketException from label18 to label19 with label24;
+        catch java.net.SocketTimeoutException from label18 to label19 with label25;
+        catch org.apache.solr.client.solrj.SolrServerException from label18 to label19 with label26;
+        catch java.lang.Exception from label18 to label19 with label29;
+    }
+
+    private java.lang.Exception addZombie(org.apache.solr.client.solrj.impl.HttpSolrServer, java.lang.Exception)
+    {
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper $r0;
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer r2;
+        java.util.Map $r3;
+        long $l0;
+        java.lang.String $r4;
+        org.apache.solr.client.solrj.impl.HttpSolrServer r1;
+        java.lang.Exception r5;
+
+        r2 := @this: org.apache.solr.client.solrj.impl.LBHttpSolrServer;
+
+        r1 := @parameter0: org.apache.solr.client.solrj.impl.HttpSolrServer;
+
+        r5 := @parameter1: java.lang.Exception;
+
+        $r0 = new org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper;
+
+        specialinvoke $r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper: void <init>(org.apache.solr.client.solrj.impl.HttpSolrServer)>(r1);
+
+        $l0 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        $r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper: long lastUsed> = $l0;
+
+        $r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper: boolean standard> = 0;
+
+        $r3 = r2.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.util.Map zombieServers>;
+
+        $r4 = virtualinvoke $r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper: java.lang.String getKey()>();
+
+        interfaceinvoke $r3.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>($r4, $r0);
+
+        specialinvoke r2.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: void startAliveCheckExecutor()>();
+
+        return r5;
+    }
+
+    private void updateAliveList()
+    {
+        java.lang.Throwable $r8;
+        java.lang.Object[] $r6;
+        java.util.Collection $r3;
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper[] $r5, $r7;
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer r0;
+        java.util.Map $r1, $r2, $r4;
+        int $i0;
+
+        r0 := @this: org.apache.solr.client.solrj.impl.LBHttpSolrServer;
+
+        $r1 = r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.util.Map aliveServers>;
+
+        entermonitor $r1;
+
+     label1:
+        $r2 = r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.util.Map aliveServers>;
+
+        $r3 = interfaceinvoke $r2.<java.util.Map: java.util.Collection values()>();
+
+        $r4 = r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.util.Map aliveServers>;
+
+        $i0 = interfaceinvoke $r4.<java.util.Map: int size()>();
+
+        $r5 = newarray (org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper)[$i0];
+
+        $r6 = interfaceinvoke $r3.<java.util.Collection: java.lang.Object[] toArray(java.lang.Object[])>($r5);
+
+        $r7 = (org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper[]) $r6;
+
+        r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper[] aliveServerList> = $r7;
+
+        exitmonitor $r1;
+
+     label2:
+        goto label5;
+
+     label3:
+        $r8 := @caughtexception;
+
+        exitmonitor $r1;
+
+     label4:
+        throw $r8;
+
+     label5:
+        return;
+
+        catch java.lang.Throwable from label1 to label2 with label3;
+        catch java.lang.Throwable from label3 to label4 with label3;
+    }
+
+    private org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper removeFromAlive(java.lang.String)
+    {
+        java.lang.Throwable $r6;
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper r5;
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer r0;
+        java.util.Map $r1, $r3;
+        java.lang.Object $r4;
+        java.lang.String r2;
+
+        r0 := @this: org.apache.solr.client.solrj.impl.LBHttpSolrServer;
+
+        r2 := @parameter0: java.lang.String;
+
+        $r1 = r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.util.Map aliveServers>;
+
+        entermonitor $r1;
+
+     label1:
+        $r3 = r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.util.Map aliveServers>;
+
+        $r4 = interfaceinvoke $r3.<java.util.Map: java.lang.Object remove(java.lang.Object)>(r2);
+
+        r5 = (org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper) $r4;
+
+        if r5 == null goto label2;
+
+        specialinvoke r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: void updateAliveList()>();
+
+     label2:
+        exitmonitor $r1;
+
+     label3:
+        return r5;
+
+     label4:
+        $r6 := @caughtexception;
+
+        exitmonitor $r1;
+
+     label5:
+        throw $r6;
+
+        catch java.lang.Throwable from label1 to label3 with label4;
+        catch java.lang.Throwable from label4 to label5 with label4;
+    }
+
+    private void addToAlive(org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper)
+    {
+        java.lang.Throwable $r7;
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper r2, r6;
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer r0;
+        java.util.Map $r1, $r3;
+        java.lang.Object $r5;
+        java.lang.String $r4;
+
+        r0 := @this: org.apache.solr.client.solrj.impl.LBHttpSolrServer;
+
+        r2 := @parameter0: org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper;
+
+        $r1 = r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.util.Map aliveServers>;
+
+        entermonitor $r1;
+
+     label1:
+        $r3 = r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.util.Map aliveServers>;
+
+        $r4 = virtualinvoke r2.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper: java.lang.String getKey()>();
+
+        $r5 = interfaceinvoke $r3.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>($r4, r2);
+
+        r6 = (org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper) $r5;
+
+        specialinvoke r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: void updateAliveList()>();
+
+        exitmonitor $r1;
+
+     label2:
+        goto label5;
+
+     label3:
+        $r7 := @caughtexception;
+
+        exitmonitor $r1;
+
+     label4:
+        throw $r7;
+
+     label5:
+        return;
+
+        catch java.lang.Throwable from label1 to label2 with label3;
+        catch java.lang.Throwable from label3 to label4 with label3;
+    }
+
+    public void addSolrServer(java.lang.String) throws java.net.MalformedURLException
+    {
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper $r3;
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer r0;
+        java.lang.String r1;
+        org.apache.solr.client.solrj.impl.HttpSolrServer $r2;
+
+        r0 := @this: org.apache.solr.client.solrj.impl.LBHttpSolrServer;
+
+        r1 := @parameter0: java.lang.String;
+
+        $r2 = virtualinvoke r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: org.apache.solr.client.solrj.impl.HttpSolrServer makeServer(java.lang.String)>(r1);
+
+        $r3 = new org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper;
+
+        specialinvoke $r3.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper: void <init>(org.apache.solr.client.solrj.impl.HttpSolrServer)>($r2);
+
+        specialinvoke r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: void addToAlive(org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper)>($r3);
+
+        return;
+    }
+
+    public java.lang.String removeSolrServer(java.lang.String)
+    {
+        java.net.MalformedURLException $r4;
+        java.net.URL $r0;
+        java.lang.RuntimeException $r5;
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer r2;
+        java.util.Map $r3;
+        int $i0, $i1;
+        java.lang.String $r1, r6, r7;
+        boolean $z0;
+
+        r2 := @this: org.apache.solr.client.solrj.impl.LBHttpSolrServer;
+
+        r6 := @parameter0: java.lang.String;
+
+     label1:
+        $r0 = new java.net.URL;
+
+        specialinvoke $r0.<java.net.URL: void <init>(java.lang.String)>(r6);
+
+        $r1 = virtualinvoke $r0.<java.net.URL: java.lang.String toExternalForm()>();
+
+        r7 = $r1;
+
+     label2:
+        goto label4;
+
+     label3:
+        $r4 := @caughtexception;
+
+        $r5 = new java.lang.RuntimeException;
+
+        specialinvoke $r5.<java.lang.RuntimeException: void <init>(java.lang.Throwable)>($r4);
+
+        throw $r5;
+
+     label4:
+        $z0 = virtualinvoke $r1.<java.lang.String: boolean endsWith(java.lang.String)>("/");
+
+        if $z0 == 0 goto label5;
+
+        $i0 = virtualinvoke $r1.<java.lang.String: int length()>();
+
+        $i1 = $i0 - 1;
+
+        r7 = virtualinvoke $r1.<java.lang.String: java.lang.String substring(int,int)>(0, $i1);
+
+     label5:
+        specialinvoke r2.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper removeFromAlive(java.lang.String)>(r7);
+
+        $r3 = r2.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.util.Map zombieServers>;
+
+        interfaceinvoke $r3.<java.util.Map: java.lang.Object remove(java.lang.Object)>(r7);
+
+        return null;
+
+        catch java.net.MalformedURLException from label1 to label2 with label3;
+    }
+
+    public void setConnectionTimeout(int)
+    {
+        int i0;
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer r0;
+        org.apache.http.client.HttpClient $r1;
+
+        r0 := @this: org.apache.solr.client.solrj.impl.LBHttpSolrServer;
+
+        i0 := @parameter0: int;
+
+        $r1 = r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: org.apache.http.client.HttpClient httpClient>;
+
+        staticinvoke <org.apache.solr.client.solrj.impl.HttpClientUtil: void setConnectionTimeout(org.apache.http.client.HttpClient,int)>($r1, i0);
+
+        return;
+    }
+
+    public void setSoTimeout(int)
+    {
+        int i0;
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer r0;
+        org.apache.http.client.HttpClient $r1;
+
+        r0 := @this: org.apache.solr.client.solrj.impl.LBHttpSolrServer;
+
+        i0 := @parameter0: int;
+
+        $r1 = r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: org.apache.http.client.HttpClient httpClient>;
+
+        staticinvoke <org.apache.solr.client.solrj.impl.HttpClientUtil: void setSoTimeout(org.apache.http.client.HttpClient,int)>($r1, i0);
+
+        return;
+    }
+
+    public void shutdown()
+    {
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer r0;
+        org.apache.http.client.HttpClient $r2;
+        org.apache.http.conn.ClientConnectionManager $r3;
+        java.util.concurrent.ScheduledExecutorService $r1, $r4;
+        boolean $z0;
+
+        r0 := @this: org.apache.solr.client.solrj.impl.LBHttpSolrServer;
+
+        $r1 = r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.util.concurrent.ScheduledExecutorService aliveCheckExecutor>;
+
+        if $r1 == null goto label1;
+
+        $r4 = r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.util.concurrent.ScheduledExecutorService aliveCheckExecutor>;
+
+        interfaceinvoke $r4.<java.util.concurrent.ScheduledExecutorService: java.util.List shutdownNow()>();
+
+     label1:
+        $z0 = r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: boolean clientIsInternal>;
+
+        if $z0 == 0 goto label2;
+
+        $r2 = r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: org.apache.http.client.HttpClient httpClient>;
+
+        $r3 = interfaceinvoke $r2.<org.apache.http.client.HttpClient: org.apache.http.conn.ClientConnectionManager getConnectionManager()>();
+
+        interfaceinvoke $r3.<org.apache.http.conn.ClientConnectionManager: void shutdown()>();
+
+     label2:
+        return;
+    }
+
+    public org.apache.solr.common.util.NamedList request(org.apache.solr.client.solrj.SolrRequest) throws org.apache.solr.client.solrj.SolrServerException, java.io.IOException
+    {
+        org.apache.solr.client.solrj.SolrServerException $r5, $r6, $r18, $r19, $r23, $r24, r29;
+        org.apache.solr.common.SolrException $r21, $r28;
+        java.util.concurrent.atomic.AtomicInteger $r14;
+        java.util.Map $r2, $r11;
+        org.apache.solr.client.solrj.impl.HttpSolrServer $r9, $r15;
+        boolean $z0, $z1, $z2, $z3, $z4;
+        java.util.Collection $r3;
+        java.lang.Exception $r17, $r22;
+        java.lang.Throwable $r20, $r25;
+        org.apache.solr.client.solrj.SolrRequest r8;
+        long $l4;
+        java.util.HashMap $r27, r30;
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper[] r1;
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper r31, r32;
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer r0;
+        int i0, $i1, $i2, $i3, i5;
+        java.lang.String $r12, $r13, $r26;
+        java.util.Iterator $r4;
+        org.apache.solr.common.util.NamedList $r10, $r16;
+        java.lang.Object $r7;
+
+        r0 := @this: org.apache.solr.client.solrj.impl.LBHttpSolrServer;
+
+        r8 := @parameter0: org.apache.solr.client.solrj.SolrRequest;
+
+        r29 = null;
+
+        r1 = r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper[] aliveServerList>;
+
+        i0 = lengthof r1;
+
+        r30 = null;
+
+        i5 = 0;
+
+     label01:
+        if i5 >= i0 goto label11;
+
+        $r14 = r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.util.concurrent.atomic.AtomicInteger counter>;
+
+        $i1 = virtualinvoke $r14.<java.util.concurrent.atomic.AtomicInteger: int incrementAndGet()>();
+
+        $i2 = lengthof r1;
+
+        $i3 = $i1 % $i2;
+
+        r31 = r1[$i3];
+
+        $l4 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        r31.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper: long lastUsed> = $l4;
+
+     label02:
+        $r15 = r31.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper: org.apache.solr.client.solrj.impl.HttpSolrServer solrServer>;
+
+        $r16 = virtualinvoke $r15.<org.apache.solr.client.solrj.impl.HttpSolrServer: org.apache.solr.common.util.NamedList request(org.apache.solr.client.solrj.SolrRequest)>(r8);
+
+     label03:
+        return $r16;
+
+     label04:
+        $r28 := @caughtexception;
+
+        throw $r28;
+
+     label05:
+        $r24 := @caughtexception;
+
+        $r25 = virtualinvoke $r24.<org.apache.solr.client.solrj.SolrServerException: java.lang.Throwable getRootCause()>();
+
+        $z3 = $r25 instanceof java.io.IOException;
+
+        if $z3 == 0 goto label07;
+
+        r29 = $r24;
+
+        specialinvoke r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: void moveAliveToDead(org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper)>(r31);
+
+        if r30 != null goto label06;
+
+        $r27 = new java.util.HashMap;
+
+        specialinvoke $r27.<java.util.HashMap: void <init>()>();
+
+        r30 = $r27;
+
+     label06:
+        $r26 = virtualinvoke r31.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper: java.lang.String getKey()>();
+
+        interfaceinvoke r30.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>($r26, r31);
+
+        goto label08;
+
+     label07:
+        throw $r24;
+
+     label08:
+        goto label10;
+
+     label09:
+        $r22 := @caughtexception;
+
+        $r23 = new org.apache.solr.client.solrj.SolrServerException;
+
+        specialinvoke $r23.<org.apache.solr.client.solrj.SolrServerException: void <init>(java.lang.Throwable)>($r22);
+
+        throw $r23;
+
+     label10:
+        i5 = i5 + 1;
+
+        goto label01;
+
+     label11:
+        $r2 = r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.util.Map zombieServers>;
+
+        $r3 = interfaceinvoke $r2.<java.util.Map: java.util.Collection values()>();
+
+        $r4 = interfaceinvoke $r3.<java.util.Collection: java.util.Iterator iterator()>();
+
+     label12:
+        $z4 = interfaceinvoke $r4.<java.util.Iterator: boolean hasNext()>();
+
+        if $z4 == 0 goto label21;
+
+        $r7 = interfaceinvoke $r4.<java.util.Iterator: java.lang.Object next()>();
+
+        r32 = (org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper) $r7;
+
+        $z0 = r32.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper: boolean standard>;
+
+        if $z0 == 0 goto label12;
+
+        if r30 == null goto label13;
+
+        $r13 = virtualinvoke r32.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper: java.lang.String getKey()>();
+
+        $z1 = interfaceinvoke r30.<java.util.Map: boolean containsKey(java.lang.Object)>($r13);
+
+        if $z1 == 0 goto label13;
+
+        goto label12;
+
+     label13:
+        $r9 = r32.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper: org.apache.solr.client.solrj.impl.HttpSolrServer solrServer>;
+
+        $r10 = virtualinvoke $r9.<org.apache.solr.client.solrj.impl.HttpSolrServer: org.apache.solr.common.util.NamedList request(org.apache.solr.client.solrj.SolrRequest)>(r8);
+
+        $r11 = r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.util.Map zombieServers>;
+
+        $r12 = virtualinvoke r32.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper: java.lang.String getKey()>();
+
+        interfaceinvoke $r11.<java.util.Map: java.lang.Object remove(java.lang.Object)>($r12);
+
+        specialinvoke r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: void addToAlive(org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper)>(r32);
+
+     label14:
+        return $r10;
+
+     label15:
+        $r21 := @caughtexception;
+
+        throw $r21;
+
+     label16:
+        $r19 := @caughtexception;
+
+        $r20 = virtualinvoke $r19.<org.apache.solr.client.solrj.SolrServerException: java.lang.Throwable getRootCause()>();
+
+        $z2 = $r20 instanceof java.io.IOException;
+
+        if $z2 == 0 goto label17;
+
+        r29 = $r19;
+
+        goto label18;
+
+     label17:
+        throw $r19;
+
+     label18:
+        goto label20;
+
+     label19:
+        $r17 := @caughtexception;
+
+        $r18 = new org.apache.solr.client.solrj.SolrServerException;
+
+        specialinvoke $r18.<org.apache.solr.client.solrj.SolrServerException: void <init>(java.lang.Throwable)>($r17);
+
+        throw $r18;
+
+     label20:
+        goto label12;
+
+     label21:
+        if r29 != null goto label22;
+
+        $r6 = new org.apache.solr.client.solrj.SolrServerException;
+
+        specialinvoke $r6.<org.apache.solr.client.solrj.SolrServerException: void <init>(java.lang.String)>("No live SolrServers available to handle this request");
+
+        throw $r6;
+
+     label22:
+        $r5 = new org.apache.solr.client.solrj.SolrServerException;
+
+        specialinvoke $r5.<org.apache.solr.client.solrj.SolrServerException: void <init>(java.lang.String,java.lang.Throwable)>("No live SolrServers available to handle this request", r29);
+
+        throw $r5;
+
+        catch org.apache.solr.common.SolrException from label02 to label03 with label04;
+        catch org.apache.solr.client.solrj.SolrServerException from label02 to label03 with label05;
+        catch java.lang.Exception from label02 to label03 with label09;
+        catch org.apache.solr.common.SolrException from label13 to label14 with label15;
+        catch org.apache.solr.client.solrj.SolrServerException from label13 to label14 with label16;
+        catch java.lang.Exception from label13 to label14 with label19;
+    }
+
+    private void checkAZombieServer(org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper)
+    {
+        long $l0;
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper r0, r8;
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer r4;
+        java.util.Map $r5, $r10;
+        int $i1, $i2, $i3, $i4;
+        java.lang.String $r6, $r11;
+        org.apache.solr.client.solrj.impl.HttpSolrServer $r2;
+        boolean $z0, $z1;
+        org.apache.solr.client.solrj.response.QueryResponse $r3;
+        java.lang.Exception $r9;
+        org.apache.solr.client.solrj.SolrQuery $r1;
+        java.lang.Object $r7;
+
+        r4 := @this: org.apache.solr.client.solrj.impl.LBHttpSolrServer;
+
+        r0 := @parameter0: org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper;
+
+        $l0 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+     label1:
+        r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper: long lastChecked> = $l0;
+
+        $r2 = r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper: org.apache.solr.client.solrj.impl.HttpSolrServer solrServer>;
+
+        $r1 = <org.apache.solr.client.solrj.impl.LBHttpSolrServer: org.apache.solr.client.solrj.SolrQuery solrQuery>;
+
+        $r3 = virtualinvoke $r2.<org.apache.solr.client.solrj.impl.HttpSolrServer: org.apache.solr.client.solrj.response.QueryResponse query(org.apache.solr.common.params.SolrParams)>($r1);
+
+        $i1 = virtualinvoke $r3.<org.apache.solr.client.solrj.response.QueryResponse: int getStatus()>();
+
+        if $i1 != 0 goto label2;
+
+        $r5 = r4.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.util.Map zombieServers>;
+
+        $r6 = virtualinvoke r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper: java.lang.String getKey()>();
+
+        $r7 = interfaceinvoke $r5.<java.util.Map: java.lang.Object remove(java.lang.Object)>($r6);
+
+        r8 = (org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper) $r7;
+
+        if r8 == null goto label2;
+
+        r8.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper: int failedPings> = 0;
+
+        $z0 = r8.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper: boolean standard>;
+
+        if $z0 == 0 goto label2;
+
+        specialinvoke r4.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: void addToAlive(org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper)>(r8);
+
+     label2:
+        goto label4;
+
+     label3:
+        $r9 := @caughtexception;
+
+        $i2 = r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper: int failedPings>;
+
+        $i3 = $i2 + 1;
+
+        r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper: int failedPings> = $i3;
+
+        $z1 = r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper: boolean standard>;
+
+        if $z1 != 0 goto label4;
+
+        $i4 = r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper: int failedPings>;
+
+        if $i4 < 5 goto label4;
+
+        $r10 = r4.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.util.Map zombieServers>;
+
+        $r11 = virtualinvoke r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper: java.lang.String getKey()>();
+
+        interfaceinvoke $r10.<java.util.Map: java.lang.Object remove(java.lang.Object)>($r11);
+
+     label4:
+        return;
+
+        catch java.lang.Exception from label1 to label2 with label3;
+    }
+
+    private void moveAliveToDead(org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper)
+    {
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper $r2, r5;
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer r0;
+        java.util.Map $r3;
+        java.lang.String $r1, $r4;
+
+        r0 := @this: org.apache.solr.client.solrj.impl.LBHttpSolrServer;
+
+        r5 := @parameter0: org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper;
+
+        $r1 = virtualinvoke r5.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper: java.lang.String getKey()>();
+
+        $r2 = specialinvoke r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper removeFromAlive(java.lang.String)>($r1);
+
+        if $r2 != null goto label1;
+
+        return;
+
+     label1:
+        $r3 = r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.util.Map zombieServers>;
+
+        $r4 = virtualinvoke $r2.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper: java.lang.String getKey()>();
+
+        interfaceinvoke $r3.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>($r4, $r2);
+
+        specialinvoke r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: void startAliveCheckExecutor()>();
+
+        return;
+    }
+
+    public void setAliveCheckInterval(int)
+    {
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer r0;
+        int i0;
+        java.lang.StringBuilder $r2, $r3, $r4;
+        java.lang.String $r5;
+        java.lang.IllegalArgumentException $r1;
+
+        r0 := @this: org.apache.solr.client.solrj.impl.LBHttpSolrServer;
+
+        i0 := @parameter0: int;
+
+        if i0 > 0 goto label1;
+
+        $r1 = new java.lang.IllegalArgumentException;
+
+        $r2 = new java.lang.StringBuilder;
+
+        specialinvoke $r2.<java.lang.StringBuilder: void <init>()>();
+
+        $r3 = virtualinvoke $r2.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Alive check interval must be positive, specified value = ");
+
+        $r4 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>(i0);
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r1.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>($r5);
+
+        throw $r1;
+
+     label1:
+        r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: int interval> = i0;
+
+        return;
+    }
+
+    private void startAliveCheckExecutor()
+    {
+        java.lang.Throwable $r9;
+        long $l2, $l3;
+        java.lang.Runnable $r7;
+        java.util.concurrent.TimeUnit $r8;
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer r0;
+        java.util.concurrent.ScheduledExecutorService $r1, $r2, $r4, $r6;
+        int $i0, $i1;
+        org.apache.solr.common.util.SolrjNamedThreadFactory $r3;
+        java.lang.ref.WeakReference $r5;
+
+        r0 := @this: org.apache.solr.client.solrj.impl.LBHttpSolrServer;
+
+        $r1 = r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.util.concurrent.ScheduledExecutorService aliveCheckExecutor>;
+
+        if $r1 != null goto label6;
+
+        entermonitor r0;
+
+     label1:
+        $r2 = r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.util.concurrent.ScheduledExecutorService aliveCheckExecutor>;
+
+        if $r2 != null goto label2;
+
+        $r3 = new org.apache.solr.common.util.SolrjNamedThreadFactory;
+
+        specialinvoke $r3.<org.apache.solr.common.util.SolrjNamedThreadFactory: void <init>(java.lang.String)>("aliveCheckExecutor");
+
+        $r4 = staticinvoke <java.util.concurrent.Executors: java.util.concurrent.ScheduledExecutorService newSingleThreadScheduledExecutor(java.util.concurrent.ThreadFactory)>($r3);
+
+        r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.util.concurrent.ScheduledExecutorService aliveCheckExecutor> = $r4;
+
+        $r6 = r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.util.concurrent.ScheduledExecutorService aliveCheckExecutor>;
+
+        $r5 = new java.lang.ref.WeakReference;
+
+        specialinvoke $r5.<java.lang.ref.WeakReference: void <init>(java.lang.Object)>(r0);
+
+        $r7 = staticinvoke <org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.lang.Runnable getAliveCheckRunner(java.lang.ref.WeakReference)>($r5);
+
+        $i0 = r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: int interval>;
+
+        $l3 = (long) $i0;
+
+        $i1 = r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: int interval>;
+
+        $l2 = (long) $i1;
+
+        $r8 = <java.util.concurrent.TimeUnit: java.util.concurrent.TimeUnit MILLISECONDS>;
+
+        interfaceinvoke $r6.<java.util.concurrent.ScheduledExecutorService: java.util.concurrent.ScheduledFuture scheduleAtFixedRate(java.lang.Runnable,long,long,java.util.concurrent.TimeUnit)>($r7, $l3, $l2, $r8);
+
+     label2:
+        exitmonitor r0;
+
+     label3:
+        goto label6;
+
+     label4:
+        $r9 := @caughtexception;
+
+        exitmonitor r0;
+
+     label5:
+        throw $r9;
+
+     label6:
+        return;
+
+        catch java.lang.Throwable from label1 to label3 with label4;
+        catch java.lang.Throwable from label4 to label5 with label4;
+    }
+
+    private static java.lang.Runnable getAliveCheckRunner(java.lang.ref.WeakReference)
+    {
+        java.lang.ref.WeakReference r1;
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer$1 $r0;
+
+        r1 := @parameter0: java.lang.ref.WeakReference;
+
+        $r0 = new org.apache.solr.client.solrj.impl.LBHttpSolrServer$1;
+
+        specialinvoke $r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer$1: void <init>(java.lang.ref.WeakReference)>(r1);
+
+        return $r0;
+    }
+
+    public org.apache.http.client.HttpClient getHttpClient()
+    {
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer r0;
+        org.apache.http.client.HttpClient $r1;
+
+        r0 := @this: org.apache.solr.client.solrj.impl.LBHttpSolrServer;
+
+        $r1 = r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: org.apache.http.client.HttpClient httpClient>;
+
+        return $r1;
+    }
+
+    protected void finalize() throws java.lang.Throwable
+    {
+        java.lang.Throwable $r3;
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer r0;
+        java.util.concurrent.ScheduledExecutorService $r1, $r2;
+
+        r0 := @this: org.apache.solr.client.solrj.impl.LBHttpSolrServer;
+
+     label1:
+        $r1 = r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.util.concurrent.ScheduledExecutorService aliveCheckExecutor>;
+
+        if $r1 == null goto label2;
+
+        $r2 = r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.util.concurrent.ScheduledExecutorService aliveCheckExecutor>;
+
+        interfaceinvoke $r2.<java.util.concurrent.ScheduledExecutorService: java.util.List shutdownNow()>();
+
+     label2:
+        specialinvoke r0.<java.lang.Object: void finalize()>();
+
+        goto label5;
+
+     label3:
+        $r3 := @caughtexception;
+
+     label4:
+        specialinvoke r0.<java.lang.Object: void finalize()>();
+
+        throw $r3;
+
+     label5:
+        return;
+
+        catch java.lang.Throwable from label1 to label2 with label3;
+        catch java.lang.Throwable from label3 to label4 with label3;
+    }
+
+    static java.util.Map access$000(org.apache.solr.client.solrj.impl.LBHttpSolrServer)
+    {
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer r0;
+        java.util.Map $r1;
+
+        r0 := @parameter0: org.apache.solr.client.solrj.impl.LBHttpSolrServer;
+
+        $r1 = r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: java.util.Map zombieServers>;
+
+        return $r1;
+    }
+
+    static void access$100(org.apache.solr.client.solrj.impl.LBHttpSolrServer, org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper)
+    {
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper r1;
+        org.apache.solr.client.solrj.impl.LBHttpSolrServer r0;
+
+        r0 := @parameter0: org.apache.solr.client.solrj.impl.LBHttpSolrServer;
+
+        r1 := @parameter1: org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper;
+
+        specialinvoke r0.<org.apache.solr.client.solrj.impl.LBHttpSolrServer: void checkAZombieServer(org.apache.solr.client.solrj.impl.LBHttpSolrServer$ServerWrapper)>(r1);
+
+        return;
+    }
+
+    static void <clinit>()
+    {
+        java.lang.Integer $r2;
+        org.apache.solr.client.solrj.SolrQuery $r0, $r1;
+
+        <org.apache.solr.client.solrj.impl.LBHttpSolrServer: int NONSTANDARD_PING_LIMIT> = 5;
+
+        <org.apache.solr.client.solrj.impl.LBHttpSolrServer: int CHECK_INTERVAL> = 60000;
+
+        $r0 = new org.apache.solr.client.solrj.SolrQuery;
+
+        specialinvoke $r0.<org.apache.solr.client.solrj.SolrQuery: void <init>(java.lang.String)>("*:*");
+
+        <org.apache.solr.client.solrj.impl.LBHttpSolrServer: org.apache.solr.client.solrj.SolrQuery solrQuery> = $r0;
+
+        $r1 = <org.apache.solr.client.solrj.impl.LBHttpSolrServer: org.apache.solr.client.solrj.SolrQuery solrQuery>;
+
+        $r2 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(0);
+
+        virtualinvoke $r1.<org.apache.solr.client.solrj.SolrQuery: org.apache.solr.client.solrj.SolrQuery setRows(java.lang.Integer)>($r2);
+
+        return;
+    }
+}

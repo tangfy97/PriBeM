@@ -1,0 +1,427 @@
+public class org.apache.zookeeper.server.quorum.FollowerZooKeeperServer extends org.apache.zookeeper.server.quorum.LearnerZooKeeperServer
+{
+    private static final org.slf4j.Logger LOG;
+    org.apache.zookeeper.server.quorum.CommitProcessor commitProcessor;
+    org.apache.zookeeper.server.SyncRequestProcessor syncProcessor;
+    java.util.concurrent.ConcurrentLinkedQueue pendingSyncs;
+    java.util.concurrent.LinkedBlockingQueue pendingTxns;
+
+    void <init>(org.apache.zookeeper.server.persistence.FileTxnSnapLog, org.apache.zookeeper.server.quorum.QuorumPeer, org.apache.zookeeper.server.ZooKeeperServer$DataTreeBuilder, org.apache.zookeeper.server.ZKDatabase) throws java.io.IOException
+    {
+        org.apache.zookeeper.server.quorum.QuorumPeer r2;
+        org.apache.zookeeper.server.ZKDatabase r4;
+        org.apache.zookeeper.server.ZooKeeperServer$DataTreeBuilder r3;
+        java.util.concurrent.LinkedBlockingQueue $r5;
+        org.apache.zookeeper.server.persistence.FileTxnSnapLog r1;
+        int $i0, $i1, $i2;
+        org.apache.zookeeper.server.quorum.FollowerZooKeeperServer r0;
+        java.util.concurrent.ConcurrentLinkedQueue $r6;
+
+        r0 := @this: org.apache.zookeeper.server.quorum.FollowerZooKeeperServer;
+
+        r1 := @parameter0: org.apache.zookeeper.server.persistence.FileTxnSnapLog;
+
+        r2 := @parameter1: org.apache.zookeeper.server.quorum.QuorumPeer;
+
+        r3 := @parameter2: org.apache.zookeeper.server.ZooKeeperServer$DataTreeBuilder;
+
+        r4 := @parameter3: org.apache.zookeeper.server.ZKDatabase;
+
+        $i2 = r2.<org.apache.zookeeper.server.quorum.QuorumPeer: int tickTime>;
+
+        $i1 = r2.<org.apache.zookeeper.server.quorum.QuorumPeer: int minSessionTimeout>;
+
+        $i0 = r2.<org.apache.zookeeper.server.quorum.QuorumPeer: int maxSessionTimeout>;
+
+        specialinvoke r0.<org.apache.zookeeper.server.quorum.LearnerZooKeeperServer: void <init>(org.apache.zookeeper.server.persistence.FileTxnSnapLog,int,int,int,org.apache.zookeeper.server.ZooKeeperServer$DataTreeBuilder,org.apache.zookeeper.server.ZKDatabase,org.apache.zookeeper.server.quorum.QuorumPeer)>(r1, $i2, $i1, $i0, r3, r4, r2);
+
+        $r5 = new java.util.concurrent.LinkedBlockingQueue;
+
+        specialinvoke $r5.<java.util.concurrent.LinkedBlockingQueue: void <init>()>();
+
+        r0.<org.apache.zookeeper.server.quorum.FollowerZooKeeperServer: java.util.concurrent.LinkedBlockingQueue pendingTxns> = $r5;
+
+        $r6 = new java.util.concurrent.ConcurrentLinkedQueue;
+
+        specialinvoke $r6.<java.util.concurrent.ConcurrentLinkedQueue: void <init>()>();
+
+        r0.<org.apache.zookeeper.server.quorum.FollowerZooKeeperServer: java.util.concurrent.ConcurrentLinkedQueue pendingSyncs> = $r6;
+
+        return;
+    }
+
+    public org.apache.zookeeper.server.quorum.Follower getFollower()
+    {
+        org.apache.zookeeper.server.quorum.QuorumPeer $r1;
+        org.apache.zookeeper.server.quorum.Follower $r2;
+        org.apache.zookeeper.server.quorum.FollowerZooKeeperServer r0;
+
+        r0 := @this: org.apache.zookeeper.server.quorum.FollowerZooKeeperServer;
+
+        $r1 = r0.<org.apache.zookeeper.server.quorum.FollowerZooKeeperServer: org.apache.zookeeper.server.quorum.QuorumPeer self>;
+
+        $r2 = $r1.<org.apache.zookeeper.server.quorum.QuorumPeer: org.apache.zookeeper.server.quorum.Follower follower>;
+
+        return $r2;
+    }
+
+    protected void setupRequestProcessors()
+    {
+        org.apache.zookeeper.server.quorum.SendAckRequestProcessor $r10;
+        long $l0;
+        org.apache.zookeeper.server.FinalRequestProcessor $r0;
+        org.apache.zookeeper.server.quorum.Follower $r11;
+        org.apache.zookeeper.server.SyncRequestProcessor $r9, $r12;
+        org.apache.zookeeper.server.quorum.CommitProcessor $r2, $r4, $r6;
+        org.apache.zookeeper.server.quorum.FollowerZooKeeperServer r1;
+        java.lang.String $r3;
+        org.apache.zookeeper.server.RequestProcessor $r7;
+        org.apache.zookeeper.server.quorum.FollowerRequestProcessor $r5, $r8;
+
+        r1 := @this: org.apache.zookeeper.server.quorum.FollowerZooKeeperServer;
+
+        $r0 = new org.apache.zookeeper.server.FinalRequestProcessor;
+
+        specialinvoke $r0.<org.apache.zookeeper.server.FinalRequestProcessor: void <init>(org.apache.zookeeper.server.ZooKeeperServer)>(r1);
+
+        $r2 = new org.apache.zookeeper.server.quorum.CommitProcessor;
+
+        $l0 = virtualinvoke r1.<org.apache.zookeeper.server.quorum.FollowerZooKeeperServer: long getServerId()>();
+
+        $r3 = staticinvoke <java.lang.Long: java.lang.String toString(long)>($l0);
+
+        specialinvoke $r2.<org.apache.zookeeper.server.quorum.CommitProcessor: void <init>(org.apache.zookeeper.server.RequestProcessor,java.lang.String,boolean)>($r0, $r3, 1);
+
+        r1.<org.apache.zookeeper.server.quorum.FollowerZooKeeperServer: org.apache.zookeeper.server.quorum.CommitProcessor commitProcessor> = $r2;
+
+        $r4 = r1.<org.apache.zookeeper.server.quorum.FollowerZooKeeperServer: org.apache.zookeeper.server.quorum.CommitProcessor commitProcessor>;
+
+        virtualinvoke $r4.<org.apache.zookeeper.server.quorum.CommitProcessor: void start()>();
+
+        $r5 = new org.apache.zookeeper.server.quorum.FollowerRequestProcessor;
+
+        $r6 = r1.<org.apache.zookeeper.server.quorum.FollowerZooKeeperServer: org.apache.zookeeper.server.quorum.CommitProcessor commitProcessor>;
+
+        specialinvoke $r5.<org.apache.zookeeper.server.quorum.FollowerRequestProcessor: void <init>(org.apache.zookeeper.server.quorum.FollowerZooKeeperServer,org.apache.zookeeper.server.RequestProcessor)>(r1, $r6);
+
+        r1.<org.apache.zookeeper.server.quorum.FollowerZooKeeperServer: org.apache.zookeeper.server.RequestProcessor firstProcessor> = $r5;
+
+        $r7 = r1.<org.apache.zookeeper.server.quorum.FollowerZooKeeperServer: org.apache.zookeeper.server.RequestProcessor firstProcessor>;
+
+        $r8 = (org.apache.zookeeper.server.quorum.FollowerRequestProcessor) $r7;
+
+        virtualinvoke $r8.<org.apache.zookeeper.server.quorum.FollowerRequestProcessor: void start()>();
+
+        $r9 = new org.apache.zookeeper.server.SyncRequestProcessor;
+
+        $r10 = new org.apache.zookeeper.server.quorum.SendAckRequestProcessor;
+
+        $r11 = virtualinvoke r1.<org.apache.zookeeper.server.quorum.FollowerZooKeeperServer: org.apache.zookeeper.server.quorum.Follower getFollower()>();
+
+        specialinvoke $r10.<org.apache.zookeeper.server.quorum.SendAckRequestProcessor: void <init>(org.apache.zookeeper.server.quorum.Learner)>($r11);
+
+        specialinvoke $r9.<org.apache.zookeeper.server.SyncRequestProcessor: void <init>(org.apache.zookeeper.server.ZooKeeperServer,org.apache.zookeeper.server.RequestProcessor)>(r1, $r10);
+
+        r1.<org.apache.zookeeper.server.quorum.FollowerZooKeeperServer: org.apache.zookeeper.server.SyncRequestProcessor syncProcessor> = $r9;
+
+        $r12 = r1.<org.apache.zookeeper.server.quorum.FollowerZooKeeperServer: org.apache.zookeeper.server.SyncRequestProcessor syncProcessor>;
+
+        virtualinvoke $r12.<org.apache.zookeeper.server.SyncRequestProcessor: void start()>();
+
+        return;
+    }
+
+    public void logRequest(org.apache.zookeeper.txn.TxnHeader, org.apache.jute.Record)
+    {
+        org.apache.zookeeper.txn.TxnHeader r1;
+        long $l0, $l3, $l4, $l5;
+        org.apache.jute.Record r2;
+        java.util.concurrent.LinkedBlockingQueue $r5;
+        org.apache.zookeeper.server.Request $r0;
+        org.apache.zookeeper.server.SyncRequestProcessor $r4;
+        byte $b6;
+        int $i1, $i2;
+        org.apache.zookeeper.server.quorum.FollowerZooKeeperServer r3;
+
+        r3 := @this: org.apache.zookeeper.server.quorum.FollowerZooKeeperServer;
+
+        r1 := @parameter0: org.apache.zookeeper.txn.TxnHeader;
+
+        r2 := @parameter1: org.apache.jute.Record;
+
+        $r0 = new org.apache.zookeeper.server.Request;
+
+        $l0 = virtualinvoke r1.<org.apache.zookeeper.txn.TxnHeader: long getClientId()>();
+
+        $i1 = virtualinvoke r1.<org.apache.zookeeper.txn.TxnHeader: int getCxid()>();
+
+        $i2 = virtualinvoke r1.<org.apache.zookeeper.txn.TxnHeader: int getType()>();
+
+        specialinvoke $r0.<org.apache.zookeeper.server.Request: void <init>(org.apache.zookeeper.server.ServerCnxn,long,int,int,java.nio.ByteBuffer,java.util.List)>(null, $l0, $i1, $i2, null, null);
+
+        $r0.<org.apache.zookeeper.server.Request: org.apache.zookeeper.txn.TxnHeader hdr> = r1;
+
+        $r0.<org.apache.zookeeper.server.Request: org.apache.jute.Record txn> = r2;
+
+        $l3 = virtualinvoke r1.<org.apache.zookeeper.txn.TxnHeader: long getZxid()>();
+
+        $r0.<org.apache.zookeeper.server.Request: long zxid> = $l3;
+
+        $l4 = $r0.<org.apache.zookeeper.server.Request: long zxid>;
+
+        $l5 = $l4 & 4294967295L;
+
+        $b6 = $l5 cmp 0L;
+
+        if $b6 == 0 goto label1;
+
+        $r5 = r3.<org.apache.zookeeper.server.quorum.FollowerZooKeeperServer: java.util.concurrent.LinkedBlockingQueue pendingTxns>;
+
+        virtualinvoke $r5.<java.util.concurrent.LinkedBlockingQueue: boolean add(java.lang.Object)>($r0);
+
+     label1:
+        $r4 = r3.<org.apache.zookeeper.server.quorum.FollowerZooKeeperServer: org.apache.zookeeper.server.SyncRequestProcessor syncProcessor>;
+
+        virtualinvoke $r4.<org.apache.zookeeper.server.SyncRequestProcessor: void processRequest(org.apache.zookeeper.server.Request)>($r0);
+
+        return;
+    }
+
+    public void commit(long)
+    {
+        long l1, l2;
+        byte $b3;
+        org.apache.zookeeper.server.quorum.CommitProcessor $r7;
+        int $i0;
+        org.apache.zookeeper.server.quorum.FollowerZooKeeperServer r0;
+        java.lang.String $r11, $r14, $r16, $r21, $r24;
+        org.slf4j.Logger $r9, $r19;
+        java.util.concurrent.LinkedBlockingQueue $r1, $r2, $r5;
+        org.apache.zookeeper.server.Request $r4, $r17;
+        java.lang.Object $r3, $r6;
+        java.lang.StringBuilder $r8, $r10, $r12, $r13, $r15, $r18, $r20, $r22, $r23;
+
+        r0 := @this: org.apache.zookeeper.server.quorum.FollowerZooKeeperServer;
+
+        l2 := @parameter0: long;
+
+        $r1 = r0.<org.apache.zookeeper.server.quorum.FollowerZooKeeperServer: java.util.concurrent.LinkedBlockingQueue pendingTxns>;
+
+        $i0 = virtualinvoke $r1.<java.util.concurrent.LinkedBlockingQueue: int size()>();
+
+        if $i0 != 0 goto label1;
+
+        $r19 = <org.apache.zookeeper.server.quorum.FollowerZooKeeperServer: org.slf4j.Logger LOG>;
+
+        $r18 = new java.lang.StringBuilder;
+
+        specialinvoke $r18.<java.lang.StringBuilder: void <init>()>();
+
+        $r20 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Committing ");
+
+        $r21 = staticinvoke <java.lang.Long: java.lang.String toHexString(long)>(l2);
+
+        $r22 = virtualinvoke $r20.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r21);
+
+        $r23 = virtualinvoke $r22.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" without seeing txn");
+
+        $r24 = virtualinvoke $r23.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r19.<org.slf4j.Logger: void warn(java.lang.String)>($r24);
+
+        return;
+
+     label1:
+        $r2 = r0.<org.apache.zookeeper.server.quorum.FollowerZooKeeperServer: java.util.concurrent.LinkedBlockingQueue pendingTxns>;
+
+        $r3 = virtualinvoke $r2.<java.util.concurrent.LinkedBlockingQueue: java.lang.Object element()>();
+
+        $r4 = (org.apache.zookeeper.server.Request) $r3;
+
+        l1 = $r4.<org.apache.zookeeper.server.Request: long zxid>;
+
+        $b3 = l1 cmp l2;
+
+        if $b3 == 0 goto label2;
+
+        $r9 = <org.apache.zookeeper.server.quorum.FollowerZooKeeperServer: org.slf4j.Logger LOG>;
+
+        $r8 = new java.lang.StringBuilder;
+
+        specialinvoke $r8.<java.lang.StringBuilder: void <init>()>();
+
+        $r10 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Committing zxid 0x");
+
+        $r11 = staticinvoke <java.lang.Long: java.lang.String toHexString(long)>(l2);
+
+        $r12 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r11);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" but next pending txn 0x");
+
+        $r14 = staticinvoke <java.lang.Long: java.lang.String toHexString(long)>(l1);
+
+        $r15 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r14);
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r9.<org.slf4j.Logger: void error(java.lang.String)>($r16);
+
+        staticinvoke <java.lang.System: void exit(int)>(12);
+
+     label2:
+        $r5 = r0.<org.apache.zookeeper.server.quorum.FollowerZooKeeperServer: java.util.concurrent.LinkedBlockingQueue pendingTxns>;
+
+        $r6 = virtualinvoke $r5.<java.util.concurrent.LinkedBlockingQueue: java.lang.Object remove()>();
+
+        $r17 = (org.apache.zookeeper.server.Request) $r6;
+
+        $r7 = r0.<org.apache.zookeeper.server.quorum.FollowerZooKeeperServer: org.apache.zookeeper.server.quorum.CommitProcessor commitProcessor>;
+
+        virtualinvoke $r7.<org.apache.zookeeper.server.quorum.CommitProcessor: void commit(org.apache.zookeeper.server.Request)>($r17);
+
+        return;
+    }
+
+    public synchronized void sync()
+    {
+        org.slf4j.Logger $r6;
+        org.apache.zookeeper.server.Request r4;
+        org.apache.zookeeper.server.quorum.CommitProcessor $r5;
+        int $i0;
+        org.apache.zookeeper.server.quorum.FollowerZooKeeperServer r0;
+        java.lang.Object $r3;
+        java.util.concurrent.ConcurrentLinkedQueue $r1, $r2;
+
+        r0 := @this: org.apache.zookeeper.server.quorum.FollowerZooKeeperServer;
+
+        $r1 = r0.<org.apache.zookeeper.server.quorum.FollowerZooKeeperServer: java.util.concurrent.ConcurrentLinkedQueue pendingSyncs>;
+
+        $i0 = virtualinvoke $r1.<java.util.concurrent.ConcurrentLinkedQueue: int size()>();
+
+        if $i0 != 0 goto label1;
+
+        $r6 = <org.apache.zookeeper.server.quorum.FollowerZooKeeperServer: org.slf4j.Logger LOG>;
+
+        interfaceinvoke $r6.<org.slf4j.Logger: void warn(java.lang.String)>("Not expecting a sync.");
+
+        return;
+
+     label1:
+        $r2 = r0.<org.apache.zookeeper.server.quorum.FollowerZooKeeperServer: java.util.concurrent.ConcurrentLinkedQueue pendingSyncs>;
+
+        $r3 = virtualinvoke $r2.<java.util.concurrent.ConcurrentLinkedQueue: java.lang.Object remove()>();
+
+        r4 = (org.apache.zookeeper.server.Request) $r3;
+
+        $r5 = r0.<org.apache.zookeeper.server.quorum.FollowerZooKeeperServer: org.apache.zookeeper.server.quorum.CommitProcessor commitProcessor>;
+
+        virtualinvoke $r5.<org.apache.zookeeper.server.quorum.CommitProcessor: void commit(org.apache.zookeeper.server.Request)>(r4);
+
+        return;
+    }
+
+    public int getGlobalOutstandingLimit()
+    {
+        org.apache.zookeeper.server.quorum.QuorumPeer $r1;
+        int $i0, $i1, $i2, $i3;
+        org.apache.zookeeper.server.quorum.FollowerZooKeeperServer r0;
+
+        r0 := @this: org.apache.zookeeper.server.quorum.FollowerZooKeeperServer;
+
+        $i0 = specialinvoke r0.<org.apache.zookeeper.server.quorum.LearnerZooKeeperServer: int getGlobalOutstandingLimit()>();
+
+        $r1 = r0.<org.apache.zookeeper.server.quorum.FollowerZooKeeperServer: org.apache.zookeeper.server.quorum.QuorumPeer self>;
+
+        $i1 = virtualinvoke $r1.<org.apache.zookeeper.server.quorum.QuorumPeer: int getQuorumSize()>();
+
+        $i2 = $i1 - 1;
+
+        $i3 = $i0 / $i2;
+
+        return $i3;
+    }
+
+    public void shutdown()
+    {
+        org.slf4j.Logger $r0, $r5, $r7;
+        java.lang.Exception $r4, $r6;
+        org.apache.zookeeper.server.SyncRequestProcessor $r2, $r3;
+        org.apache.zookeeper.server.quorum.FollowerZooKeeperServer r1;
+
+        r1 := @this: org.apache.zookeeper.server.quorum.FollowerZooKeeperServer;
+
+        $r0 = <org.apache.zookeeper.server.quorum.FollowerZooKeeperServer: org.slf4j.Logger LOG>;
+
+        interfaceinvoke $r0.<org.slf4j.Logger: void info(java.lang.String)>("Shutting down");
+
+     label1:
+        specialinvoke r1.<org.apache.zookeeper.server.quorum.LearnerZooKeeperServer: void shutdown()>();
+
+     label2:
+        goto label4;
+
+     label3:
+        $r6 := @caughtexception;
+
+        $r7 = <org.apache.zookeeper.server.quorum.FollowerZooKeeperServer: org.slf4j.Logger LOG>;
+
+        interfaceinvoke $r7.<org.slf4j.Logger: void warn(java.lang.String,java.lang.Throwable)>("Ignoring unexpected exception during shutdown", $r6);
+
+     label4:
+        $r2 = r1.<org.apache.zookeeper.server.quorum.FollowerZooKeeperServer: org.apache.zookeeper.server.SyncRequestProcessor syncProcessor>;
+
+        if $r2 == null goto label5;
+
+        $r3 = r1.<org.apache.zookeeper.server.quorum.FollowerZooKeeperServer: org.apache.zookeeper.server.SyncRequestProcessor syncProcessor>;
+
+        virtualinvoke $r3.<org.apache.zookeeper.server.SyncRequestProcessor: void shutdown()>();
+
+     label5:
+        goto label7;
+
+     label6:
+        $r4 := @caughtexception;
+
+        $r5 = <org.apache.zookeeper.server.quorum.FollowerZooKeeperServer: org.slf4j.Logger LOG>;
+
+        interfaceinvoke $r5.<org.slf4j.Logger: void warn(java.lang.String,java.lang.Throwable)>("Ignoring unexpected exception in syncprocessor shutdown", $r4);
+
+     label7:
+        return;
+
+        catch java.lang.Exception from label1 to label2 with label3;
+        catch java.lang.Exception from label4 to label5 with label6;
+    }
+
+    public java.lang.String getState()
+    {
+        org.apache.zookeeper.server.quorum.FollowerZooKeeperServer r0;
+
+        r0 := @this: org.apache.zookeeper.server.quorum.FollowerZooKeeperServer;
+
+        return "follower";
+    }
+
+    public org.apache.zookeeper.server.quorum.Learner getLearner()
+    {
+        org.apache.zookeeper.server.quorum.Follower $r1;
+        org.apache.zookeeper.server.quorum.FollowerZooKeeperServer r0;
+
+        r0 := @this: org.apache.zookeeper.server.quorum.FollowerZooKeeperServer;
+
+        $r1 = virtualinvoke r0.<org.apache.zookeeper.server.quorum.FollowerZooKeeperServer: org.apache.zookeeper.server.quorum.Follower getFollower()>();
+
+        return $r1;
+    }
+
+    static void <clinit>()
+    {
+        org.slf4j.Logger $r0;
+
+        $r0 = staticinvoke <org.slf4j.LoggerFactory: org.slf4j.Logger getLogger(java.lang.Class)>(class "Lorg/apache/zookeeper/server/quorum/FollowerZooKeeperServer;");
+
+        <org.apache.zookeeper.server.quorum.FollowerZooKeeperServer: org.slf4j.Logger LOG> = $r0;
+
+        return;
+    }
+}

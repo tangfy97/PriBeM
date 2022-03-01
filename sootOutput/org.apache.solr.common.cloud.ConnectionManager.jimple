@@ -1,0 +1,603 @@
+class org.apache.solr.common.cloud.ConnectionManager extends java.lang.Object implements org.apache.zookeeper.Watcher
+{
+    protected static final org.slf4j.Logger log;
+    private final java.lang.String name;
+    private java.util.concurrent.CountDownLatch clientConnected;
+    private org.apache.zookeeper.Watcher$Event$KeeperState state;
+    private boolean connected;
+    private final org.apache.solr.common.cloud.ZkClientConnectionStrategy connectionStrategy;
+    private java.lang.Object connectionUpdateLock;
+    private java.lang.String zkServerAddress;
+    private int zkClientTimeout;
+    private org.apache.solr.common.cloud.SolrZkClient client;
+    private org.apache.solr.common.cloud.OnReconnect onReconnect;
+    private volatile boolean isClosed;
+
+    public void <init>(java.lang.String, org.apache.solr.common.cloud.SolrZkClient, java.lang.String, int, org.apache.solr.common.cloud.ZkClientConnectionStrategy, org.apache.solr.common.cloud.OnReconnect)
+    {
+        org.apache.solr.common.cloud.ConnectionManager r0;
+        org.apache.solr.common.cloud.OnReconnect r6;
+        org.apache.solr.common.cloud.ZkClientConnectionStrategy r4;
+        int i0;
+        java.lang.Object $r1;
+        java.lang.String r2, r5;
+        org.apache.solr.common.cloud.SolrZkClient r3;
+
+        r0 := @this: org.apache.solr.common.cloud.ConnectionManager;
+
+        r2 := @parameter0: java.lang.String;
+
+        r3 := @parameter1: org.apache.solr.common.cloud.SolrZkClient;
+
+        r5 := @parameter2: java.lang.String;
+
+        i0 := @parameter3: int;
+
+        r4 := @parameter4: org.apache.solr.common.cloud.ZkClientConnectionStrategy;
+
+        r6 := @parameter5: org.apache.solr.common.cloud.OnReconnect;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        $r1 = new java.lang.Object;
+
+        specialinvoke $r1.<java.lang.Object: void <init>()>();
+
+        r0.<org.apache.solr.common.cloud.ConnectionManager: java.lang.Object connectionUpdateLock> = $r1;
+
+        r0.<org.apache.solr.common.cloud.ConnectionManager: boolean isClosed> = 0;
+
+        r0.<org.apache.solr.common.cloud.ConnectionManager: java.lang.String name> = r2;
+
+        r0.<org.apache.solr.common.cloud.ConnectionManager: org.apache.solr.common.cloud.SolrZkClient client> = r3;
+
+        r0.<org.apache.solr.common.cloud.ConnectionManager: org.apache.solr.common.cloud.ZkClientConnectionStrategy connectionStrategy> = r4;
+
+        r0.<org.apache.solr.common.cloud.ConnectionManager: java.lang.String zkServerAddress> = r5;
+
+        r0.<org.apache.solr.common.cloud.ConnectionManager: int zkClientTimeout> = i0;
+
+        r0.<org.apache.solr.common.cloud.ConnectionManager: org.apache.solr.common.cloud.OnReconnect onReconnect> = r6;
+
+        specialinvoke r0.<org.apache.solr.common.cloud.ConnectionManager: void reset()>();
+
+        return;
+    }
+
+    private synchronized void reset()
+    {
+        org.apache.solr.common.cloud.ConnectionManager r0;
+        org.apache.zookeeper.Watcher$Event$KeeperState $r2;
+        java.util.concurrent.CountDownLatch $r1;
+
+        r0 := @this: org.apache.solr.common.cloud.ConnectionManager;
+
+        $r1 = new java.util.concurrent.CountDownLatch;
+
+        specialinvoke $r1.<java.util.concurrent.CountDownLatch: void <init>(int)>(1);
+
+        r0.<org.apache.solr.common.cloud.ConnectionManager: java.util.concurrent.CountDownLatch clientConnected> = $r1;
+
+        $r2 = <org.apache.zookeeper.Watcher$Event$KeeperState: org.apache.zookeeper.Watcher$Event$KeeperState Disconnected>;
+
+        r0.<org.apache.solr.common.cloud.ConnectionManager: org.apache.zookeeper.Watcher$Event$KeeperState state> = $r2;
+
+        r0.<org.apache.solr.common.cloud.ConnectionManager: boolean connected> = 0;
+
+        return;
+    }
+
+    public synchronized void process(org.apache.zookeeper.WatchedEvent)
+    {
+        boolean $z0, $z1, $z2;
+        org.apache.zookeeper.Watcher$Event$KeeperState $r3, $r4, $r5, $r6, $r7, $r8, $r9;
+        java.lang.Exception $r40;
+        java.util.concurrent.CountDownLatch $r21;
+        org.apache.solr.common.cloud.ZkClientConnectionStrategy $r11, $r14, $r22;
+        java.lang.StringBuilder $r16, $r18, $r19, $r24, $r26, $r27, $r28, $r30, $r31, $r32, $r33, $r35, $r36, $r38;
+        org.apache.solr.common.cloud.ConnectionManager r1;
+        int $i0;
+        java.lang.String $r15, $r20, $r29, $r34, $r39;
+        org.slf4j.Logger $r0, $r10, $r12, $r17, $r23, $r25, $r41;
+        org.apache.zookeeper.WatchedEvent r2;
+        org.apache.solr.common.cloud.ConnectionManager$1 $r13;
+        org.apache.zookeeper.Watcher$Event$EventType $r37;
+
+        r1 := @this: org.apache.solr.common.cloud.ConnectionManager;
+
+        r2 := @parameter0: org.apache.zookeeper.WatchedEvent;
+
+        $r0 = <org.apache.solr.common.cloud.ConnectionManager: org.slf4j.Logger log>;
+
+        $z0 = interfaceinvoke $r0.<org.slf4j.Logger: boolean isInfoEnabled()>();
+
+        if $z0 == 0 goto label01;
+
+        $r25 = <org.apache.solr.common.cloud.ConnectionManager: org.slf4j.Logger log>;
+
+        $r24 = new java.lang.StringBuilder;
+
+        specialinvoke $r24.<java.lang.StringBuilder: void <init>()>();
+
+        $r26 = virtualinvoke $r24.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Watcher ");
+
+        $r27 = virtualinvoke $r26.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r1);
+
+        $r28 = virtualinvoke $r27.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" name:");
+
+        $r29 = r1.<org.apache.solr.common.cloud.ConnectionManager: java.lang.String name>;
+
+        $r30 = virtualinvoke $r28.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r29);
+
+        $r31 = virtualinvoke $r30.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" got event ");
+
+        $r32 = virtualinvoke $r31.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r2);
+
+        $r33 = virtualinvoke $r32.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" path:");
+
+        $r34 = virtualinvoke r2.<org.apache.zookeeper.WatchedEvent: java.lang.String getPath()>();
+
+        $r35 = virtualinvoke $r33.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r34);
+
+        $r36 = virtualinvoke $r35.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" type:");
+
+        $r37 = virtualinvoke r2.<org.apache.zookeeper.WatchedEvent: org.apache.zookeeper.Watcher$Event$EventType getType()>();
+
+        $r38 = virtualinvoke $r36.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r37);
+
+        $r39 = virtualinvoke $r38.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r25.<org.slf4j.Logger: void info(java.lang.String)>($r39);
+
+     label01:
+        $z1 = r1.<org.apache.solr.common.cloud.ConnectionManager: boolean isClosed>;
+
+        if $z1 == 0 goto label02;
+
+        $r23 = <org.apache.solr.common.cloud.ConnectionManager: org.slf4j.Logger log>;
+
+        interfaceinvoke $r23.<org.slf4j.Logger: void info(java.lang.String)>("Client->ZooKeeper status change trigger but we are already closed");
+
+        return;
+
+     label02:
+        $r3 = virtualinvoke r2.<org.apache.zookeeper.WatchedEvent: org.apache.zookeeper.Watcher$Event$KeeperState getState()>();
+
+        r1.<org.apache.solr.common.cloud.ConnectionManager: org.apache.zookeeper.Watcher$Event$KeeperState state> = $r3;
+
+        $r5 = r1.<org.apache.solr.common.cloud.ConnectionManager: org.apache.zookeeper.Watcher$Event$KeeperState state>;
+
+        $r4 = <org.apache.zookeeper.Watcher$Event$KeeperState: org.apache.zookeeper.Watcher$Event$KeeperState SyncConnected>;
+
+        if $r5 != $r4 goto label03;
+
+        r1.<org.apache.solr.common.cloud.ConnectionManager: boolean connected> = 1;
+
+        $r21 = r1.<org.apache.solr.common.cloud.ConnectionManager: java.util.concurrent.CountDownLatch clientConnected>;
+
+        virtualinvoke $r21.<java.util.concurrent.CountDownLatch: void countDown()>();
+
+        $r22 = r1.<org.apache.solr.common.cloud.ConnectionManager: org.apache.solr.common.cloud.ZkClientConnectionStrategy connectionStrategy>;
+
+        virtualinvoke $r22.<org.apache.solr.common.cloud.ZkClientConnectionStrategy: void connected()>();
+
+        goto label10;
+
+     label03:
+        $r7 = r1.<org.apache.solr.common.cloud.ConnectionManager: org.apache.zookeeper.Watcher$Event$KeeperState state>;
+
+        $r6 = <org.apache.zookeeper.Watcher$Event$KeeperState: org.apache.zookeeper.Watcher$Event$KeeperState Expired>;
+
+        if $r7 != $r6 goto label08;
+
+        r1.<org.apache.solr.common.cloud.ConnectionManager: boolean connected> = 0;
+
+        $r12 = <org.apache.solr.common.cloud.ConnectionManager: org.slf4j.Logger log>;
+
+        interfaceinvoke $r12.<org.slf4j.Logger: void info(java.lang.String)>("Our previous ZooKeeper session was expired. Attempting to reconnect to recover relationship with ZooKeeper...");
+
+     label04:
+        $r14 = r1.<org.apache.solr.common.cloud.ConnectionManager: org.apache.solr.common.cloud.ZkClientConnectionStrategy connectionStrategy>;
+
+        $r15 = r1.<org.apache.solr.common.cloud.ConnectionManager: java.lang.String zkServerAddress>;
+
+        $i0 = r1.<org.apache.solr.common.cloud.ConnectionManager: int zkClientTimeout>;
+
+        $r13 = new org.apache.solr.common.cloud.ConnectionManager$1;
+
+        specialinvoke $r13.<org.apache.solr.common.cloud.ConnectionManager$1: void <init>(org.apache.solr.common.cloud.ConnectionManager)>(r1);
+
+        virtualinvoke $r14.<org.apache.solr.common.cloud.ZkClientConnectionStrategy: void reconnect(java.lang.String,int,org.apache.zookeeper.Watcher,org.apache.solr.common.cloud.ZkClientConnectionStrategy$ZkUpdate)>($r15, $i0, r1, $r13);
+
+     label05:
+        goto label07;
+
+     label06:
+        $r40 := @caughtexception;
+
+        $r41 = <org.apache.solr.common.cloud.ConnectionManager: org.slf4j.Logger log>;
+
+        staticinvoke <org.apache.solr.common.SolrException: void log(org.slf4j.Logger,java.lang.String,java.lang.Throwable)>($r41, "", $r40);
+
+     label07:
+        $r17 = <org.apache.solr.common.cloud.ConnectionManager: org.slf4j.Logger log>;
+
+        $r16 = new java.lang.StringBuilder;
+
+        specialinvoke $r16.<java.lang.StringBuilder: void <init>()>();
+
+        $r18 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Connected:");
+
+        $z2 = r1.<org.apache.solr.common.cloud.ConnectionManager: boolean connected>;
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.StringBuilder append(boolean)>($z2);
+
+        $r20 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r17.<org.slf4j.Logger: void info(java.lang.String)>($r20);
+
+        goto label10;
+
+     label08:
+        $r9 = r1.<org.apache.solr.common.cloud.ConnectionManager: org.apache.zookeeper.Watcher$Event$KeeperState state>;
+
+        $r8 = <org.apache.zookeeper.Watcher$Event$KeeperState: org.apache.zookeeper.Watcher$Event$KeeperState Disconnected>;
+
+        if $r9 != $r8 goto label09;
+
+        $r10 = <org.apache.solr.common.cloud.ConnectionManager: org.slf4j.Logger log>;
+
+        interfaceinvoke $r10.<org.slf4j.Logger: void info(java.lang.String)>("zkClient has disconnected");
+
+        r1.<org.apache.solr.common.cloud.ConnectionManager: boolean connected> = 0;
+
+        $r11 = r1.<org.apache.solr.common.cloud.ConnectionManager: org.apache.solr.common.cloud.ZkClientConnectionStrategy connectionStrategy>;
+
+        virtualinvoke $r11.<org.apache.solr.common.cloud.ZkClientConnectionStrategy: void disconnected()>();
+
+        goto label10;
+
+     label09:
+        r1.<org.apache.solr.common.cloud.ConnectionManager: boolean connected> = 0;
+
+     label10:
+        virtualinvoke r1.<java.lang.Object: void notifyAll()>();
+
+        return;
+
+        catch java.lang.Exception from label04 to label05 with label06;
+    }
+
+    public synchronized boolean isConnected()
+    {
+        org.apache.solr.common.cloud.ConnectionManager r0;
+        boolean $z0, $z1, $z2;
+
+        r0 := @this: org.apache.solr.common.cloud.ConnectionManager;
+
+        $z0 = r0.<org.apache.solr.common.cloud.ConnectionManager: boolean isClosed>;
+
+        if $z0 != 0 goto label1;
+
+        $z1 = r0.<org.apache.solr.common.cloud.ConnectionManager: boolean connected>;
+
+        if $z1 == 0 goto label1;
+
+        $z2 = 1;
+
+        goto label2;
+
+     label1:
+        $z2 = 0;
+
+     label2:
+        return $z2;
+    }
+
+    public void close()
+    {
+        org.apache.solr.common.cloud.ConnectionManager r0;
+
+        r0 := @this: org.apache.solr.common.cloud.ConnectionManager;
+
+        r0.<org.apache.solr.common.cloud.ConnectionManager: boolean isClosed> = 1;
+
+        return;
+    }
+
+    public synchronized org.apache.zookeeper.Watcher$Event$KeeperState state()
+    {
+        org.apache.solr.common.cloud.ConnectionManager r0;
+        org.apache.zookeeper.Watcher$Event$KeeperState $r1;
+
+        r0 := @this: org.apache.solr.common.cloud.ConnectionManager;
+
+        $r1 = r0.<org.apache.solr.common.cloud.ConnectionManager: org.apache.zookeeper.Watcher$Event$KeeperState state>;
+
+        return $r1;
+    }
+
+    public synchronized void waitForConnected(long) throws java.util.concurrent.TimeoutException
+    {
+        org.apache.solr.common.cloud.ConnectionManager r1;
+        java.util.concurrent.TimeoutException $r17;
+        long $l0, l1, l2, $l4, l5;
+        byte $b3;
+        java.lang.Thread $r13;
+        int $i6;
+        java.lang.String $r6, $r11;
+        boolean $z0, $z1, $z2;
+        org.slf4j.Logger $r0, $r2;
+        java.lang.RuntimeException $r15;
+        java.lang.InterruptedException $r12;
+        java.lang.StringBuilder $r5, $r7, $r8, $r9, $r10, $r16;
+
+        r1 := @this: org.apache.solr.common.cloud.ConnectionManager;
+
+        l1 := @parameter0: long;
+
+        $r0 = <org.apache.solr.common.cloud.ConnectionManager: org.slf4j.Logger log>;
+
+        interfaceinvoke $r0.<org.slf4j.Logger: void info(java.lang.String)>("Waiting for client to connect to ZooKeeper");
+
+        $l0 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        l2 = $l0 + l1;
+
+        l5 = 1L;
+
+     label1:
+        $z0 = r1.<org.apache.solr.common.cloud.ConnectionManager: boolean connected>;
+
+        if $z0 != 0 goto label6;
+
+        $b3 = l5 cmp 0L;
+
+        $i6 = (int) $b3;
+
+        if $i6 <= 0 goto label6;
+
+        $z1 = r1.<org.apache.solr.common.cloud.ConnectionManager: boolean isClosed>;
+
+        if $z1 == 0 goto label2;
+
+        goto label6;
+
+     label2:
+        virtualinvoke r1.<java.lang.Object: void wait(long)>(500L);
+
+     label3:
+        goto label5;
+
+     label4:
+        $r12 := @caughtexception;
+
+        $r13 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        virtualinvoke $r13.<java.lang.Thread: void interrupt()>();
+
+        $r15 = new java.lang.RuntimeException;
+
+        specialinvoke $r15.<java.lang.RuntimeException: void <init>(java.lang.Throwable)>($r12);
+
+        throw $r15;
+
+     label5:
+        $l4 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        l5 = l2 - $l4;
+
+        goto label1;
+
+     label6:
+        $z2 = r1.<org.apache.solr.common.cloud.ConnectionManager: boolean connected>;
+
+        if $z2 != 0 goto label7;
+
+        $r17 = new java.util.concurrent.TimeoutException;
+
+        $r16 = new java.lang.StringBuilder;
+
+        specialinvoke $r16.<java.lang.StringBuilder: void <init>()>();
+
+        $r5 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Could not connect to ZooKeeper ");
+
+        $r6 = r1.<org.apache.solr.common.cloud.ConnectionManager: java.lang.String zkServerAddress>;
+
+        $r7 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r6);
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" within ");
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>(l1);
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" ms");
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r17.<java.util.concurrent.TimeoutException: void <init>(java.lang.String)>($r11);
+
+        throw $r17;
+
+     label7:
+        $r2 = <org.apache.solr.common.cloud.ConnectionManager: org.slf4j.Logger log>;
+
+        interfaceinvoke $r2.<org.slf4j.Logger: void info(java.lang.String)>("Client is connected to ZooKeeper");
+
+        return;
+
+        catch java.lang.InterruptedException from label2 to label3 with label4;
+    }
+
+    public synchronized void waitForDisconnected(long) throws java.lang.InterruptedException, java.util.concurrent.TimeoutException
+    {
+        org.apache.solr.common.cloud.ConnectionManager r0;
+        java.util.concurrent.TimeoutException $r2;
+        long $l0, l1, l2, $l4, l5;
+        byte $b3;
+        int $i6;
+        boolean $z0, $z1;
+
+        r0 := @this: org.apache.solr.common.cloud.ConnectionManager;
+
+        l1 := @parameter0: long;
+
+        $l0 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        l2 = $l0 + l1;
+
+        l5 = l1;
+
+     label1:
+        $z0 = r0.<org.apache.solr.common.cloud.ConnectionManager: boolean connected>;
+
+        if $z0 == 0 goto label2;
+
+        $b3 = l5 cmp 0L;
+
+        $i6 = (int) $b3;
+
+        if $i6 <= 0 goto label2;
+
+        virtualinvoke r0.<java.lang.Object: void wait(long)>(l5);
+
+        $l4 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        l5 = l2 - $l4;
+
+        goto label1;
+
+     label2:
+        $z1 = r0.<org.apache.solr.common.cloud.ConnectionManager: boolean connected>;
+
+        if $z1 == 0 goto label3;
+
+        $r2 = new java.util.concurrent.TimeoutException;
+
+        specialinvoke $r2.<java.util.concurrent.TimeoutException: void <init>(java.lang.String)>("Did not disconnect");
+
+        throw $r2;
+
+     label3:
+        return;
+    }
+
+    private void closeKeeper(org.apache.solr.common.cloud.SolrZooKeeper)
+    {
+        org.slf4j.Logger $r3;
+        java.lang.InterruptedException $r1;
+        java.lang.Thread $r2;
+        org.apache.solr.common.cloud.ZooKeeperException $r4;
+        org.apache.solr.common.cloud.ConnectionManager r6;
+        org.apache.solr.common.cloud.SolrZooKeeper r0;
+        org.apache.solr.common.SolrException$ErrorCode $r5;
+
+        r6 := @this: org.apache.solr.common.cloud.ConnectionManager;
+
+        r0 := @parameter0: org.apache.solr.common.cloud.SolrZooKeeper;
+
+     label1:
+        virtualinvoke r0.<org.apache.solr.common.cloud.SolrZooKeeper: void close()>();
+
+     label2:
+        goto label4;
+
+     label3:
+        $r1 := @caughtexception;
+
+        $r2 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        virtualinvoke $r2.<java.lang.Thread: void interrupt()>();
+
+        $r3 = <org.apache.solr.common.cloud.ConnectionManager: org.slf4j.Logger log>;
+
+        interfaceinvoke $r3.<org.slf4j.Logger: void error(java.lang.String,java.lang.Throwable)>("", $r1);
+
+        $r4 = new org.apache.solr.common.cloud.ZooKeeperException;
+
+        $r5 = <org.apache.solr.common.SolrException$ErrorCode: org.apache.solr.common.SolrException$ErrorCode SERVER_ERROR>;
+
+        specialinvoke $r4.<org.apache.solr.common.cloud.ZooKeeperException: void <init>(org.apache.solr.common.SolrException$ErrorCode,java.lang.String,java.lang.Throwable)>($r5, "", $r1);
+
+        throw $r4;
+
+     label4:
+        return;
+
+        catch java.lang.InterruptedException from label1 to label2 with label3;
+    }
+
+    static java.lang.Object access$000(org.apache.solr.common.cloud.ConnectionManager)
+    {
+        org.apache.solr.common.cloud.ConnectionManager r0;
+        java.lang.Object $r1;
+
+        r0 := @parameter0: org.apache.solr.common.cloud.ConnectionManager;
+
+        $r1 = r0.<org.apache.solr.common.cloud.ConnectionManager: java.lang.Object connectionUpdateLock>;
+
+        return $r1;
+    }
+
+    static void access$100(org.apache.solr.common.cloud.ConnectionManager, org.apache.solr.common.cloud.SolrZooKeeper)
+    {
+        org.apache.solr.common.cloud.ConnectionManager r0;
+        org.apache.solr.common.cloud.SolrZooKeeper r1;
+
+        r0 := @parameter0: org.apache.solr.common.cloud.ConnectionManager;
+
+        r1 := @parameter1: org.apache.solr.common.cloud.SolrZooKeeper;
+
+        specialinvoke r0.<org.apache.solr.common.cloud.ConnectionManager: void closeKeeper(org.apache.solr.common.cloud.SolrZooKeeper)>(r1);
+
+        return;
+    }
+
+    static org.apache.solr.common.cloud.SolrZkClient access$200(org.apache.solr.common.cloud.ConnectionManager)
+    {
+        org.apache.solr.common.cloud.ConnectionManager r0;
+        org.apache.solr.common.cloud.SolrZkClient $r1;
+
+        r0 := @parameter0: org.apache.solr.common.cloud.ConnectionManager;
+
+        $r1 = r0.<org.apache.solr.common.cloud.ConnectionManager: org.apache.solr.common.cloud.SolrZkClient client>;
+
+        return $r1;
+    }
+
+    static org.apache.solr.common.cloud.OnReconnect access$300(org.apache.solr.common.cloud.ConnectionManager)
+    {
+        org.apache.solr.common.cloud.ConnectionManager r0;
+        org.apache.solr.common.cloud.OnReconnect $r1;
+
+        r0 := @parameter0: org.apache.solr.common.cloud.ConnectionManager;
+
+        $r1 = r0.<org.apache.solr.common.cloud.ConnectionManager: org.apache.solr.common.cloud.OnReconnect onReconnect>;
+
+        return $r1;
+    }
+
+    static boolean access$402(org.apache.solr.common.cloud.ConnectionManager, boolean)
+    {
+        org.apache.solr.common.cloud.ConnectionManager r0;
+        boolean z0;
+
+        r0 := @parameter0: org.apache.solr.common.cloud.ConnectionManager;
+
+        z0 := @parameter1: boolean;
+
+        r0.<org.apache.solr.common.cloud.ConnectionManager: boolean connected> = z0;
+
+        return z0;
+    }
+
+    static void <clinit>()
+    {
+        org.slf4j.Logger $r0;
+
+        $r0 = staticinvoke <org.slf4j.LoggerFactory: org.slf4j.Logger getLogger(java.lang.Class)>(class "Lorg/apache/solr/common/cloud/ConnectionManager;");
+
+        <org.apache.solr.common.cloud.ConnectionManager: org.slf4j.Logger log> = $r0;
+
+        return;
+    }
+}

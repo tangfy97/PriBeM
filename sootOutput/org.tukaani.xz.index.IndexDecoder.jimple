@@ -1,0 +1,853 @@
+public class org.tukaani.xz.index.IndexDecoder extends org.tukaani.xz.index.IndexBase
+{
+    private final org.tukaani.xz.common.StreamFlags streamFlags;
+    private final long streamPadding;
+    private final int memoryUsage;
+    private final long[] unpadded;
+    private final long[] uncompressed;
+    private long largestBlockSize;
+    private int recordOffset;
+    private long compressedOffset;
+    private long uncompressedOffset;
+    static final boolean $assertionsDisabled;
+    static java.lang.Class class$org$tukaani$xz$index$IndexDecoder;
+
+    public void <init>(org.tukaani.xz.SeekableInputStream, org.tukaani.xz.common.StreamFlags, long, int) throws java.io.IOException
+    {
+        org.tukaani.xz.MemoryLimitException $r27;
+        byte $b9, $b10, $b23, $b31, $b36, $b42, $b45;
+        long l0, $l1, $l2, $l3, l4, $l6, $l7, $l8, $l11, $l12, $l13, $l20, $l21, $l22, $l25, $l27, $l28, $l30, $l33, $l34, $l35, $l37, $l38, $l39, $l40, $l41, $l43, $l44;
+        java.lang.AssertionError $r29;
+        org.tukaani.xz.CorruptedInputException $r21, $r24, $r25, $r28, $r30, $r31, $r32, $r33;
+        java.util.zip.CRC32 $r22;
+        java.util.zip.CheckedInputStream $r23;
+        org.tukaani.xz.SeekableInputStream r3;
+        boolean $z0;
+        org.tukaani.xz.common.StreamFlags r2;
+        java.io.EOFException $r19;
+        org.tukaani.xz.UnsupportedOptionsException $r26;
+        org.tukaani.xz.index.IndexDecoder r0;
+        long[] $r6, $r7, $r11, $r12;
+        int $i5, $i14, $i15, i16, $i17, $i18, $i19, $i24, $i26, $i29, $i32, $i46, $i47, i48, i49, i50, i51, $i52, $i53, $i54, $i55, $i57, $i59;
+
+        r0 := @this: org.tukaani.xz.index.IndexDecoder;
+
+        r3 := @parameter0: org.tukaani.xz.SeekableInputStream;
+
+        r2 := @parameter1: org.tukaani.xz.common.StreamFlags;
+
+        l0 := @parameter2: long;
+
+        i16 := @parameter3: int;
+
+        $r21 = new org.tukaani.xz.CorruptedInputException;
+
+        specialinvoke $r21.<org.tukaani.xz.CorruptedInputException: void <init>(java.lang.String)>("XZ Index is corrupt");
+
+        specialinvoke r0.<org.tukaani.xz.index.IndexBase: void <init>(org.tukaani.xz.XZIOException)>($r21);
+
+        r0.<org.tukaani.xz.index.IndexDecoder: long largestBlockSize> = 0L;
+
+        r0.<org.tukaani.xz.index.IndexDecoder: int recordOffset> = 0;
+
+        r0.<org.tukaani.xz.index.IndexDecoder: long compressedOffset> = 0L;
+
+        r0.<org.tukaani.xz.index.IndexDecoder: long uncompressedOffset> = 0L;
+
+        r0.<org.tukaani.xz.index.IndexDecoder: org.tukaani.xz.common.StreamFlags streamFlags> = r2;
+
+        r0.<org.tukaani.xz.index.IndexDecoder: long streamPadding> = l0;
+
+        $l1 = virtualinvoke r3.<org.tukaani.xz.SeekableInputStream: long position()>();
+
+        $l2 = r2.<org.tukaani.xz.common.StreamFlags: long backwardSize>;
+
+        $l3 = $l1 + $l2;
+
+        l4 = $l3 - 4L;
+
+        $r22 = new java.util.zip.CRC32;
+
+        specialinvoke $r22.<java.util.zip.CRC32: void <init>()>();
+
+        $r23 = new java.util.zip.CheckedInputStream;
+
+        specialinvoke $r23.<java.util.zip.CheckedInputStream: void <init>(java.io.InputStream,java.util.zip.Checksum)>(r3, $r22);
+
+        $i5 = virtualinvoke $r23.<java.util.zip.CheckedInputStream: int read()>();
+
+        if $i5 == 0 goto label01;
+
+        $r24 = new org.tukaani.xz.CorruptedInputException;
+
+        specialinvoke $r24.<org.tukaani.xz.CorruptedInputException: void <init>(java.lang.String)>("XZ Index is corrupt");
+
+        throw $r24;
+
+     label01:
+        $l6 = staticinvoke <org.tukaani.xz.common.DecoderUtil: long decodeVLI(java.io.InputStream)>($r23);
+
+        $l7 = r2.<org.tukaani.xz.common.StreamFlags: long backwardSize>;
+
+        $l8 = $l7 / 2L;
+
+        $b9 = $l6 cmp $l8;
+
+        $i52 = (int) $b9;
+
+        if $i52 < 0 goto label02;
+
+        $r25 = new org.tukaani.xz.CorruptedInputException;
+
+        specialinvoke $r25.<org.tukaani.xz.CorruptedInputException: void <init>(java.lang.String)>("XZ Index is corrupt");
+
+        throw $r25;
+
+     label02:
+        $b10 = $l6 cmp 2147483647L;
+
+        $i53 = (int) $b10;
+
+        if $i53 <= 0 goto label03;
+
+        $r26 = new org.tukaani.xz.UnsupportedOptionsException;
+
+        specialinvoke $r26.<org.tukaani.xz.UnsupportedOptionsException: void <init>(java.lang.String)>("XZ Index has over 2147483647 Records");
+
+        throw $r26;
+
+     label03:
+        $l11 = 16L * $l6;
+
+        $l12 = $l11 + 1023L;
+
+        $l13 = $l12 / 1024L;
+
+        $i14 = (int) $l13;
+
+        $i15 = 1 + $i14;
+
+        r0.<org.tukaani.xz.index.IndexDecoder: int memoryUsage> = $i15;
+
+        if i16 < 0 goto label04;
+
+        $i46 = r0.<org.tukaani.xz.index.IndexDecoder: int memoryUsage>;
+
+        if $i46 <= i16 goto label04;
+
+        $r27 = new org.tukaani.xz.MemoryLimitException;
+
+        $i47 = r0.<org.tukaani.xz.index.IndexDecoder: int memoryUsage>;
+
+        specialinvoke $r27.<org.tukaani.xz.MemoryLimitException: void <init>(int,int)>($i47, i16);
+
+        throw $r27;
+
+     label04:
+        $i17 = (int) $l6;
+
+        $r6 = newarray (long)[$i17];
+
+        r0.<org.tukaani.xz.index.IndexDecoder: long[] unpadded> = $r6;
+
+        $i18 = (int) $l6;
+
+        $r7 = newarray (long)[$i18];
+
+        r0.<org.tukaani.xz.index.IndexDecoder: long[] uncompressed> = $r7;
+
+        i48 = 0;
+
+        i49 = (int) $l6;
+
+     label05:
+        if i49 <= 0 goto label09;
+
+        $l33 = staticinvoke <org.tukaani.xz.common.DecoderUtil: long decodeVLI(java.io.InputStream)>($r23);
+
+        $l34 = staticinvoke <org.tukaani.xz.common.DecoderUtil: long decodeVLI(java.io.InputStream)>($r23);
+
+        $l35 = virtualinvoke r3.<org.tukaani.xz.SeekableInputStream: long position()>();
+
+        $b36 = $l35 cmp l4;
+
+        $i54 = (int) $b36;
+
+        if $i54 <= 0 goto label06;
+
+        $r28 = new org.tukaani.xz.CorruptedInputException;
+
+        specialinvoke $r28.<org.tukaani.xz.CorruptedInputException: void <init>(java.lang.String)>("XZ Index is corrupt");
+
+        throw $r28;
+
+     label06:
+        $r11 = r0.<org.tukaani.xz.index.IndexDecoder: long[] unpadded>;
+
+        $l37 = r0.<org.tukaani.xz.index.IndexDecoder: long blocksSum>;
+
+        $l38 = $l37 + $l33;
+
+        $r11[i48] = $l38;
+
+        $r12 = r0.<org.tukaani.xz.index.IndexDecoder: long[] uncompressed>;
+
+        $l39 = r0.<org.tukaani.xz.index.IndexDecoder: long uncompressedSum>;
+
+        $l40 = $l39 + $l34;
+
+        $r12[i48] = $l40;
+
+        i48 = i48 + 1;
+
+        specialinvoke r0.<org.tukaani.xz.index.IndexBase: void add(long,long)>($l33, $l34);
+
+        $z0 = <org.tukaani.xz.index.IndexDecoder: boolean $assertionsDisabled>;
+
+        if $z0 != 0 goto label07;
+
+        $l44 = (long) i48;
+
+        $l43 = r0.<org.tukaani.xz.index.IndexDecoder: long recordCount>;
+
+        $b45 = $l44 cmp $l43;
+
+        if $b45 == 0 goto label07;
+
+        $r29 = new java.lang.AssertionError;
+
+        specialinvoke $r29.<java.lang.AssertionError: void <init>()>();
+
+        throw $r29;
+
+     label07:
+        $l41 = r0.<org.tukaani.xz.index.IndexDecoder: long largestBlockSize>;
+
+        $b42 = $l41 cmp $l34;
+
+        $i55 = (int) $b42;
+
+        if $i55 >= 0 goto label08;
+
+        r0.<org.tukaani.xz.index.IndexDecoder: long largestBlockSize> = $l34;
+
+     label08:
+        $i57 = (int) -1;
+
+        i49 = i49 + $i57;
+
+        goto label05;
+
+     label09:
+        goto label11;
+
+     label10:
+        $r19 := @caughtexception;
+
+        $r30 = new org.tukaani.xz.CorruptedInputException;
+
+        specialinvoke $r30.<org.tukaani.xz.CorruptedInputException: void <init>(java.lang.String)>("XZ Index is corrupt");
+
+        throw $r30;
+
+     label11:
+        $i19 = virtualinvoke r0.<org.tukaani.xz.index.IndexDecoder: int getIndexPaddingSize()>();
+
+        i50 = $i19;
+
+        $l20 = virtualinvoke r3.<org.tukaani.xz.SeekableInputStream: long position()>();
+
+        $l21 = (long) $i19;
+
+        $l22 = $l20 + $l21;
+
+        $b23 = $l22 cmp l4;
+
+        if $b23 == 0 goto label12;
+
+        $r31 = new org.tukaani.xz.CorruptedInputException;
+
+        specialinvoke $r31.<org.tukaani.xz.CorruptedInputException: void <init>(java.lang.String)>("XZ Index is corrupt");
+
+        throw $r31;
+
+     label12:
+        $i24 = i50;
+
+        $i59 = (int) -1;
+
+        i50 = i50 + $i59;
+
+        if $i24 <= 0 goto label13;
+
+        $i32 = virtualinvoke $r23.<java.util.zip.CheckedInputStream: int read()>();
+
+        if $i32 == 0 goto label12;
+
+        $r32 = new org.tukaani.xz.CorruptedInputException;
+
+        specialinvoke $r32.<org.tukaani.xz.CorruptedInputException: void <init>(java.lang.String)>("XZ Index is corrupt");
+
+        throw $r32;
+
+     label13:
+        $l25 = virtualinvoke $r22.<java.util.zip.CRC32: long getValue()>();
+
+        i51 = 0;
+
+     label14:
+        if i51 >= 4 goto label16;
+
+        $i26 = i51 * 8;
+
+        $l27 = $l25 >>> $i26;
+
+        $l28 = $l27 & 255L;
+
+        $i29 = virtualinvoke r3.<org.tukaani.xz.SeekableInputStream: int read()>();
+
+        $l30 = (long) $i29;
+
+        $b31 = $l28 cmp $l30;
+
+        if $b31 == 0 goto label15;
+
+        $r33 = new org.tukaani.xz.CorruptedInputException;
+
+        specialinvoke $r33.<org.tukaani.xz.CorruptedInputException: void <init>(java.lang.String)>("XZ Index is corrupt");
+
+        throw $r33;
+
+     label15:
+        i51 = i51 + 1;
+
+        goto label14;
+
+     label16:
+        return;
+
+        catch java.io.EOFException from label01 to label09 with label10;
+    }
+
+    public void setOffsets(org.tukaani.xz.index.IndexDecoder)
+    {
+        long $l0, $l4, $l5, $l6, $l7, $l8, $l9, $l10, $l11, $l12, $l13;
+        java.lang.AssertionError $r2;
+        org.tukaani.xz.index.IndexDecoder r0, r1;
+        byte $b14;
+        int $i1, $i2, $i3;
+        boolean $z0;
+
+        r0 := @this: org.tukaani.xz.index.IndexDecoder;
+
+        r1 := @parameter0: org.tukaani.xz.index.IndexDecoder;
+
+        $i2 = r1.<org.tukaani.xz.index.IndexDecoder: int recordOffset>;
+
+        $l0 = r1.<org.tukaani.xz.index.IndexDecoder: long recordCount>;
+
+        $i1 = (int) $l0;
+
+        $i3 = $i2 + $i1;
+
+        r0.<org.tukaani.xz.index.IndexDecoder: int recordOffset> = $i3;
+
+        $l4 = r1.<org.tukaani.xz.index.IndexDecoder: long compressedOffset>;
+
+        $l5 = virtualinvoke r1.<org.tukaani.xz.index.IndexDecoder: long getStreamSize()>();
+
+        $l7 = $l4 + $l5;
+
+        $l6 = r1.<org.tukaani.xz.index.IndexDecoder: long streamPadding>;
+
+        $l8 = $l7 + $l6;
+
+        r0.<org.tukaani.xz.index.IndexDecoder: long compressedOffset> = $l8;
+
+        $z0 = <org.tukaani.xz.index.IndexDecoder: boolean $assertionsDisabled>;
+
+        if $z0 != 0 goto label1;
+
+        $l12 = r0.<org.tukaani.xz.index.IndexDecoder: long compressedOffset>;
+
+        $l13 = $l12 & 3L;
+
+        $b14 = $l13 cmp 0L;
+
+        if $b14 == 0 goto label1;
+
+        $r2 = new java.lang.AssertionError;
+
+        specialinvoke $r2.<java.lang.AssertionError: void <init>()>();
+
+        throw $r2;
+
+     label1:
+        $l10 = r1.<org.tukaani.xz.index.IndexDecoder: long uncompressedOffset>;
+
+        $l9 = r1.<org.tukaani.xz.index.IndexDecoder: long uncompressedSum>;
+
+        $l11 = $l10 + $l9;
+
+        r0.<org.tukaani.xz.index.IndexDecoder: long uncompressedOffset> = $l11;
+
+        return;
+    }
+
+    public int getMemoryUsage()
+    {
+        int $i0;
+        org.tukaani.xz.index.IndexDecoder r0;
+
+        r0 := @this: org.tukaani.xz.index.IndexDecoder;
+
+        $i0 = r0.<org.tukaani.xz.index.IndexDecoder: int memoryUsage>;
+
+        return $i0;
+    }
+
+    public org.tukaani.xz.common.StreamFlags getStreamFlags()
+    {
+        org.tukaani.xz.common.StreamFlags $r1;
+        org.tukaani.xz.index.IndexDecoder r0;
+
+        r0 := @this: org.tukaani.xz.index.IndexDecoder;
+
+        $r1 = r0.<org.tukaani.xz.index.IndexDecoder: org.tukaani.xz.common.StreamFlags streamFlags>;
+
+        return $r1;
+    }
+
+    public int getRecordCount()
+    {
+        int $i1;
+        long $l0;
+        org.tukaani.xz.index.IndexDecoder r0;
+
+        r0 := @this: org.tukaani.xz.index.IndexDecoder;
+
+        $l0 = r0.<org.tukaani.xz.index.IndexDecoder: long recordCount>;
+
+        $i1 = (int) $l0;
+
+        return $i1;
+    }
+
+    public long getUncompressedSize()
+    {
+        long $l0;
+        org.tukaani.xz.index.IndexDecoder r0;
+
+        r0 := @this: org.tukaani.xz.index.IndexDecoder;
+
+        $l0 = r0.<org.tukaani.xz.index.IndexDecoder: long uncompressedSum>;
+
+        return $l0;
+    }
+
+    public long getLargestBlockSize()
+    {
+        long $l0;
+        org.tukaani.xz.index.IndexDecoder r0;
+
+        r0 := @this: org.tukaani.xz.index.IndexDecoder;
+
+        $l0 = r0.<org.tukaani.xz.index.IndexDecoder: long largestBlockSize>;
+
+        return $l0;
+    }
+
+    public boolean hasUncompressedOffset(long)
+    {
+        long l0, $l1, $l3, $l4, $l5;
+        org.tukaani.xz.index.IndexDecoder r0;
+        byte $b2, $b6;
+        int $i7, $i8;
+        boolean $z0;
+
+        r0 := @this: org.tukaani.xz.index.IndexDecoder;
+
+        l0 := @parameter0: long;
+
+        $l1 = r0.<org.tukaani.xz.index.IndexDecoder: long uncompressedOffset>;
+
+        $b2 = l0 cmp $l1;
+
+        $i7 = (int) $b2;
+
+        if $i7 < 0 goto label1;
+
+        $l4 = r0.<org.tukaani.xz.index.IndexDecoder: long uncompressedOffset>;
+
+        $l3 = r0.<org.tukaani.xz.index.IndexDecoder: long uncompressedSum>;
+
+        $l5 = $l4 + $l3;
+
+        $b6 = l0 cmp $l5;
+
+        $i8 = (int) $b6;
+
+        if $i8 >= 0 goto label1;
+
+        $z0 = 1;
+
+        goto label2;
+
+     label1:
+        $z0 = 0;
+
+     label2:
+        return $z0;
+    }
+
+    public boolean hasRecord(int)
+    {
+        long $l3, $l4, $l5, $l6;
+        org.tukaani.xz.index.IndexDecoder r0;
+        byte $b7;
+        int i0, $i1, $i2, $i8;
+        boolean $z0;
+
+        r0 := @this: org.tukaani.xz.index.IndexDecoder;
+
+        i0 := @parameter0: int;
+
+        $i1 = r0.<org.tukaani.xz.index.IndexDecoder: int recordOffset>;
+
+        if i0 < $i1 goto label1;
+
+        $l6 = (long) i0;
+
+        $i2 = r0.<org.tukaani.xz.index.IndexDecoder: int recordOffset>;
+
+        $l4 = (long) $i2;
+
+        $l3 = r0.<org.tukaani.xz.index.IndexDecoder: long recordCount>;
+
+        $l5 = $l4 + $l3;
+
+        $b7 = $l6 cmp $l5;
+
+        $i8 = (int) $b7;
+
+        if $i8 >= 0 goto label1;
+
+        $z0 = 1;
+
+        goto label2;
+
+     label1:
+        $z0 = 0;
+
+     label2:
+        return $z0;
+    }
+
+    public void locateBlock(org.tukaani.xz.index.BlockInfo, long)
+    {
+        org.tukaani.xz.index.BlockInfo r2;
+        long $l0, $l7, $l9, $l11, $l13, l14;
+        java.lang.AssertionError $r6, $r7;
+        org.tukaani.xz.index.IndexDecoder r0;
+        long[] $r1, $r3;
+        byte $b8, $b10, $b12;
+        int $i1, $i2, $i3, $i4, $i5, i6, i15, i16, $i17, $i18, $i19;
+        boolean $z0, $z1;
+
+        r0 := @this: org.tukaani.xz.index.IndexDecoder;
+
+        r2 := @parameter0: org.tukaani.xz.index.BlockInfo;
+
+        l14 := @parameter1: long;
+
+        $z0 = <org.tukaani.xz.index.IndexDecoder: boolean $assertionsDisabled>;
+
+        if $z0 != 0 goto label1;
+
+        $l11 = r0.<org.tukaani.xz.index.IndexDecoder: long uncompressedOffset>;
+
+        $b12 = l14 cmp $l11;
+
+        $i17 = (int) $b12;
+
+        if $i17 >= 0 goto label1;
+
+        $r6 = new java.lang.AssertionError;
+
+        specialinvoke $r6.<java.lang.AssertionError: void <init>()>();
+
+        throw $r6;
+
+     label1:
+        $l0 = r0.<org.tukaani.xz.index.IndexDecoder: long uncompressedOffset>;
+
+        $l13 = l14 - $l0;
+
+        $z1 = <org.tukaani.xz.index.IndexDecoder: boolean $assertionsDisabled>;
+
+        if $z1 != 0 goto label2;
+
+        $l9 = r0.<org.tukaani.xz.index.IndexDecoder: long uncompressedSum>;
+
+        $b10 = $l13 cmp $l9;
+
+        $i18 = (int) $b10;
+
+        if $i18 < 0 goto label2;
+
+        $r7 = new java.lang.AssertionError;
+
+        specialinvoke $r7.<java.lang.AssertionError: void <init>()>();
+
+        throw $r7;
+
+     label2:
+        i15 = 0;
+
+        $r1 = r0.<org.tukaani.xz.index.IndexDecoder: long[] unpadded>;
+
+        $i1 = lengthof $r1;
+
+        i16 = $i1 - 1;
+
+     label3:
+        if i15 >= i16 goto label6;
+
+        $i4 = i16 - i15;
+
+        $i5 = $i4 / 2;
+
+        i6 = i15 + $i5;
+
+        $r3 = r0.<org.tukaani.xz.index.IndexDecoder: long[] uncompressed>;
+
+        $l7 = $r3[i6];
+
+        $b8 = $l7 cmp $l13;
+
+        $i19 = (int) $b8;
+
+        if $i19 > 0 goto label4;
+
+        i15 = i6 + 1;
+
+        goto label5;
+
+     label4:
+        i16 = i6;
+
+     label5:
+        goto label3;
+
+     label6:
+        $i2 = r0.<org.tukaani.xz.index.IndexDecoder: int recordOffset>;
+
+        $i3 = $i2 + i15;
+
+        virtualinvoke r0.<org.tukaani.xz.index.IndexDecoder: void setBlockInfo(org.tukaani.xz.index.BlockInfo,int)>(r2, $i3);
+
+        return;
+    }
+
+    public void setBlockInfo(org.tukaani.xz.index.BlockInfo, int)
+    {
+        byte $b25;
+        boolean $z0, $z1;
+        org.tukaani.xz.index.BlockInfo r0;
+        long $l3, $l4, $l5, $l7, $l8, $l9, $l10, $l11, $l12, $l13, $l14, $l15, $l16, $l17, $l18, $l19, $l20, $l23, $l24;
+        java.lang.AssertionError $r8, $r9;
+        org.tukaani.xz.index.IndexDecoder r1;
+        long[] $r2, $r3, $r4, $r5;
+        int i0, $i1, $i2, $i6, $i21, $i22, $i26, $i27, $i28;
+
+        r1 := @this: org.tukaani.xz.index.IndexDecoder;
+
+        r0 := @parameter0: org.tukaani.xz.index.BlockInfo;
+
+        i0 := @parameter1: int;
+
+        $z0 = <org.tukaani.xz.index.IndexDecoder: boolean $assertionsDisabled>;
+
+        if $z0 != 0 goto label1;
+
+        $i27 = r1.<org.tukaani.xz.index.IndexDecoder: int recordOffset>;
+
+        if i0 >= $i27 goto label1;
+
+        $r8 = new java.lang.AssertionError;
+
+        specialinvoke $r8.<java.lang.AssertionError: void <init>()>();
+
+        throw $r8;
+
+     label1:
+        $z1 = <org.tukaani.xz.index.IndexDecoder: boolean $assertionsDisabled>;
+
+        if $z1 != 0 goto label2;
+
+        $i21 = r1.<org.tukaani.xz.index.IndexDecoder: int recordOffset>;
+
+        $i22 = i0 - $i21;
+
+        $l24 = (long) $i22;
+
+        $l23 = r1.<org.tukaani.xz.index.IndexDecoder: long recordCount>;
+
+        $b25 = $l24 cmp $l23;
+
+        $i28 = (int) $b25;
+
+        if $i28 < 0 goto label2;
+
+        $r9 = new java.lang.AssertionError;
+
+        specialinvoke $r9.<java.lang.AssertionError: void <init>()>();
+
+        throw $r9;
+
+     label2:
+        r0.<org.tukaani.xz.index.BlockInfo: org.tukaani.xz.index.IndexDecoder index> = r1;
+
+        r0.<org.tukaani.xz.index.BlockInfo: int blockNumber> = i0;
+
+        $i1 = r1.<org.tukaani.xz.index.IndexDecoder: int recordOffset>;
+
+        $i26 = i0 - $i1;
+
+        if $i26 != 0 goto label3;
+
+        r0.<org.tukaani.xz.index.BlockInfo: long compressedOffset> = 0L;
+
+        r0.<org.tukaani.xz.index.BlockInfo: long uncompressedOffset> = 0L;
+
+        goto label4;
+
+     label3:
+        $r2 = r1.<org.tukaani.xz.index.IndexDecoder: long[] unpadded>;
+
+        $i2 = $i26 - 1;
+
+        $l3 = $r2[$i2];
+
+        $l4 = $l3 + 3L;
+
+        $l5 = $l4 & -4L;
+
+        r0.<org.tukaani.xz.index.BlockInfo: long compressedOffset> = $l5;
+
+        $r3 = r1.<org.tukaani.xz.index.IndexDecoder: long[] uncompressed>;
+
+        $i6 = $i26 - 1;
+
+        $l7 = $r3[$i6];
+
+        r0.<org.tukaani.xz.index.BlockInfo: long uncompressedOffset> = $l7;
+
+     label4:
+        $r4 = r1.<org.tukaani.xz.index.IndexDecoder: long[] unpadded>;
+
+        $l9 = $r4[$i26];
+
+        $l8 = r0.<org.tukaani.xz.index.BlockInfo: long compressedOffset>;
+
+        $l10 = $l9 - $l8;
+
+        r0.<org.tukaani.xz.index.BlockInfo: long unpaddedSize> = $l10;
+
+        $r5 = r1.<org.tukaani.xz.index.IndexDecoder: long[] uncompressed>;
+
+        $l12 = $r5[$i26];
+
+        $l11 = r0.<org.tukaani.xz.index.BlockInfo: long uncompressedOffset>;
+
+        $l13 = $l12 - $l11;
+
+        r0.<org.tukaani.xz.index.BlockInfo: long uncompressedSize> = $l13;
+
+        $l16 = r0.<org.tukaani.xz.index.BlockInfo: long compressedOffset>;
+
+        $l14 = r1.<org.tukaani.xz.index.IndexDecoder: long compressedOffset>;
+
+        $l15 = $l14 + 12L;
+
+        $l17 = $l16 + $l15;
+
+        r0.<org.tukaani.xz.index.BlockInfo: long compressedOffset> = $l17;
+
+        $l19 = r0.<org.tukaani.xz.index.BlockInfo: long uncompressedOffset>;
+
+        $l18 = r1.<org.tukaani.xz.index.IndexDecoder: long uncompressedOffset>;
+
+        $l20 = $l19 + $l18;
+
+        r0.<org.tukaani.xz.index.BlockInfo: long uncompressedOffset> = $l20;
+
+        return;
+    }
+
+    static java.lang.Class class$(java.lang.String)
+    {
+        java.lang.Throwable $r4;
+        java.lang.Class $r1;
+        java.lang.ClassNotFoundException $r2;
+        java.lang.String r0;
+        java.lang.NoClassDefFoundError $r3;
+
+        r0 := @parameter0: java.lang.String;
+
+     label1:
+        $r1 = staticinvoke <java.lang.Class: java.lang.Class forName(java.lang.String)>(r0);
+
+     label2:
+        return $r1;
+
+     label3:
+        $r2 := @caughtexception;
+
+        $r3 = new java.lang.NoClassDefFoundError;
+
+        specialinvoke $r3.<java.lang.NoClassDefFoundError: void <init>()>();
+
+        $r4 = virtualinvoke $r3.<java.lang.NoClassDefFoundError: java.lang.Throwable initCause(java.lang.Throwable)>($r2);
+
+        throw $r4;
+
+        catch java.lang.ClassNotFoundException from label1 to label2 with label3;
+    }
+
+    static void <clinit>()
+    {
+        java.lang.Class $r0, $r1;
+        boolean $z0, $z1;
+
+        $r0 = <org.tukaani.xz.index.IndexDecoder: java.lang.Class class$org$tukaani$xz$index$IndexDecoder>;
+
+        if $r0 != null goto label1;
+
+        $r1 = staticinvoke <org.tukaani.xz.index.IndexDecoder: java.lang.Class class$(java.lang.String)>("org.tukaani.xz.index.IndexDecoder");
+
+        <org.tukaani.xz.index.IndexDecoder: java.lang.Class class$org$tukaani$xz$index$IndexDecoder> = $r1;
+
+        goto label2;
+
+     label1:
+        $r1 = <org.tukaani.xz.index.IndexDecoder: java.lang.Class class$org$tukaani$xz$index$IndexDecoder>;
+
+     label2:
+        $z0 = virtualinvoke $r1.<java.lang.Class: boolean desiredAssertionStatus()>();
+
+        if $z0 != 0 goto label3;
+
+        $z1 = 1;
+
+        goto label4;
+
+     label3:
+        $z1 = 0;
+
+     label4:
+        <org.tukaani.xz.index.IndexDecoder: boolean $assertionsDisabled> = $z1;
+
+        return;
+    }
+}

@@ -1,0 +1,326 @@
+public abstract class org.apache.http.impl.conn.tsccm.AbstractConnPool extends java.lang.Object
+{
+    private final org.apache.commons.logging.Log log;
+    protected final java.util.concurrent.locks.Lock poolLock;
+    protected java.util.Set leasedConnections;
+    protected int numConnections;
+    protected volatile boolean isShutDown;
+    protected java.util.Set issuedConnections;
+    protected java.lang.ref.ReferenceQueue refQueue;
+    protected org.apache.http.impl.conn.IdleConnectionHandler idleConnHandler;
+
+    protected void <init>()
+    {
+        java.util.HashSet $r3;
+        org.apache.http.impl.conn.IdleConnectionHandler $r4;
+        java.util.concurrent.locks.ReentrantLock $r5;
+        java.lang.Class $r1;
+        org.apache.commons.logging.Log $r2;
+        org.apache.http.impl.conn.tsccm.AbstractConnPool r0;
+
+        r0 := @this: org.apache.http.impl.conn.tsccm.AbstractConnPool;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        $r1 = virtualinvoke r0.<java.lang.Object: java.lang.Class getClass()>();
+
+        $r2 = staticinvoke <org.apache.commons.logging.LogFactory: org.apache.commons.logging.Log getLog(java.lang.Class)>($r1);
+
+        r0.<org.apache.http.impl.conn.tsccm.AbstractConnPool: org.apache.commons.logging.Log log> = $r2;
+
+        $r3 = new java.util.HashSet;
+
+        specialinvoke $r3.<java.util.HashSet: void <init>()>();
+
+        r0.<org.apache.http.impl.conn.tsccm.AbstractConnPool: java.util.Set leasedConnections> = $r3;
+
+        $r4 = new org.apache.http.impl.conn.IdleConnectionHandler;
+
+        specialinvoke $r4.<org.apache.http.impl.conn.IdleConnectionHandler: void <init>()>();
+
+        r0.<org.apache.http.impl.conn.tsccm.AbstractConnPool: org.apache.http.impl.conn.IdleConnectionHandler idleConnHandler> = $r4;
+
+        $r5 = new java.util.concurrent.locks.ReentrantLock;
+
+        specialinvoke $r5.<java.util.concurrent.locks.ReentrantLock: void <init>()>();
+
+        r0.<org.apache.http.impl.conn.tsccm.AbstractConnPool: java.util.concurrent.locks.Lock poolLock> = $r5;
+
+        return;
+    }
+
+    public void enableConnectionGC() throws java.lang.IllegalStateException
+    {
+        org.apache.http.impl.conn.tsccm.AbstractConnPool r0;
+
+        r0 := @this: org.apache.http.impl.conn.tsccm.AbstractConnPool;
+
+        return;
+    }
+
+    public final org.apache.http.impl.conn.tsccm.BasicPoolEntry getEntry(org.apache.http.conn.routing.HttpRoute, java.lang.Object, long, java.util.concurrent.TimeUnit) throws org.apache.http.conn.ConnectionPoolTimeoutException, java.lang.InterruptedException
+    {
+        java.util.concurrent.TimeUnit r4;
+        org.apache.http.impl.conn.tsccm.BasicPoolEntry $r5;
+        java.lang.Object r2;
+        long l0;
+        org.apache.http.conn.routing.HttpRoute r1;
+        org.apache.http.impl.conn.tsccm.PoolEntryRequest $r3;
+        org.apache.http.impl.conn.tsccm.AbstractConnPool r0;
+
+        r0 := @this: org.apache.http.impl.conn.tsccm.AbstractConnPool;
+
+        r1 := @parameter0: org.apache.http.conn.routing.HttpRoute;
+
+        r2 := @parameter1: java.lang.Object;
+
+        l0 := @parameter2: long;
+
+        r4 := @parameter3: java.util.concurrent.TimeUnit;
+
+        $r3 = virtualinvoke r0.<org.apache.http.impl.conn.tsccm.AbstractConnPool: org.apache.http.impl.conn.tsccm.PoolEntryRequest requestPoolEntry(org.apache.http.conn.routing.HttpRoute,java.lang.Object)>(r1, r2);
+
+        $r5 = interfaceinvoke $r3.<org.apache.http.impl.conn.tsccm.PoolEntryRequest: org.apache.http.impl.conn.tsccm.BasicPoolEntry getPoolEntry(long,java.util.concurrent.TimeUnit)>(l0, r4);
+
+        return $r5;
+    }
+
+    public abstract org.apache.http.impl.conn.tsccm.PoolEntryRequest requestPoolEntry(org.apache.http.conn.routing.HttpRoute, java.lang.Object);
+
+    public abstract void freeEntry(org.apache.http.impl.conn.tsccm.BasicPoolEntry, boolean, long, java.util.concurrent.TimeUnit);
+
+    public void handleReference(java.lang.ref.Reference)
+    {
+        java.lang.ref.Reference r1;
+        org.apache.http.impl.conn.tsccm.AbstractConnPool r0;
+
+        r0 := @this: org.apache.http.impl.conn.tsccm.AbstractConnPool;
+
+        r1 := @parameter0: java.lang.ref.Reference;
+
+        return;
+    }
+
+    protected abstract void handleLostEntry(org.apache.http.conn.routing.HttpRoute);
+
+    public void closeIdleConnections(long, java.util.concurrent.TimeUnit)
+    {
+        java.lang.Throwable $r6;
+        long l0, $l1;
+        java.lang.IllegalArgumentException $r5;
+        org.apache.http.impl.conn.tsccm.AbstractConnPool r1;
+        java.util.concurrent.TimeUnit r0;
+        java.util.concurrent.locks.Lock $r2, $r4, $r7;
+        org.apache.http.impl.conn.IdleConnectionHandler $r3;
+
+        r1 := @this: org.apache.http.impl.conn.tsccm.AbstractConnPool;
+
+        l0 := @parameter0: long;
+
+        r0 := @parameter1: java.util.concurrent.TimeUnit;
+
+        if r0 != null goto label1;
+
+        $r5 = new java.lang.IllegalArgumentException;
+
+        specialinvoke $r5.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>("Time unit must not be null.");
+
+        throw $r5;
+
+     label1:
+        $r2 = r1.<org.apache.http.impl.conn.tsccm.AbstractConnPool: java.util.concurrent.locks.Lock poolLock>;
+
+        interfaceinvoke $r2.<java.util.concurrent.locks.Lock: void lock()>();
+
+     label2:
+        $r3 = r1.<org.apache.http.impl.conn.tsccm.AbstractConnPool: org.apache.http.impl.conn.IdleConnectionHandler idleConnHandler>;
+
+        $l1 = virtualinvoke r0.<java.util.concurrent.TimeUnit: long toMillis(long)>(l0);
+
+        virtualinvoke $r3.<org.apache.http.impl.conn.IdleConnectionHandler: void closeIdleConnections(long)>($l1);
+
+     label3:
+        $r4 = r1.<org.apache.http.impl.conn.tsccm.AbstractConnPool: java.util.concurrent.locks.Lock poolLock>;
+
+        interfaceinvoke $r4.<java.util.concurrent.locks.Lock: void unlock()>();
+
+        goto label6;
+
+     label4:
+        $r6 := @caughtexception;
+
+     label5:
+        $r7 = r1.<org.apache.http.impl.conn.tsccm.AbstractConnPool: java.util.concurrent.locks.Lock poolLock>;
+
+        interfaceinvoke $r7.<java.util.concurrent.locks.Lock: void unlock()>();
+
+        throw $r6;
+
+     label6:
+        return;
+
+        catch java.lang.Throwable from label2 to label3 with label4;
+        catch java.lang.Throwable from label4 to label5 with label4;
+    }
+
+    public void closeExpiredConnections()
+    {
+        java.lang.Throwable $r4;
+        java.util.concurrent.locks.Lock $r1, $r3, $r5;
+        org.apache.http.impl.conn.IdleConnectionHandler $r2;
+        org.apache.http.impl.conn.tsccm.AbstractConnPool r0;
+
+        r0 := @this: org.apache.http.impl.conn.tsccm.AbstractConnPool;
+
+        $r1 = r0.<org.apache.http.impl.conn.tsccm.AbstractConnPool: java.util.concurrent.locks.Lock poolLock>;
+
+        interfaceinvoke $r1.<java.util.concurrent.locks.Lock: void lock()>();
+
+     label1:
+        $r2 = r0.<org.apache.http.impl.conn.tsccm.AbstractConnPool: org.apache.http.impl.conn.IdleConnectionHandler idleConnHandler>;
+
+        virtualinvoke $r2.<org.apache.http.impl.conn.IdleConnectionHandler: void closeExpiredConnections()>();
+
+     label2:
+        $r3 = r0.<org.apache.http.impl.conn.tsccm.AbstractConnPool: java.util.concurrent.locks.Lock poolLock>;
+
+        interfaceinvoke $r3.<java.util.concurrent.locks.Lock: void unlock()>();
+
+        goto label5;
+
+     label3:
+        $r4 := @caughtexception;
+
+     label4:
+        $r5 = r0.<org.apache.http.impl.conn.tsccm.AbstractConnPool: java.util.concurrent.locks.Lock poolLock>;
+
+        interfaceinvoke $r5.<java.util.concurrent.locks.Lock: void unlock()>();
+
+        throw $r4;
+
+     label5:
+        return;
+
+        catch java.lang.Throwable from label1 to label2 with label3;
+        catch java.lang.Throwable from label3 to label4 with label3;
+    }
+
+    public abstract void deleteClosedConnections();
+
+    public void shutdown()
+    {
+        java.lang.Throwable $r10;
+        java.util.Iterator $r3;
+        java.util.Set $r2;
+        org.apache.http.impl.conn.tsccm.AbstractConnPool r0;
+        org.apache.http.conn.OperatedClientConnection $r8;
+        java.util.concurrent.locks.Lock $r1, $r5, $r9, $r11;
+        org.apache.http.impl.conn.IdleConnectionHandler $r4;
+        org.apache.http.impl.conn.tsccm.BasicPoolEntry r7;
+        java.lang.Object $r6;
+        boolean $z0, $z1;
+
+        r0 := @this: org.apache.http.impl.conn.tsccm.AbstractConnPool;
+
+        $r1 = r0.<org.apache.http.impl.conn.tsccm.AbstractConnPool: java.util.concurrent.locks.Lock poolLock>;
+
+        interfaceinvoke $r1.<java.util.concurrent.locks.Lock: void lock()>();
+
+     label1:
+        $z0 = r0.<org.apache.http.impl.conn.tsccm.AbstractConnPool: boolean isShutDown>;
+
+        if $z0 == 0 goto label3;
+
+     label2:
+        $r9 = r0.<org.apache.http.impl.conn.tsccm.AbstractConnPool: java.util.concurrent.locks.Lock poolLock>;
+
+        interfaceinvoke $r9.<java.util.concurrent.locks.Lock: void unlock()>();
+
+        return;
+
+     label3:
+        $r2 = r0.<org.apache.http.impl.conn.tsccm.AbstractConnPool: java.util.Set leasedConnections>;
+
+        $r3 = interfaceinvoke $r2.<java.util.Set: java.util.Iterator iterator()>();
+
+     label4:
+        $z1 = interfaceinvoke $r3.<java.util.Iterator: boolean hasNext()>();
+
+        if $z1 == 0 goto label5;
+
+        $r6 = interfaceinvoke $r3.<java.util.Iterator: java.lang.Object next()>();
+
+        r7 = (org.apache.http.impl.conn.tsccm.BasicPoolEntry) $r6;
+
+        interfaceinvoke $r3.<java.util.Iterator: void remove()>();
+
+        $r8 = virtualinvoke r7.<org.apache.http.impl.conn.tsccm.BasicPoolEntry: org.apache.http.conn.OperatedClientConnection getConnection()>();
+
+        virtualinvoke r0.<org.apache.http.impl.conn.tsccm.AbstractConnPool: void closeConnection(org.apache.http.conn.OperatedClientConnection)>($r8);
+
+        goto label4;
+
+     label5:
+        $r4 = r0.<org.apache.http.impl.conn.tsccm.AbstractConnPool: org.apache.http.impl.conn.IdleConnectionHandler idleConnHandler>;
+
+        virtualinvoke $r4.<org.apache.http.impl.conn.IdleConnectionHandler: void removeAll()>();
+
+        r0.<org.apache.http.impl.conn.tsccm.AbstractConnPool: boolean isShutDown> = 1;
+
+     label6:
+        $r5 = r0.<org.apache.http.impl.conn.tsccm.AbstractConnPool: java.util.concurrent.locks.Lock poolLock>;
+
+        interfaceinvoke $r5.<java.util.concurrent.locks.Lock: void unlock()>();
+
+        goto label9;
+
+     label7:
+        $r10 := @caughtexception;
+
+     label8:
+        $r11 = r0.<org.apache.http.impl.conn.tsccm.AbstractConnPool: java.util.concurrent.locks.Lock poolLock>;
+
+        interfaceinvoke $r11.<java.util.concurrent.locks.Lock: void unlock()>();
+
+        throw $r10;
+
+     label9:
+        return;
+
+        catch java.lang.Throwable from label1 to label2 with label7;
+        catch java.lang.Throwable from label3 to label6 with label7;
+        catch java.lang.Throwable from label7 to label8 with label7;
+    }
+
+    protected void closeConnection(org.apache.http.conn.OperatedClientConnection)
+    {
+        org.apache.http.conn.OperatedClientConnection r0;
+        java.io.IOException $r1;
+        org.apache.commons.logging.Log $r3;
+        org.apache.http.impl.conn.tsccm.AbstractConnPool r2;
+
+        r2 := @this: org.apache.http.impl.conn.tsccm.AbstractConnPool;
+
+        r0 := @parameter0: org.apache.http.conn.OperatedClientConnection;
+
+        if r0 == null goto label4;
+
+     label1:
+        interfaceinvoke r0.<org.apache.http.conn.OperatedClientConnection: void close()>();
+
+     label2:
+        goto label4;
+
+     label3:
+        $r1 := @caughtexception;
+
+        $r3 = r2.<org.apache.http.impl.conn.tsccm.AbstractConnPool: org.apache.commons.logging.Log log>;
+
+        interfaceinvoke $r3.<org.apache.commons.logging.Log: void debug(java.lang.Object,java.lang.Throwable)>("I/O error closing connection", $r1);
+
+     label4:
+        return;
+
+        catch java.io.IOException from label1 to label2 with label3;
+    }
+}

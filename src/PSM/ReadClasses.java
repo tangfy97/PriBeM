@@ -15,6 +15,7 @@ import java.util.Map;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -116,13 +117,7 @@ public class ReadClasses {
     public String testCp;
     public Set<SootMethod> basicSource = new HashSet<SootMethod>();
     public Set<SootMethod> basicSink = new HashSet<SootMethod>();
-    public Set<SootMethod> basicSinkAll = new HashSet<SootMethod>();
-    public Set<SootMethod> flow2Return = new HashSet<SootMethod>();
-    public Set<SootMethod> flow2Sink = new HashSet<SootMethod>();
-    public Set<SootMethod> flow2FieldM = new HashSet<SootMethod>();
-    public Set<SootClass> flow2FieldC = new HashSet<SootClass>();
-    public Set<SootMethod> onCreate = new HashSet<SootMethod>();
-    public Set<SootMethod> entrypoints = new HashSet<SootMethod>();
+
 
     public ReadClasses(String testCp) {
       this.testCp = testCp;
@@ -203,7 +198,7 @@ public class ReadClasses {
 			line = bufReader.readLine(); 
 			}
 		bufReader.close();
-		System.out.println("Source is loaded with "+source.size()+" methods.");
+		//System.out.println("Source is loaded with "+source.size()+" methods.");
 		return source;
 	}
 	
@@ -216,28 +211,34 @@ public class ReadClasses {
 			line = bufReader.readLine(); 
 			} 
 		bufReader.close();
-		System.out.println("Sink is loaded with "+sink.size()+" methods.");
+		//System.out.println("Sink is loaded with "+sink.size()+" methods.");
 		return sink;
 	}
 	
 	public void findFlow() throws Exception {
 		source = loadSource();
 		sink = loadSink();
-	    String targetPath = System.getProperty("user.dir")+"/examples/animeRecommendation_0.jar";
+	    String targetPath = System.getProperty("user.dir")+"/examples/fuseki-server_0.jar";
 		String libPath = System.getProperty("user.dir")+"/lib/mysql-connector-java-8.0.28.jar";
-
-		IInfoflow infoflow = new Infoflow();
-		infoflow.getConfig().getEnableLineNumbers();
-		infoflow.getConfig().getIncrementalResultReporting();
-		infoflow.getConfig().getInspectSinks();
-		infoflow.getConfig().getInspectSources();
+		
+		Options.v().set_output_dir(System.getProperty("user.dir")+"/sootOutput");
+		Options.v().set_output_format(Options.output_format_jimple);
+		Options.v().set_whole_program(true);
+	    Options.v().set_include_all(true);
+	    PackManager.v().writeOutput();
+	    
+	    AbstractInfoflow infoflow = new Infoflow();
+		infoflow.getConfig().setEnableLineNumbers(true);
+		//infoflow.getConfig().setIncrementalResultReporting(true);
+		infoflow.getConfig().setInspectSinks(true);
+		infoflow.getConfig().setInspectSources(true);
 		infoflow.getConfig().getAccessPathConfiguration().setAccessPathLength(10);
-		infoflow.getConfig().getLogSourcesAndSinks();
-		infoflow.getConfig().getWriteOutputFiles();
+		infoflow.getConfig().setLogSourcesAndSinks(true);
+		infoflow.getConfig().setWriteOutputFiles(true);
 		infoflow.setTaintWrapper(new SummaryTaintWrapper(new LazySummaryProvider("summariesManual")));
 
 		Collection<String> epoints = new ArrayList<String>();
-		epoints.add("<core.Main: void main(java.lang.String[])>");
+		epoints.add("<org.apache.jena.fuseki.FusekiCmd: void main(java.lang.String[])>");
 		
 		DefaultEntryPointCreator entryPoints = new DefaultEntryPointCreator(epoints);
 		
@@ -268,10 +269,14 @@ public class ReadClasses {
 				//if(target.getName().toString().toLowerCase().contains("print")) {
 				for (SootMethod s : basicSink) {
 				if (s.getName().equals(target.getName())
+						&& !target.getReturnType().toString().toLowerCase().contains("bool")
+						&& !target.getName().toLowerCase().contains("append")
+						&& !target.getName().toLowerCase().contains("tostring")
 						&& !target.getName().toLowerCase().contains("error")
 						&& !target.getName().toLowerCase().contains("init")
 						&& !target.getName().toLowerCase().contains("bug")
 						&& !target.getName().toLowerCase().contains("abort")
+						&& !target.getName().toLowerCase().contains("read")
 						&& !target.getName().toLowerCase().contains("main")){
 					return targetInfo;
 				}}
@@ -288,9 +293,27 @@ public class ReadClasses {
 		infoflow.computeInfoflow(targetPath, libPath, entryPoints, sourceSinkMgr);
 		//infoflow.computeInfoflow(targetPath, libPath, entryPoints, source, sink);
 		System.out.println("*****");
-		infoflow.getResults();
-		infoflow.getCollectedSinks();
-		infoflow.getCollectedSources();
+		Writer flowResult = new FileWriter(System.getProperty("user.dir")+"/flows.txt");
+		infoflow.getResults().printResults(flowResult);
+		System.out.println("Find "+infoflow.getResults().size()+" flows with "+infoflow.getResults().numConnections()+" connections.\n");
+		
+		PrintWriter flowsource = new PrintWriter("flowFrom.txt", "UTF-8");
+    	for (Stmt m : infoflow.getCollectedSources()) {
+    		//bsWriter.println(m+" -> _SOURCE_");
+    		flowsource.println(m);
+    	}
+    	//bsWriter.println("Finished.");
+    	flowsource.close();
+    	
+    	PrintWriter flowsink = new PrintWriter("flowEnd.txt", "UTF-8");
+    	for (Stmt m : infoflow.getCollectedSinks()) {
+    		//bkWriter.println(m+" -> _SINK_");
+    		flowsink.println(m);
+    	}
+    	//bkWriter.println("Finished.");
+    	flowsink.close();
+    	
+    	System.out.println("Flow start and end points printed.\n");
 
 	}
 	/*

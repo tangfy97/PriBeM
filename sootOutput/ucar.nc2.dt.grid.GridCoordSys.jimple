@@ -1,0 +1,4527 @@
+public class ucar.nc2.dt.grid.GridCoordSys extends ucar.nc2.dataset.CoordinateSystem implements ucar.nc2.dt.GridCoordSystem
+{
+    private static org.slf4j.Logger log;
+    private ucar.unidata.geoloc.ProjectionImpl proj;
+    private ucar.nc2.dt.grid.GridCoordinate2D g2d;
+    private ucar.nc2.dataset.CoordinateAxis horizXaxis;
+    private ucar.nc2.dataset.CoordinateAxis horizYaxis;
+    private ucar.nc2.dataset.CoordinateAxis1D vertZaxis;
+    private ucar.nc2.dataset.CoordinateAxis1D ensembleAxis;
+    private ucar.nc2.dataset.CoordinateAxis1DTime timeTaxis;
+    private ucar.nc2.dataset.CoordinateAxis1DTime runTimeAxis;
+    private ucar.nc2.dataset.VerticalCT vCT;
+    private ucar.unidata.geoloc.vertical.VerticalTransform vt;
+    private ucar.nc2.Dimension timeDim;
+    private boolean isDate;
+    private boolean isLatLon;
+    private java.util.Date[] timeDates;
+    private ucar.nc2.dataset.CoordinateAxis1DTime[] timeAxisForRun;
+    private ucar.unidata.geoloc.ProjectionRect mapArea;
+    private ucar.unidata.geoloc.LatLonRect llbb;
+
+    public static boolean isGridCoordSys(java.util.Formatter, ucar.nc2.dataset.CoordinateSystem, ucar.nc2.dataset.VariableEnhanced)
+    {
+        ucar.nc2.dataset.CoordinateAxis $r7, $r8, $r10, r17, $r36, $r37, $r45, $r48, r54, r55, r58, $r60;
+        ucar.nc2.constants.AxisType $r9;
+        ucar.nc2.dataset.CoordinateAxis[] $r4;
+        java.lang.Object[] $r2, $r15, $r24, $r26, $r28, $r30, $r32, $r34, $r41, $r43, $r46, $r50, $r52;
+        java.util.ArrayList $r6, $r12;
+        java.lang.String $r3, $r25, $r27, $r29, $r31, $r33, $r35, $r40, $r42, $r44, $r47, $r51, $r53, $r57;
+        ucar.nc2.dataset.VariableEnhanced r11;
+        ucar.nc2.Dimension r21, $r22, $r23;
+        ucar.unidata.geoloc.ProjectionImpl $r38, $r49;
+        java.util.Formatter r1;
+        ucar.nc2.dataset.CoordinateAxis1D r59;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9, $z10, $z11, $z12, $z13, $z14;
+        java.util.List $r5, $r14, $r18;
+        int $i0, $i1, $i2, $i3, $i4, $i5;
+        java.util.Iterator $r13, $r19;
+        ucar.nc2.units.SimpleUnit $r39, $r56;
+        java.lang.Object $r16, $r20;
+        ucar.nc2.dataset.CoordinateSystem r0;
+
+        r1 := @parameter0: java.util.Formatter;
+
+        r0 := @parameter1: ucar.nc2.dataset.CoordinateSystem;
+
+        r11 := @parameter2: ucar.nc2.dataset.VariableEnhanced;
+
+        $i0 = virtualinvoke r0.<ucar.nc2.dataset.CoordinateSystem: int getRankDomain()>();
+
+        if $i0 >= 2 goto label02;
+
+        if r1 == null goto label01;
+
+        $r52 = newarray (java.lang.Object)[1];
+
+        $r53 = virtualinvoke r0.<ucar.nc2.dataset.CoordinateSystem: java.lang.String getName()>();
+
+        $r52[0] = $r53;
+
+        virtualinvoke r1.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("%s: domain rank < 2%n", $r52);
+
+     label01:
+        return 0;
+
+     label02:
+        $z0 = virtualinvoke r0.<ucar.nc2.dataset.CoordinateSystem: boolean isLatLon()>();
+
+        if $z0 != 0 goto label07;
+
+        $r45 = virtualinvoke r0.<ucar.nc2.dataset.CoordinateSystem: ucar.nc2.dataset.CoordinateAxis getXaxis()>();
+
+        if $r45 == null goto label03;
+
+        $r48 = virtualinvoke r0.<ucar.nc2.dataset.CoordinateSystem: ucar.nc2.dataset.CoordinateAxis getYaxis()>();
+
+        if $r48 != null goto label05;
+
+     label03:
+        if r1 == null goto label04;
+
+        $r46 = newarray (java.lang.Object)[1];
+
+        $r47 = virtualinvoke r0.<ucar.nc2.dataset.CoordinateSystem: java.lang.String getName()>();
+
+        $r46[0] = $r47;
+
+        virtualinvoke r1.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("%s: NO Lat,Lon or X,Y axis%n", $r46);
+
+     label04:
+        return 0;
+
+     label05:
+        $r49 = virtualinvoke r0.<ucar.nc2.dataset.CoordinateSystem: ucar.unidata.geoloc.ProjectionImpl getProjection()>();
+
+        if null != $r49 goto label07;
+
+        if r1 == null goto label06;
+
+        $r50 = newarray (java.lang.Object)[1];
+
+        $r51 = virtualinvoke r0.<ucar.nc2.dataset.CoordinateSystem: java.lang.String getName()>();
+
+        $r50[0] = $r51;
+
+        virtualinvoke r1.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("%s: NO projection found%n", $r50);
+
+     label06:
+        return 0;
+
+     label07:
+        $z1 = virtualinvoke r0.<ucar.nc2.dataset.CoordinateSystem: boolean isGeoXY()>();
+
+        if $z1 == 0 goto label10;
+
+        $r36 = virtualinvoke r0.<ucar.nc2.dataset.CoordinateSystem: ucar.nc2.dataset.CoordinateAxis getXaxis()>();
+
+        r54 = $r36;
+
+        $r37 = virtualinvoke r0.<ucar.nc2.dataset.CoordinateSystem: ucar.nc2.dataset.CoordinateAxis getYaxis()>();
+
+        r55 = $r37;
+
+        $r38 = virtualinvoke r0.<ucar.nc2.dataset.CoordinateSystem: ucar.unidata.geoloc.ProjectionImpl getProjection()>();
+
+        $z12 = $r38 instanceof ucar.unidata.geoloc.projection.RotatedPole;
+
+        if $z12 != 0 goto label09;
+
+        $r39 = <ucar.nc2.units.SimpleUnit: ucar.nc2.units.SimpleUnit kmUnit>;
+
+        $r40 = virtualinvoke $r36.<ucar.nc2.dataset.CoordinateAxis: java.lang.String getUnitsString()>();
+
+        $z13 = virtualinvoke $r39.<ucar.nc2.units.SimpleUnit: boolean isCompatible(java.lang.String)>($r40);
+
+        if $z13 != 0 goto label08;
+
+        if r1 == null goto label08;
+
+        $r43 = newarray (java.lang.Object)[1];
+
+        $r44 = virtualinvoke r0.<ucar.nc2.dataset.CoordinateSystem: java.lang.String getName()>();
+
+        $r43[0] = $r44;
+
+        virtualinvoke r1.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("%s: X axis units are not convertible to km%n", $r43);
+
+     label08:
+        $r56 = <ucar.nc2.units.SimpleUnit: ucar.nc2.units.SimpleUnit kmUnit>;
+
+        $r57 = virtualinvoke $r37.<ucar.nc2.dataset.CoordinateAxis: java.lang.String getUnitsString()>();
+
+        $z14 = virtualinvoke $r56.<ucar.nc2.units.SimpleUnit: boolean isCompatible(java.lang.String)>($r57);
+
+        if $z14 != 0 goto label09;
+
+        if r1 == null goto label09;
+
+        $r41 = newarray (java.lang.Object)[1];
+
+        $r42 = virtualinvoke r0.<ucar.nc2.dataset.CoordinateSystem: java.lang.String getName()>();
+
+        $r41[0] = $r42;
+
+        virtualinvoke r1.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("%s: Y axis units are not convertible to km%n", $r41);
+
+     label09:
+        goto label11;
+
+     label10:
+        r54 = virtualinvoke r0.<ucar.nc2.dataset.CoordinateSystem: ucar.nc2.dataset.CoordinateAxis getLonAxis()>();
+
+        r55 = virtualinvoke r0.<ucar.nc2.dataset.CoordinateSystem: ucar.nc2.dataset.CoordinateAxis getLatAxis()>();
+
+     label11:
+        $i1 = virtualinvoke r54.<ucar.nc2.dataset.CoordinateAxis: int getRank()>();
+
+        if $i1 > 2 goto label12;
+
+        $i2 = virtualinvoke r55.<ucar.nc2.dataset.CoordinateAxis: int getRank()>();
+
+        if $i2 <= 2 goto label14;
+
+     label12:
+        if r1 == null goto label13;
+
+        $r2 = newarray (java.lang.Object)[1];
+
+        $r3 = virtualinvoke r0.<ucar.nc2.dataset.CoordinateSystem: java.lang.String getName()>();
+
+        $r2[0] = $r3;
+
+        virtualinvoke r1.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("%s: X or Y axis rank must be <= 2%n", $r2);
+
+     label13:
+        return 0;
+
+     label14:
+        $r4 = newarray (ucar.nc2.dataset.CoordinateAxis)[2];
+
+        $r4[0] = r54;
+
+        $r4[1] = r55;
+
+        $r5 = staticinvoke <ucar.nc2.dataset.CoordinateSystem: java.util.List makeDomain(ucar.nc2.Variable[])>($r4);
+
+        $i3 = interfaceinvoke $r5.<java.util.List: int size()>();
+
+        if $i3 >= 2 goto label16;
+
+        if r1 == null goto label15;
+
+        $r34 = newarray (java.lang.Object)[1];
+
+        $r35 = virtualinvoke r0.<ucar.nc2.dataset.CoordinateSystem: java.lang.String getName()>();
+
+        $r34[0] = $r35;
+
+        virtualinvoke r1.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("%s: X and Y axis must have 2 or more dimensions%n", $r34);
+
+     label15:
+        return 0;
+
+     label16:
+        $r6 = new java.util.ArrayList;
+
+        specialinvoke $r6.<java.util.ArrayList: void <init>()>();
+
+        interfaceinvoke $r6.<java.util.List: boolean add(java.lang.Object)>(r54);
+
+        interfaceinvoke $r6.<java.util.List: boolean add(java.lang.Object)>(r55);
+
+        $r7 = virtualinvoke r0.<ucar.nc2.dataset.CoordinateSystem: ucar.nc2.dataset.CoordinateAxis getHeightAxis()>();
+
+        r58 = $r7;
+
+        if $r7 == null goto label17;
+
+        $z11 = $r7 instanceof ucar.nc2.dataset.CoordinateAxis1D;
+
+        if $z11 != 0 goto label18;
+
+     label17:
+        r58 = virtualinvoke r0.<ucar.nc2.dataset.CoordinateSystem: ucar.nc2.dataset.CoordinateAxis getPressureAxis()>();
+
+     label18:
+        if r58 == null goto label19;
+
+        $z10 = r58 instanceof ucar.nc2.dataset.CoordinateAxis1D;
+
+        if $z10 != 0 goto label20;
+
+     label19:
+        r58 = virtualinvoke r0.<ucar.nc2.dataset.CoordinateSystem: ucar.nc2.dataset.CoordinateAxis getZaxis()>();
+
+     label20:
+        if r58 == null goto label22;
+
+        $z9 = r58 instanceof ucar.nc2.dataset.CoordinateAxis1D;
+
+        if $z9 != 0 goto label22;
+
+        if r1 == null goto label21;
+
+        $r32 = newarray (java.lang.Object)[1];
+
+        $r33 = virtualinvoke r0.<ucar.nc2.dataset.CoordinateSystem: java.lang.String getName()>();
+
+        $r32[0] = $r33;
+
+        virtualinvoke r1.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("%s: Z axis must be 1D%n", $r32);
+
+     label21:
+        return 0;
+
+     label22:
+        if r58 == null goto label23;
+
+        interfaceinvoke $r6.<java.util.List: boolean add(java.lang.Object)>(r58);
+
+     label23:
+        $r8 = virtualinvoke r0.<ucar.nc2.dataset.CoordinateSystem: ucar.nc2.dataset.CoordinateAxis getTaxis()>();
+
+        $r9 = <ucar.nc2.constants.AxisType: ucar.nc2.constants.AxisType RunTime>;
+
+        $r10 = virtualinvoke r0.<ucar.nc2.dataset.CoordinateSystem: ucar.nc2.dataset.CoordinateAxis findAxis(ucar.nc2.constants.AxisType)>($r9);
+
+        if $r10 == null goto label25;
+
+        $z8 = $r10 instanceof ucar.nc2.dataset.CoordinateAxis1D;
+
+        if $z8 != 0 goto label25;
+
+        if r1 == null goto label24;
+
+        $r30 = newarray (java.lang.Object)[1];
+
+        $r31 = virtualinvoke r0.<ucar.nc2.dataset.CoordinateSystem: java.lang.String getName()>();
+
+        $r30[0] = $r31;
+
+        virtualinvoke r1.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("%s: RunTime axis must be 1D%n", $r30);
+
+     label24:
+        return 0;
+
+     label25:
+        if $r8 == null goto label31;
+
+        $z6 = $r8 instanceof ucar.nc2.dataset.CoordinateAxis1D;
+
+        if $z6 != 0 goto label31;
+
+        $i4 = virtualinvoke $r8.<ucar.nc2.dataset.CoordinateAxis: int getRank()>();
+
+        if $i4 == 0 goto label31;
+
+        if $r10 != null goto label27;
+
+        if r1 == null goto label26;
+
+        $r28 = newarray (java.lang.Object)[1];
+
+        $r29 = virtualinvoke r0.<ucar.nc2.dataset.CoordinateSystem: java.lang.String getName()>();
+
+        $r28[0] = $r29;
+
+        virtualinvoke r1.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("%s: T axis must be 1D%n", $r28);
+
+     label26:
+        return 0;
+
+     label27:
+        $i5 = virtualinvoke $r8.<ucar.nc2.dataset.CoordinateAxis: int getRank()>();
+
+        if $i5 == 2 goto label29;
+
+        if r1 == null goto label28;
+
+        $r26 = newarray (java.lang.Object)[1];
+
+        $r27 = virtualinvoke r0.<ucar.nc2.dataset.CoordinateSystem: java.lang.String getName()>();
+
+        $r26[0] = $r27;
+
+        virtualinvoke r1.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("%s: Time axis must be 2D when used with RunTime dimension%n", $r26);
+
+     label28:
+        return 0;
+
+     label29:
+        r59 = (ucar.nc2.dataset.CoordinateAxis1D) $r10;
+
+        $r22 = virtualinvoke r59.<ucar.nc2.dataset.CoordinateAxis1D: ucar.nc2.Dimension getDimension(int)>(0);
+
+        $r23 = virtualinvoke $r8.<ucar.nc2.dataset.CoordinateAxis: ucar.nc2.Dimension getDimension(int)>(0);
+
+        $z7 = virtualinvoke $r22.<ucar.nc2.Dimension: boolean equals(java.lang.Object)>($r23);
+
+        if $z7 != 0 goto label31;
+
+        if r1 == null goto label30;
+
+        $r24 = newarray (java.lang.Object)[1];
+
+        $r25 = virtualinvoke r0.<ucar.nc2.dataset.CoordinateSystem: java.lang.String getName()>();
+
+        $r24[0] = $r25;
+
+        virtualinvoke r1.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("%s: Time axis must use RunTime dimension%n", $r24);
+
+     label30:
+        return 0;
+
+     label31:
+        if $r8 == null goto label32;
+
+        interfaceinvoke $r6.<java.util.List: boolean add(java.lang.Object)>($r8);
+
+        goto label33;
+
+     label32:
+        if $r10 == null goto label33;
+
+        interfaceinvoke $r6.<java.util.List: boolean add(java.lang.Object)>($r10);
+
+     label33:
+        $r60 = virtualinvoke r0.<ucar.nc2.dataset.CoordinateSystem: ucar.nc2.dataset.CoordinateAxis getEnsembleAxis()>();
+
+        if $r60 == null goto label34;
+
+        interfaceinvoke $r6.<java.util.List: boolean add(java.lang.Object)>($r60);
+
+     label34:
+        if r11 == null goto label41;
+
+        $r12 = new java.util.ArrayList;
+
+        specialinvoke $r12.<java.util.ArrayList: void <init>()>();
+
+        $r13 = interfaceinvoke $r6.<java.util.List: java.util.Iterator iterator()>();
+
+     label35:
+        $z2 = interfaceinvoke $r13.<java.util.Iterator: boolean hasNext()>();
+
+        if $z2 == 0 goto label39;
+
+        $r16 = interfaceinvoke $r13.<java.util.Iterator: java.lang.Object next()>();
+
+        r17 = (ucar.nc2.dataset.CoordinateAxis) $r16;
+
+        $r18 = virtualinvoke r17.<ucar.nc2.dataset.CoordinateAxis: java.util.List getDimensions()>();
+
+        $r19 = interfaceinvoke $r18.<java.util.List: java.util.Iterator iterator()>();
+
+     label36:
+        $z4 = interfaceinvoke $r19.<java.util.Iterator: boolean hasNext()>();
+
+        if $z4 == 0 goto label38;
+
+        $r20 = interfaceinvoke $r19.<java.util.Iterator: java.lang.Object next()>();
+
+        r21 = (ucar.nc2.Dimension) $r20;
+
+        $z5 = interfaceinvoke $r12.<java.util.List: boolean contains(java.lang.Object)>(r21);
+
+        if $z5 != 0 goto label37;
+
+        interfaceinvoke $r12.<java.util.List: boolean add(java.lang.Object)>(r21);
+
+     label37:
+        goto label36;
+
+     label38:
+        goto label35;
+
+     label39:
+        $r14 = interfaceinvoke r11.<ucar.nc2.dataset.VariableEnhanced: java.util.List getDimensionsAll()>();
+
+        $z3 = staticinvoke <ucar.nc2.dataset.CoordinateSystem: boolean isSubset(java.util.List,java.util.List)>($r14, $r12);
+
+        if $z3 != 0 goto label41;
+
+        if r1 == null goto label40;
+
+        $r15 = newarray (java.lang.Object)[0];
+
+        virtualinvoke r1.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>(" NOT complete\n", $r15);
+
+     label40:
+        return 0;
+
+     label41:
+        return 1;
+    }
+
+    public static ucar.nc2.dt.grid.GridCoordSys makeGridCoordSys(java.util.Formatter, ucar.nc2.dataset.CoordinateSystem, ucar.nc2.dataset.VariableEnhanced)
+    {
+        java.lang.Object[] $r4, $r5, $r6;
+        ucar.nc2.dt.grid.GridCoordSys $r3;
+        java.util.Formatter r0;
+        ucar.nc2.dataset.VariableEnhanced r2;
+        java.lang.String $r7;
+        ucar.nc2.dataset.CoordinateSystem r1;
+        boolean $z0;
+
+        r0 := @parameter0: java.util.Formatter;
+
+        r1 := @parameter1: ucar.nc2.dataset.CoordinateSystem;
+
+        r2 := @parameter2: ucar.nc2.dataset.VariableEnhanced;
+
+        if r0 == null goto label1;
+
+        $r5 = newarray (java.lang.Object)[0];
+
+        virtualinvoke r0.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>(" ", $r5);
+
+        interfaceinvoke r2.<ucar.nc2.dataset.VariableEnhanced: void getNameAndDimensions(java.util.Formatter,boolean,boolean)>(r0, 0, 1);
+
+        $r6 = newarray (java.lang.Object)[1];
+
+        $r7 = virtualinvoke r1.<ucar.nc2.dataset.CoordinateSystem: java.lang.String getName()>();
+
+        $r6[0] = $r7;
+
+        virtualinvoke r0.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>(" check CS %s: ", $r6);
+
+     label1:
+        $z0 = staticinvoke <ucar.nc2.dt.grid.GridCoordSys: boolean isGridCoordSys(java.util.Formatter,ucar.nc2.dataset.CoordinateSystem,ucar.nc2.dataset.VariableEnhanced)>(r0, r1, r2);
+
+        if $z0 == 0 goto label3;
+
+        $r3 = new ucar.nc2.dt.grid.GridCoordSys;
+
+        specialinvoke $r3.<ucar.nc2.dt.grid.GridCoordSys: void <init>(ucar.nc2.dataset.CoordinateSystem,java.util.Formatter)>(r1, r0);
+
+        if r0 == null goto label2;
+
+        $r4 = newarray (java.lang.Object)[0];
+
+        virtualinvoke r0.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>(" OK\n", $r4);
+
+     label2:
+        return $r3;
+
+     label3:
+        return null;
+    }
+
+    public void <init>(ucar.nc2.dataset.CoordinateSystem, java.util.Formatter)
+    {
+        ucar.nc2.dataset.CoordinateAxis $r4, $r5, $r6, $r8, $r11, $r12, $r13, $r14, $r16, $r56, $r57, $r61, $r62, $r64, $r65, $r66, $r67, r76, $r77, r78, $r79, $r80, $r82, r88;
+        ucar.nc2.constants.AxisType $r15, $r81;
+        java.lang.Exception $r72;
+        java.lang.Object[] $r54, $r69, $r73;
+        ucar.nc2.dt.grid.GridCoordSys r0;
+        java.util.ArrayList $r21;
+        java.lang.String $r20, $r55, $r70, $r71, $r74, $r75;
+        java.io.IOException $r68;
+        ucar.nc2.Dimension r29, $r49;
+        ucar.nc2.dataset.NetcdfDataset $r2, $r35, $r44;
+        ucar.unidata.geoloc.ProjectionImpl $r10, $r58, $r59, $r63;
+        java.util.Formatter r34;
+        ucar.nc2.dataset.CoordinateAxis1D $r40, $r42, $r51, $r52, $r83, $r84;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9, $z10, $z11, $z12, $z13, $z14;
+        ucar.nc2.dataset.CoordinateAxis1DTime $r36, $r37, $r39, $r45, $r46, $r47, $r50;
+        java.util.List $r7, $r9, $r18, $r19, $r22, $r23, $r26, $r30, $r31, $r38, $r41, $r43, $r48, $r53, $r85;
+        ucar.unidata.geoloc.ProjectionRect $r60;
+        ucar.nc2.dataset.VerticalCT $r33;
+        ucar.nc2.dataset.CoordinateAxis$AxisComparator $r17;
+        ucar.nc2.dataset.CoordinateTransform r87;
+        int $i0, $i1, $i2, $i3;
+        java.util.Iterator $r24, $r27, $r86;
+        java.lang.IllegalArgumentException $r3;
+        java.lang.Object $r25, $r28, $r32;
+        ucar.nc2.dataset.CoordinateSystem r1;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        r1 := @parameter0: ucar.nc2.dataset.CoordinateSystem;
+
+        r34 := @parameter1: java.util.Formatter;
+
+        specialinvoke r0.<ucar.nc2.dataset.CoordinateSystem: void <init>()>();
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: boolean isDate> = 0;
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: boolean isLatLon> = 0;
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.Date[] timeDates> = null;
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.ProjectionRect mapArea> = null;
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.LatLonRect llbb> = null;
+
+        $r2 = virtualinvoke r1.<ucar.nc2.dataset.CoordinateSystem: ucar.nc2.dataset.NetcdfDataset getNetcdfDataset()>();
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.NetcdfDataset ds> = $r2;
+
+        $z0 = virtualinvoke r1.<ucar.nc2.dataset.CoordinateSystem: boolean isGeoXY()>();
+
+        if $z0 == 0 goto label02;
+
+        $r61 = virtualinvoke r1.<ucar.nc2.dataset.CoordinateSystem: ucar.nc2.dataset.CoordinateAxis getXaxis()>();
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis xAxis> = $r61;
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizXaxis> = $r61;
+
+        $r62 = virtualinvoke r1.<ucar.nc2.dataset.CoordinateSystem: ucar.nc2.dataset.CoordinateAxis getYaxis()>();
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis yAxis> = $r62;
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizYaxis> = $r62;
+
+        $r63 = virtualinvoke r1.<ucar.nc2.dataset.CoordinateSystem: ucar.unidata.geoloc.ProjectionImpl getProjection()>();
+
+        $z11 = $r63 instanceof ucar.unidata.geoloc.projection.RotatedPole;
+
+        if $z11 != 0 goto label01;
+
+        $z12 = $r63 instanceof ucar.unidata.geoloc.projection.RotatedLatLon;
+
+        if $z12 != 0 goto label01;
+
+        $r64 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizXaxis>;
+
+        $r65 = specialinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis convertUnits(ucar.nc2.dataset.CoordinateAxis)>($r64);
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizXaxis> = $r65;
+
+        $r66 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizYaxis>;
+
+        $r67 = specialinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis convertUnits(ucar.nc2.dataset.CoordinateAxis)>($r66);
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizYaxis> = $r67;
+
+     label01:
+        goto label04;
+
+     label02:
+        $z1 = virtualinvoke r1.<ucar.nc2.dataset.CoordinateSystem: boolean isLatLon()>();
+
+        if $z1 == 0 goto label03;
+
+        $r4 = virtualinvoke r1.<ucar.nc2.dataset.CoordinateSystem: ucar.nc2.dataset.CoordinateAxis getLonAxis()>();
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis lonAxis> = $r4;
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizXaxis> = $r4;
+
+        $r5 = virtualinvoke r1.<ucar.nc2.dataset.CoordinateSystem: ucar.nc2.dataset.CoordinateAxis getLatAxis()>();
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis latAxis> = $r5;
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizYaxis> = $r5;
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: boolean isLatLon> = 1;
+
+        goto label04;
+
+     label03:
+        $r3 = new java.lang.IllegalArgumentException;
+
+        specialinvoke $r3.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>("CoordinateSystem is not geoReferencing");
+
+        throw $r3;
+
+     label04:
+        $r7 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.List coordAxes>;
+
+        $r6 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizXaxis>;
+
+        interfaceinvoke $r7.<java.util.List: boolean add(java.lang.Object)>($r6);
+
+        $r9 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.List coordAxes>;
+
+        $r8 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizYaxis>;
+
+        interfaceinvoke $r9.<java.util.List: boolean add(java.lang.Object)>($r8);
+
+        $r10 = virtualinvoke r1.<ucar.nc2.dataset.CoordinateSystem: ucar.unidata.geoloc.ProjectionImpl getProjection()>();
+
+        if $r10 == null goto label05;
+
+        $r58 = virtualinvoke $r10.<ucar.unidata.geoloc.ProjectionImpl: ucar.unidata.geoloc.ProjectionImpl constructCopy()>();
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.ProjectionImpl proj> = $r58;
+
+        $r59 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.ProjectionImpl proj>;
+
+        $r60 = virtualinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.ProjectionRect getBoundingBox()>();
+
+        virtualinvoke $r59.<ucar.unidata.geoloc.ProjectionImpl: void setDefaultMapArea(ucar.unidata.geoloc.ProjectionRect)>($r60);
+
+     label05:
+        $r11 = virtualinvoke r1.<ucar.nc2.dataset.CoordinateSystem: ucar.nc2.dataset.CoordinateAxis getHeightAxis()>();
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis hAxis> = $r11;
+
+        r76 = $r11;
+
+        if $r11 == null goto label06;
+
+        $z10 = $r11 instanceof ucar.nc2.dataset.CoordinateAxis1D;
+
+        if $z10 != 0 goto label07;
+
+     label06:
+        $r12 = virtualinvoke r1.<ucar.nc2.dataset.CoordinateSystem: ucar.nc2.dataset.CoordinateAxis getPressureAxis()>();
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis pAxis> = $r12;
+
+        r76 = $r12;
+
+     label07:
+        if r76 == null goto label08;
+
+        $z9 = r76 instanceof ucar.nc2.dataset.CoordinateAxis1D;
+
+        if $z9 != 0 goto label09;
+
+     label08:
+        $r13 = virtualinvoke r1.<ucar.nc2.dataset.CoordinateSystem: ucar.nc2.dataset.CoordinateAxis getZaxis()>();
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis zAxis> = $r13;
+
+        r76 = $r13;
+
+     label09:
+        if r76 == null goto label10;
+
+        $z8 = r76 instanceof ucar.nc2.dataset.CoordinateAxis1D;
+
+        if $z8 != 0 goto label10;
+
+        r76 = null;
+
+     label10:
+        $r77 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis hAxis>;
+
+        r78 = $r77;
+
+        $r79 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis pAxis>;
+
+        if $r79 == null goto label12;
+
+        if $r77 == null goto label11;
+
+        $i2 = virtualinvoke $r77.<ucar.nc2.dataset.CoordinateAxis: int getRank()>();
+
+        $r57 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis pAxis>;
+
+        $i3 = virtualinvoke $r57.<ucar.nc2.dataset.CoordinateAxis: int getRank()>();
+
+        if $i2 > $i3 goto label12;
+
+     label11:
+        r78 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis pAxis>;
+
+     label12:
+        $r80 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis zAxis>;
+
+        if $r80 == null goto label14;
+
+        if r78 == null goto label13;
+
+        $i0 = virtualinvoke r78.<ucar.nc2.dataset.CoordinateAxis: int getRank()>();
+
+        $r56 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis zAxis>;
+
+        $i1 = virtualinvoke $r56.<ucar.nc2.dataset.CoordinateAxis: int getRank()>();
+
+        if $i0 > $i1 goto label14;
+
+     label13:
+        r78 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis zAxis>;
+
+     label14:
+        if r76 != null goto label15;
+
+        if r78 == null goto label15;
+
+        if r34 == null goto label15;
+
+        $r54 = newarray (java.lang.Object)[1];
+
+        $r55 = virtualinvoke r78.<ucar.nc2.dataset.CoordinateAxis: java.lang.String getNameAndDimensions()>();
+
+        $r54[0] = $r55;
+
+        virtualinvoke r34.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("GridCoordSys needs a 1D Coordinate, instead has %s%n", $r54);
+
+     label15:
+        if r76 == null goto label16;
+
+        $r51 = (ucar.nc2.dataset.CoordinateAxis1D) r76;
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1D vertZaxis> = $r51;
+
+        $r53 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.List coordAxes>;
+
+        $r52 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1D vertZaxis>;
+
+        interfaceinvoke $r53.<java.util.List: boolean add(java.lang.Object)>($r52);
+
+        goto label17;
+
+     label16:
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis zAxis> = null;
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis pAxis> = null;
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis hAxis> = null;
+
+     label17:
+        $r14 = virtualinvoke r1.<ucar.nc2.dataset.CoordinateSystem: ucar.nc2.dataset.CoordinateAxis getTaxis()>();
+
+        if $r14 == null goto label25;
+
+        $z6 = $r14 instanceof ucar.nc2.dataset.CoordinateAxis1D;
+
+        if $z6 == 0 goto label24;
+
+     label18:
+        $z7 = $r14 instanceof ucar.nc2.dataset.CoordinateAxis1DTime;
+
+        if $z7 == 0 goto label19;
+
+        $r50 = (ucar.nc2.dataset.CoordinateAxis1DTime) $r14;
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime timeTaxis> = $r50;
+
+        goto label20;
+
+     label19:
+        $r44 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.NetcdfDataset ds>;
+
+        $r45 = staticinvoke <ucar.nc2.dataset.CoordinateAxis1DTime: ucar.nc2.dataset.CoordinateAxis1DTime factory(ucar.nc2.dataset.NetcdfDataset,ucar.nc2.dataset.VariableDS,java.util.Formatter)>($r44, $r14, r34);
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime timeTaxis> = $r45;
+
+     label20:
+        $r46 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime timeTaxis>;
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis tAxis> = $r46;
+
+        $r48 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.List coordAxes>;
+
+        $r47 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime timeTaxis>;
+
+        interfaceinvoke $r48.<java.util.List: boolean add(java.lang.Object)>($r47);
+
+        $r49 = virtualinvoke $r14.<ucar.nc2.dataset.CoordinateAxis: ucar.nc2.Dimension getDimension(int)>(0);
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.Dimension timeDim> = $r49;
+
+     label21:
+        goto label25;
+
+     label22:
+        $r72 := @caughtexception;
+
+        if r34 == null goto label23;
+
+        $r73 = newarray (java.lang.Object)[2];
+
+        $r74 = virtualinvoke $r14.<ucar.nc2.dataset.CoordinateAxis: java.lang.String getName()>();
+
+        $r73[0] = $r74;
+
+        $r75 = virtualinvoke $r72.<java.lang.Exception: java.lang.String getMessage()>();
+
+        $r73[1] = $r75;
+
+        virtualinvoke r34.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("Error reading time coord= %s err= %s\n", $r73);
+
+     label23:
+        goto label25;
+
+     label24:
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis tAxis> = $r14;
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime timeTaxis> = null;
+
+        $r43 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.List coordAxes>;
+
+        interfaceinvoke $r43.<java.util.List: boolean add(java.lang.Object)>($r14);
+
+     label25:
+        $r81 = <ucar.nc2.constants.AxisType: ucar.nc2.constants.AxisType Ensemble>;
+
+        $r82 = virtualinvoke r1.<ucar.nc2.dataset.CoordinateSystem: ucar.nc2.dataset.CoordinateAxis findAxis(ucar.nc2.constants.AxisType)>($r81);
+
+        $r83 = (ucar.nc2.dataset.CoordinateAxis1D) $r82;
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1D ensembleAxis> = $r83;
+
+        $r84 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1D ensembleAxis>;
+
+        if null == $r84 goto label26;
+
+        $r41 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.List coordAxes>;
+
+        $r40 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1D ensembleAxis>;
+
+        interfaceinvoke $r41.<java.util.List: boolean add(java.lang.Object)>($r40);
+
+     label26:
+        $r15 = <ucar.nc2.constants.AxisType: ucar.nc2.constants.AxisType RunTime>;
+
+        $r16 = virtualinvoke r1.<ucar.nc2.dataset.CoordinateSystem: ucar.nc2.dataset.CoordinateAxis findAxis(ucar.nc2.constants.AxisType)>($r15);
+
+        $r42 = (ucar.nc2.dataset.CoordinateAxis1D) $r16;
+
+        if null == $r42 goto label32;
+
+     label27:
+        $z5 = $r42 instanceof ucar.nc2.dataset.CoordinateAxis1DTime;
+
+        if $z5 == 0 goto label28;
+
+        $r39 = (ucar.nc2.dataset.CoordinateAxis1DTime) $r42;
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime runTimeAxis> = $r39;
+
+        goto label29;
+
+     label28:
+        $r35 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.NetcdfDataset ds>;
+
+        $r36 = staticinvoke <ucar.nc2.dataset.CoordinateAxis1DTime: ucar.nc2.dataset.CoordinateAxis1DTime factory(ucar.nc2.dataset.NetcdfDataset,ucar.nc2.dataset.VariableDS,java.util.Formatter)>($r35, $r42, r34);
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime runTimeAxis> = $r36;
+
+     label29:
+        $r38 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.List coordAxes>;
+
+        $r37 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime runTimeAxis>;
+
+        interfaceinvoke $r38.<java.util.List: boolean add(java.lang.Object)>($r37);
+
+     label30:
+        goto label32;
+
+     label31:
+        $r68 := @caughtexception;
+
+        if r34 == null goto label32;
+
+        $r69 = newarray (java.lang.Object)[2];
+
+        $r70 = virtualinvoke $r14.<ucar.nc2.dataset.CoordinateAxis: java.lang.String getName()>();
+
+        $r69[0] = $r70;
+
+        $r71 = virtualinvoke $r68.<java.io.IOException: java.lang.String getMessage()>();
+
+        $r69[1] = $r71;
+
+        virtualinvoke r34.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("Error reading runtime coord= %s err= %s\n", $r69);
+
+     label32:
+        $r85 = virtualinvoke r1.<ucar.nc2.dataset.CoordinateSystem: java.util.List getCoordinateTransforms()>();
+
+        $r86 = interfaceinvoke $r85.<java.util.List: java.util.Iterator iterator()>();
+
+     label33:
+        $z13 = interfaceinvoke $r86.<java.util.Iterator: boolean hasNext()>();
+
+        if $z13 == 0 goto label35;
+
+        $r32 = interfaceinvoke $r86.<java.util.Iterator: java.lang.Object next()>();
+
+        r87 = (ucar.nc2.dataset.CoordinateTransform) $r32;
+
+        $z4 = r87 instanceof ucar.nc2.dataset.VerticalCT;
+
+        if $z4 == 0 goto label34;
+
+        $r33 = (ucar.nc2.dataset.VerticalCT) r87;
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.VerticalCT vCT> = $r33;
+
+        goto label35;
+
+     label34:
+        goto label33;
+
+     label35:
+        $r18 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.List coordAxes>;
+
+        $r17 = new ucar.nc2.dataset.CoordinateAxis$AxisComparator;
+
+        specialinvoke $r17.<ucar.nc2.dataset.CoordinateAxis$AxisComparator: void <init>()>();
+
+        staticinvoke <java.util.Collections: void sort(java.util.List,java.util.Comparator)>($r18, $r17);
+
+        $r19 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.List coordAxes>;
+
+        $r20 = staticinvoke <ucar.nc2.dt.grid.GridCoordSys: java.lang.String makeName(java.util.List)>($r19);
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: java.lang.String name> = $r20;
+
+        $r21 = new java.util.ArrayList;
+
+        $r22 = virtualinvoke r1.<ucar.nc2.dataset.CoordinateSystem: java.util.List getCoordinateTransforms()>();
+
+        specialinvoke $r21.<java.util.ArrayList: void <init>(java.util.Collection)>($r22);
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.List coordTrans> = $r21;
+
+        $r23 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.List coordAxes>;
+
+        $r24 = interfaceinvoke $r23.<java.util.List: java.util.Iterator iterator()>();
+
+     label36:
+        $z14 = interfaceinvoke $r24.<java.util.Iterator: boolean hasNext()>();
+
+        if $z14 == 0 goto label40;
+
+        $r25 = interfaceinvoke $r24.<java.util.Iterator: java.lang.Object next()>();
+
+        r88 = (ucar.nc2.dataset.CoordinateAxis) $r25;
+
+        $r26 = virtualinvoke r88.<ucar.nc2.dataset.CoordinateAxis: java.util.List getDimensions()>();
+
+        $r27 = interfaceinvoke $r26.<java.util.List: java.util.Iterator iterator()>();
+
+     label37:
+        $z2 = interfaceinvoke $r27.<java.util.Iterator: boolean hasNext()>();
+
+        if $z2 == 0 goto label39;
+
+        $r28 = interfaceinvoke $r27.<java.util.Iterator: java.lang.Object next()>();
+
+        r29 = (ucar.nc2.Dimension) $r28;
+
+        $r30 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.List domain>;
+
+        $z3 = interfaceinvoke $r30.<java.util.List: boolean contains(java.lang.Object)>(r29);
+
+        if $z3 != 0 goto label38;
+
+        $r31 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.List domain>;
+
+        interfaceinvoke $r31.<java.util.List: boolean add(java.lang.Object)>(r29);
+
+     label38:
+        goto label37;
+
+     label39:
+        goto label36;
+
+     label40:
+        return;
+
+        catch java.lang.Exception from label18 to label21 with label22;
+        catch java.io.IOException from label27 to label30 with label31;
+    }
+
+    public void <init>(ucar.nc2.dt.grid.GridCoordSys, ucar.ma2.Range, ucar.ma2.Range, ucar.ma2.Range, ucar.ma2.Range) throws ucar.ma2.InvalidRangeException
+    {
+        ucar.ma2.Range r2, r3, r4, r5;
+        ucar.nc2.dt.grid.GridCoordSys r0, r1;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        r1 := @parameter0: ucar.nc2.dt.grid.GridCoordSys;
+
+        r2 := @parameter1: ucar.ma2.Range;
+
+        r3 := @parameter2: ucar.ma2.Range;
+
+        r4 := @parameter3: ucar.ma2.Range;
+
+        r5 := @parameter4: ucar.ma2.Range;
+
+        specialinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: void <init>(ucar.nc2.dt.grid.GridCoordSys,ucar.ma2.Range,ucar.ma2.Range,ucar.ma2.Range,ucar.ma2.Range,ucar.ma2.Range,ucar.ma2.Range)>(r1, null, null, r2, r3, r4, r5);
+
+        return;
+    }
+
+    public void <init>(ucar.nc2.dt.grid.GridCoordSys, ucar.ma2.Range, ucar.ma2.Range, ucar.ma2.Range, ucar.ma2.Range, ucar.ma2.Range, ucar.ma2.Range) throws ucar.ma2.InvalidRangeException
+    {
+        ucar.nc2.dataset.CoordinateAxis $r2, $r3, $r8, $r9, $r10, $r12, $r35, $r53, $r54, $r58, $r66, $r70, r85;
+        ucar.ma2.Section $r31, $r32, $r33;
+        ucar.nc2.dt.grid.GridCoordSys r0, r1;
+        java.util.ArrayList $r81;
+        java.lang.String $r27, $r28, $r80;
+        ucar.nc2.Dimension r20, $r25, $r26, $r40;
+        ucar.unidata.geoloc.ProjectionImpl $r14, $r50, $r51;
+        ucar.nc2.dataset.CoordinateAxis1D $r15, $r24, $r30, $r36, $r42, $r48, r55, r56, $r57, $r62, $r64, $r65;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9, $z10;
+        ucar.nc2.dataset.CoordinateAxis1DTime $r37, $r39, r67, $r68, $r71, $r72, $r73, $r74, $r76;
+        ucar.ma2.Range r4, r5, r23, r29, r41, r46;
+        ucar.unidata.geoloc.vertical.VerticalTransform $r44, $r47;
+        java.util.List $r11, $r13, $r17, $r21, $r22, $r38, $r43, $r49, $r69, $r75, $r77, $r79, $r82, $r83;
+        ucar.nc2.dataset.CoordinateAxis2D $r6, $r7, r59, r60;
+        ucar.unidata.geoloc.ProjectionRect $r52;
+        ucar.nc2.dataset.VerticalCT $r45, $r63;
+        ucar.nc2.dataset.CoordinateAxis$AxisComparator $r78;
+        ucar.nc2.Variable $r34;
+        java.util.Iterator $r18, $r84;
+        java.lang.IllegalArgumentException $r61;
+        java.lang.Object $r16, $r19;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        r1 := @parameter0: ucar.nc2.dt.grid.GridCoordSys;
+
+        r23 := @parameter1: ucar.ma2.Range;
+
+        r41 := @parameter2: ucar.ma2.Range;
+
+        r29 := @parameter3: ucar.ma2.Range;
+
+        r46 := @parameter4: ucar.ma2.Range;
+
+        r4 := @parameter5: ucar.ma2.Range;
+
+        r5 := @parameter6: ucar.ma2.Range;
+
+        specialinvoke r0.<ucar.nc2.dataset.CoordinateSystem: void <init>()>();
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: boolean isDate> = 0;
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: boolean isLatLon> = 0;
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.Date[] timeDates> = null;
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.ProjectionRect mapArea> = null;
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.LatLonRect llbb> = null;
+
+        $r2 = virtualinvoke r1.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis getXHorizAxis()>();
+
+        $r3 = virtualinvoke r1.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis getYHorizAxis()>();
+
+        $z0 = $r2 instanceof ucar.nc2.dataset.CoordinateAxis1D;
+
+        if $z0 == 0 goto label05;
+
+        $z9 = $r3 instanceof ucar.nc2.dataset.CoordinateAxis1D;
+
+        if $z9 == 0 goto label05;
+
+        r55 = (ucar.nc2.dataset.CoordinateAxis1D) $r2;
+
+        r56 = (ucar.nc2.dataset.CoordinateAxis1D) $r3;
+
+        if r5 != null goto label01;
+
+        $r57 = r55;
+
+        goto label02;
+
+     label01:
+        $r57 = virtualinvoke r55.<ucar.nc2.dataset.CoordinateAxis1D: ucar.nc2.dataset.CoordinateAxis1D section(ucar.ma2.Range)>(r5);
+
+     label02:
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizXaxis> = $r57;
+
+        if r4 != null goto label03;
+
+        $r58 = $r3;
+
+        goto label04;
+
+     label03:
+        $r58 = virtualinvoke r56.<ucar.nc2.dataset.CoordinateAxis1D: ucar.nc2.dataset.CoordinateAxis1D section(ucar.ma2.Range)>(r4);
+
+     label04:
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizYaxis> = $r58;
+
+        goto label07;
+
+     label05:
+        $z1 = $r2 instanceof ucar.nc2.dataset.CoordinateAxis2D;
+
+        if $z1 == 0 goto label06;
+
+        $z2 = $r3 instanceof ucar.nc2.dataset.CoordinateAxis2D;
+
+        if $z2 == 0 goto label06;
+
+        $z3 = virtualinvoke r1.<ucar.nc2.dt.grid.GridCoordSys: boolean isLatLon()>();
+
+        if $z3 == 0 goto label06;
+
+        r59 = (ucar.nc2.dataset.CoordinateAxis2D) $r2;
+
+        r60 = (ucar.nc2.dataset.CoordinateAxis2D) $r3;
+
+        $r6 = virtualinvoke r59.<ucar.nc2.dataset.CoordinateAxis2D: ucar.nc2.dataset.CoordinateAxis2D section(ucar.ma2.Range,ucar.ma2.Range)>(r4, r5);
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizXaxis> = $r6;
+
+        $r7 = virtualinvoke r60.<ucar.nc2.dataset.CoordinateAxis2D: ucar.nc2.dataset.CoordinateAxis2D section(ucar.ma2.Range,ucar.ma2.Range)>(r4, r5);
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizYaxis> = $r7;
+
+        goto label07;
+
+     label06:
+        $r61 = new java.lang.IllegalArgumentException;
+
+        specialinvoke $r61.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>("must be 1D or 2D/LatLon ");
+
+        throw $r61;
+
+     label07:
+        $z4 = virtualinvoke r1.<ucar.nc2.dt.grid.GridCoordSys: boolean isGeoXY()>();
+
+        if $z4 == 0 goto label08;
+
+        $r53 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizXaxis>;
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis xAxis> = $r53;
+
+        $r54 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizYaxis>;
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis yAxis> = $r54;
+
+        goto label09;
+
+     label08:
+        $r8 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizXaxis>;
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis lonAxis> = $r8;
+
+        $r9 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizYaxis>;
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis latAxis> = $r9;
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: boolean isLatLon> = 1;
+
+     label09:
+        $r11 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.List coordAxes>;
+
+        $r10 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizXaxis>;
+
+        interfaceinvoke $r11.<java.util.List: boolean add(java.lang.Object)>($r10);
+
+        $r13 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.List coordAxes>;
+
+        $r12 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizYaxis>;
+
+        interfaceinvoke $r13.<java.util.List: boolean add(java.lang.Object)>($r12);
+
+        $r14 = virtualinvoke r1.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.ProjectionImpl getProjection()>();
+
+        if $r14 == null goto label10;
+
+        $r50 = virtualinvoke $r14.<ucar.unidata.geoloc.ProjectionImpl: ucar.unidata.geoloc.ProjectionImpl constructCopy()>();
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.ProjectionImpl proj> = $r50;
+
+        $r51 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.ProjectionImpl proj>;
+
+        $r52 = virtualinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.ProjectionRect getBoundingBox()>();
+
+        virtualinvoke $r51.<ucar.unidata.geoloc.ProjectionImpl: void setDefaultMapArea(ucar.unidata.geoloc.ProjectionRect)>($r52);
+
+     label10:
+        $r15 = virtualinvoke r1.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1D getVerticalAxis()>();
+
+        if $r15 == null goto label13;
+
+        if r46 != null goto label11;
+
+        $r62 = $r15;
+
+        goto label12;
+
+     label11:
+        $r62 = virtualinvoke $r15.<ucar.nc2.dataset.CoordinateAxis1D: ucar.nc2.dataset.CoordinateAxis1D section(ucar.ma2.Range)>(r46);
+
+     label12:
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1D vertZaxis> = $r62;
+
+        $r49 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.List coordAxes>;
+
+        $r48 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1D vertZaxis>;
+
+        interfaceinvoke $r49.<java.util.List: boolean add(java.lang.Object)>($r48);
+
+     label13:
+        $r63 = virtualinvoke r1.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.VerticalCT getVerticalCT()>();
+
+        if $r63 == null goto label15;
+
+        $r44 = virtualinvoke r1.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.vertical.VerticalTransform getVerticalTransform()>();
+
+        if $r44 == null goto label14;
+
+        $r47 = interfaceinvoke $r44.<ucar.unidata.geoloc.vertical.VerticalTransform: ucar.unidata.geoloc.vertical.VerticalTransform subset(ucar.ma2.Range,ucar.ma2.Range,ucar.ma2.Range,ucar.ma2.Range)>(r29, r46, r4, r5);
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.vertical.VerticalTransform vt> = $r47;
+
+     label14:
+        $r45 = virtualinvoke r1.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.VerticalCT getVerticalCT()>();
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.VerticalCT vCT> = $r45;
+
+     label15:
+        $r64 = virtualinvoke r1.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1D getEnsembleAxis()>();
+
+        if $r64 == null goto label18;
+
+        if r41 != null goto label16;
+
+        $r65 = $r64;
+
+        goto label17;
+
+     label16:
+        $r65 = virtualinvoke $r64.<ucar.nc2.dataset.CoordinateAxis1D: ucar.nc2.dataset.CoordinateAxis1D section(ucar.ma2.Range)>(r41);
+
+     label17:
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1D ensembleAxis> = $r65;
+
+        $r43 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.List coordAxes>;
+
+        $r42 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1D ensembleAxis>;
+
+        interfaceinvoke $r43.<java.util.List: boolean add(java.lang.Object)>($r42);
+
+     label18:
+        $r66 = virtualinvoke r1.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis getTimeAxis()>();
+
+        r67 = null;
+
+        if $r66 == null goto label24;
+
+        $z8 = $r66 instanceof ucar.nc2.dataset.CoordinateAxis1DTime;
+
+        if $z8 == 0 goto label21;
+
+        r67 = (ucar.nc2.dataset.CoordinateAxis1DTime) $r66;
+
+        if r29 != null goto label19;
+
+        $r68 = r67;
+
+        goto label20;
+
+     label19:
+        $r36 = virtualinvoke r67.<ucar.nc2.dataset.CoordinateAxis1DTime: ucar.nc2.dataset.CoordinateAxis1D section(ucar.ma2.Range)>(r29);
+
+        $r68 = (ucar.nc2.dataset.CoordinateAxis1DTime) $r36;
+
+     label20:
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime timeTaxis> = $r68;
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis tAxis> = $r68;
+
+        $r38 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.List coordAxes>;
+
+        $r37 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime timeTaxis>;
+
+        interfaceinvoke $r38.<java.util.List: boolean add(java.lang.Object)>($r37);
+
+        $r39 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime timeTaxis>;
+
+        $r40 = virtualinvoke $r39.<ucar.nc2.dataset.CoordinateAxis1DTime: ucar.nc2.Dimension getDimension(int)>(0);
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.Dimension timeDim> = $r40;
+
+        goto label24;
+
+     label21:
+        if r23 != null goto label22;
+
+        if r29 != null goto label22;
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis tAxis> = $r66;
+
+        goto label23;
+
+     label22:
+        $r31 = new ucar.ma2.Section;
+
+        specialinvoke $r31.<ucar.ma2.Section: void <init>()>();
+
+        $r32 = virtualinvoke $r31.<ucar.ma2.Section: ucar.ma2.Section appendRange(ucar.ma2.Range)>(r23);
+
+        $r33 = virtualinvoke $r32.<ucar.ma2.Section: ucar.ma2.Section appendRange(ucar.ma2.Range)>(r29);
+
+        $r34 = virtualinvoke $r66.<ucar.nc2.dataset.CoordinateAxis: ucar.nc2.Variable section(ucar.ma2.Section)>($r33);
+
+        $r35 = (ucar.nc2.dataset.CoordinateAxis) $r34;
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis tAxis> = $r35;
+
+     label23:
+        $r69 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.List coordAxes>;
+
+        $r70 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis tAxis>;
+
+        interfaceinvoke $r69.<java.util.List: boolean add(java.lang.Object)>($r70);
+
+     label24:
+        $r71 = virtualinvoke r1.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime getRunTimeAxis()>();
+
+        if $r71 == null goto label31;
+
+        if r67 == null goto label27;
+
+        $r25 = virtualinvoke r67.<ucar.nc2.dataset.CoordinateAxis1DTime: ucar.nc2.Dimension getDimension(int)>(0);
+
+        $r26 = virtualinvoke $r71.<ucar.nc2.dataset.CoordinateAxis1DTime: ucar.nc2.Dimension getDimension(int)>(0);
+
+        $r27 = virtualinvoke $r25.<ucar.nc2.Dimension: java.lang.String getName()>();
+
+        $r28 = virtualinvoke $r26.<ucar.nc2.Dimension: java.lang.String getName()>();
+
+        $z7 = virtualinvoke $r27.<java.lang.String: boolean equals(java.lang.Object)>($r28);
+
+        if $z7 == 0 goto label27;
+
+        if r29 != null goto label25;
+
+        $r72 = $r71;
+
+        goto label26;
+
+     label25:
+        $r30 = virtualinvoke $r71.<ucar.nc2.dataset.CoordinateAxis1DTime: ucar.nc2.dataset.CoordinateAxis1D section(ucar.ma2.Range)>(r29);
+
+        $r72 = (ucar.nc2.dataset.CoordinateAxis1DTime) $r30;
+
+     label26:
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime runTimeAxis> = $r72;
+
+     label27:
+        $r73 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime runTimeAxis>;
+
+        if $r73 != null goto label30;
+
+        if r23 != null goto label28;
+
+        $r74 = $r71;
+
+        goto label29;
+
+     label28:
+        $r24 = virtualinvoke $r71.<ucar.nc2.dataset.CoordinateAxis1DTime: ucar.nc2.dataset.CoordinateAxis1D section(ucar.ma2.Range)>(r23);
+
+        $r74 = (ucar.nc2.dataset.CoordinateAxis1DTime) $r24;
+
+     label29:
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime runTimeAxis> = $r74;
+
+     label30:
+        $r75 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.List coordAxes>;
+
+        $r76 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime runTimeAxis>;
+
+        interfaceinvoke $r75.<java.util.List: boolean add(java.lang.Object)>($r76);
+
+     label31:
+        $r77 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.List coordAxes>;
+
+        $r78 = new ucar.nc2.dataset.CoordinateAxis$AxisComparator;
+
+        specialinvoke $r78.<ucar.nc2.dataset.CoordinateAxis$AxisComparator: void <init>()>();
+
+        staticinvoke <java.util.Collections: void sort(java.util.List,java.util.Comparator)>($r77, $r78);
+
+        $r79 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.List coordAxes>;
+
+        $r80 = staticinvoke <ucar.nc2.dt.grid.GridCoordSys: java.lang.String makeName(java.util.List)>($r79);
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: java.lang.String name> = $r80;
+
+        $r81 = new java.util.ArrayList;
+
+        $r82 = virtualinvoke r1.<ucar.nc2.dt.grid.GridCoordSys: java.util.List getCoordinateTransforms()>();
+
+        specialinvoke $r81.<java.util.ArrayList: void <init>(java.util.Collection)>($r82);
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.List coordTrans> = $r81;
+
+        $r83 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.List coordAxes>;
+
+        $r84 = interfaceinvoke $r83.<java.util.List: java.util.Iterator iterator()>();
+
+     label32:
+        $z10 = interfaceinvoke $r84.<java.util.Iterator: boolean hasNext()>();
+
+        if $z10 == 0 goto label36;
+
+        $r16 = interfaceinvoke $r84.<java.util.Iterator: java.lang.Object next()>();
+
+        r85 = (ucar.nc2.dataset.CoordinateAxis) $r16;
+
+        $r17 = virtualinvoke r85.<ucar.nc2.dataset.CoordinateAxis: java.util.List getDimensions()>();
+
+        $r18 = interfaceinvoke $r17.<java.util.List: java.util.Iterator iterator()>();
+
+     label33:
+        $z5 = interfaceinvoke $r18.<java.util.Iterator: boolean hasNext()>();
+
+        if $z5 == 0 goto label35;
+
+        $r19 = interfaceinvoke $r18.<java.util.Iterator: java.lang.Object next()>();
+
+        r20 = (ucar.nc2.Dimension) $r19;
+
+        virtualinvoke r20.<ucar.nc2.Dimension: void setShared(boolean)>(1);
+
+        $r21 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.List domain>;
+
+        $z6 = interfaceinvoke $r21.<java.util.List: boolean contains(java.lang.Object)>(r20);
+
+        if $z6 != 0 goto label34;
+
+        $r22 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.List domain>;
+
+        interfaceinvoke $r22.<java.util.List: boolean add(java.lang.Object)>(r20);
+
+     label34:
+        goto label33;
+
+     label35:
+        goto label32;
+
+     label36:
+        return;
+    }
+
+    private ucar.nc2.dataset.CoordinateAxis convertUnits(ucar.nc2.dataset.CoordinateAxis)
+    {
+        ucar.nc2.dt.grid.GridCoordSys r19;
+        ucar.nc2.dataset.CoordinateAxis r0, $r11, $r14;
+        byte $b0;
+        int[] $r7;
+        java.lang.String $r1;
+        double $d0, $d1, $d2, $d3, $d4;
+        boolean $z0, $z1, $z2, $z3;
+        org.slf4j.Logger $r16, $r18;
+        ucar.ma2.IndexIterator $r9, $r10, $r13;
+        ucar.ma2.DataType $r5, $r6, $r12;
+        java.io.IOException $r15;
+        java.lang.IllegalArgumentException $r17;
+        ucar.ma2.Array $r4, $r8;
+        ucar.nc2.units.SimpleUnit $r2, $r3;
+
+        r19 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        r0 := @parameter0: ucar.nc2.dataset.CoordinateAxis;
+
+        $r1 = virtualinvoke r0.<ucar.nc2.dataset.CoordinateAxis: java.lang.String getUnitsString()>();
+
+        $r2 = staticinvoke <ucar.nc2.units.SimpleUnit: ucar.nc2.units.SimpleUnit factory(java.lang.String)>($r1);
+
+     label01:
+        $r3 = <ucar.nc2.units.SimpleUnit: ucar.nc2.units.SimpleUnit kmUnit>;
+
+        $d0 = virtualinvoke $r2.<ucar.nc2.units.SimpleUnit: double convertTo(double,ucar.nc2.units.SimpleUnit)>(1.0, $r3);
+
+     label02:
+        goto label04;
+
+     label03:
+        $r17 := @caughtexception;
+
+        $r18 = <ucar.nc2.dt.grid.GridCoordSys: org.slf4j.Logger log>;
+
+        interfaceinvoke $r18.<org.slf4j.Logger: void warn(java.lang.String,java.lang.Throwable)>("convertUnits failed", $r17);
+
+        return r0;
+
+     label04:
+        $b0 = $d0 cmpl 1.0;
+
+        if $b0 != 0 goto label05;
+
+        return r0;
+
+     label05:
+        $r4 = virtualinvoke r0.<ucar.nc2.dataset.CoordinateAxis: ucar.ma2.Array read()>();
+
+     label06:
+        goto label08;
+
+     label07:
+        $r15 := @caughtexception;
+
+        $r16 = <ucar.nc2.dt.grid.GridCoordSys: org.slf4j.Logger log>;
+
+        interfaceinvoke $r16.<org.slf4j.Logger: void warn(java.lang.String,java.lang.Throwable)>("convertUnits read failed", $r15);
+
+        return r0;
+
+     label08:
+        $r5 = virtualinvoke r0.<ucar.nc2.dataset.CoordinateAxis: ucar.ma2.DataType getDataType()>();
+
+        $z0 = virtualinvoke $r5.<ucar.ma2.DataType: boolean isFloatingPoint()>();
+
+        if $z0 == 0 goto label11;
+
+        $r13 = virtualinvoke $r4.<ucar.ma2.Array: ucar.ma2.IndexIterator getIndexIterator()>();
+
+     label09:
+        $z3 = interfaceinvoke $r13.<ucar.ma2.IndexIterator: boolean hasNext()>();
+
+        if $z3 == 0 goto label10;
+
+        $d3 = interfaceinvoke $r13.<ucar.ma2.IndexIterator: double getDoubleNext()>();
+
+        $d4 = $d0 * $d3;
+
+        interfaceinvoke $r13.<ucar.ma2.IndexIterator: void setDoubleCurrent(double)>($d4);
+
+        goto label09;
+
+     label10:
+        $r14 = virtualinvoke r0.<ucar.nc2.dataset.CoordinateAxis: ucar.nc2.dataset.CoordinateAxis copyNoCache()>();
+
+        virtualinvoke $r14.<ucar.nc2.dataset.CoordinateAxis: void setCachedData(ucar.ma2.Array,boolean)>($r4, 0);
+
+        virtualinvoke $r14.<ucar.nc2.dataset.CoordinateAxis: void setUnitsString(java.lang.String)>("km");
+
+        return $r14;
+
+     label11:
+        $r6 = <ucar.ma2.DataType: ucar.ma2.DataType DOUBLE>;
+
+        $r7 = virtualinvoke r0.<ucar.nc2.dataset.CoordinateAxis: int[] getShape()>();
+
+        $r8 = staticinvoke <ucar.ma2.Array: ucar.ma2.Array factory(ucar.ma2.DataType,int[])>($r6, $r7);
+
+        $r9 = virtualinvoke $r8.<ucar.ma2.Array: ucar.ma2.IndexIterator getIndexIterator()>();
+
+        $r10 = virtualinvoke $r4.<ucar.ma2.Array: ucar.ma2.IndexIterator getIndexIterator()>();
+
+     label12:
+        $z1 = interfaceinvoke $r10.<ucar.ma2.IndexIterator: boolean hasNext()>();
+
+        if $z1 == 0 goto label13;
+
+        $z2 = interfaceinvoke $r9.<ucar.ma2.IndexIterator: boolean hasNext()>();
+
+        if $z2 == 0 goto label13;
+
+        $d1 = interfaceinvoke $r10.<ucar.ma2.IndexIterator: double getDoubleNext()>();
+
+        $d2 = $d0 * $d1;
+
+        interfaceinvoke $r9.<ucar.ma2.IndexIterator: void setDoubleNext(double)>($d2);
+
+        goto label12;
+
+     label13:
+        $r11 = virtualinvoke r0.<ucar.nc2.dataset.CoordinateAxis: ucar.nc2.dataset.CoordinateAxis copyNoCache()>();
+
+        $r12 = <ucar.ma2.DataType: ucar.ma2.DataType DOUBLE>;
+
+        virtualinvoke $r11.<ucar.nc2.dataset.CoordinateAxis: void setDataType(ucar.ma2.DataType)>($r12);
+
+        virtualinvoke $r11.<ucar.nc2.dataset.CoordinateAxis: void setCachedData(ucar.ma2.Array,boolean)>($r8, 0);
+
+        virtualinvoke $r11.<ucar.nc2.dataset.CoordinateAxis: void setUnitsString(java.lang.String)>("km");
+
+        return $r11;
+
+        catch java.lang.IllegalArgumentException from label01 to label02 with label03;
+        catch java.io.IOException from label05 to label06 with label07;
+    }
+
+    public ucar.unidata.geoloc.vertical.VerticalTransform getVerticalTransform()
+    {
+        ucar.unidata.geoloc.vertical.VerticalTransform $r1;
+        ucar.nc2.dt.grid.GridCoordSys r0;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        $r1 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.vertical.VerticalTransform vt>;
+
+        return $r1;
+    }
+
+    public ucar.nc2.dataset.VerticalCT getVerticalCT()
+    {
+        ucar.nc2.dataset.VerticalCT $r1;
+        ucar.nc2.dt.grid.GridCoordSys r0;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        $r1 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.VerticalCT vCT>;
+
+        return $r1;
+    }
+
+    void makeVerticalTransform(ucar.nc2.dt.grid.GridDataset, java.util.Formatter)
+    {
+        java.lang.Object[] $r10, $r13;
+        ucar.nc2.dt.grid.GridCoordSys r0;
+        java.util.Formatter r9;
+        ucar.nc2.dataset.VerticalCT $r2, $r4, $r11, $r14;
+        ucar.nc2.dt.grid.GridDataset r3;
+        ucar.unidata.geoloc.vertical.VerticalTransform $r1, $r7, $r8;
+        ucar.nc2.dataset.VerticalCT$Type $r12, $r15;
+        ucar.nc2.Dimension $r6;
+        ucar.nc2.dataset.NetcdfDataset $r5;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        r3 := @parameter0: ucar.nc2.dt.grid.GridDataset;
+
+        r9 := @parameter1: java.util.Formatter;
+
+        $r1 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.vertical.VerticalTransform vt>;
+
+        if $r1 == null goto label1;
+
+        return;
+
+     label1:
+        $r2 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.VerticalCT vCT>;
+
+        if $r2 != null goto label2;
+
+        return;
+
+     label2:
+        $r4 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.VerticalCT vCT>;
+
+        $r5 = virtualinvoke r3.<ucar.nc2.dt.grid.GridDataset: ucar.nc2.dataset.NetcdfDataset getNetcdfDataset()>();
+
+        $r6 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.Dimension timeDim>;
+
+        $r7 = virtualinvoke $r4.<ucar.nc2.dataset.VerticalCT: ucar.unidata.geoloc.vertical.VerticalTransform makeVerticalTransform(ucar.nc2.dataset.NetcdfDataset,ucar.nc2.Dimension)>($r5, $r6);
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.vertical.VerticalTransform vt> = $r7;
+
+        $r8 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.vertical.VerticalTransform vt>;
+
+        if $r8 != null goto label3;
+
+        if r9 == null goto label4;
+
+        $r13 = newarray (java.lang.Object)[1];
+
+        $r14 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.VerticalCT vCT>;
+
+        $r15 = virtualinvoke $r14.<ucar.nc2.dataset.VerticalCT: ucar.nc2.dataset.VerticalCT$Type getVerticalTransformType()>();
+
+        $r13[0] = $r15;
+
+        virtualinvoke r9.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("  - ERR can\'t make VerticalTransform = %s\n", $r13);
+
+        goto label4;
+
+     label3:
+        if r9 == null goto label4;
+
+        $r10 = newarray (java.lang.Object)[1];
+
+        $r11 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.VerticalCT vCT>;
+
+        $r12 = virtualinvoke $r11.<ucar.nc2.dataset.VerticalCT: ucar.nc2.dataset.VerticalCT$Type getVerticalTransformType()>();
+
+        $r10[0] = $r12;
+
+        virtualinvoke r9.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("  - VerticalTransform = %s\n", $r10);
+
+     label4:
+        return;
+    }
+
+    public ucar.nc2.dataset.CoordinateAxis getXHorizAxis()
+    {
+        ucar.nc2.dataset.CoordinateAxis $r1;
+        ucar.nc2.dt.grid.GridCoordSys r0;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        $r1 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizXaxis>;
+
+        return $r1;
+    }
+
+    public ucar.nc2.dataset.CoordinateAxis getYHorizAxis()
+    {
+        ucar.nc2.dataset.CoordinateAxis $r1;
+        ucar.nc2.dt.grid.GridCoordSys r0;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        $r1 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizYaxis>;
+
+        return $r1;
+    }
+
+    public ucar.nc2.dataset.CoordinateAxis1D getVerticalAxis()
+    {
+        ucar.nc2.dataset.CoordinateAxis1D $r1;
+        ucar.nc2.dt.grid.GridCoordSys r0;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        $r1 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1D vertZaxis>;
+
+        return $r1;
+    }
+
+    public ucar.nc2.dataset.CoordinateAxis getTimeAxis()
+    {
+        ucar.nc2.dataset.CoordinateAxis $r1;
+        ucar.nc2.dt.grid.GridCoordSys r0;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        $r1 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis tAxis>;
+
+        return $r1;
+    }
+
+    public ucar.nc2.dataset.CoordinateAxis1DTime getTimeAxis1D()
+    {
+        ucar.nc2.dataset.CoordinateAxis1DTime $r1;
+        ucar.nc2.dt.grid.GridCoordSys r0;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        $r1 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime timeTaxis>;
+
+        return $r1;
+    }
+
+    public ucar.nc2.dataset.CoordinateAxis1DTime getRunTimeAxis()
+    {
+        ucar.nc2.dataset.CoordinateAxis1DTime $r1;
+        ucar.nc2.dt.grid.GridCoordSys r0;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        $r1 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime runTimeAxis>;
+
+        return $r1;
+    }
+
+    public ucar.nc2.dataset.CoordinateAxis1D getEnsembleAxis()
+    {
+        ucar.nc2.dataset.CoordinateAxis1D $r1;
+        ucar.nc2.dt.grid.GridCoordSys r0;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        $r1 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1D ensembleAxis>;
+
+        return $r1;
+    }
+
+    public ucar.unidata.geoloc.ProjectionImpl getProjection()
+    {
+        ucar.unidata.geoloc.ProjectionImpl $r1;
+        ucar.nc2.dt.grid.GridCoordSys r0;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        $r1 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.ProjectionImpl proj>;
+
+        return $r1;
+    }
+
+    public void setProjectionBoundingBox()
+    {
+        ucar.unidata.geoloc.ProjectionRect $r3;
+        ucar.nc2.dt.grid.GridCoordSys r0;
+        ucar.unidata.geoloc.ProjectionImpl $r1, $r2;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        $r1 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.ProjectionImpl proj>;
+
+        if $r1 == null goto label1;
+
+        $r2 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.ProjectionImpl proj>;
+
+        $r3 = virtualinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.ProjectionRect getBoundingBox()>();
+
+        virtualinvoke $r2.<ucar.unidata.geoloc.ProjectionImpl: void setDefaultMapArea(ucar.unidata.geoloc.ProjectionRect)>($r3);
+
+     label1:
+        return;
+    }
+
+    public java.util.Date[] getTimeDates()
+    {
+        java.util.Date[] $r1, $r2;
+        ucar.nc2.dt.grid.GridCoordSys r0;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        $r1 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.Date[] timeDates>;
+
+        if $r1 != null goto label1;
+
+        specialinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: void makeTimes()>();
+
+     label1:
+        $r2 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.Date[] timeDates>;
+
+        return $r2;
+    }
+
+    public boolean isLatLon()
+    {
+        ucar.nc2.dt.grid.GridCoordSys r0;
+        boolean $z0;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        $z0 = r0.<ucar.nc2.dt.grid.GridCoordSys: boolean isLatLon>;
+
+        return $z0;
+    }
+
+    public boolean isDate()
+    {
+        java.util.Date[] $r1;
+        ucar.nc2.dt.grid.GridCoordSys r0;
+        boolean $z0;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        $r1 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.Date[] timeDates>;
+
+        if $r1 != null goto label1;
+
+        specialinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: void makeTimes()>();
+
+     label1:
+        $z0 = r0.<ucar.nc2.dt.grid.GridCoordSys: boolean isDate>;
+
+        return $z0;
+    }
+
+    public boolean isZPositive()
+    {
+        ucar.nc2.dt.grid.GridCoordSys r0;
+        ucar.nc2.dataset.CoordinateAxis1D $r1, $r2, $r4, $r7, $r10;
+        ucar.nc2.constants.AxisType $r5, $r6, $r8, $r9;
+        java.lang.String $r3, $r11;
+        boolean $z0;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        $r1 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1D vertZaxis>;
+
+        if $r1 != null goto label1;
+
+        return 0;
+
+     label1:
+        $r2 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1D vertZaxis>;
+
+        $r3 = virtualinvoke $r2.<ucar.nc2.dataset.CoordinateAxis1D: java.lang.String getPositive()>();
+
+        if $r3 == null goto label2;
+
+        $r10 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1D vertZaxis>;
+
+        $r11 = virtualinvoke $r10.<ucar.nc2.dataset.CoordinateAxis1D: java.lang.String getPositive()>();
+
+        $z0 = virtualinvoke $r11.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("up");
+
+        return $z0;
+
+     label2:
+        $r4 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1D vertZaxis>;
+
+        $r5 = virtualinvoke $r4.<ucar.nc2.dataset.CoordinateAxis1D: ucar.nc2.constants.AxisType getAxisType()>();
+
+        $r6 = <ucar.nc2.constants.AxisType: ucar.nc2.constants.AxisType Height>;
+
+        if $r5 != $r6 goto label3;
+
+        return 1;
+
+     label3:
+        $r7 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1D vertZaxis>;
+
+        $r8 = virtualinvoke $r7.<ucar.nc2.dataset.CoordinateAxis1D: ucar.nc2.constants.AxisType getAxisType()>();
+
+        $r9 = <ucar.nc2.constants.AxisType: ucar.nc2.constants.AxisType Pressure>;
+
+        if $r8 != $r9 goto label4;
+
+        return 0;
+
+     label4:
+        return 1;
+    }
+
+    public boolean isRegularSpatial()
+    {
+        ucar.nc2.dataset.CoordinateAxis $r1, $r2;
+        ucar.nc2.dt.grid.GridCoordSys r0;
+        boolean $z0, $z1;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        $r1 = virtualinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis getXHorizAxis()>();
+
+        $z0 = specialinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: boolean isRegularSpatial(ucar.nc2.dataset.CoordinateAxis)>($r1);
+
+        if $z0 != 0 goto label1;
+
+        return 0;
+
+     label1:
+        $r2 = virtualinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis getYHorizAxis()>();
+
+        $z1 = specialinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: boolean isRegularSpatial(ucar.nc2.dataset.CoordinateAxis)>($r2);
+
+        if $z1 != 0 goto label2;
+
+        return 0;
+
+     label2:
+        return 1;
+    }
+
+    private boolean isRegularSpatial(ucar.nc2.dataset.CoordinateAxis)
+    {
+        ucar.nc2.dataset.CoordinateAxis r0;
+        ucar.nc2.dataset.CoordinateAxis1D $r1;
+        ucar.nc2.dt.grid.GridCoordSys r2;
+        boolean $z0, $z1;
+
+        r2 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        r0 := @parameter0: ucar.nc2.dataset.CoordinateAxis;
+
+        if r0 != null goto label1;
+
+        return 1;
+
+     label1:
+        $z0 = r0 instanceof ucar.nc2.dataset.CoordinateAxis1D;
+
+        if $z0 != 0 goto label2;
+
+        return 0;
+
+     label2:
+        $r1 = (ucar.nc2.dataset.CoordinateAxis1D) r0;
+
+        $z1 = virtualinvoke $r1.<ucar.nc2.dataset.CoordinateAxis1D: boolean isRegular()>();
+
+        if $z1 != 0 goto label3;
+
+        return 0;
+
+     label3:
+        return 1;
+    }
+
+    public int[] findXYindexFromCoord(double, double, int[])
+    {
+        java.lang.IllegalStateException $r20;
+        ucar.nc2.dataset.CoordinateAxis $r1, $r2, $r4, $r8, $r9, $r13, $r14, $r16;
+        int[] $r12, r18;
+        ucar.nc2.dataset.CoordinateAxis1D $r15, $r17;
+        ucar.nc2.dt.grid.GridCoordinate2D $r5, $r6, $r19;
+        boolean $z0, $z1, $z2, $z3, $z4;
+        ucar.nc2.dataset.CoordinateAxis2D $r10, $r11;
+        ucar.nc2.dt.grid.GridCoordSys r0;
+        int $i0, $i1, $i2, $i3, $i5, $i7;
+        double d0, d1;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        d1 := @parameter0: double;
+
+        d0 := @parameter1: double;
+
+        r18 := @parameter2: int[];
+
+        if r18 != null goto label1;
+
+        r18 = newarray (int)[2];
+
+     label1:
+        $r1 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizXaxis>;
+
+        $z0 = $r1 instanceof ucar.nc2.dataset.CoordinateAxis1D;
+
+        if $z0 == 0 goto label2;
+
+        $r13 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizYaxis>;
+
+        $z4 = $r13 instanceof ucar.nc2.dataset.CoordinateAxis1D;
+
+        if $z4 == 0 goto label2;
+
+        $r14 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizXaxis>;
+
+        $r15 = (ucar.nc2.dataset.CoordinateAxis1D) $r14;
+
+        $i2 = virtualinvoke $r15.<ucar.nc2.dataset.CoordinateAxis1D: int findCoordElement(double)>(d1);
+
+        r18[0] = $i2;
+
+        $r16 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizYaxis>;
+
+        $r17 = (ucar.nc2.dataset.CoordinateAxis1D) $r16;
+
+        $i3 = virtualinvoke $r17.<ucar.nc2.dataset.CoordinateAxis1D: int findCoordElement(double)>(d0);
+
+        r18[1] = $i3;
+
+        return r18;
+
+     label2:
+        $r2 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizXaxis>;
+
+        $z1 = $r2 instanceof ucar.nc2.dataset.CoordinateAxis2D;
+
+        if $z1 == 0 goto label6;
+
+        $r4 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizYaxis>;
+
+        $z2 = $r4 instanceof ucar.nc2.dataset.CoordinateAxis2D;
+
+        if $z2 == 0 goto label6;
+
+        $r5 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dt.grid.GridCoordinate2D g2d>;
+
+        if $r5 != null goto label3;
+
+        $r19 = new ucar.nc2.dt.grid.GridCoordinate2D;
+
+        $r8 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizYaxis>;
+
+        $r11 = (ucar.nc2.dataset.CoordinateAxis2D) $r8;
+
+        $r9 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizXaxis>;
+
+        $r10 = (ucar.nc2.dataset.CoordinateAxis2D) $r9;
+
+        specialinvoke $r19.<ucar.nc2.dt.grid.GridCoordinate2D: void <init>(ucar.nc2.dataset.CoordinateAxis2D,ucar.nc2.dataset.CoordinateAxis2D)>($r11, $r10);
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dt.grid.GridCoordinate2D g2d> = $r19;
+
+     label3:
+        $r12 = newarray (int)[2];
+
+        $r6 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dt.grid.GridCoordinate2D g2d>;
+
+        $z3 = virtualinvoke $r6.<ucar.nc2.dt.grid.GridCoordinate2D: boolean findCoordElement(double,double,int[])>(d0, d1, $r12);
+
+        if $z3 == 0 goto label4;
+
+        $i0 = $r12[1];
+
+        r18[0] = $i0;
+
+        $i1 = $r12[0];
+
+        r18[1] = $i1;
+
+        goto label5;
+
+     label4:
+        $i5 = (int) -1;
+
+        r18[0] = $i5;
+
+        $i7 = (int) -1;
+
+        r18[1] = $i7;
+
+     label5:
+        return r18;
+
+     label6:
+        $r20 = new java.lang.IllegalStateException;
+
+        specialinvoke $r20.<java.lang.IllegalStateException: void <init>(java.lang.String)>("GridCoordSystem.findXYindexFromCoord");
+
+        throw $r20;
+    }
+
+    public int[] findXYindexFromCoordBounded(double, double, int[])
+    {
+        java.lang.IllegalStateException $r3;
+        ucar.nc2.dt.grid.GridCoordSys r0;
+        ucar.nc2.dataset.CoordinateAxis $r1, $r2, $r4, $r8, $r9, $r13, $r14, $r16;
+        int[] $r12, r18;
+        ucar.nc2.dataset.CoordinateAxis1D $r15, $r17;
+        ucar.nc2.dt.grid.GridCoordinate2D $r5, $r6, $r7;
+        int $i0, $i1, $i2, $i3;
+        boolean $z0, $z1, $z2, $z3;
+        double d0, d1;
+        ucar.nc2.dataset.CoordinateAxis2D $r10, $r11;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        d1 := @parameter0: double;
+
+        d0 := @parameter1: double;
+
+        r18 := @parameter2: int[];
+
+        if r18 != null goto label1;
+
+        r18 = newarray (int)[2];
+
+     label1:
+        $r1 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizXaxis>;
+
+        $z0 = $r1 instanceof ucar.nc2.dataset.CoordinateAxis1D;
+
+        if $z0 == 0 goto label2;
+
+        $r13 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizYaxis>;
+
+        $z3 = $r13 instanceof ucar.nc2.dataset.CoordinateAxis1D;
+
+        if $z3 == 0 goto label2;
+
+        $r14 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizXaxis>;
+
+        $r15 = (ucar.nc2.dataset.CoordinateAxis1D) $r14;
+
+        $i2 = virtualinvoke $r15.<ucar.nc2.dataset.CoordinateAxis1D: int findCoordElementBounded(double)>(d1);
+
+        r18[0] = $i2;
+
+        $r16 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizYaxis>;
+
+        $r17 = (ucar.nc2.dataset.CoordinateAxis1D) $r16;
+
+        $i3 = virtualinvoke $r17.<ucar.nc2.dataset.CoordinateAxis1D: int findCoordElementBounded(double)>(d0);
+
+        r18[1] = $i3;
+
+        return r18;
+
+     label2:
+        $r2 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizXaxis>;
+
+        $z1 = $r2 instanceof ucar.nc2.dataset.CoordinateAxis2D;
+
+        if $z1 == 0 goto label4;
+
+        $r4 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizYaxis>;
+
+        $z2 = $r4 instanceof ucar.nc2.dataset.CoordinateAxis2D;
+
+        if $z2 == 0 goto label4;
+
+        $r5 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dt.grid.GridCoordinate2D g2d>;
+
+        if $r5 != null goto label3;
+
+        $r7 = new ucar.nc2.dt.grid.GridCoordinate2D;
+
+        $r8 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizYaxis>;
+
+        $r11 = (ucar.nc2.dataset.CoordinateAxis2D) $r8;
+
+        $r9 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizXaxis>;
+
+        $r10 = (ucar.nc2.dataset.CoordinateAxis2D) $r9;
+
+        specialinvoke $r7.<ucar.nc2.dt.grid.GridCoordinate2D: void <init>(ucar.nc2.dataset.CoordinateAxis2D,ucar.nc2.dataset.CoordinateAxis2D)>($r11, $r10);
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dt.grid.GridCoordinate2D g2d> = $r7;
+
+     label3:
+        $r12 = newarray (int)[2];
+
+        $r6 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dt.grid.GridCoordinate2D g2d>;
+
+        virtualinvoke $r6.<ucar.nc2.dt.grid.GridCoordinate2D: boolean findCoordElement(double,double,int[])>(d0, d1, $r12);
+
+        $i0 = $r12[1];
+
+        r18[0] = $i0;
+
+        $i1 = $r12[0];
+
+        r18[1] = $i1;
+
+        return r18;
+
+     label4:
+        $r3 = new java.lang.IllegalStateException;
+
+        specialinvoke $r3.<java.lang.IllegalStateException: void <init>(java.lang.String)>("GridCoordSystem.findXYindexFromCoord");
+
+        throw $r3;
+    }
+
+    public int[] findXYindexFromLatLon(double, double, int[])
+    {
+        ucar.nc2.dt.grid.GridCoordSys r0;
+        ucar.unidata.geoloc.ProjectionImpl $r1;
+        int[] r5, $r6;
+        ucar.unidata.geoloc.ProjectionPointImpl $r3;
+        ucar.unidata.geoloc.LatLonPointImpl $r2;
+        double d0, d1, $d2, $d3;
+        ucar.unidata.geoloc.ProjectionPoint $r4;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        d0 := @parameter0: double;
+
+        d1 := @parameter1: double;
+
+        r5 := @parameter2: int[];
+
+        $r1 = virtualinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.ProjectionImpl getProjection()>();
+
+        $r2 = new ucar.unidata.geoloc.LatLonPointImpl;
+
+        specialinvoke $r2.<ucar.unidata.geoloc.LatLonPointImpl: void <init>(double,double)>(d0, d1);
+
+        $r3 = new ucar.unidata.geoloc.ProjectionPointImpl;
+
+        specialinvoke $r3.<ucar.unidata.geoloc.ProjectionPointImpl: void <init>()>();
+
+        $r4 = interfaceinvoke $r1.<ucar.unidata.geoloc.Projection: ucar.unidata.geoloc.ProjectionPoint latLonToProj(ucar.unidata.geoloc.LatLonPoint,ucar.unidata.geoloc.ProjectionPointImpl)>($r2, $r3);
+
+        $d2 = interfaceinvoke $r4.<ucar.unidata.geoloc.ProjectionPoint: double getX()>();
+
+        $d3 = interfaceinvoke $r4.<ucar.unidata.geoloc.ProjectionPoint: double getY()>();
+
+        $r6 = virtualinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: int[] findXYindexFromCoord(double,double,int[])>($d2, $d3, r5);
+
+        return $r6;
+    }
+
+    public int[] findXYindexFromLatLonBounded(double, double, int[])
+    {
+        ucar.nc2.dt.grid.GridCoordSys r0;
+        ucar.unidata.geoloc.ProjectionImpl $r1;
+        int[] r5, $r6;
+        ucar.unidata.geoloc.ProjectionPointImpl $r3;
+        ucar.unidata.geoloc.LatLonPointImpl $r2;
+        double d0, d1, $d2, $d3;
+        ucar.unidata.geoloc.ProjectionPoint $r4;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        d0 := @parameter0: double;
+
+        d1 := @parameter1: double;
+
+        r5 := @parameter2: int[];
+
+        $r1 = virtualinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.ProjectionImpl getProjection()>();
+
+        $r2 = new ucar.unidata.geoloc.LatLonPointImpl;
+
+        specialinvoke $r2.<ucar.unidata.geoloc.LatLonPointImpl: void <init>(double,double)>(d0, d1);
+
+        $r3 = new ucar.unidata.geoloc.ProjectionPointImpl;
+
+        specialinvoke $r3.<ucar.unidata.geoloc.ProjectionPointImpl: void <init>()>();
+
+        $r4 = interfaceinvoke $r1.<ucar.unidata.geoloc.Projection: ucar.unidata.geoloc.ProjectionPoint latLonToProj(ucar.unidata.geoloc.LatLonPoint,ucar.unidata.geoloc.ProjectionPointImpl)>($r2, $r3);
+
+        $d2 = interfaceinvoke $r4.<ucar.unidata.geoloc.ProjectionPoint: double getX()>();
+
+        $d3 = interfaceinvoke $r4.<ucar.unidata.geoloc.ProjectionPoint: double getY()>();
+
+        $r6 = virtualinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: int[] findXYindexFromCoordBounded(double,double,int[])>($d2, $d3, r5);
+
+        return $r6;
+    }
+
+    public int[] findXYCoordElement(double, double, int[])
+    {
+        int[] r1, $r2;
+        ucar.nc2.dt.grid.GridCoordSys r0;
+        double d0, d1;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        d0 := @parameter0: double;
+
+        d1 := @parameter1: double;
+
+        r1 := @parameter2: int[];
+
+        $r2 = virtualinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: int[] findXYindexFromCoord(double,double,int[])>(d0, d1, r1);
+
+        return $r2;
+    }
+
+    public ucar.nc2.units.DateRange getDateRange()
+    {
+        ucar.nc2.dt.grid.GridCoordSys r0;
+        java.util.Date $r4, $r5;
+        ucar.nc2.units.DateRange $r3;
+        int $i0, $i1;
+        java.util.Date[] $r1, $r2;
+        boolean $z0;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        $r1 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.Date[] timeDates>;
+
+        if $r1 != null goto label1;
+
+        specialinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: void makeTimes()>();
+
+     label1:
+        $z0 = r0.<ucar.nc2.dt.grid.GridCoordSys: boolean isDate>;
+
+        if $z0 == 0 goto label2;
+
+        $r2 = virtualinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.Date[] getTimeDates()>();
+
+        $r3 = new ucar.nc2.units.DateRange;
+
+        $r5 = $r2[0];
+
+        $i0 = lengthof $r2;
+
+        $i1 = $i0 - 1;
+
+        $r4 = $r2[$i1];
+
+        specialinvoke $r3.<ucar.nc2.units.DateRange: void <init>(java.util.Date,java.util.Date)>($r5, $r4);
+
+        return $r3;
+
+     label2:
+        return null;
+    }
+
+    public boolean hasTimeAxis()
+    {
+        ucar.nc2.dataset.CoordinateAxis $r1;
+        ucar.nc2.dt.grid.GridCoordSys r0;
+        boolean $z0;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        $r1 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis tAxis>;
+
+        if $r1 == null goto label1;
+
+        $z0 = 1;
+
+        goto label2;
+
+     label1:
+        $z0 = 0;
+
+     label2:
+        return $z0;
+    }
+
+    public boolean hasTimeAxis1D()
+    {
+        ucar.nc2.dataset.CoordinateAxis1DTime $r1;
+        ucar.nc2.dt.grid.GridCoordSys r0;
+        boolean $z0;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        $r1 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime timeTaxis>;
+
+        if $r1 == null goto label1;
+
+        $z0 = 1;
+
+        goto label2;
+
+     label1:
+        $z0 = 0;
+
+     label2:
+        return $z0;
+    }
+
+    public ucar.nc2.dataset.CoordinateAxis1DTime getTimeAxisForRun(int)
+    {
+        ucar.nc2.dt.grid.GridCoordSys r0;
+        long $l0;
+        ucar.nc2.dataset.CoordinateAxis1DTime[] $r7, $r8, $r10, $r12, $r14;
+        int i1, i2;
+        java.lang.String $r6;
+        boolean $z0, $z1;
+        ucar.nc2.dataset.CoordinateAxis1DTime $r1, $r9, $r11, $r13;
+        java.lang.IllegalArgumentException $r2;
+        java.lang.StringBuilder $r3, $r4, $r5;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        i2 := @parameter0: int;
+
+        $z0 = virtualinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: boolean hasTimeAxis()>();
+
+        if $z0 == 0 goto label1;
+
+        $z1 = virtualinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: boolean hasTimeAxis1D()>();
+
+        if $z1 == 0 goto label2;
+
+     label1:
+        return null;
+
+     label2:
+        $r1 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime runTimeAxis>;
+
+        $l0 = virtualinvoke $r1.<ucar.nc2.dataset.CoordinateAxis1DTime: long getSize()>();
+
+        i1 = (int) $l0;
+
+        if i2 < 0 goto label3;
+
+        if i2 < i1 goto label4;
+
+     label3:
+        $r2 = new java.lang.IllegalArgumentException;
+
+        $r3 = new java.lang.StringBuilder;
+
+        specialinvoke $r3.<java.lang.StringBuilder: void <init>()>();
+
+        $r4 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("getTimeAxisForRun index out of bounds= ");
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>(i2);
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r2.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>($r6);
+
+        throw $r2;
+
+     label4:
+        $r7 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime[] timeAxisForRun>;
+
+        if $r7 != null goto label5;
+
+        $r14 = newarray (ucar.nc2.dataset.CoordinateAxis1DTime)[i1];
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime[] timeAxisForRun> = $r14;
+
+     label5:
+        $r8 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime[] timeAxisForRun>;
+
+        $r9 = $r8[i2];
+
+        if $r9 != null goto label6;
+
+        $r12 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime[] timeAxisForRun>;
+
+        $r13 = specialinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime makeTimeAxisForRun(int)>(i2);
+
+        $r12[i2] = $r13;
+
+     label6:
+        $r10 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime[] timeAxisForRun>;
+
+        $r11 = $r10[i2];
+
+        return $r11;
+    }
+
+    private ucar.nc2.dataset.CoordinateAxis1DTime makeTimeAxisForRun(int)
+    {
+        ucar.nc2.dataset.CoordinateAxis1DTime $r5;
+        ucar.nc2.dataset.VariableDS r3;
+        ucar.nc2.dt.grid.GridCoordSys r0;
+        java.io.IOException $r6;
+        ucar.nc2.dataset.CoordinateAxis $r1;
+        ucar.ma2.InvalidRangeException $r7;
+        int i0;
+        ucar.nc2.Variable $r2;
+        ucar.nc2.dataset.NetcdfDataset $r4;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        i0 := @parameter0: int;
+
+     label1:
+        $r1 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis tAxis>;
+
+        $r2 = virtualinvoke $r1.<ucar.nc2.dataset.CoordinateAxis: ucar.nc2.Variable slice(int,int)>(0, i0);
+
+        r3 = (ucar.nc2.dataset.VariableDS) $r2;
+
+        $r4 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.NetcdfDataset ds>;
+
+        $r5 = staticinvoke <ucar.nc2.dataset.CoordinateAxis1DTime: ucar.nc2.dataset.CoordinateAxis1DTime factory(ucar.nc2.dataset.NetcdfDataset,ucar.nc2.dataset.VariableDS,java.util.Formatter)>($r4, r3, null);
+
+     label2:
+        return $r5;
+
+     label3:
+        $r7 := @caughtexception;
+
+        virtualinvoke $r7.<ucar.ma2.InvalidRangeException: void printStackTrace()>();
+
+        goto label5;
+
+     label4:
+        $r6 := @caughtexception;
+
+        virtualinvoke $r6.<java.io.IOException: void printStackTrace()>();
+
+     label5:
+        return null;
+
+        catch ucar.ma2.InvalidRangeException from label1 to label2 with label3;
+        catch java.io.IOException from label1 to label2 with label4;
+    }
+
+    public ucar.nc2.units.DateUnit getDateUnit() throws java.lang.Exception
+    {
+        ucar.nc2.dataset.CoordinateAxis $r1;
+        ucar.nc2.dt.grid.GridCoordSys r0;
+        ucar.nc2.units.DateUnit $r3;
+        java.lang.String $r2;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        $r1 = virtualinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis getTimeAxis()>();
+
+        $r2 = virtualinvoke $r1.<ucar.nc2.dataset.CoordinateAxis: java.lang.String getUnitsString()>();
+
+        $r3 = new ucar.nc2.units.DateUnit;
+
+        specialinvoke $r3.<ucar.nc2.units.DateUnit: void <init>(java.lang.String)>($r2);
+
+        return $r3;
+    }
+
+    public ucar.nc2.units.TimeUnit getTimeResolution() throws java.lang.Exception
+    {
+        ucar.nc2.dataset.CoordinateAxis1DTime r2;
+        ucar.nc2.dt.grid.GridCoordSys r0;
+        ucar.nc2.dataset.CoordinateAxis $r1;
+        java.util.StringTokenizer $r4;
+        java.lang.String $r3, $r6;
+        ucar.nc2.units.TimeUnit $r5;
+        boolean $z0;
+        double $d0;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        $z0 = virtualinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: boolean isRegular()>();
+
+        if $z0 != 0 goto label1;
+
+        return null;
+
+     label1:
+        $r1 = virtualinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis getTimeAxis()>();
+
+        r2 = (ucar.nc2.dataset.CoordinateAxis1DTime) $r1;
+
+        $r3 = virtualinvoke r2.<ucar.nc2.dataset.CoordinateAxis1DTime: java.lang.String getUnitsString()>();
+
+        $r4 = new java.util.StringTokenizer;
+
+        specialinvoke $r4.<java.util.StringTokenizer: void <init>(java.lang.String)>($r3);
+
+        $d0 = virtualinvoke r2.<ucar.nc2.dataset.CoordinateAxis1DTime: double getIncrement()>();
+
+        $r5 = new ucar.nc2.units.TimeUnit;
+
+        $r6 = virtualinvoke $r4.<java.util.StringTokenizer: java.lang.String nextToken()>();
+
+        specialinvoke $r5.<ucar.nc2.units.TimeUnit: void <init>(double,java.lang.String)>($d0, $r6);
+
+        return $r5;
+    }
+
+    public ucar.unidata.geoloc.ProjectionRect getBoundingBox()
+    {
+        ucar.nc2.dataset.CoordinateAxis $r2, $r3, $r4, $r5, $r6, $r8, $r9, $r10, $r11, $r12, $r13, $r15;
+        ucar.nc2.dataset.CoordinateAxis1D r14, r16;
+        boolean $z0, $z1, $z2, $z3;
+        ucar.unidata.geoloc.ProjectionRect $r1, $r7, $r17, $r18;
+        ucar.nc2.dt.grid.GridCoordSys r0;
+        long $l0, $l2;
+        int $i1, $i3;
+        double $d0, $d1, $d2, $d3, $d4, $d5, $d6, $d7;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        $r1 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.ProjectionRect mapArea>;
+
+        if $r1 != null goto label5;
+
+        $r2 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizXaxis>;
+
+        if $r2 == null goto label1;
+
+        $r3 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizXaxis>;
+
+        $z0 = virtualinvoke $r3.<ucar.nc2.dataset.CoordinateAxis: boolean isNumeric()>();
+
+        if $z0 == 0 goto label1;
+
+        $r4 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizYaxis>;
+
+        if $r4 == null goto label1;
+
+        $r5 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizYaxis>;
+
+        $z1 = virtualinvoke $r5.<ucar.nc2.dataset.CoordinateAxis: boolean isNumeric()>();
+
+        if $z1 != 0 goto label2;
+
+     label1:
+        return null;
+
+     label2:
+        $r6 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizXaxis>;
+
+        $z2 = $r6 instanceof ucar.nc2.dataset.CoordinateAxis1D;
+
+        if $z2 == 0 goto label3;
+
+        $r12 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizYaxis>;
+
+        $z3 = $r12 instanceof ucar.nc2.dataset.CoordinateAxis1D;
+
+        if $z3 != 0 goto label4;
+
+     label3:
+        $r7 = new ucar.unidata.geoloc.ProjectionRect;
+
+        $r8 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizXaxis>;
+
+        $d0 = virtualinvoke $r8.<ucar.nc2.dataset.CoordinateAxis: double getMinValue()>();
+
+        $r9 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizYaxis>;
+
+        $d1 = virtualinvoke $r9.<ucar.nc2.dataset.CoordinateAxis: double getMinValue()>();
+
+        $r10 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizXaxis>;
+
+        $d2 = virtualinvoke $r10.<ucar.nc2.dataset.CoordinateAxis: double getMaxValue()>();
+
+        $r11 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizYaxis>;
+
+        $d3 = virtualinvoke $r11.<ucar.nc2.dataset.CoordinateAxis: double getMaxValue()>();
+
+        specialinvoke $r7.<ucar.unidata.geoloc.ProjectionRect: void <init>(double,double,double,double)>($d0, $d1, $d2, $d3);
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.ProjectionRect mapArea> = $r7;
+
+        goto label5;
+
+     label4:
+        $r13 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizXaxis>;
+
+        r14 = (ucar.nc2.dataset.CoordinateAxis1D) $r13;
+
+        $r15 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizYaxis>;
+
+        r16 = (ucar.nc2.dataset.CoordinateAxis1D) $r15;
+
+        $r17 = new ucar.unidata.geoloc.ProjectionRect;
+
+        $d4 = virtualinvoke r14.<ucar.nc2.dataset.CoordinateAxis1D: double getCoordEdge(int)>(0);
+
+        $d5 = virtualinvoke r16.<ucar.nc2.dataset.CoordinateAxis1D: double getCoordEdge(int)>(0);
+
+        $l0 = virtualinvoke r14.<ucar.nc2.dataset.CoordinateAxis1D: long getSize()>();
+
+        $i1 = (int) $l0;
+
+        $d6 = virtualinvoke r14.<ucar.nc2.dataset.CoordinateAxis1D: double getCoordEdge(int)>($i1);
+
+        $l2 = virtualinvoke r16.<ucar.nc2.dataset.CoordinateAxis1D: long getSize()>();
+
+        $i3 = (int) $l2;
+
+        $d7 = virtualinvoke r16.<ucar.nc2.dataset.CoordinateAxis1D: double getCoordEdge(int)>($i3);
+
+        specialinvoke $r17.<ucar.unidata.geoloc.ProjectionRect: void <init>(double,double,double,double)>($d4, $d5, $d6, $d7);
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.ProjectionRect mapArea> = $r17;
+
+     label5:
+        $r18 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.ProjectionRect mapArea>;
+
+        return $r18;
+    }
+
+    public ucar.unidata.geoloc.LatLonPoint getLatLon(int, int)
+    {
+        ucar.nc2.dt.grid.GridCoordSys r0;
+        ucar.nc2.dataset.CoordinateAxis $r1, $r2, $r3, $r4, $r5, $r6;
+        ucar.nc2.dataset.CoordinateAxis1D r7, r9;
+        int i0, i1;
+        boolean $z0, $z1, $z2;
+        double d0, d1;
+        ucar.unidata.geoloc.LatLonPoint $r11;
+        ucar.nc2.dataset.CoordinateAxis2D r8, r10;
+        ucar.unidata.geoloc.LatLonPointImpl $r12;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        i0 := @parameter0: int;
+
+        i1 := @parameter1: int;
+
+        $r1 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizXaxis>;
+
+        $z0 = $r1 instanceof ucar.nc2.dataset.CoordinateAxis1D;
+
+        if $z0 == 0 goto label1;
+
+        $r6 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizXaxis>;
+
+        r7 = (ucar.nc2.dataset.CoordinateAxis1D) $r6;
+
+        d0 = virtualinvoke r7.<ucar.nc2.dataset.CoordinateAxis1D: double getCoordValue(int)>(i0);
+
+        goto label2;
+
+     label1:
+        $r2 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizXaxis>;
+
+        r8 = (ucar.nc2.dataset.CoordinateAxis2D) $r2;
+
+        d0 = virtualinvoke r8.<ucar.nc2.dataset.CoordinateAxis2D: double getCoordValue(int,int)>(i0, i1);
+
+     label2:
+        $r3 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizYaxis>;
+
+        $z1 = $r3 instanceof ucar.nc2.dataset.CoordinateAxis1D;
+
+        if $z1 == 0 goto label3;
+
+        $r5 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizYaxis>;
+
+        r9 = (ucar.nc2.dataset.CoordinateAxis1D) $r5;
+
+        d1 = virtualinvoke r9.<ucar.nc2.dataset.CoordinateAxis1D: double getCoordValue(int)>(i1);
+
+        goto label4;
+
+     label3:
+        $r4 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizYaxis>;
+
+        r10 = (ucar.nc2.dataset.CoordinateAxis2D) $r4;
+
+        d1 = virtualinvoke r10.<ucar.nc2.dataset.CoordinateAxis2D: double getCoordValue(int,int)>(i0, i1);
+
+     label4:
+        $z2 = virtualinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: boolean isLatLon()>();
+
+        if $z2 == 0 goto label5;
+
+        $r12 = new ucar.unidata.geoloc.LatLonPointImpl;
+
+        $r11 = $r12;
+
+        specialinvoke $r12.<ucar.unidata.geoloc.LatLonPointImpl: void <init>(double,double)>(d1, d0);
+
+        goto label6;
+
+     label5:
+        $r11 = virtualinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.LatLonPoint getLatLon(double,double)>(d0, d1);
+
+     label6:
+        return $r11;
+    }
+
+    public ucar.unidata.geoloc.LatLonPoint getLatLon(double, double)
+    {
+        ucar.unidata.geoloc.LatLonPoint $r4;
+        ucar.nc2.dt.grid.GridCoordSys r0;
+        ucar.unidata.geoloc.ProjectionPointImpl $r2;
+        ucar.unidata.geoloc.LatLonPointImpl $r3;
+        ucar.unidata.geoloc.ProjectionImpl $r1;
+        double d0, d1;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        d0 := @parameter0: double;
+
+        d1 := @parameter1: double;
+
+        $r1 = virtualinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.ProjectionImpl getProjection()>();
+
+        $r2 = new ucar.unidata.geoloc.ProjectionPointImpl;
+
+        specialinvoke $r2.<ucar.unidata.geoloc.ProjectionPointImpl: void <init>(double,double)>(d0, d1);
+
+        $r3 = new ucar.unidata.geoloc.LatLonPointImpl;
+
+        specialinvoke $r3.<ucar.unidata.geoloc.LatLonPointImpl: void <init>()>();
+
+        $r4 = interfaceinvoke $r1.<ucar.unidata.geoloc.Projection: ucar.unidata.geoloc.LatLonPoint projToLatLon(ucar.unidata.geoloc.ProjectionPoint,ucar.unidata.geoloc.LatLonPointImpl)>($r2, $r3);
+
+        return $r4;
+    }
+
+    public ucar.unidata.geoloc.LatLonRect getLatLonBoundingBox()
+    {
+        ucar.nc2.dataset.CoordinateAxis $r30, $r31, $r32, $r33;
+        ucar.nc2.dt.grid.GridCoordSys r0;
+        ucar.unidata.geoloc.LatLonRect $r1, $r22, $r23, $r24, $r27, $r28, $r29, $r41, $r43, $r49, $r51, $r52;
+        ucar.unidata.geoloc.LatLonPoint $r6, $r9, $r13, $r16;
+        ucar.unidata.geoloc.LatLonPointImpl r10, r17, r36, r37, $r42, $r44, $r45, $r46, $r47, $r48, $r50;
+        ucar.unidata.geoloc.ProjectionImpl $r2;
+        int[] $r18, r38, $r39, $r40;
+        boolean $z0, z1, z2, z3, z4, z5, z6;
+        ucar.unidata.geoloc.ProjectionRect $r3;
+        int $i0, $i1, $i2, $i3, $i5, $i7, $i9, $i11;
+        ucar.unidata.geoloc.ProjectionPoint $r4, $r7, $r11, $r14;
+        double $d0, $d1, $d2, $d3, $d4, $d5, $d6, $d7, $d8, $d9, $d10, $d11, $d12, $d13, $d14, $d15, d16, d17;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        $r1 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.LatLonRect llbb>;
+
+        if $r1 != null goto label6;
+
+        $z0 = virtualinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: boolean isLatLon()>();
+
+        if $z0 == 0 goto label1;
+
+        $r30 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizYaxis>;
+
+        $d12 = virtualinvoke $r30.<ucar.nc2.dataset.CoordinateAxis: double getMinValue()>();
+
+        $r31 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizXaxis>;
+
+        $d13 = virtualinvoke $r31.<ucar.nc2.dataset.CoordinateAxis: double getMinValue()>();
+
+        $r32 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizYaxis>;
+
+        $d14 = virtualinvoke $r32.<ucar.nc2.dataset.CoordinateAxis: double getMaxValue()>();
+
+        d16 = $d14 - $d12;
+
+        $r33 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizXaxis>;
+
+        $d15 = virtualinvoke $r33.<ucar.nc2.dataset.CoordinateAxis: double getMaxValue()>();
+
+        d17 = $d15 - $d13;
+
+        $r42 = new ucar.unidata.geoloc.LatLonPointImpl;
+
+        specialinvoke $r42.<ucar.unidata.geoloc.LatLonPointImpl: void <init>(double,double)>($d12, $d13);
+
+        $r43 = new ucar.unidata.geoloc.LatLonRect;
+
+        specialinvoke $r43.<ucar.unidata.geoloc.LatLonRect: void <init>(ucar.unidata.geoloc.LatLonPoint,double,double)>($r42, d16, d17);
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.LatLonRect llbb> = $r43;
+
+        goto label6;
+
+     label1:
+        $r2 = virtualinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.ProjectionImpl getProjection()>();
+
+        $r3 = virtualinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.ProjectionRect getBoundingBox()>();
+
+        $r4 = virtualinvoke $r3.<ucar.unidata.geoloc.ProjectionRect: ucar.unidata.geoloc.ProjectionPoint getLowerLeftPoint()>();
+
+        $r44 = new ucar.unidata.geoloc.LatLonPointImpl;
+
+        specialinvoke $r44.<ucar.unidata.geoloc.LatLonPointImpl: void <init>()>();
+
+        $r6 = interfaceinvoke $r2.<ucar.unidata.geoloc.Projection: ucar.unidata.geoloc.LatLonPoint projToLatLon(ucar.unidata.geoloc.ProjectionPoint,ucar.unidata.geoloc.LatLonPointImpl)>($r4, $r44);
+
+        r36 = (ucar.unidata.geoloc.LatLonPointImpl) $r6;
+
+        $r7 = virtualinvoke $r3.<ucar.unidata.geoloc.ProjectionRect: ucar.unidata.geoloc.ProjectionPoint getLowerRightPoint()>();
+
+        $r45 = new ucar.unidata.geoloc.LatLonPointImpl;
+
+        specialinvoke $r45.<ucar.unidata.geoloc.LatLonPointImpl: void <init>()>();
+
+        $r9 = interfaceinvoke $r2.<ucar.unidata.geoloc.Projection: ucar.unidata.geoloc.LatLonPoint projToLatLon(ucar.unidata.geoloc.ProjectionPoint,ucar.unidata.geoloc.LatLonPointImpl)>($r7, $r45);
+
+        r10 = (ucar.unidata.geoloc.LatLonPointImpl) $r9;
+
+        $r11 = virtualinvoke $r3.<ucar.unidata.geoloc.ProjectionRect: ucar.unidata.geoloc.ProjectionPoint getUpperRightPoint()>();
+
+        $r46 = new ucar.unidata.geoloc.LatLonPointImpl;
+
+        specialinvoke $r46.<ucar.unidata.geoloc.LatLonPointImpl: void <init>()>();
+
+        $r13 = interfaceinvoke $r2.<ucar.unidata.geoloc.Projection: ucar.unidata.geoloc.LatLonPoint projToLatLon(ucar.unidata.geoloc.ProjectionPoint,ucar.unidata.geoloc.LatLonPointImpl)>($r11, $r46);
+
+        r37 = (ucar.unidata.geoloc.LatLonPointImpl) $r13;
+
+        $r14 = virtualinvoke $r3.<ucar.unidata.geoloc.ProjectionRect: ucar.unidata.geoloc.ProjectionPoint getUpperLeftPoint()>();
+
+        $r47 = new ucar.unidata.geoloc.LatLonPointImpl;
+
+        specialinvoke $r47.<ucar.unidata.geoloc.LatLonPointImpl: void <init>()>();
+
+        $r16 = interfaceinvoke $r2.<ucar.unidata.geoloc.Projection: ucar.unidata.geoloc.LatLonPoint projToLatLon(ucar.unidata.geoloc.ProjectionPoint,ucar.unidata.geoloc.LatLonPointImpl)>($r14, $r47);
+
+        r17 = (ucar.unidata.geoloc.LatLonPointImpl) $r16;
+
+        z1 = 0;
+
+        z4 = 0;
+
+        z3 = 0;
+
+        r38 = newarray (int)[2];
+
+        $r18 = virtualinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: int[] findXYindexFromLatLon(double,double,int[])>(90.0, 0.0, null);
+
+        $i0 = $r18[0];
+
+        $i5 = (int) -1;
+
+        if $i0 == $i5 goto label2;
+
+        $i2 = $r18[1];
+
+        $i7 = (int) -1;
+
+        if $i2 == $i7 goto label2;
+
+        z1 = 1;
+
+        z4 = 1;
+
+        z3 = 1;
+
+     label2:
+        z2 = 0;
+
+        z6 = 0;
+
+        z5 = 0;
+
+        $r39 = newarray (int)[2];
+
+        $r40 = virtualinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: int[] findXYindexFromLatLon(double,double,int[])>(-90.0, 0.0, null);
+
+        $i3 = $r40[0];
+
+        $i9 = (int) -1;
+
+        if $i3 == $i9 goto label3;
+
+        $i1 = $r40[1];
+
+        $i11 = (int) -1;
+
+        if $i1 == $i11 goto label3;
+
+        z2 = 1;
+
+        z6 = 1;
+
+        z5 = 1;
+
+     label3:
+        if z4 == 0 goto label4;
+
+        if z5 != 0 goto label4;
+
+        $r49 = new ucar.unidata.geoloc.LatLonRect;
+
+        $r48 = new ucar.unidata.geoloc.LatLonPointImpl;
+
+        specialinvoke $r48.<ucar.unidata.geoloc.LatLonPointImpl: void <init>(double,double)>(90.0, 0.0);
+
+        specialinvoke $r49.<ucar.unidata.geoloc.LatLonRect: void <init>(ucar.unidata.geoloc.LatLonPoint,ucar.unidata.geoloc.LatLonPoint)>(r36, $r48);
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.LatLonRect llbb> = $r49;
+
+        $r27 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.LatLonRect llbb>;
+
+        virtualinvoke $r27.<ucar.unidata.geoloc.LatLonRect: void extend(ucar.unidata.geoloc.LatLonPoint)>(r10);
+
+        $r28 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.LatLonRect llbb>;
+
+        virtualinvoke $r28.<ucar.unidata.geoloc.LatLonRect: void extend(ucar.unidata.geoloc.LatLonPoint)>(r37);
+
+        $r29 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.LatLonRect llbb>;
+
+        virtualinvoke $r29.<ucar.unidata.geoloc.LatLonRect: void extend(ucar.unidata.geoloc.LatLonPoint)>(r17);
+
+        goto label6;
+
+     label4:
+        if z6 == 0 goto label5;
+
+        if z3 != 0 goto label5;
+
+        $r51 = new ucar.unidata.geoloc.LatLonRect;
+
+        $r50 = new ucar.unidata.geoloc.LatLonPointImpl;
+
+        specialinvoke $r50.<ucar.unidata.geoloc.LatLonPointImpl: void <init>(double,double)>(-90.0, -180.0);
+
+        specialinvoke $r51.<ucar.unidata.geoloc.LatLonRect: void <init>(ucar.unidata.geoloc.LatLonPoint,ucar.unidata.geoloc.LatLonPoint)>(r36, $r50);
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.LatLonRect llbb> = $r51;
+
+        $r22 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.LatLonRect llbb>;
+
+        virtualinvoke $r22.<ucar.unidata.geoloc.LatLonRect: void extend(ucar.unidata.geoloc.LatLonPoint)>(r10);
+
+        $r23 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.LatLonRect llbb>;
+
+        virtualinvoke $r23.<ucar.unidata.geoloc.LatLonRect: void extend(ucar.unidata.geoloc.LatLonPoint)>(r37);
+
+        $r24 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.LatLonRect llbb>;
+
+        virtualinvoke $r24.<ucar.unidata.geoloc.LatLonRect: void extend(ucar.unidata.geoloc.LatLonPoint)>(r17);
+
+        goto label6;
+
+     label5:
+        $d0 = virtualinvoke r36.<ucar.unidata.geoloc.LatLonPointImpl: double getLatitude()>();
+
+        $d1 = virtualinvoke r10.<ucar.unidata.geoloc.LatLonPointImpl: double getLatitude()>();
+
+        $d2 = staticinvoke <java.lang.Math: double min(double,double)>($d0, $d1);
+
+        $d3 = virtualinvoke r17.<ucar.unidata.geoloc.LatLonPointImpl: double getLatitude()>();
+
+        $d4 = virtualinvoke r37.<ucar.unidata.geoloc.LatLonPointImpl: double getLatitude()>();
+
+        $d5 = staticinvoke <java.lang.Math: double max(double,double)>($d3, $d4);
+
+        $d6 = virtualinvoke r36.<ucar.unidata.geoloc.LatLonPointImpl: double getLongitude()>();
+
+        $d7 = virtualinvoke r17.<ucar.unidata.geoloc.LatLonPointImpl: double getLongitude()>();
+
+        $d8 = specialinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: double getMinOrMaxLon(double,double,boolean)>($d6, $d7, 1);
+
+        $d9 = virtualinvoke r10.<ucar.unidata.geoloc.LatLonPointImpl: double getLongitude()>();
+
+        $d10 = virtualinvoke r37.<ucar.unidata.geoloc.LatLonPointImpl: double getLongitude()>();
+
+        $d11 = specialinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: double getMinOrMaxLon(double,double,boolean)>($d9, $d10, 0);
+
+        virtualinvoke r36.<ucar.unidata.geoloc.LatLonPointImpl: void set(double,double)>($d2, $d8);
+
+        virtualinvoke r37.<ucar.unidata.geoloc.LatLonPointImpl: void set(double,double)>($d5, $d11);
+
+        $r52 = new ucar.unidata.geoloc.LatLonRect;
+
+        specialinvoke $r52.<ucar.unidata.geoloc.LatLonRect: void <init>(ucar.unidata.geoloc.LatLonPoint,ucar.unidata.geoloc.LatLonPoint)>(r36, r37);
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.LatLonRect llbb> = $r52;
+
+     label6:
+        $r41 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.LatLonRect llbb>;
+
+        return $r41;
+    }
+
+    private double getMinOrMaxLon(double, double, boolean)
+    {
+        ucar.nc2.dt.grid.GridCoordSys r0;
+        double $d0, d1, $d2, $d3, d4, d5, $d6;
+        boolean z0;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        d4 := @parameter0: double;
+
+        d5 := @parameter1: double;
+
+        z0 := @parameter2: boolean;
+
+        $d0 = d4 + d5;
+
+        d1 = $d0 / 2.0;
+
+        $d2 = staticinvoke <ucar.unidata.geoloc.LatLonPointImpl: double lonNormal(double,double)>(d4, d1);
+
+        $d3 = staticinvoke <ucar.unidata.geoloc.LatLonPointImpl: double lonNormal(double,double)>(d5, d1);
+
+        if z0 == 0 goto label1;
+
+        $d6 = staticinvoke <java.lang.Math: double min(double,double)>($d2, $d3);
+
+        goto label2;
+
+     label1:
+        $d6 = staticinvoke <java.lang.Math: double max(double,double)>($d2, $d3);
+
+     label2:
+        return $d6;
+    }
+
+    public java.util.List getLatLonBoundingBox(ucar.unidata.geoloc.LatLonRect) throws ucar.ma2.InvalidRangeException
+    {
+        ucar.unidata.geoloc.LatLonRect r1;
+        java.util.List $r2;
+        ucar.nc2.dt.grid.GridCoordSys r0;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        r1 := @parameter0: ucar.unidata.geoloc.LatLonRect;
+
+        $r2 = virtualinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.List getRangesFromLatLonRect(ucar.unidata.geoloc.LatLonRect)>(r1);
+
+        return $r2;
+    }
+
+    public java.util.List getRangesFromLatLonRect(ucar.unidata.geoloc.LatLonRect) throws ucar.ma2.InvalidRangeException
+    {
+        ucar.nc2.dataset.CoordinateAxis $r20, $r21;
+        byte $b0, $b1, $b2, $b3;
+        ucar.nc2.dt.grid.GridCoordSys r0;
+        java.util.ArrayList $r31, $r34;
+        ucar.unidata.geoloc.LatLonRect $r16, $r17, r19;
+        ucar.ma2.InvalidRangeException $r30;
+        ucar.unidata.geoloc.LatLonPointImpl $r12, $r13, $r14, $r15;
+        ucar.unidata.geoloc.ProjectionImpl $r1, $r2;
+        int[] $r8;
+        ucar.nc2.dataset.CoordinateAxis1D r22, r23;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7;
+        ucar.ma2.Range $r32, $r33, $r35, $r36;
+        ucar.nc2.dataset.CoordinateAxis2D r24, r25;
+        ucar.unidata.geoloc.ProjectionRect $r3;
+        int $i4, $i5, $i6, $i7, $i8, $i9, $i10, $i11, i12, i13, i14, i15, i16, i17, i18, i19, $i21, $i23, $i24, $i25, $i26, $i27, $i29, $i31;
+        ucar.unidata.geoloc.ProjectionPoint $r4, $r5, $r6, $r7;
+        double $d0, $d1, $d2, $d3, $d4, $d5, $d6, $d7, $d8, $d9, $d10, $d11, $d12, d13, d14, d15, d16;
+        java.lang.IllegalArgumentException $r37;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        r19 := @parameter0: ucar.unidata.geoloc.LatLonRect;
+
+        $r1 = virtualinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.ProjectionImpl getProjection()>();
+
+        if $r1 == null goto label01;
+
+        $z5 = $r1 instanceof ucar.unidata.geoloc.projection.VerticalPerspectiveView;
+
+        if $z5 != 0 goto label01;
+
+        $z6 = $r1 instanceof ucar.unidata.geoloc.projection.sat.MSGnavigation;
+
+        if $z6 != 0 goto label01;
+
+        $r16 = virtualinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.LatLonRect getLatLonBoundingBox()>();
+
+        $r17 = virtualinvoke $r16.<ucar.unidata.geoloc.LatLonRect: ucar.unidata.geoloc.LatLonRect intersect(ucar.unidata.geoloc.LatLonRect)>(r19);
+
+        r19 = $r17;
+
+        if null != $r17 goto label01;
+
+        $r30 = new ucar.ma2.InvalidRangeException;
+
+        specialinvoke $r30.<ucar.ma2.InvalidRangeException: void <init>(java.lang.String)>("Request Bounding box does not intersect Grid");
+
+        throw $r30;
+
+     label01:
+        $r20 = virtualinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis getXHorizAxis()>();
+
+        $r21 = virtualinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis getYHorizAxis()>();
+
+        $z7 = virtualinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: boolean isLatLon()>();
+
+        if $z7 == 0 goto label02;
+
+        $r12 = virtualinvoke r19.<ucar.unidata.geoloc.LatLonRect: ucar.unidata.geoloc.LatLonPointImpl getLowerLeftPoint()>();
+
+        $r13 = virtualinvoke r19.<ucar.unidata.geoloc.LatLonRect: ucar.unidata.geoloc.LatLonPointImpl getUpperRightPoint()>();
+
+        $r14 = virtualinvoke r19.<ucar.unidata.geoloc.LatLonRect: ucar.unidata.geoloc.LatLonPointImpl getLowerRightPoint()>();
+
+        $r15 = virtualinvoke r19.<ucar.unidata.geoloc.LatLonRect: ucar.unidata.geoloc.LatLonPointImpl getUpperLeftPoint()>();
+
+        $d2 = virtualinvoke $r12.<ucar.unidata.geoloc.LatLonPointImpl: double getLongitude()>();
+
+        $d3 = virtualinvoke $r15.<ucar.unidata.geoloc.LatLonPointImpl: double getLongitude()>();
+
+        $d4 = specialinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: double getMinOrMaxLon(double,double,boolean)>($d2, $d3, 1);
+
+        $d5 = virtualinvoke $r12.<ucar.unidata.geoloc.LatLonPointImpl: double getLatitude()>();
+
+        $d6 = virtualinvoke $r14.<ucar.unidata.geoloc.LatLonPointImpl: double getLatitude()>();
+
+        d13 = staticinvoke <java.lang.Math: double min(double,double)>($d5, $d6);
+
+        $d7 = virtualinvoke $r13.<ucar.unidata.geoloc.LatLonPointImpl: double getLongitude()>();
+
+        $d8 = virtualinvoke $r14.<ucar.unidata.geoloc.LatLonPointImpl: double getLongitude()>();
+
+        $d9 = specialinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: double getMinOrMaxLon(double,double,boolean)>($d7, $d8, 0);
+
+        $d10 = virtualinvoke $r15.<ucar.unidata.geoloc.LatLonPointImpl: double getLatitude()>();
+
+        $d11 = virtualinvoke $r13.<ucar.unidata.geoloc.LatLonPointImpl: double getLatitude()>();
+
+        d14 = staticinvoke <java.lang.Math: double min(double,double)>($d10, $d11);
+
+        $d12 = virtualinvoke $r20.<ucar.nc2.dataset.CoordinateAxis: double getMinValue()>();
+
+        d15 = staticinvoke <ucar.unidata.geoloc.LatLonPointImpl: double lonNormalFrom(double,double)>($d4, $d12);
+
+        d16 = staticinvoke <ucar.unidata.geoloc.LatLonPointImpl: double lonNormalFrom(double,double)>($d9, $d12);
+
+        goto label03;
+
+     label02:
+        $r2 = virtualinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.ProjectionImpl getProjection()>();
+
+        $r3 = virtualinvoke $r2.<ucar.unidata.geoloc.ProjectionImpl: ucar.unidata.geoloc.ProjectionRect latLonToProjBB(ucar.unidata.geoloc.LatLonRect)>(r19);
+
+        $r4 = virtualinvoke $r3.<ucar.unidata.geoloc.ProjectionRect: ucar.unidata.geoloc.ProjectionPoint getMinPoint()>();
+
+        d15 = interfaceinvoke $r4.<ucar.unidata.geoloc.ProjectionPoint: double getX()>();
+
+        $r5 = virtualinvoke $r3.<ucar.unidata.geoloc.ProjectionRect: ucar.unidata.geoloc.ProjectionPoint getMinPoint()>();
+
+        d13 = interfaceinvoke $r5.<ucar.unidata.geoloc.ProjectionPoint: double getY()>();
+
+        $r6 = virtualinvoke $r3.<ucar.unidata.geoloc.ProjectionRect: ucar.unidata.geoloc.ProjectionPoint getMaxPoint()>();
+
+        d16 = interfaceinvoke $r6.<ucar.unidata.geoloc.ProjectionPoint: double getX()>();
+
+        $r7 = virtualinvoke $r3.<ucar.unidata.geoloc.ProjectionRect: ucar.unidata.geoloc.ProjectionPoint getMaxPoint()>();
+
+        d14 = interfaceinvoke $r7.<ucar.unidata.geoloc.ProjectionPoint: double getY()>();
+
+     label03:
+        $z0 = $r20 instanceof ucar.nc2.dataset.CoordinateAxis1D;
+
+        if $z0 == 0 goto label04;
+
+        $z4 = $r21 instanceof ucar.nc2.dataset.CoordinateAxis1D;
+
+        if $z4 == 0 goto label04;
+
+        r22 = (ucar.nc2.dataset.CoordinateAxis1D) $r20;
+
+        r23 = (ucar.nc2.dataset.CoordinateAxis1D) $r21;
+
+        $i4 = virtualinvoke r22.<ucar.nc2.dataset.CoordinateAxis1D: int findCoordElementBounded(double)>(d15);
+
+        $i5 = virtualinvoke r23.<ucar.nc2.dataset.CoordinateAxis1D: int findCoordElementBounded(double)>(d13);
+
+        $i6 = virtualinvoke r22.<ucar.nc2.dataset.CoordinateAxis1D: int findCoordElementBounded(double)>(d16);
+
+        $i7 = virtualinvoke r23.<ucar.nc2.dataset.CoordinateAxis1D: int findCoordElementBounded(double)>(d14);
+
+        $r31 = new java.util.ArrayList;
+
+        specialinvoke $r31.<java.util.ArrayList: void <init>()>();
+
+        $r32 = new ucar.ma2.Range;
+
+        $i8 = staticinvoke <java.lang.Math: int min(int,int)>($i5, $i7);
+
+        $i9 = staticinvoke <java.lang.Math: int max(int,int)>($i5, $i7);
+
+        specialinvoke $r32.<ucar.ma2.Range: void <init>(int,int)>($i8, $i9);
+
+        interfaceinvoke $r31.<java.util.List: boolean add(java.lang.Object)>($r32);
+
+        $r33 = new ucar.ma2.Range;
+
+        $i10 = staticinvoke <java.lang.Math: int min(int,int)>($i4, $i6);
+
+        $i11 = staticinvoke <java.lang.Math: int max(int,int)>($i4, $i6);
+
+        specialinvoke $r33.<ucar.ma2.Range: void <init>(int,int)>($i10, $i11);
+
+        interfaceinvoke $r31.<java.util.List: boolean add(java.lang.Object)>($r33);
+
+        return $r31;
+
+     label04:
+        $z1 = $r20 instanceof ucar.nc2.dataset.CoordinateAxis2D;
+
+        if $z1 == 0 goto label15;
+
+        $z2 = $r21 instanceof ucar.nc2.dataset.CoordinateAxis2D;
+
+        if $z2 == 0 goto label15;
+
+        $z3 = virtualinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: boolean isLatLon()>();
+
+        if $z3 == 0 goto label15;
+
+        r24 = (ucar.nc2.dataset.CoordinateAxis2D) $r20;
+
+        r25 = (ucar.nc2.dataset.CoordinateAxis2D) $r21;
+
+        $r8 = virtualinvoke r24.<ucar.nc2.dataset.CoordinateAxis2D: int[] getShape()>();
+
+        i12 = $r8[0];
+
+        i13 = $r8[1];
+
+        i14 = 2147483647;
+
+        i15 = 2147483647;
+
+        $i21 = (int) -1;
+
+        i16 = $i21;
+
+        $i23 = (int) -1;
+
+        i17 = $i23;
+
+        i18 = 0;
+
+     label05:
+        if i18 >= i12 goto label12;
+
+        i19 = 0;
+
+     label06:
+        if i19 >= i13 goto label11;
+
+        $d0 = virtualinvoke r25.<ucar.nc2.dataset.CoordinateAxis2D: double getCoordValue(int,int)>(i18, i19);
+
+        $d1 = virtualinvoke r24.<ucar.nc2.dataset.CoordinateAxis2D: double getCoordValue(int,int)>(i18, i19);
+
+        $b0 = $d0 cmpl d13;
+
+        $i24 = (int) $b0;
+
+        if $i24 < 0 goto label10;
+
+        $b1 = $d0 cmpg d14;
+
+        $i25 = (int) $b1;
+
+        if $i25 > 0 goto label10;
+
+        $b2 = $d1 cmpl d15;
+
+        $i26 = (int) $b2;
+
+        if $i26 < 0 goto label10;
+
+        $b3 = $d1 cmpg d16;
+
+        $i27 = (int) $b3;
+
+        if $i27 > 0 goto label10;
+
+        if i19 <= i16 goto label07;
+
+        i16 = i19;
+
+     label07:
+        if i19 >= i14 goto label08;
+
+        i14 = i19;
+
+     label08:
+        if i18 <= i17 goto label09;
+
+        i17 = i18;
+
+     label09:
+        if i18 >= i15 goto label10;
+
+        i15 = i18;
+
+     label10:
+        i19 = i19 + 1;
+
+        goto label06;
+
+     label11:
+        i18 = i18 + 1;
+
+        goto label05;
+
+     label12:
+        if i14 > i16 goto label13;
+
+        if i15 <= i17 goto label14;
+
+     label13:
+        i14 = 0;
+
+        i15 = 0;
+
+        $i29 = (int) -1;
+
+        i16 = $i29;
+
+        $i31 = (int) -1;
+
+        i17 = $i31;
+
+     label14:
+        $r34 = new java.util.ArrayList;
+
+        specialinvoke $r34.<java.util.ArrayList: void <init>()>();
+
+        $r35 = new ucar.ma2.Range;
+
+        specialinvoke $r35.<ucar.ma2.Range: void <init>(int,int)>(i15, i17);
+
+        virtualinvoke $r34.<java.util.ArrayList: boolean add(java.lang.Object)>($r35);
+
+        $r36 = new ucar.ma2.Range;
+
+        specialinvoke $r36.<ucar.ma2.Range: void <init>(int,int)>(i14, i16);
+
+        virtualinvoke $r34.<java.util.ArrayList: boolean add(java.lang.Object)>($r36);
+
+        return $r34;
+
+     label15:
+        $r37 = new java.lang.IllegalArgumentException;
+
+        specialinvoke $r37.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>("must be 1D or 2D/LatLon ");
+
+        throw $r37;
+    }
+
+    public java.lang.String toString()
+    {
+        ucar.unidata.geoloc.ProjectionImpl $r10, $r13, $r15;
+        java.util.Formatter $r0;
+        ucar.nc2.dataset.CoordinateAxis $r8, $r9, $r18, $r21;
+        ucar.nc2.dataset.CoordinateAxis1D $r5, $r7, $r24, $r30;
+        ucar.nc2.dataset.CoordinateAxis1DTime $r4, $r6, $r27, $r33;
+        java.lang.Object[] $r1, $r12, $r17, $r20, $r23, $r26, $r29, $r32;
+        ucar.nc2.dt.grid.GridCoordSys r2;
+        java.lang.String $r3, $r11, $r14, $r16, $r19, $r22, $r25, $r28, $r31, $r34;
+
+        r2 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        $r0 = new java.util.Formatter;
+
+        specialinvoke $r0.<java.util.Formatter: void <init>()>();
+
+        $r1 = newarray (java.lang.Object)[1];
+
+        $r3 = virtualinvoke r2.<ucar.nc2.dt.grid.GridCoordSys: java.lang.String getName()>();
+
+        $r1[0] = $r3;
+
+        virtualinvoke $r0.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("(%s) ", $r1);
+
+        $r4 = r2.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime runTimeAxis>;
+
+        if $r4 == null goto label1;
+
+        $r32 = newarray (java.lang.Object)[1];
+
+        $r33 = r2.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime runTimeAxis>;
+
+        $r34 = virtualinvoke $r33.<ucar.nc2.dataset.CoordinateAxis1DTime: java.lang.String getName()>();
+
+        $r32[0] = $r34;
+
+        virtualinvoke $r0.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("rt=%s,", $r32);
+
+     label1:
+        $r5 = r2.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1D ensembleAxis>;
+
+        if $r5 == null goto label2;
+
+        $r29 = newarray (java.lang.Object)[1];
+
+        $r30 = r2.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1D ensembleAxis>;
+
+        $r31 = virtualinvoke $r30.<ucar.nc2.dataset.CoordinateAxis1D: java.lang.String getName()>();
+
+        $r29[0] = $r31;
+
+        virtualinvoke $r0.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("ens=%s,", $r29);
+
+     label2:
+        $r6 = r2.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime timeTaxis>;
+
+        if $r6 == null goto label3;
+
+        $r26 = newarray (java.lang.Object)[1];
+
+        $r27 = r2.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime timeTaxis>;
+
+        $r28 = virtualinvoke $r27.<ucar.nc2.dataset.CoordinateAxis1DTime: java.lang.String getName()>();
+
+        $r26[0] = $r28;
+
+        virtualinvoke $r0.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("t=%s,", $r26);
+
+     label3:
+        $r7 = r2.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1D vertZaxis>;
+
+        if $r7 == null goto label4;
+
+        $r23 = newarray (java.lang.Object)[1];
+
+        $r24 = r2.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1D vertZaxis>;
+
+        $r25 = virtualinvoke $r24.<ucar.nc2.dataset.CoordinateAxis1D: java.lang.String getName()>();
+
+        $r23[0] = $r25;
+
+        virtualinvoke $r0.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("z=%s,", $r23);
+
+     label4:
+        $r8 = r2.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizYaxis>;
+
+        if $r8 == null goto label5;
+
+        $r20 = newarray (java.lang.Object)[1];
+
+        $r21 = r2.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizYaxis>;
+
+        $r22 = virtualinvoke $r21.<ucar.nc2.dataset.CoordinateAxis: java.lang.String getName()>();
+
+        $r20[0] = $r22;
+
+        virtualinvoke $r0.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("y=%s,", $r20);
+
+     label5:
+        $r9 = r2.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizXaxis>;
+
+        if $r9 == null goto label6;
+
+        $r17 = newarray (java.lang.Object)[1];
+
+        $r18 = r2.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis horizXaxis>;
+
+        $r19 = virtualinvoke $r18.<ucar.nc2.dataset.CoordinateAxis: java.lang.String getName()>();
+
+        $r17[0] = $r19;
+
+        virtualinvoke $r0.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("x=%s,", $r17);
+
+     label6:
+        $r10 = r2.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.ProjectionImpl proj>;
+
+        if $r10 == null goto label7;
+
+        $r12 = newarray (java.lang.Object)[2];
+
+        $r13 = r2.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.ProjectionImpl proj>;
+
+        $r14 = virtualinvoke $r13.<ucar.unidata.geoloc.ProjectionImpl: java.lang.String getName()>();
+
+        $r12[0] = $r14;
+
+        $r15 = r2.<ucar.nc2.dt.grid.GridCoordSys: ucar.unidata.geoloc.ProjectionImpl proj>;
+
+        $r16 = virtualinvoke $r15.<ucar.unidata.geoloc.ProjectionImpl: java.lang.String getClassName()>();
+
+        $r12[1] = $r16;
+
+        virtualinvoke $r0.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("  Projection: %s %s", $r12);
+
+     label7:
+        $r11 = virtualinvoke $r0.<java.util.Formatter: java.lang.String toString()>();
+
+        return $r11;
+    }
+
+    private void makeTimes()
+    {
+        ucar.nc2.dataset.CoordinateAxis1DTime $r1, $r4, $r5;
+        ucar.nc2.dt.grid.GridCoordSys r0;
+        long $l0, $l2;
+        ucar.nc2.dataset.CoordinateAxis $r2, $r3;
+        byte $b1, $b3;
+        int $i4, $i5;
+        java.util.Date[] $r6, $r7;
+        boolean $z0;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        $r1 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime timeTaxis>;
+
+        if $r1 == null goto label1;
+
+        $r4 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime timeTaxis>;
+
+        $l2 = virtualinvoke $r4.<ucar.nc2.dataset.CoordinateAxis1DTime: long getSize()>();
+
+        $b3 = $l2 cmp 0L;
+
+        $i4 = (int) $b3;
+
+        if $i4 <= 0 goto label1;
+
+        $r5 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime timeTaxis>;
+
+        $r6 = virtualinvoke $r5.<ucar.nc2.dataset.CoordinateAxis1DTime: java.util.Date[] getTimeDates()>();
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.Date[] timeDates> = $r6;
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: boolean isDate> = 1;
+
+        return;
+
+     label1:
+        $r2 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis tAxis>;
+
+        if $r2 == null goto label2;
+
+        $r3 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis tAxis>;
+
+        $l0 = virtualinvoke $r3.<ucar.nc2.dataset.CoordinateAxis: long getSize()>();
+
+        $b1 = $l0 cmp 0L;
+
+        $i5 = (int) $b1;
+
+        if $i5 <= 0 goto label2;
+
+        $z0 = specialinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: boolean makeTimes2D()>();
+
+        if $z0 == 0 goto label2;
+
+        return;
+
+     label2:
+        $r7 = newarray (java.util.Date)[0];
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.Date[] timeDates> = $r7;
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: boolean isDate> = 0;
+
+        return;
+    }
+
+    private boolean makeTimes1D()
+    {
+        ucar.nc2.dt.grid.GridCoordSys r0;
+        java.util.Date $r6, $r16;
+        long $l0;
+        int i1, i2, i3;
+        java.lang.String $r4, $r15;
+        double $d0;
+        ucar.nc2.dataset.CoordinateAxis1DTime $r1, $r3, $r5, $r10, $r14, $r18;
+        ucar.nc2.units.DateUnit $r8, r21;
+        ucar.ma2.DataType $r11, $r12, $r19, $r20;
+        java.lang.Exception $r9;
+        java.util.Date[] $r2, $r7, $r17;
+        ucar.nc2.units.DateFormatter $r13;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        $r1 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime timeTaxis>;
+
+        $l0 = virtualinvoke $r1.<ucar.nc2.dataset.CoordinateAxis1DTime: long getSize()>();
+
+        i1 = (int) $l0;
+
+        $r2 = newarray (java.util.Date)[i1];
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.Date[] timeDates> = $r2;
+
+     label01:
+        r21 = null;
+
+        $r3 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime timeTaxis>;
+
+        $r4 = virtualinvoke $r3.<ucar.nc2.dataset.CoordinateAxis1DTime: java.lang.String getUnitsString()>();
+
+        if $r4 == null goto label02;
+
+        $r8 = new ucar.nc2.units.DateUnit;
+
+        specialinvoke $r8.<ucar.nc2.units.DateUnit: void <init>(java.lang.String)>($r4);
+
+        r21 = $r8;
+
+     label02:
+        i2 = 0;
+
+     label03:
+        if i2 >= i1 goto label04;
+
+        $r5 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime timeTaxis>;
+
+        $d0 = virtualinvoke $r5.<ucar.nc2.dataset.CoordinateAxis1DTime: double getCoordValue(int)>(i2);
+
+        $r6 = virtualinvoke r21.<ucar.nc2.units.DateUnit: java.util.Date makeDate(double)>($d0);
+
+        $r7 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.Date[] timeDates>;
+
+        $r7[i2] = $r6;
+
+        i2 = i2 + 1;
+
+        goto label03;
+
+     label04:
+        r0.<ucar.nc2.dt.grid.GridCoordSys: boolean isDate> = 1;
+
+     label05:
+        return 1;
+
+     label06:
+        $r9 := @caughtexception;
+
+        $r10 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime timeTaxis>;
+
+        $r11 = virtualinvoke $r10.<ucar.nc2.dataset.CoordinateAxis1DTime: ucar.ma2.DataType getDataType()>();
+
+        $r12 = <ucar.ma2.DataType: ucar.ma2.DataType STRING>;
+
+        if $r11 == $r12 goto label07;
+
+        $r18 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime timeTaxis>;
+
+        $r19 = virtualinvoke $r18.<ucar.nc2.dataset.CoordinateAxis1DTime: ucar.ma2.DataType getDataType()>();
+
+        $r20 = <ucar.ma2.DataType: ucar.ma2.DataType CHAR>;
+
+        if $r19 != $r20 goto label11;
+
+     label07:
+        $r13 = new ucar.nc2.units.DateFormatter;
+
+        specialinvoke $r13.<ucar.nc2.units.DateFormatter: void <init>()>();
+
+        i3 = 0;
+
+     label08:
+        if i3 >= i1 goto label10;
+
+        $r14 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime timeTaxis>;
+
+        $r15 = virtualinvoke $r14.<ucar.nc2.dataset.CoordinateAxis1DTime: java.lang.String getCoordName(int)>(i3);
+
+        $r16 = virtualinvoke $r13.<ucar.nc2.units.DateFormatter: java.util.Date getISODate(java.lang.String)>($r15);
+
+        if $r16 != null goto label09;
+
+        r0.<ucar.nc2.dt.grid.GridCoordSys: boolean isDate> = 0;
+
+        return 0;
+
+     label09:
+        $r17 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.Date[] timeDates>;
+
+        $r17[i3] = $r16;
+
+        i3 = i3 + 1;
+
+        goto label08;
+
+     label10:
+        r0.<ucar.nc2.dt.grid.GridCoordSys: boolean isDate> = 1;
+
+        return 1;
+
+     label11:
+        return 0;
+
+        catch java.lang.Exception from label01 to label05 with label06;
+    }
+
+    private boolean makeTimes2D()
+    {
+        java.util.Date r17, $r20, $r26, $r32;
+        ucar.nc2.dataset.CoordinateAxis $r2, $r4, $r8, $r22, $r27, $r30, $r35;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5;
+        ucar.ma2.DataType $r5, $r6, $r28, $r36, $r37;
+        java.lang.Exception $r33;
+        java.util.List $r13;
+        java.util.Date[] $r11, $r14, $r18, r39;
+        ucar.nc2.units.DateFormatter $r7, $r21;
+        java.lang.Object[] $r12;
+        ucar.nc2.dt.grid.GridCoordSys r1;
+        java.util.HashSet $r0;
+        ucar.ma2.ArrayChar r38;
+        int $i0, $i1, i2;
+        java.lang.String $r3, $r19, $r25;
+        ucar.ma2.ArrayChar$StringIterator $r10;
+        double $d0;
+        java.util.Iterator $r15;
+        ucar.nc2.units.DateUnit $r29;
+        java.lang.RuntimeException $r34;
+        ucar.ma2.Array $r9, $r23, $r31;
+        java.lang.Object $r16, $r24;
+
+        r1 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        $r0 = new java.util.HashSet;
+
+        specialinvoke $r0.<java.util.HashSet: void <init>()>();
+
+     label01:
+        $r2 = r1.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis tAxis>;
+
+        $r3 = virtualinvoke $r2.<ucar.nc2.dataset.CoordinateAxis: java.lang.String getUnitsString()>();
+
+        if $r3 == null goto label04;
+
+        $z3 = staticinvoke <ucar.nc2.units.SimpleUnit: boolean isDateUnit(java.lang.String)>($r3);
+
+        if $z3 == 0 goto label04;
+
+        $r27 = r1.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis tAxis>;
+
+        $r28 = virtualinvoke $r27.<ucar.nc2.dataset.CoordinateAxis: ucar.ma2.DataType getDataType()>();
+
+        $z4 = virtualinvoke $r28.<ucar.ma2.DataType: boolean isNumeric()>();
+
+        if $z4 == 0 goto label04;
+
+        $r29 = new ucar.nc2.units.DateUnit;
+
+        specialinvoke $r29.<ucar.nc2.units.DateUnit: void <init>(java.lang.String)>($r3);
+
+        $r30 = r1.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis tAxis>;
+
+        $r31 = virtualinvoke $r30.<ucar.nc2.dataset.CoordinateAxis: ucar.ma2.Array read()>();
+
+        virtualinvoke $r31.<ucar.ma2.Array: void resetLocalIterator()>();
+
+     label02:
+        $z5 = virtualinvoke $r31.<ucar.ma2.Array: boolean hasNext()>();
+
+        if $z5 == 0 goto label03;
+
+        $d0 = virtualinvoke $r31.<ucar.ma2.Array: double nextDouble()>();
+
+        $r32 = virtualinvoke $r29.<ucar.nc2.units.DateUnit: java.util.Date makeDate(double)>($d0);
+
+        interfaceinvoke $r0.<java.util.Set: boolean add(java.lang.Object)>($r32);
+
+        goto label02;
+
+     label03:
+        r1.<ucar.nc2.dt.grid.GridCoordSys: boolean isDate> = 1;
+
+        goto label11;
+
+     label04:
+        $r35 = r1.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis tAxis>;
+
+        $r36 = virtualinvoke $r35.<ucar.nc2.dataset.CoordinateAxis: ucar.ma2.DataType getDataType()>();
+
+        $r37 = <ucar.ma2.DataType: ucar.ma2.DataType STRING>;
+
+        if $r36 != $r37 goto label07;
+
+        $r21 = new ucar.nc2.units.DateFormatter;
+
+        specialinvoke $r21.<ucar.nc2.units.DateFormatter: void <init>()>();
+
+        $r22 = r1.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis tAxis>;
+
+        $r23 = virtualinvoke $r22.<ucar.nc2.dataset.CoordinateAxis: ucar.ma2.Array read()>();
+
+        virtualinvoke $r23.<ucar.ma2.Array: void resetLocalIterator()>();
+
+     label05:
+        $z2 = virtualinvoke $r23.<ucar.ma2.Array: boolean hasNext()>();
+
+        if $z2 == 0 goto label06;
+
+        $r24 = virtualinvoke $r23.<ucar.ma2.Array: java.lang.Object next()>();
+
+        $r25 = (java.lang.String) $r24;
+
+        $r26 = virtualinvoke $r21.<ucar.nc2.units.DateFormatter: java.util.Date getISODate(java.lang.String)>($r25);
+
+        interfaceinvoke $r0.<java.util.Set: boolean add(java.lang.Object)>($r26);
+
+        goto label05;
+
+     label06:
+        r1.<ucar.nc2.dt.grid.GridCoordSys: boolean isDate> = 1;
+
+        goto label11;
+
+     label07:
+        $r4 = r1.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis tAxis>;
+
+        $r5 = virtualinvoke $r4.<ucar.nc2.dataset.CoordinateAxis: ucar.ma2.DataType getDataType()>();
+
+        $r6 = <ucar.ma2.DataType: ucar.ma2.DataType CHAR>;
+
+        if $r5 != $r6 goto label10;
+
+        $r7 = new ucar.nc2.units.DateFormatter;
+
+        specialinvoke $r7.<ucar.nc2.units.DateFormatter: void <init>()>();
+
+        $r8 = r1.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis tAxis>;
+
+        $r9 = virtualinvoke $r8.<ucar.nc2.dataset.CoordinateAxis: ucar.ma2.Array read()>();
+
+        r38 = (ucar.ma2.ArrayChar) $r9;
+
+        $r10 = virtualinvoke r38.<ucar.ma2.ArrayChar: ucar.ma2.ArrayChar$StringIterator getStringIterator()>();
+
+     label08:
+        $z0 = virtualinvoke $r10.<ucar.ma2.ArrayChar$StringIterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label09;
+
+        $r19 = virtualinvoke $r10.<ucar.ma2.ArrayChar$StringIterator: java.lang.String next()>();
+
+        $r20 = virtualinvoke $r7.<ucar.nc2.units.DateFormatter: java.util.Date getISODate(java.lang.String)>($r19);
+
+        interfaceinvoke $r0.<java.util.Set: boolean add(java.lang.Object)>($r20);
+
+        goto label08;
+
+     label09:
+        r1.<ucar.nc2.dt.grid.GridCoordSys: boolean isDate> = 1;
+
+        goto label11;
+
+     label10:
+        return 0;
+
+     label11:
+        goto label13;
+
+     label12:
+        $r33 := @caughtexception;
+
+        $r34 = new java.lang.RuntimeException;
+
+        specialinvoke $r34.<java.lang.RuntimeException: void <init>(java.lang.Throwable)>($r33);
+
+        throw $r34;
+
+     label13:
+        $i0 = interfaceinvoke $r0.<java.util.Set: int size()>();
+
+        $r11 = newarray (java.util.Date)[$i0];
+
+        $r12 = interfaceinvoke $r0.<java.util.Set: java.lang.Object[] toArray(java.lang.Object[])>($r11);
+
+        r39 = (java.util.Date[]) $r12;
+
+        $r13 = staticinvoke <java.util.Arrays: java.util.List asList(java.lang.Object[])>(r39);
+
+        staticinvoke <java.util.Collections: void sort(java.util.List)>($r13);
+
+        $r14 = newarray (java.util.Date)[$i0];
+
+        r1.<ucar.nc2.dt.grid.GridCoordSys: java.util.Date[] timeDates> = $r14;
+
+        i2 = 0;
+
+        $r15 = interfaceinvoke $r13.<java.util.List: java.util.Iterator iterator()>();
+
+     label14:
+        $z1 = interfaceinvoke $r15.<java.util.Iterator: boolean hasNext()>();
+
+        if $z1 == 0 goto label15;
+
+        $r16 = interfaceinvoke $r15.<java.util.Iterator: java.lang.Object next()>();
+
+        r17 = (java.util.Date) $r16;
+
+        $r18 = r1.<ucar.nc2.dt.grid.GridCoordSys: java.util.Date[] timeDates>;
+
+        $i1 = i2;
+
+        i2 = i2 + 1;
+
+        $r18[$i1] = r17;
+
+        goto label14;
+
+     label15:
+        return 1;
+
+        catch java.lang.Exception from label01 to label10 with label12;
+    }
+
+    public java.util.List getLevels()
+    {
+        ucar.nc2.dt.grid.GridCoordSys r0;
+        long $l0;
+        java.util.ArrayList $r3, $r9;
+        ucar.nc2.dataset.CoordinateAxis1D $r1, $r2, $r5, $r7;
+        int i1, i2;
+        java.lang.String $r6, $r8;
+        ucar.nc2.util.NamedAnything $r4;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        $r1 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1D vertZaxis>;
+
+        if $r1 != null goto label1;
+
+        $r9 = new java.util.ArrayList;
+
+        specialinvoke $r9.<java.util.ArrayList: void <init>(int)>(0);
+
+        return $r9;
+
+     label1:
+        $r2 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1D vertZaxis>;
+
+        $l0 = virtualinvoke $r2.<ucar.nc2.dataset.CoordinateAxis1D: long getSize()>();
+
+        i1 = (int) $l0;
+
+        $r3 = new java.util.ArrayList;
+
+        specialinvoke $r3.<java.util.ArrayList: void <init>(int)>(i1);
+
+        i2 = 0;
+
+     label2:
+        if i2 >= i1 goto label3;
+
+        $r4 = new ucar.nc2.util.NamedAnything;
+
+        $r5 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1D vertZaxis>;
+
+        $r6 = virtualinvoke $r5.<ucar.nc2.dataset.CoordinateAxis1D: java.lang.String getCoordName(int)>(i2);
+
+        $r7 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1D vertZaxis>;
+
+        $r8 = virtualinvoke $r7.<ucar.nc2.dataset.CoordinateAxis1D: java.lang.String getUnitsString()>();
+
+        specialinvoke $r4.<ucar.nc2.util.NamedAnything: void <init>(java.lang.String,java.lang.String)>($r6, $r8);
+
+        interfaceinvoke $r3.<java.util.List: boolean add(java.lang.Object)>($r4);
+
+        i2 = i2 + 1;
+
+        goto label2;
+
+     label3:
+        return $r3;
+    }
+
+    public java.lang.String getLevelName(int)
+    {
+        ucar.nc2.dt.grid.GridCoordSys r0;
+        long $l1, $l2;
+        byte $b3;
+        ucar.nc2.dataset.CoordinateAxis1D $r1, $r2, $r3;
+        int i0, $i4;
+        java.lang.String $r4, $r5, $r10;
+        java.lang.IllegalArgumentException $r12;
+        java.lang.StringBuilder $r8, $r9, $r11;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        i0 := @parameter0: int;
+
+        $r1 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1D vertZaxis>;
+
+        if $r1 == null goto label1;
+
+        if i0 < 0 goto label1;
+
+        $l1 = (long) i0;
+
+        $r2 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1D vertZaxis>;
+
+        $l2 = virtualinvoke $r2.<ucar.nc2.dataset.CoordinateAxis1D: long getSize()>();
+
+        $b3 = $l1 cmp $l2;
+
+        $i4 = (int) $b3;
+
+        if $i4 < 0 goto label2;
+
+     label1:
+        $r12 = new java.lang.IllegalArgumentException;
+
+        $r11 = new java.lang.StringBuilder;
+
+        specialinvoke $r11.<java.lang.StringBuilder: void <init>()>();
+
+        $r8 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("getLevelName = ");
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>(i0);
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r12.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>($r10);
+
+        throw $r12;
+
+     label2:
+        $r3 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1D vertZaxis>;
+
+        $r4 = virtualinvoke $r3.<ucar.nc2.dataset.CoordinateAxis1D: java.lang.String getCoordName(int)>(i0);
+
+        $r5 = virtualinvoke $r4.<java.lang.String: java.lang.String trim()>();
+
+        return $r5;
+    }
+
+    public int getLevelIndex(java.lang.String)
+    {
+        ucar.nc2.dt.grid.GridCoordSys r0;
+        long $l0, $l1;
+        byte $b2;
+        ucar.nc2.dataset.CoordinateAxis1D $r1, $r3, $r4;
+        int i3, $i5, $i6, $i8;
+        java.lang.String r2, $r5, $r6;
+        boolean $z0;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        r2 := @parameter0: java.lang.String;
+
+        $r1 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1D vertZaxis>;
+
+        if $r1 == null goto label1;
+
+        if r2 != null goto label2;
+
+     label1:
+        $i5 = (int) -1;
+
+        return $i5;
+
+     label2:
+        i3 = 0;
+
+     label3:
+        $l0 = (long) i3;
+
+        $r3 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1D vertZaxis>;
+
+        $l1 = virtualinvoke $r3.<ucar.nc2.dataset.CoordinateAxis1D: long getSize()>();
+
+        $b2 = $l0 cmp $l1;
+
+        $i6 = (int) $b2;
+
+        if $i6 >= 0 goto label5;
+
+        $r4 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1D vertZaxis>;
+
+        $r5 = virtualinvoke $r4.<ucar.nc2.dataset.CoordinateAxis1D: java.lang.String getCoordName(int)>(i3);
+
+        $r6 = virtualinvoke $r5.<java.lang.String: java.lang.String trim()>();
+
+        $z0 = virtualinvoke $r6.<java.lang.String: boolean equals(java.lang.Object)>(r2);
+
+        if $z0 == 0 goto label4;
+
+        return i3;
+
+     label4:
+        i3 = i3 + 1;
+
+        goto label3;
+
+     label5:
+        $i8 = (int) -1;
+
+        return $i8;
+    }
+
+    public java.util.List getTimes()
+    {
+        ucar.nc2.dt.grid.GridCoordSys r0;
+        java.util.Date r6;
+        java.util.ArrayList $r3;
+        int $i0, i1, i2;
+        java.util.Date[] $r1, $r4, r5;
+        java.lang.String $r8;
+        ucar.nc2.util.NamedAnything $r7;
+        boolean $z0;
+        ucar.nc2.units.DateFormatter $r2;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        $r1 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.Date[] timeDates>;
+
+        if $r1 != null goto label1;
+
+        specialinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: void makeTimes()>();
+
+     label1:
+        $z0 = r0.<ucar.nc2.dt.grid.GridCoordSys: boolean isDate>;
+
+        if $z0 != 0 goto label2;
+
+        return null;
+
+     label2:
+        $r2 = new ucar.nc2.units.DateFormatter;
+
+        specialinvoke $r2.<ucar.nc2.units.DateFormatter: void <init>()>();
+
+        $r3 = new java.util.ArrayList;
+
+        $r4 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.Date[] timeDates>;
+
+        $i0 = lengthof $r4;
+
+        specialinvoke $r3.<java.util.ArrayList: void <init>(int)>($i0);
+
+        r5 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.Date[] timeDates>;
+
+        i1 = lengthof r5;
+
+        i2 = 0;
+
+     label3:
+        if i2 >= i1 goto label4;
+
+        r6 = r5[i2];
+
+        $r7 = new ucar.nc2.util.NamedAnything;
+
+        $r8 = virtualinvoke $r2.<ucar.nc2.units.DateFormatter: java.lang.String toDateTimeStringISO(java.util.Date)>(r6);
+
+        specialinvoke $r7.<ucar.nc2.util.NamedAnything: void <init>(java.lang.String,java.lang.String)>($r8, "date/time");
+
+        interfaceinvoke $r3.<java.util.List: boolean add(java.lang.Object)>($r7);
+
+        i2 = i2 + 1;
+
+        goto label3;
+
+     label4:
+        return $r3;
+    }
+
+    public java.lang.String getTimeName(int)
+    {
+        ucar.nc2.dt.grid.GridCoordSys r0;
+        java.util.Date $r10;
+        java.lang.IllegalArgumentException $r2;
+        int i0, $i1;
+        java.util.Date[] $r1, $r7, $r9;
+        java.lang.StringBuilder $r3, $r4, $r5;
+        java.lang.String $r6, $r11;
+        boolean $z0;
+        ucar.nc2.units.DateFormatter $r8;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        i0 := @parameter0: int;
+
+        $r1 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.Date[] timeDates>;
+
+        if $r1 != null goto label1;
+
+        specialinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: void makeTimes()>();
+
+     label1:
+        $z0 = r0.<ucar.nc2.dt.grid.GridCoordSys: boolean isDate>;
+
+        if $z0 != 0 goto label2;
+
+        return null;
+
+     label2:
+        if i0 < 0 goto label3;
+
+        $r7 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.Date[] timeDates>;
+
+        $i1 = lengthof $r7;
+
+        if i0 < $i1 goto label4;
+
+     label3:
+        $r2 = new java.lang.IllegalArgumentException;
+
+        $r3 = new java.lang.StringBuilder;
+
+        specialinvoke $r3.<java.lang.StringBuilder: void <init>()>();
+
+        $r4 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("getTimeName = ");
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>(i0);
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r2.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>($r6);
+
+        throw $r2;
+
+     label4:
+        $r8 = new ucar.nc2.units.DateFormatter;
+
+        specialinvoke $r8.<ucar.nc2.units.DateFormatter: void <init>()>();
+
+        $r9 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.Date[] timeDates>;
+
+        $r10 = $r9[i0];
+
+        $r11 = virtualinvoke $r8.<ucar.nc2.units.DateFormatter: java.lang.String toDateTimeStringISO(java.util.Date)>($r10);
+
+        return $r11;
+    }
+
+    public int getTimeIndex(java.lang.String)
+    {
+        ucar.nc2.dt.grid.GridCoordSys r0;
+        java.util.Date $r5;
+        int $i0, i1, $i3, $i5;
+        java.util.Date[] $r1, $r3, $r4;
+        java.lang.String $r6, r7;
+        boolean $z0, $z1;
+        ucar.nc2.units.DateFormatter $r8;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        r7 := @parameter0: java.lang.String;
+
+        $r1 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.Date[] timeDates>;
+
+        if $r1 != null goto label1;
+
+        specialinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: void makeTimes()>();
+
+     label1:
+        $z0 = r0.<ucar.nc2.dt.grid.GridCoordSys: boolean isDate>;
+
+        if $z0 != 0 goto label2;
+
+        $i3 = (int) -1;
+
+        return $i3;
+
+     label2:
+        $r8 = new ucar.nc2.units.DateFormatter;
+
+        specialinvoke $r8.<ucar.nc2.units.DateFormatter: void <init>()>();
+
+        i1 = 0;
+
+     label3:
+        $r3 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.Date[] timeDates>;
+
+        $i0 = lengthof $r3;
+
+        if i1 >= $i0 goto label5;
+
+        $r4 = r0.<ucar.nc2.dt.grid.GridCoordSys: java.util.Date[] timeDates>;
+
+        $r5 = $r4[i1];
+
+        $r6 = virtualinvoke $r8.<ucar.nc2.units.DateFormatter: java.lang.String toDateTimeStringISO(java.util.Date)>($r5);
+
+        $z1 = virtualinvoke $r6.<java.lang.String: boolean equals(java.lang.Object)>(r7);
+
+        if $z1 == 0 goto label4;
+
+        return i1;
+
+     label4:
+        i1 = i1 + 1;
+
+        goto label3;
+
+     label5:
+        $i5 = (int) -1;
+
+        return $i5;
+    }
+
+    public int findTimeIndexFromDate(java.util.Date)
+    {
+        ucar.nc2.dataset.CoordinateAxis1DTime $r1, $r3;
+        ucar.nc2.dt.grid.GridCoordSys r0;
+        java.util.Date r2;
+        int $i0, $i2;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        r2 := @parameter0: java.util.Date;
+
+        $r1 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime timeTaxis>;
+
+        if $r1 != null goto label1;
+
+        $i2 = (int) -1;
+
+        return $i2;
+
+     label1:
+        $r3 = r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1DTime timeTaxis>;
+
+        $i0 = virtualinvoke $r3.<ucar.nc2.dataset.CoordinateAxis1DTime: int findTimeIndexFromDate(java.util.Date)>(r2);
+
+        return $i0;
+    }
+
+    public static void main(java.lang.String[]) throws java.io.IOException
+    {
+        ucar.nc2.dt.GridDatatype $r4;
+        ucar.nc2.dt.grid.GridDataset $r2;
+        java.lang.String[] r0;
+        ucar.nc2.dt.GridCoordSystem $r5;
+        java.lang.String $r1, $r3;
+        boolean $z0, $z1;
+
+        r0 := @parameter0: java.lang.String[];
+
+        $r1 = r0[0];
+
+        $r2 = staticinvoke <ucar.nc2.dt.grid.GridDataset: ucar.nc2.dt.grid.GridDataset open(java.lang.String)>($r1);
+
+        $r3 = r0[1];
+
+        $r4 = virtualinvoke $r2.<ucar.nc2.dt.grid.GridDataset: ucar.nc2.dt.GridDatatype findGridDatatype(java.lang.String)>($r3);
+
+        $r5 = interfaceinvoke $r4.<ucar.nc2.dt.GridDatatype: ucar.nc2.dt.GridCoordSystem getCoordinateSystem()>();
+
+        interfaceinvoke $r5.<ucar.nc2.dt.GridCoordSystem: ucar.nc2.dataset.CoordinateAxis getXHorizAxis()>();
+
+        interfaceinvoke $r5.<ucar.nc2.dt.GridCoordSystem: ucar.nc2.dataset.CoordinateAxis getXHorizAxis()>();
+
+        interfaceinvoke $r5.<ucar.nc2.dt.GridCoordSystem: ucar.nc2.dataset.CoordinateAxis1D getVerticalAxis()>();
+
+        $z0 = interfaceinvoke $r5.<ucar.nc2.dt.GridCoordSystem: boolean hasTimeAxis1D()>();
+
+        if $z0 == 0 goto label1;
+
+        interfaceinvoke $r5.<ucar.nc2.dt.GridCoordSystem: ucar.nc2.dataset.CoordinateAxis1DTime getTimeAxis1D()>();
+
+        goto label2;
+
+     label1:
+        $z1 = interfaceinvoke $r5.<ucar.nc2.dt.GridCoordSystem: boolean hasTimeAxis()>();
+
+        if $z1 == 0 goto label2;
+
+        interfaceinvoke $r5.<ucar.nc2.dt.GridCoordSystem: ucar.nc2.dataset.CoordinateAxis getTimeAxis()>();
+
+     label2:
+        return;
+    }
+
+    public volatile ucar.nc2.dataset.CoordinateAxis getEnsembleAxis()
+    {
+        ucar.nc2.dataset.CoordinateAxis1D $r1;
+        ucar.nc2.dt.grid.GridCoordSys r0;
+
+        r0 := @this: ucar.nc2.dt.grid.GridCoordSys;
+
+        $r1 = virtualinvoke r0.<ucar.nc2.dt.grid.GridCoordSys: ucar.nc2.dataset.CoordinateAxis1D getEnsembleAxis()>();
+
+        return $r1;
+    }
+
+    static void <clinit>()
+    {
+        org.slf4j.Logger $r0;
+
+        $r0 = staticinvoke <org.slf4j.LoggerFactory: org.slf4j.Logger getLogger(java.lang.Class)>(class "Lucar/nc2/dt/grid/GridCoordSys;");
+
+        <ucar.nc2.dt.grid.GridCoordSys: org.slf4j.Logger log> = $r0;
+
+        return;
+    }
+}

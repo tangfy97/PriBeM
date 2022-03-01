@@ -1,0 +1,3215 @@
+public class org.apache.zookeeper.ZooKeeperMain extends java.lang.Object
+{
+    private static final org.slf4j.Logger LOG;
+    protected static final java.util.Map commandMap;
+    protected org.apache.zookeeper.ZooKeeperMain$MyCommandOptions cl;
+    protected java.util.HashMap history;
+    protected int commandCount;
+    protected boolean printWatches;
+    protected org.apache.zookeeper.ZooKeeper zk;
+    protected java.lang.String host;
+    private static org.apache.zookeeper.AsyncCallback$DataCallback dataCallback;
+
+    public boolean getPrintWatches()
+    {
+        org.apache.zookeeper.ZooKeeperMain r0;
+        boolean $z0;
+
+        r0 := @this: org.apache.zookeeper.ZooKeeperMain;
+
+        $z0 = r0.<org.apache.zookeeper.ZooKeeperMain: boolean printWatches>;
+
+        return $z0;
+    }
+
+    static void usage()
+    {
+        java.util.Map $r1, $r11;
+        java.lang.String r5, $r13, $r15;
+        boolean $z0;
+        java.io.PrintStream $r0, $r7;
+        java.util.Iterator $r3;
+        java.util.Set $r2;
+        java.lang.Object $r4, $r12;
+        java.lang.StringBuilder $r6, $r8, $r9, $r10, $r14;
+
+        $r0 = <java.lang.System: java.io.PrintStream err>;
+
+        virtualinvoke $r0.<java.io.PrintStream: void println(java.lang.String)>("ZooKeeper -server host:port cmd args");
+
+        $r1 = <org.apache.zookeeper.ZooKeeperMain: java.util.Map commandMap>;
+
+        $r2 = interfaceinvoke $r1.<java.util.Map: java.util.Set keySet()>();
+
+        $r3 = interfaceinvoke $r2.<java.util.Set: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r3.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label2;
+
+        $r4 = interfaceinvoke $r3.<java.util.Iterator: java.lang.Object next()>();
+
+        r5 = (java.lang.String) $r4;
+
+        $r7 = <java.lang.System: java.io.PrintStream err>;
+
+        $r6 = new java.lang.StringBuilder;
+
+        specialinvoke $r6.<java.lang.StringBuilder: void <init>()>();
+
+        $r8 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("\t");
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r5);
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" ");
+
+        $r11 = <org.apache.zookeeper.ZooKeeperMain: java.util.Map commandMap>;
+
+        $r12 = interfaceinvoke $r11.<java.util.Map: java.lang.Object get(java.lang.Object)>(r5);
+
+        $r13 = (java.lang.String) $r12;
+
+        $r14 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r13);
+
+        $r15 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r7.<java.io.PrintStream: void println(java.lang.String)>($r15);
+
+        goto label1;
+
+     label2:
+        return;
+    }
+
+    private static int getPermFromString(java.lang.String)
+    {
+        java.io.PrintStream $r2;
+        char $c1, $c2;
+        byte b3;
+        int $i0, i4, $i5;
+        java.lang.StringBuilder $r3, $r4, $r6;
+        java.lang.String r0, $r5;
+
+        r0 := @parameter0: java.lang.String;
+
+        b3 = 0;
+
+        i4 = 0;
+
+     label1:
+        $i0 = virtualinvoke r0.<java.lang.String: int length()>();
+
+        if i4 >= $i0 goto label9;
+
+        $c1 = virtualinvoke r0.<java.lang.String: char charAt(int)>(i4);
+
+        $i5 = (int) $c1;
+
+        lookupswitch($i5)
+        {
+            case 97: goto label6;
+            case 99: goto label4;
+            case 100: goto label5;
+            case 114: goto label2;
+            case 119: goto label3;
+            default: goto label7;
+        };
+
+     label2:
+        b3 = b3 | 1;
+
+        goto label8;
+
+     label3:
+        b3 = b3 | 2;
+
+        goto label8;
+
+     label4:
+        b3 = b3 | 4;
+
+        goto label8;
+
+     label5:
+        b3 = b3 | 8;
+
+        goto label8;
+
+     label6:
+        b3 = b3 | 16;
+
+        goto label8;
+
+     label7:
+        $r2 = <java.lang.System: java.io.PrintStream err>;
+
+        $r6 = new java.lang.StringBuilder;
+
+        specialinvoke $r6.<java.lang.StringBuilder: void <init>()>();
+
+        $r3 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Unknown perm type: ");
+
+        $c2 = virtualinvoke r0.<java.lang.String: char charAt(int)>(i4);
+
+        $r4 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(char)>($c2);
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r2.<java.io.PrintStream: void println(java.lang.String)>($r5);
+
+     label8:
+        i4 = i4 + 1;
+
+        goto label1;
+
+     label9:
+        return b3;
+    }
+
+    private static void printStat(org.apache.zookeeper.data.Stat)
+    {
+        java.lang.StringBuilder $r0, $r2, $r5, $r7, $r9, $r12, $r14, $r16, $r18, $r20, $r22, $r25, $r27, $r29, $r31, $r33, $r35, $r36, $r38, $r40, $r41, $r43, $r45, $r46, $r48, $r50, $r52, $r54, $r56, $r57, $r59, $r61, $r62;
+        long $l0, $l1, $l2, $l3, $l4, $l8;
+        java.lang.String $r4, $r6, $r11, $r13, $r17, $r19, $r24, $r26, $r30, $r32, $r37, $r42, $r47, $r51, $r53, $r58, $r63;
+        java.util.Date $r10, $r23;
+        org.apache.zookeeper.data.Stat r3;
+        int $i5, $i6, $i7, $i9, $i10;
+        java.io.PrintStream $r1, $r8, $r15, $r21, $r28, $r34, $r39, $r44, $r49, $r55, $r60;
+
+        r3 := @parameter0: org.apache.zookeeper.data.Stat;
+
+        $r1 = <java.lang.System: java.io.PrintStream err>;
+
+        $r0 = new java.lang.StringBuilder;
+
+        specialinvoke $r0.<java.lang.StringBuilder: void <init>()>();
+
+        $r2 = virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("cZxid = 0x");
+
+        $l0 = virtualinvoke r3.<org.apache.zookeeper.data.Stat: long getCzxid()>();
+
+        $r4 = staticinvoke <java.lang.Long: java.lang.String toHexString(long)>($l0);
+
+        $r5 = virtualinvoke $r2.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r4);
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r1.<java.io.PrintStream: void println(java.lang.String)>($r6);
+
+        $r8 = <java.lang.System: java.io.PrintStream err>;
+
+        $r7 = new java.lang.StringBuilder;
+
+        specialinvoke $r7.<java.lang.StringBuilder: void <init>()>();
+
+        $r9 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("ctime = ");
+
+        $r10 = new java.util.Date;
+
+        $l1 = virtualinvoke r3.<org.apache.zookeeper.data.Stat: long getCtime()>();
+
+        specialinvoke $r10.<java.util.Date: void <init>(long)>($l1);
+
+        $r11 = virtualinvoke $r10.<java.util.Date: java.lang.String toString()>();
+
+        $r12 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r11);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r8.<java.io.PrintStream: void println(java.lang.String)>($r13);
+
+        $r15 = <java.lang.System: java.io.PrintStream err>;
+
+        $r14 = new java.lang.StringBuilder;
+
+        specialinvoke $r14.<java.lang.StringBuilder: void <init>()>();
+
+        $r16 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("mZxid = 0x");
+
+        $l2 = virtualinvoke r3.<org.apache.zookeeper.data.Stat: long getMzxid()>();
+
+        $r17 = staticinvoke <java.lang.Long: java.lang.String toHexString(long)>($l2);
+
+        $r18 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r17);
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r15.<java.io.PrintStream: void println(java.lang.String)>($r19);
+
+        $r21 = <java.lang.System: java.io.PrintStream err>;
+
+        $r20 = new java.lang.StringBuilder;
+
+        specialinvoke $r20.<java.lang.StringBuilder: void <init>()>();
+
+        $r22 = virtualinvoke $r20.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("mtime = ");
+
+        $r23 = new java.util.Date;
+
+        $l3 = virtualinvoke r3.<org.apache.zookeeper.data.Stat: long getMtime()>();
+
+        specialinvoke $r23.<java.util.Date: void <init>(long)>($l3);
+
+        $r24 = virtualinvoke $r23.<java.util.Date: java.lang.String toString()>();
+
+        $r25 = virtualinvoke $r22.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r24);
+
+        $r26 = virtualinvoke $r25.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r21.<java.io.PrintStream: void println(java.lang.String)>($r26);
+
+        $r28 = <java.lang.System: java.io.PrintStream err>;
+
+        $r27 = new java.lang.StringBuilder;
+
+        specialinvoke $r27.<java.lang.StringBuilder: void <init>()>();
+
+        $r29 = virtualinvoke $r27.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("pZxid = 0x");
+
+        $l4 = virtualinvoke r3.<org.apache.zookeeper.data.Stat: long getPzxid()>();
+
+        $r30 = staticinvoke <java.lang.Long: java.lang.String toHexString(long)>($l4);
+
+        $r31 = virtualinvoke $r29.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r30);
+
+        $r32 = virtualinvoke $r31.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r28.<java.io.PrintStream: void println(java.lang.String)>($r32);
+
+        $r34 = <java.lang.System: java.io.PrintStream err>;
+
+        $r33 = new java.lang.StringBuilder;
+
+        specialinvoke $r33.<java.lang.StringBuilder: void <init>()>();
+
+        $r35 = virtualinvoke $r33.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("cversion = ");
+
+        $i5 = virtualinvoke r3.<org.apache.zookeeper.data.Stat: int getCversion()>();
+
+        $r36 = virtualinvoke $r35.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i5);
+
+        $r37 = virtualinvoke $r36.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r34.<java.io.PrintStream: void println(java.lang.String)>($r37);
+
+        $r39 = <java.lang.System: java.io.PrintStream err>;
+
+        $r38 = new java.lang.StringBuilder;
+
+        specialinvoke $r38.<java.lang.StringBuilder: void <init>()>();
+
+        $r40 = virtualinvoke $r38.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("dataVersion = ");
+
+        $i6 = virtualinvoke r3.<org.apache.zookeeper.data.Stat: int getVersion()>();
+
+        $r41 = virtualinvoke $r40.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i6);
+
+        $r42 = virtualinvoke $r41.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r39.<java.io.PrintStream: void println(java.lang.String)>($r42);
+
+        $r44 = <java.lang.System: java.io.PrintStream err>;
+
+        $r43 = new java.lang.StringBuilder;
+
+        specialinvoke $r43.<java.lang.StringBuilder: void <init>()>();
+
+        $r45 = virtualinvoke $r43.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("aclVersion = ");
+
+        $i7 = virtualinvoke r3.<org.apache.zookeeper.data.Stat: int getAversion()>();
+
+        $r46 = virtualinvoke $r45.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i7);
+
+        $r47 = virtualinvoke $r46.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r44.<java.io.PrintStream: void println(java.lang.String)>($r47);
+
+        $r49 = <java.lang.System: java.io.PrintStream err>;
+
+        $r48 = new java.lang.StringBuilder;
+
+        specialinvoke $r48.<java.lang.StringBuilder: void <init>()>();
+
+        $r50 = virtualinvoke $r48.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("ephemeralOwner = 0x");
+
+        $l8 = virtualinvoke r3.<org.apache.zookeeper.data.Stat: long getEphemeralOwner()>();
+
+        $r51 = staticinvoke <java.lang.Long: java.lang.String toHexString(long)>($l8);
+
+        $r52 = virtualinvoke $r50.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r51);
+
+        $r53 = virtualinvoke $r52.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r49.<java.io.PrintStream: void println(java.lang.String)>($r53);
+
+        $r55 = <java.lang.System: java.io.PrintStream err>;
+
+        $r54 = new java.lang.StringBuilder;
+
+        specialinvoke $r54.<java.lang.StringBuilder: void <init>()>();
+
+        $r56 = virtualinvoke $r54.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("dataLength = ");
+
+        $i9 = virtualinvoke r3.<org.apache.zookeeper.data.Stat: int getDataLength()>();
+
+        $r57 = virtualinvoke $r56.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i9);
+
+        $r58 = virtualinvoke $r57.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r55.<java.io.PrintStream: void println(java.lang.String)>($r58);
+
+        $r60 = <java.lang.System: java.io.PrintStream err>;
+
+        $r59 = new java.lang.StringBuilder;
+
+        specialinvoke $r59.<java.lang.StringBuilder: void <init>()>();
+
+        $r61 = virtualinvoke $r59.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("numChildren = ");
+
+        $i10 = virtualinvoke r3.<org.apache.zookeeper.data.Stat: int getNumChildren()>();
+
+        $r62 = virtualinvoke $r61.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i10);
+
+        $r63 = virtualinvoke $r62.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r60.<java.io.PrintStream: void println(java.lang.String)>($r63);
+
+        return;
+    }
+
+    protected void addToHistory(int, java.lang.String)
+    {
+        int i0;
+        java.util.HashMap $r1;
+        org.apache.zookeeper.ZooKeeperMain r0;
+        java.lang.String r3;
+        java.lang.Integer $r2;
+
+        r0 := @this: org.apache.zookeeper.ZooKeeperMain;
+
+        i0 := @parameter0: int;
+
+        r3 := @parameter1: java.lang.String;
+
+        $r1 = r0.<org.apache.zookeeper.ZooKeeperMain: java.util.HashMap history>;
+
+        $r2 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i0);
+
+        virtualinvoke $r1.<java.util.HashMap: java.lang.Object put(java.lang.Object,java.lang.Object)>($r2, r3);
+
+        return;
+    }
+
+    public static java.util.List getCommands()
+    {
+        java.util.Set $r2;
+        java.util.LinkedList $r0;
+        java.util.Map $r1;
+
+        $r0 = new java.util.LinkedList;
+
+        $r1 = <org.apache.zookeeper.ZooKeeperMain: java.util.Map commandMap>;
+
+        $r2 = interfaceinvoke $r1.<java.util.Map: java.util.Set keySet()>();
+
+        specialinvoke $r0.<java.util.LinkedList: void <init>(java.util.Collection)>($r2);
+
+        return $r0;
+    }
+
+    protected java.lang.String getPrompt()
+    {
+        org.apache.zookeeper.ZooKeeper $r6;
+        org.apache.zookeeper.ZooKeeper$States $r7;
+        org.apache.zookeeper.ZooKeeperMain r2;
+        int $i0;
+        java.lang.StringBuilder $r0, $r1, $r4, $r5, $r8, $r9, $r10, $r11, $r12;
+        java.lang.String $r3, $r13;
+
+        r2 := @this: org.apache.zookeeper.ZooKeeperMain;
+
+        $r0 = new java.lang.StringBuilder;
+
+        specialinvoke $r0.<java.lang.StringBuilder: void <init>()>();
+
+        $r1 = virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("[zk: ");
+
+        $r3 = r2.<org.apache.zookeeper.ZooKeeperMain: java.lang.String host>;
+
+        $r4 = virtualinvoke $r1.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r3);
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("(");
+
+        $r6 = r2.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeper zk>;
+
+        $r7 = virtualinvoke $r6.<org.apache.zookeeper.ZooKeeper: org.apache.zookeeper.ZooKeeper$States getState()>();
+
+        $r8 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r7);
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(")");
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" ");
+
+        $i0 = r2.<org.apache.zookeeper.ZooKeeperMain: int commandCount>;
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i0);
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("] ");
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        return $r13;
+    }
+
+    public static void printMessage(java.lang.String)
+    {
+        java.io.PrintStream $r1;
+        java.lang.StringBuilder $r0, $r2, $r4;
+        java.lang.String r3, $r5;
+
+        r3 := @parameter0: java.lang.String;
+
+        $r1 = <java.lang.System: java.io.PrintStream out>;
+
+        $r0 = new java.lang.StringBuilder;
+
+        specialinvoke $r0.<java.lang.StringBuilder: void <init>()>();
+
+        $r2 = virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("\n");
+
+        $r4 = virtualinvoke $r2.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r3);
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r1.<java.io.PrintStream: void println(java.lang.String)>($r5);
+
+        return;
+    }
+
+    protected void connectToZK(java.lang.String) throws java.lang.InterruptedException, java.io.IOException
+    {
+        org.apache.zookeeper.ZooKeeper$States $r9;
+        int $i0;
+        java.lang.String r2, $r5, $r6, $r12;
+        org.apache.zookeeper.ZooKeeperMain$MyWatcher $r7;
+        org.apache.zookeeper.ZooKeeperMain$MyCommandOptions $r4, $r11;
+        boolean $z0, $z1;
+        org.apache.zookeeper.ZooKeeper $r1, $r3, $r8, $r10;
+        org.apache.zookeeper.ZooKeeperMain r0;
+
+        r0 := @this: org.apache.zookeeper.ZooKeeperMain;
+
+        r2 := @parameter0: java.lang.String;
+
+        $r1 = r0.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeper zk>;
+
+        if $r1 == null goto label1;
+
+        $r8 = r0.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeper zk>;
+
+        $r9 = virtualinvoke $r8.<org.apache.zookeeper.ZooKeeper: org.apache.zookeeper.ZooKeeper$States getState()>();
+
+        $z0 = virtualinvoke $r9.<org.apache.zookeeper.ZooKeeper$States: boolean isAlive()>();
+
+        if $z0 == 0 goto label1;
+
+        $r10 = r0.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeper zk>;
+
+        virtualinvoke $r10.<org.apache.zookeeper.ZooKeeper: void close()>();
+
+     label1:
+        r0.<org.apache.zookeeper.ZooKeeperMain: java.lang.String host> = r2;
+
+        $r11 = r0.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeperMain$MyCommandOptions cl>;
+
+        $r12 = virtualinvoke $r11.<org.apache.zookeeper.ZooKeeperMain$MyCommandOptions: java.lang.String getOption(java.lang.String)>("readonly");
+
+        if $r12 == null goto label2;
+
+        $z1 = 1;
+
+        goto label3;
+
+     label2:
+        $z1 = 0;
+
+     label3:
+        $r3 = new org.apache.zookeeper.ZooKeeper;
+
+        $r5 = r0.<org.apache.zookeeper.ZooKeeperMain: java.lang.String host>;
+
+        $r4 = r0.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeperMain$MyCommandOptions cl>;
+
+        $r6 = virtualinvoke $r4.<org.apache.zookeeper.ZooKeeperMain$MyCommandOptions: java.lang.String getOption(java.lang.String)>("timeout");
+
+        $i0 = staticinvoke <java.lang.Integer: int parseInt(java.lang.String)>($r6);
+
+        $r7 = new org.apache.zookeeper.ZooKeeperMain$MyWatcher;
+
+        specialinvoke $r7.<org.apache.zookeeper.ZooKeeperMain$MyWatcher: void <init>(org.apache.zookeeper.ZooKeeperMain,org.apache.zookeeper.ZooKeeperMain$1)>(r0, null);
+
+        specialinvoke $r3.<org.apache.zookeeper.ZooKeeper: void <init>(java.lang.String,int,org.apache.zookeeper.Watcher,boolean)>($r5, $i0, $r7, $z1);
+
+        r0.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeper zk> = $r3;
+
+        return;
+    }
+
+    public static void main(java.lang.String[]) throws org.apache.zookeeper.KeeperException, java.io.IOException, java.lang.InterruptedException
+    {
+        java.lang.String[] r1;
+        org.apache.zookeeper.ZooKeeperMain $r0;
+
+        r1 := @parameter0: java.lang.String[];
+
+        $r0 = new org.apache.zookeeper.ZooKeeperMain;
+
+        specialinvoke $r0.<org.apache.zookeeper.ZooKeeperMain: void <init>(java.lang.String[])>(r1);
+
+        virtualinvoke $r0.<org.apache.zookeeper.ZooKeeperMain: void run()>();
+
+        return;
+    }
+
+    public void <init>(java.lang.String[]) throws java.io.IOException, java.lang.InterruptedException
+    {
+        java.io.PrintStream $r6;
+        java.util.HashMap $r2;
+        java.lang.String[] r3;
+        org.apache.zookeeper.ZooKeeperMain r0;
+        java.lang.StringBuilder $r5, $r7, $r10;
+        java.lang.String $r9, $r11, $r13;
+        org.apache.zookeeper.ZooKeeperMain$MyCommandOptions $r1, $r4, $r8, $r12;
+
+        r0 := @this: org.apache.zookeeper.ZooKeeperMain;
+
+        r3 := @parameter0: java.lang.String[];
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        $r1 = new org.apache.zookeeper.ZooKeeperMain$MyCommandOptions;
+
+        specialinvoke $r1.<org.apache.zookeeper.ZooKeeperMain$MyCommandOptions: void <init>()>();
+
+        r0.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeperMain$MyCommandOptions cl> = $r1;
+
+        $r2 = new java.util.HashMap;
+
+        specialinvoke $r2.<java.util.HashMap: void <init>()>();
+
+        r0.<org.apache.zookeeper.ZooKeeperMain: java.util.HashMap history> = $r2;
+
+        r0.<org.apache.zookeeper.ZooKeeperMain: int commandCount> = 0;
+
+        r0.<org.apache.zookeeper.ZooKeeperMain: boolean printWatches> = 1;
+
+        r0.<org.apache.zookeeper.ZooKeeperMain: java.lang.String host> = "";
+
+        $r4 = r0.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeperMain$MyCommandOptions cl>;
+
+        virtualinvoke $r4.<org.apache.zookeeper.ZooKeeperMain$MyCommandOptions: boolean parseOptions(java.lang.String[])>(r3);
+
+        $r6 = <java.lang.System: java.io.PrintStream out>;
+
+        $r5 = new java.lang.StringBuilder;
+
+        specialinvoke $r5.<java.lang.StringBuilder: void <init>()>();
+
+        $r7 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Connecting to ");
+
+        $r8 = r0.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeperMain$MyCommandOptions cl>;
+
+        $r9 = virtualinvoke $r8.<org.apache.zookeeper.ZooKeeperMain$MyCommandOptions: java.lang.String getOption(java.lang.String)>("server");
+
+        $r10 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r9);
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r6.<java.io.PrintStream: void println(java.lang.String)>($r11);
+
+        $r12 = r0.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeperMain$MyCommandOptions cl>;
+
+        $r13 = virtualinvoke $r12.<org.apache.zookeeper.ZooKeeperMain$MyCommandOptions: java.lang.String getOption(java.lang.String)>("server");
+
+        virtualinvoke r0.<org.apache.zookeeper.ZooKeeperMain: void connectToZK(java.lang.String)>($r13);
+
+        return;
+    }
+
+    public void <init>(org.apache.zookeeper.ZooKeeper)
+    {
+        org.apache.zookeeper.ZooKeeper r3;
+        java.util.HashMap $r2;
+        org.apache.zookeeper.ZooKeeperMain r0;
+        org.apache.zookeeper.ZooKeeperMain$MyCommandOptions $r1;
+
+        r0 := @this: org.apache.zookeeper.ZooKeeperMain;
+
+        r3 := @parameter0: org.apache.zookeeper.ZooKeeper;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        $r1 = new org.apache.zookeeper.ZooKeeperMain$MyCommandOptions;
+
+        specialinvoke $r1.<org.apache.zookeeper.ZooKeeperMain$MyCommandOptions: void <init>()>();
+
+        r0.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeperMain$MyCommandOptions cl> = $r1;
+
+        $r2 = new java.util.HashMap;
+
+        specialinvoke $r2.<java.util.HashMap: void <init>()>();
+
+        r0.<org.apache.zookeeper.ZooKeeperMain: java.util.HashMap history> = $r2;
+
+        r0.<org.apache.zookeeper.ZooKeeperMain: int commandCount> = 0;
+
+        r0.<org.apache.zookeeper.ZooKeeperMain: boolean printWatches> = 1;
+
+        r0.<org.apache.zookeeper.ZooKeeperMain: java.lang.String host> = "";
+
+        r0.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeper zk> = r3;
+
+        return;
+    }
+
+    void run() throws org.apache.zookeeper.KeeperException, java.io.IOException, java.lang.InterruptedException
+    {
+        java.lang.NoSuchMethodException $r37;
+        java.lang.InstantiationException $r31;
+        org.apache.zookeeper.ZooKeeperMain$MyCommandOptions $r1, $r41;
+        java.lang.reflect.Method $r18, $r21;
+        boolean z0, $z1;
+        org.apache.zookeeper.ZooKeeper $r14;
+        java.lang.IllegalAccessException $r33;
+        org.apache.zookeeper.ZooKeeperMain r0;
+        java.lang.reflect.InvocationTargetException $r35;
+        java.lang.Object[] $r9, $r13, $r19, $r22;
+        java.lang.reflect.Constructor $r8, $r12;
+        java.lang.String $r2, $r23, $r25, $r30;
+        java.io.PrintStream $r3, $r6, $r26;
+        org.slf4j.Logger $r32, $r34, $r36, $r38, $r40;
+        java.lang.Class[] $r7, $r11, $r16, $r20;
+        java.io.InputStreamReader $r28;
+        java.lang.Class $r4, $r5, $r17;
+        java.lang.Object $r10, $r15, $r24;
+        java.lang.ClassNotFoundException $r39;
+        java.io.BufferedReader $r27;
+        java.io.InputStream $r29;
+
+        r0 := @this: org.apache.zookeeper.ZooKeeperMain;
+
+        $r1 = r0.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeperMain$MyCommandOptions cl>;
+
+        $r2 = virtualinvoke $r1.<org.apache.zookeeper.ZooKeeperMain$MyCommandOptions: java.lang.String getCommand()>();
+
+        if $r2 != null goto label11;
+
+        $r3 = <java.lang.System: java.io.PrintStream out>;
+
+        virtualinvoke $r3.<java.io.PrintStream: void println(java.lang.String)>("Welcome to ZooKeeper!");
+
+        z0 = 0;
+
+     label01:
+        $r4 = staticinvoke <java.lang.Class: java.lang.Class forName(java.lang.String)>("jline.ConsoleReader");
+
+        $r5 = staticinvoke <java.lang.Class: java.lang.Class forName(java.lang.String)>("org.apache.zookeeper.JLineZNodeCompletor");
+
+        $r6 = <java.lang.System: java.io.PrintStream out>;
+
+        virtualinvoke $r6.<java.io.PrintStream: void println(java.lang.String)>("JLine support is enabled");
+
+        $r7 = newarray (java.lang.Class)[0];
+
+        $r8 = virtualinvoke $r4.<java.lang.Class: java.lang.reflect.Constructor getConstructor(java.lang.Class[])>($r7);
+
+        $r9 = newarray (java.lang.Object)[0];
+
+        $r10 = virtualinvoke $r8.<java.lang.reflect.Constructor: java.lang.Object newInstance(java.lang.Object[])>($r9);
+
+        $r11 = newarray (java.lang.Class)[1];
+
+        $r11[0] = class "Lorg/apache/zookeeper/ZooKeeper;";
+
+        $r12 = virtualinvoke $r5.<java.lang.Class: java.lang.reflect.Constructor getConstructor(java.lang.Class[])>($r11);
+
+        $r13 = newarray (java.lang.Object)[1];
+
+        $r14 = r0.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeper zk>;
+
+        $r13[0] = $r14;
+
+        $r15 = virtualinvoke $r12.<java.lang.reflect.Constructor: java.lang.Object newInstance(java.lang.Object[])>($r13);
+
+        $r16 = newarray (java.lang.Class)[1];
+
+        $r17 = staticinvoke <java.lang.Class: java.lang.Class forName(java.lang.String)>("jline.Completor");
+
+        $r16[0] = $r17;
+
+        $r18 = virtualinvoke $r4.<java.lang.Class: java.lang.reflect.Method getMethod(java.lang.String,java.lang.Class[])>("addCompletor", $r16);
+
+        $r19 = newarray (java.lang.Object)[1];
+
+        $r19[0] = $r15;
+
+        virtualinvoke $r18.<java.lang.reflect.Method: java.lang.Object invoke(java.lang.Object,java.lang.Object[])>($r10, $r19);
+
+        $r20 = newarray (java.lang.Class)[1];
+
+        $r20[0] = class "Ljava/lang/String;";
+
+        $r21 = virtualinvoke $r4.<java.lang.Class: java.lang.reflect.Method getMethod(java.lang.String,java.lang.Class[])>("readLine", $r20);
+
+     label02:
+        $r22 = newarray (java.lang.Object)[1];
+
+        $r23 = virtualinvoke r0.<org.apache.zookeeper.ZooKeeperMain: java.lang.String getPrompt()>();
+
+        $r22[0] = $r23;
+
+        $r24 = virtualinvoke $r21.<java.lang.reflect.Method: java.lang.Object invoke(java.lang.Object,java.lang.Object[])>($r10, $r22);
+
+        $r25 = (java.lang.String) $r24;
+
+        if $r25 == null goto label03;
+
+        virtualinvoke r0.<org.apache.zookeeper.ZooKeeperMain: void executeLine(java.lang.String)>($r25);
+
+        goto label02;
+
+     label03:
+        goto label09;
+
+     label04:
+        $r39 := @caughtexception;
+
+        $r40 = <org.apache.zookeeper.ZooKeeperMain: org.slf4j.Logger LOG>;
+
+        interfaceinvoke $r40.<org.slf4j.Logger: void debug(java.lang.String,java.lang.Throwable)>("Unable to start jline", $r39);
+
+        z0 = 1;
+
+        goto label09;
+
+     label05:
+        $r37 := @caughtexception;
+
+        $r38 = <org.apache.zookeeper.ZooKeeperMain: org.slf4j.Logger LOG>;
+
+        interfaceinvoke $r38.<org.slf4j.Logger: void debug(java.lang.String,java.lang.Throwable)>("Unable to start jline", $r37);
+
+        z0 = 1;
+
+        goto label09;
+
+     label06:
+        $r35 := @caughtexception;
+
+        $r36 = <org.apache.zookeeper.ZooKeeperMain: org.slf4j.Logger LOG>;
+
+        interfaceinvoke $r36.<org.slf4j.Logger: void debug(java.lang.String,java.lang.Throwable)>("Unable to start jline", $r35);
+
+        z0 = 1;
+
+        goto label09;
+
+     label07:
+        $r33 := @caughtexception;
+
+        $r34 = <org.apache.zookeeper.ZooKeeperMain: org.slf4j.Logger LOG>;
+
+        interfaceinvoke $r34.<org.slf4j.Logger: void debug(java.lang.String,java.lang.Throwable)>("Unable to start jline", $r33);
+
+        z0 = 1;
+
+        goto label09;
+
+     label08:
+        $r31 := @caughtexception;
+
+        $r32 = <org.apache.zookeeper.ZooKeeperMain: org.slf4j.Logger LOG>;
+
+        interfaceinvoke $r32.<org.slf4j.Logger: void debug(java.lang.String,java.lang.Throwable)>("Unable to start jline", $r31);
+
+        z0 = 1;
+
+     label09:
+        if z0 == 0 goto label11;
+
+        $r26 = <java.lang.System: java.io.PrintStream out>;
+
+        virtualinvoke $r26.<java.io.PrintStream: void println(java.lang.String)>("JLine support is disabled");
+
+        $r27 = new java.io.BufferedReader;
+
+        $r28 = new java.io.InputStreamReader;
+
+        $r29 = <java.lang.System: java.io.InputStream in>;
+
+        specialinvoke $r28.<java.io.InputStreamReader: void <init>(java.io.InputStream)>($r29);
+
+        specialinvoke $r27.<java.io.BufferedReader: void <init>(java.io.Reader)>($r28);
+
+     label10:
+        $r30 = virtualinvoke $r27.<java.io.BufferedReader: java.lang.String readLine()>();
+
+        if $r30 == null goto label11;
+
+        virtualinvoke r0.<org.apache.zookeeper.ZooKeeperMain: void executeLine(java.lang.String)>($r30);
+
+        goto label10;
+
+     label11:
+        $r41 = r0.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeperMain$MyCommandOptions cl>;
+
+        $z1 = virtualinvoke r0.<org.apache.zookeeper.ZooKeeperMain: boolean processCmd(org.apache.zookeeper.ZooKeeperMain$MyCommandOptions)>($r41);
+
+        if $z1 != 0 goto label12;
+
+        staticinvoke <java.lang.System: void exit(int)>(0);
+
+     label12:
+        return;
+
+        catch java.lang.ClassNotFoundException from label01 to label03 with label04;
+        catch java.lang.NoSuchMethodException from label01 to label03 with label05;
+        catch java.lang.reflect.InvocationTargetException from label01 to label03 with label06;
+        catch java.lang.IllegalAccessException from label01 to label03 with label07;
+        catch java.lang.InstantiationException from label01 to label03 with label08;
+    }
+
+    public void executeLine(java.lang.String) throws java.lang.InterruptedException, java.io.IOException, org.apache.zookeeper.KeeperException
+    {
+        org.apache.zookeeper.ZooKeeperMain r1;
+        int $i0, $i1, $i2;
+        java.lang.String r0;
+        org.apache.zookeeper.ZooKeeperMain$MyCommandOptions $r2, $r3;
+        boolean $z0;
+
+        r1 := @this: org.apache.zookeeper.ZooKeeperMain;
+
+        r0 := @parameter0: java.lang.String;
+
+        $z0 = virtualinvoke r0.<java.lang.String: boolean equals(java.lang.Object)>("");
+
+        if $z0 != 0 goto label1;
+
+        $r2 = r1.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeperMain$MyCommandOptions cl>;
+
+        virtualinvoke $r2.<org.apache.zookeeper.ZooKeeperMain$MyCommandOptions: boolean parseCommand(java.lang.String)>(r0);
+
+        $i0 = r1.<org.apache.zookeeper.ZooKeeperMain: int commandCount>;
+
+        virtualinvoke r1.<org.apache.zookeeper.ZooKeeperMain: void addToHistory(int,java.lang.String)>($i0, r0);
+
+        $r3 = r1.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeperMain$MyCommandOptions cl>;
+
+        virtualinvoke r1.<org.apache.zookeeper.ZooKeeperMain: boolean processCmd(org.apache.zookeeper.ZooKeeperMain$MyCommandOptions)>($r3);
+
+        $i1 = r1.<org.apache.zookeeper.ZooKeeperMain: int commandCount>;
+
+        $i2 = $i1 + 1;
+
+        r1.<org.apache.zookeeper.ZooKeeperMain: int commandCount> = $i2;
+
+     label1:
+        return;
+    }
+
+    private static boolean trimProcQuotas(org.apache.zookeeper.ZooKeeper, java.lang.String) throws org.apache.zookeeper.KeeperException, java.io.IOException, java.lang.InterruptedException
+    {
+        org.apache.zookeeper.ZooKeeper r2;
+        java.util.List $r3;
+        int $i0, $i1, $i3;
+        java.lang.String r0, $r1, $r4;
+        boolean $z0, $z1;
+
+        r2 := @parameter0: org.apache.zookeeper.ZooKeeper;
+
+        r0 := @parameter1: java.lang.String;
+
+        $r1 = "/zookeeper/quota";
+
+        $z0 = virtualinvoke $r1.<java.lang.String: boolean equals(java.lang.Object)>(r0);
+
+        if $z0 == 0 goto label1;
+
+        return 1;
+
+     label1:
+        $r3 = virtualinvoke r2.<org.apache.zookeeper.ZooKeeper: java.util.List getChildren(java.lang.String,boolean)>(r0, 0);
+
+        $i0 = interfaceinvoke $r3.<java.util.List: int size()>();
+
+        if $i0 != 0 goto label2;
+
+        $i3 = (int) -1;
+
+        virtualinvoke r2.<org.apache.zookeeper.ZooKeeper: void delete(java.lang.String,int)>(r0, $i3);
+
+        $i1 = virtualinvoke r0.<java.lang.String: int lastIndexOf(int)>(47);
+
+        $r4 = virtualinvoke r0.<java.lang.String: java.lang.String substring(int,int)>(0, $i1);
+
+        $z1 = staticinvoke <org.apache.zookeeper.ZooKeeperMain: boolean trimProcQuotas(org.apache.zookeeper.ZooKeeper,java.lang.String)>(r2, $r4);
+
+        return $z1;
+
+     label2:
+        return 1;
+    }
+
+    public static boolean delQuota(org.apache.zookeeper.ZooKeeper, java.lang.String, boolean, boolean) throws org.apache.zookeeper.KeeperException, java.io.IOException, java.lang.InterruptedException
+    {
+        byte[] $r14, $r27, $r29;
+        org.apache.zookeeper.data.Stat $r12, $r44;
+        org.apache.zookeeper.KeeperException$NoNodeException $r35;
+        boolean z0, z1, $z2;
+        org.apache.zookeeper.ZooKeeper r11;
+        java.util.List $r17;
+        java.lang.StringBuilder $r1, $r3, $r6, $r7, $r8, $r9, $r22, $r23, $r24, $r32, $r33, $r38, $r39, $r41, $r42, $r43, $r45, $r48;
+        int $i1, $i3, $i5, $i7;
+        java.lang.String r2, $r4, $r10, r20, $r25, $r26, $r28, $r34, $r40, $r46;
+        java.io.PrintStream $r31, $r37;
+        java.util.Iterator $r18;
+        org.apache.zookeeper.StatsTrack $r47;
+        java.lang.Object $r19;
+
+        r11 := @parameter0: org.apache.zookeeper.ZooKeeper;
+
+        r2 := @parameter1: java.lang.String;
+
+        z0 := @parameter2: boolean;
+
+        z1 := @parameter3: boolean;
+
+        $r41 = new java.lang.StringBuilder;
+
+        specialinvoke $r41.<java.lang.StringBuilder: void <init>()>();
+
+        $r1 = virtualinvoke $r41.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("/zookeeper/quota");
+
+        $r3 = virtualinvoke $r1.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r2);
+
+        $r4 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r42 = new java.lang.StringBuilder;
+
+        specialinvoke $r42.<java.lang.StringBuilder: void <init>()>();
+
+        $r6 = virtualinvoke $r42.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("/zookeeper/quota");
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r2);
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("/");
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("zookeeper_limits");
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r12 = virtualinvoke r11.<org.apache.zookeeper.ZooKeeper: org.apache.zookeeper.data.Stat exists(java.lang.String,boolean)>($r10, 0);
+
+        if $r12 != null goto label1;
+
+        $r31 = <java.lang.System: java.io.PrintStream out>;
+
+        $r43 = new java.lang.StringBuilder;
+
+        specialinvoke $r43.<java.lang.StringBuilder: void <init>()>();
+
+        $r32 = virtualinvoke $r43.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Quota does not exist for ");
+
+        $r33 = virtualinvoke $r32.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r2);
+
+        $r34 = virtualinvoke $r33.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r31.<java.io.PrintStream: void println(java.lang.String)>($r34);
+
+        return 1;
+
+     label1:
+        $r44 = new org.apache.zookeeper.data.Stat;
+
+        specialinvoke $r44.<org.apache.zookeeper.data.Stat: void <init>()>();
+
+        $r14 = virtualinvoke r11.<org.apache.zookeeper.ZooKeeper: byte[] getData(java.lang.String,boolean,org.apache.zookeeper.data.Stat)>($r10, 0, $r44);
+
+     label2:
+        goto label4;
+
+     label3:
+        $r35 := @caughtexception;
+
+        $r37 = <java.lang.System: java.io.PrintStream err>;
+
+        $r45 = new java.lang.StringBuilder;
+
+        specialinvoke $r45.<java.lang.StringBuilder: void <init>()>();
+
+        $r38 = virtualinvoke $r45.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("quota does not exist for ");
+
+        $r39 = virtualinvoke $r38.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r2);
+
+        $r40 = virtualinvoke $r39.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r37.<java.io.PrintStream: void println(java.lang.String)>($r40);
+
+        return 1;
+
+     label4:
+        $r47 = new org.apache.zookeeper.StatsTrack;
+
+        $r46 = new java.lang.String;
+
+        specialinvoke $r46.<java.lang.String: void <init>(byte[])>($r14);
+
+        specialinvoke $r47.<org.apache.zookeeper.StatsTrack: void <init>(java.lang.String)>($r46);
+
+        if z0 == 0 goto label5;
+
+        if z1 != 0 goto label5;
+
+        virtualinvoke $r47.<org.apache.zookeeper.StatsTrack: void setBytes(long)>(-1L);
+
+        $r28 = virtualinvoke $r47.<org.apache.zookeeper.StatsTrack: java.lang.String toString()>();
+
+        $r29 = virtualinvoke $r28.<java.lang.String: byte[] getBytes()>();
+
+        $i1 = (int) -1;
+
+        virtualinvoke r11.<org.apache.zookeeper.ZooKeeper: org.apache.zookeeper.data.Stat setData(java.lang.String,byte[],int)>($r10, $r29, $i1);
+
+        goto label9;
+
+     label5:
+        if z0 != 0 goto label6;
+
+        if z1 == 0 goto label6;
+
+        $i3 = (int) -1;
+
+        virtualinvoke $r47.<org.apache.zookeeper.StatsTrack: void setCount(int)>($i3);
+
+        $r26 = virtualinvoke $r47.<org.apache.zookeeper.StatsTrack: java.lang.String toString()>();
+
+        $r27 = virtualinvoke $r26.<java.lang.String: byte[] getBytes()>();
+
+        $i5 = (int) -1;
+
+        virtualinvoke r11.<org.apache.zookeeper.ZooKeeper: org.apache.zookeeper.data.Stat setData(java.lang.String,byte[],int)>($r10, $r27, $i5);
+
+        goto label9;
+
+     label6:
+        if z0 == 0 goto label9;
+
+        if z1 == 0 goto label9;
+
+        $r17 = virtualinvoke r11.<org.apache.zookeeper.ZooKeeper: java.util.List getChildren(java.lang.String,boolean)>($r4, 0);
+
+        $r18 = interfaceinvoke $r17.<java.util.List: java.util.Iterator iterator()>();
+
+     label7:
+        $z2 = interfaceinvoke $r18.<java.util.Iterator: boolean hasNext()>();
+
+        if $z2 == 0 goto label8;
+
+        $r19 = interfaceinvoke $r18.<java.util.Iterator: java.lang.Object next()>();
+
+        r20 = (java.lang.String) $r19;
+
+        $r48 = new java.lang.StringBuilder;
+
+        specialinvoke $r48.<java.lang.StringBuilder: void <init>()>();
+
+        $r22 = virtualinvoke $r48.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r4);
+
+        $r23 = virtualinvoke $r22.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("/");
+
+        $r24 = virtualinvoke $r23.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r20);
+
+        $r25 = virtualinvoke $r24.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $i7 = (int) -1;
+
+        virtualinvoke r11.<org.apache.zookeeper.ZooKeeper: void delete(java.lang.String,int)>($r25, $i7);
+
+        goto label7;
+
+     label8:
+        staticinvoke <org.apache.zookeeper.ZooKeeperMain: boolean trimProcQuotas(org.apache.zookeeper.ZooKeeper,java.lang.String)>(r11, $r4);
+
+     label9:
+        return 1;
+
+        catch org.apache.zookeeper.KeeperException$NoNodeException from label1 to label2 with label3;
+    }
+
+    private static void checkIfParentQuota(org.apache.zookeeper.ZooKeeper, java.lang.String) throws java.lang.InterruptedException, org.apache.zookeeper.KeeperException
+    {
+        java.lang.String[] $r1;
+        org.apache.zookeeper.KeeperException$NoNodeException $r21;
+        int i0, $i1, $i2, i3;
+        java.lang.String r0, r2, $r7, r12, $r13, $r20, r23;
+        boolean $z0, $z1;
+        org.apache.zookeeper.ZooKeeper r8;
+        org.slf4j.Logger $r22;
+        java.util.Iterator $r10;
+        java.lang.IllegalArgumentException $r14;
+        java.util.List $r9;
+        java.lang.StringBuilder $r3, $r4, $r5, $r6, $r15, $r16, $r17, $r18, $r19;
+        java.lang.Object $r11;
+
+        r8 := @parameter0: org.apache.zookeeper.ZooKeeper;
+
+        r0 := @parameter1: java.lang.String;
+
+        $r1 = virtualinvoke r0.<java.lang.String: java.lang.String[] split(java.lang.String)>("/");
+
+        r23 = "/zookeeper/quota";
+
+        i0 = lengthof $r1;
+
+        i3 = 0;
+
+     label01:
+        if i3 >= i0 goto label11;
+
+        r2 = $r1[i3];
+
+        $i1 = virtualinvoke r2.<java.lang.String: int length()>();
+
+        if $i1 != 0 goto label02;
+
+        goto label10;
+
+     label02:
+        $r3 = new java.lang.StringBuilder;
+
+        specialinvoke $r3.<java.lang.StringBuilder: void <init>()>();
+
+        $r4 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r23);
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("/");
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r2);
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        r23 = $r7;
+
+     label03:
+        $r9 = virtualinvoke r8.<org.apache.zookeeper.ZooKeeper: java.util.List getChildren(java.lang.String,boolean)>($r7, 0);
+
+     label04:
+        goto label06;
+
+     label05:
+        $r21 := @caughtexception;
+
+        $r22 = <org.apache.zookeeper.ZooKeeperMain: org.slf4j.Logger LOG>;
+
+        interfaceinvoke $r22.<org.slf4j.Logger: void debug(java.lang.String,java.lang.Throwable)>("child removed during quota check", $r21);
+
+        return;
+
+     label06:
+        $i2 = interfaceinvoke $r9.<java.util.List: int size()>();
+
+        if $i2 != 0 goto label07;
+
+        return;
+
+     label07:
+        $r10 = interfaceinvoke $r9.<java.util.List: java.util.Iterator iterator()>();
+
+     label08:
+        $z0 = interfaceinvoke $r10.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label10;
+
+        $r11 = interfaceinvoke $r10.<java.util.Iterator: java.lang.Object next()>();
+
+        r12 = (java.lang.String) $r11;
+
+        $r13 = "zookeeper_limits";
+
+        $z1 = virtualinvoke $r13.<java.lang.String: boolean equals(java.lang.Object)>(r12);
+
+        if $z1 == 0 goto label09;
+
+        $r14 = new java.lang.IllegalArgumentException;
+
+        $r15 = new java.lang.StringBuilder;
+
+        specialinvoke $r15.<java.lang.StringBuilder: void <init>()>();
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r0);
+
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" has a parent ");
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r7);
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" which has a quota");
+
+        $r20 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r14.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>($r20);
+
+        throw $r14;
+
+     label09:
+        goto label08;
+
+     label10:
+        i3 = i3 + 1;
+
+        goto label01;
+
+     label11:
+        return;
+
+        catch org.apache.zookeeper.KeeperException$NoNodeException from label03 to label04 with label05;
+    }
+
+    public static boolean createQuota(org.apache.zookeeper.ZooKeeper, java.lang.String, long, int) throws org.apache.zookeeper.KeeperException, java.io.IOException, java.lang.InterruptedException
+    {
+        org.apache.zookeeper.CreateMode $r23, $r28, $r36, $r38, $r40;
+        byte[] $r22, $r27, $r57, $r61;
+        byte $b2;
+        org.apache.zookeeper.ZooKeeper r0;
+        java.lang.StringBuilder $r4, $r5, $r11, $r12, $r13, $r16, $r17, $r18, $r31, $r33, $r45, $r46, $r47, $r48, $r52, $r53, $r69, $r71, $r72, $r74, $r75, $r76, $r77;
+        long l0;
+        java.util.ArrayList $r24, $r29, $r37, $r39, $r41;
+        java.lang.String r1, $r6, $r14, $r19, $r21, $r26, $r32, $r34, $r35, $r49, $r54, $r60, r65, r66, $r81;
+        org.apache.zookeeper.data.Stat $r2, $r9, $r80;
+        org.apache.zookeeper.KeeperException$NoNodeException $r64;
+        boolean $z0, $z1;
+        java.util.List $r7;
+        java.lang.String[] $r67;
+        int i1, i3, $i4, $i6, $i8;
+        java.util.Iterator $r8;
+        java.lang.IllegalArgumentException $r70, $r73;
+        org.apache.zookeeper.KeeperException$NodeExistsException $r55, $r62, $r63;
+        org.apache.zookeeper.StatsTrack $r78, $r79, $r82;
+        java.lang.Object $r42;
+
+        r0 := @parameter0: org.apache.zookeeper.ZooKeeper;
+
+        r1 := @parameter1: java.lang.String;
+
+        l0 := @parameter2: long;
+
+        i1 := @parameter3: int;
+
+        $r2 = virtualinvoke r0.<org.apache.zookeeper.ZooKeeper: org.apache.zookeeper.data.Stat exists(java.lang.String,boolean)>(r1, 0);
+
+        if $r2 != null goto label01;
+
+        $r70 = new java.lang.IllegalArgumentException;
+
+        $r69 = new java.lang.StringBuilder;
+
+        specialinvoke $r69.<java.lang.StringBuilder: void <init>()>();
+
+        $r52 = virtualinvoke $r69.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r1);
+
+        $r53 = virtualinvoke $r52.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" does not exist.");
+
+        $r54 = virtualinvoke $r53.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r70.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>($r54);
+
+        throw $r70;
+
+     label01:
+        r65 = "/zookeeper/quota";
+
+        $r71 = new java.lang.StringBuilder;
+
+        specialinvoke $r71.<java.lang.StringBuilder: void <init>()>();
+
+        $r4 = virtualinvoke $r71.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("/zookeeper/quota");
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r1);
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.String toString()>();
+
+     label02:
+        $r7 = virtualinvoke r0.<org.apache.zookeeper.ZooKeeper: java.util.List getChildren(java.lang.String,boolean)>($r6, 0);
+
+        $r8 = interfaceinvoke $r7.<java.util.List: java.util.Iterator iterator()>();
+
+     label03:
+        $z0 = interfaceinvoke $r8.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label05;
+
+        $r42 = interfaceinvoke $r8.<java.util.Iterator: java.lang.Object next()>();
+
+        r66 = (java.lang.String) $r42;
+
+        $z1 = virtualinvoke r66.<java.lang.String: boolean startsWith(java.lang.String)>("zookeeper_");
+
+        if $z1 != 0 goto label04;
+
+        $r73 = new java.lang.IllegalArgumentException;
+
+        $r72 = new java.lang.StringBuilder;
+
+        specialinvoke $r72.<java.lang.StringBuilder: void <init>()>();
+
+        $r45 = virtualinvoke $r72.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r1);
+
+        $r46 = virtualinvoke $r45.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" has child ");
+
+        $r47 = virtualinvoke $r46.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r66);
+
+        $r48 = virtualinvoke $r47.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" which has a quota");
+
+        $r49 = virtualinvoke $r48.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r73.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>($r49);
+
+        throw $r73;
+
+     label04:
+        goto label03;
+
+     label05:
+        goto label07;
+
+     label06:
+        $r64 := @caughtexception;
+
+     label07:
+        staticinvoke <org.apache.zookeeper.ZooKeeperMain: void checkIfParentQuota(org.apache.zookeeper.ZooKeeper,java.lang.String)>(r0, r1);
+
+        $r9 = virtualinvoke r0.<org.apache.zookeeper.ZooKeeper: org.apache.zookeeper.data.Stat exists(java.lang.String,boolean)>("/zookeeper/quota", 0);
+
+        if $r9 != null goto label11;
+
+     label08:
+        $r39 = <org.apache.zookeeper.ZooDefs$Ids: java.util.ArrayList OPEN_ACL_UNSAFE>;
+
+        $r38 = <org.apache.zookeeper.CreateMode: org.apache.zookeeper.CreateMode PERSISTENT>;
+
+        virtualinvoke r0.<org.apache.zookeeper.ZooKeeper: java.lang.String create(java.lang.String,byte[],java.util.List,org.apache.zookeeper.CreateMode)>("/zookeeper", null, $r39, $r38);
+
+        $r41 = <org.apache.zookeeper.ZooDefs$Ids: java.util.ArrayList OPEN_ACL_UNSAFE>;
+
+        $r40 = <org.apache.zookeeper.CreateMode: org.apache.zookeeper.CreateMode PERSISTENT>;
+
+        virtualinvoke r0.<org.apache.zookeeper.ZooKeeper: java.lang.String create(java.lang.String,byte[],java.util.List,org.apache.zookeeper.CreateMode)>("/zookeeper/quota", null, $r41, $r40);
+
+     label09:
+        goto label11;
+
+     label10:
+        $r63 := @caughtexception;
+
+     label11:
+        $r67 = virtualinvoke r1.<java.lang.String: java.lang.String[] split(java.lang.String)>("/");
+
+        $r74 = new java.lang.StringBuilder;
+
+        specialinvoke $r74.<java.lang.StringBuilder: void <init>()>();
+
+        virtualinvoke $r74.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("/zookeeper/quota");
+
+        i3 = 1;
+
+     label12:
+        $i4 = lengthof $r67;
+
+        if i3 >= $i4 goto label17;
+
+        $r75 = new java.lang.StringBuilder;
+
+        specialinvoke $r75.<java.lang.StringBuilder: void <init>()>();
+
+        $r31 = virtualinvoke $r75.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("/");
+
+        $r32 = $r67[i3];
+
+        $r33 = virtualinvoke $r31.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r32);
+
+        $r34 = virtualinvoke $r33.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r74.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r34);
+
+        $r35 = virtualinvoke $r74.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        r65 = $r35;
+
+     label13:
+        $r37 = <org.apache.zookeeper.ZooDefs$Ids: java.util.ArrayList OPEN_ACL_UNSAFE>;
+
+        $r36 = <org.apache.zookeeper.CreateMode: org.apache.zookeeper.CreateMode PERSISTENT>;
+
+        virtualinvoke r0.<org.apache.zookeeper.ZooKeeper: java.lang.String create(java.lang.String,byte[],java.util.List,org.apache.zookeeper.CreateMode)>($r35, null, $r37, $r36);
+
+     label14:
+        goto label16;
+
+     label15:
+        $r62 := @caughtexception;
+
+     label16:
+        i3 = i3 + 1;
+
+        goto label12;
+
+     label17:
+        $r76 = new java.lang.StringBuilder;
+
+        specialinvoke $r76.<java.lang.StringBuilder: void <init>()>();
+
+        $r11 = virtualinvoke $r76.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r65);
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("/");
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("zookeeper_stats");
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r77 = new java.lang.StringBuilder;
+
+        specialinvoke $r77.<java.lang.StringBuilder: void <init>()>();
+
+        $r16 = virtualinvoke $r77.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r65);
+
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("/");
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("zookeeper_limits");
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r78 = new org.apache.zookeeper.StatsTrack;
+
+        specialinvoke $r78.<org.apache.zookeeper.StatsTrack: void <init>(java.lang.String)>(null);
+
+        virtualinvoke $r78.<org.apache.zookeeper.StatsTrack: void setBytes(long)>(l0);
+
+        virtualinvoke $r78.<org.apache.zookeeper.StatsTrack: void setCount(int)>(i1);
+
+     label18:
+        $r21 = virtualinvoke $r78.<org.apache.zookeeper.StatsTrack: java.lang.String toString()>();
+
+        $r22 = virtualinvoke $r21.<java.lang.String: byte[] getBytes()>();
+
+        $r24 = <org.apache.zookeeper.ZooDefs$Ids: java.util.ArrayList OPEN_ACL_UNSAFE>;
+
+        $r23 = <org.apache.zookeeper.CreateMode: org.apache.zookeeper.CreateMode PERSISTENT>;
+
+        virtualinvoke r0.<org.apache.zookeeper.ZooKeeper: java.lang.String create(java.lang.String,byte[],java.util.List,org.apache.zookeeper.CreateMode)>($r19, $r22, $r24, $r23);
+
+        $r79 = new org.apache.zookeeper.StatsTrack;
+
+        specialinvoke $r79.<org.apache.zookeeper.StatsTrack: void <init>(java.lang.String)>(null);
+
+        virtualinvoke $r79.<org.apache.zookeeper.StatsTrack: void setBytes(long)>(0L);
+
+        virtualinvoke $r79.<org.apache.zookeeper.StatsTrack: void setCount(int)>(0);
+
+        $r26 = virtualinvoke $r79.<org.apache.zookeeper.StatsTrack: java.lang.String toString()>();
+
+        $r27 = virtualinvoke $r26.<java.lang.String: byte[] getBytes()>();
+
+        $r29 = <org.apache.zookeeper.ZooDefs$Ids: java.util.ArrayList OPEN_ACL_UNSAFE>;
+
+        $r28 = <org.apache.zookeeper.CreateMode: org.apache.zookeeper.CreateMode PERSISTENT>;
+
+        virtualinvoke r0.<org.apache.zookeeper.ZooKeeper: java.lang.String create(java.lang.String,byte[],java.util.List,org.apache.zookeeper.CreateMode)>($r14, $r27, $r29, $r28);
+
+     label19:
+        goto label23;
+
+     label20:
+        $r55 := @caughtexception;
+
+        $r80 = new org.apache.zookeeper.data.Stat;
+
+        specialinvoke $r80.<org.apache.zookeeper.data.Stat: void <init>()>();
+
+        $r57 = virtualinvoke r0.<org.apache.zookeeper.ZooKeeper: byte[] getData(java.lang.String,boolean,org.apache.zookeeper.data.Stat)>($r19, 0, $r80);
+
+        $r82 = new org.apache.zookeeper.StatsTrack;
+
+        $r81 = new java.lang.String;
+
+        specialinvoke $r81.<java.lang.String: void <init>(byte[])>($r57);
+
+        specialinvoke $r82.<org.apache.zookeeper.StatsTrack: void <init>(java.lang.String)>($r81);
+
+        $b2 = l0 cmp -1L;
+
+        if $b2 == 0 goto label21;
+
+        virtualinvoke $r82.<org.apache.zookeeper.StatsTrack: void setBytes(long)>(l0);
+
+     label21:
+        $i6 = (int) -1;
+
+        if i1 == $i6 goto label22;
+
+        virtualinvoke $r82.<org.apache.zookeeper.StatsTrack: void setCount(int)>(i1);
+
+     label22:
+        $r60 = virtualinvoke $r82.<org.apache.zookeeper.StatsTrack: java.lang.String toString()>();
+
+        $r61 = virtualinvoke $r60.<java.lang.String: byte[] getBytes()>();
+
+        $i8 = (int) -1;
+
+        virtualinvoke r0.<org.apache.zookeeper.ZooKeeper: org.apache.zookeeper.data.Stat setData(java.lang.String,byte[],int)>($r19, $r61, $i8);
+
+     label23:
+        return 1;
+
+        catch org.apache.zookeeper.KeeperException$NoNodeException from label02 to label05 with label06;
+        catch org.apache.zookeeper.KeeperException$NodeExistsException from label08 to label09 with label10;
+        catch org.apache.zookeeper.KeeperException$NodeExistsException from label13 to label14 with label15;
+        catch org.apache.zookeeper.KeeperException$NodeExistsException from label18 to label19 with label20;
+    }
+
+    protected boolean processCmd(org.apache.zookeeper.ZooKeeperMain$MyCommandOptions) throws org.apache.zookeeper.KeeperException, java.io.IOException, java.lang.InterruptedException
+    {
+        org.apache.zookeeper.KeeperException$NoAuthException $r16;
+        org.apache.zookeeper.ZooKeeperMain$MyCommandOptions r1;
+        org.apache.zookeeper.ZooKeeperMain r0;
+        java.lang.StringBuilder $r3, $r5, $r7, $r10, $r12, $r14, $r17, $r19, $r21, $r24, $r26, $r28, $r31, $r33, $r35, $r38, $r40, $r42, $r45, $r47, $r49, $r52, $r54, $r56, $r59, $r61, $r63, $r66, $r68, $r69;
+        org.apache.zookeeper.KeeperException$NotReadOnlyException $r30;
+        org.apache.zookeeper.KeeperException$InvalidACLException $r23;
+        java.lang.String $r6, $r8, $r13, $r15, $r20, $r22, $r27, $r29, $r34, $r36, $r41, $r43, $r48, $r50, $r55, $r57, $r62, $r64, $r70;
+        org.apache.zookeeper.KeeperException$NoChildrenForEphemeralsException $r51;
+        org.apache.zookeeper.KeeperException$BadVersionException $r2;
+        org.apache.zookeeper.KeeperException$NoNodeException $r58;
+        org.apache.zookeeper.KeeperException$BadArgumentsException $r9;
+        boolean $z0;
+        org.apache.zookeeper.KeeperException$NotEmptyException $r37;
+        java.io.PrintStream $r4, $r11, $r18, $r25, $r32, $r39, $r46, $r53, $r60, $r67;
+        java.lang.IllegalArgumentException $r65;
+        org.apache.zookeeper.KeeperException$NodeExistsException $r44;
+
+        r0 := @this: org.apache.zookeeper.ZooKeeperMain;
+
+        r1 := @parameter0: org.apache.zookeeper.ZooKeeperMain$MyCommandOptions;
+
+     label01:
+        $z0 = virtualinvoke r0.<org.apache.zookeeper.ZooKeeperMain: boolean processZKCmd(org.apache.zookeeper.ZooKeeperMain$MyCommandOptions)>(r1);
+
+     label02:
+        return $z0;
+
+     label03:
+        $r65 := @caughtexception;
+
+        $r67 = <java.lang.System: java.io.PrintStream err>;
+
+        $r66 = new java.lang.StringBuilder;
+
+        specialinvoke $r66.<java.lang.StringBuilder: void <init>()>();
+
+        $r68 = virtualinvoke $r66.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Command failed: ");
+
+        $r69 = virtualinvoke $r68.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r65);
+
+        $r70 = virtualinvoke $r69.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r67.<java.io.PrintStream: void println(java.lang.String)>($r70);
+
+        goto label13;
+
+     label04:
+        $r58 := @caughtexception;
+
+        $r60 = <java.lang.System: java.io.PrintStream err>;
+
+        $r59 = new java.lang.StringBuilder;
+
+        specialinvoke $r59.<java.lang.StringBuilder: void <init>()>();
+
+        $r61 = virtualinvoke $r59.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Node does not exist: ");
+
+        $r62 = virtualinvoke $r58.<org.apache.zookeeper.KeeperException$NoNodeException: java.lang.String getPath()>();
+
+        $r63 = virtualinvoke $r61.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r62);
+
+        $r64 = virtualinvoke $r63.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r60.<java.io.PrintStream: void println(java.lang.String)>($r64);
+
+        goto label13;
+
+     label05:
+        $r51 := @caughtexception;
+
+        $r53 = <java.lang.System: java.io.PrintStream err>;
+
+        $r52 = new java.lang.StringBuilder;
+
+        specialinvoke $r52.<java.lang.StringBuilder: void <init>()>();
+
+        $r54 = virtualinvoke $r52.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Ephemerals cannot have children: ");
+
+        $r55 = virtualinvoke $r51.<org.apache.zookeeper.KeeperException$NoChildrenForEphemeralsException: java.lang.String getPath()>();
+
+        $r56 = virtualinvoke $r54.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r55);
+
+        $r57 = virtualinvoke $r56.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r53.<java.io.PrintStream: void println(java.lang.String)>($r57);
+
+        goto label13;
+
+     label06:
+        $r44 := @caughtexception;
+
+        $r46 = <java.lang.System: java.io.PrintStream err>;
+
+        $r45 = new java.lang.StringBuilder;
+
+        specialinvoke $r45.<java.lang.StringBuilder: void <init>()>();
+
+        $r47 = virtualinvoke $r45.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Node already exists: ");
+
+        $r48 = virtualinvoke $r44.<org.apache.zookeeper.KeeperException$NodeExistsException: java.lang.String getPath()>();
+
+        $r49 = virtualinvoke $r47.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r48);
+
+        $r50 = virtualinvoke $r49.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r46.<java.io.PrintStream: void println(java.lang.String)>($r50);
+
+        goto label13;
+
+     label07:
+        $r37 := @caughtexception;
+
+        $r39 = <java.lang.System: java.io.PrintStream err>;
+
+        $r38 = new java.lang.StringBuilder;
+
+        specialinvoke $r38.<java.lang.StringBuilder: void <init>()>();
+
+        $r40 = virtualinvoke $r38.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Node not empty: ");
+
+        $r41 = virtualinvoke $r37.<org.apache.zookeeper.KeeperException$NotEmptyException: java.lang.String getPath()>();
+
+        $r42 = virtualinvoke $r40.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r41);
+
+        $r43 = virtualinvoke $r42.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r39.<java.io.PrintStream: void println(java.lang.String)>($r43);
+
+        goto label13;
+
+     label08:
+        $r30 := @caughtexception;
+
+        $r32 = <java.lang.System: java.io.PrintStream err>;
+
+        $r31 = new java.lang.StringBuilder;
+
+        specialinvoke $r31.<java.lang.StringBuilder: void <init>()>();
+
+        $r33 = virtualinvoke $r31.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Not a read-only call: ");
+
+        $r34 = virtualinvoke $r30.<org.apache.zookeeper.KeeperException$NotReadOnlyException: java.lang.String getPath()>();
+
+        $r35 = virtualinvoke $r33.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r34);
+
+        $r36 = virtualinvoke $r35.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r32.<java.io.PrintStream: void println(java.lang.String)>($r36);
+
+        goto label13;
+
+     label09:
+        $r23 := @caughtexception;
+
+        $r25 = <java.lang.System: java.io.PrintStream err>;
+
+        $r24 = new java.lang.StringBuilder;
+
+        specialinvoke $r24.<java.lang.StringBuilder: void <init>()>();
+
+        $r26 = virtualinvoke $r24.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Acl is not valid : ");
+
+        $r27 = virtualinvoke $r23.<org.apache.zookeeper.KeeperException$InvalidACLException: java.lang.String getPath()>();
+
+        $r28 = virtualinvoke $r26.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r27);
+
+        $r29 = virtualinvoke $r28.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r25.<java.io.PrintStream: void println(java.lang.String)>($r29);
+
+        goto label13;
+
+     label10:
+        $r16 := @caughtexception;
+
+        $r18 = <java.lang.System: java.io.PrintStream err>;
+
+        $r17 = new java.lang.StringBuilder;
+
+        specialinvoke $r17.<java.lang.StringBuilder: void <init>()>();
+
+        $r19 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Authentication is not valid : ");
+
+        $r20 = virtualinvoke $r16.<org.apache.zookeeper.KeeperException$NoAuthException: java.lang.String getPath()>();
+
+        $r21 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r20);
+
+        $r22 = virtualinvoke $r21.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r18.<java.io.PrintStream: void println(java.lang.String)>($r22);
+
+        goto label13;
+
+     label11:
+        $r9 := @caughtexception;
+
+        $r11 = <java.lang.System: java.io.PrintStream err>;
+
+        $r10 = new java.lang.StringBuilder;
+
+        specialinvoke $r10.<java.lang.StringBuilder: void <init>()>();
+
+        $r12 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Arguments are not valid : ");
+
+        $r13 = virtualinvoke $r9.<org.apache.zookeeper.KeeperException$BadArgumentsException: java.lang.String getPath()>();
+
+        $r14 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r13);
+
+        $r15 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r11.<java.io.PrintStream: void println(java.lang.String)>($r15);
+
+        goto label13;
+
+     label12:
+        $r2 := @caughtexception;
+
+        $r4 = <java.lang.System: java.io.PrintStream err>;
+
+        $r3 = new java.lang.StringBuilder;
+
+        specialinvoke $r3.<java.lang.StringBuilder: void <init>()>();
+
+        $r5 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("version No is not valid : ");
+
+        $r6 = virtualinvoke $r2.<org.apache.zookeeper.KeeperException$BadVersionException: java.lang.String getPath()>();
+
+        $r7 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r6);
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r4.<java.io.PrintStream: void println(java.lang.String)>($r8);
+
+     label13:
+        return 0;
+
+        catch java.lang.IllegalArgumentException from label01 to label02 with label03;
+        catch org.apache.zookeeper.KeeperException$NoNodeException from label01 to label02 with label04;
+        catch org.apache.zookeeper.KeeperException$NoChildrenForEphemeralsException from label01 to label02 with label05;
+        catch org.apache.zookeeper.KeeperException$NodeExistsException from label01 to label02 with label06;
+        catch org.apache.zookeeper.KeeperException$NotEmptyException from label01 to label02 with label07;
+        catch org.apache.zookeeper.KeeperException$NotReadOnlyException from label01 to label02 with label08;
+        catch org.apache.zookeeper.KeeperException$InvalidACLException from label01 to label02 with label09;
+        catch org.apache.zookeeper.KeeperException$NoAuthException from label01 to label02 with label10;
+        catch org.apache.zookeeper.KeeperException$BadArgumentsException from label01 to label02 with label11;
+        catch org.apache.zookeeper.KeeperException$BadVersionException from label01 to label02 with label12;
+    }
+
+    protected boolean processZKCmd(org.apache.zookeeper.ZooKeeperMain$MyCommandOptions) throws org.apache.zookeeper.KeeperException, java.io.IOException, java.lang.InterruptedException
+    {
+        org.apache.zookeeper.ZooKeeper$States $r13;
+        java.lang.Integer $r150, $r156, $r164;
+        org.apache.zookeeper.ZooKeeperMain r10;
+        org.apache.zookeeper.AsyncCallback$DataCallback $r110;
+        org.apache.zookeeper.data.Stat $r80, $r85, $r115, $r204;
+        org.apache.zookeeper.KeeperException$NoNodeException $r172, $r211;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i11, $i12, $i13, $i14, $i15, $i16, $i17, $i18, $i19, $i20, $i21, $i22, $i23, $i24, $i25, $i26, $i27, $i28, $i29, $i30, $i31, $i32, $i33, $i34, $i35, $i36, i37, $i39, $i40, $i41, $i42, $i43, $i49, $i51, $i53, $i55;
+        java.io.PrintStream $r11, $r26, $r45, $r54, $r70, $r92, $r101, $r104, $r108, $r129, $r141, $r146, $r168, $r169, $r170, $r174;
+        org.apache.zookeeper.StatsTrack $r215, $r220;
+        org.apache.zookeeper.CreateMode r182;
+        org.apache.zookeeper.ZooKeeper $r12, $r15, $r18, $r19, $r20, $r23, $r24, $r36, $r37, $r49, $r62, $r79, $r83, $r87, $r99, $r102, $r105, $r111, $r113, $r117, $r118, $r125, $r171, $r181;
+        org.apache.zookeeper.ZooKeeperMain$2 $r223;
+        java.lang.String $r3, $r9, $r14, $r16, $r21, $r22, $r33, $r34, $r35, $r43, $r48, $r58, $r60, $r67, $r76, $r78, $r82, $r86, $r96, $r98, $r109, $r112, $r116, $r119, $r120, $r121, $r122, $r123, $r124, $r127, $r132, $r133, $r134, $r135, $r136, $r137, $r138, $r139, $r144, $r152, $r154, $r155, $r160, $r162, $r178, $r180, r183, r184, r185, r186, r187, r189, r190, r191, r193, r194, r195, r196, r197, r198, r199, r200, r201, r202, $r209, $r214, $r219;
+        org.apache.zookeeper.data.Id $r93;
+        boolean $z0, z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9, $z10, $z11, $z12, $z13, $z14, $z15, $z16, $z17, $z18, $z19, $z20, $z21, $z22, $z23, $z24, $z25, $z26, $z27, $z28, $z29, $z30, $z31, $z32, $z33, $z34, $z35, $z36, $z37, $z38, $z39, $z40;
+        java.util.List $r84, $r88, $r100, $r103, r179;
+        byte[] $r50, $r68, $r106, $r114, $r126, $r188, r203;
+        byte b38, b44, b45, b46, b47;
+        java.util.Map $r4;
+        org.apache.zookeeper.ZooKeeperMain$MyCommandOptions r1, $r158, $r161, $r167;
+        java.lang.StringBuilder $r7, $r8, $r27, $r28, $r29, $r30, $r31, $r32, $r39, $r40, $r41, $r42, $r46, $r47, $r55, $r56, $r57, $r59, $r63, $r64, $r65, $r66, $r71, $r72, $r73, $r77, $r94, $r95, $r97, $r130, $r131, $r142, $r143, $r147, $r148, $r153, $r175, $r176, $r177, $r205, $r206, $r207, $r208, $r210, $r212, $r213, $r216, $r217, $r218, $r221, $r222;
+        long $l10;
+        org.apache.zookeeper.data.ACL r192;
+        org.slf4j.Logger $r6;
+        java.lang.Object $r90, $r151, $r159, $r166;
+        java.lang.String[] $r2;
+        java.util.HashMap $r149, $r157, $r163, $r165;
+        java.util.Iterator $r89;
+
+        r10 := @this: org.apache.zookeeper.ZooKeeperMain;
+
+        r1 := @parameter0: org.apache.zookeeper.ZooKeeperMain$MyCommandOptions;
+
+        $r204 = new org.apache.zookeeper.data.Stat;
+
+        specialinvoke $r204.<org.apache.zookeeper.data.Stat: void <init>()>();
+
+        $r2 = virtualinvoke r1.<org.apache.zookeeper.ZooKeeperMain$MyCommandOptions: java.lang.String[] getArgArray()>();
+
+        $r3 = virtualinvoke r1.<org.apache.zookeeper.ZooKeeperMain$MyCommandOptions: java.lang.String getCommand()>();
+
+        $i0 = lengthof $r2;
+
+        if $i0 >= 1 goto label01;
+
+        staticinvoke <org.apache.zookeeper.ZooKeeperMain: void usage()>();
+
+        return 0;
+
+     label01:
+        $r4 = <org.apache.zookeeper.ZooKeeperMain: java.util.Map commandMap>;
+
+        $z0 = interfaceinvoke $r4.<java.util.Map: boolean containsKey(java.lang.Object)>($r3);
+
+        if $z0 != 0 goto label02;
+
+        staticinvoke <org.apache.zookeeper.ZooKeeperMain: void usage()>();
+
+        return 0;
+
+     label02:
+        $i1 = lengthof $r2;
+
+        if $i1 <= 2 goto label03;
+
+        $z40 = 1;
+
+        goto label04;
+
+     label03:
+        $z40 = 0;
+
+     label04:
+        z1 = $z40;
+
+        r179 = <org.apache.zookeeper.ZooDefs$Ids: java.util.ArrayList OPEN_ACL_UNSAFE>;
+
+        $r6 = <org.apache.zookeeper.ZooKeeperMain: org.slf4j.Logger LOG>;
+
+        $r205 = new java.lang.StringBuilder;
+
+        specialinvoke $r205.<java.lang.StringBuilder: void <init>()>();
+
+        $r7 = virtualinvoke $r205.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Processing ");
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r3);
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r6.<org.slf4j.Logger: void debug(java.lang.String)>($r9);
+
+        $z2 = virtualinvoke $r3.<java.lang.String: boolean equals(java.lang.Object)>("quit");
+
+        if $z2 == 0 goto label05;
+
+        $r170 = <java.lang.System: java.io.PrintStream out>;
+
+        virtualinvoke $r170.<java.io.PrintStream: void println(java.lang.String)>("Quitting...");
+
+        $r171 = r10.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeper zk>;
+
+        virtualinvoke $r171.<org.apache.zookeeper.ZooKeeper: void close()>();
+
+        staticinvoke <java.lang.System: void exit(int)>(0);
+
+        goto label19;
+
+     label05:
+        $z3 = virtualinvoke $r3.<java.lang.String: boolean equals(java.lang.Object)>("redo");
+
+        if $z3 == 0 goto label08;
+
+        $i33 = lengthof $r2;
+
+        if $i33 < 2 goto label08;
+
+        $r155 = $r2[1];
+
+        $r156 = staticinvoke <java.lang.Integer: java.lang.Integer decode(java.lang.String)>($r155);
+
+        $i34 = r10.<org.apache.zookeeper.ZooKeeperMain: int commandCount>;
+
+        $i35 = virtualinvoke $r156.<java.lang.Integer: int intValue()>();
+
+        if $i34 > $i35 goto label06;
+
+        $r169 = <java.lang.System: java.io.PrintStream out>;
+
+        virtualinvoke $r169.<java.io.PrintStream: void println(java.lang.String)>("Command index out of range");
+
+        return 0;
+
+     label06:
+        $r158 = r10.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeperMain$MyCommandOptions cl>;
+
+        $r157 = r10.<org.apache.zookeeper.ZooKeeperMain: java.util.HashMap history>;
+
+        $r159 = virtualinvoke $r157.<java.util.HashMap: java.lang.Object get(java.lang.Object)>($r156);
+
+        $r160 = (java.lang.String) $r159;
+
+        virtualinvoke $r158.<org.apache.zookeeper.ZooKeeperMain$MyCommandOptions: boolean parseCommand(java.lang.String)>($r160);
+
+        $r161 = r10.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeperMain$MyCommandOptions cl>;
+
+        $r162 = virtualinvoke $r161.<org.apache.zookeeper.ZooKeeperMain$MyCommandOptions: java.lang.String getCommand()>();
+
+        $z39 = virtualinvoke $r162.<java.lang.String: boolean equals(java.lang.Object)>("redo");
+
+        if $z39 == 0 goto label07;
+
+        $r168 = <java.lang.System: java.io.PrintStream out>;
+
+        virtualinvoke $r168.<java.io.PrintStream: void println(java.lang.String)>("No redoing redos");
+
+        return 0;
+
+     label07:
+        $r163 = r10.<org.apache.zookeeper.ZooKeeperMain: java.util.HashMap history>;
+
+        $i36 = r10.<org.apache.zookeeper.ZooKeeperMain: int commandCount>;
+
+        $r164 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i36);
+
+        $r165 = r10.<org.apache.zookeeper.ZooKeeperMain: java.util.HashMap history>;
+
+        $r166 = virtualinvoke $r165.<java.util.HashMap: java.lang.Object get(java.lang.Object)>($r156);
+
+        virtualinvoke $r163.<java.util.HashMap: java.lang.Object put(java.lang.Object,java.lang.Object)>($r164, $r166);
+
+        $r167 = r10.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeperMain$MyCommandOptions cl>;
+
+        virtualinvoke r10.<org.apache.zookeeper.ZooKeeperMain: boolean processCmd(org.apache.zookeeper.ZooKeeperMain$MyCommandOptions)>($r167);
+
+        goto label19;
+
+     label08:
+        $z4 = virtualinvoke $r3.<java.lang.String: boolean equals(java.lang.Object)>("history");
+
+        if $z4 == 0 goto label13;
+
+        $i31 = r10.<org.apache.zookeeper.ZooKeeperMain: int commandCount>;
+
+        i37 = $i31 - 10;
+
+     label09:
+        $i32 = r10.<org.apache.zookeeper.ZooKeeperMain: int commandCount>;
+
+        if i37 > $i32 goto label12;
+
+        if i37 >= 0 goto label10;
+
+        goto label11;
+
+     label10:
+        $r146 = <java.lang.System: java.io.PrintStream out>;
+
+        $r206 = new java.lang.StringBuilder;
+
+        specialinvoke $r206.<java.lang.StringBuilder: void <init>()>();
+
+        $r147 = virtualinvoke $r206.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>(i37);
+
+        $r148 = virtualinvoke $r147.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" - ");
+
+        $r149 = r10.<org.apache.zookeeper.ZooKeeperMain: java.util.HashMap history>;
+
+        $r150 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i37);
+
+        $r151 = virtualinvoke $r149.<java.util.HashMap: java.lang.Object get(java.lang.Object)>($r150);
+
+        $r152 = (java.lang.String) $r151;
+
+        $r153 = virtualinvoke $r148.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r152);
+
+        $r154 = virtualinvoke $r153.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r146.<java.io.PrintStream: void println(java.lang.String)>($r154);
+
+     label11:
+        i37 = i37 + 1;
+
+        goto label09;
+
+     label12:
+        goto label19;
+
+     label13:
+        $z5 = virtualinvoke $r3.<java.lang.String: boolean equals(java.lang.Object)>("printwatches");
+
+        if $z5 == 0 goto label17;
+
+        $i30 = lengthof $r2;
+
+        if $i30 != 1 goto label16;
+
+        $r141 = <java.lang.System: java.io.PrintStream out>;
+
+        $r207 = new java.lang.StringBuilder;
+
+        specialinvoke $r207.<java.lang.StringBuilder: void <init>()>();
+
+        $r142 = virtualinvoke $r207.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("printwatches is ");
+
+        $z38 = r10.<org.apache.zookeeper.ZooKeeperMain: boolean printWatches>;
+
+        if $z38 == 0 goto label14;
+
+        $r180 = "on";
+
+        goto label15;
+
+     label14:
+        $r180 = "off";
+
+     label15:
+        $r143 = virtualinvoke $r142.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r180);
+
+        $r144 = virtualinvoke $r143.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r141.<java.io.PrintStream: void println(java.lang.String)>($r144);
+
+        goto label19;
+
+     label16:
+        $r139 = $r2[1];
+
+        $z37 = virtualinvoke $r139.<java.lang.String: boolean equals(java.lang.Object)>("on");
+
+        r10.<org.apache.zookeeper.ZooKeeperMain: boolean printWatches> = $z37;
+
+        goto label19;
+
+     label17:
+        $z6 = virtualinvoke $r3.<java.lang.String: boolean equals(java.lang.Object)>("connect");
+
+        if $z6 == 0 goto label19;
+
+        $i29 = lengthof $r2;
+
+        if $i29 < 2 goto label18;
+
+        $r138 = $r2[1];
+
+        virtualinvoke r10.<org.apache.zookeeper.ZooKeeperMain: void connectToZK(java.lang.String)>($r138);
+
+        goto label19;
+
+     label18:
+        $r137 = r10.<org.apache.zookeeper.ZooKeeperMain: java.lang.String host>;
+
+        virtualinvoke r10.<org.apache.zookeeper.ZooKeeperMain: void connectToZK(java.lang.String)>($r137);
+
+     label19:
+        $r181 = r10.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeper zk>;
+
+        if $r181 == null goto label20;
+
+        $r12 = r10.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeper zk>;
+
+        $r13 = virtualinvoke $r12.<org.apache.zookeeper.ZooKeeper: org.apache.zookeeper.ZooKeeper$States getState()>();
+
+        $z7 = virtualinvoke $r13.<org.apache.zookeeper.ZooKeeper$States: boolean isAlive()>();
+
+        if $z7 != 0 goto label21;
+
+     label20:
+        $r11 = <java.lang.System: java.io.PrintStream out>;
+
+        virtualinvoke $r11.<java.io.PrintStream: void println(java.lang.String)>("Not connected");
+
+        return 0;
+
+     label21:
+        $z8 = virtualinvoke $r3.<java.lang.String: boolean equals(java.lang.Object)>("create");
+
+        if $z8 == 0 goto label28;
+
+        $i25 = lengthof $r2;
+
+        if $i25 < 3 goto label28;
+
+        b38 = 0;
+
+        b47 = 0;
+
+        b46 = 0;
+
+        b45 = 0;
+
+        b44 = 0;
+
+        r182 = <org.apache.zookeeper.CreateMode: org.apache.zookeeper.CreateMode PERSISTENT>;
+
+        $r120 = $r2[1];
+
+        $z31 = virtualinvoke $r120.<java.lang.String: boolean equals(java.lang.Object)>("-e");
+
+        if $z31 == 0 goto label22;
+
+        $r136 = $r2[2];
+
+        $z36 = virtualinvoke $r136.<java.lang.String: boolean equals(java.lang.Object)>("-s");
+
+        if $z36 != 0 goto label23;
+
+     label22:
+        $r121 = $r2[1];
+
+        $z32 = virtualinvoke $r121.<java.lang.String: boolean equals(java.lang.Object)>("-s");
+
+        if $z32 == 0 goto label24;
+
+        $r135 = $r2[2];
+
+        $z35 = virtualinvoke $r135.<java.lang.String: boolean equals(java.lang.Object)>("-e");
+
+        if $z35 == 0 goto label24;
+
+     label23:
+        b38 = 2;
+
+        b47 = 2;
+
+        b46 = 2;
+
+        b45 = 2;
+
+        b44 = 2;
+
+        r182 = <org.apache.zookeeper.CreateMode: org.apache.zookeeper.CreateMode EPHEMERAL_SEQUENTIAL>;
+
+        goto label26;
+
+     label24:
+        $r122 = $r2[1];
+
+        $z33 = virtualinvoke $r122.<java.lang.String: boolean equals(java.lang.Object)>("-e");
+
+        if $z33 == 0 goto label25;
+
+        b38 = 1;
+
+        b47 = 1;
+
+        b46 = 1;
+
+        b45 = 1;
+
+        b44 = 1;
+
+        r182 = <org.apache.zookeeper.CreateMode: org.apache.zookeeper.CreateMode EPHEMERAL>;
+
+        goto label26;
+
+     label25:
+        $r123 = $r2[1];
+
+        $z34 = virtualinvoke $r123.<java.lang.String: boolean equals(java.lang.Object)>("-s");
+
+        if $z34 == 0 goto label26;
+
+        b38 = 1;
+
+        b47 = 1;
+
+        b46 = 1;
+
+        b45 = 1;
+
+        b44 = 1;
+
+        r182 = <org.apache.zookeeper.CreateMode: org.apache.zookeeper.CreateMode PERSISTENT_SEQUENTIAL>;
+
+     label26:
+        $i39 = lengthof $r2;
+
+        $i40 = b46 + 4;
+
+        if $i39 != $i40 goto label27;
+
+        $i28 = b44 + 3;
+
+        $r133 = $r2[$i28];
+
+        r179 = staticinvoke <org.apache.zookeeper.ZooKeeperMain: java.util.List parseACLs(java.lang.String)>($r133);
+
+     label27:
+        $i26 = b47 + 1;
+
+        $r134 = $r2[$i26];
+
+        $r125 = r10.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeper zk>;
+
+        $i27 = b45 + 2;
+
+        $r124 = $r2[$i27];
+
+        $r126 = virtualinvoke $r124.<java.lang.String: byte[] getBytes()>();
+
+        $r127 = virtualinvoke $r125.<org.apache.zookeeper.ZooKeeper: java.lang.String create(java.lang.String,byte[],java.util.List,org.apache.zookeeper.CreateMode)>($r134, $r126, r179, r182);
+
+        $r129 = <java.lang.System: java.io.PrintStream err>;
+
+        $r208 = new java.lang.StringBuilder;
+
+        specialinvoke $r208.<java.lang.StringBuilder: void <init>()>();
+
+        $r130 = virtualinvoke $r208.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Created ");
+
+        $r131 = virtualinvoke $r130.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r127);
+
+        $r132 = virtualinvoke $r131.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r129.<java.io.PrintStream: void println(java.lang.String)>($r132);
+
+        goto label68;
+
+     label28:
+        $z9 = virtualinvoke $r3.<java.lang.String: boolean equals(java.lang.Object)>("delete");
+
+        if $z9 == 0 goto label31;
+
+        $i24 = lengthof $r2;
+
+        if $i24 < 2 goto label31;
+
+        r183 = $r2[1];
+
+        $r118 = r10.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeper zk>;
+
+        if z1 == 0 goto label29;
+
+        $r119 = $r2[2];
+
+        $i41 = staticinvoke <java.lang.Integer: int parseInt(java.lang.String)>($r119);
+
+        goto label30;
+
+     label29:
+        $i49 = (int) -1;
+
+        $i41 = $i49;
+
+     label30:
+        virtualinvoke $r118.<org.apache.zookeeper.ZooKeeper: void delete(java.lang.String,int)>(r183, $i41);
+
+        goto label68;
+
+     label31:
+        $z10 = virtualinvoke $r3.<java.lang.String: boolean equals(java.lang.Object)>("rmr");
+
+        if $z10 == 0 goto label32;
+
+        $i23 = lengthof $r2;
+
+        if $i23 < 2 goto label32;
+
+        r184 = $r2[1];
+
+        $r117 = r10.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeper zk>;
+
+        staticinvoke <org.apache.zookeeper.ZKUtil: void deleteRecursive(org.apache.zookeeper.ZooKeeper,java.lang.String)>($r117, r184);
+
+        goto label68;
+
+     label32:
+        $z11 = virtualinvoke $r3.<java.lang.String: boolean equals(java.lang.Object)>("set");
+
+        if $z11 == 0 goto label35;
+
+        $i21 = lengthof $r2;
+
+        if $i21 < 3 goto label35;
+
+        r185 = $r2[1];
+
+        $r113 = r10.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeper zk>;
+
+        $r112 = $r2[2];
+
+        $r114 = virtualinvoke $r112.<java.lang.String: byte[] getBytes()>();
+
+        $i22 = lengthof $r2;
+
+        if $i22 <= 3 goto label33;
+
+        $r116 = $r2[3];
+
+        $i42 = staticinvoke <java.lang.Integer: int parseInt(java.lang.String)>($r116);
+
+        goto label34;
+
+     label33:
+        $i51 = (int) -1;
+
+        $i42 = $i51;
+
+     label34:
+        $r115 = virtualinvoke $r113.<org.apache.zookeeper.ZooKeeper: org.apache.zookeeper.data.Stat setData(java.lang.String,byte[],int)>(r185, $r114, $i42);
+
+        staticinvoke <org.apache.zookeeper.ZooKeeperMain: void printStat(org.apache.zookeeper.data.Stat)>($r115);
+
+        goto label68;
+
+     label35:
+        $z12 = virtualinvoke $r3.<java.lang.String: boolean equals(java.lang.Object)>("aget");
+
+        if $z12 == 0 goto label36;
+
+        $i20 = lengthof $r2;
+
+        if $i20 < 2 goto label36;
+
+        r186 = $r2[1];
+
+        $r111 = r10.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeper zk>;
+
+        $r110 = <org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.AsyncCallback$DataCallback dataCallback>;
+
+        virtualinvoke $r111.<org.apache.zookeeper.ZooKeeper: void getData(java.lang.String,boolean,org.apache.zookeeper.AsyncCallback$DataCallback,java.lang.Object)>(r186, z1, $r110, r186);
+
+        goto label68;
+
+     label36:
+        $z13 = virtualinvoke $r3.<java.lang.String: boolean equals(java.lang.Object)>("get");
+
+        if $z13 == 0 goto label39;
+
+        $i19 = lengthof $r2;
+
+        if $i19 < 2 goto label39;
+
+        r187 = $r2[1];
+
+        $r105 = r10.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeper zk>;
+
+        $r106 = virtualinvoke $r105.<org.apache.zookeeper.ZooKeeper: byte[] getData(java.lang.String,boolean,org.apache.zookeeper.data.Stat)>(r187, z1, $r204);
+
+        if $r106 != null goto label37;
+
+        $r109 = "null";
+
+        $r188 = virtualinvoke $r109.<java.lang.String: byte[] getBytes()>();
+
+        goto label38;
+
+     label37:
+        $r188 = $r106;
+
+     label38:
+        $r108 = <java.lang.System: java.io.PrintStream out>;
+
+        $r209 = new java.lang.String;
+
+        specialinvoke $r209.<java.lang.String: void <init>(byte[])>($r188);
+
+        virtualinvoke $r108.<java.io.PrintStream: void println(java.lang.String)>($r209);
+
+        staticinvoke <org.apache.zookeeper.ZooKeeperMain: void printStat(org.apache.zookeeper.data.Stat)>($r204);
+
+        goto label68;
+
+     label39:
+        $z14 = virtualinvoke $r3.<java.lang.String: boolean equals(java.lang.Object)>("ls");
+
+        if $z14 == 0 goto label40;
+
+        $i18 = lengthof $r2;
+
+        if $i18 < 2 goto label40;
+
+        r189 = $r2[1];
+
+        $r102 = r10.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeper zk>;
+
+        $r103 = virtualinvoke $r102.<org.apache.zookeeper.ZooKeeper: java.util.List getChildren(java.lang.String,boolean)>(r189, z1);
+
+        $r104 = <java.lang.System: java.io.PrintStream out>;
+
+        virtualinvoke $r104.<java.io.PrintStream: void println(java.lang.Object)>($r103);
+
+        goto label68;
+
+     label40:
+        $z15 = virtualinvoke $r3.<java.lang.String: boolean equals(java.lang.Object)>("ls2");
+
+        if $z15 == 0 goto label41;
+
+        $i17 = lengthof $r2;
+
+        if $i17 < 2 goto label41;
+
+        r190 = $r2[1];
+
+        $r99 = r10.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeper zk>;
+
+        $r100 = virtualinvoke $r99.<org.apache.zookeeper.ZooKeeper: java.util.List getChildren(java.lang.String,boolean,org.apache.zookeeper.data.Stat)>(r190, z1, $r204);
+
+        $r101 = <java.lang.System: java.io.PrintStream out>;
+
+        virtualinvoke $r101.<java.io.PrintStream: void println(java.lang.Object)>($r100);
+
+        staticinvoke <org.apache.zookeeper.ZooKeeperMain: void printStat(org.apache.zookeeper.data.Stat)>($r204);
+
+        goto label68;
+
+     label41:
+        $z16 = virtualinvoke $r3.<java.lang.String: boolean equals(java.lang.Object)>("getAcl");
+
+        if $z16 == 0 goto label44;
+
+        $i15 = lengthof $r2;
+
+        if $i15 < 2 goto label44;
+
+        r191 = $r2[1];
+
+        $r87 = r10.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeper zk>;
+
+        $r88 = virtualinvoke $r87.<org.apache.zookeeper.ZooKeeper: java.util.List getACL(java.lang.String,org.apache.zookeeper.data.Stat)>(r191, $r204);
+
+        $r89 = interfaceinvoke $r88.<java.util.List: java.util.Iterator iterator()>();
+
+     label42:
+        $z30 = interfaceinvoke $r89.<java.util.Iterator: boolean hasNext()>();
+
+        if $z30 == 0 goto label43;
+
+        $r90 = interfaceinvoke $r89.<java.util.Iterator: java.lang.Object next()>();
+
+        r192 = (org.apache.zookeeper.data.ACL) $r90;
+
+        $r92 = <java.lang.System: java.io.PrintStream out>;
+
+        $r210 = new java.lang.StringBuilder;
+
+        specialinvoke $r210.<java.lang.StringBuilder: void <init>()>();
+
+        $r93 = virtualinvoke r192.<org.apache.zookeeper.data.ACL: org.apache.zookeeper.data.Id getId()>();
+
+        $r94 = virtualinvoke $r210.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r93);
+
+        $r95 = virtualinvoke $r94.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(": ");
+
+        $i16 = virtualinvoke r192.<org.apache.zookeeper.data.ACL: int getPerms()>();
+
+        $r96 = staticinvoke <org.apache.zookeeper.ZooKeeperMain: java.lang.String getPermString(int)>($i16);
+
+        $r97 = virtualinvoke $r95.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r96);
+
+        $r98 = virtualinvoke $r97.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r92.<java.io.PrintStream: void println(java.lang.String)>($r98);
+
+        goto label42;
+
+     label43:
+        goto label68;
+
+     label44:
+        $z17 = virtualinvoke $r3.<java.lang.String: boolean equals(java.lang.Object)>("setAcl");
+
+        if $z17 == 0 goto label47;
+
+        $i13 = lengthof $r2;
+
+        if $i13 < 3 goto label47;
+
+        r193 = $r2[1];
+
+        $r83 = r10.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeper zk>;
+
+        $r82 = $r2[2];
+
+        $r84 = staticinvoke <org.apache.zookeeper.ZooKeeperMain: java.util.List parseACLs(java.lang.String)>($r82);
+
+        $i14 = lengthof $r2;
+
+        if $i14 <= 4 goto label45;
+
+        $r86 = $r2[3];
+
+        $i43 = staticinvoke <java.lang.Integer: int parseInt(java.lang.String)>($r86);
+
+        goto label46;
+
+     label45:
+        $i53 = (int) -1;
+
+        $i43 = $i53;
+
+     label46:
+        $r85 = virtualinvoke $r83.<org.apache.zookeeper.ZooKeeper: org.apache.zookeeper.data.Stat setACL(java.lang.String,java.util.List,int)>(r193, $r84, $i43);
+
+        staticinvoke <org.apache.zookeeper.ZooKeeperMain: void printStat(org.apache.zookeeper.data.Stat)>($r85);
+
+        goto label68;
+
+     label47:
+        $z18 = virtualinvoke $r3.<java.lang.String: boolean equals(java.lang.Object)>("stat");
+
+        if $z18 == 0 goto label49;
+
+        $i12 = lengthof $r2;
+
+        if $i12 < 2 goto label49;
+
+        r194 = $r2[1];
+
+        $r79 = r10.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeper zk>;
+
+        $r80 = virtualinvoke $r79.<org.apache.zookeeper.ZooKeeper: org.apache.zookeeper.data.Stat exists(java.lang.String,boolean)>(r194, z1);
+
+        if $r80 != null goto label48;
+
+        $r211 = new org.apache.zookeeper.KeeperException$NoNodeException;
+
+        specialinvoke $r211.<org.apache.zookeeper.KeeperException$NoNodeException: void <init>(java.lang.String)>(r194);
+
+        throw $r211;
+
+     label48:
+        staticinvoke <org.apache.zookeeper.ZooKeeperMain: void printStat(org.apache.zookeeper.data.Stat)>($r80);
+
+        goto label68;
+
+     label49:
+        $z19 = virtualinvoke $r3.<java.lang.String: boolean equals(java.lang.Object)>("listquota");
+
+        if $z19 == 0 goto label54;
+
+        $i11 = lengthof $r2;
+
+        if $i11 < 2 goto label54;
+
+        r195 = $r2[1];
+
+        $r212 = new java.lang.StringBuilder;
+
+        specialinvoke $r212.<java.lang.StringBuilder: void <init>()>();
+
+        $r39 = virtualinvoke $r212.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("/zookeeper/quota");
+
+        $r40 = virtualinvoke $r39.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r195);
+
+        $r41 = virtualinvoke $r40.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("/");
+
+        $r42 = virtualinvoke $r41.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("zookeeper_limits");
+
+        $r43 = virtualinvoke $r42.<java.lang.StringBuilder: java.lang.String toString()>();
+
+     label50:
+        $r45 = <java.lang.System: java.io.PrintStream err>;
+
+        $r213 = new java.lang.StringBuilder;
+
+        specialinvoke $r213.<java.lang.StringBuilder: void <init>()>();
+
+        $r46 = virtualinvoke $r213.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("absolute path is ");
+
+        $r47 = virtualinvoke $r46.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r43);
+
+        $r48 = virtualinvoke $r47.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r45.<java.io.PrintStream: void println(java.lang.String)>($r48);
+
+        $r49 = r10.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeper zk>;
+
+        $r50 = virtualinvoke $r49.<org.apache.zookeeper.ZooKeeper: byte[] getData(java.lang.String,boolean,org.apache.zookeeper.data.Stat)>($r43, 0, $r204);
+
+        $r215 = new org.apache.zookeeper.StatsTrack;
+
+        $r214 = new java.lang.String;
+
+        specialinvoke $r214.<java.lang.String: void <init>(byte[])>($r50);
+
+        specialinvoke $r215.<org.apache.zookeeper.StatsTrack: void <init>(java.lang.String)>($r214);
+
+        $r54 = <java.lang.System: java.io.PrintStream out>;
+
+        $r216 = new java.lang.StringBuilder;
+
+        specialinvoke $r216.<java.lang.StringBuilder: void <init>()>();
+
+        $r55 = virtualinvoke $r216.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Output quota for ");
+
+        $r56 = virtualinvoke $r55.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r195);
+
+        $r57 = virtualinvoke $r56.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" ");
+
+        $r58 = virtualinvoke $r215.<org.apache.zookeeper.StatsTrack: java.lang.String toString()>();
+
+        $r59 = virtualinvoke $r57.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r58);
+
+        $r60 = virtualinvoke $r59.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r54.<java.io.PrintStream: void println(java.lang.String)>($r60);
+
+        $r62 = r10.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeper zk>;
+
+        $r217 = new java.lang.StringBuilder;
+
+        specialinvoke $r217.<java.lang.StringBuilder: void <init>()>();
+
+        $r63 = virtualinvoke $r217.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("/zookeeper/quota");
+
+        $r64 = virtualinvoke $r63.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r195);
+
+        $r65 = virtualinvoke $r64.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("/");
+
+        $r66 = virtualinvoke $r65.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("zookeeper_stats");
+
+        $r67 = virtualinvoke $r66.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r68 = virtualinvoke $r62.<org.apache.zookeeper.ZooKeeper: byte[] getData(java.lang.String,boolean,org.apache.zookeeper.data.Stat)>($r67, 0, $r204);
+
+        $r70 = <java.lang.System: java.io.PrintStream out>;
+
+        $r218 = new java.lang.StringBuilder;
+
+        specialinvoke $r218.<java.lang.StringBuilder: void <init>()>();
+
+        $r71 = virtualinvoke $r218.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Output stat for ");
+
+        $r72 = virtualinvoke $r71.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r195);
+
+        $r73 = virtualinvoke $r72.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" ");
+
+        $r220 = new org.apache.zookeeper.StatsTrack;
+
+        $r219 = new java.lang.String;
+
+        specialinvoke $r219.<java.lang.String: void <init>(byte[])>($r68);
+
+        specialinvoke $r220.<org.apache.zookeeper.StatsTrack: void <init>(java.lang.String)>($r219);
+
+        $r76 = virtualinvoke $r220.<org.apache.zookeeper.StatsTrack: java.lang.String toString()>();
+
+        $r77 = virtualinvoke $r73.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r76);
+
+        $r78 = virtualinvoke $r77.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r70.<java.io.PrintStream: void println(java.lang.String)>($r78);
+
+     label51:
+        goto label53;
+
+     label52:
+        $r172 := @caughtexception;
+
+        $r174 = <java.lang.System: java.io.PrintStream err>;
+
+        $r221 = new java.lang.StringBuilder;
+
+        specialinvoke $r221.<java.lang.StringBuilder: void <init>()>();
+
+        $r175 = virtualinvoke $r221.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("quota for ");
+
+        $r176 = virtualinvoke $r175.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r195);
+
+        $r177 = virtualinvoke $r176.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" does not exist.");
+
+        $r178 = virtualinvoke $r177.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r174.<java.io.PrintStream: void println(java.lang.String)>($r178);
+
+     label53:
+        goto label68;
+
+     label54:
+        $z20 = virtualinvoke $r3.<java.lang.String: boolean equals(java.lang.Object)>("setquota");
+
+        if $z20 == 0 goto label58;
+
+        $i8 = lengthof $r2;
+
+        if $i8 < 4 goto label58;
+
+        r196 = $r2[1];
+
+        r197 = $r2[2];
+
+        r198 = $r2[3];
+
+        $r26 = <java.lang.System: java.io.PrintStream err>;
+
+        $r222 = new java.lang.StringBuilder;
+
+        specialinvoke $r222.<java.lang.StringBuilder: void <init>()>();
+
+        $r27 = virtualinvoke $r222.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Comment: the parts are option ");
+
+        $r28 = virtualinvoke $r27.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r196);
+
+        $r29 = virtualinvoke $r28.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" val ");
+
+        $r30 = virtualinvoke $r29.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r197);
+
+        $r31 = virtualinvoke $r30.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" path ");
+
+        $r32 = virtualinvoke $r31.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r198);
+
+        $r33 = virtualinvoke $r32.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r26.<java.io.PrintStream: void println(java.lang.String)>($r33);
+
+        $r34 = "-b";
+
+        $z28 = virtualinvoke $r34.<java.lang.String: boolean equals(java.lang.Object)>(r196);
+
+        if $z28 == 0 goto label55;
+
+        $r37 = r10.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeper zk>;
+
+        $l10 = staticinvoke <java.lang.Long: long parseLong(java.lang.String)>(r197);
+
+        $i55 = (int) -1;
+
+        staticinvoke <org.apache.zookeeper.ZooKeeperMain: boolean createQuota(org.apache.zookeeper.ZooKeeper,java.lang.String,long,int)>($r37, r198, $l10, $i55);
+
+        goto label57;
+
+     label55:
+        $r35 = "-n";
+
+        $z29 = virtualinvoke $r35.<java.lang.String: boolean equals(java.lang.Object)>(r196);
+
+        if $z29 == 0 goto label56;
+
+        $r36 = r10.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeper zk>;
+
+        $i9 = staticinvoke <java.lang.Integer: int parseInt(java.lang.String)>(r197);
+
+        staticinvoke <org.apache.zookeeper.ZooKeeperMain: boolean createQuota(org.apache.zookeeper.ZooKeeper,java.lang.String,long,int)>($r36, r198, -1L, $i9);
+
+        goto label57;
+
+     label56:
+        staticinvoke <org.apache.zookeeper.ZooKeeperMain: void usage()>();
+
+     label57:
+        goto label68;
+
+     label58:
+        $z21 = virtualinvoke $r3.<java.lang.String: boolean equals(java.lang.Object)>("delquota");
+
+        if $z21 == 0 goto label63;
+
+        $i5 = lengthof $r2;
+
+        if $i5 < 2 goto label63;
+
+        $i6 = lengthof $r2;
+
+        if $i6 != 3 goto label61;
+
+        r199 = $r2[1];
+
+        r200 = $r2[2];
+
+        $r21 = "-b";
+
+        $z26 = virtualinvoke $r21.<java.lang.String: boolean equals(java.lang.Object)>(r199);
+
+        if $z26 == 0 goto label59;
+
+        $r24 = r10.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeper zk>;
+
+        staticinvoke <org.apache.zookeeper.ZooKeeperMain: boolean delQuota(org.apache.zookeeper.ZooKeeper,java.lang.String,boolean,boolean)>($r24, r200, 1, 0);
+
+        goto label60;
+
+     label59:
+        $r22 = "-n";
+
+        $z27 = virtualinvoke $r22.<java.lang.String: boolean equals(java.lang.Object)>(r199);
+
+        if $z27 == 0 goto label60;
+
+        $r23 = r10.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeper zk>;
+
+        staticinvoke <org.apache.zookeeper.ZooKeeperMain: boolean delQuota(org.apache.zookeeper.ZooKeeper,java.lang.String,boolean,boolean)>($r23, r200, 0, 1);
+
+     label60:
+        goto label68;
+
+     label61:
+        $i7 = lengthof $r2;
+
+        if $i7 != 2 goto label62;
+
+        r201 = $r2[1];
+
+        $r20 = r10.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeper zk>;
+
+        staticinvoke <org.apache.zookeeper.ZooKeeperMain: boolean delQuota(org.apache.zookeeper.ZooKeeper,java.lang.String,boolean,boolean)>($r20, r201, 1, 1);
+
+        goto label68;
+
+     label62:
+        $z25 = virtualinvoke $r3.<java.lang.String: boolean equals(java.lang.Object)>("help");
+
+        if $z25 == 0 goto label68;
+
+        staticinvoke <org.apache.zookeeper.ZooKeeperMain: void usage()>();
+
+        goto label68;
+
+     label63:
+        $z22 = virtualinvoke $r3.<java.lang.String: boolean equals(java.lang.Object)>("close");
+
+        if $z22 == 0 goto label64;
+
+        $r19 = r10.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeper zk>;
+
+        virtualinvoke $r19.<org.apache.zookeeper.ZooKeeper: void close()>();
+
+        goto label68;
+
+     label64:
+        $z23 = virtualinvoke $r3.<java.lang.String: boolean equals(java.lang.Object)>("sync");
+
+        if $z23 == 0 goto label65;
+
+        $i4 = lengthof $r2;
+
+        if $i4 < 2 goto label65;
+
+        r202 = $r2[1];
+
+        $r18 = r10.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeper zk>;
+
+        $r223 = new org.apache.zookeeper.ZooKeeperMain$2;
+
+        specialinvoke $r223.<org.apache.zookeeper.ZooKeeperMain$2: void <init>(org.apache.zookeeper.ZooKeeperMain)>(r10);
+
+        virtualinvoke $r18.<org.apache.zookeeper.ZooKeeper: void sync(java.lang.String,org.apache.zookeeper.AsyncCallback$VoidCallback,java.lang.Object)>(r202, $r223, null);
+
+        goto label68;
+
+     label65:
+        $z24 = virtualinvoke $r3.<java.lang.String: boolean equals(java.lang.Object)>("addauth");
+
+        if $z24 == 0 goto label67;
+
+        $i2 = lengthof $r2;
+
+        if $i2 < 2 goto label67;
+
+        r203 = null;
+
+        $i3 = lengthof $r2;
+
+        if $i3 < 3 goto label66;
+
+        $r16 = $r2[2];
+
+        r203 = virtualinvoke $r16.<java.lang.String: byte[] getBytes()>();
+
+     label66:
+        $r15 = r10.<org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.ZooKeeper zk>;
+
+        $r14 = $r2[1];
+
+        virtualinvoke $r15.<org.apache.zookeeper.ZooKeeper: void addAuthInfo(java.lang.String,byte[])>($r14, r203);
+
+        goto label68;
+
+     label67:
+        staticinvoke <org.apache.zookeeper.ZooKeeperMain: void usage()>();
+
+     label68:
+        return z1;
+
+        catch org.apache.zookeeper.KeeperException$NoNodeException from label50 to label51 with label52;
+    }
+
+    private static java.lang.String getPermString(int)
+    {
+        int i0, $i1, $i2, $i3, $i4, $i5;
+        java.lang.StringBuilder $r0;
+        java.lang.String $r1;
+
+        i0 := @parameter0: int;
+
+        $r0 = new java.lang.StringBuilder;
+
+        specialinvoke $r0.<java.lang.StringBuilder: void <init>()>();
+
+        $i1 = i0 & 4;
+
+        if $i1 == 0 goto label1;
+
+        virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(char)>(99);
+
+     label1:
+        $i2 = i0 & 8;
+
+        if $i2 == 0 goto label2;
+
+        virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(char)>(100);
+
+     label2:
+        $i3 = i0 & 1;
+
+        if $i3 == 0 goto label3;
+
+        virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(char)>(114);
+
+     label3:
+        $i4 = i0 & 2;
+
+        if $i4 == 0 goto label4;
+
+        virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(char)>(119);
+
+     label4:
+        $i5 = i0 & 16;
+
+        if $i5 == 0 goto label5;
+
+        virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(char)>(97);
+
+     label5:
+        $r1 = virtualinvoke $r0.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        return $r1;
+    }
+
+    private static java.util.List parseACLs(java.lang.String)
+    {
+        java.lang.String[] $r1;
+        org.apache.zookeeper.data.ACL $r16;
+        java.util.ArrayList $r14;
+        int i0, $i1, $i2, $i3, $i4, $i5, i6, $i8, $i10;
+        java.lang.String r0, r3, $r6, $r7, $r8, $r13;
+        java.io.PrintStream $r9;
+        org.apache.zookeeper.data.Id $r17;
+        java.lang.StringBuilder $r11, $r12, $r15;
+
+        r0 := @parameter0: java.lang.String;
+
+        $r1 = virtualinvoke r0.<java.lang.String: java.lang.String[] split(java.lang.String)>(",");
+
+        $r14 = new java.util.ArrayList;
+
+        specialinvoke $r14.<java.util.ArrayList: void <init>()>();
+
+        i0 = lengthof $r1;
+
+        i6 = 0;
+
+     label1:
+        if i6 >= i0 goto label5;
+
+        r3 = $r1[i6];
+
+        $i1 = virtualinvoke r3.<java.lang.String: int indexOf(int)>(58);
+
+        $i2 = virtualinvoke r3.<java.lang.String: int lastIndexOf(int)>(58);
+
+        $i8 = (int) -1;
+
+        if $i1 == $i8 goto label2;
+
+        $i10 = (int) -1;
+
+        if $i2 == $i10 goto label2;
+
+        if $i1 != $i2 goto label3;
+
+     label2:
+        $r9 = <java.lang.System: java.io.PrintStream err>;
+
+        $r15 = new java.lang.StringBuilder;
+
+        specialinvoke $r15.<java.lang.StringBuilder: void <init>()>();
+
+        $r11 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r3);
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" does not have the form scheme:id:perm");
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r9.<java.io.PrintStream: void println(java.lang.String)>($r13);
+
+        goto label4;
+
+     label3:
+        $r16 = new org.apache.zookeeper.data.ACL;
+
+        specialinvoke $r16.<org.apache.zookeeper.data.ACL: void <init>()>();
+
+        $r17 = new org.apache.zookeeper.data.Id;
+
+        $r6 = virtualinvoke r3.<java.lang.String: java.lang.String substring(int,int)>(0, $i1);
+
+        $i3 = $i1 + 1;
+
+        $r7 = virtualinvoke r3.<java.lang.String: java.lang.String substring(int,int)>($i3, $i2);
+
+        specialinvoke $r17.<org.apache.zookeeper.data.Id: void <init>(java.lang.String,java.lang.String)>($r6, $r7);
+
+        virtualinvoke $r16.<org.apache.zookeeper.data.ACL: void setId(org.apache.zookeeper.data.Id)>($r17);
+
+        $i4 = $i2 + 1;
+
+        $r8 = virtualinvoke r3.<java.lang.String: java.lang.String substring(int)>($i4);
+
+        $i5 = staticinvoke <org.apache.zookeeper.ZooKeeperMain: int getPermFromString(java.lang.String)>($r8);
+
+        virtualinvoke $r16.<org.apache.zookeeper.data.ACL: void setPerms(int)>($i5);
+
+        interfaceinvoke $r14.<java.util.List: boolean add(java.lang.Object)>($r16);
+
+     label4:
+        i6 = i6 + 1;
+
+        goto label1;
+
+     label5:
+        return $r14;
+    }
+
+    static void access$100(org.apache.zookeeper.data.Stat)
+    {
+        org.apache.zookeeper.data.Stat r0;
+
+        r0 := @parameter0: org.apache.zookeeper.data.Stat;
+
+        staticinvoke <org.apache.zookeeper.ZooKeeperMain: void printStat(org.apache.zookeeper.data.Stat)>(r0);
+
+        return;
+    }
+
+    static void <clinit>()
+    {
+        java.util.HashMap $r1;
+        org.apache.zookeeper.ZooKeeperMain$1 $r23;
+        java.util.Map $r2, $r3, $r4, $r5, $r6, $r7, $r8, $r9, $r10, $r11, $r12, $r13, $r14, $r15, $r16, $r17, $r18, $r19, $r20, $r21, $r22;
+        org.slf4j.Logger $r0;
+
+        $r0 = staticinvoke <org.slf4j.LoggerFactory: org.slf4j.Logger getLogger(java.lang.Class)>(class "Lorg/apache/zookeeper/ZooKeeperMain;");
+
+        <org.apache.zookeeper.ZooKeeperMain: org.slf4j.Logger LOG> = $r0;
+
+        $r1 = new java.util.HashMap;
+
+        specialinvoke $r1.<java.util.HashMap: void <init>()>();
+
+        <org.apache.zookeeper.ZooKeeperMain: java.util.Map commandMap> = $r1;
+
+        $r2 = <org.apache.zookeeper.ZooKeeperMain: java.util.Map commandMap>;
+
+        interfaceinvoke $r2.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>("connect", "host:port");
+
+        $r3 = <org.apache.zookeeper.ZooKeeperMain: java.util.Map commandMap>;
+
+        interfaceinvoke $r3.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>("close", "");
+
+        $r4 = <org.apache.zookeeper.ZooKeeperMain: java.util.Map commandMap>;
+
+        interfaceinvoke $r4.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>("create", "[-s] [-e] path data acl");
+
+        $r5 = <org.apache.zookeeper.ZooKeeperMain: java.util.Map commandMap>;
+
+        interfaceinvoke $r5.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>("delete", "path [version]");
+
+        $r6 = <org.apache.zookeeper.ZooKeeperMain: java.util.Map commandMap>;
+
+        interfaceinvoke $r6.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>("rmr", "path");
+
+        $r7 = <org.apache.zookeeper.ZooKeeperMain: java.util.Map commandMap>;
+
+        interfaceinvoke $r7.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>("set", "path data [version]");
+
+        $r8 = <org.apache.zookeeper.ZooKeeperMain: java.util.Map commandMap>;
+
+        interfaceinvoke $r8.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>("get", "path [watch]");
+
+        $r9 = <org.apache.zookeeper.ZooKeeperMain: java.util.Map commandMap>;
+
+        interfaceinvoke $r9.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>("ls", "path [watch]");
+
+        $r10 = <org.apache.zookeeper.ZooKeeperMain: java.util.Map commandMap>;
+
+        interfaceinvoke $r10.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>("ls2", "path [watch]");
+
+        $r11 = <org.apache.zookeeper.ZooKeeperMain: java.util.Map commandMap>;
+
+        interfaceinvoke $r11.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>("getAcl", "path");
+
+        $r12 = <org.apache.zookeeper.ZooKeeperMain: java.util.Map commandMap>;
+
+        interfaceinvoke $r12.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>("setAcl", "path acl");
+
+        $r13 = <org.apache.zookeeper.ZooKeeperMain: java.util.Map commandMap>;
+
+        interfaceinvoke $r13.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>("stat", "path [watch]");
+
+        $r14 = <org.apache.zookeeper.ZooKeeperMain: java.util.Map commandMap>;
+
+        interfaceinvoke $r14.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>("sync", "path");
+
+        $r15 = <org.apache.zookeeper.ZooKeeperMain: java.util.Map commandMap>;
+
+        interfaceinvoke $r15.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>("setquota", "-n|-b val path");
+
+        $r16 = <org.apache.zookeeper.ZooKeeperMain: java.util.Map commandMap>;
+
+        interfaceinvoke $r16.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>("listquota", "path");
+
+        $r17 = <org.apache.zookeeper.ZooKeeperMain: java.util.Map commandMap>;
+
+        interfaceinvoke $r17.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>("delquota", "[-n|-b] path");
+
+        $r18 = <org.apache.zookeeper.ZooKeeperMain: java.util.Map commandMap>;
+
+        interfaceinvoke $r18.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>("history", "");
+
+        $r19 = <org.apache.zookeeper.ZooKeeperMain: java.util.Map commandMap>;
+
+        interfaceinvoke $r19.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>("redo", "cmdno");
+
+        $r20 = <org.apache.zookeeper.ZooKeeperMain: java.util.Map commandMap>;
+
+        interfaceinvoke $r20.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>("printwatches", "on|off");
+
+        $r21 = <org.apache.zookeeper.ZooKeeperMain: java.util.Map commandMap>;
+
+        interfaceinvoke $r21.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>("quit", "");
+
+        $r22 = <org.apache.zookeeper.ZooKeeperMain: java.util.Map commandMap>;
+
+        interfaceinvoke $r22.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>("addauth", "scheme auth");
+
+        $r23 = new org.apache.zookeeper.ZooKeeperMain$1;
+
+        specialinvoke $r23.<org.apache.zookeeper.ZooKeeperMain$1: void <init>()>();
+
+        <org.apache.zookeeper.ZooKeeperMain: org.apache.zookeeper.AsyncCallback$DataCallback dataCallback> = $r23;
+
+        return;
+    }
+}

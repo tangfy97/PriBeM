@@ -1,0 +1,761 @@
+public class org.eclipse.jdt.internal.compiler.ReadManager extends java.lang.Object implements java.lang.Runnable
+{
+    org.eclipse.jdt.internal.compiler.env.ICompilationUnit[] units;
+    int nextFileToRead;
+    org.eclipse.jdt.internal.compiler.env.ICompilationUnit[] filesRead;
+    char[][] contentsRead;
+    int readyToReadPosition;
+    int nextAvailablePosition;
+    java.lang.Thread[] readingThreads;
+    char[] readInProcessMarker;
+    int sleepingThreadCount;
+    private java.lang.Throwable caughtException;
+    static int START_CUSHION;
+    public static int THRESHOLD;
+    static int CACHE_SIZE;
+
+    static void <clinit>()
+    {
+        <org.eclipse.jdt.internal.compiler.ReadManager: int START_CUSHION> = 5;
+
+        <org.eclipse.jdt.internal.compiler.ReadManager: int THRESHOLD> = 10;
+
+        <org.eclipse.jdt.internal.compiler.ReadManager: int CACHE_SIZE> = 15;
+
+        return;
+    }
+
+    public void <init>(org.eclipse.jdt.internal.compiler.env.ICompilationUnit[], int)
+    {
+        java.lang.Throwable $r20;
+        char[][] $r9;
+        java.lang.Integer r19;
+        org.eclipse.jdt.internal.compiler.ReadManager r0;
+        java.lang.Thread $r14, $r16, $r22;
+        int i0, $i1, $i2, $i3, $i4, $i5, i6, i7, $i9;
+        java.lang.reflect.Method $r4;
+        java.lang.Runtime $r17;
+        java.lang.Thread[] $r10, $r12, $r13, $r15;
+        java.lang.Class[] $r3;
+        org.eclipse.jdt.internal.compiler.env.ICompilationUnit[] $r5, r6, $r7, $r8;
+        java.lang.Exception $r21;
+        char[] $r1;
+        java.lang.Class $r2;
+        java.lang.Object $r18;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.ReadManager;
+
+        r6 := @parameter0: org.eclipse.jdt.internal.compiler.env.ICompilationUnit[];
+
+        i0 := @parameter1: int;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        $r1 = newarray (char)[0];
+
+        r0.<org.eclipse.jdt.internal.compiler.ReadManager: char[] readInProcessMarker> = $r1;
+
+        i6 = 0;
+
+     label01:
+        $r2 = staticinvoke <java.lang.Class: java.lang.Class forName(java.lang.String)>("java.lang.Runtime");
+
+        $r3 = newarray (java.lang.Class)[0];
+
+        $r4 = virtualinvoke $r2.<java.lang.Class: java.lang.reflect.Method getDeclaredMethod(java.lang.String,java.lang.Class[])>("availableProcessors", $r3);
+
+        if $r4 == null goto label05;
+
+        $r17 = staticinvoke <java.lang.Runtime: java.lang.Runtime getRuntime()>();
+
+        $r18 = virtualinvoke $r4.<java.lang.reflect.Method: java.lang.Object invoke(java.lang.Object,java.lang.Object[])>($r17, null);
+
+        r19 = (java.lang.Integer) $r18;
+
+        $i4 = virtualinvoke r19.<java.lang.Integer: int intValue()>();
+
+        i6 = $i4 + 1;
+
+        if i6 >= 2 goto label02;
+
+        i6 = 0;
+
+        goto label05;
+
+     label02:
+        $i5 = <org.eclipse.jdt.internal.compiler.ReadManager: int CACHE_SIZE>;
+
+        if i6 <= $i5 goto label05;
+
+        i6 = <org.eclipse.jdt.internal.compiler.ReadManager: int CACHE_SIZE>;
+
+     label03:
+        goto label05;
+
+     label04:
+        $r21 := @caughtexception;
+
+     label05:
+        if i6 <= 0 goto label12;
+
+        entermonitor r0;
+
+     label06:
+        $r5 = newarray (org.eclipse.jdt.internal.compiler.env.ICompilationUnit)[i0];
+
+        r0.<org.eclipse.jdt.internal.compiler.ReadManager: org.eclipse.jdt.internal.compiler.env.ICompilationUnit[] units> = $r5;
+
+        $r7 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: org.eclipse.jdt.internal.compiler.env.ICompilationUnit[] units>;
+
+        staticinvoke <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)>(r6, 0, $r7, 0, i0);
+
+        $i1 = <org.eclipse.jdt.internal.compiler.ReadManager: int START_CUSHION>;
+
+        r0.<org.eclipse.jdt.internal.compiler.ReadManager: int nextFileToRead> = $i1;
+
+        $i2 = <org.eclipse.jdt.internal.compiler.ReadManager: int CACHE_SIZE>;
+
+        $r8 = newarray (org.eclipse.jdt.internal.compiler.env.ICompilationUnit)[$i2];
+
+        r0.<org.eclipse.jdt.internal.compiler.ReadManager: org.eclipse.jdt.internal.compiler.env.ICompilationUnit[] filesRead> = $r8;
+
+        $i3 = <org.eclipse.jdt.internal.compiler.ReadManager: int CACHE_SIZE>;
+
+        $r9 = newarray (char[])[$i3];
+
+        r0.<org.eclipse.jdt.internal.compiler.ReadManager: char[][] contentsRead> = $r9;
+
+        r0.<org.eclipse.jdt.internal.compiler.ReadManager: int readyToReadPosition> = 0;
+
+        r0.<org.eclipse.jdt.internal.compiler.ReadManager: int nextAvailablePosition> = 0;
+
+        r0.<org.eclipse.jdt.internal.compiler.ReadManager: int sleepingThreadCount> = 0;
+
+        $r10 = newarray (java.lang.Thread)[i6];
+
+        r0.<org.eclipse.jdt.internal.compiler.ReadManager: java.lang.Thread[] readingThreads> = $r10;
+
+        i7 = i6;
+
+        goto label08;
+
+     label07:
+        $r12 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: java.lang.Thread[] readingThreads>;
+
+        $r22 = new java.lang.Thread;
+
+        specialinvoke $r22.<java.lang.Thread: void <init>(java.lang.Runnable,java.lang.String)>(r0, "Compiler Source File Reader");
+
+        $r12[i7] = $r22;
+
+        $r13 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: java.lang.Thread[] readingThreads>;
+
+        $r14 = $r13[i7];
+
+        virtualinvoke $r14.<java.lang.Thread: void setDaemon(boolean)>(1);
+
+        $r15 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: java.lang.Thread[] readingThreads>;
+
+        $r16 = $r15[i7];
+
+        virtualinvoke $r16.<java.lang.Thread: void start()>();
+
+     label08:
+        $i9 = (int) -1;
+
+        i7 = i7 + $i9;
+
+        if i7 >= 0 goto label07;
+
+        exitmonitor r0;
+
+     label09:
+        goto label12;
+
+     label10:
+        $r20 := @caughtexception;
+
+        exitmonitor r0;
+
+     label11:
+        throw $r20;
+
+     label12:
+        return;
+
+        catch java.lang.Exception from label01 to label03 with label04;
+        catch java.lang.Throwable from label06 to label09 with label10;
+        catch java.lang.Throwable from label10 to label11 with label10;
+    }
+
+    public char[] getContents(org.eclipse.jdt.internal.compiler.env.ICompilationUnit) throws java.lang.Error
+    {
+        char[][] $r19, $r21, $r23, $r25, $r32, $r33;
+        org.eclipse.jdt.internal.compiler.ReadManager r0;
+        boolean $z0, $z1, z2, $z3;
+        org.eclipse.jdt.internal.compiler.env.ICompilationUnit[] $r10, $r11, $r13, $r14, $r16, $r18, $r20, $r31;
+        org.eclipse.jdt.internal.compiler.env.ICompilationUnit r3, $r12, $r15;
+        java.lang.Throwable $r2, $r5, $r6, $r8, $r24, $r26, $r27, $r29, $r35;
+        java.lang.Error $r9, $r30;
+        int $i0, $i1, i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i10, $i11, $i12, $i13, $i14, $i15, $i16, $i17, $i18, $i19, i20;
+        java.lang.Thread[] $r1, $r34;
+        java.lang.RuntimeException $r7, $r28;
+        java.lang.InterruptedException $r36;
+        char[] $r4, $r17, $r22, r37;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.ReadManager;
+
+        r3 := @parameter0: org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
+
+        $r1 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: java.lang.Thread[] readingThreads>;
+
+        if $r1 == null goto label01;
+
+        $r10 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: org.eclipse.jdt.internal.compiler.env.ICompilationUnit[] units>;
+
+        $i0 = lengthof $r10;
+
+        if $i0 != 0 goto label04;
+
+     label01:
+        $r2 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: java.lang.Throwable caughtException>;
+
+        if $r2 == null goto label03;
+
+        $r5 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: java.lang.Throwable caughtException>;
+
+        $z0 = $r5 instanceof java.lang.Error;
+
+        if $z0 == 0 goto label02;
+
+        $r8 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: java.lang.Throwable caughtException>;
+
+        $r9 = (java.lang.Error) $r8;
+
+        throw $r9;
+
+     label02:
+        $r6 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: java.lang.Throwable caughtException>;
+
+        $r7 = (java.lang.RuntimeException) $r6;
+
+        throw $r7;
+
+     label03:
+        $r4 = interfaceinvoke r3.<org.eclipse.jdt.internal.compiler.env.ICompilationUnit: char[] getContents()>();
+
+        return $r4;
+
+     label04:
+        z2 = 0;
+
+        r37 = (char[]) null;
+
+        entermonitor r0;
+
+     label05:
+        $r11 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: org.eclipse.jdt.internal.compiler.env.ICompilationUnit[] filesRead>;
+
+        $i1 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: int readyToReadPosition>;
+
+        $r12 = $r11[$i1];
+
+        if r3 != $r12 goto label17;
+
+        $r21 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: char[][] contentsRead>;
+
+        $i9 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: int readyToReadPosition>;
+
+        r37 = $r21[$i9];
+
+        goto label13;
+
+     label06:
+        $r23 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: char[][] contentsRead>;
+
+        $i10 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: int readyToReadPosition>;
+
+        $r23[$i10] = null;
+
+     label07:
+        virtualinvoke r0.<java.lang.Object: void wait(long)>(250L);
+
+     label08:
+        goto label10;
+
+     label09:
+        $r36 := @caughtexception;
+
+     label10:
+        $r24 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: java.lang.Throwable caughtException>;
+
+        if $r24 == null goto label12;
+
+        $r26 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: java.lang.Throwable caughtException>;
+
+        $z1 = $r26 instanceof java.lang.Error;
+
+        if $z1 == 0 goto label11;
+
+        $r29 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: java.lang.Throwable caughtException>;
+
+        $r30 = (java.lang.Error) $r29;
+
+        throw $r30;
+
+     label11:
+        $r27 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: java.lang.Throwable caughtException>;
+
+        $r28 = (java.lang.RuntimeException) $r27;
+
+        throw $r28;
+
+     label12:
+        $r25 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: char[][] contentsRead>;
+
+        $i11 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: int readyToReadPosition>;
+
+        r37 = $r25[$i11];
+
+     label13:
+        $r22 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: char[] readInProcessMarker>;
+
+        if r37 == $r22 goto label06;
+
+        if r37 == null goto label06;
+
+        $r31 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: org.eclipse.jdt.internal.compiler.env.ICompilationUnit[] filesRead>;
+
+        $i12 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: int readyToReadPosition>;
+
+        $r31[$i12] = null;
+
+        $r32 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: char[][] contentsRead>;
+
+        $i13 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: int readyToReadPosition>;
+
+        $r32[$i13] = null;
+
+        $i14 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: int readyToReadPosition>;
+
+        $i15 = $i14 + 1;
+
+        r0.<org.eclipse.jdt.internal.compiler.ReadManager: int readyToReadPosition> = $i15;
+
+        $r33 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: char[][] contentsRead>;
+
+        $i16 = lengthof $r33;
+
+        if $i15 < $i16 goto label14;
+
+        r0.<org.eclipse.jdt.internal.compiler.ReadManager: int readyToReadPosition> = 0;
+
+     label14:
+        $i17 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: int sleepingThreadCount>;
+
+        if $i17 <= 0 goto label23;
+
+        virtualinvoke r0.<java.lang.Object: void notify()>();
+
+        $i19 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: int sleepingThreadCount>;
+
+        $r34 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: java.lang.Thread[] readingThreads>;
+
+        $i18 = lengthof $r34;
+
+        if $i19 != $i18 goto label15;
+
+        $z3 = 1;
+
+        goto label16;
+
+     label15:
+        $z3 = 0;
+
+     label16:
+        z2 = $z3;
+
+        goto label23;
+
+     label17:
+        i20 = 0;
+
+        $r13 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: org.eclipse.jdt.internal.compiler.env.ICompilationUnit[] units>;
+
+        i2 = lengthof $r13;
+
+        goto label20;
+
+     label18:
+        $r14 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: org.eclipse.jdt.internal.compiler.env.ICompilationUnit[] units>;
+
+        $r15 = $r14[i20];
+
+        if $r15 != r3 goto label19;
+
+        goto label21;
+
+     label19:
+        i20 = i20 + 1;
+
+     label20:
+        if i20 < i2 goto label18;
+
+     label21:
+        $r16 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: org.eclipse.jdt.internal.compiler.env.ICompilationUnit[] units>;
+
+        $i3 = lengthof $r16;
+
+        if i20 != $i3 goto label22;
+
+        $r20 = newarray (org.eclipse.jdt.internal.compiler.env.ICompilationUnit)[0];
+
+        r0.<org.eclipse.jdt.internal.compiler.ReadManager: org.eclipse.jdt.internal.compiler.env.ICompilationUnit[] units> = $r20;
+
+        goto label23;
+
+     label22:
+        $i4 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: int nextFileToRead>;
+
+        if i20 < $i4 goto label23;
+
+        $i5 = <org.eclipse.jdt.internal.compiler.ReadManager: int START_CUSHION>;
+
+        $i6 = i20 + $i5;
+
+        r0.<org.eclipse.jdt.internal.compiler.ReadManager: int nextFileToRead> = $i6;
+
+        r0.<org.eclipse.jdt.internal.compiler.ReadManager: int readyToReadPosition> = 0;
+
+        r0.<org.eclipse.jdt.internal.compiler.ReadManager: int nextAvailablePosition> = 0;
+
+        $i7 = <org.eclipse.jdt.internal.compiler.ReadManager: int CACHE_SIZE>;
+
+        $r18 = newarray (org.eclipse.jdt.internal.compiler.env.ICompilationUnit)[$i7];
+
+        r0.<org.eclipse.jdt.internal.compiler.ReadManager: org.eclipse.jdt.internal.compiler.env.ICompilationUnit[] filesRead> = $r18;
+
+        $i8 = <org.eclipse.jdt.internal.compiler.ReadManager: int CACHE_SIZE>;
+
+        $r19 = newarray (char[])[$i8];
+
+        r0.<org.eclipse.jdt.internal.compiler.ReadManager: char[][] contentsRead> = $r19;
+
+        virtualinvoke r0.<java.lang.Object: void notifyAll()>();
+
+     label23:
+        exitmonitor r0;
+
+     label24:
+        goto label27;
+
+     label25:
+        $r35 := @caughtexception;
+
+        exitmonitor r0;
+
+     label26:
+        throw $r35;
+
+     label27:
+        if z2 == 0 goto label28;
+
+        staticinvoke <java.lang.Thread: void yield()>();
+
+     label28:
+        if r37 == null goto label29;
+
+        return r37;
+
+     label29:
+        $r17 = interfaceinvoke r3.<org.eclipse.jdt.internal.compiler.env.ICompilationUnit: char[] getContents()>();
+
+        return $r17;
+
+        catch java.lang.InterruptedException from label07 to label08 with label09;
+        catch java.lang.Throwable from label05 to label24 with label25;
+        catch java.lang.Throwable from label25 to label26 with label25;
+    }
+
+    public void run()
+    {
+        char[][] $r9, $r12, $r16, $r18;
+        org.eclipse.jdt.internal.compiler.ReadManager r0;
+        org.eclipse.jdt.internal.compiler.env.ICompilationUnit[] $r2, $r4, $r7, $r8, $r10, $r14;
+        org.eclipse.jdt.internal.compiler.env.ICompilationUnit $r5, $r15, r26;
+        java.lang.Throwable $r19, $r21, $r23, $r24;
+        java.lang.Error $r22;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i10, $i11, $i12, $i13, i14;
+        java.lang.Thread[] $r1, $r3, $r6;
+        java.lang.RuntimeException $r20;
+        java.lang.InterruptedException $r25;
+        char[] $r11, $r13, $r17;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.ReadManager;
+
+     label01:
+        goto label25;
+
+     label02:
+        entermonitor r0;
+
+     label03:
+        $r3 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: java.lang.Thread[] readingThreads>;
+
+        if $r3 != null goto label11;
+
+        exitmonitor r0;
+
+     label04:
+        return;
+
+     label05:
+        $i3 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: int sleepingThreadCount>;
+
+        $i4 = $i3 + 1;
+
+        r0.<org.eclipse.jdt.internal.compiler.ReadManager: int sleepingThreadCount> = $i4;
+
+     label06:
+        virtualinvoke r0.<java.lang.Object: void wait(long)>(250L);
+
+     label07:
+        goto label09;
+
+     label08:
+        $r25 := @caughtexception;
+
+     label09:
+        $i5 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: int sleepingThreadCount>;
+
+        $i6 = $i5 - 1;
+
+        r0.<org.eclipse.jdt.internal.compiler.ReadManager: int sleepingThreadCount> = $i6;
+
+        $r6 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: java.lang.Thread[] readingThreads>;
+
+        if $r6 != null goto label11;
+
+        exitmonitor r0;
+
+     label10:
+        return;
+
+     label11:
+        $r4 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: org.eclipse.jdt.internal.compiler.env.ICompilationUnit[] filesRead>;
+
+        $i2 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: int nextAvailablePosition>;
+
+        $r5 = $r4[$i2];
+
+        if $r5 != null goto label05;
+
+        $i8 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: int nextFileToRead>;
+
+        $r7 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: org.eclipse.jdt.internal.compiler.env.ICompilationUnit[] units>;
+
+        $i7 = lengthof $r7;
+
+        if $i8 < $i7 goto label13;
+
+        exitmonitor r0;
+
+     label12:
+        return;
+
+     label13:
+        $r8 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: org.eclipse.jdt.internal.compiler.env.ICompilationUnit[] units>;
+
+        $i9 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: int nextFileToRead>;
+
+        $i10 = $i9 + 1;
+
+        r0.<org.eclipse.jdt.internal.compiler.ReadManager: int nextFileToRead> = $i10;
+
+        r26 = $r8[$i9];
+
+        i14 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: int nextAvailablePosition>;
+
+        $i11 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: int nextAvailablePosition>;
+
+        $i12 = $i11 + 1;
+
+        r0.<org.eclipse.jdt.internal.compiler.ReadManager: int nextAvailablePosition> = $i12;
+
+        $r9 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: char[][] contentsRead>;
+
+        $i13 = lengthof $r9;
+
+        if $i12 < $i13 goto label14;
+
+        r0.<org.eclipse.jdt.internal.compiler.ReadManager: int nextAvailablePosition> = 0;
+
+     label14:
+        $r10 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: org.eclipse.jdt.internal.compiler.env.ICompilationUnit[] filesRead>;
+
+        $r10[i14] = r26;
+
+        $r12 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: char[][] contentsRead>;
+
+        $r11 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: char[] readInProcessMarker>;
+
+        $r12[i14] = $r11;
+
+        exitmonitor r0;
+
+     label15:
+        goto label18;
+
+     label16:
+        $r24 := @caughtexception;
+
+        exitmonitor r0;
+
+     label17:
+        throw $r24;
+
+     label18:
+        $r13 = interfaceinvoke r26.<org.eclipse.jdt.internal.compiler.env.ICompilationUnit: char[] getContents()>();
+
+        entermonitor r0;
+
+     label19:
+        $r14 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: org.eclipse.jdt.internal.compiler.env.ICompilationUnit[] filesRead>;
+
+        $r15 = $r14[i14];
+
+        if $r15 != r26 goto label21;
+
+        $r16 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: char[][] contentsRead>;
+
+        $r17 = $r16[i14];
+
+        if $r17 != null goto label20;
+
+        virtualinvoke r0.<java.lang.Object: void notifyAll()>();
+
+     label20:
+        $r18 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: char[][] contentsRead>;
+
+        $r18[i14] = $r13;
+
+     label21:
+        exitmonitor r0;
+
+     label22:
+        goto label25;
+
+     label23:
+        $r23 := @caughtexception;
+
+        exitmonitor r0;
+
+     label24:
+        throw $r23;
+
+     label25:
+        $r1 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: java.lang.Thread[] readingThreads>;
+
+        if $r1 == null goto label39;
+
+        $i1 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: int nextFileToRead>;
+
+        $r2 = r0.<org.eclipse.jdt.internal.compiler.ReadManager: org.eclipse.jdt.internal.compiler.env.ICompilationUnit[] units>;
+
+        $i0 = lengthof $r2;
+
+        if $i1 < $i0 goto label02;
+
+     label26:
+        goto label39;
+
+     label27:
+        $r22 := @caughtexception;
+
+        entermonitor r0;
+
+     label28:
+        r0.<org.eclipse.jdt.internal.compiler.ReadManager: java.lang.Throwable caughtException> = $r22;
+
+        virtualinvoke r0.<org.eclipse.jdt.internal.compiler.ReadManager: void shutdown()>();
+
+        exitmonitor r0;
+
+     label29:
+        goto label32;
+
+     label30:
+        $r21 := @caughtexception;
+
+        exitmonitor r0;
+
+     label31:
+        throw $r21;
+
+     label32:
+        return;
+
+     label33:
+        $r20 := @caughtexception;
+
+        entermonitor r0;
+
+     label34:
+        r0.<org.eclipse.jdt.internal.compiler.ReadManager: java.lang.Throwable caughtException> = $r20;
+
+        virtualinvoke r0.<org.eclipse.jdt.internal.compiler.ReadManager: void shutdown()>();
+
+        exitmonitor r0;
+
+     label35:
+        goto label38;
+
+     label36:
+        $r19 := @caughtexception;
+
+        exitmonitor r0;
+
+     label37:
+        throw $r19;
+
+     label38:
+        return;
+
+     label39:
+        return;
+
+        catch java.lang.InterruptedException from label06 to label07 with label08;
+        catch java.lang.Throwable from label03 to label04 with label16;
+        catch java.lang.Throwable from label05 to label10 with label16;
+        catch java.lang.Throwable from label11 to label12 with label16;
+        catch java.lang.Throwable from label13 to label15 with label16;
+        catch java.lang.Throwable from label16 to label17 with label16;
+        catch java.lang.Throwable from label19 to label22 with label23;
+        catch java.lang.Throwable from label23 to label24 with label23;
+        catch java.lang.Error from label01 to label04 with label27;
+        catch java.lang.Error from label05 to label10 with label27;
+        catch java.lang.Error from label11 to label12 with label27;
+        catch java.lang.Error from label13 to label26 with label27;
+        catch java.lang.Throwable from label28 to label29 with label30;
+        catch java.lang.Throwable from label30 to label31 with label30;
+        catch java.lang.RuntimeException from label01 to label04 with label33;
+        catch java.lang.RuntimeException from label05 to label10 with label33;
+        catch java.lang.RuntimeException from label11 to label12 with label33;
+        catch java.lang.RuntimeException from label13 to label26 with label33;
+        catch java.lang.Throwable from label34 to label35 with label36;
+        catch java.lang.Throwable from label36 to label37 with label36;
+    }
+
+    public synchronized void shutdown()
+    {
+        org.eclipse.jdt.internal.compiler.ReadManager r0;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.ReadManager;
+
+        r0.<org.eclipse.jdt.internal.compiler.ReadManager: java.lang.Thread[] readingThreads> = null;
+
+        virtualinvoke r0.<java.lang.Object: void notifyAll()>();
+
+        return;
+    }
+}

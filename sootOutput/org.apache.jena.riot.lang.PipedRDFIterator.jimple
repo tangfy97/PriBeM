@@ -1,0 +1,589 @@
+public class org.apache.jena.riot.lang.PipedRDFIterator extends java.lang.Object implements java.util.Iterator, org.apache.jena.atlas.lib.Closeable
+{
+    public static final int DEFAULT_BUFFER_SIZE;
+    private static final int ITERATOR_POLL_TIMEOUT;
+    private static final java.util.concurrent.TimeUnit ITERATOR_POLL_TIMEUNIT;
+    private final java.util.concurrent.BlockingQueue queue;
+    private final java.lang.Object endMarker;
+    private volatile boolean closedByReader;
+    private volatile boolean closedByWriter;
+    private volatile boolean finished;
+    private volatile java.lang.Thread readSide;
+    private volatile java.lang.Thread writeSide;
+    private boolean connected;
+    private java.lang.Object slot;
+    private final java.lang.Object lock;
+    private java.lang.String baseIri;
+    private final org.apache.jena.riot.system.PrefixMap prefixes;
+
+    public void <init>()
+    {
+        org.apache.jena.riot.lang.PipedRDFIterator r0;
+
+        r0 := @this: org.apache.jena.riot.lang.PipedRDFIterator;
+
+        specialinvoke r0.<org.apache.jena.riot.lang.PipedRDFIterator: void <init>(int)>(10000);
+
+        return;
+    }
+
+    public void <init>(int)
+    {
+        java.util.concurrent.ArrayBlockingQueue $r4;
+        org.apache.jena.riot.system.PrefixMap $r3;
+        int i0;
+        java.lang.Object $r1, $r2;
+        org.apache.jena.riot.lang.PipedRDFIterator r0;
+
+        r0 := @this: org.apache.jena.riot.lang.PipedRDFIterator;
+
+        i0 := @parameter0: int;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        $r1 = new java.lang.Object;
+
+        specialinvoke $r1.<java.lang.Object: void <init>()>();
+
+        r0.<org.apache.jena.riot.lang.PipedRDFIterator: java.lang.Object endMarker> = $r1;
+
+        r0.<org.apache.jena.riot.lang.PipedRDFIterator: boolean closedByReader> = 0;
+
+        r0.<org.apache.jena.riot.lang.PipedRDFIterator: boolean closedByWriter> = 0;
+
+        r0.<org.apache.jena.riot.lang.PipedRDFIterator: boolean finished> = 0;
+
+        r0.<org.apache.jena.riot.lang.PipedRDFIterator: boolean connected> = 0;
+
+        $r2 = new java.lang.Object;
+
+        specialinvoke $r2.<java.lang.Object: void <init>()>();
+
+        r0.<org.apache.jena.riot.lang.PipedRDFIterator: java.lang.Object lock> = $r2;
+
+        $r3 = staticinvoke <org.apache.jena.riot.system.PrefixMapFactory: org.apache.jena.riot.system.PrefixMap createForInput()>();
+
+        r0.<org.apache.jena.riot.lang.PipedRDFIterator: org.apache.jena.riot.system.PrefixMap prefixes> = $r3;
+
+        $r4 = new java.util.concurrent.ArrayBlockingQueue;
+
+        specialinvoke $r4.<java.util.concurrent.ArrayBlockingQueue: void <init>(int)>(i0);
+
+        r0.<org.apache.jena.riot.lang.PipedRDFIterator: java.util.concurrent.BlockingQueue queue> = $r4;
+
+        return;
+    }
+
+    public void <init>(int, boolean)
+    {
+        java.util.concurrent.ArrayBlockingQueue $r4;
+        org.apache.jena.riot.system.PrefixMap $r3;
+        int i0;
+        java.lang.Object $r1, $r2;
+        org.apache.jena.riot.lang.PipedRDFIterator r0;
+        boolean z0;
+
+        r0 := @this: org.apache.jena.riot.lang.PipedRDFIterator;
+
+        i0 := @parameter0: int;
+
+        z0 := @parameter1: boolean;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        $r1 = new java.lang.Object;
+
+        specialinvoke $r1.<java.lang.Object: void <init>()>();
+
+        r0.<org.apache.jena.riot.lang.PipedRDFIterator: java.lang.Object endMarker> = $r1;
+
+        r0.<org.apache.jena.riot.lang.PipedRDFIterator: boolean closedByReader> = 0;
+
+        r0.<org.apache.jena.riot.lang.PipedRDFIterator: boolean closedByWriter> = 0;
+
+        r0.<org.apache.jena.riot.lang.PipedRDFIterator: boolean finished> = 0;
+
+        r0.<org.apache.jena.riot.lang.PipedRDFIterator: boolean connected> = 0;
+
+        $r2 = new java.lang.Object;
+
+        specialinvoke $r2.<java.lang.Object: void <init>()>();
+
+        r0.<org.apache.jena.riot.lang.PipedRDFIterator: java.lang.Object lock> = $r2;
+
+        $r3 = staticinvoke <org.apache.jena.riot.system.PrefixMapFactory: org.apache.jena.riot.system.PrefixMap createForInput()>();
+
+        r0.<org.apache.jena.riot.lang.PipedRDFIterator: org.apache.jena.riot.system.PrefixMap prefixes> = $r3;
+
+        $r4 = new java.util.concurrent.ArrayBlockingQueue;
+
+        specialinvoke $r4.<java.util.concurrent.ArrayBlockingQueue: void <init>(int,boolean)>(i0, z0);
+
+        r0.<org.apache.jena.riot.lang.PipedRDFIterator: java.util.concurrent.BlockingQueue queue> = $r4;
+
+        return;
+    }
+
+    public boolean hasNext()
+    {
+        java.lang.IllegalStateException $r10;
+        org.apache.jena.riot.RiotException $r6, $r9;
+        java.lang.Thread $r1, $r4, $r5;
+        boolean $z0, $z1, $z2, $z3, $z4;
+        java.util.concurrent.CancellationException $r12;
+        java.util.concurrent.BlockingQueue $r13;
+        org.apache.jena.riot.lang.PipedRDFIterator r0;
+        java.util.concurrent.TimeUnit $r14;
+        java.lang.InterruptedException $r11;
+        java.lang.Object $r2, $r3, $r7, $r8, $r15;
+
+        r0 := @this: org.apache.jena.riot.lang.PipedRDFIterator;
+
+        $z0 = r0.<org.apache.jena.riot.lang.PipedRDFIterator: boolean connected>;
+
+        if $z0 != 0 goto label01;
+
+        $r10 = new java.lang.IllegalStateException;
+
+        specialinvoke $r10.<java.lang.IllegalStateException: void <init>(java.lang.String)>("Pipe not connected");
+
+        throw $r10;
+
+     label01:
+        $z1 = r0.<org.apache.jena.riot.lang.PipedRDFIterator: boolean closedByReader>;
+
+        if $z1 == 0 goto label02;
+
+        $r9 = new org.apache.jena.riot.RiotException;
+
+        specialinvoke $r9.<org.apache.jena.riot.RiotException: void <init>(java.lang.String)>("Pipe closed");
+
+        throw $r9;
+
+     label02:
+        $z2 = r0.<org.apache.jena.riot.lang.PipedRDFIterator: boolean finished>;
+
+        if $z2 == 0 goto label03;
+
+        return 0;
+
+     label03:
+        $r1 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        r0.<org.apache.jena.riot.lang.PipedRDFIterator: java.lang.Thread readSide> = $r1;
+
+        $r2 = r0.<org.apache.jena.riot.lang.PipedRDFIterator: java.lang.Object slot>;
+
+        if $r2 == null goto label04;
+
+        return 1;
+
+     label04:
+        $r13 = r0.<org.apache.jena.riot.lang.PipedRDFIterator: java.util.concurrent.BlockingQueue queue>;
+
+        $r14 = <org.apache.jena.riot.lang.PipedRDFIterator: java.util.concurrent.TimeUnit ITERATOR_POLL_TIMEUNIT>;
+
+        $r15 = interfaceinvoke $r13.<java.util.concurrent.BlockingQueue: java.lang.Object poll(long,java.util.concurrent.TimeUnit)>(1000L, $r14);
+
+        r0.<org.apache.jena.riot.lang.PipedRDFIterator: java.lang.Object slot> = $r15;
+
+     label05:
+        goto label07;
+
+     label06:
+        $r11 := @caughtexception;
+
+        $r12 = new java.util.concurrent.CancellationException;
+
+        specialinvoke $r12.<java.util.concurrent.CancellationException: void <init>()>();
+
+        throw $r12;
+
+     label07:
+        $r3 = r0.<org.apache.jena.riot.lang.PipedRDFIterator: java.lang.Object slot>;
+
+        if null == $r3 goto label08;
+
+        goto label09;
+
+     label08:
+        $r4 = r0.<org.apache.jena.riot.lang.PipedRDFIterator: java.lang.Thread writeSide>;
+
+        if $r4 == null goto label04;
+
+        $r5 = r0.<org.apache.jena.riot.lang.PipedRDFIterator: java.lang.Thread writeSide>;
+
+        $z3 = virtualinvoke $r5.<java.lang.Thread: boolean isAlive()>();
+
+        if $z3 != 0 goto label04;
+
+        $z4 = r0.<org.apache.jena.riot.lang.PipedRDFIterator: boolean closedByWriter>;
+
+        if $z4 != 0 goto label04;
+
+        r0.<org.apache.jena.riot.lang.PipedRDFIterator: boolean closedByReader> = 1;
+
+        $r6 = new org.apache.jena.riot.RiotException;
+
+        specialinvoke $r6.<org.apache.jena.riot.RiotException: void <init>(java.lang.String)>("Write end dead");
+
+        throw $r6;
+
+     label09:
+        $r8 = r0.<org.apache.jena.riot.lang.PipedRDFIterator: java.lang.Object slot>;
+
+        $r7 = r0.<org.apache.jena.riot.lang.PipedRDFIterator: java.lang.Object endMarker>;
+
+        if $r8 != $r7 goto label10;
+
+        r0.<org.apache.jena.riot.lang.PipedRDFIterator: boolean finished> = 1;
+
+        r0.<org.apache.jena.riot.lang.PipedRDFIterator: java.lang.Object slot> = null;
+
+        return 0;
+
+     label10:
+        return 1;
+
+        catch java.lang.InterruptedException from label04 to label05 with label06;
+    }
+
+    public java.lang.Object next()
+    {
+        java.lang.Object r1;
+        org.apache.jena.riot.lang.PipedRDFIterator r0;
+        java.util.NoSuchElementException $r2;
+        boolean $z0;
+
+        r0 := @this: org.apache.jena.riot.lang.PipedRDFIterator;
+
+        $z0 = virtualinvoke r0.<org.apache.jena.riot.lang.PipedRDFIterator: boolean hasNext()>();
+
+        if $z0 != 0 goto label1;
+
+        $r2 = new java.util.NoSuchElementException;
+
+        specialinvoke $r2.<java.util.NoSuchElementException: void <init>()>();
+
+        throw $r2;
+
+     label1:
+        r1 = r0.<org.apache.jena.riot.lang.PipedRDFIterator: java.lang.Object slot>;
+
+        r0.<org.apache.jena.riot.lang.PipedRDFIterator: java.lang.Object slot> = null;
+
+        return r1;
+    }
+
+    public void remove()
+    {
+        java.lang.UnsupportedOperationException $r0;
+        org.apache.jena.riot.lang.PipedRDFIterator r1;
+
+        r1 := @this: org.apache.jena.riot.lang.PipedRDFIterator;
+
+        $r0 = new java.lang.UnsupportedOperationException;
+
+        specialinvoke $r0.<java.lang.UnsupportedOperationException: void <init>()>();
+
+        throw $r0;
+    }
+
+    private void checkStateForReceive()
+    {
+        org.apache.jena.riot.RiotException $r1, $r4;
+        org.apache.jena.riot.lang.PipedRDFIterator r0;
+        java.lang.Thread $r2, $r3;
+        boolean $z0, $z1, $z2;
+
+        r0 := @this: org.apache.jena.riot.lang.PipedRDFIterator;
+
+        $z0 = r0.<org.apache.jena.riot.lang.PipedRDFIterator: boolean closedByWriter>;
+
+        if $z0 != 0 goto label1;
+
+        $z1 = r0.<org.apache.jena.riot.lang.PipedRDFIterator: boolean closedByReader>;
+
+        if $z1 == 0 goto label2;
+
+     label1:
+        $r1 = new org.apache.jena.riot.RiotException;
+
+        specialinvoke $r1.<org.apache.jena.riot.RiotException: void <init>(java.lang.String)>("Pipe closed");
+
+        throw $r1;
+
+     label2:
+        $r2 = r0.<org.apache.jena.riot.lang.PipedRDFIterator: java.lang.Thread readSide>;
+
+        if $r2 == null goto label3;
+
+        $r3 = r0.<org.apache.jena.riot.lang.PipedRDFIterator: java.lang.Thread readSide>;
+
+        $z2 = virtualinvoke $r3.<java.lang.Thread: boolean isAlive()>();
+
+        if $z2 != 0 goto label3;
+
+        $r4 = new org.apache.jena.riot.RiotException;
+
+        specialinvoke $r4.<org.apache.jena.riot.RiotException: void <init>(java.lang.String)>("Read end dead");
+
+        throw $r4;
+
+     label3:
+        return;
+    }
+
+    protected void connect()
+    {
+        org.apache.jena.riot.lang.PipedRDFIterator r0;
+
+        r0 := @this: org.apache.jena.riot.lang.PipedRDFIterator;
+
+        r0.<org.apache.jena.riot.lang.PipedRDFIterator: boolean connected> = 1;
+
+        return;
+    }
+
+    protected void receive(java.lang.Object)
+    {
+        java.lang.InterruptedException $r4;
+        java.util.concurrent.CancellationException $r5;
+        java.lang.Thread $r1;
+        java.lang.Object r2;
+        java.util.concurrent.BlockingQueue $r3;
+        org.apache.jena.riot.lang.PipedRDFIterator r0;
+
+        r0 := @this: org.apache.jena.riot.lang.PipedRDFIterator;
+
+        r2 := @parameter0: java.lang.Object;
+
+        specialinvoke r0.<org.apache.jena.riot.lang.PipedRDFIterator: void checkStateForReceive()>();
+
+        $r1 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        r0.<org.apache.jena.riot.lang.PipedRDFIterator: java.lang.Thread writeSide> = $r1;
+
+     label1:
+        $r3 = r0.<org.apache.jena.riot.lang.PipedRDFIterator: java.util.concurrent.BlockingQueue queue>;
+
+        interfaceinvoke $r3.<java.util.concurrent.BlockingQueue: void put(java.lang.Object)>(r2);
+
+     label2:
+        goto label4;
+
+     label3:
+        $r4 := @caughtexception;
+
+        $r5 = new java.util.concurrent.CancellationException;
+
+        specialinvoke $r5.<java.util.concurrent.CancellationException: void <init>()>();
+
+        throw $r5;
+
+     label4:
+        return;
+
+        catch java.lang.InterruptedException from label1 to label2 with label3;
+    }
+
+    protected void base(java.lang.String)
+    {
+        java.lang.Throwable $r3;
+        java.lang.Object $r1;
+        java.lang.String r2;
+        org.apache.jena.riot.lang.PipedRDFIterator r0;
+
+        r0 := @this: org.apache.jena.riot.lang.PipedRDFIterator;
+
+        r2 := @parameter0: java.lang.String;
+
+        $r1 = r0.<org.apache.jena.riot.lang.PipedRDFIterator: java.lang.Object lock>;
+
+        entermonitor $r1;
+
+     label1:
+        r0.<org.apache.jena.riot.lang.PipedRDFIterator: java.lang.String baseIri> = r2;
+
+        exitmonitor $r1;
+
+     label2:
+        goto label5;
+
+     label3:
+        $r3 := @caughtexception;
+
+        exitmonitor $r1;
+
+     label4:
+        throw $r3;
+
+     label5:
+        return;
+
+        catch java.lang.Throwable from label1 to label2 with label3;
+        catch java.lang.Throwable from label3 to label4 with label3;
+    }
+
+    public java.lang.String getBaseIri()
+    {
+        java.lang.Throwable $r3;
+        java.lang.Object $r1;
+        java.lang.String $r2;
+        org.apache.jena.riot.lang.PipedRDFIterator r0;
+
+        r0 := @this: org.apache.jena.riot.lang.PipedRDFIterator;
+
+        $r1 = r0.<org.apache.jena.riot.lang.PipedRDFIterator: java.lang.Object lock>;
+
+        entermonitor $r1;
+
+     label1:
+        $r2 = r0.<org.apache.jena.riot.lang.PipedRDFIterator: java.lang.String baseIri>;
+
+        exitmonitor $r1;
+
+     label2:
+        return $r2;
+
+     label3:
+        $r3 := @caughtexception;
+
+        exitmonitor $r1;
+
+     label4:
+        throw $r3;
+
+        catch java.lang.Throwable from label1 to label2 with label3;
+        catch java.lang.Throwable from label3 to label4 with label3;
+    }
+
+    protected void prefix(java.lang.String, java.lang.String)
+    {
+        java.lang.Throwable $r5;
+        org.apache.jena.riot.system.PrefixMap $r4;
+        java.lang.Object $r1;
+        java.lang.String r2, r3;
+        org.apache.jena.riot.lang.PipedRDFIterator r0;
+
+        r0 := @this: org.apache.jena.riot.lang.PipedRDFIterator;
+
+        r2 := @parameter0: java.lang.String;
+
+        r3 := @parameter1: java.lang.String;
+
+        $r1 = r0.<org.apache.jena.riot.lang.PipedRDFIterator: java.lang.Object lock>;
+
+        entermonitor $r1;
+
+     label1:
+        $r4 = r0.<org.apache.jena.riot.lang.PipedRDFIterator: org.apache.jena.riot.system.PrefixMap prefixes>;
+
+        interfaceinvoke $r4.<org.apache.jena.riot.system.PrefixMap: void add(java.lang.String,java.lang.String)>(r2, r3);
+
+        exitmonitor $r1;
+
+     label2:
+        goto label5;
+
+     label3:
+        $r5 := @caughtexception;
+
+        exitmonitor $r1;
+
+     label4:
+        throw $r5;
+
+     label5:
+        return;
+
+        catch java.lang.Throwable from label1 to label2 with label3;
+        catch java.lang.Throwable from label3 to label4 with label3;
+    }
+
+    public org.apache.jena.riot.system.PrefixMap getPrefixes()
+    {
+        java.lang.Throwable $r4;
+        org.apache.jena.riot.system.PrefixMap $r2, $r3;
+        java.lang.Object $r1;
+        org.apache.jena.riot.lang.PipedRDFIterator r0;
+
+        r0 := @this: org.apache.jena.riot.lang.PipedRDFIterator;
+
+        $r1 = r0.<org.apache.jena.riot.lang.PipedRDFIterator: java.lang.Object lock>;
+
+        entermonitor $r1;
+
+     label1:
+        $r2 = r0.<org.apache.jena.riot.lang.PipedRDFIterator: org.apache.jena.riot.system.PrefixMap prefixes>;
+
+        $r3 = staticinvoke <org.apache.jena.riot.system.PrefixMapFactory: org.apache.jena.riot.system.PrefixMap create(org.apache.jena.riot.system.PrefixMap)>($r2);
+
+        exitmonitor $r1;
+
+     label2:
+        return $r3;
+
+     label3:
+        $r4 := @caughtexception;
+
+        exitmonitor $r1;
+
+     label4:
+        throw $r4;
+
+        catch java.lang.Throwable from label1 to label2 with label3;
+        catch java.lang.Throwable from label3 to label4 with label3;
+    }
+
+    protected void start()
+    {
+        org.apache.jena.riot.lang.PipedRDFIterator r0;
+
+        r0 := @this: org.apache.jena.riot.lang.PipedRDFIterator;
+
+        return;
+    }
+
+    protected void finish()
+    {
+        java.lang.Object $r1;
+        org.apache.jena.riot.lang.PipedRDFIterator r0;
+
+        r0 := @this: org.apache.jena.riot.lang.PipedRDFIterator;
+
+        $r1 = r0.<org.apache.jena.riot.lang.PipedRDFIterator: java.lang.Object endMarker>;
+
+        virtualinvoke r0.<org.apache.jena.riot.lang.PipedRDFIterator: void receive(java.lang.Object)>($r1);
+
+        r0.<org.apache.jena.riot.lang.PipedRDFIterator: boolean closedByWriter> = 1;
+
+        return;
+    }
+
+    public void close()
+    {
+        org.apache.jena.riot.lang.PipedRDFIterator r0;
+
+        r0 := @this: org.apache.jena.riot.lang.PipedRDFIterator;
+
+        r0.<org.apache.jena.riot.lang.PipedRDFIterator: boolean closedByReader> = 1;
+
+        return;
+    }
+
+    static void <clinit>()
+    {
+        java.util.concurrent.TimeUnit $r0;
+
+        <org.apache.jena.riot.lang.PipedRDFIterator: int ITERATOR_POLL_TIMEOUT> = 1000;
+
+        <org.apache.jena.riot.lang.PipedRDFIterator: int DEFAULT_BUFFER_SIZE> = 10000;
+
+        $r0 = <java.util.concurrent.TimeUnit: java.util.concurrent.TimeUnit MILLISECONDS>;
+
+        <org.apache.jena.riot.lang.PipedRDFIterator: java.util.concurrent.TimeUnit ITERATOR_POLL_TIMEUNIT> = $r0;
+
+        return;
+    }
+}

@@ -1,0 +1,322 @@
+public abstract class org.apache.poi.hwpf.HWPFDocumentCore extends org.apache.poi.POIDocument
+{
+    protected static final java.lang.String STREAM_OBJECT_POOL;
+    protected static final java.lang.String STREAM_WORD_DOCUMENT;
+    protected org.apache.poi.hwpf.usermodel.ObjectPoolImpl _objectPool;
+    protected org.apache.poi.hwpf.model.FileInformationBlock _fib;
+    protected org.apache.poi.hwpf.model.StyleSheet _ss;
+    protected org.apache.poi.hwpf.model.CHPBinTable _cbt;
+    protected org.apache.poi.hwpf.model.PAPBinTable _pbt;
+    protected org.apache.poi.hwpf.model.SectionTable _st;
+    protected org.apache.poi.hwpf.model.FontTable _ft;
+    protected org.apache.poi.hwpf.model.ListTables _lt;
+    protected byte[] _mainStream;
+
+    protected void <init>()
+    {
+        org.apache.poi.hwpf.HWPFDocumentCore r0;
+
+        r0 := @this: org.apache.poi.hwpf.HWPFDocumentCore;
+
+        specialinvoke r0.<org.apache.poi.POIDocument: void <init>(org.apache.poi.poifs.filesystem.DirectoryNode)>(null);
+
+        return;
+    }
+
+    public static org.apache.poi.poifs.filesystem.POIFSFileSystem verifyAndBuildPOIFS(java.io.InputStream) throws java.io.IOException
+    {
+        byte[] r2;
+        java.io.PushbackInputStream $r5;
+        java.lang.IllegalArgumentException $r6;
+        org.apache.poi.poifs.filesystem.POIFSFileSystem $r7;
+        byte $b0, $b1, $b2, $b3, $b4;
+        int $i5, $i6, $i7, $i8, $i9;
+        java.io.InputStream r1;
+
+        r1 := @parameter0: java.io.InputStream;
+
+        $r5 = new java.io.PushbackInputStream;
+
+        specialinvoke $r5.<java.io.PushbackInputStream: void <init>(java.io.InputStream,int)>(r1, 6);
+
+        r2 = newarray (byte)[6];
+
+        virtualinvoke $r5.<java.io.PushbackInputStream: int read(byte[])>(r2);
+
+        $b0 = r2[0];
+
+        $i5 = (int) $b0;
+
+        if $i5 != 123 goto label1;
+
+        $b1 = r2[1];
+
+        $i6 = (int) $b1;
+
+        if $i6 != 92 goto label1;
+
+        $b2 = r2[2];
+
+        $i7 = (int) $b2;
+
+        if $i7 != 114 goto label1;
+
+        $b3 = r2[3];
+
+        $i8 = (int) $b3;
+
+        if $i8 != 116 goto label1;
+
+        $b4 = r2[4];
+
+        $i9 = (int) $b4;
+
+        if $i9 != 102 goto label1;
+
+        $r6 = new java.lang.IllegalArgumentException;
+
+        specialinvoke $r6.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>("The document is really a RTF file");
+
+        throw $r6;
+
+     label1:
+        virtualinvoke $r5.<java.io.PushbackInputStream: void unread(byte[])>(r2);
+
+        $r7 = new org.apache.poi.poifs.filesystem.POIFSFileSystem;
+
+        specialinvoke $r7.<org.apache.poi.poifs.filesystem.POIFSFileSystem: void <init>(java.io.InputStream)>($r5);
+
+        return $r7;
+    }
+
+    public void <init>(java.io.InputStream) throws java.io.IOException
+    {
+        org.apache.poi.poifs.filesystem.POIFSFileSystem $r2;
+        org.apache.poi.hwpf.HWPFDocumentCore r0;
+        java.io.InputStream r1;
+
+        r0 := @this: org.apache.poi.hwpf.HWPFDocumentCore;
+
+        r1 := @parameter0: java.io.InputStream;
+
+        $r2 = staticinvoke <org.apache.poi.hwpf.HWPFDocumentCore: org.apache.poi.poifs.filesystem.POIFSFileSystem verifyAndBuildPOIFS(java.io.InputStream)>(r1);
+
+        specialinvoke r0.<org.apache.poi.hwpf.HWPFDocumentCore: void <init>(org.apache.poi.poifs.filesystem.POIFSFileSystem)>($r2);
+
+        return;
+    }
+
+    public void <init>(org.apache.poi.poifs.filesystem.POIFSFileSystem) throws java.io.IOException
+    {
+        org.apache.poi.poifs.filesystem.DirectoryNode $r2;
+        org.apache.poi.poifs.filesystem.POIFSFileSystem r1;
+        org.apache.poi.hwpf.HWPFDocumentCore r0;
+
+        r0 := @this: org.apache.poi.hwpf.HWPFDocumentCore;
+
+        r1 := @parameter0: org.apache.poi.poifs.filesystem.POIFSFileSystem;
+
+        $r2 = virtualinvoke r1.<org.apache.poi.poifs.filesystem.POIFSFileSystem: org.apache.poi.poifs.filesystem.DirectoryNode getRoot()>();
+
+        specialinvoke r0.<org.apache.poi.hwpf.HWPFDocumentCore: void <init>(org.apache.poi.poifs.filesystem.DirectoryNode)>($r2);
+
+        return;
+    }
+
+    public void <init>(org.apache.poi.poifs.filesystem.DirectoryNode) throws java.io.IOException
+    {
+        org.apache.poi.hwpf.model.FileInformationBlock $r7;
+        byte[] $r4, $r6, $r8;
+        org.apache.poi.poifs.filesystem.Entry $r2, $r9;
+        org.apache.poi.hwpf.HWPFDocumentCore r0;
+        org.apache.poi.poifs.filesystem.DirectoryEntry r12;
+        java.io.FileNotFoundException $r11;
+        org.apache.poi.poifs.filesystem.DirectoryNode r1;
+        org.apache.poi.hwpf.usermodel.ObjectPoolImpl $r10;
+        int $i0;
+        org.apache.poi.poifs.filesystem.DocumentEntry r3;
+        org.apache.poi.poifs.filesystem.DocumentInputStream $r5;
+
+        r0 := @this: org.apache.poi.hwpf.HWPFDocumentCore;
+
+        r1 := @parameter0: org.apache.poi.poifs.filesystem.DirectoryNode;
+
+        specialinvoke r0.<org.apache.poi.POIDocument: void <init>(org.apache.poi.poifs.filesystem.DirectoryNode)>(r1);
+
+        $r2 = virtualinvoke r1.<org.apache.poi.poifs.filesystem.DirectoryNode: org.apache.poi.poifs.filesystem.Entry getEntry(java.lang.String)>("WordDocument");
+
+        r3 = (org.apache.poi.poifs.filesystem.DocumentEntry) $r2;
+
+        $i0 = interfaceinvoke r3.<org.apache.poi.poifs.filesystem.DocumentEntry: int getSize()>();
+
+        $r4 = newarray (byte)[$i0];
+
+        r0.<org.apache.poi.hwpf.HWPFDocumentCore: byte[] _mainStream> = $r4;
+
+        $r5 = virtualinvoke r1.<org.apache.poi.poifs.filesystem.DirectoryNode: org.apache.poi.poifs.filesystem.DocumentInputStream createDocumentInputStream(java.lang.String)>("WordDocument");
+
+        $r6 = r0.<org.apache.poi.hwpf.HWPFDocumentCore: byte[] _mainStream>;
+
+        virtualinvoke $r5.<org.apache.poi.poifs.filesystem.DocumentInputStream: int read(byte[])>($r6);
+
+        $r7 = new org.apache.poi.hwpf.model.FileInformationBlock;
+
+        $r8 = r0.<org.apache.poi.hwpf.HWPFDocumentCore: byte[] _mainStream>;
+
+        specialinvoke $r7.<org.apache.poi.hwpf.model.FileInformationBlock: void <init>(byte[])>($r8);
+
+        r0.<org.apache.poi.hwpf.HWPFDocumentCore: org.apache.poi.hwpf.model.FileInformationBlock _fib> = $r7;
+
+     label1:
+        $r9 = virtualinvoke r1.<org.apache.poi.poifs.filesystem.DirectoryNode: org.apache.poi.poifs.filesystem.Entry getEntry(java.lang.String)>("ObjectPool");
+
+        r12 = (org.apache.poi.poifs.filesystem.DirectoryEntry) $r9;
+
+     label2:
+        goto label4;
+
+     label3:
+        $r11 := @caughtexception;
+
+        r12 = null;
+
+     label4:
+        $r10 = new org.apache.poi.hwpf.usermodel.ObjectPoolImpl;
+
+        specialinvoke $r10.<org.apache.poi.hwpf.usermodel.ObjectPoolImpl: void <init>(org.apache.poi.poifs.filesystem.DirectoryEntry)>(r12);
+
+        r0.<org.apache.poi.hwpf.HWPFDocumentCore: org.apache.poi.hwpf.usermodel.ObjectPoolImpl _objectPool> = $r10;
+
+        return;
+
+        catch java.io.FileNotFoundException from label1 to label2 with label3;
+    }
+
+    public abstract org.apache.poi.hwpf.usermodel.Range getRange();
+
+    public abstract org.apache.poi.hwpf.usermodel.Range getOverallRange();
+
+    public java.lang.String getDocumentText()
+    {
+        java.lang.StringBuilder $r1;
+        java.lang.String $r2;
+        org.apache.poi.hwpf.HWPFDocumentCore r0;
+
+        r0 := @this: org.apache.poi.hwpf.HWPFDocumentCore;
+
+        $r1 = virtualinvoke r0.<org.apache.poi.hwpf.HWPFDocumentCore: java.lang.StringBuilder getText()>();
+
+        $r2 = virtualinvoke $r1.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        return $r2;
+    }
+
+    public abstract java.lang.StringBuilder getText();
+
+    public org.apache.poi.hwpf.model.CHPBinTable getCharacterTable()
+    {
+        org.apache.poi.hwpf.model.CHPBinTable $r1;
+        org.apache.poi.hwpf.HWPFDocumentCore r0;
+
+        r0 := @this: org.apache.poi.hwpf.HWPFDocumentCore;
+
+        $r1 = r0.<org.apache.poi.hwpf.HWPFDocumentCore: org.apache.poi.hwpf.model.CHPBinTable _cbt>;
+
+        return $r1;
+    }
+
+    public org.apache.poi.hwpf.model.PAPBinTable getParagraphTable()
+    {
+        org.apache.poi.hwpf.model.PAPBinTable $r1;
+        org.apache.poi.hwpf.HWPFDocumentCore r0;
+
+        r0 := @this: org.apache.poi.hwpf.HWPFDocumentCore;
+
+        $r1 = r0.<org.apache.poi.hwpf.HWPFDocumentCore: org.apache.poi.hwpf.model.PAPBinTable _pbt>;
+
+        return $r1;
+    }
+
+    public org.apache.poi.hwpf.model.SectionTable getSectionTable()
+    {
+        org.apache.poi.hwpf.HWPFDocumentCore r0;
+        org.apache.poi.hwpf.model.SectionTable $r1;
+
+        r0 := @this: org.apache.poi.hwpf.HWPFDocumentCore;
+
+        $r1 = r0.<org.apache.poi.hwpf.HWPFDocumentCore: org.apache.poi.hwpf.model.SectionTable _st>;
+
+        return $r1;
+    }
+
+    public org.apache.poi.hwpf.model.StyleSheet getStyleSheet()
+    {
+        org.apache.poi.hwpf.HWPFDocumentCore r0;
+        org.apache.poi.hwpf.model.StyleSheet $r1;
+
+        r0 := @this: org.apache.poi.hwpf.HWPFDocumentCore;
+
+        $r1 = r0.<org.apache.poi.hwpf.HWPFDocumentCore: org.apache.poi.hwpf.model.StyleSheet _ss>;
+
+        return $r1;
+    }
+
+    public org.apache.poi.hwpf.model.ListTables getListTables()
+    {
+        org.apache.poi.hwpf.model.ListTables $r1;
+        org.apache.poi.hwpf.HWPFDocumentCore r0;
+
+        r0 := @this: org.apache.poi.hwpf.HWPFDocumentCore;
+
+        $r1 = r0.<org.apache.poi.hwpf.HWPFDocumentCore: org.apache.poi.hwpf.model.ListTables _lt>;
+
+        return $r1;
+    }
+
+    public org.apache.poi.hwpf.model.FontTable getFontTable()
+    {
+        org.apache.poi.hwpf.model.FontTable $r1;
+        org.apache.poi.hwpf.HWPFDocumentCore r0;
+
+        r0 := @this: org.apache.poi.hwpf.HWPFDocumentCore;
+
+        $r1 = r0.<org.apache.poi.hwpf.HWPFDocumentCore: org.apache.poi.hwpf.model.FontTable _ft>;
+
+        return $r1;
+    }
+
+    public org.apache.poi.hwpf.model.FileInformationBlock getFileInformationBlock()
+    {
+        org.apache.poi.hwpf.model.FileInformationBlock $r1;
+        org.apache.poi.hwpf.HWPFDocumentCore r0;
+
+        r0 := @this: org.apache.poi.hwpf.HWPFDocumentCore;
+
+        $r1 = r0.<org.apache.poi.hwpf.HWPFDocumentCore: org.apache.poi.hwpf.model.FileInformationBlock _fib>;
+
+        return $r1;
+    }
+
+    public org.apache.poi.hwpf.usermodel.ObjectsPool getObjectsPool()
+    {
+        org.apache.poi.hwpf.usermodel.ObjectPoolImpl $r1;
+        org.apache.poi.hwpf.HWPFDocumentCore r0;
+
+        r0 := @this: org.apache.poi.hwpf.HWPFDocumentCore;
+
+        $r1 = r0.<org.apache.poi.hwpf.HWPFDocumentCore: org.apache.poi.hwpf.usermodel.ObjectPoolImpl _objectPool>;
+
+        return $r1;
+    }
+
+    public abstract org.apache.poi.hwpf.model.TextPieceTable getTextTable();
+
+    public static void <clinit>()
+    {
+        <org.apache.poi.hwpf.HWPFDocumentCore: java.lang.String STREAM_WORD_DOCUMENT> = "WordDocument";
+
+        <org.apache.poi.hwpf.HWPFDocumentCore: java.lang.String STREAM_OBJECT_POOL> = "ObjectPool";
+
+        return;
+    }
+}

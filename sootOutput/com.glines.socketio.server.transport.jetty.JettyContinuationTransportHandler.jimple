@@ -1,0 +1,1529 @@
+public final class com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler extends com.glines.socketio.server.AbstractTransportHandler implements org.eclipse.jetty.continuation.ContinuationListener, com.glines.socketio.server.ConnectableTransportHandler
+{
+    private static final long DEFAULT_HEARTBEAT_TIMEOUT;
+    private static final long DEFAULT_HEARTBEAT_DELAY;
+    private static final long DEFAULT_TIMEOUT;
+    private static final long DEFAULT_CONTINUATION_TIMEOUT;
+    private static final java.lang.String CONTINUATION_KEY;
+    private static final java.util.logging.Logger LOGGER;
+    private volatile boolean is_open;
+    private volatile org.eclipse.jetty.continuation.Continuation continuation;
+    private volatile boolean disconnectWhenEmpty;
+    private com.glines.socketio.server.transport.jetty.TransportBuffer buffer;
+    private int bufferSize;
+    private int maxIdleTime;
+    private com.glines.socketio.server.transport.DataHandler dataHandler;
+    private long continuationTimeout;
+
+    static void <clinit>()
+    {
+        java.util.logging.Logger $r8;
+        java.lang.StringBuilder $r0, $r4;
+        java.lang.Class $r1, $r6;
+        java.lang.String $r2, $r3, $r5, $r7;
+
+        <com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: long DEFAULT_CONTINUATION_TIMEOUT> = 20000L;
+
+        <com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: long DEFAULT_TIMEOUT> = 5000L;
+
+        <com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: long DEFAULT_HEARTBEAT_DELAY> = 15000L;
+
+        <com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: long DEFAULT_HEARTBEAT_TIMEOUT> = 10000L;
+
+        $r0 = new java.lang.StringBuilder;
+
+        $r1 = class "Lcom/glines/socketio/server/transport/jetty/JettyContinuationTransportHandler;";
+
+        $r2 = virtualinvoke $r1.<java.lang.Class: java.lang.String getName()>();
+
+        $r3 = staticinvoke <java.lang.String: java.lang.String valueOf(java.lang.Object)>($r2);
+
+        specialinvoke $r0.<java.lang.StringBuilder: void <init>(java.lang.String)>($r3);
+
+        $r4 = virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(".Continuation");
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        <com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: java.lang.String CONTINUATION_KEY> = $r5;
+
+        $r6 = class "Lcom/glines/socketio/server/transport/jetty/JettyContinuationTransportHandler;";
+
+        $r7 = virtualinvoke $r6.<java.lang.Class: java.lang.String getName()>();
+
+        $r8 = staticinvoke <java.util.logging.Logger: java.util.logging.Logger getLogger(java.lang.String)>($r7);
+
+        <com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: java.util.logging.Logger LOGGER> = $r8;
+
+        return;
+    }
+
+    public void <init>()
+    {
+        com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler r0;
+
+        r0 := @this: com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler;
+
+        specialinvoke r0.<com.glines.socketio.server.AbstractTransportHandler: void <init>()>();
+
+        return;
+    }
+
+    public void setDataHandler(com.glines.socketio.server.transport.DataHandler)
+    {
+        com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler r0;
+        com.glines.socketio.server.transport.jetty.ConnectionTimeoutPreventer $r2;
+        com.glines.socketio.server.transport.DataHandler r1, $r3;
+        com.glines.socketio.server.transport.jetty.ConnectionTimeoutPreventerDataHandler $r4;
+        boolean $z0;
+
+        r0 := @this: com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler;
+
+        r1 := @parameter0: com.glines.socketio.server.transport.DataHandler;
+
+        $z0 = interfaceinvoke r1.<com.glines.socketio.server.transport.DataHandler: boolean isConnectionPersistent()>();
+
+        if $z0 == 0 goto label1;
+
+        $r4 = new com.glines.socketio.server.transport.jetty.ConnectionTimeoutPreventerDataHandler;
+
+        $r3 = $r4;
+
+        $r2 = staticinvoke <com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.transport.jetty.ConnectionTimeoutPreventer newTimeoutPreventor()>();
+
+        specialinvoke $r4.<com.glines.socketio.server.transport.jetty.ConnectionTimeoutPreventerDataHandler: void <init>(com.glines.socketio.server.transport.DataHandler,com.glines.socketio.server.transport.jetty.ConnectionTimeoutPreventer)>(r1, $r2);
+
+        goto label2;
+
+     label1:
+        $r3 = r1;
+
+     label2:
+        r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.transport.DataHandler dataHandler> = $r3;
+
+        return;
+    }
+
+    protected final void init()
+    {
+        com.glines.socketio.server.SocketIOSession $r5, $r17, $r23, $r25, $r36, $r40;
+        boolean $z0, $z1, $z2;
+        com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler r0;
+        java.util.logging.Logger $r9, $r11, $r28, $r30;
+        java.lang.StringBuilder $r10, $r15, $r16, $r18, $r19, $r20, $r21, $r29, $r34, $r35, $r37, $r38, $r39, $r41;
+        long $l3, $l4, $l5, $l6, $l7, $l8, $l9, $l10;
+        java.util.logging.Level $r8, $r27;
+        int $i0, $i1, $i2;
+        java.lang.String $r13, $r14, $r22, $r32, $r33, $r42;
+        com.glines.socketio.server.transport.jetty.TransportBuffer $r3;
+        com.glines.socketio.server.SocketIOConfig $r1, $r2, $r6, $r7, $r12, $r24, $r26, $r31;
+        com.glines.socketio.server.transport.DataHandler $r4;
+
+        r0 := @this: com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler;
+
+        $r1 = virtualinvoke r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOConfig getConfig()>();
+
+        $i0 = interfaceinvoke $r1.<com.glines.socketio.server.SocketIOConfig: int getBufferSize()>();
+
+        r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: int bufferSize> = $i0;
+
+        $r2 = virtualinvoke r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOConfig getConfig()>();
+
+        $i1 = interfaceinvoke $r2.<com.glines.socketio.server.SocketIOConfig: int getMaxIdle()>();
+
+        r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: int maxIdleTime> = $i1;
+
+        $r3 = new com.glines.socketio.server.transport.jetty.TransportBuffer;
+
+        $i2 = r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: int bufferSize>;
+
+        specialinvoke $r3.<com.glines.socketio.server.transport.jetty.TransportBuffer: void <init>(int)>($i2);
+
+        r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.transport.jetty.TransportBuffer buffer> = $r3;
+
+        $r4 = r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.transport.DataHandler dataHandler>;
+
+        $z0 = interfaceinvoke $r4.<com.glines.socketio.server.transport.DataHandler: boolean isConnectionPersistent()>();
+
+        if $z0 == 0 goto label1;
+
+        $r23 = virtualinvoke r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOSession getSession()>();
+
+        $r24 = virtualinvoke r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOConfig getConfig()>();
+
+        $l7 = interfaceinvoke $r24.<com.glines.socketio.server.SocketIOConfig: long getHeartbeatDelay(long)>(15000L);
+
+        interfaceinvoke $r23.<com.glines.socketio.server.SocketIOSession: void setHeartbeat(long)>($l7);
+
+        $r25 = virtualinvoke r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOSession getSession()>();
+
+        $r26 = virtualinvoke r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOConfig getConfig()>();
+
+        $l8 = interfaceinvoke $r26.<com.glines.socketio.server.SocketIOConfig: long getHeartbeatTimeout(long)>(10000L);
+
+        interfaceinvoke $r25.<com.glines.socketio.server.SocketIOSession: void setTimeout(long)>($l8);
+
+        $r28 = <com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: java.util.logging.Logger LOGGER>;
+
+        $r27 = <java.util.logging.Level: java.util.logging.Level FINE>;
+
+        $z2 = virtualinvoke $r28.<java.util.logging.Logger: boolean isLoggable(java.util.logging.Level)>($r27);
+
+        if $z2 == 0 goto label2;
+
+        $r30 = <com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: java.util.logging.Logger LOGGER>;
+
+        $r29 = new java.lang.StringBuilder;
+
+        $r31 = virtualinvoke r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOConfig getConfig()>();
+
+        $r32 = interfaceinvoke $r31.<com.glines.socketio.server.SocketIOConfig: java.lang.String getNamespace()>();
+
+        $r33 = staticinvoke <java.lang.String: java.lang.String valueOf(java.lang.Object)>($r32);
+
+        specialinvoke $r29.<java.lang.StringBuilder: void <init>(java.lang.String)>($r33);
+
+        $r34 = virtualinvoke $r29.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" transport handler configuration:\n");
+
+        $r35 = virtualinvoke $r34.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" - heartbeatDelay=");
+
+        $r36 = virtualinvoke r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOSession getSession()>();
+
+        $l9 = interfaceinvoke $r36.<com.glines.socketio.server.SocketIOSession: long getHeartbeat()>();
+
+        $r37 = virtualinvoke $r35.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l9);
+
+        $r38 = virtualinvoke $r37.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("\n");
+
+        $r39 = virtualinvoke $r38.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" - heartbeatTimeout=");
+
+        $r40 = virtualinvoke r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOSession getSession()>();
+
+        $l10 = interfaceinvoke $r40.<com.glines.socketio.server.SocketIOSession: long getTimeout()>();
+
+        $r41 = virtualinvoke $r39.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l10);
+
+        $r42 = virtualinvoke $r41.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r30.<java.util.logging.Logger: void fine(java.lang.String)>($r42);
+
+        goto label2;
+
+     label1:
+        $r5 = virtualinvoke r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOSession getSession()>();
+
+        $r6 = virtualinvoke r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOConfig getConfig()>();
+
+        $l3 = interfaceinvoke $r6.<com.glines.socketio.server.SocketIOConfig: long getTimeout(long)>(5000L);
+
+        interfaceinvoke $r5.<com.glines.socketio.server.SocketIOSession: void setTimeout(long)>($l3);
+
+        $r7 = virtualinvoke r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOConfig getConfig()>();
+
+        $l4 = interfaceinvoke $r7.<com.glines.socketio.server.SocketIOConfig: long getLong(java.lang.String,long)>("continuationTimeout", 20000L);
+
+        r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: long continuationTimeout> = $l4;
+
+        $r9 = <com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: java.util.logging.Logger LOGGER>;
+
+        $r8 = <java.util.logging.Level: java.util.logging.Level FINE>;
+
+        $z1 = virtualinvoke $r9.<java.util.logging.Logger: boolean isLoggable(java.util.logging.Level)>($r8);
+
+        if $z1 == 0 goto label2;
+
+        $r11 = <com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: java.util.logging.Logger LOGGER>;
+
+        $r10 = new java.lang.StringBuilder;
+
+        $r12 = virtualinvoke r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOConfig getConfig()>();
+
+        $r13 = interfaceinvoke $r12.<com.glines.socketio.server.SocketIOConfig: java.lang.String getNamespace()>();
+
+        $r14 = staticinvoke <java.lang.String: java.lang.String valueOf(java.lang.Object)>($r13);
+
+        specialinvoke $r10.<java.lang.StringBuilder: void <init>(java.lang.String)>($r14);
+
+        $r15 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" transport handler configuration:\n");
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" - timeout=");
+
+        $r17 = virtualinvoke r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOSession getSession()>();
+
+        $l5 = interfaceinvoke $r17.<com.glines.socketio.server.SocketIOSession: long getTimeout()>();
+
+        $r18 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l5);
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("\n");
+
+        $r20 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" - continuationTimeout=");
+
+        $l6 = r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: long continuationTimeout>;
+
+        $r21 = virtualinvoke $r20.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l6);
+
+        $r22 = virtualinvoke $r21.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r11.<java.util.logging.Logger: void fine(java.lang.String)>($r22);
+
+     label2:
+        return;
+    }
+
+    public void disconnect()
+    {
+        com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler r0;
+        com.glines.socketio.server.SocketIOSession $r1;
+        com.glines.socketio.common.DisconnectReason $r2;
+
+        r0 := @this: com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler;
+
+        $r1 = virtualinvoke r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOSession getSession()>();
+
+        $r2 = <com.glines.socketio.common.DisconnectReason: com.glines.socketio.common.DisconnectReason DISCONNECT>;
+
+        interfaceinvoke $r1.<com.glines.socketio.server.SocketIOSession: void onDisconnect(com.glines.socketio.common.DisconnectReason)>($r2);
+
+        virtualinvoke r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: void abort()>();
+
+        return;
+    }
+
+    public void close()
+    {
+        com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler r0;
+        com.glines.socketio.server.SocketIOSession $r1;
+
+        r0 := @this: com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler;
+
+        $r1 = virtualinvoke r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOSession getSession()>();
+
+        interfaceinvoke $r1.<com.glines.socketio.server.SocketIOSession: void startClose()>();
+
+        return;
+    }
+
+    public com.glines.socketio.common.ConnectionState getConnectionState()
+    {
+        com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler r0;
+        com.glines.socketio.server.SocketIOSession $r1;
+        com.glines.socketio.common.ConnectionState $r2;
+
+        r0 := @this: com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler;
+
+        $r1 = virtualinvoke r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOSession getSession()>();
+
+        $r2 = interfaceinvoke $r1.<com.glines.socketio.server.SocketIOSession: com.glines.socketio.common.ConnectionState getConnectionState()>();
+
+        return $r2;
+    }
+
+    public void sendMessage(com.glines.socketio.server.SocketIOFrame) throws com.glines.socketio.common.SocketIOException
+    {
+        com.glines.socketio.server.SocketIOFrame r5;
+        com.glines.socketio.server.SocketIOSession $r8, $r22, $r27;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5;
+        com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler r2;
+        com.glines.socketio.server.SocketIOFrame$FrameType $r32;
+        java.util.logging.Logger $r1, $r25;
+        java.util.List $r12;
+        javax.servlet.ServletResponse $r19;
+        java.lang.StringBuilder $r14, $r24, $r29, $r30, $r31, $r33, $r34, $r36;
+        org.eclipse.jetty.continuation.Continuation $r4, $r17, $r23, r41;
+        long $l1;
+        java.util.logging.Level $r0, $r26;
+        com.glines.socketio.common.DisconnectReason $r9;
+        int $i0;
+        com.glines.socketio.common.SocketIOException $r10, $r39;
+        java.lang.String $r6, $r13, $r20, $r28, $r35, $r37, r40;
+        com.glines.socketio.server.SocketIOClosedException $r3;
+        com.glines.socketio.server.transport.jetty.TransportBuffer $r7, $r11;
+        java.util.Iterator $r15;
+        com.glines.socketio.server.transport.DataHandler $r18, $r21;
+        java.io.IOException $r38;
+        java.lang.Object $r16;
+
+        r2 := @this: com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler;
+
+        r5 := @parameter0: com.glines.socketio.server.SocketIOFrame;
+
+        $r1 = <com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: java.util.logging.Logger LOGGER>;
+
+        $r0 = <java.util.logging.Level: java.util.logging.Level FINE>;
+
+        $z0 = virtualinvoke $r1.<java.util.logging.Logger: boolean isLoggable(java.util.logging.Level)>($r0);
+
+        if $z0 == 0 goto label01;
+
+        $r25 = <com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: java.util.logging.Logger LOGGER>;
+
+        $r26 = <java.util.logging.Level: java.util.logging.Level FINE>;
+
+        $r24 = new java.lang.StringBuilder;
+
+        specialinvoke $r24.<java.lang.StringBuilder: void <init>(java.lang.String)>("Session[");
+
+        $r27 = virtualinvoke r2.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOSession getSession()>();
+
+        $r28 = interfaceinvoke $r27.<com.glines.socketio.server.SocketIOSession: java.lang.String getSessionId()>();
+
+        $r29 = virtualinvoke $r24.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r28);
+
+        $r30 = virtualinvoke $r29.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("]: ");
+
+        $r31 = virtualinvoke $r30.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("sendMessage(frame): [");
+
+        $r32 = virtualinvoke r5.<com.glines.socketio.server.SocketIOFrame: com.glines.socketio.server.SocketIOFrame$FrameType getFrameType()>();
+
+        $r33 = virtualinvoke $r31.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r32);
+
+        $r34 = virtualinvoke $r33.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("]: ");
+
+        $r35 = virtualinvoke r5.<com.glines.socketio.server.SocketIOFrame: java.lang.String getData()>();
+
+        $r36 = virtualinvoke $r34.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r35);
+
+        $r37 = virtualinvoke $r36.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r25.<java.util.logging.Logger: void log(java.util.logging.Level,java.lang.String)>($r26, $r37);
+
+     label01:
+        $z1 = r2.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: boolean is_open>;
+
+        if $z1 == 0 goto label10;
+
+        $r4 = r2.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: org.eclipse.jetty.continuation.Continuation continuation>;
+
+        if $r4 == null goto label09;
+
+        $r11 = r2.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.transport.jetty.TransportBuffer buffer>;
+
+        $r12 = virtualinvoke $r11.<com.glines.socketio.server.transport.jetty.TransportBuffer: java.util.List drainMessages()>();
+
+        $r13 = virtualinvoke r5.<com.glines.socketio.server.SocketIOFrame: java.lang.String encode()>();
+
+        interfaceinvoke $r12.<java.util.List: boolean add(java.lang.Object)>($r13);
+
+        $r14 = new java.lang.StringBuilder;
+
+        specialinvoke $r14.<java.lang.StringBuilder: void <init>()>();
+
+        $r15 = interfaceinvoke $r12.<java.util.List: java.util.Iterator iterator()>();
+
+        goto label03;
+
+     label02:
+        $r16 = interfaceinvoke $r15.<java.util.Iterator: java.lang.Object next()>();
+
+        r40 = (java.lang.String) $r16;
+
+        virtualinvoke $r14.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r40);
+
+     label03:
+        $z3 = interfaceinvoke $r15.<java.util.Iterator: boolean hasNext()>();
+
+        if $z3 != 0 goto label02;
+
+     label04:
+        $r18 = r2.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.transport.DataHandler dataHandler>;
+
+        $r17 = r2.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: org.eclipse.jetty.continuation.Continuation continuation>;
+
+        $r19 = interfaceinvoke $r17.<org.eclipse.jetty.continuation.Continuation: javax.servlet.ServletResponse getServletResponse()>();
+
+        $r20 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r18.<com.glines.socketio.server.transport.DataHandler: void onWriteData(javax.servlet.ServletResponse,java.lang.String)>($r19, $r20);
+
+     label05:
+        goto label07;
+
+     label06:
+        $r38 := @caughtexception;
+
+        $r39 = new com.glines.socketio.common.SocketIOException;
+
+        specialinvoke $r39.<com.glines.socketio.common.SocketIOException: void <init>(java.lang.Throwable)>($r38);
+
+        throw $r39;
+
+     label07:
+        $r21 = r2.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.transport.DataHandler dataHandler>;
+
+        $z4 = interfaceinvoke $r21.<com.glines.socketio.server.transport.DataHandler: boolean isConnectionPersistent()>();
+
+        if $z4 != 0 goto label08;
+
+        $r23 = r2.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: org.eclipse.jetty.continuation.Continuation continuation>;
+
+        $z5 = interfaceinvoke $r23.<org.eclipse.jetty.continuation.Continuation: boolean isInitial()>();
+
+        if $z5 != 0 goto label08;
+
+        r41 = r2.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: org.eclipse.jetty.continuation.Continuation continuation>;
+
+        r2.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: org.eclipse.jetty.continuation.Continuation continuation> = null;
+
+        interfaceinvoke r41.<org.eclipse.jetty.continuation.Continuation: void complete()>();
+
+        goto label11;
+
+     label08:
+        $r22 = virtualinvoke r2.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOSession getSession()>();
+
+        interfaceinvoke $r22.<com.glines.socketio.server.SocketIOSession: void startHeartbeatTimer()>();
+
+        goto label11;
+
+     label09:
+        $r6 = virtualinvoke r5.<com.glines.socketio.server.SocketIOFrame: java.lang.String encode()>();
+
+        $r7 = r2.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.transport.jetty.TransportBuffer buffer>;
+
+        $i0 = r2.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: int maxIdleTime>;
+
+        $l1 = (long) $i0;
+
+        $z2 = virtualinvoke $r7.<com.glines.socketio.server.transport.jetty.TransportBuffer: boolean putMessage(java.lang.String,long)>($r6, $l1);
+
+        if $z2 != 0 goto label11;
+
+        $r8 = virtualinvoke r2.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOSession getSession()>();
+
+        $r9 = <com.glines.socketio.common.DisconnectReason: com.glines.socketio.common.DisconnectReason TIMEOUT>;
+
+        interfaceinvoke $r8.<com.glines.socketio.server.SocketIOSession: void onDisconnect(com.glines.socketio.common.DisconnectReason)>($r9);
+
+        virtualinvoke r2.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: void abort()>();
+
+        $r10 = new com.glines.socketio.common.SocketIOException;
+
+        specialinvoke $r10.<com.glines.socketio.common.SocketIOException: void <init>()>();
+
+        throw $r10;
+
+     label10:
+        $r3 = new com.glines.socketio.server.SocketIOClosedException;
+
+        specialinvoke $r3.<com.glines.socketio.server.SocketIOClosedException: void <init>()>();
+
+        throw $r3;
+
+     label11:
+        return;
+
+        catch java.io.IOException from label04 to label05 with label06;
+    }
+
+    public void sendMessage(java.lang.String) throws com.glines.socketio.common.SocketIOException
+    {
+        com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler r2;
+        com.glines.socketio.server.SocketIOSession $r7;
+        java.util.logging.Logger $r1, $r5;
+        java.util.logging.Level $r0, $r6;
+        java.lang.StringBuilder $r4, $r9, $r10, $r11, $r12;
+        java.lang.String r3, $r8, $r13;
+        boolean $z0;
+
+        r2 := @this: com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler;
+
+        r3 := @parameter0: java.lang.String;
+
+        $r1 = <com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: java.util.logging.Logger LOGGER>;
+
+        $r0 = <java.util.logging.Level: java.util.logging.Level FINE>;
+
+        $z0 = virtualinvoke $r1.<java.util.logging.Logger: boolean isLoggable(java.util.logging.Level)>($r0);
+
+        if $z0 == 0 goto label1;
+
+        $r5 = <com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: java.util.logging.Logger LOGGER>;
+
+        $r6 = <java.util.logging.Level: java.util.logging.Level FINE>;
+
+        $r4 = new java.lang.StringBuilder;
+
+        specialinvoke $r4.<java.lang.StringBuilder: void <init>(java.lang.String)>("Session[");
+
+        $r7 = virtualinvoke r2.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOSession getSession()>();
+
+        $r8 = interfaceinvoke $r7.<com.glines.socketio.server.SocketIOSession: java.lang.String getSessionId()>();
+
+        $r9 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r8);
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("]: ");
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("sendMessage(String): ");
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r3);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r5.<java.util.logging.Logger: void log(java.util.logging.Level,java.lang.String)>($r6, $r13);
+
+     label1:
+        virtualinvoke r2.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: void sendMessage(int,java.lang.String)>(0, r3);
+
+        return;
+    }
+
+    public void sendMessage(int, java.lang.String) throws com.glines.socketio.common.SocketIOException
+    {
+        com.glines.socketio.server.SocketIOSession $r4, $r13;
+        com.glines.socketio.server.SocketIOFrame $r7;
+        java.util.logging.Level $r0, $r12;
+        int i0;
+        java.lang.String r8, $r14, $r21;
+        com.glines.socketio.server.SocketIOClosedException $r3;
+        boolean $z0, $z1;
+        com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler r2;
+        com.glines.socketio.server.SocketIOFrame$FrameType $r9;
+        java.util.logging.Logger $r1, $r11;
+        java.lang.StringBuilder $r10, $r15, $r16, $r17, $r18, $r19, $r20;
+        com.glines.socketio.common.ConnectionState $r5, $r6;
+
+        r2 := @this: com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler;
+
+        i0 := @parameter0: int;
+
+        r8 := @parameter1: java.lang.String;
+
+        $r1 = <com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: java.util.logging.Logger LOGGER>;
+
+        $r0 = <java.util.logging.Level: java.util.logging.Level FINE>;
+
+        $z0 = virtualinvoke $r1.<java.util.logging.Logger: boolean isLoggable(java.util.logging.Level)>($r0);
+
+        if $z0 == 0 goto label1;
+
+        $r11 = <com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: java.util.logging.Logger LOGGER>;
+
+        $r12 = <java.util.logging.Level: java.util.logging.Level FINE>;
+
+        $r10 = new java.lang.StringBuilder;
+
+        specialinvoke $r10.<java.lang.StringBuilder: void <init>(java.lang.String)>("Session[");
+
+        $r13 = virtualinvoke r2.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOSession getSession()>();
+
+        $r14 = interfaceinvoke $r13.<com.glines.socketio.server.SocketIOSession: java.lang.String getSessionId()>();
+
+        $r15 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r14);
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("]: ");
+
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("sendMessage(int, String): [");
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>(i0);
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("]: ");
+
+        $r20 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r8);
+
+        $r21 = virtualinvoke $r20.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r11.<java.util.logging.Logger: void log(java.util.logging.Level,java.lang.String)>($r12, $r21);
+
+     label1:
+        $z1 = r2.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: boolean is_open>;
+
+        if $z1 == 0 goto label2;
+
+        $r4 = virtualinvoke r2.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOSession getSession()>();
+
+        $r5 = interfaceinvoke $r4.<com.glines.socketio.server.SocketIOSession: com.glines.socketio.common.ConnectionState getConnectionState()>();
+
+        $r6 = <com.glines.socketio.common.ConnectionState: com.glines.socketio.common.ConnectionState CONNECTED>;
+
+        if $r5 != $r6 goto label2;
+
+        $r7 = new com.glines.socketio.server.SocketIOFrame;
+
+        $r9 = <com.glines.socketio.server.SocketIOFrame$FrameType: com.glines.socketio.server.SocketIOFrame$FrameType DATA>;
+
+        specialinvoke $r7.<com.glines.socketio.server.SocketIOFrame: void <init>(com.glines.socketio.server.SocketIOFrame$FrameType,int,java.lang.String)>($r9, i0, r8);
+
+        virtualinvoke r2.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: void sendMessage(com.glines.socketio.server.SocketIOFrame)>($r7);
+
+        goto label3;
+
+     label2:
+        $r3 = new com.glines.socketio.server.SocketIOClosedException;
+
+        specialinvoke $r3.<com.glines.socketio.server.SocketIOClosedException: void <init>()>();
+
+        throw $r3;
+
+     label3:
+        return;
+    }
+
+    public void handle(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, com.glines.socketio.server.SocketIOSession) throws java.io.IOException
+    {
+        com.glines.socketio.server.SocketIOFrame r52;
+        com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler r6;
+        java.lang.StringBuilder $r41;
+        com.glines.socketio.common.ConnectionState $r13, $r14;
+        long $l3;
+        javax.servlet.http.HttpServletRequest r0;
+        com.glines.socketio.common.DisconnectReason $r16;
+        java.lang.String $r1, $r2, $r3, $r4, $r8, $r9, $r10, $r21, $r25, $r31, $r37, $r46, r51;
+        com.glines.socketio.server.transport.jetty.TransportBuffer $r11, $r28, $r39, $r49;
+        java.io.BufferedReader $r7;
+        com.glines.socketio.server.SocketIOSession $r12, $r15, $r20, $r29, r30, $r48;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9, $z10, $z11;
+        java.util.List $r17, $r40;
+        org.eclipse.jetty.continuation.Continuation $r23, $r24, $r32, $r33, $r34, $r35, $r36, $r50;
+        int $i0, $i1, $i2, $i4;
+        java.util.Iterator $r18, $r42;
+        com.glines.socketio.server.transport.DataHandler $r26, $r27, $r38, $r44, $r45, $r47;
+        javax.servlet.http.HttpServletResponse r5;
+        java.lang.Object $r19, $r22, $r43;
+
+        r6 := @this: com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler;
+
+        r0 := @parameter0: javax.servlet.http.HttpServletRequest;
+
+        r5 := @parameter1: javax.servlet.http.HttpServletResponse;
+
+        r30 := @parameter2: com.glines.socketio.server.SocketIOSession;
+
+        $r1 = "GET";
+
+        $r2 = interfaceinvoke r0.<javax.servlet.http.HttpServletRequest: java.lang.String getMethod()>();
+
+        $z0 = virtualinvoke $r1.<java.lang.String: boolean equals(java.lang.Object)>($r2);
+
+        if $z0 == 0 goto label11;
+
+        $z5 = r6.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: boolean is_open>;
+
+        if $z5 != 0 goto label01;
+
+        $r49 = r6.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.transport.jetty.TransportBuffer buffer>;
+
+        $z10 = virtualinvoke $r49.<com.glines.socketio.server.transport.jetty.TransportBuffer: boolean isEmpty()>();
+
+        if $z10 == 0 goto label01;
+
+        interfaceinvoke r5.<javax.servlet.http.HttpServletResponse: void sendError(int)>(404);
+
+        goto label18;
+
+     label01:
+        $r21 = <com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: java.lang.String CONTINUATION_KEY>;
+
+        $r22 = interfaceinvoke r0.<javax.servlet.http.HttpServletRequest: java.lang.Object getAttribute(java.lang.String)>($r21);
+
+        $r50 = (org.eclipse.jetty.continuation.Continuation) $r22;
+
+        $r23 = r6.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: org.eclipse.jetty.continuation.Continuation continuation>;
+
+        if $r23 != null goto label02;
+
+        if $r50 == null goto label05;
+
+     label02:
+        $r24 = r6.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: org.eclipse.jetty.continuation.Continuation continuation>;
+
+        if $r24 != $r50 goto label03;
+
+        r6.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: org.eclipse.jetty.continuation.Continuation continuation> = null;
+
+        $r26 = r6.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.transport.DataHandler dataHandler>;
+
+        interfaceinvoke $r26.<com.glines.socketio.server.transport.DataHandler: void onFinishSend(javax.servlet.ServletResponse)>(r5);
+
+     label03:
+        if $r50 == null goto label04;
+
+        $r25 = <com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: java.lang.String CONTINUATION_KEY>;
+
+        interfaceinvoke r0.<javax.servlet.http.HttpServletRequest: void removeAttribute(java.lang.String)>($r25);
+
+     label04:
+        return;
+
+     label05:
+        $r27 = r6.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.transport.DataHandler dataHandler>;
+
+        $z6 = interfaceinvoke $r27.<com.glines.socketio.server.transport.DataHandler: boolean isConnectionPersistent()>();
+
+        if $z6 != 0 goto label10;
+
+        $r28 = r6.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.transport.jetty.TransportBuffer buffer>;
+
+        $z7 = virtualinvoke $r28.<com.glines.socketio.server.transport.jetty.TransportBuffer: boolean isEmpty()>();
+
+        if $z7 != 0 goto label09;
+
+        $r39 = r6.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.transport.jetty.TransportBuffer buffer>;
+
+        $r40 = virtualinvoke $r39.<com.glines.socketio.server.transport.jetty.TransportBuffer: java.util.List drainMessages()>();
+
+        $i4 = interfaceinvoke $r40.<java.util.List: int size()>();
+
+        if $i4 <= 0 goto label18;
+
+        $r41 = new java.lang.StringBuilder;
+
+        specialinvoke $r41.<java.lang.StringBuilder: void <init>()>();
+
+        $r42 = interfaceinvoke $r40.<java.util.List: java.util.Iterator iterator()>();
+
+        goto label07;
+
+     label06:
+        $r43 = interfaceinvoke $r42.<java.util.Iterator: java.lang.Object next()>();
+
+        r51 = (java.lang.String) $r43;
+
+        virtualinvoke $r41.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r51);
+
+     label07:
+        $z8 = interfaceinvoke $r42.<java.util.Iterator: boolean hasNext()>();
+
+        if $z8 != 0 goto label06;
+
+        $r44 = r6.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.transport.DataHandler dataHandler>;
+
+        interfaceinvoke $r44.<com.glines.socketio.server.transport.DataHandler: void onStartSend(javax.servlet.http.HttpServletResponse)>(r5);
+
+        $r45 = r6.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.transport.DataHandler dataHandler>;
+
+        $r46 = virtualinvoke $r41.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r45.<com.glines.socketio.server.transport.DataHandler: void onWriteData(javax.servlet.ServletResponse,java.lang.String)>(r5, $r46);
+
+        $r47 = r6.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.transport.DataHandler dataHandler>;
+
+        interfaceinvoke $r47.<com.glines.socketio.server.transport.DataHandler: void onFinishSend(javax.servlet.ServletResponse)>(r5);
+
+        $z9 = r6.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: boolean disconnectWhenEmpty>;
+
+        if $z9 != 0 goto label08;
+
+        $r48 = virtualinvoke r6.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOSession getSession()>();
+
+        interfaceinvoke $r48.<com.glines.socketio.server.SocketIOSession: void startTimeoutTimer()>();
+
+        goto label18;
+
+     label08:
+        virtualinvoke r6.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: void abort()>();
+
+        goto label18;
+
+     label09:
+        $r29 = virtualinvoke r6.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOSession getSession()>();
+
+        interfaceinvoke $r29.<com.glines.socketio.server.SocketIOSession: void clearTimeoutTimer()>();
+
+        $r31 = <com.glines.socketio.server.transport.AbstractHttpTransport: java.lang.String SESSION_KEY>;
+
+        interfaceinvoke r0.<javax.servlet.http.HttpServletRequest: void setAttribute(java.lang.String,java.lang.Object)>($r31, r30);
+
+        $i2 = r6.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: int bufferSize>;
+
+        interfaceinvoke r5.<javax.servlet.http.HttpServletResponse: void setBufferSize(int)>($i2);
+
+        $r32 = staticinvoke <org.eclipse.jetty.continuation.ContinuationSupport: org.eclipse.jetty.continuation.Continuation getContinuation(javax.servlet.ServletRequest)>(r0);
+
+        r6.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: org.eclipse.jetty.continuation.Continuation continuation> = $r32;
+
+        $r33 = r6.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: org.eclipse.jetty.continuation.Continuation continuation>;
+
+        interfaceinvoke $r33.<org.eclipse.jetty.continuation.Continuation: void addContinuationListener(org.eclipse.jetty.continuation.ContinuationListener)>(r6);
+
+        $r34 = r6.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: org.eclipse.jetty.continuation.Continuation continuation>;
+
+        $l3 = r6.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: long continuationTimeout>;
+
+        interfaceinvoke $r34.<org.eclipse.jetty.continuation.Continuation: void setTimeout(long)>($l3);
+
+        $r35 = r6.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: org.eclipse.jetty.continuation.Continuation continuation>;
+
+        interfaceinvoke $r35.<org.eclipse.jetty.continuation.Continuation: void suspend(javax.servlet.ServletResponse)>(r5);
+
+        $r37 = <com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: java.lang.String CONTINUATION_KEY>;
+
+        $r36 = r6.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: org.eclipse.jetty.continuation.Continuation continuation>;
+
+        interfaceinvoke r0.<javax.servlet.http.HttpServletRequest: void setAttribute(java.lang.String,java.lang.Object)>($r37, $r36);
+
+        $r38 = r6.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.transport.DataHandler dataHandler>;
+
+        interfaceinvoke $r38.<com.glines.socketio.server.transport.DataHandler: void onStartSend(javax.servlet.http.HttpServletResponse)>(r5);
+
+        goto label18;
+
+     label10:
+        interfaceinvoke r5.<javax.servlet.http.HttpServletResponse: void sendError(int)>(404);
+
+        goto label18;
+
+     label11:
+        $r3 = "POST";
+
+        $r4 = interfaceinvoke r0.<javax.servlet.http.HttpServletRequest: java.lang.String getMethod()>();
+
+        $z1 = virtualinvoke $r3.<java.lang.String: boolean equals(java.lang.Object)>($r4);
+
+        if $z1 == 0 goto label17;
+
+        $z2 = r6.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: boolean is_open>;
+
+        if $z2 == 0 goto label18;
+
+        $i0 = interfaceinvoke r0.<javax.servlet.http.HttpServletRequest: int getContentLength()>();
+
+        $r7 = interfaceinvoke r0.<javax.servlet.http.HttpServletRequest: java.io.BufferedReader getReader()>();
+
+        if $i0 != 0 goto label12;
+
+        interfaceinvoke r5.<javax.servlet.http.HttpServletResponse: void sendError(int)>(400);
+
+        goto label18;
+
+     label12:
+        $r8 = interfaceinvoke r0.<javax.servlet.http.HttpServletRequest: java.lang.String getContentType()>();
+
+        $r9 = staticinvoke <com.glines.socketio.util.IO: java.lang.String toString(java.io.Reader)>($r7);
+
+        $r10 = virtualinvoke r6.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: java.lang.String decodePostData(java.lang.String,java.lang.String)>($r8, $r9);
+
+        if $r10 == null goto label15;
+
+        $i1 = virtualinvoke $r10.<java.lang.String: int length()>();
+
+        if $i1 <= 0 goto label15;
+
+        $r17 = staticinvoke <com.glines.socketio.server.SocketIOFrame: java.util.List parse(java.lang.String)>($r10);
+
+        $r18 = interfaceinvoke $r17.<java.util.List: java.util.Iterator iterator()>();
+
+        goto label14;
+
+     label13:
+        $r19 = interfaceinvoke $r18.<java.util.Iterator: java.lang.Object next()>();
+
+        r52 = (com.glines.socketio.server.SocketIOFrame) $r19;
+
+        $r20 = virtualinvoke r6.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOSession getSession()>();
+
+        interfaceinvoke $r20.<com.glines.socketio.server.SocketIOSession: void onMessage(com.glines.socketio.server.SocketIOFrame)>(r52);
+
+     label14:
+        $z4 = interfaceinvoke $r18.<java.util.Iterator: boolean hasNext()>();
+
+        if $z4 != 0 goto label13;
+
+     label15:
+        $z11 = r6.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: boolean disconnectWhenEmpty>;
+
+        if $z11 == 0 goto label18;
+
+        $r11 = r6.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.transport.jetty.TransportBuffer buffer>;
+
+        $z3 = virtualinvoke $r11.<com.glines.socketio.server.transport.jetty.TransportBuffer: boolean isEmpty()>();
+
+        if $z3 == 0 goto label18;
+
+        $r12 = virtualinvoke r6.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOSession getSession()>();
+
+        $r13 = interfaceinvoke $r12.<com.glines.socketio.server.SocketIOSession: com.glines.socketio.common.ConnectionState getConnectionState()>();
+
+        $r14 = <com.glines.socketio.common.ConnectionState: com.glines.socketio.common.ConnectionState CLOSING>;
+
+        if $r13 != $r14 goto label16;
+
+        $r15 = virtualinvoke r6.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOSession getSession()>();
+
+        $r16 = <com.glines.socketio.common.DisconnectReason: com.glines.socketio.common.DisconnectReason CLOSED>;
+
+        interfaceinvoke $r15.<com.glines.socketio.server.SocketIOSession: void onDisconnect(com.glines.socketio.common.DisconnectReason)>($r16);
+
+     label16:
+        virtualinvoke r6.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: void abort()>();
+
+        goto label18;
+
+     label17:
+        interfaceinvoke r5.<javax.servlet.http.HttpServletResponse: void sendError(int)>(400);
+
+     label18:
+        return;
+    }
+
+    protected java.lang.String decodePostData(java.lang.String, java.lang.String)
+    {
+        com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler r5;
+        java.lang.String r0, r1, $r2, $r3, $r4;
+        boolean $z0, $z1, $z2;
+
+        r5 := @this: com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler;
+
+        r0 := @parameter0: java.lang.String;
+
+        r1 := @parameter1: java.lang.String;
+
+        $z0 = virtualinvoke r0.<java.lang.String: boolean startsWith(java.lang.String)>("application/x-www-form-urlencoded");
+
+        if $z0 == 0 goto label2;
+
+        $r2 = virtualinvoke r1.<java.lang.String: java.lang.String substring(int,int)>(0, 5);
+
+        $z2 = virtualinvoke $r2.<java.lang.String: boolean equals(java.lang.Object)>("data=");
+
+        if $z2 == 0 goto label1;
+
+        $r3 = virtualinvoke r1.<java.lang.String: java.lang.String substring(int)>(5);
+
+        $r4 = staticinvoke <com.glines.socketio.util.URI: java.lang.String decodePath(java.lang.String)>($r3);
+
+        return $r4;
+
+     label1:
+        return "";
+
+     label2:
+        $z1 = virtualinvoke r0.<java.lang.String: boolean startsWith(java.lang.String)>("text/plain");
+
+        if $z1 == 0 goto label3;
+
+        return r1;
+
+     label3:
+        return r1;
+    }
+
+    public void onComplete(org.eclipse.jetty.continuation.Continuation)
+    {
+        org.eclipse.jetty.continuation.Continuation $r1, r2, $r3;
+        com.glines.socketio.server.SocketIOSession $r5, $r7, $r9;
+        com.glines.socketio.common.DisconnectReason $r8, $r10;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5;
+        com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler r0;
+        com.glines.socketio.server.transport.jetty.TransportBuffer $r6;
+        com.glines.socketio.server.transport.DataHandler $r4;
+
+        r0 := @this: com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler;
+
+        r2 := @parameter0: org.eclipse.jetty.continuation.Continuation;
+
+        $r1 = r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: org.eclipse.jetty.continuation.Continuation continuation>;
+
+        if $r1 == null goto label5;
+
+        $r3 = r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: org.eclipse.jetty.continuation.Continuation continuation>;
+
+        if r2 != $r3 goto label5;
+
+        r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: org.eclipse.jetty.continuation.Continuation continuation> = null;
+
+        $r4 = r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.transport.DataHandler dataHandler>;
+
+        $z0 = interfaceinvoke $r4.<com.glines.socketio.server.transport.DataHandler: boolean isConnectionPersistent()>();
+
+        if $z0 == 0 goto label2;
+
+        r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: boolean is_open> = 0;
+
+        $z4 = r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: boolean disconnectWhenEmpty>;
+
+        if $z4 != 0 goto label1;
+
+        $r9 = virtualinvoke r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOSession getSession()>();
+
+        $r10 = <com.glines.socketio.common.DisconnectReason: com.glines.socketio.common.DisconnectReason DISCONNECT>;
+
+        interfaceinvoke $r9.<com.glines.socketio.server.SocketIOSession: void onDisconnect(com.glines.socketio.common.DisconnectReason)>($r10);
+
+     label1:
+        virtualinvoke r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: void abort()>();
+
+        goto label5;
+
+     label2:
+        $z1 = r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: boolean is_open>;
+
+        if $z1 != 0 goto label3;
+
+        $r6 = r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.transport.jetty.TransportBuffer buffer>;
+
+        $z2 = virtualinvoke $r6.<com.glines.socketio.server.transport.jetty.TransportBuffer: boolean isEmpty()>();
+
+        if $z2 == 0 goto label3;
+
+        $z3 = r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: boolean disconnectWhenEmpty>;
+
+        if $z3 != 0 goto label3;
+
+        $r7 = virtualinvoke r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOSession getSession()>();
+
+        $r8 = <com.glines.socketio.common.DisconnectReason: com.glines.socketio.common.DisconnectReason DISCONNECT>;
+
+        interfaceinvoke $r7.<com.glines.socketio.server.SocketIOSession: void onDisconnect(com.glines.socketio.common.DisconnectReason)>($r8);
+
+        virtualinvoke r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: void abort()>();
+
+        goto label5;
+
+     label3:
+        $z5 = r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: boolean disconnectWhenEmpty>;
+
+        if $z5 == 0 goto label4;
+
+        virtualinvoke r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: void abort()>();
+
+        goto label5;
+
+     label4:
+        $r5 = virtualinvoke r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOSession getSession()>();
+
+        interfaceinvoke $r5.<com.glines.socketio.server.SocketIOSession: void startTimeoutTimer()>();
+
+     label5:
+        return;
+    }
+
+    public void onTimeout(org.eclipse.jetty.continuation.Continuation)
+    {
+        org.eclipse.jetty.continuation.Continuation $r1, r2, $r3;
+        com.glines.socketio.server.SocketIOSession $r8, $r10, $r13, $r15;
+        com.glines.socketio.common.DisconnectReason $r9, $r11, $r14;
+        boolean $z0, $z1, $z2;
+        com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler r0;
+        com.glines.socketio.server.transport.jetty.TransportBuffer $r7;
+        com.glines.socketio.server.transport.DataHandler $r4, $r5;
+        java.io.IOException $r12;
+        javax.servlet.ServletResponse $r6;
+
+        r0 := @this: com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler;
+
+        r2 := @parameter0: org.eclipse.jetty.continuation.Continuation;
+
+        $r1 = r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: org.eclipse.jetty.continuation.Continuation continuation>;
+
+        if $r1 == null goto label6;
+
+        $r3 = r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: org.eclipse.jetty.continuation.Continuation continuation>;
+
+        if r2 != $r3 goto label6;
+
+        r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: org.eclipse.jetty.continuation.Continuation continuation> = null;
+
+        $r4 = r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.transport.DataHandler dataHandler>;
+
+        $z0 = interfaceinvoke $r4.<com.glines.socketio.server.transport.DataHandler: boolean isConnectionPersistent()>();
+
+        if $z0 == 0 goto label1;
+
+        r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: boolean is_open> = 0;
+
+        $r10 = virtualinvoke r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOSession getSession()>();
+
+        $r11 = <com.glines.socketio.common.DisconnectReason: com.glines.socketio.common.DisconnectReason TIMEOUT>;
+
+        interfaceinvoke $r10.<com.glines.socketio.server.SocketIOSession: void onDisconnect(com.glines.socketio.common.DisconnectReason)>($r11);
+
+        virtualinvoke r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: void abort()>();
+
+        goto label6;
+
+     label1:
+        $z1 = r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: boolean is_open>;
+
+        if $z1 != 0 goto label2;
+
+        $r7 = r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.transport.jetty.TransportBuffer buffer>;
+
+        $z2 = virtualinvoke $r7.<com.glines.socketio.server.transport.jetty.TransportBuffer: boolean isEmpty()>();
+
+        if $z2 == 0 goto label2;
+
+        $r8 = virtualinvoke r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOSession getSession()>();
+
+        $r9 = <com.glines.socketio.common.DisconnectReason: com.glines.socketio.common.DisconnectReason DISCONNECT>;
+
+        interfaceinvoke $r8.<com.glines.socketio.server.SocketIOSession: void onDisconnect(com.glines.socketio.common.DisconnectReason)>($r9);
+
+        virtualinvoke r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: void abort()>();
+
+        goto label5;
+
+     label2:
+        $r5 = r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.transport.DataHandler dataHandler>;
+
+        $r6 = interfaceinvoke r2.<org.eclipse.jetty.continuation.Continuation: javax.servlet.ServletResponse getServletResponse()>();
+
+        interfaceinvoke $r5.<com.glines.socketio.server.transport.DataHandler: void onFinishSend(javax.servlet.ServletResponse)>($r6);
+
+     label3:
+        goto label5;
+
+     label4:
+        $r12 := @caughtexception;
+
+        $r13 = virtualinvoke r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOSession getSession()>();
+
+        $r14 = <com.glines.socketio.common.DisconnectReason: com.glines.socketio.common.DisconnectReason DISCONNECT>;
+
+        interfaceinvoke $r13.<com.glines.socketio.server.SocketIOSession: void onDisconnect(com.glines.socketio.common.DisconnectReason)>($r14);
+
+        virtualinvoke r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: void abort()>();
+
+     label5:
+        $r15 = virtualinvoke r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOSession getSession()>();
+
+        interfaceinvoke $r15.<com.glines.socketio.server.SocketIOSession: void startTimeoutTimer()>();
+
+     label6:
+        return;
+
+        catch java.io.IOException from label2 to label3 with label4;
+    }
+
+    public void connect(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse) throws java.io.IOException
+    {
+        org.eclipse.jetty.continuation.Continuation $r5, $r6, $r11, $r13, $r15, $r16;
+        com.glines.socketio.server.SocketIOSession $r3, $r9;
+        javax.servlet.http.HttpServletRequest r0;
+        int $i0;
+        java.lang.String $r2, $r14;
+        boolean $z0, $z1;
+        com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler r1;
+        com.glines.socketio.server.transport.DataHandler $r7, $r8, $r10, $r12;
+        javax.servlet.http.HttpServletResponse r4;
+
+        r1 := @this: com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler;
+
+        r0 := @parameter0: javax.servlet.http.HttpServletRequest;
+
+        r4 := @parameter1: javax.servlet.http.HttpServletResponse;
+
+        $r2 = <com.glines.socketio.server.transport.AbstractHttpTransport: java.lang.String SESSION_KEY>;
+
+        $r3 = virtualinvoke r1.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOSession getSession()>();
+
+        interfaceinvoke r0.<javax.servlet.http.HttpServletRequest: void setAttribute(java.lang.String,java.lang.Object)>($r2, $r3);
+
+        $i0 = r1.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: int bufferSize>;
+
+        interfaceinvoke r4.<javax.servlet.http.HttpServletResponse: void setBufferSize(int)>($i0);
+
+        $r5 = staticinvoke <org.eclipse.jetty.continuation.ContinuationSupport: org.eclipse.jetty.continuation.Continuation getContinuation(javax.servlet.ServletRequest)>(r0);
+
+        r1.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: org.eclipse.jetty.continuation.Continuation continuation> = $r5;
+
+        $r6 = r1.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: org.eclipse.jetty.continuation.Continuation continuation>;
+
+        interfaceinvoke $r6.<org.eclipse.jetty.continuation.Continuation: void addContinuationListener(org.eclipse.jetty.continuation.ContinuationListener)>(r1);
+
+        $r7 = r1.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.transport.DataHandler dataHandler>;
+
+        $z0 = interfaceinvoke $r7.<com.glines.socketio.server.transport.DataHandler: boolean isConnectionPersistent()>();
+
+        if $z0 == 0 goto label1;
+
+        $r16 = r1.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: org.eclipse.jetty.continuation.Continuation continuation>;
+
+        interfaceinvoke $r16.<org.eclipse.jetty.continuation.Continuation: void setTimeout(long)>(0L);
+
+     label1:
+        $r8 = r1.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.transport.DataHandler dataHandler>;
+
+        interfaceinvoke $r8.<com.glines.socketio.server.transport.DataHandler: void onConnect(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse)>(r0, r4);
+
+        r1.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: boolean is_open> = 1;
+
+        $r9 = virtualinvoke r1.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOSession getSession()>();
+
+        interfaceinvoke $r9.<com.glines.socketio.server.SocketIOSession: void onConnect(com.glines.socketio.server.TransportHandler)>(r1);
+
+        $r10 = r1.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.transport.DataHandler dataHandler>;
+
+        interfaceinvoke $r10.<com.glines.socketio.server.transport.DataHandler: void onFinishSend(javax.servlet.ServletResponse)>(r4);
+
+        $r11 = r1.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: org.eclipse.jetty.continuation.Continuation continuation>;
+
+        if $r11 == null goto label3;
+
+        $r12 = r1.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.transport.DataHandler dataHandler>;
+
+        $z1 = interfaceinvoke $r12.<com.glines.socketio.server.transport.DataHandler: boolean isConnectionPersistent()>();
+
+        if $z1 == 0 goto label2;
+
+        $r14 = <com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: java.lang.String CONTINUATION_KEY>;
+
+        $r13 = r1.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: org.eclipse.jetty.continuation.Continuation continuation>;
+
+        interfaceinvoke r0.<javax.servlet.http.HttpServletRequest: void setAttribute(java.lang.String,java.lang.Object)>($r14, $r13);
+
+        $r15 = r1.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: org.eclipse.jetty.continuation.Continuation continuation>;
+
+        interfaceinvoke $r15.<org.eclipse.jetty.continuation.Continuation: void suspend(javax.servlet.ServletResponse)>(r4);
+
+        goto label3;
+
+     label2:
+        r1.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: org.eclipse.jetty.continuation.Continuation continuation> = null;
+
+     label3:
+        return;
+    }
+
+    public void disconnectWhenEmpty()
+    {
+        com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler r0;
+
+        r0 := @this: com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler;
+
+        r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: boolean disconnectWhenEmpty> = 1;
+
+        return;
+    }
+
+    public void abort()
+    {
+        com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler r0;
+        org.eclipse.jetty.continuation.Continuation $r3, r4;
+        com.glines.socketio.server.transport.jetty.TransportBuffer $r5, $r7;
+        com.glines.socketio.server.SocketIOSession $r1, $r2, $r8;
+        com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler$1 $r6;
+        boolean $z0;
+
+        r0 := @this: com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler;
+
+        $r1 = virtualinvoke r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOSession getSession()>();
+
+        interfaceinvoke $r1.<com.glines.socketio.server.SocketIOSession: void clearHeartbeatTimer()>();
+
+        $r2 = virtualinvoke r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOSession getSession()>();
+
+        interfaceinvoke $r2.<com.glines.socketio.server.SocketIOSession: void clearTimeoutTimer()>();
+
+        r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: boolean is_open> = 0;
+
+        $r3 = r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: org.eclipse.jetty.continuation.Continuation continuation>;
+
+        if $r3 == null goto label1;
+
+        r4 = r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: org.eclipse.jetty.continuation.Continuation continuation>;
+
+        r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: org.eclipse.jetty.continuation.Continuation continuation> = null;
+
+        $z0 = interfaceinvoke r4.<org.eclipse.jetty.continuation.Continuation: boolean isSuspended()>();
+
+        if $z0 == 0 goto label1;
+
+        interfaceinvoke r4.<org.eclipse.jetty.continuation.Continuation: void complete()>();
+
+     label1:
+        $r5 = r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.transport.jetty.TransportBuffer buffer>;
+
+        $r6 = new com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler$1;
+
+        specialinvoke $r6.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler$1: void <init>(com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler)>(r0);
+
+        virtualinvoke $r5.<com.glines.socketio.server.transport.jetty.TransportBuffer: void setListener(com.glines.socketio.server.transport.jetty.TransportBuffer$BufferListener)>($r6);
+
+        $r7 = r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.transport.jetty.TransportBuffer buffer>;
+
+        virtualinvoke $r7.<com.glines.socketio.server.transport.jetty.TransportBuffer: void clear()>();
+
+        $r8 = virtualinvoke r0.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: com.glines.socketio.server.SocketIOSession getSession()>();
+
+        interfaceinvoke $r8.<com.glines.socketio.server.SocketIOSession: void onShutdown()>();
+
+        return;
+    }
+
+    private static com.glines.socketio.server.transport.jetty.ConnectionTimeoutPreventer newTimeoutPreventor()
+    {
+        org.eclipse.jetty.io.EndPoint $r1;
+        java.lang.NoSuchMethodException $r20, $r40;
+        com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler$3 $r50;
+        com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler$2 $r19;
+        com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler$4 $r21;
+        java.lang.Thread $r15;
+        java.lang.reflect.Method $r10, $r49;
+        java.lang.IllegalAccessException $r33;
+        java.util.logging.Logger $r3, $r13, $r24, $r35, $r42;
+        java.lang.reflect.InvocationTargetException $r22;
+        java.lang.StringBuilder $r2, $r6, $r12, $r17, $r23, $r28, $r29, $r31, $r34, $r38, $r41, $r45;
+        java.lang.Object[] $r11;
+        org.eclipse.jetty.server.AbstractHttpConnection $r0;
+        java.util.logging.Level $r14, $r25;
+        java.lang.String $r5, $r7, $r16, $r18, $r27, $r30, $r32, $r37, $r39, $r44, $r46;
+        java.lang.Class[] $r9, $r48;
+        java.lang.Class $r4, $r8, $r26, $r36, $r43, $r47;
+
+        $r0 = staticinvoke <org.eclipse.jetty.server.AbstractHttpConnection: org.eclipse.jetty.server.AbstractHttpConnection getCurrentConnection()>();
+
+        if $r0 != null goto label1;
+
+        $r13 = <com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: java.util.logging.Logger LOGGER>;
+
+        $r14 = <java.util.logging.Level: java.util.logging.Level FINE>;
+
+        $r12 = new java.lang.StringBuilder;
+
+        specialinvoke $r12.<java.lang.StringBuilder: void <init>(java.lang.String)>("No HttpConnection boundto local thread: ");
+
+        $r15 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        $r16 = virtualinvoke $r15.<java.lang.Thread: java.lang.String getName()>();
+
+        $r17 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r16);
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r13.<java.util.logging.Logger: void log(java.util.logging.Level,java.lang.String)>($r14, $r18);
+
+        $r19 = new com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler$2;
+
+        specialinvoke $r19.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler$2: void <init>()>();
+
+        return $r19;
+
+     label1:
+        $r1 = virtualinvoke $r0.<org.eclipse.jetty.server.AbstractHttpConnection: org.eclipse.jetty.io.EndPoint getEndPoint()>();
+
+     label2:
+        $r3 = <com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: java.util.logging.Logger LOGGER>;
+
+        $r2 = new java.lang.StringBuilder;
+
+        specialinvoke $r2.<java.lang.StringBuilder: void <init>(java.lang.String)>("TimeoutPreventor - Invoking cancelIdle() method on endpoint class ");
+
+        $r4 = virtualinvoke $r1.<java.lang.Object: java.lang.Class getClass()>();
+
+        $r5 = virtualinvoke $r4.<java.lang.Class: java.lang.String getName()>();
+
+        $r6 = virtualinvoke $r2.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r5);
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r3.<java.util.logging.Logger: void fine(java.lang.String)>($r7);
+
+        $r8 = virtualinvoke $r1.<java.lang.Object: java.lang.Class getClass()>();
+
+        $r9 = newarray (java.lang.Class)[0];
+
+        $r10 = virtualinvoke $r8.<java.lang.Class: java.lang.reflect.Method getMethod(java.lang.String,java.lang.Class[])>("cancelIdle", $r9);
+
+        $r11 = newarray (java.lang.Object)[0];
+
+        virtualinvoke $r10.<java.lang.reflect.Method: java.lang.Object invoke(java.lang.Object,java.lang.Object[])>($r1, $r11);
+
+     label3:
+        goto label7;
+
+     label4:
+        $r40 := @caughtexception;
+
+        $r42 = <com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: java.util.logging.Logger LOGGER>;
+
+        $r41 = new java.lang.StringBuilder;
+
+        specialinvoke $r41.<java.lang.StringBuilder: void <init>(java.lang.String)>("TimeoutPreventor - No cancelIdle() method on endpoint class ");
+
+        $r43 = virtualinvoke $r1.<java.lang.Object: java.lang.Class getClass()>();
+
+        $r44 = virtualinvoke $r43.<java.lang.Class: java.lang.String getName()>();
+
+        $r45 = virtualinvoke $r41.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r44);
+
+        $r46 = virtualinvoke $r45.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r42.<java.util.logging.Logger: void fine(java.lang.String)>($r46);
+
+        goto label7;
+
+     label5:
+        $r33 := @caughtexception;
+
+        $r35 = <com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: java.util.logging.Logger LOGGER>;
+
+        $r34 = new java.lang.StringBuilder;
+
+        specialinvoke $r34.<java.lang.StringBuilder: void <init>(java.lang.String)>("TimeoutPreventor - Cannot access cancelIdle() method on endpoint class ");
+
+        $r36 = virtualinvoke $r1.<java.lang.Object: java.lang.Class getClass()>();
+
+        $r37 = virtualinvoke $r36.<java.lang.Class: java.lang.String getName()>();
+
+        $r38 = virtualinvoke $r34.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r37);
+
+        $r39 = virtualinvoke $r38.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r35.<java.util.logging.Logger: void warning(java.lang.String)>($r39);
+
+        goto label7;
+
+     label6:
+        $r22 := @caughtexception;
+
+        $r24 = <com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: java.util.logging.Logger LOGGER>;
+
+        $r25 = <java.util.logging.Level: java.util.logging.Level WARNING>;
+
+        $r23 = new java.lang.StringBuilder;
+
+        specialinvoke $r23.<java.lang.StringBuilder: void <init>(java.lang.String)>("TimeoutPreventor - Error calling cancelIdle() method on endpoint class ");
+
+        $r26 = virtualinvoke $r1.<java.lang.Object: java.lang.Class getClass()>();
+
+        $r27 = virtualinvoke $r26.<java.lang.Class: java.lang.String getName()>();
+
+        $r28 = virtualinvoke $r23.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r27);
+
+        $r29 = virtualinvoke $r28.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(": ");
+
+        $r30 = virtualinvoke $r22.<java.lang.reflect.InvocationTargetException: java.lang.String getMessage()>();
+
+        $r31 = virtualinvoke $r29.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r30);
+
+        $r32 = virtualinvoke $r31.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r24.<java.util.logging.Logger: void log(java.util.logging.Level,java.lang.String,java.lang.Throwable)>($r25, $r32, $r22);
+
+     label7:
+        $r47 = virtualinvoke $r1.<java.lang.Object: java.lang.Class getClass()>();
+
+        $r48 = newarray (java.lang.Class)[0];
+
+        $r49 = virtualinvoke $r47.<java.lang.Class: java.lang.reflect.Method getMethod(java.lang.String,java.lang.Class[])>("scheduleIdle", $r48);
+
+        $r50 = new com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler$3;
+
+        specialinvoke $r50.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler$3: void <init>(java.lang.Object,java.lang.reflect.Method)>($r1, $r49);
+
+     label8:
+        return $r50;
+
+     label9:
+        $r20 := @caughtexception;
+
+        $r21 = new com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler$4;
+
+        specialinvoke $r21.<com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler$4: void <init>()>();
+
+        return $r21;
+
+        catch java.lang.NoSuchMethodException from label2 to label3 with label4;
+        catch java.lang.IllegalAccessException from label2 to label3 with label5;
+        catch java.lang.reflect.InvocationTargetException from label2 to label3 with label6;
+        catch java.lang.NoSuchMethodException from label7 to label8 with label9;
+    }
+
+    static java.util.logging.Logger access$0()
+    {
+        java.util.logging.Logger $r0;
+
+        $r0 = <com.glines.socketio.server.transport.jetty.JettyContinuationTransportHandler: java.util.logging.Logger LOGGER>;
+
+        return $r0;
+    }
+}

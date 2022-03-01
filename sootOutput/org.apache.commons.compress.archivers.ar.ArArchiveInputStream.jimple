@@ -1,0 +1,998 @@
+public class org.apache.commons.compress.archivers.ar.ArArchiveInputStream extends org.apache.commons.compress.archivers.ArchiveInputStream
+{
+    private final java.io.InputStream input;
+    private long offset;
+    private boolean closed;
+    private org.apache.commons.compress.archivers.ar.ArArchiveEntry currentEntry;
+    private byte[] namebuffer;
+    private long entryOffset;
+    private final byte[] NAME_BUF;
+    private final byte[] LAST_MODIFIED_BUF;
+    private final byte[] ID_BUF;
+    private final byte[] FILE_MODE_BUF;
+    private final byte[] LENGTH_BUF;
+    static final java.lang.String BSD_LONGNAME_PREFIX;
+    private static final int BSD_LONGNAME_PREFIX_LEN;
+    private static final java.lang.String BSD_LONGNAME_PATTERN;
+    private static final java.lang.String GNU_STRING_TABLE_NAME;
+    private static final java.lang.String GNU_LONGNAME_PATTERN;
+
+    public void <init>(java.io.InputStream)
+    {
+        byte[] $r1, $r2, $r3, $r4, $r5;
+        org.apache.commons.compress.archivers.ar.ArArchiveInputStream r0;
+        java.io.InputStream r6;
+
+        r0 := @this: org.apache.commons.compress.archivers.ar.ArArchiveInputStream;
+
+        r6 := @parameter0: java.io.InputStream;
+
+        specialinvoke r0.<org.apache.commons.compress.archivers.ArchiveInputStream: void <init>()>();
+
+        r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: long offset> = 0L;
+
+        r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: org.apache.commons.compress.archivers.ar.ArArchiveEntry currentEntry> = null;
+
+        r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: byte[] namebuffer> = null;
+
+        r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: long entryOffset> = -1L;
+
+        $r1 = newarray (byte)[16];
+
+        r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: byte[] NAME_BUF> = $r1;
+
+        $r2 = newarray (byte)[12];
+
+        r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: byte[] LAST_MODIFIED_BUF> = $r2;
+
+        $r3 = newarray (byte)[6];
+
+        r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: byte[] ID_BUF> = $r3;
+
+        $r4 = newarray (byte)[8];
+
+        r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: byte[] FILE_MODE_BUF> = $r4;
+
+        $r5 = newarray (byte)[10];
+
+        r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: byte[] LENGTH_BUF> = $r5;
+
+        r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: java.io.InputStream input> = r6;
+
+        r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: boolean closed> = 0;
+
+        return;
+    }
+
+    public org.apache.commons.compress.archivers.ar.ArArchiveEntry getNextArEntry() throws java.io.IOException
+    {
+        byte[] $r3, $r4, $r5, $r6, $r7, $r8, $r9, $r10, $r11, $r14, $r17, $r30, r43, r44, $r47, $r48, $r49;
+        byte $b1, $b4, $b21, $b22, $b30, $b31;
+        java.lang.StringBuilder $r22, $r23, $r27, $r28, $r33, $r35, $r39, $r40, $r51, $r53, $r55, $r57;
+        long $l0, $l2, $l3, $l11, $l12, $l14, $l15, $l16, $l17, $l23, $l24, $l32, $l33, $l34, $l35, $l36, l37, l40, $l43;
+        java.lang.String $r12, $r13, $r15, $r16, $r24, $r29, $r34, $r36, $r41, r45;
+        java.io.IOException $r52, $r54, $r56, $r58;
+        boolean $z0, $z1, $z2, $z3;
+        org.apache.commons.compress.archivers.ar.ArArchiveInputStream r0;
+        int $i5, $i6, $i7, $i8, $i9, $i10, $i13, $i18, $i19, $i20, $i25, $i26, $i27, $i28, $i29, i38, i39, $i41, $i42, $i44, $i45, $i46, $i47;
+        org.apache.commons.compress.archivers.ar.ArArchiveEntry $r1, $r18, $r19, $r42, $r50, $r59;
+        java.io.InputStream $r2;
+
+        r0 := @this: org.apache.commons.compress.archivers.ar.ArArchiveInputStream;
+
+        $r1 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: org.apache.commons.compress.archivers.ar.ArArchiveEntry currentEntry>;
+
+        if $r1 == null goto label01;
+
+        $l33 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: long entryOffset>;
+
+        $r42 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: org.apache.commons.compress.archivers.ar.ArArchiveEntry currentEntry>;
+
+        $l34 = virtualinvoke $r42.<org.apache.commons.compress.archivers.ar.ArArchiveEntry: long getLength()>();
+
+        l37 = $l33 + $l34;
+
+        $l35 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: long offset>;
+
+        $l36 = l37 - $l35;
+
+        staticinvoke <org.apache.commons.compress.utils.IOUtils: long skip(java.io.InputStream,long)>(r0, $l36);
+
+        r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: org.apache.commons.compress.archivers.ar.ArArchiveEntry currentEntry> = null;
+
+     label01:
+        $l0 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: long offset>;
+
+        $b1 = $l0 cmp 0L;
+
+        if $b1 != 0 goto label05;
+
+        $r30 = staticinvoke <org.apache.commons.compress.utils.ArchiveUtils: byte[] toAsciiBytes(java.lang.String)>("!<arch>\n");
+
+        $i26 = lengthof $r30;
+
+        r43 = newarray (byte)[$i26];
+
+        $i27 = staticinvoke <org.apache.commons.compress.utils.IOUtils: int readFully(java.io.InputStream,byte[])>(r0, r43);
+
+        $i28 = lengthof $r30;
+
+        if $i27 == $i28 goto label02;
+
+        $r52 = new java.io.IOException;
+
+        $r51 = new java.lang.StringBuilder;
+
+        specialinvoke $r51.<java.lang.StringBuilder: void <init>()>();
+
+        $r39 = virtualinvoke $r51.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("failed to read header. Occured at byte: ");
+
+        $l32 = virtualinvoke r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: long getBytesRead()>();
+
+        $r40 = virtualinvoke $r39.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l32);
+
+        $r41 = virtualinvoke $r40.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r52.<java.io.IOException: void <init>(java.lang.String)>($r41);
+
+        throw $r52;
+
+     label02:
+        i38 = 0;
+
+     label03:
+        $i29 = lengthof $r30;
+
+        if i38 >= $i29 goto label05;
+
+        $b31 = $r30[i38];
+
+        $b30 = r43[i38];
+
+        $i44 = (int) $b31;
+
+        $i45 = (int) $b30;
+
+        if $i44 == $i45 goto label04;
+
+        $r54 = new java.io.IOException;
+
+        $r53 = new java.lang.StringBuilder;
+
+        specialinvoke $r53.<java.lang.StringBuilder: void <init>()>();
+
+        $r33 = virtualinvoke $r53.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("invalid header ");
+
+        $r34 = staticinvoke <org.apache.commons.compress.utils.ArchiveUtils: java.lang.String toAsciiString(byte[])>(r43);
+
+        $r35 = virtualinvoke $r33.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r34);
+
+        $r36 = virtualinvoke $r35.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r54.<java.io.IOException: void <init>(java.lang.String)>($r36);
+
+        throw $r54;
+
+     label04:
+        i38 = i38 + 1;
+
+        goto label03;
+
+     label05:
+        $l2 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: long offset>;
+
+        $l3 = $l2 % 2L;
+
+        $b4 = $l3 cmp 0L;
+
+        if $b4 == 0 goto label06;
+
+        $i25 = virtualinvoke r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: int read()>();
+
+        if $i25 >= 0 goto label06;
+
+        return null;
+
+     label06:
+        $r2 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: java.io.InputStream input>;
+
+        $i5 = virtualinvoke $r2.<java.io.InputStream: int available()>();
+
+        if $i5 != 0 goto label07;
+
+        return null;
+
+     label07:
+        $r3 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: byte[] NAME_BUF>;
+
+        staticinvoke <org.apache.commons.compress.utils.IOUtils: int readFully(java.io.InputStream,byte[])>(r0, $r3);
+
+        $r4 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: byte[] LAST_MODIFIED_BUF>;
+
+        staticinvoke <org.apache.commons.compress.utils.IOUtils: int readFully(java.io.InputStream,byte[])>(r0, $r4);
+
+        $r5 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: byte[] ID_BUF>;
+
+        staticinvoke <org.apache.commons.compress.utils.IOUtils: int readFully(java.io.InputStream,byte[])>(r0, $r5);
+
+        $r6 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: byte[] ID_BUF>;
+
+        $i6 = specialinvoke r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: int asInt(byte[],boolean)>($r6, 1);
+
+        $r7 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: byte[] ID_BUF>;
+
+        staticinvoke <org.apache.commons.compress.utils.IOUtils: int readFully(java.io.InputStream,byte[])>(r0, $r7);
+
+        $r8 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: byte[] FILE_MODE_BUF>;
+
+        staticinvoke <org.apache.commons.compress.utils.IOUtils: int readFully(java.io.InputStream,byte[])>(r0, $r8);
+
+        $r9 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: byte[] LENGTH_BUF>;
+
+        staticinvoke <org.apache.commons.compress.utils.IOUtils: int readFully(java.io.InputStream,byte[])>(r0, $r9);
+
+        $r10 = staticinvoke <org.apache.commons.compress.utils.ArchiveUtils: byte[] toAsciiBytes(java.lang.String)>("`\n");
+
+        $i7 = lengthof $r10;
+
+        r44 = newarray (byte)[$i7];
+
+        $i8 = staticinvoke <org.apache.commons.compress.utils.IOUtils: int readFully(java.io.InputStream,byte[])>(r0, r44);
+
+        $i9 = lengthof $r10;
+
+        if $i8 == $i9 goto label08;
+
+        $r56 = new java.io.IOException;
+
+        $r55 = new java.lang.StringBuilder;
+
+        specialinvoke $r55.<java.lang.StringBuilder: void <init>()>();
+
+        $r27 = virtualinvoke $r55.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("failed to read entry trailer. Occured at byte: ");
+
+        $l24 = virtualinvoke r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: long getBytesRead()>();
+
+        $r28 = virtualinvoke $r27.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l24);
+
+        $r29 = virtualinvoke $r28.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r56.<java.io.IOException: void <init>(java.lang.String)>($r29);
+
+        throw $r56;
+
+     label08:
+        i39 = 0;
+
+     label09:
+        $i10 = lengthof $r10;
+
+        if i39 >= $i10 goto label11;
+
+        $b22 = $r10[i39];
+
+        $b21 = r44[i39];
+
+        $i46 = (int) $b22;
+
+        $i47 = (int) $b21;
+
+        if $i46 == $i47 goto label10;
+
+        $r58 = new java.io.IOException;
+
+        $r57 = new java.lang.StringBuilder;
+
+        specialinvoke $r57.<java.lang.StringBuilder: void <init>()>();
+
+        $r22 = virtualinvoke $r57.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("invalid entry trailer. not read the content? Occured at byte: ");
+
+        $l23 = virtualinvoke r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: long getBytesRead()>();
+
+        $r23 = virtualinvoke $r22.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l23);
+
+        $r24 = virtualinvoke $r23.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r58.<java.io.IOException: void <init>(java.lang.String)>($r24);
+
+        throw $r58;
+
+     label10:
+        i39 = i39 + 1;
+
+        goto label09;
+
+     label11:
+        $l11 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: long offset>;
+
+        r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: long entryOffset> = $l11;
+
+        $r11 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: byte[] NAME_BUF>;
+
+        $r12 = staticinvoke <org.apache.commons.compress.utils.ArchiveUtils: java.lang.String toAsciiString(byte[])>($r11);
+
+        $r13 = virtualinvoke $r12.<java.lang.String: java.lang.String trim()>();
+
+        r45 = $r13;
+
+        $z0 = staticinvoke <org.apache.commons.compress.archivers.ar.ArArchiveInputStream: boolean isGNUStringTable(java.lang.String)>($r13);
+
+        if $z0 == 0 goto label12;
+
+        $r17 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: byte[] LENGTH_BUF>;
+
+        $r18 = specialinvoke r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: org.apache.commons.compress.archivers.ar.ArArchiveEntry readGNUStringTable(byte[])>($r17);
+
+        r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: org.apache.commons.compress.archivers.ar.ArArchiveEntry currentEntry> = $r18;
+
+        $r19 = virtualinvoke r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: org.apache.commons.compress.archivers.ar.ArArchiveEntry getNextArEntry()>();
+
+        return $r19;
+
+     label12:
+        $r14 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: byte[] LENGTH_BUF>;
+
+        $l12 = specialinvoke r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: long asLong(byte[])>($r14);
+
+        l40 = $l12;
+
+        $z1 = virtualinvoke $r13.<java.lang.String: boolean endsWith(java.lang.String)>("/");
+
+        if $z1 == 0 goto label13;
+
+        $i19 = virtualinvoke $r13.<java.lang.String: int length()>();
+
+        $i20 = $i19 - 1;
+
+        r45 = virtualinvoke $r13.<java.lang.String: java.lang.String substring(int,int)>(0, $i20);
+
+        goto label15;
+
+     label13:
+        $z2 = specialinvoke r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: boolean isGNULongName(java.lang.String)>($r13);
+
+        if $z2 == 0 goto label14;
+
+        $r16 = virtualinvoke $r13.<java.lang.String: java.lang.String substring(int)>(1);
+
+        $i18 = staticinvoke <java.lang.Integer: int parseInt(java.lang.String)>($r16);
+
+        r45 = specialinvoke r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: java.lang.String getExtendedName(int)>($i18);
+
+        goto label15;
+
+     label14:
+        $z3 = staticinvoke <org.apache.commons.compress.archivers.ar.ArArchiveInputStream: boolean isBSDLongName(java.lang.String)>($r13);
+
+        if $z3 == 0 goto label15;
+
+        $r15 = specialinvoke r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: java.lang.String getBSDLongName(java.lang.String)>($r13);
+
+        r45 = $r15;
+
+        $i13 = virtualinvoke $r15.<java.lang.String: int length()>();
+
+        $l14 = (long) $i13;
+
+        l40 = $l12 - $l14;
+
+        $l16 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: long entryOffset>;
+
+        $l15 = (long) $i13;
+
+        $l17 = $l16 + $l15;
+
+        r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: long entryOffset> = $l17;
+
+     label15:
+        $r59 = new org.apache.commons.compress.archivers.ar.ArArchiveEntry;
+
+        $r47 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: byte[] ID_BUF>;
+
+        $i41 = specialinvoke r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: int asInt(byte[],boolean)>($r47, 1);
+
+        $r48 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: byte[] FILE_MODE_BUF>;
+
+        $i42 = specialinvoke r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: int asInt(byte[],int)>($r48, 8);
+
+        $r49 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: byte[] LAST_MODIFIED_BUF>;
+
+        $l43 = specialinvoke r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: long asLong(byte[])>($r49);
+
+        specialinvoke $r59.<org.apache.commons.compress.archivers.ar.ArArchiveEntry: void <init>(java.lang.String,long,int,int,int,long)>(r45, l40, $i6, $i41, $i42, $l43);
+
+        r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: org.apache.commons.compress.archivers.ar.ArArchiveEntry currentEntry> = $r59;
+
+        $r50 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: org.apache.commons.compress.archivers.ar.ArArchiveEntry currentEntry>;
+
+        return $r50;
+    }
+
+    private java.lang.String getExtendedName(int) throws java.io.IOException
+    {
+        byte[] $r1, $r2, $r8, $r9, $r10;
+        org.apache.commons.compress.archivers.ar.ArArchiveInputStream r0;
+        byte $b2, $b4;
+        int i0, $i1, $i3, $i5, i6, $i7, $i8, $i10;
+        java.lang.String $r7, $r11;
+        java.io.IOException $r13, $r15;
+        java.lang.StringBuilder $r5, $r6, $r14;
+
+        r0 := @this: org.apache.commons.compress.archivers.ar.ArArchiveInputStream;
+
+        i0 := @parameter0: int;
+
+        $r1 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: byte[] namebuffer>;
+
+        if $r1 != null goto label1;
+
+        $r13 = new java.io.IOException;
+
+        specialinvoke $r13.<java.io.IOException: void <init>(java.lang.String)>("Cannot process GNU long filename as no // record was found");
+
+        throw $r13;
+
+     label1:
+        i6 = i0;
+
+     label2:
+        $r2 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: byte[] namebuffer>;
+
+        $i1 = lengthof $r2;
+
+        if i6 >= $i1 goto label5;
+
+        $r8 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: byte[] namebuffer>;
+
+        $b2 = $r8[i6];
+
+        $i7 = (int) $b2;
+
+        if $i7 != 10 goto label4;
+
+        $r9 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: byte[] namebuffer>;
+
+        $i3 = i6 - 1;
+
+        $b4 = $r9[$i3];
+
+        $i8 = (int) $b4;
+
+        if $i8 != 47 goto label3;
+
+        $i10 = (int) -1;
+
+        i6 = i6 + $i10;
+
+     label3:
+        $r10 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: byte[] namebuffer>;
+
+        $i5 = i6 - i0;
+
+        $r11 = staticinvoke <org.apache.commons.compress.utils.ArchiveUtils: java.lang.String toAsciiString(byte[],int,int)>($r10, i0, $i5);
+
+        return $r11;
+
+     label4:
+        i6 = i6 + 1;
+
+        goto label2;
+
+     label5:
+        $r15 = new java.io.IOException;
+
+        $r14 = new java.lang.StringBuilder;
+
+        specialinvoke $r14.<java.lang.StringBuilder: void <init>()>();
+
+        $r5 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Failed to read entry: ");
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>(i0);
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r15.<java.io.IOException: void <init>(java.lang.String)>($r7);
+
+        throw $r15;
+    }
+
+    private long asLong(byte[])
+    {
+        byte[] r0;
+        org.apache.commons.compress.archivers.ar.ArArchiveInputStream r3;
+        long $l0;
+        java.lang.String $r1, $r2;
+
+        r3 := @this: org.apache.commons.compress.archivers.ar.ArArchiveInputStream;
+
+        r0 := @parameter0: byte[];
+
+        $r1 = staticinvoke <org.apache.commons.compress.utils.ArchiveUtils: java.lang.String toAsciiString(byte[])>(r0);
+
+        $r2 = virtualinvoke $r1.<java.lang.String: java.lang.String trim()>();
+
+        $l0 = staticinvoke <java.lang.Long: long parseLong(java.lang.String)>($r2);
+
+        return $l0;
+    }
+
+    private int asInt(byte[])
+    {
+        int $i0;
+        byte[] r1;
+        org.apache.commons.compress.archivers.ar.ArArchiveInputStream r0;
+
+        r0 := @this: org.apache.commons.compress.archivers.ar.ArArchiveInputStream;
+
+        r1 := @parameter0: byte[];
+
+        $i0 = specialinvoke r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: int asInt(byte[],int,boolean)>(r1, 10, 0);
+
+        return $i0;
+    }
+
+    private int asInt(byte[], boolean)
+    {
+        byte[] r1;
+        org.apache.commons.compress.archivers.ar.ArArchiveInputStream r0;
+        int $i0;
+        boolean z0;
+
+        r0 := @this: org.apache.commons.compress.archivers.ar.ArArchiveInputStream;
+
+        r1 := @parameter0: byte[];
+
+        z0 := @parameter1: boolean;
+
+        $i0 = specialinvoke r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: int asInt(byte[],int,boolean)>(r1, 10, z0);
+
+        return $i0;
+    }
+
+    private int asInt(byte[], int)
+    {
+        byte[] r1;
+        org.apache.commons.compress.archivers.ar.ArArchiveInputStream r0;
+        int i0, $i1;
+
+        r0 := @this: org.apache.commons.compress.archivers.ar.ArArchiveInputStream;
+
+        r1 := @parameter0: byte[];
+
+        i0 := @parameter1: int;
+
+        $i1 = specialinvoke r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: int asInt(byte[],int,boolean)>(r1, i0, 0);
+
+        return $i1;
+    }
+
+    private int asInt(byte[], int, boolean)
+    {
+        byte[] r0;
+        org.apache.commons.compress.archivers.ar.ArArchiveInputStream r3;
+        int $i0, i1, $i2;
+        java.lang.String $r1, $r2;
+        boolean z0;
+
+        r3 := @this: org.apache.commons.compress.archivers.ar.ArArchiveInputStream;
+
+        r0 := @parameter0: byte[];
+
+        i1 := @parameter1: int;
+
+        z0 := @parameter2: boolean;
+
+        $r1 = staticinvoke <org.apache.commons.compress.utils.ArchiveUtils: java.lang.String toAsciiString(byte[])>(r0);
+
+        $r2 = virtualinvoke $r1.<java.lang.String: java.lang.String trim()>();
+
+        $i0 = virtualinvoke $r2.<java.lang.String: int length()>();
+
+        if $i0 != 0 goto label1;
+
+        if z0 == 0 goto label1;
+
+        return 0;
+
+     label1:
+        $i2 = staticinvoke <java.lang.Integer: int parseInt(java.lang.String,int)>($r2, i1);
+
+        return $i2;
+    }
+
+    public org.apache.commons.compress.archivers.ArchiveEntry getNextEntry() throws java.io.IOException
+    {
+        org.apache.commons.compress.archivers.ar.ArArchiveEntry $r1;
+        org.apache.commons.compress.archivers.ar.ArArchiveInputStream r0;
+
+        r0 := @this: org.apache.commons.compress.archivers.ar.ArArchiveInputStream;
+
+        $r1 = virtualinvoke r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: org.apache.commons.compress.archivers.ar.ArArchiveEntry getNextArEntry()>();
+
+        return $r1;
+    }
+
+    public void close() throws java.io.IOException
+    {
+        org.apache.commons.compress.archivers.ar.ArArchiveInputStream r0;
+        boolean $z0;
+        java.io.InputStream $r1;
+
+        r0 := @this: org.apache.commons.compress.archivers.ar.ArArchiveInputStream;
+
+        $z0 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: boolean closed>;
+
+        if $z0 != 0 goto label1;
+
+        r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: boolean closed> = 1;
+
+        $r1 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: java.io.InputStream input>;
+
+        virtualinvoke $r1.<java.io.InputStream: void close()>();
+
+     label1:
+        r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: org.apache.commons.compress.archivers.ar.ArArchiveEntry currentEntry> = null;
+
+        return;
+    }
+
+    public int read(byte[], int, int) throws java.io.IOException
+    {
+        byte[] r2;
+        org.apache.commons.compress.archivers.ar.ArArchiveInputStream r0;
+        long $l3, $l4, $l5, $l6, $l7, $l9, $l10, $l11, $l12, l14, $l15;
+        byte $b8;
+        int i0, i1, $i2, i13, $i16, $i18;
+        org.apache.commons.compress.archivers.ar.ArArchiveEntry $r1, $r4;
+        java.io.InputStream $r3;
+
+        r0 := @this: org.apache.commons.compress.archivers.ar.ArArchiveInputStream;
+
+        r2 := @parameter0: byte[];
+
+        i1 := @parameter1: int;
+
+        i0 := @parameter2: int;
+
+        i13 = i0;
+
+        $r1 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: org.apache.commons.compress.archivers.ar.ArArchiveEntry currentEntry>;
+
+        if $r1 == null goto label2;
+
+        $l5 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: long entryOffset>;
+
+        $r4 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: org.apache.commons.compress.archivers.ar.ArArchiveEntry currentEntry>;
+
+        $l6 = virtualinvoke $r4.<org.apache.commons.compress.archivers.ar.ArArchiveEntry: long getLength()>();
+
+        l14 = $l5 + $l6;
+
+        if i0 <= 0 goto label1;
+
+        $l7 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: long offset>;
+
+        $b8 = l14 cmp $l7;
+
+        $i16 = (int) $b8;
+
+        if $i16 <= 0 goto label1;
+
+        $l11 = (long) i0;
+
+        $l9 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: long offset>;
+
+        $l10 = l14 - $l9;
+
+        $l12 = staticinvoke <java.lang.Math: long min(long,long)>($l11, $l10);
+
+        i13 = (int) $l12;
+
+        goto label2;
+
+     label1:
+        $i18 = (int) -1;
+
+        return $i18;
+
+     label2:
+        $r3 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: java.io.InputStream input>;
+
+        $i2 = virtualinvoke $r3.<java.io.InputStream: int read(byte[],int,int)>(r2, i1, i13);
+
+        virtualinvoke r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: void count(int)>($i2);
+
+        $l3 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: long offset>;
+
+        if $i2 <= 0 goto label3;
+
+        $l15 = (long) $i2;
+
+        goto label4;
+
+     label3:
+        $l15 = 0L;
+
+     label4:
+        $l4 = $l3 + $l15;
+
+        r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: long offset> = $l4;
+
+        return $i2;
+    }
+
+    public static boolean matches(byte[], int)
+    {
+        byte[] r0;
+        byte $b1, $b2, $b3, $b4, $b5, $b6, $b7, $b8;
+        int i0, $i9, $i10, $i11, $i12, $i13, $i14, $i15, $i16;
+
+        r0 := @parameter0: byte[];
+
+        i0 := @parameter1: int;
+
+        if i0 >= 8 goto label1;
+
+        return 0;
+
+     label1:
+        $b1 = r0[0];
+
+        $i9 = (int) $b1;
+
+        if $i9 == 33 goto label2;
+
+        return 0;
+
+     label2:
+        $b2 = r0[1];
+
+        $i10 = (int) $b2;
+
+        if $i10 == 60 goto label3;
+
+        return 0;
+
+     label3:
+        $b3 = r0[2];
+
+        $i11 = (int) $b3;
+
+        if $i11 == 97 goto label4;
+
+        return 0;
+
+     label4:
+        $b4 = r0[3];
+
+        $i12 = (int) $b4;
+
+        if $i12 == 114 goto label5;
+
+        return 0;
+
+     label5:
+        $b5 = r0[4];
+
+        $i13 = (int) $b5;
+
+        if $i13 == 99 goto label6;
+
+        return 0;
+
+     label6:
+        $b6 = r0[5];
+
+        $i14 = (int) $b6;
+
+        if $i14 == 104 goto label7;
+
+        return 0;
+
+     label7:
+        $b7 = r0[6];
+
+        $i15 = (int) $b7;
+
+        if $i15 == 62 goto label8;
+
+        return 0;
+
+     label8:
+        $b8 = r0[7];
+
+        $i16 = (int) $b8;
+
+        if $i16 == 10 goto label9;
+
+        return 0;
+
+     label9:
+        return 1;
+    }
+
+    private static boolean isBSDLongName(java.lang.String)
+    {
+        java.lang.String r0;
+        boolean $z0, $z1;
+
+        r0 := @parameter0: java.lang.String;
+
+        if r0 == null goto label1;
+
+        $z0 = virtualinvoke r0.<java.lang.String: boolean matches(java.lang.String)>("^#1/\\d+");
+
+        if $z0 == 0 goto label1;
+
+        $z1 = 1;
+
+        goto label2;
+
+     label1:
+        $z1 = 0;
+
+     label2:
+        return $z1;
+    }
+
+    private java.lang.String getBSDLongName(java.lang.String) throws java.io.IOException
+    {
+        byte[] r2;
+        org.apache.commons.compress.archivers.ar.ArArchiveInputStream r3;
+        java.io.EOFException $r6;
+        int $i0, $i1, $i2;
+        java.lang.String r0, $r1, $r5;
+        java.io.InputStream $r4;
+
+        r3 := @this: org.apache.commons.compress.archivers.ar.ArArchiveInputStream;
+
+        r0 := @parameter0: java.lang.String;
+
+        $i0 = <org.apache.commons.compress.archivers.ar.ArArchiveInputStream: int BSD_LONGNAME_PREFIX_LEN>;
+
+        $r1 = virtualinvoke r0.<java.lang.String: java.lang.String substring(int)>($i0);
+
+        $i1 = staticinvoke <java.lang.Integer: int parseInt(java.lang.String)>($r1);
+
+        r2 = newarray (byte)[$i1];
+
+        $r4 = r3.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: java.io.InputStream input>;
+
+        $i2 = staticinvoke <org.apache.commons.compress.utils.IOUtils: int readFully(java.io.InputStream,byte[])>($r4, r2);
+
+        virtualinvoke r3.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: void count(int)>($i2);
+
+        if $i2 == $i1 goto label1;
+
+        $r6 = new java.io.EOFException;
+
+        specialinvoke $r6.<java.io.EOFException: void <init>()>();
+
+        throw $r6;
+
+     label1:
+        $r5 = staticinvoke <org.apache.commons.compress.utils.ArchiveUtils: java.lang.String toAsciiString(byte[])>(r2);
+
+        return $r5;
+    }
+
+    private static boolean isGNUStringTable(java.lang.String)
+    {
+        java.lang.String r0, $r1;
+        boolean $z0;
+
+        r0 := @parameter0: java.lang.String;
+
+        $r1 = "//";
+
+        $z0 = virtualinvoke $r1.<java.lang.String: boolean equals(java.lang.Object)>(r0);
+
+        return $z0;
+    }
+
+    private org.apache.commons.compress.archivers.ar.ArArchiveEntry readGNUStringTable(byte[]) throws java.io.IOException
+    {
+        byte[] r1, $r2, $r3;
+        org.apache.commons.compress.archivers.ar.ArArchiveInputStream r0;
+        long $l2;
+        java.io.IOException $r5;
+        int $i0, $i1;
+        org.apache.commons.compress.archivers.ar.ArArchiveEntry $r4;
+        java.lang.StringBuilder $r6, $r7, $r8, $r9, $r10;
+        java.lang.String $r11;
+
+        r0 := @this: org.apache.commons.compress.archivers.ar.ArArchiveInputStream;
+
+        r1 := @parameter0: byte[];
+
+        $i0 = specialinvoke r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: int asInt(byte[])>(r1);
+
+        $r2 = newarray (byte)[$i0];
+
+        r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: byte[] namebuffer> = $r2;
+
+        $r3 = r0.<org.apache.commons.compress.archivers.ar.ArArchiveInputStream: byte[] namebuffer>;
+
+        $i1 = staticinvoke <org.apache.commons.compress.utils.IOUtils: int readFully(java.io.InputStream,byte[],int,int)>(r0, $r3, 0, $i0);
+
+        if $i1 == $i0 goto label1;
+
+        $r5 = new java.io.IOException;
+
+        $r6 = new java.lang.StringBuilder;
+
+        specialinvoke $r6.<java.lang.StringBuilder: void <init>()>();
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Failed to read complete // record: expected=");
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i0);
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" read=");
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i1);
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r5.<java.io.IOException: void <init>(java.lang.String)>($r11);
+
+        throw $r5;
+
+     label1:
+        $r4 = new org.apache.commons.compress.archivers.ar.ArArchiveEntry;
+
+        $l2 = (long) $i0;
+
+        specialinvoke $r4.<org.apache.commons.compress.archivers.ar.ArArchiveEntry: void <init>(java.lang.String,long)>("//", $l2);
+
+        return $r4;
+    }
+
+    private boolean isGNULongName(java.lang.String)
+    {
+        org.apache.commons.compress.archivers.ar.ArArchiveInputStream r1;
+        java.lang.String r0;
+        boolean $z0, $z1;
+
+        r1 := @this: org.apache.commons.compress.archivers.ar.ArArchiveInputStream;
+
+        r0 := @parameter0: java.lang.String;
+
+        if r0 == null goto label1;
+
+        $z0 = virtualinvoke r0.<java.lang.String: boolean matches(java.lang.String)>("^/\\d+");
+
+        if $z0 == 0 goto label1;
+
+        $z1 = 1;
+
+        goto label2;
+
+     label1:
+        $z1 = 0;
+
+     label2:
+        return $z1;
+    }
+
+    static void <clinit>()
+    {
+        int $i0;
+        java.lang.String $r0;
+
+        <org.apache.commons.compress.archivers.ar.ArArchiveInputStream: java.lang.String GNU_LONGNAME_PATTERN> = "^/\\d+";
+
+        <org.apache.commons.compress.archivers.ar.ArArchiveInputStream: java.lang.String GNU_STRING_TABLE_NAME> = "//";
+
+        <org.apache.commons.compress.archivers.ar.ArArchiveInputStream: java.lang.String BSD_LONGNAME_PATTERN> = "^#1/\\d+";
+
+        <org.apache.commons.compress.archivers.ar.ArArchiveInputStream: java.lang.String BSD_LONGNAME_PREFIX> = "#1/";
+
+        $r0 = "#1/";
+
+        $i0 = virtualinvoke $r0.<java.lang.String: int length()>();
+
+        <org.apache.commons.compress.archivers.ar.ArArchiveInputStream: int BSD_LONGNAME_PREFIX_LEN> = $i0;
+
+        return;
+    }
+}

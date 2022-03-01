@@ -1,0 +1,1688 @@
+public class org.apache.commons.compress.archivers.zip.ZipFile extends java.lang.Object implements java.io.Closeable
+{
+    private static final int HASH_SIZE;
+    static final int NIBLET_MASK;
+    static final int BYTE_SHIFT;
+    private static final int POS_0;
+    private static final int POS_1;
+    private static final int POS_2;
+    private static final int POS_3;
+    private final java.util.List entries;
+    private final java.util.Map nameMap;
+    private final java.lang.String encoding;
+    private final org.apache.commons.compress.archivers.zip.ZipEncoding zipEncoding;
+    private final java.lang.String archiveName;
+    private final java.io.RandomAccessFile archive;
+    private final boolean useUnicodeExtraFields;
+    private boolean closed;
+    private final byte[] DWORD_BUF;
+    private final byte[] WORD_BUF;
+    private final byte[] CFH_BUF;
+    private final byte[] SHORT_BUF;
+    private static final int CFH_LEN;
+    private static final long CFH_SIG;
+    static final int MIN_EOCD_SIZE;
+    private static final int MAX_EOCD_SIZE;
+    private static final int CFD_LOCATOR_OFFSET;
+    private static final int ZIP64_EOCDL_LENGTH;
+    private static final int ZIP64_EOCDL_LOCATOR_OFFSET;
+    private static final int ZIP64_EOCD_CFD_LOCATOR_OFFSET;
+    private static final long LFH_OFFSET_FOR_FILENAME_LENGTH;
+    private final java.util.Comparator OFFSET_COMPARATOR;
+
+    public void <init>(java.io.File) throws java.io.IOException
+    {
+        org.apache.commons.compress.archivers.zip.ZipFile r0;
+        java.io.File r1;
+
+        r0 := @this: org.apache.commons.compress.archivers.zip.ZipFile;
+
+        r1 := @parameter0: java.io.File;
+
+        specialinvoke r0.<org.apache.commons.compress.archivers.zip.ZipFile: void <init>(java.io.File,java.lang.String)>(r1, "UTF8");
+
+        return;
+    }
+
+    public void <init>(java.lang.String) throws java.io.IOException
+    {
+        java.lang.String r2;
+        org.apache.commons.compress.archivers.zip.ZipFile r0;
+        java.io.File $r1;
+
+        r0 := @this: org.apache.commons.compress.archivers.zip.ZipFile;
+
+        r2 := @parameter0: java.lang.String;
+
+        $r1 = new java.io.File;
+
+        specialinvoke $r1.<java.io.File: void <init>(java.lang.String)>(r2);
+
+        specialinvoke r0.<org.apache.commons.compress.archivers.zip.ZipFile: void <init>(java.io.File,java.lang.String)>($r1, "UTF8");
+
+        return;
+    }
+
+    public void <init>(java.lang.String, java.lang.String) throws java.io.IOException
+    {
+        java.lang.String r2, r3;
+        org.apache.commons.compress.archivers.zip.ZipFile r0;
+        java.io.File $r1;
+
+        r0 := @this: org.apache.commons.compress.archivers.zip.ZipFile;
+
+        r2 := @parameter0: java.lang.String;
+
+        r3 := @parameter1: java.lang.String;
+
+        $r1 = new java.io.File;
+
+        specialinvoke $r1.<java.io.File: void <init>(java.lang.String)>(r2);
+
+        specialinvoke r0.<org.apache.commons.compress.archivers.zip.ZipFile: void <init>(java.io.File,java.lang.String,boolean)>($r1, r3, 1);
+
+        return;
+    }
+
+    public void <init>(java.io.File, java.lang.String) throws java.io.IOException
+    {
+        java.lang.String r2;
+        org.apache.commons.compress.archivers.zip.ZipFile r0;
+        java.io.File r1;
+
+        r0 := @this: org.apache.commons.compress.archivers.zip.ZipFile;
+
+        r1 := @parameter0: java.io.File;
+
+        r2 := @parameter1: java.lang.String;
+
+        specialinvoke r0.<org.apache.commons.compress.archivers.zip.ZipFile: void <init>(java.io.File,java.lang.String,boolean)>(r1, r2, 1);
+
+        return;
+    }
+
+    public void <init>(java.io.File, java.lang.String, boolean) throws java.io.IOException
+    {
+        java.lang.Throwable $r15;
+        byte[] $r3, $r4, $r5, $r6;
+        java.io.RandomAccessFile $r12, $r14, $r16;
+        java.util.HashMap $r2;
+        java.util.Map $r13;
+        java.lang.String $r9, r10;
+        java.util.LinkedList $r1;
+        boolean z0;
+        org.apache.commons.compress.archivers.zip.ZipEncoding $r11;
+        org.apache.commons.compress.archivers.zip.ZipFile r0;
+        java.io.File r8;
+        org.apache.commons.compress.archivers.zip.ZipFile$2 $r7;
+
+        r0 := @this: org.apache.commons.compress.archivers.zip.ZipFile;
+
+        r8 := @parameter0: java.io.File;
+
+        r10 := @parameter1: java.lang.String;
+
+        z0 := @parameter2: boolean;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        $r1 = new java.util.LinkedList;
+
+        specialinvoke $r1.<java.util.LinkedList: void <init>()>();
+
+        r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.util.List entries> = $r1;
+
+        $r2 = new java.util.HashMap;
+
+        specialinvoke $r2.<java.util.HashMap: void <init>(int)>(509);
+
+        r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.util.Map nameMap> = $r2;
+
+        $r3 = newarray (byte)[8];
+
+        r0.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] DWORD_BUF> = $r3;
+
+        $r4 = newarray (byte)[4];
+
+        r0.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] WORD_BUF> = $r4;
+
+        $r5 = newarray (byte)[42];
+
+        r0.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] CFH_BUF> = $r5;
+
+        $r6 = newarray (byte)[2];
+
+        r0.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] SHORT_BUF> = $r6;
+
+        $r7 = new org.apache.commons.compress.archivers.zip.ZipFile$2;
+
+        specialinvoke $r7.<org.apache.commons.compress.archivers.zip.ZipFile$2: void <init>(org.apache.commons.compress.archivers.zip.ZipFile)>(r0);
+
+        r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.util.Comparator OFFSET_COMPARATOR> = $r7;
+
+        $r9 = virtualinvoke r8.<java.io.File: java.lang.String getAbsolutePath()>();
+
+        r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.lang.String archiveName> = $r9;
+
+        r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.lang.String encoding> = r10;
+
+        $r11 = staticinvoke <org.apache.commons.compress.archivers.zip.ZipEncodingHelper: org.apache.commons.compress.archivers.zip.ZipEncoding getZipEncoding(java.lang.String)>(r10);
+
+        r0.<org.apache.commons.compress.archivers.zip.ZipFile: org.apache.commons.compress.archivers.zip.ZipEncoding zipEncoding> = $r11;
+
+        r0.<org.apache.commons.compress.archivers.zip.ZipFile: boolean useUnicodeExtraFields> = z0;
+
+        $r12 = new java.io.RandomAccessFile;
+
+        specialinvoke $r12.<java.io.RandomAccessFile: void <init>(java.io.File,java.lang.String)>(r8, "r");
+
+        r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive> = $r12;
+
+     label1:
+        $r13 = specialinvoke r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.util.Map populateFromCentralDirectory()>();
+
+        specialinvoke r0.<org.apache.commons.compress.archivers.zip.ZipFile: void resolveLocalFileHeaderData(java.util.Map)>($r13);
+
+     label2:
+        if 1 != 0 goto label6;
+
+        r0.<org.apache.commons.compress.archivers.zip.ZipFile: boolean closed> = 1;
+
+        $r14 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        staticinvoke <org.apache.commons.compress.utils.IOUtils: void closeQuietly(java.io.Closeable)>($r14);
+
+        goto label6;
+
+     label3:
+        $r15 := @caughtexception;
+
+     label4:
+        if 0 != 0 goto label5;
+
+        r0.<org.apache.commons.compress.archivers.zip.ZipFile: boolean closed> = 1;
+
+        $r16 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        staticinvoke <org.apache.commons.compress.utils.IOUtils: void closeQuietly(java.io.Closeable)>($r16);
+
+     label5:
+        throw $r15;
+
+     label6:
+        return;
+
+        catch java.lang.Throwable from label1 to label2 with label3;
+        catch java.lang.Throwable from label3 to label4 with label3;
+    }
+
+    public java.lang.String getEncoding()
+    {
+        java.lang.String $r1;
+        org.apache.commons.compress.archivers.zip.ZipFile r0;
+
+        r0 := @this: org.apache.commons.compress.archivers.zip.ZipFile;
+
+        $r1 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.lang.String encoding>;
+
+        return $r1;
+    }
+
+    public void close() throws java.io.IOException
+    {
+        java.io.RandomAccessFile $r1;
+        org.apache.commons.compress.archivers.zip.ZipFile r0;
+
+        r0 := @this: org.apache.commons.compress.archivers.zip.ZipFile;
+
+        r0.<org.apache.commons.compress.archivers.zip.ZipFile: boolean closed> = 1;
+
+        $r1 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        virtualinvoke $r1.<java.io.RandomAccessFile: void close()>();
+
+        return;
+    }
+
+    public static void closeQuietly(org.apache.commons.compress.archivers.zip.ZipFile)
+    {
+        org.apache.commons.compress.archivers.zip.ZipFile r0;
+
+        r0 := @parameter0: org.apache.commons.compress.archivers.zip.ZipFile;
+
+        staticinvoke <org.apache.commons.compress.utils.IOUtils: void closeQuietly(java.io.Closeable)>(r0);
+
+        return;
+    }
+
+    public java.util.Enumeration getEntries()
+    {
+        java.util.List $r1;
+        org.apache.commons.compress.archivers.zip.ZipFile r0;
+        java.util.Enumeration $r2;
+
+        r0 := @this: org.apache.commons.compress.archivers.zip.ZipFile;
+
+        $r1 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.util.List entries>;
+
+        $r2 = staticinvoke <java.util.Collections: java.util.Enumeration enumeration(java.util.Collection)>($r1);
+
+        return $r2;
+    }
+
+    public java.util.Enumeration getEntriesInPhysicalOrder()
+    {
+        java.lang.Object[] $r3;
+        java.util.Enumeration $r7;
+        org.apache.commons.compress.archivers.zip.ZipFile r0;
+        java.util.List $r2, $r6;
+        org.apache.commons.compress.archivers.zip.ZipArchiveEntry[] $r1, r4;
+        java.util.Comparator $r5;
+
+        r0 := @this: org.apache.commons.compress.archivers.zip.ZipFile;
+
+        $r2 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.util.List entries>;
+
+        $r1 = newarray (org.apache.commons.compress.archivers.zip.ZipArchiveEntry)[0];
+
+        $r3 = interfaceinvoke $r2.<java.util.List: java.lang.Object[] toArray(java.lang.Object[])>($r1);
+
+        r4 = (org.apache.commons.compress.archivers.zip.ZipArchiveEntry[]) $r3;
+
+        $r5 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.util.Comparator OFFSET_COMPARATOR>;
+
+        staticinvoke <java.util.Arrays: void sort(java.lang.Object[],java.util.Comparator)>(r4, $r5);
+
+        $r6 = staticinvoke <java.util.Arrays: java.util.List asList(java.lang.Object[])>(r4);
+
+        $r7 = staticinvoke <java.util.Collections: java.util.Enumeration enumeration(java.util.Collection)>($r6);
+
+        return $r7;
+    }
+
+    public org.apache.commons.compress.archivers.zip.ZipArchiveEntry getEntry(java.lang.String)
+    {
+        org.apache.commons.compress.archivers.zip.ZipArchiveEntry $r6;
+        java.util.Map $r2;
+        java.lang.Object $r3, $r5;
+        java.lang.String r1;
+        org.apache.commons.compress.archivers.zip.ZipFile r0;
+        java.util.LinkedList r4;
+
+        r0 := @this: org.apache.commons.compress.archivers.zip.ZipFile;
+
+        r1 := @parameter0: java.lang.String;
+
+        $r2 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.util.Map nameMap>;
+
+        $r3 = interfaceinvoke $r2.<java.util.Map: java.lang.Object get(java.lang.Object)>(r1);
+
+        r4 = (java.util.LinkedList) $r3;
+
+        if r4 == null goto label1;
+
+        $r5 = virtualinvoke r4.<java.util.LinkedList: java.lang.Object getFirst()>();
+
+        $r6 = (org.apache.commons.compress.archivers.zip.ZipArchiveEntry) $r5;
+
+        goto label2;
+
+     label1:
+        $r6 = null;
+
+     label2:
+        return $r6;
+    }
+
+    public java.lang.Iterable getEntries(java.lang.String)
+    {
+        java.util.List r4, $r5;
+        java.util.Map $r2;
+        java.lang.Object $r3;
+        java.lang.String r1;
+        org.apache.commons.compress.archivers.zip.ZipFile r0;
+
+        r0 := @this: org.apache.commons.compress.archivers.zip.ZipFile;
+
+        r1 := @parameter0: java.lang.String;
+
+        $r2 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.util.Map nameMap>;
+
+        $r3 = interfaceinvoke $r2.<java.util.Map: java.lang.Object get(java.lang.Object)>(r1);
+
+        r4 = (java.util.List) $r3;
+
+        if r4 == null goto label1;
+
+        $r5 = r4;
+
+        goto label2;
+
+     label1:
+        $r5 = staticinvoke <java.util.Collections: java.util.List emptyList()>();
+
+     label2:
+        return $r5;
+    }
+
+    public java.lang.Iterable getEntriesInPhysicalOrder(java.lang.String)
+    {
+        java.lang.Object[] $r7;
+        org.apache.commons.compress.archivers.zip.ZipFile r0;
+        java.util.List $r3;
+        org.apache.commons.compress.archivers.zip.ZipArchiveEntry[] r9;
+        java.util.Map $r2, $r4;
+        java.lang.Object $r5;
+        java.lang.String r1;
+        java.util.LinkedList $r6;
+        java.util.Comparator $r8;
+        boolean $z0;
+
+        r0 := @this: org.apache.commons.compress.archivers.zip.ZipFile;
+
+        r1 := @parameter0: java.lang.String;
+
+        r9 = newarray (org.apache.commons.compress.archivers.zip.ZipArchiveEntry)[0];
+
+        $r2 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.util.Map nameMap>;
+
+        $z0 = interfaceinvoke $r2.<java.util.Map: boolean containsKey(java.lang.Object)>(r1);
+
+        if $z0 == 0 goto label1;
+
+        $r4 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.util.Map nameMap>;
+
+        $r5 = interfaceinvoke $r4.<java.util.Map: java.lang.Object get(java.lang.Object)>(r1);
+
+        $r6 = (java.util.LinkedList) $r5;
+
+        $r7 = virtualinvoke $r6.<java.util.LinkedList: java.lang.Object[] toArray(java.lang.Object[])>(r9);
+
+        r9 = (org.apache.commons.compress.archivers.zip.ZipArchiveEntry[]) $r7;
+
+        $r8 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.util.Comparator OFFSET_COMPARATOR>;
+
+        staticinvoke <java.util.Arrays: void sort(java.lang.Object[],java.util.Comparator)>(r9, $r8);
+
+     label1:
+        $r3 = staticinvoke <java.util.Arrays: java.util.List asList(java.lang.Object[])>(r9);
+
+        return $r3;
+    }
+
+    public boolean canReadEntryData(org.apache.commons.compress.archivers.zip.ZipArchiveEntry)
+    {
+        org.apache.commons.compress.archivers.zip.ZipArchiveEntry r0;
+        org.apache.commons.compress.archivers.zip.ZipFile r1;
+        boolean $z0;
+
+        r1 := @this: org.apache.commons.compress.archivers.zip.ZipFile;
+
+        r0 := @parameter0: org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+
+        $z0 = staticinvoke <org.apache.commons.compress.archivers.zip.ZipUtil: boolean canHandleEntryData(org.apache.commons.compress.archivers.zip.ZipArchiveEntry)>(r0);
+
+        return $z0;
+    }
+
+    public java.io.InputStream getInputStream(org.apache.commons.compress.archivers.zip.ZipArchiveEntry) throws java.io.IOException, java.util.zip.ZipException
+    {
+        org.apache.commons.compress.archivers.zip.ZipArchiveEntry r0;
+        org.apache.commons.compress.archivers.zip.ExplodingInputStream $r9;
+        java.io.BufferedInputStream $r12;
+        java.util.zip.Inflater $r7;
+        long $l0, $l1;
+        org.apache.commons.compress.archivers.zip.UnshrinkingInputStream $r13;
+        org.apache.commons.compress.archivers.zip.ZipFile$BoundedInputStream $r3;
+        int[] $r5;
+        int $i2, $i3, $i4, $i5, $i6, $i7;
+        org.apache.commons.compress.archivers.zip.ZipFile$OffsetEntry $r2;
+        java.lang.String $r18;
+        boolean $z0;
+        java.util.zip.ZipException $r14;
+        org.apache.commons.compress.archivers.zip.ZipFile r4;
+        org.apache.commons.compress.archivers.zip.ZipFile$1 $r8;
+        org.apache.commons.compress.archivers.zip.ZipMethod $r6;
+        java.lang.StringBuilder $r15, $r16, $r17;
+        org.apache.commons.compress.archivers.zip.GeneralPurposeBit $r10, $r11;
+        org.apache.commons.compress.archivers.zip.ZipFile$Entry $r1;
+
+        r4 := @this: org.apache.commons.compress.archivers.zip.ZipFile;
+
+        r0 := @parameter0: org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+
+        $z0 = r0 instanceof org.apache.commons.compress.archivers.zip.ZipFile$Entry;
+
+        if $z0 != 0 goto label1;
+
+        return null;
+
+     label1:
+        $r1 = (org.apache.commons.compress.archivers.zip.ZipFile$Entry) r0;
+
+        $r2 = virtualinvoke $r1.<org.apache.commons.compress.archivers.zip.ZipFile$Entry: org.apache.commons.compress.archivers.zip.ZipFile$OffsetEntry getOffsetEntry()>();
+
+        staticinvoke <org.apache.commons.compress.archivers.zip.ZipUtil: void checkRequestedFeatures(org.apache.commons.compress.archivers.zip.ZipArchiveEntry)>(r0);
+
+        $l0 = staticinvoke <org.apache.commons.compress.archivers.zip.ZipFile$OffsetEntry: long access$000(org.apache.commons.compress.archivers.zip.ZipFile$OffsetEntry)>($r2);
+
+        $r3 = new org.apache.commons.compress.archivers.zip.ZipFile$BoundedInputStream;
+
+        $l1 = virtualinvoke r0.<org.apache.commons.compress.archivers.zip.ZipArchiveEntry: long getCompressedSize()>();
+
+        specialinvoke $r3.<org.apache.commons.compress.archivers.zip.ZipFile$BoundedInputStream: void <init>(org.apache.commons.compress.archivers.zip.ZipFile,long,long)>(r4, $l0, $l1);
+
+        $r5 = <org.apache.commons.compress.archivers.zip.ZipFile$3: int[] $SwitchMap$org$apache$commons$compress$archivers$zip$ZipMethod>;
+
+        $i2 = virtualinvoke r0.<org.apache.commons.compress.archivers.zip.ZipArchiveEntry: int getMethod()>();
+
+        $r6 = staticinvoke <org.apache.commons.compress.archivers.zip.ZipMethod: org.apache.commons.compress.archivers.zip.ZipMethod getMethodByCode(int)>($i2);
+
+        $i3 = virtualinvoke $r6.<org.apache.commons.compress.archivers.zip.ZipMethod: int ordinal()>();
+
+        $i4 = $r5[$i3];
+
+        tableswitch($i4)
+        {
+            case 1: goto label2;
+            case 2: goto label3;
+            case 3: goto label4;
+            case 4: goto label5;
+            default: goto label6;
+        };
+
+     label2:
+        return $r3;
+
+     label3:
+        $r13 = new org.apache.commons.compress.archivers.zip.UnshrinkingInputStream;
+
+        specialinvoke $r13.<org.apache.commons.compress.archivers.zip.UnshrinkingInputStream: void <init>(java.io.InputStream)>($r3);
+
+        return $r13;
+
+     label4:
+        $r9 = new org.apache.commons.compress.archivers.zip.ExplodingInputStream;
+
+        $r10 = virtualinvoke r0.<org.apache.commons.compress.archivers.zip.ZipArchiveEntry: org.apache.commons.compress.archivers.zip.GeneralPurposeBit getGeneralPurposeBit()>();
+
+        $i5 = virtualinvoke $r10.<org.apache.commons.compress.archivers.zip.GeneralPurposeBit: int getSlidingDictionarySize()>();
+
+        $r11 = virtualinvoke r0.<org.apache.commons.compress.archivers.zip.ZipArchiveEntry: org.apache.commons.compress.archivers.zip.GeneralPurposeBit getGeneralPurposeBit()>();
+
+        $i6 = virtualinvoke $r11.<org.apache.commons.compress.archivers.zip.GeneralPurposeBit: int getNumberOfShannonFanoTrees()>();
+
+        $r12 = new java.io.BufferedInputStream;
+
+        specialinvoke $r12.<java.io.BufferedInputStream: void <init>(java.io.InputStream)>($r3);
+
+        specialinvoke $r9.<org.apache.commons.compress.archivers.zip.ExplodingInputStream: void <init>(int,int,java.io.InputStream)>($i5, $i6, $r12);
+
+        return $r9;
+
+     label5:
+        virtualinvoke $r3.<org.apache.commons.compress.archivers.zip.ZipFile$BoundedInputStream: void addDummy()>();
+
+        $r7 = new java.util.zip.Inflater;
+
+        specialinvoke $r7.<java.util.zip.Inflater: void <init>(boolean)>(1);
+
+        $r8 = new org.apache.commons.compress.archivers.zip.ZipFile$1;
+
+        specialinvoke $r8.<org.apache.commons.compress.archivers.zip.ZipFile$1: void <init>(org.apache.commons.compress.archivers.zip.ZipFile,java.io.InputStream,java.util.zip.Inflater,java.util.zip.Inflater)>(r4, $r3, $r7, $r7);
+
+        return $r8;
+
+     label6:
+        $r14 = new java.util.zip.ZipException;
+
+        $r15 = new java.lang.StringBuilder;
+
+        specialinvoke $r15.<java.lang.StringBuilder: void <init>()>();
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Found unsupported compression method ");
+
+        $i7 = virtualinvoke r0.<org.apache.commons.compress.archivers.zip.ZipArchiveEntry: int getMethod()>();
+
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i7);
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r14.<java.util.zip.ZipException: void <init>(java.lang.String)>($r18);
+
+        throw $r14;
+    }
+
+    public java.lang.String getUnixSymlink(org.apache.commons.compress.archivers.zip.ZipArchiveEntry) throws java.io.IOException
+    {
+        java.lang.Throwable $r6;
+        byte[] $r3;
+        org.apache.commons.compress.archivers.zip.ZipArchiveEntry r0;
+        org.apache.commons.compress.archivers.zip.ZipEncoding $r4;
+        org.apache.commons.compress.archivers.zip.ZipFile r1;
+        java.lang.String $r5;
+        boolean $z0;
+        java.io.InputStream $r2, r7;
+
+        r1 := @this: org.apache.commons.compress.archivers.zip.ZipFile;
+
+        r0 := @parameter0: org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+
+        if r0 == null goto label7;
+
+        $z0 = virtualinvoke r0.<org.apache.commons.compress.archivers.zip.ZipArchiveEntry: boolean isUnixSymlink()>();
+
+        if $z0 == 0 goto label7;
+
+        r7 = null;
+
+     label1:
+        $r2 = virtualinvoke r1.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.InputStream getInputStream(org.apache.commons.compress.archivers.zip.ZipArchiveEntry)>(r0);
+
+        r7 = $r2;
+
+        $r3 = staticinvoke <org.apache.commons.compress.utils.IOUtils: byte[] toByteArray(java.io.InputStream)>($r2);
+
+        $r4 = r1.<org.apache.commons.compress.archivers.zip.ZipFile: org.apache.commons.compress.archivers.zip.ZipEncoding zipEncoding>;
+
+        $r5 = interfaceinvoke $r4.<org.apache.commons.compress.archivers.zip.ZipEncoding: java.lang.String decode(byte[])>($r3);
+
+     label2:
+        if $r2 == null goto label3;
+
+        virtualinvoke $r2.<java.io.InputStream: void close()>();
+
+     label3:
+        return $r5;
+
+     label4:
+        $r6 := @caughtexception;
+
+     label5:
+        if r7 == null goto label6;
+
+        virtualinvoke r7.<java.io.InputStream: void close()>();
+
+     label6:
+        throw $r6;
+
+     label7:
+        return null;
+
+        catch java.lang.Throwable from label1 to label2 with label4;
+        catch java.lang.Throwable from label4 to label5 with label4;
+    }
+
+    protected void finalize() throws java.lang.Throwable
+    {
+        java.io.PrintStream $r2;
+        java.lang.Throwable $r7;
+        org.apache.commons.compress.archivers.zip.ZipFile r0;
+        java.lang.StringBuilder $r1, $r3, $r5;
+        java.lang.String $r4, $r6;
+        boolean $z0;
+
+        r0 := @this: org.apache.commons.compress.archivers.zip.ZipFile;
+
+     label1:
+        $z0 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: boolean closed>;
+
+        if $z0 != 0 goto label2;
+
+        $r2 = <java.lang.System: java.io.PrintStream err>;
+
+        $r1 = new java.lang.StringBuilder;
+
+        specialinvoke $r1.<java.lang.StringBuilder: void <init>()>();
+
+        $r3 = virtualinvoke $r1.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Cleaning up unclosed ZipFile for archive ");
+
+        $r4 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.lang.String archiveName>;
+
+        $r5 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r4);
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r2.<java.io.PrintStream: void println(java.lang.String)>($r6);
+
+        virtualinvoke r0.<org.apache.commons.compress.archivers.zip.ZipFile: void close()>();
+
+     label2:
+        specialinvoke r0.<java.lang.Object: void finalize()>();
+
+        goto label5;
+
+     label3:
+        $r7 := @caughtexception;
+
+     label4:
+        specialinvoke r0.<java.lang.Object: void finalize()>();
+
+        throw $r7;
+
+     label5:
+        return;
+
+        catch java.lang.Throwable from label1 to label2 with label3;
+        catch java.lang.Throwable from label3 to label4 with label3;
+    }
+
+    private java.util.Map populateFromCentralDirectory() throws java.io.IOException
+    {
+        byte[] $r2, $r4, $r5, $r7;
+        java.io.RandomAccessFile $r3, $r6;
+        java.util.HashMap $r0;
+        long $l0, $l1, l3, $l4;
+        byte $b2, $b5;
+        boolean $z0;
+        java.io.IOException $r8;
+        org.apache.commons.compress.archivers.zip.ZipFile r1;
+
+        r1 := @this: org.apache.commons.compress.archivers.zip.ZipFile;
+
+        $r0 = new java.util.HashMap;
+
+        specialinvoke $r0.<java.util.HashMap: void <init>()>();
+
+        specialinvoke r1.<org.apache.commons.compress.archivers.zip.ZipFile: void positionAtCentralDirectory()>();
+
+        $r3 = r1.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        $r2 = r1.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] WORD_BUF>;
+
+        virtualinvoke $r3.<java.io.RandomAccessFile: void readFully(byte[])>($r2);
+
+        $r4 = r1.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] WORD_BUF>;
+
+        $l0 = staticinvoke <org.apache.commons.compress.archivers.zip.ZipLong: long getValue(byte[])>($r4);
+
+        l3 = $l0;
+
+        $l1 = <org.apache.commons.compress.archivers.zip.ZipFile: long CFH_SIG>;
+
+        $b2 = $l0 cmp $l1;
+
+        if $b2 == 0 goto label1;
+
+        $z0 = specialinvoke r1.<org.apache.commons.compress.archivers.zip.ZipFile: boolean startsWithLocalFileHeader()>();
+
+        if $z0 == 0 goto label1;
+
+        $r8 = new java.io.IOException;
+
+        specialinvoke $r8.<java.io.IOException: void <init>(java.lang.String)>("central directory is empty, can\'t expand corrupt archive.");
+
+        throw $r8;
+
+     label1:
+        $l4 = <org.apache.commons.compress.archivers.zip.ZipFile: long CFH_SIG>;
+
+        $b5 = l3 cmp $l4;
+
+        if $b5 != 0 goto label2;
+
+        specialinvoke r1.<org.apache.commons.compress.archivers.zip.ZipFile: void readCentralDirectoryEntry(java.util.Map)>($r0);
+
+        $r6 = r1.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        $r5 = r1.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] WORD_BUF>;
+
+        virtualinvoke $r6.<java.io.RandomAccessFile: void readFully(byte[])>($r5);
+
+        $r7 = r1.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] WORD_BUF>;
+
+        l3 = staticinvoke <org.apache.commons.compress.archivers.zip.ZipLong: long getValue(byte[])>($r7);
+
+        goto label1;
+
+     label2:
+        return $r0;
+    }
+
+    private void readCentralDirectoryEntry(java.util.Map) throws java.io.IOException
+    {
+        byte[] $r1, $r5, $r6, $r8, $r9, $r10, $r11, $r12, $r13, $r14, $r15, $r16, $r17, $r18, $r21, $r28, $r29, $r30;
+        java.io.RandomAccessFile $r2, $r19, $r23, $r24;
+        java.util.Map r26;
+        boolean $z0, $z1;
+        org.apache.commons.compress.archivers.zip.ZipEncoding $r31;
+        org.apache.commons.compress.archivers.zip.ZipFile r0;
+        java.util.List $r22;
+        org.apache.commons.compress.archivers.zip.GeneralPurposeBit $r7;
+        long $l4, $l5, $l6, $l7, $l8, $l14, $l15;
+        int $i0, $i1, $i2, $i3, $i9, $i10, $i11, $i12, $i13;
+        org.apache.commons.compress.archivers.zip.ZipFile$OffsetEntry $r3;
+        java.lang.String $r20, $r25;
+        org.apache.commons.compress.archivers.zip.ZipFile$NameAndComment $r27;
+        org.apache.commons.compress.archivers.zip.ZipFile$Entry $r4;
+
+        r0 := @this: org.apache.commons.compress.archivers.zip.ZipFile;
+
+        r26 := @parameter0: java.util.Map;
+
+        $r2 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        $r1 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] CFH_BUF>;
+
+        virtualinvoke $r2.<java.io.RandomAccessFile: void readFully(byte[])>($r1);
+
+        $r3 = new org.apache.commons.compress.archivers.zip.ZipFile$OffsetEntry;
+
+        specialinvoke $r3.<org.apache.commons.compress.archivers.zip.ZipFile$OffsetEntry: void <init>(org.apache.commons.compress.archivers.zip.ZipFile$1)>(null);
+
+        $r4 = new org.apache.commons.compress.archivers.zip.ZipFile$Entry;
+
+        specialinvoke $r4.<org.apache.commons.compress.archivers.zip.ZipFile$Entry: void <init>(org.apache.commons.compress.archivers.zip.ZipFile$OffsetEntry)>($r3);
+
+        $r5 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] CFH_BUF>;
+
+        $i0 = staticinvoke <org.apache.commons.compress.archivers.zip.ZipShort: int getValue(byte[],int)>($r5, 0);
+
+        $i1 = $i0 >> 8;
+
+        $i2 = $i1 & 15;
+
+        virtualinvoke $r4.<org.apache.commons.compress.archivers.zip.ZipFile$Entry: void setPlatform(int)>($i2);
+
+        $r6 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] CFH_BUF>;
+
+        $r7 = staticinvoke <org.apache.commons.compress.archivers.zip.GeneralPurposeBit: org.apache.commons.compress.archivers.zip.GeneralPurposeBit parse(byte[],int)>($r6, 4);
+
+        $z0 = virtualinvoke $r7.<org.apache.commons.compress.archivers.zip.GeneralPurposeBit: boolean usesUTF8ForNames()>();
+
+        if $z0 == 0 goto label1;
+
+        $r31 = <org.apache.commons.compress.archivers.zip.ZipEncodingHelper: org.apache.commons.compress.archivers.zip.ZipEncoding UTF8_ZIP_ENCODING>;
+
+        goto label2;
+
+     label1:
+        $r31 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: org.apache.commons.compress.archivers.zip.ZipEncoding zipEncoding>;
+
+     label2:
+        virtualinvoke $r4.<org.apache.commons.compress.archivers.zip.ZipFile$Entry: void setGeneralPurposeBit(org.apache.commons.compress.archivers.zip.GeneralPurposeBit)>($r7);
+
+        $r8 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] CFH_BUF>;
+
+        $i3 = staticinvoke <org.apache.commons.compress.archivers.zip.ZipShort: int getValue(byte[],int)>($r8, 6);
+
+        virtualinvoke $r4.<org.apache.commons.compress.archivers.zip.ZipFile$Entry: void setMethod(int)>($i3);
+
+        $r9 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] CFH_BUF>;
+
+        $l4 = staticinvoke <org.apache.commons.compress.archivers.zip.ZipLong: long getValue(byte[],int)>($r9, 8);
+
+        $l5 = staticinvoke <org.apache.commons.compress.archivers.zip.ZipUtil: long dosToJavaTime(long)>($l4);
+
+        virtualinvoke $r4.<org.apache.commons.compress.archivers.zip.ZipFile$Entry: void setTime(long)>($l5);
+
+        $r10 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] CFH_BUF>;
+
+        $l6 = staticinvoke <org.apache.commons.compress.archivers.zip.ZipLong: long getValue(byte[],int)>($r10, 12);
+
+        virtualinvoke $r4.<org.apache.commons.compress.archivers.zip.ZipFile$Entry: void setCrc(long)>($l6);
+
+        $r11 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] CFH_BUF>;
+
+        $l7 = staticinvoke <org.apache.commons.compress.archivers.zip.ZipLong: long getValue(byte[],int)>($r11, 16);
+
+        virtualinvoke $r4.<org.apache.commons.compress.archivers.zip.ZipFile$Entry: void setCompressedSize(long)>($l7);
+
+        $r12 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] CFH_BUF>;
+
+        $l8 = staticinvoke <org.apache.commons.compress.archivers.zip.ZipLong: long getValue(byte[],int)>($r12, 20);
+
+        virtualinvoke $r4.<org.apache.commons.compress.archivers.zip.ZipFile$Entry: void setSize(long)>($l8);
+
+        $r13 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] CFH_BUF>;
+
+        $i9 = staticinvoke <org.apache.commons.compress.archivers.zip.ZipShort: int getValue(byte[],int)>($r13, 24);
+
+        $r14 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] CFH_BUF>;
+
+        $i10 = staticinvoke <org.apache.commons.compress.archivers.zip.ZipShort: int getValue(byte[],int)>($r14, 26);
+
+        $r15 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] CFH_BUF>;
+
+        $i11 = staticinvoke <org.apache.commons.compress.archivers.zip.ZipShort: int getValue(byte[],int)>($r15, 28);
+
+        $r16 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] CFH_BUF>;
+
+        $i12 = staticinvoke <org.apache.commons.compress.archivers.zip.ZipShort: int getValue(byte[],int)>($r16, 30);
+
+        $r17 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] CFH_BUF>;
+
+        $i13 = staticinvoke <org.apache.commons.compress.archivers.zip.ZipShort: int getValue(byte[],int)>($r17, 32);
+
+        virtualinvoke $r4.<org.apache.commons.compress.archivers.zip.ZipFile$Entry: void setInternalAttributes(int)>($i13);
+
+        $r18 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] CFH_BUF>;
+
+        $l14 = staticinvoke <org.apache.commons.compress.archivers.zip.ZipLong: long getValue(byte[],int)>($r18, 34);
+
+        virtualinvoke $r4.<org.apache.commons.compress.archivers.zip.ZipFile$Entry: void setExternalAttributes(long)>($l14);
+
+        $r28 = newarray (byte)[$i9];
+
+        $r19 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        virtualinvoke $r19.<java.io.RandomAccessFile: void readFully(byte[])>($r28);
+
+        $r20 = interfaceinvoke $r31.<org.apache.commons.compress.archivers.zip.ZipEncoding: java.lang.String decode(byte[])>($r28);
+
+        virtualinvoke $r4.<org.apache.commons.compress.archivers.zip.ZipFile$Entry: void setName(java.lang.String,byte[])>($r20, $r28);
+
+        $r21 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] CFH_BUF>;
+
+        $l15 = staticinvoke <org.apache.commons.compress.archivers.zip.ZipLong: long getValue(byte[],int)>($r21, 38);
+
+        staticinvoke <org.apache.commons.compress.archivers.zip.ZipFile$OffsetEntry: long access$202(org.apache.commons.compress.archivers.zip.ZipFile$OffsetEntry,long)>($r3, $l15);
+
+        $r22 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.util.List entries>;
+
+        interfaceinvoke $r22.<java.util.List: boolean add(java.lang.Object)>($r4);
+
+        $r29 = newarray (byte)[$i10];
+
+        $r23 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        virtualinvoke $r23.<java.io.RandomAccessFile: void readFully(byte[])>($r29);
+
+        virtualinvoke $r4.<org.apache.commons.compress.archivers.zip.ZipFile$Entry: void setCentralDirectoryExtra(byte[])>($r29);
+
+        specialinvoke r0.<org.apache.commons.compress.archivers.zip.ZipFile: void setSizesAndOffsetFromZip64Extra(org.apache.commons.compress.archivers.zip.ZipArchiveEntry,org.apache.commons.compress.archivers.zip.ZipFile$OffsetEntry,int)>($r4, $r3, $i12);
+
+        $r30 = newarray (byte)[$i11];
+
+        $r24 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        virtualinvoke $r24.<java.io.RandomAccessFile: void readFully(byte[])>($r30);
+
+        $r25 = interfaceinvoke $r31.<org.apache.commons.compress.archivers.zip.ZipEncoding: java.lang.String decode(byte[])>($r30);
+
+        virtualinvoke $r4.<org.apache.commons.compress.archivers.zip.ZipFile$Entry: void setComment(java.lang.String)>($r25);
+
+        if $z0 != 0 goto label3;
+
+        $z1 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: boolean useUnicodeExtraFields>;
+
+        if $z1 == 0 goto label3;
+
+        $r27 = new org.apache.commons.compress.archivers.zip.ZipFile$NameAndComment;
+
+        specialinvoke $r27.<org.apache.commons.compress.archivers.zip.ZipFile$NameAndComment: void <init>(byte[],byte[],org.apache.commons.compress.archivers.zip.ZipFile$1)>($r28, $r30, null);
+
+        interfaceinvoke r26.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>($r4, $r27);
+
+     label3:
+        return;
+    }
+
+    private void setSizesAndOffsetFromZip64Extra(org.apache.commons.compress.archivers.zip.ZipArchiveEntry, org.apache.commons.compress.archivers.zip.ZipFile$OffsetEntry, int) throws java.io.IOException
+    {
+        org.apache.commons.compress.archivers.zip.ZipArchiveEntry r0;
+        org.apache.commons.compress.archivers.zip.Zip64ExtendedInformationExtraField r3;
+        byte $b1, $b3, $b5;
+        org.apache.commons.compress.archivers.zip.ZipEightByteInteger $r5, $r7, $r9, $r11, $r12;
+        boolean z0, z1, z2, $z3, $z4, $z5, $z7, $z8, $z9;
+        org.apache.commons.compress.archivers.zip.ZipFile r10;
+        org.apache.commons.compress.archivers.zip.ZipExtraField $r2;
+        org.apache.commons.compress.archivers.zip.ZipShort $r1;
+        long $l0, $l2, $l4, $l7, $l8, $l9, $l10, $l11;
+        int i6, $i13;
+        org.apache.commons.compress.archivers.zip.ZipFile$OffsetEntry r4;
+
+        r10 := @this: org.apache.commons.compress.archivers.zip.ZipFile;
+
+        r0 := @parameter0: org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+
+        r4 := @parameter1: org.apache.commons.compress.archivers.zip.ZipFile$OffsetEntry;
+
+        i6 := @parameter2: int;
+
+        $r1 = <org.apache.commons.compress.archivers.zip.Zip64ExtendedInformationExtraField: org.apache.commons.compress.archivers.zip.ZipShort HEADER_ID>;
+
+        $r2 = virtualinvoke r0.<org.apache.commons.compress.archivers.zip.ZipArchiveEntry: org.apache.commons.compress.archivers.zip.ZipExtraField getExtraField(org.apache.commons.compress.archivers.zip.ZipShort)>($r1);
+
+        r3 = (org.apache.commons.compress.archivers.zip.Zip64ExtendedInformationExtraField) $r2;
+
+        if r3 == null goto label13;
+
+        $l0 = virtualinvoke r0.<org.apache.commons.compress.archivers.zip.ZipArchiveEntry: long getSize()>();
+
+        $b1 = $l0 cmp 4294967295L;
+
+        if $b1 != 0 goto label01;
+
+        $z4 = 1;
+
+        goto label02;
+
+     label01:
+        $z4 = 0;
+
+     label02:
+        z0 = $z4;
+
+        $l2 = virtualinvoke r0.<org.apache.commons.compress.archivers.zip.ZipArchiveEntry: long getCompressedSize()>();
+
+        $b3 = $l2 cmp 4294967295L;
+
+        if $b3 != 0 goto label03;
+
+        $z5 = 1;
+
+        goto label04;
+
+     label03:
+        $z5 = 0;
+
+     label04:
+        z1 = $z5;
+
+        $l4 = staticinvoke <org.apache.commons.compress.archivers.zip.ZipFile$OffsetEntry: long access$200(org.apache.commons.compress.archivers.zip.ZipFile$OffsetEntry)>(r4);
+
+        $b5 = $l4 cmp 4294967295L;
+
+        if $b5 != 0 goto label05;
+
+        $z9 = 1;
+
+        $z8 = 1;
+
+        goto label06;
+
+     label05:
+        $z9 = 0;
+
+        $z8 = 0;
+
+     label06:
+        z2 = $z9;
+
+        $z3 = $z8;
+
+        $i13 = (int) 65535;
+
+        if i6 != $i13 goto label07;
+
+        $z7 = 1;
+
+        goto label08;
+
+     label07:
+        $z7 = 0;
+
+     label08:
+        virtualinvoke r3.<org.apache.commons.compress.archivers.zip.Zip64ExtendedInformationExtraField: void reparseCentralDirectoryData(boolean,boolean,boolean,boolean)>(z0, z1, $z3, $z7);
+
+        if z0 == 0 goto label09;
+
+        $r9 = virtualinvoke r3.<org.apache.commons.compress.archivers.zip.Zip64ExtendedInformationExtraField: org.apache.commons.compress.archivers.zip.ZipEightByteInteger getSize()>();
+
+        $l11 = virtualinvoke $r9.<org.apache.commons.compress.archivers.zip.ZipEightByteInteger: long getLongValue()>();
+
+        virtualinvoke r0.<org.apache.commons.compress.archivers.zip.ZipArchiveEntry: void setSize(long)>($l11);
+
+        goto label10;
+
+     label09:
+        if z1 == 0 goto label10;
+
+        $r11 = new org.apache.commons.compress.archivers.zip.ZipEightByteInteger;
+
+        $l10 = virtualinvoke r0.<org.apache.commons.compress.archivers.zip.ZipArchiveEntry: long getSize()>();
+
+        specialinvoke $r11.<org.apache.commons.compress.archivers.zip.ZipEightByteInteger: void <init>(long)>($l10);
+
+        virtualinvoke r3.<org.apache.commons.compress.archivers.zip.Zip64ExtendedInformationExtraField: void setSize(org.apache.commons.compress.archivers.zip.ZipEightByteInteger)>($r11);
+
+     label10:
+        if z1 == 0 goto label11;
+
+        $r7 = virtualinvoke r3.<org.apache.commons.compress.archivers.zip.Zip64ExtendedInformationExtraField: org.apache.commons.compress.archivers.zip.ZipEightByteInteger getCompressedSize()>();
+
+        $l9 = virtualinvoke $r7.<org.apache.commons.compress.archivers.zip.ZipEightByteInteger: long getLongValue()>();
+
+        virtualinvoke r0.<org.apache.commons.compress.archivers.zip.ZipArchiveEntry: void setCompressedSize(long)>($l9);
+
+        goto label12;
+
+     label11:
+        if z0 == 0 goto label12;
+
+        $r12 = new org.apache.commons.compress.archivers.zip.ZipEightByteInteger;
+
+        $l8 = virtualinvoke r0.<org.apache.commons.compress.archivers.zip.ZipArchiveEntry: long getCompressedSize()>();
+
+        specialinvoke $r12.<org.apache.commons.compress.archivers.zip.ZipEightByteInteger: void <init>(long)>($l8);
+
+        virtualinvoke r3.<org.apache.commons.compress.archivers.zip.Zip64ExtendedInformationExtraField: void setCompressedSize(org.apache.commons.compress.archivers.zip.ZipEightByteInteger)>($r12);
+
+     label12:
+        if z2 == 0 goto label13;
+
+        $r5 = virtualinvoke r3.<org.apache.commons.compress.archivers.zip.Zip64ExtendedInformationExtraField: org.apache.commons.compress.archivers.zip.ZipEightByteInteger getRelativeHeaderOffset()>();
+
+        $l7 = virtualinvoke $r5.<org.apache.commons.compress.archivers.zip.ZipEightByteInteger: long getLongValue()>();
+
+        staticinvoke <org.apache.commons.compress.archivers.zip.ZipFile$OffsetEntry: long access$202(org.apache.commons.compress.archivers.zip.ZipFile$OffsetEntry,long)>(r4, $l7);
+
+     label13:
+        return;
+    }
+
+    private void positionAtCentralDirectory() throws java.io.IOException
+    {
+        java.io.RandomAccessFile $r1, $r2, $r3, $r5;
+        byte[] $r4, $r6, $r7;
+        long $l0, $l2, $l3;
+        byte $b1;
+        int $i4;
+        boolean z0, z1, $z3, $z4;
+        org.apache.commons.compress.archivers.zip.ZipFile r0;
+
+        r0 := @this: org.apache.commons.compress.archivers.zip.ZipFile;
+
+        specialinvoke r0.<org.apache.commons.compress.archivers.zip.ZipFile: void positionAtEndOfCentralDirectoryRecord()>();
+
+        z1 = 0;
+
+        $r1 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        $l0 = virtualinvoke $r1.<java.io.RandomAccessFile: long getFilePointer()>();
+
+        $b1 = $l0 cmp 20L;
+
+        $i4 = (int) $b1;
+
+        if $i4 <= 0 goto label1;
+
+        $z4 = 1;
+
+        $z3 = 1;
+
+        goto label2;
+
+     label1:
+        $z4 = 0;
+
+        $z3 = 0;
+
+     label2:
+        z0 = $z3;
+
+        if $z4 == 0 goto label3;
+
+        $r3 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        $r2 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        $l2 = virtualinvoke $r2.<java.io.RandomAccessFile: long getFilePointer()>();
+
+        $l3 = $l2 - 20L;
+
+        virtualinvoke $r3.<java.io.RandomAccessFile: void seek(long)>($l3);
+
+        $r5 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        $r4 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] WORD_BUF>;
+
+        virtualinvoke $r5.<java.io.RandomAccessFile: void readFully(byte[])>($r4);
+
+        $r7 = <org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream: byte[] ZIP64_EOCD_LOC_SIG>;
+
+        $r6 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] WORD_BUF>;
+
+        z1 = staticinvoke <java.util.Arrays: boolean equals(byte[],byte[])>($r7, $r6);
+
+     label3:
+        if z1 != 0 goto label5;
+
+        if z0 == 0 goto label4;
+
+        specialinvoke r0.<org.apache.commons.compress.archivers.zip.ZipFile: void skipBytes(int)>(16);
+
+     label4:
+        specialinvoke r0.<org.apache.commons.compress.archivers.zip.ZipFile: void positionAtCentralDirectory32()>();
+
+        goto label6;
+
+     label5:
+        specialinvoke r0.<org.apache.commons.compress.archivers.zip.ZipFile: void positionAtCentralDirectory64()>();
+
+     label6:
+        return;
+    }
+
+    private void positionAtCentralDirectory64() throws java.io.IOException
+    {
+        byte[] $r1, $r3, $r5, $r7, $r8, $r9, $r11;
+        java.io.RandomAccessFile $r2, $r4, $r6, $r10, $r12;
+        long $l0, $l1;
+        boolean $z0;
+        java.util.zip.ZipException $r13;
+        org.apache.commons.compress.archivers.zip.ZipFile r0;
+
+        r0 := @this: org.apache.commons.compress.archivers.zip.ZipFile;
+
+        specialinvoke r0.<org.apache.commons.compress.archivers.zip.ZipFile: void skipBytes(int)>(4);
+
+        $r2 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        $r1 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] DWORD_BUF>;
+
+        virtualinvoke $r2.<java.io.RandomAccessFile: void readFully(byte[])>($r1);
+
+        $r4 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        $r3 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] DWORD_BUF>;
+
+        $l0 = staticinvoke <org.apache.commons.compress.archivers.zip.ZipEightByteInteger: long getLongValue(byte[])>($r3);
+
+        virtualinvoke $r4.<java.io.RandomAccessFile: void seek(long)>($l0);
+
+        $r6 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        $r5 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] WORD_BUF>;
+
+        virtualinvoke $r6.<java.io.RandomAccessFile: void readFully(byte[])>($r5);
+
+        $r8 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] WORD_BUF>;
+
+        $r7 = <org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream: byte[] ZIP64_EOCD_SIG>;
+
+        $z0 = staticinvoke <java.util.Arrays: boolean equals(byte[],byte[])>($r8, $r7);
+
+        if $z0 != 0 goto label1;
+
+        $r13 = new java.util.zip.ZipException;
+
+        specialinvoke $r13.<java.util.zip.ZipException: void <init>(java.lang.String)>("archive\'s ZIP64 end of central directory locator is corrupt.");
+
+        throw $r13;
+
+     label1:
+        specialinvoke r0.<org.apache.commons.compress.archivers.zip.ZipFile: void skipBytes(int)>(44);
+
+        $r10 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        $r9 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] DWORD_BUF>;
+
+        virtualinvoke $r10.<java.io.RandomAccessFile: void readFully(byte[])>($r9);
+
+        $r12 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        $r11 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] DWORD_BUF>;
+
+        $l1 = staticinvoke <org.apache.commons.compress.archivers.zip.ZipEightByteInteger: long getLongValue(byte[])>($r11);
+
+        virtualinvoke $r12.<java.io.RandomAccessFile: void seek(long)>($l1);
+
+        return;
+    }
+
+    private void positionAtCentralDirectory32() throws java.io.IOException
+    {
+        byte[] $r1, $r3;
+        java.io.RandomAccessFile $r2, $r4;
+        long $l0;
+        org.apache.commons.compress.archivers.zip.ZipFile r0;
+
+        r0 := @this: org.apache.commons.compress.archivers.zip.ZipFile;
+
+        specialinvoke r0.<org.apache.commons.compress.archivers.zip.ZipFile: void skipBytes(int)>(16);
+
+        $r2 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        $r1 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] WORD_BUF>;
+
+        virtualinvoke $r2.<java.io.RandomAccessFile: void readFully(byte[])>($r1);
+
+        $r4 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        $r3 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] WORD_BUF>;
+
+        $l0 = staticinvoke <org.apache.commons.compress.archivers.zip.ZipLong: long getValue(byte[])>($r3);
+
+        virtualinvoke $r4.<java.io.RandomAccessFile: void seek(long)>($l0);
+
+        return;
+    }
+
+    private void positionAtEndOfCentralDirectoryRecord() throws java.io.IOException
+    {
+        byte[] $r1;
+        java.util.zip.ZipException $r2;
+        org.apache.commons.compress.archivers.zip.ZipFile r0;
+        boolean $z0;
+
+        r0 := @this: org.apache.commons.compress.archivers.zip.ZipFile;
+
+        $r1 = <org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream: byte[] EOCD_SIG>;
+
+        $z0 = specialinvoke r0.<org.apache.commons.compress.archivers.zip.ZipFile: boolean tryToLocateSignature(long,long,byte[])>(22L, 65557L, $r1);
+
+        if $z0 != 0 goto label1;
+
+        $r2 = new java.util.zip.ZipException;
+
+        specialinvoke $r2.<java.util.zip.ZipException: void <init>(java.lang.String)>("archive is not a ZIP archive");
+
+        throw $r2;
+
+     label1:
+        return;
+    }
+
+    private boolean tryToLocateSignature(long, long, byte[]) throws java.io.IOException
+    {
+        java.io.RandomAccessFile $r1, $r2, $r3, $r4, $r5, $r7, $r8, $r9;
+        byte[] r6;
+        byte $b6, $b7, $b9, $b11, $b13, $b15;
+        boolean z0, z1, z2;
+        org.apache.commons.compress.archivers.zip.ZipFile r0;
+        long $l0, l1, $l2, l3, $l4, $l5, l16;
+        int $i8, $i10, $i12, $i14, $i17, $i18, $i20, $i21, $i22, $i23, $i24;
+
+        r0 := @this: org.apache.commons.compress.archivers.zip.ZipFile;
+
+        l1 := @parameter0: long;
+
+        l3 := @parameter1: long;
+
+        r6 := @parameter2: byte[];
+
+        z0 = 0;
+
+        z2 = 0;
+
+        z1 = 0;
+
+        $r1 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        $l0 = virtualinvoke $r1.<java.io.RandomAccessFile: long length()>();
+
+        l16 = $l0 - l1;
+
+        $r2 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        $l2 = virtualinvoke $r2.<java.io.RandomAccessFile: long length()>();
+
+        $l4 = $l2 - l3;
+
+        $l5 = staticinvoke <java.lang.Math: long max(long,long)>(0L, $l4);
+
+        $b6 = l16 cmp 0L;
+
+        $i17 = (int) $b6;
+
+        if $i17 < 0 goto label4;
+
+     label1:
+        $b7 = l16 cmp $l5;
+
+        $i18 = (int) $b7;
+
+        if $i18 < 0 goto label4;
+
+        $r4 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        virtualinvoke $r4.<java.io.RandomAccessFile: void seek(long)>(l16);
+
+        $r5 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        $i8 = virtualinvoke $r5.<java.io.RandomAccessFile: int read()>();
+
+        $i20 = (int) -1;
+
+        if $i8 != $i20 goto label2;
+
+        goto label4;
+
+     label2:
+        $b9 = r6[0];
+
+        $i21 = (int) $b9;
+
+        if $i8 != $i21 goto label3;
+
+        $r7 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        $i10 = virtualinvoke $r7.<java.io.RandomAccessFile: int read()>();
+
+        $b11 = r6[1];
+
+        $i22 = (int) $b11;
+
+        if $i10 != $i22 goto label3;
+
+        $r8 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        $i12 = virtualinvoke $r8.<java.io.RandomAccessFile: int read()>();
+
+        $b13 = r6[2];
+
+        $i23 = (int) $b13;
+
+        if $i12 != $i23 goto label3;
+
+        $r9 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        $i14 = virtualinvoke $r9.<java.io.RandomAccessFile: int read()>();
+
+        $b15 = r6[3];
+
+        $i24 = (int) $b15;
+
+        if $i14 != $i24 goto label3;
+
+        z0 = 1;
+
+        z2 = 1;
+
+        z1 = 1;
+
+        goto label4;
+
+     label3:
+        l16 = l16 - 1L;
+
+        goto label1;
+
+     label4:
+        if z2 == 0 goto label5;
+
+        $r3 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        virtualinvoke $r3.<java.io.RandomAccessFile: void seek(long)>(l16);
+
+     label5:
+        return z1;
+    }
+
+    private void skipBytes(int) throws java.io.IOException
+    {
+        java.io.RandomAccessFile $r1;
+        int i0, $i1, $i2, i3;
+        org.apache.commons.compress.archivers.zip.ZipFile r0;
+        java.io.EOFException $r2;
+
+        r0 := @this: org.apache.commons.compress.archivers.zip.ZipFile;
+
+        i0 := @parameter0: int;
+
+        i3 = 0;
+
+     label1:
+        if i3 >= i0 goto label3;
+
+        $r1 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        $i1 = i0 - i3;
+
+        $i2 = virtualinvoke $r1.<java.io.RandomAccessFile: int skipBytes(int)>($i1);
+
+        if $i2 > 0 goto label2;
+
+        $r2 = new java.io.EOFException;
+
+        specialinvoke $r2.<java.io.EOFException: void <init>()>();
+
+        throw $r2;
+
+     label2:
+        i3 = i3 + $i2;
+
+        goto label1;
+
+     label3:
+        return;
+    }
+
+    private void resolveLocalFileHeaderData(java.util.Map) throws java.io.IOException
+    {
+        java.io.RandomAccessFile $r7, $r9, $r12, $r14, $r25;
+        byte[] $r8, $r10, $r11, $r13, $r22, $r23, r27;
+        org.apache.commons.compress.archivers.zip.ZipArchiveEntry r4;
+        java.util.Map r15, $r17, $r20;
+        boolean $z0, $z1;
+        org.apache.commons.compress.archivers.zip.ZipFile r0;
+        java.util.List $r1;
+        long $l0, $l1, $l4, $l5, $l6, $l7, $l8, $l9, $l10;
+        int $i2, $i3, $i11, i12;
+        org.apache.commons.compress.archivers.zip.ZipFile$OffsetEntry $r6;
+        java.lang.String $r16;
+        java.util.LinkedList $r19, $r24, r29;
+        java.util.Iterator $r2;
+        java.io.IOException $r26;
+        org.apache.commons.compress.archivers.zip.ZipFile$NameAndComment r28;
+        java.lang.Object $r3, $r18, $r21;
+        org.apache.commons.compress.archivers.zip.ZipFile$Entry r5;
+
+        r0 := @this: org.apache.commons.compress.archivers.zip.ZipFile;
+
+        r15 := @parameter0: java.util.Map;
+
+        $r1 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.util.List entries>;
+
+        $r2 = interfaceinvoke $r1.<java.util.List: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r2.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label7;
+
+        $r3 = interfaceinvoke $r2.<java.util.Iterator: java.lang.Object next()>();
+
+        r4 = (org.apache.commons.compress.archivers.zip.ZipArchiveEntry) $r3;
+
+        r5 = (org.apache.commons.compress.archivers.zip.ZipFile$Entry) r4;
+
+        $r6 = virtualinvoke r5.<org.apache.commons.compress.archivers.zip.ZipFile$Entry: org.apache.commons.compress.archivers.zip.ZipFile$OffsetEntry getOffsetEntry()>();
+
+        $l0 = staticinvoke <org.apache.commons.compress.archivers.zip.ZipFile$OffsetEntry: long access$200(org.apache.commons.compress.archivers.zip.ZipFile$OffsetEntry)>($r6);
+
+        $r7 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        $l1 = $l0 + 26L;
+
+        virtualinvoke $r7.<java.io.RandomAccessFile: void seek(long)>($l1);
+
+        $r9 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        $r8 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] SHORT_BUF>;
+
+        virtualinvoke $r9.<java.io.RandomAccessFile: void readFully(byte[])>($r8);
+
+        $r10 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] SHORT_BUF>;
+
+        $i2 = staticinvoke <org.apache.commons.compress.archivers.zip.ZipShort: int getValue(byte[])>($r10);
+
+        $r12 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        $r11 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] SHORT_BUF>;
+
+        virtualinvoke $r12.<java.io.RandomAccessFile: void readFully(byte[])>($r11);
+
+        $r13 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] SHORT_BUF>;
+
+        $i3 = staticinvoke <org.apache.commons.compress.archivers.zip.ZipShort: int getValue(byte[])>($r13);
+
+        i12 = $i2;
+
+     label2:
+        if i12 <= 0 goto label4;
+
+        $r25 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        $i11 = virtualinvoke $r25.<java.io.RandomAccessFile: int skipBytes(int)>(i12);
+
+        if $i11 > 0 goto label3;
+
+        $r26 = new java.io.IOException;
+
+        specialinvoke $r26.<java.io.IOException: void <init>(java.lang.String)>("failed to skip file name in local file header");
+
+        throw $r26;
+
+     label3:
+        i12 = i12 - $i11;
+
+        goto label2;
+
+     label4:
+        r27 = newarray (byte)[$i3];
+
+        $r14 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        virtualinvoke $r14.<java.io.RandomAccessFile: void readFully(byte[])>(r27);
+
+        virtualinvoke r5.<org.apache.commons.compress.archivers.zip.ZipFile$Entry: void setExtra(byte[])>(r27);
+
+        $l4 = $l0 + 26L;
+
+        $l5 = $l4 + 2L;
+
+        $l7 = $l5 + 2L;
+
+        $l6 = (long) $i2;
+
+        $l9 = $l7 + $l6;
+
+        $l8 = (long) $i3;
+
+        $l10 = $l9 + $l8;
+
+        staticinvoke <org.apache.commons.compress.archivers.zip.ZipFile$OffsetEntry: long access$002(org.apache.commons.compress.archivers.zip.ZipFile$OffsetEntry,long)>($r6, $l10);
+
+        $z1 = interfaceinvoke r15.<java.util.Map: boolean containsKey(java.lang.Object)>(r5);
+
+        if $z1 == 0 goto label5;
+
+        $r21 = interfaceinvoke r15.<java.util.Map: java.lang.Object get(java.lang.Object)>(r5);
+
+        r28 = (org.apache.commons.compress.archivers.zip.ZipFile$NameAndComment) $r21;
+
+        $r22 = staticinvoke <org.apache.commons.compress.archivers.zip.ZipFile$NameAndComment: byte[] access$400(org.apache.commons.compress.archivers.zip.ZipFile$NameAndComment)>(r28);
+
+        $r23 = staticinvoke <org.apache.commons.compress.archivers.zip.ZipFile$NameAndComment: byte[] access$500(org.apache.commons.compress.archivers.zip.ZipFile$NameAndComment)>(r28);
+
+        staticinvoke <org.apache.commons.compress.archivers.zip.ZipUtil: void setNameAndCommentFromExtraFields(org.apache.commons.compress.archivers.zip.ZipArchiveEntry,byte[],byte[])>(r5, $r22, $r23);
+
+     label5:
+        $r16 = virtualinvoke r5.<org.apache.commons.compress.archivers.zip.ZipFile$Entry: java.lang.String getName()>();
+
+        $r17 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.util.Map nameMap>;
+
+        $r18 = interfaceinvoke $r17.<java.util.Map: java.lang.Object get(java.lang.Object)>($r16);
+
+        $r24 = (java.util.LinkedList) $r18;
+
+        r29 = $r24;
+
+        if $r24 != null goto label6;
+
+        $r19 = new java.util.LinkedList;
+
+        specialinvoke $r19.<java.util.LinkedList: void <init>()>();
+
+        r29 = $r19;
+
+        $r20 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.util.Map nameMap>;
+
+        interfaceinvoke $r20.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>($r16, $r19);
+
+     label6:
+        virtualinvoke r29.<java.util.LinkedList: void addLast(java.lang.Object)>(r5);
+
+        goto label1;
+
+     label7:
+        return;
+    }
+
+    private boolean startsWithLocalFileHeader() throws java.io.IOException
+    {
+        java.io.RandomAccessFile $r1, $r3;
+        byte[] $r2, $r4, $r5;
+        org.apache.commons.compress.archivers.zip.ZipFile r0;
+        boolean $z0;
+
+        r0 := @this: org.apache.commons.compress.archivers.zip.ZipFile;
+
+        $r1 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        virtualinvoke $r1.<java.io.RandomAccessFile: void seek(long)>(0L);
+
+        $r3 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        $r2 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] WORD_BUF>;
+
+        virtualinvoke $r3.<java.io.RandomAccessFile: void readFully(byte[])>($r2);
+
+        $r5 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: byte[] WORD_BUF>;
+
+        $r4 = <org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream: byte[] LFH_SIG>;
+
+        $z0 = staticinvoke <java.util.Arrays: boolean equals(byte[],byte[])>($r5, $r4);
+
+        return $z0;
+    }
+
+    static java.io.RandomAccessFile access$600(org.apache.commons.compress.archivers.zip.ZipFile)
+    {
+        java.io.RandomAccessFile $r1;
+        org.apache.commons.compress.archivers.zip.ZipFile r0;
+
+        r0 := @parameter0: org.apache.commons.compress.archivers.zip.ZipFile;
+
+        $r1 = r0.<org.apache.commons.compress.archivers.zip.ZipFile: java.io.RandomAccessFile archive>;
+
+        return $r1;
+    }
+
+    static void <clinit>()
+    {
+        byte[] $r0;
+        long $l0;
+
+        <org.apache.commons.compress.archivers.zip.ZipFile: long LFH_OFFSET_FOR_FILENAME_LENGTH> = 26L;
+
+        <org.apache.commons.compress.archivers.zip.ZipFile: int ZIP64_EOCD_CFD_LOCATOR_OFFSET> = 48;
+
+        <org.apache.commons.compress.archivers.zip.ZipFile: int ZIP64_EOCDL_LOCATOR_OFFSET> = 8;
+
+        <org.apache.commons.compress.archivers.zip.ZipFile: int ZIP64_EOCDL_LENGTH> = 20;
+
+        <org.apache.commons.compress.archivers.zip.ZipFile: int CFD_LOCATOR_OFFSET> = 16;
+
+        <org.apache.commons.compress.archivers.zip.ZipFile: int MAX_EOCD_SIZE> = 65557;
+
+        <org.apache.commons.compress.archivers.zip.ZipFile: int MIN_EOCD_SIZE> = 22;
+
+        <org.apache.commons.compress.archivers.zip.ZipFile: int CFH_LEN> = 42;
+
+        <org.apache.commons.compress.archivers.zip.ZipFile: int POS_3> = 3;
+
+        <org.apache.commons.compress.archivers.zip.ZipFile: int POS_2> = 2;
+
+        <org.apache.commons.compress.archivers.zip.ZipFile: int POS_1> = 1;
+
+        <org.apache.commons.compress.archivers.zip.ZipFile: int POS_0> = 0;
+
+        <org.apache.commons.compress.archivers.zip.ZipFile: int BYTE_SHIFT> = 8;
+
+        <org.apache.commons.compress.archivers.zip.ZipFile: int NIBLET_MASK> = 15;
+
+        <org.apache.commons.compress.archivers.zip.ZipFile: int HASH_SIZE> = 509;
+
+        $r0 = <org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream: byte[] CFH_SIG>;
+
+        $l0 = staticinvoke <org.apache.commons.compress.archivers.zip.ZipLong: long getValue(byte[])>($r0);
+
+        <org.apache.commons.compress.archivers.zip.ZipFile: long CFH_SIG> = $l0;
+
+        return;
+    }
+}

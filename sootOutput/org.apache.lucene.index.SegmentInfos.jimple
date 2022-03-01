@@ -1,0 +1,2341 @@
+public final class org.apache.lucene.index.SegmentInfos extends java.lang.Object implements java.lang.Cloneable, java.lang.Iterable
+{
+    public static final int VERSION_40;
+    public static final int FORMAT_SEGMENTS_GEN_CURRENT;
+    public int counter;
+    public long version;
+    private long generation;
+    private long lastGeneration;
+    public java.util.Map userData;
+    private java.util.List segments;
+    private static java.io.PrintStream infoStream;
+    org.apache.lucene.store.ChecksumIndexOutput pendingSegnOutput;
+    private static final java.lang.String SEGMENT_INFO_UPGRADE_CODEC;
+    private static final int SEGMENT_INFO_UPGRADE_VERSION;
+    private static int defaultGenLookaheadCount;
+    static final boolean $assertionsDisabled;
+
+    public void <init>()
+    {
+        org.apache.lucene.index.SegmentInfos r0;
+        java.util.Map $r1;
+        java.util.ArrayList $r2;
+
+        r0 := @this: org.apache.lucene.index.SegmentInfos;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        $r1 = staticinvoke <java.util.Collections: java.util.Map emptyMap()>();
+
+        r0.<org.apache.lucene.index.SegmentInfos: java.util.Map userData> = $r1;
+
+        $r2 = new java.util.ArrayList;
+
+        specialinvoke $r2.<java.util.ArrayList: void <init>()>();
+
+        r0.<org.apache.lucene.index.SegmentInfos: java.util.List segments> = $r2;
+
+        return;
+    }
+
+    public org.apache.lucene.index.SegmentInfoPerCommit info(int)
+    {
+        java.util.List $r1;
+        int i0;
+        org.apache.lucene.index.SegmentInfoPerCommit $r3;
+        java.lang.Object $r2;
+        org.apache.lucene.index.SegmentInfos r0;
+
+        r0 := @this: org.apache.lucene.index.SegmentInfos;
+
+        i0 := @parameter0: int;
+
+        $r1 = r0.<org.apache.lucene.index.SegmentInfos: java.util.List segments>;
+
+        $r2 = interfaceinvoke $r1.<java.util.List: java.lang.Object get(int)>(i0);
+
+        $r3 = (org.apache.lucene.index.SegmentInfoPerCommit) $r2;
+
+        return $r3;
+    }
+
+    public static long getLastCommitGeneration(java.lang.String[])
+    {
+        java.lang.String[] r0;
+        long $l1, l3;
+        byte $b2;
+        int i0, i4, $i5;
+        java.lang.String r1;
+        boolean $z0, $z1;
+
+        r0 := @parameter0: java.lang.String[];
+
+        if r0 != null goto label1;
+
+        return -1L;
+
+     label1:
+        l3 = -1L;
+
+        i0 = lengthof r0;
+
+        i4 = 0;
+
+     label2:
+        if i4 >= i0 goto label4;
+
+        r1 = r0[i4];
+
+        $z0 = virtualinvoke r1.<java.lang.String: boolean startsWith(java.lang.String)>("segments");
+
+        if $z0 == 0 goto label3;
+
+        $z1 = virtualinvoke r1.<java.lang.String: boolean equals(java.lang.Object)>("segments.gen");
+
+        if $z1 != 0 goto label3;
+
+        $l1 = staticinvoke <org.apache.lucene.index.SegmentInfos: long generationFromSegmentsFileName(java.lang.String)>(r1);
+
+        $b2 = $l1 cmp l3;
+
+        $i5 = (int) $b2;
+
+        if $i5 <= 0 goto label3;
+
+        l3 = $l1;
+
+     label3:
+        i4 = i4 + 1;
+
+        goto label2;
+
+     label4:
+        return l3;
+    }
+
+    public static long getLastCommitGeneration(org.apache.lucene.store.Directory) throws java.io.IOException
+    {
+        org.apache.lucene.store.Directory r0;
+        java.lang.String[] $r1;
+        long $l0;
+        org.apache.lucene.store.NoSuchDirectoryException $r2;
+
+        r0 := @parameter0: org.apache.lucene.store.Directory;
+
+     label1:
+        $r1 = virtualinvoke r0.<org.apache.lucene.store.Directory: java.lang.String[] listAll()>();
+
+        $l0 = staticinvoke <org.apache.lucene.index.SegmentInfos: long getLastCommitGeneration(java.lang.String[])>($r1);
+
+     label2:
+        return $l0;
+
+     label3:
+        $r2 := @caughtexception;
+
+        return -1L;
+
+        catch org.apache.lucene.store.NoSuchDirectoryException from label1 to label2 with label3;
+    }
+
+    public static java.lang.String getLastCommitSegmentsFileName(java.lang.String[])
+    {
+        java.lang.String[] r0;
+        long $l0;
+        java.lang.String $r1;
+
+        r0 := @parameter0: java.lang.String[];
+
+        $l0 = staticinvoke <org.apache.lucene.index.SegmentInfos: long getLastCommitGeneration(java.lang.String[])>(r0);
+
+        $r1 = staticinvoke <org.apache.lucene.index.IndexFileNames: java.lang.String fileNameFromGeneration(java.lang.String,java.lang.String,long)>("segments", "", $l0);
+
+        return $r1;
+    }
+
+    public static java.lang.String getLastCommitSegmentsFileName(org.apache.lucene.store.Directory) throws java.io.IOException
+    {
+        long $l0;
+        java.lang.String $r1;
+        org.apache.lucene.store.Directory r0;
+
+        r0 := @parameter0: org.apache.lucene.store.Directory;
+
+        $l0 = staticinvoke <org.apache.lucene.index.SegmentInfos: long getLastCommitGeneration(org.apache.lucene.store.Directory)>(r0);
+
+        $r1 = staticinvoke <org.apache.lucene.index.IndexFileNames: java.lang.String fileNameFromGeneration(java.lang.String,java.lang.String,long)>("segments", "", $l0);
+
+        return $r1;
+    }
+
+    public java.lang.String getSegmentsFileName()
+    {
+        long $l0;
+        java.lang.String $r1;
+        org.apache.lucene.index.SegmentInfos r0;
+
+        r0 := @this: org.apache.lucene.index.SegmentInfos;
+
+        $l0 = r0.<org.apache.lucene.index.SegmentInfos: long lastGeneration>;
+
+        $r1 = staticinvoke <org.apache.lucene.index.IndexFileNames: java.lang.String fileNameFromGeneration(java.lang.String,java.lang.String,long)>("segments", "", $l0);
+
+        return $r1;
+    }
+
+    public static long generationFromSegmentsFileName(java.lang.String)
+    {
+        long $l2;
+        java.lang.IllegalArgumentException $r1;
+        int $i0, $i1;
+        java.lang.StringBuilder $r2, $r3, $r4, $r5;
+        java.lang.String r0, $r6, $r7, $r8;
+        boolean $z0, $z1;
+
+        r0 := @parameter0: java.lang.String;
+
+        $z0 = virtualinvoke r0.<java.lang.String: boolean equals(java.lang.Object)>("segments");
+
+        if $z0 == 0 goto label1;
+
+        return 0L;
+
+     label1:
+        $z1 = virtualinvoke r0.<java.lang.String: boolean startsWith(java.lang.String)>("segments");
+
+        if $z1 == 0 goto label2;
+
+        $r7 = "segments";
+
+        $i0 = virtualinvoke $r7.<java.lang.String: int length()>();
+
+        $i1 = 1 + $i0;
+
+        $r8 = virtualinvoke r0.<java.lang.String: java.lang.String substring(int)>($i1);
+
+        $l2 = staticinvoke <java.lang.Long: long parseLong(java.lang.String,int)>($r8, 36);
+
+        return $l2;
+
+     label2:
+        $r1 = new java.lang.IllegalArgumentException;
+
+        $r2 = new java.lang.StringBuilder;
+
+        specialinvoke $r2.<java.lang.StringBuilder: void <init>()>();
+
+        $r3 = virtualinvoke $r2.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("fileName \"");
+
+        $r4 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r0);
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("\" is not a segments file");
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r1.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>($r6);
+
+        throw $r1;
+    }
+
+    public java.lang.String getNextSegmentFileName()
+    {
+        byte $b1;
+        long $l0, $l2, l3;
+        java.lang.String $r1;
+        org.apache.lucene.index.SegmentInfos r0;
+
+        r0 := @this: org.apache.lucene.index.SegmentInfos;
+
+        $l0 = r0.<org.apache.lucene.index.SegmentInfos: long generation>;
+
+        $b1 = $l0 cmp -1L;
+
+        if $b1 != 0 goto label1;
+
+        l3 = 1L;
+
+        goto label2;
+
+     label1:
+        $l2 = r0.<org.apache.lucene.index.SegmentInfos: long generation>;
+
+        l3 = $l2 + 1L;
+
+     label2:
+        $r1 = staticinvoke <org.apache.lucene.index.IndexFileNames: java.lang.String fileNameFromGeneration(java.lang.String,java.lang.String,long)>("segments", "", l3);
+
+        return $r1;
+    }
+
+    public final void read(org.apache.lucene.store.Directory, java.lang.String) throws java.io.IOException
+    {
+        org.apache.lucene.codecs.SegmentInfoReader $r22;
+        org.apache.lucene.index.SegmentInfoPerCommit $r33, r44;
+        org.apache.lucene.store.ChecksumIndexInput $r2;
+        org.apache.lucene.index.CorruptIndexException $r9, $r25, $r34;
+        byte $b5;
+        org.apache.lucene.store.Directory r3;
+        java.util.Map $r17;
+        org.apache.lucene.codecs.SegmentInfoFormat $r21;
+        java.io.Closeable[] $r8, $r43;
+        org.apache.lucene.store.IOContext $r4, $r23;
+        boolean $z0;
+        org.apache.lucene.index.SegmentInfo $r16, $r24;
+        org.apache.lucene.index.SegmentInfos r0;
+        java.lang.StringBuilder $r10, $r11, $r12, $r13, $r26, $r27, $r28, $r29, $r30, $r31, $r35, $r36, $r37, $r38, $r39, $r40;
+        java.lang.Throwable $r42;
+        long $l0, $l1, $l3, $l4, $l6, $l9;
+        int $i2, $i7, $i8, $i10, $i11, i12;
+        java.lang.String r1, $r14, $r18, $r19, $r32, $r41;
+        org.apache.lucene.store.IndexInput $r5;
+        java.util.Iterator $r7;
+        org.apache.lucene.codecs.Codec $r6, $r20;
+        java.lang.Object $r15;
+
+        r0 := @this: org.apache.lucene.index.SegmentInfos;
+
+        r3 := @parameter0: org.apache.lucene.store.Directory;
+
+        r1 := @parameter1: java.lang.String;
+
+        virtualinvoke r0.<org.apache.lucene.index.SegmentInfos: void clear()>();
+
+        $l0 = staticinvoke <org.apache.lucene.index.SegmentInfos: long generationFromSegmentsFileName(java.lang.String)>(r1);
+
+        r0.<org.apache.lucene.index.SegmentInfos: long generation> = $l0;
+
+        $l1 = r0.<org.apache.lucene.index.SegmentInfos: long generation>;
+
+        r0.<org.apache.lucene.index.SegmentInfos: long lastGeneration> = $l1;
+
+        $r2 = new org.apache.lucene.store.ChecksumIndexInput;
+
+        $r4 = <org.apache.lucene.store.IOContext: org.apache.lucene.store.IOContext READ>;
+
+        $r5 = virtualinvoke r3.<org.apache.lucene.store.Directory: org.apache.lucene.store.IndexInput openInput(java.lang.String,org.apache.lucene.store.IOContext)>(r1, $r4);
+
+        specialinvoke $r2.<org.apache.lucene.store.ChecksumIndexInput: void <init>(org.apache.lucene.store.IndexInput)>($r5);
+
+     label01:
+        $i2 = virtualinvoke $r2.<org.apache.lucene.store.ChecksumIndexInput: int readInt()>();
+
+        if $i2 != 1071082519 goto label07;
+
+        staticinvoke <org.apache.lucene.codecs.CodecUtil: int checkHeaderNoMagic(org.apache.lucene.store.DataInput,java.lang.String,int,int)>($r2, "segments", 0, 0);
+
+        $l6 = virtualinvoke $r2.<org.apache.lucene.store.ChecksumIndexInput: long readLong()>();
+
+        r0.<org.apache.lucene.index.SegmentInfos: long version> = $l6;
+
+        $i7 = virtualinvoke $r2.<org.apache.lucene.store.ChecksumIndexInput: int readInt()>();
+
+        r0.<org.apache.lucene.index.SegmentInfos: int counter> = $i7;
+
+        $i8 = virtualinvoke $r2.<org.apache.lucene.store.ChecksumIndexInput: int readInt()>();
+
+        if $i8 >= 0 goto label02;
+
+        $r34 = new org.apache.lucene.index.CorruptIndexException;
+
+        $r35 = new java.lang.StringBuilder;
+
+        specialinvoke $r35.<java.lang.StringBuilder: void <init>()>();
+
+        $r36 = virtualinvoke $r35.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("invalid segment count: ");
+
+        $r37 = virtualinvoke $r36.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i8);
+
+        $r38 = virtualinvoke $r37.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" (resource: ");
+
+        $r39 = virtualinvoke $r38.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r2);
+
+        $r40 = virtualinvoke $r39.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(")");
+
+        $r41 = virtualinvoke $r40.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r34.<org.apache.lucene.index.CorruptIndexException: void <init>(java.lang.String)>($r41);
+
+        throw $r34;
+
+     label02:
+        i12 = 0;
+
+     label03:
+        if i12 >= $i8 goto label06;
+
+        $r18 = virtualinvoke $r2.<org.apache.lucene.store.ChecksumIndexInput: java.lang.String readString()>();
+
+        $r19 = virtualinvoke $r2.<org.apache.lucene.store.ChecksumIndexInput: java.lang.String readString()>();
+
+        $r20 = staticinvoke <org.apache.lucene.codecs.Codec: org.apache.lucene.codecs.Codec forName(java.lang.String)>($r19);
+
+        $r21 = virtualinvoke $r20.<org.apache.lucene.codecs.Codec: org.apache.lucene.codecs.SegmentInfoFormat segmentInfoFormat()>();
+
+        $r22 = virtualinvoke $r21.<org.apache.lucene.codecs.SegmentInfoFormat: org.apache.lucene.codecs.SegmentInfoReader getSegmentInfoReader()>();
+
+        $r23 = <org.apache.lucene.store.IOContext: org.apache.lucene.store.IOContext READ>;
+
+        $r24 = virtualinvoke $r22.<org.apache.lucene.codecs.SegmentInfoReader: org.apache.lucene.index.SegmentInfo read(org.apache.lucene.store.Directory,java.lang.String,org.apache.lucene.store.IOContext)>(r3, $r18, $r23);
+
+        virtualinvoke $r24.<org.apache.lucene.index.SegmentInfo: void setCodec(org.apache.lucene.codecs.Codec)>($r20);
+
+        $l9 = virtualinvoke $r2.<org.apache.lucene.store.ChecksumIndexInput: long readLong()>();
+
+        $i10 = virtualinvoke $r2.<org.apache.lucene.store.ChecksumIndexInput: int readInt()>();
+
+        if $i10 < 0 goto label04;
+
+        $i11 = virtualinvoke $r24.<org.apache.lucene.index.SegmentInfo: int getDocCount()>();
+
+        if $i10 <= $i11 goto label05;
+
+     label04:
+        $r25 = new org.apache.lucene.index.CorruptIndexException;
+
+        $r26 = new java.lang.StringBuilder;
+
+        specialinvoke $r26.<java.lang.StringBuilder: void <init>()>();
+
+        $r27 = virtualinvoke $r26.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("invalid deletion count: ");
+
+        $r28 = virtualinvoke $r27.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i10);
+
+        $r29 = virtualinvoke $r28.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" (resource: ");
+
+        $r30 = virtualinvoke $r29.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r2);
+
+        $r31 = virtualinvoke $r30.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(")");
+
+        $r32 = virtualinvoke $r31.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r25.<org.apache.lucene.index.CorruptIndexException: void <init>(java.lang.String)>($r32);
+
+        throw $r25;
+
+     label05:
+        $r33 = new org.apache.lucene.index.SegmentInfoPerCommit;
+
+        specialinvoke $r33.<org.apache.lucene.index.SegmentInfoPerCommit: void <init>(org.apache.lucene.index.SegmentInfo,int,long)>($r24, $i10, $l9);
+
+        virtualinvoke r0.<org.apache.lucene.index.SegmentInfos: void add(org.apache.lucene.index.SegmentInfoPerCommit)>($r33);
+
+        i12 = i12 + 1;
+
+        goto label03;
+
+     label06:
+        $r17 = virtualinvoke $r2.<org.apache.lucene.store.ChecksumIndexInput: java.util.Map readStringStringMap()>();
+
+        r0.<org.apache.lucene.index.SegmentInfos: java.util.Map userData> = $r17;
+
+        goto label09;
+
+     label07:
+        staticinvoke <org.apache.lucene.codecs.lucene3x.Lucene3xSegmentInfoReader: void readLegacyInfos(org.apache.lucene.index.SegmentInfos,org.apache.lucene.store.Directory,org.apache.lucene.store.IndexInput,int)>(r0, r3, $r2, $i2);
+
+        $r6 = staticinvoke <org.apache.lucene.codecs.Codec: org.apache.lucene.codecs.Codec forName(java.lang.String)>("Lucene3x");
+
+        $r7 = virtualinvoke r0.<org.apache.lucene.index.SegmentInfos: java.util.Iterator iterator()>();
+
+     label08:
+        $z0 = interfaceinvoke $r7.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label09;
+
+        $r15 = interfaceinvoke $r7.<java.util.Iterator: java.lang.Object next()>();
+
+        r44 = (org.apache.lucene.index.SegmentInfoPerCommit) $r15;
+
+        $r16 = r44.<org.apache.lucene.index.SegmentInfoPerCommit: org.apache.lucene.index.SegmentInfo info>;
+
+        virtualinvoke $r16.<org.apache.lucene.index.SegmentInfo: void setCodec(org.apache.lucene.codecs.Codec)>($r6);
+
+        goto label08;
+
+     label09:
+        $l3 = virtualinvoke $r2.<org.apache.lucene.store.ChecksumIndexInput: long getChecksum()>();
+
+        $l4 = virtualinvoke $r2.<org.apache.lucene.store.ChecksumIndexInput: long readLong()>();
+
+        $b5 = $l3 cmp $l4;
+
+        if $b5 == 0 goto label10;
+
+        $r9 = new org.apache.lucene.index.CorruptIndexException;
+
+        $r10 = new java.lang.StringBuilder;
+
+        specialinvoke $r10.<java.lang.StringBuilder: void <init>()>();
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("checksum mismatch in segments file (resource: ");
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r2);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(")");
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r9.<org.apache.lucene.index.CorruptIndexException: void <init>(java.lang.String)>($r14);
+
+        throw $r9;
+
+     label10:
+        if 1 != 0 goto label11;
+
+        virtualinvoke r0.<org.apache.lucene.index.SegmentInfos: void clear()>();
+
+        $r8 = newarray (java.io.Closeable)[1];
+
+        $r8[0] = $r2;
+
+        staticinvoke <org.apache.lucene.util.IOUtils: void closeWhileHandlingException(java.io.Closeable[])>($r8);
+
+        goto label16;
+
+     label11:
+        virtualinvoke $r2.<org.apache.lucene.store.ChecksumIndexInput: void close()>();
+
+        goto label16;
+
+     label12:
+        $r42 := @caughtexception;
+
+     label13:
+        if 0 != 0 goto label14;
+
+        virtualinvoke r0.<org.apache.lucene.index.SegmentInfos: void clear()>();
+
+        $r43 = newarray (java.io.Closeable)[1];
+
+        $r43[0] = $r2;
+
+        staticinvoke <org.apache.lucene.util.IOUtils: void closeWhileHandlingException(java.io.Closeable[])>($r43);
+
+        goto label15;
+
+     label14:
+        virtualinvoke $r2.<org.apache.lucene.store.ChecksumIndexInput: void close()>();
+
+     label15:
+        throw $r42;
+
+     label16:
+        return;
+
+        catch java.lang.Throwable from label01 to label10 with label12;
+        catch java.lang.Throwable from label12 to label13 with label12;
+    }
+
+    public final void read(org.apache.lucene.store.Directory) throws java.io.IOException
+    {
+        org.apache.lucene.index.SegmentInfos$1 $r1;
+        org.apache.lucene.index.SegmentInfos r0;
+        org.apache.lucene.store.Directory r2;
+
+        r0 := @this: org.apache.lucene.index.SegmentInfos;
+
+        r2 := @parameter0: org.apache.lucene.store.Directory;
+
+        r0.<org.apache.lucene.index.SegmentInfos: long lastGeneration> = -1L;
+
+        r0.<org.apache.lucene.index.SegmentInfos: long generation> = -1L;
+
+        $r1 = new org.apache.lucene.index.SegmentInfos$1;
+
+        specialinvoke $r1.<org.apache.lucene.index.SegmentInfos$1: void <init>(org.apache.lucene.index.SegmentInfos,org.apache.lucene.store.Directory)>(r0, r2);
+
+        virtualinvoke $r1.<org.apache.lucene.index.SegmentInfos$1: java.lang.Object run()>();
+
+        return;
+    }
+
+    private void write(org.apache.lucene.store.Directory) throws java.io.IOException
+    {
+        org.apache.lucene.store.ChecksumIndexOutput $r3, r39;
+        org.apache.lucene.index.SegmentInfoPerCommit r40;
+        byte $b1;
+        org.apache.lucene.store.Directory r4, $r27;
+        java.util.Map $r8;
+        java.io.Closeable[] $r9, $r34;
+        org.apache.lucene.store.IOContext $r5, $r19, $r22;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5;
+        org.apache.lucene.index.SegmentInfo r41;
+        org.apache.lucene.index.SegmentInfos r0;
+        java.util.List $r21, $r24;
+        java.lang.Throwable $r29, $r30, $r33, $r36, $r37, $r38;
+        long $l0, $l2, $l3, $l4, $l7;
+        java.lang.AssertionError $r26, $r28;
+        java.util.HashSet $r2;
+        int $i5, $i6, $i8, $i9, $i10, $i11;
+        java.lang.String $r1, $r13, $r15, $r16, $r17, $r18, $r20, r32, r42;
+        org.apache.lucene.store.IndexOutput $r6, $r23;
+        java.util.Iterator $r7, $r10, $r35;
+        org.apache.lucene.codecs.Codec $r14;
+        java.lang.Object $r11, $r12, $r31;
+        java.util.Comparator $r25;
+
+        r0 := @this: org.apache.lucene.index.SegmentInfos;
+
+        r4 := @parameter0: org.apache.lucene.store.Directory;
+
+        $r1 = virtualinvoke r0.<org.apache.lucene.index.SegmentInfos: java.lang.String getNextSegmentFileName()>();
+
+        $l0 = r0.<org.apache.lucene.index.SegmentInfos: long generation>;
+
+        $b1 = $l0 cmp -1L;
+
+        if $b1 != 0 goto label01;
+
+        r0.<org.apache.lucene.index.SegmentInfos: long generation> = 1L;
+
+        goto label02;
+
+     label01:
+        $l2 = r0.<org.apache.lucene.index.SegmentInfos: long generation>;
+
+        $l3 = $l2 + 1L;
+
+        r0.<org.apache.lucene.index.SegmentInfos: long generation> = $l3;
+
+     label02:
+        r39 = null;
+
+        $r2 = new java.util.HashSet;
+
+        specialinvoke $r2.<java.util.HashSet: void <init>()>();
+
+     label03:
+        $r3 = new org.apache.lucene.store.ChecksumIndexOutput;
+
+        $r5 = <org.apache.lucene.store.IOContext: org.apache.lucene.store.IOContext DEFAULT>;
+
+        $r6 = virtualinvoke r4.<org.apache.lucene.store.Directory: org.apache.lucene.store.IndexOutput createOutput(java.lang.String,org.apache.lucene.store.IOContext)>($r1, $r5);
+
+        specialinvoke $r3.<org.apache.lucene.store.ChecksumIndexOutput: void <init>(org.apache.lucene.store.IndexOutput)>($r6);
+
+        r39 = $r3;
+
+        staticinvoke <org.apache.lucene.codecs.CodecUtil: void writeHeader(org.apache.lucene.store.DataOutput,java.lang.String,int)>($r3, "segments", 0);
+
+        $l4 = r0.<org.apache.lucene.index.SegmentInfos: long version>;
+
+        virtualinvoke $r3.<org.apache.lucene.store.ChecksumIndexOutput: void writeLong(long)>($l4);
+
+        $i5 = r0.<org.apache.lucene.index.SegmentInfos: int counter>;
+
+        virtualinvoke $r3.<org.apache.lucene.store.ChecksumIndexOutput: void writeInt(int)>($i5);
+
+        $i6 = virtualinvoke r0.<org.apache.lucene.index.SegmentInfos: int size()>();
+
+        virtualinvoke $r3.<org.apache.lucene.store.ChecksumIndexOutput: void writeInt(int)>($i6);
+
+        $r7 = virtualinvoke r0.<org.apache.lucene.index.SegmentInfos: java.util.Iterator iterator()>();
+
+     label04:
+        $z5 = interfaceinvoke $r7.<java.util.Iterator: boolean hasNext()>();
+
+        if $z5 == 0 goto label14;
+
+        $r12 = interfaceinvoke $r7.<java.util.Iterator: java.lang.Object next()>();
+
+        r40 = (org.apache.lucene.index.SegmentInfoPerCommit) $r12;
+
+        r41 = r40.<org.apache.lucene.index.SegmentInfoPerCommit: org.apache.lucene.index.SegmentInfo info>;
+
+        $r13 = r41.<org.apache.lucene.index.SegmentInfo: java.lang.String name>;
+
+        virtualinvoke $r3.<org.apache.lucene.store.ChecksumIndexOutput: void writeString(java.lang.String)>($r13);
+
+        $r14 = virtualinvoke r41.<org.apache.lucene.index.SegmentInfo: org.apache.lucene.codecs.Codec getCodec()>();
+
+        $r15 = virtualinvoke $r14.<org.apache.lucene.codecs.Codec: java.lang.String getName()>();
+
+        virtualinvoke $r3.<org.apache.lucene.store.ChecksumIndexOutput: void writeString(java.lang.String)>($r15);
+
+        $l7 = virtualinvoke r40.<org.apache.lucene.index.SegmentInfoPerCommit: long getDelGen()>();
+
+        virtualinvoke $r3.<org.apache.lucene.store.ChecksumIndexOutput: void writeLong(long)>($l7);
+
+        $i8 = virtualinvoke r40.<org.apache.lucene.index.SegmentInfoPerCommit: int getDelCount()>();
+
+        virtualinvoke $r3.<org.apache.lucene.store.ChecksumIndexOutput: void writeInt(int)>($i8);
+
+        $z1 = <org.apache.lucene.index.SegmentInfos: boolean $assertionsDisabled>;
+
+        if $z1 != 0 goto label05;
+
+        $r27 = r41.<org.apache.lucene.index.SegmentInfo: org.apache.lucene.store.Directory dir>;
+
+        if $r27 == r4 goto label05;
+
+        $r28 = new java.lang.AssertionError;
+
+        specialinvoke $r28.<java.lang.AssertionError: void <init>()>();
+
+        throw $r28;
+
+     label05:
+        $z2 = <org.apache.lucene.index.SegmentInfos: boolean $assertionsDisabled>;
+
+        if $z2 != 0 goto label06;
+
+        $i10 = virtualinvoke r40.<org.apache.lucene.index.SegmentInfoPerCommit: int getDelCount()>();
+
+        $i11 = virtualinvoke r41.<org.apache.lucene.index.SegmentInfo: int getDocCount()>();
+
+        if $i10 <= $i11 goto label06;
+
+        $r26 = new java.lang.AssertionError;
+
+        specialinvoke $r26.<java.lang.AssertionError: void <init>()>();
+
+        throw $r26;
+
+     label06:
+        $r16 = virtualinvoke r41.<org.apache.lucene.index.SegmentInfo: java.lang.String getVersion()>();
+
+        if $r16 == null goto label07;
+
+        $r25 = staticinvoke <org.apache.lucene.util.StringHelper: java.util.Comparator getVersionComparator()>();
+
+        $i9 = interfaceinvoke $r25.<java.util.Comparator: int compare(java.lang.Object,java.lang.Object)>($r16, "4.0");
+
+        if $i9 >= 0 goto label13;
+
+     label07:
+        $z3 = staticinvoke <org.apache.lucene.index.SegmentInfos: boolean segmentWasUpgraded(org.apache.lucene.store.Directory,org.apache.lucene.index.SegmentInfo)>(r4, r41);
+
+        if $z3 != 0 goto label13;
+
+        $r17 = r41.<org.apache.lucene.index.SegmentInfo: java.lang.String name>;
+
+        $r18 = staticinvoke <org.apache.lucene.index.IndexFileNames: java.lang.String segmentFileName(java.lang.String,java.lang.String,java.lang.String)>($r17, "upgraded", "si");
+
+        virtualinvoke r41.<org.apache.lucene.index.SegmentInfo: void addFile(java.lang.String)>($r18);
+
+        $r19 = <org.apache.lucene.store.IOContext: org.apache.lucene.store.IOContext DEFAULT>;
+
+        $r20 = staticinvoke <org.apache.lucene.index.SegmentInfos: java.lang.String write3xInfo(org.apache.lucene.store.Directory,org.apache.lucene.index.SegmentInfo,org.apache.lucene.store.IOContext)>(r4, r41, $r19);
+
+        interfaceinvoke $r2.<java.util.Set: boolean add(java.lang.Object)>($r20);
+
+        $r21 = staticinvoke <java.util.Collections: java.util.List singletonList(java.lang.Object)>($r20);
+
+        virtualinvoke r4.<org.apache.lucene.store.Directory: void sync(java.util.Collection)>($r21);
+
+        virtualinvoke r41.<org.apache.lucene.index.SegmentInfo: void addFile(java.lang.String)>($r18);
+
+        $r22 = <org.apache.lucene.store.IOContext: org.apache.lucene.store.IOContext DEFAULT>;
+
+        $r23 = virtualinvoke r4.<org.apache.lucene.store.Directory: org.apache.lucene.store.IndexOutput createOutput(java.lang.String,org.apache.lucene.store.IOContext)>($r18, $r22);
+
+     label08:
+        staticinvoke <org.apache.lucene.codecs.CodecUtil: void writeHeader(org.apache.lucene.store.DataOutput,java.lang.String,int)>($r23, "SegmentInfo3xUpgrade", 0);
+
+     label09:
+        virtualinvoke $r23.<org.apache.lucene.store.IndexOutput: void close()>();
+
+        goto label12;
+
+     label10:
+        $r38 := @caughtexception;
+
+     label11:
+        virtualinvoke $r23.<org.apache.lucene.store.IndexOutput: void close()>();
+
+        throw $r38;
+
+     label12:
+        interfaceinvoke $r2.<java.util.Set: boolean add(java.lang.Object)>($r18);
+
+        $r24 = staticinvoke <java.util.Collections: java.util.List singletonList(java.lang.Object)>($r18);
+
+        virtualinvoke r4.<org.apache.lucene.store.Directory: void sync(java.util.Collection)>($r24);
+
+     label13:
+        goto label04;
+
+     label14:
+        $r8 = r0.<org.apache.lucene.index.SegmentInfos: java.util.Map userData>;
+
+        virtualinvoke $r3.<org.apache.lucene.store.ChecksumIndexOutput: void writeStringStringMap(java.util.Map)>($r8);
+
+        r0.<org.apache.lucene.index.SegmentInfos: org.apache.lucene.store.ChecksumIndexOutput pendingSegnOutput> = $r3;
+
+     label15:
+        if 1 != 0 goto label35;
+
+        $r9 = newarray (java.io.Closeable)[1];
+
+        $r9[0] = $r3;
+
+        staticinvoke <org.apache.lucene.util.IOUtils: void closeWhileHandlingException(java.io.Closeable[])>($r9);
+
+        $r10 = interfaceinvoke $r2.<java.util.Set: java.util.Iterator iterator()>();
+
+     label16:
+        $z0 = interfaceinvoke $r10.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label21;
+
+        $r11 = interfaceinvoke $r10.<java.util.Iterator: java.lang.Object next()>();
+
+        r42 = (java.lang.String) $r11;
+
+     label17:
+        virtualinvoke r4.<org.apache.lucene.store.Directory: void deleteFile(java.lang.String)>(r42);
+
+     label18:
+        goto label20;
+
+     label19:
+        $r37 := @caughtexception;
+
+     label20:
+        goto label16;
+
+     label21:
+        virtualinvoke r4.<org.apache.lucene.store.Directory: void deleteFile(java.lang.String)>($r1);
+
+     label22:
+        goto label35;
+
+     label23:
+        $r36 := @caughtexception;
+
+        goto label35;
+
+     label24:
+        $r33 := @caughtexception;
+
+     label25:
+        if 0 != 0 goto label34;
+
+        $r34 = newarray (java.io.Closeable)[1];
+
+        $r34[0] = r39;
+
+        staticinvoke <org.apache.lucene.util.IOUtils: void closeWhileHandlingException(java.io.Closeable[])>($r34);
+
+        $r35 = interfaceinvoke $r2.<java.util.Set: java.util.Iterator iterator()>();
+
+     label26:
+        $z4 = interfaceinvoke $r35.<java.util.Iterator: boolean hasNext()>();
+
+        if $z4 == 0 goto label31;
+
+        $r31 = interfaceinvoke $r35.<java.util.Iterator: java.lang.Object next()>();
+
+        r32 = (java.lang.String) $r31;
+
+     label27:
+        virtualinvoke r4.<org.apache.lucene.store.Directory: void deleteFile(java.lang.String)>(r32);
+
+     label28:
+        goto label30;
+
+     label29:
+        $r30 := @caughtexception;
+
+     label30:
+        goto label26;
+
+     label31:
+        virtualinvoke r4.<org.apache.lucene.store.Directory: void deleteFile(java.lang.String)>($r1);
+
+     label32:
+        goto label34;
+
+     label33:
+        $r29 := @caughtexception;
+
+     label34:
+        throw $r33;
+
+     label35:
+        return;
+
+        catch java.lang.Throwable from label08 to label09 with label10;
+        catch java.lang.Throwable from label10 to label11 with label10;
+        catch java.lang.Throwable from label17 to label18 with label19;
+        catch java.lang.Throwable from label21 to label22 with label23;
+        catch java.lang.Throwable from label03 to label15 with label24;
+        catch java.lang.Throwable from label27 to label28 with label29;
+        catch java.lang.Throwable from label31 to label32 with label33;
+        catch java.lang.Throwable from label24 to label25 with label24;
+    }
+
+    private static boolean segmentWasUpgraded(org.apache.lucene.store.Directory, org.apache.lucene.index.SegmentInfo)
+    {
+        java.lang.Throwable $r8;
+        org.apache.lucene.store.IndexInput $r5, r12;
+        org.apache.lucene.index.SegmentInfo r0;
+        java.io.IOException $r10;
+        org.apache.lucene.store.Directory r3;
+        int $i0;
+        java.io.Closeable[] $r6, $r7, $r9, $r11;
+        java.lang.String $r1, $r2;
+        org.apache.lucene.store.IOContext $r4;
+
+        r3 := @parameter0: org.apache.lucene.store.Directory;
+
+        r0 := @parameter1: org.apache.lucene.index.SegmentInfo;
+
+        $r1 = r0.<org.apache.lucene.index.SegmentInfo: java.lang.String name>;
+
+        $r2 = staticinvoke <org.apache.lucene.index.IndexFileNames: java.lang.String segmentFileName(java.lang.String,java.lang.String,java.lang.String)>($r1, "upgraded", "si");
+
+        r12 = null;
+
+     label01:
+        $r4 = <org.apache.lucene.store.IOContext: org.apache.lucene.store.IOContext READONCE>;
+
+        $r5 = virtualinvoke r3.<org.apache.lucene.store.Directory: org.apache.lucene.store.IndexInput openInput(java.lang.String,org.apache.lucene.store.IOContext)>($r2, $r4);
+
+        r12 = $r5;
+
+        $i0 = staticinvoke <org.apache.lucene.codecs.CodecUtil: int checkHeader(org.apache.lucene.store.DataInput,java.lang.String,int,int)>($r5, "SegmentInfo3xUpgrade", 0, 0);
+
+        if $i0 != 0 goto label04;
+
+     label02:
+        if $r5 == null goto label03;
+
+        $r7 = newarray (java.io.Closeable)[1];
+
+        $r7[0] = $r5;
+
+        staticinvoke <org.apache.lucene.util.IOUtils: void closeWhileHandlingException(java.io.Closeable[])>($r7);
+
+     label03:
+        return 1;
+
+     label04:
+        if $r5 == null goto label10;
+
+        $r6 = newarray (java.io.Closeable)[1];
+
+        $r6[0] = $r5;
+
+        staticinvoke <org.apache.lucene.util.IOUtils: void closeWhileHandlingException(java.io.Closeable[])>($r6);
+
+        goto label10;
+
+     label05:
+        $r10 := @caughtexception;
+
+     label06:
+        if r12 == null goto label10;
+
+        $r11 = newarray (java.io.Closeable)[1];
+
+        $r11[0] = r12;
+
+        staticinvoke <org.apache.lucene.util.IOUtils: void closeWhileHandlingException(java.io.Closeable[])>($r11);
+
+        goto label10;
+
+     label07:
+        $r8 := @caughtexception;
+
+     label08:
+        if r12 == null goto label09;
+
+        $r9 = newarray (java.io.Closeable)[1];
+
+        $r9[0] = r12;
+
+        staticinvoke <org.apache.lucene.util.IOUtils: void closeWhileHandlingException(java.io.Closeable[])>($r9);
+
+     label09:
+        throw $r8;
+
+     label10:
+        return 0;
+
+        catch java.io.IOException from label01 to label02 with label05;
+        catch java.lang.Throwable from label01 to label02 with label07;
+        catch java.lang.Throwable from label05 to label06 with label07;
+        catch java.lang.Throwable from label07 to label08 with label07;
+    }
+
+    public static java.lang.String write3xInfo(org.apache.lucene.store.Directory, org.apache.lucene.index.SegmentInfo, org.apache.lucene.store.IOContext) throws java.io.IOException
+    {
+        java.lang.Throwable $r14, $r15, $r18;
+        java.lang.AssertionError $r13;
+        byte $b1, $b2;
+        org.apache.lucene.store.Directory r3, $r11, $r17;
+        java.util.Map $r7, $r8;
+        int $i0;
+        java.io.Closeable[] $r10, $r16;
+        java.lang.String $r1, $r2, $r6;
+        org.apache.lucene.store.IOContext r4;
+        org.apache.lucene.store.IndexOutput $r5;
+        boolean $z0, $z1, $z2;
+        org.apache.lucene.index.SegmentInfo r0;
+        java.util.Set $r9;
+        org.apache.lucene.codecs.Codec $r12;
+
+        r3 := @parameter0: org.apache.lucene.store.Directory;
+
+        r0 := @parameter1: org.apache.lucene.index.SegmentInfo;
+
+        r4 := @parameter2: org.apache.lucene.store.IOContext;
+
+        $r1 = r0.<org.apache.lucene.index.SegmentInfo: java.lang.String name>;
+
+        $r2 = staticinvoke <org.apache.lucene.index.IndexFileNames: java.lang.String segmentFileName(java.lang.String,java.lang.String,java.lang.String)>($r1, "", "si");
+
+        virtualinvoke r0.<org.apache.lucene.index.SegmentInfo: void addFile(java.lang.String)>($r2);
+
+        $r5 = virtualinvoke r3.<org.apache.lucene.store.Directory: org.apache.lucene.store.IndexOutput createOutput(java.lang.String,org.apache.lucene.store.IOContext)>($r2, r4);
+
+     label01:
+        $z0 = <org.apache.lucene.index.SegmentInfos: boolean $assertionsDisabled>;
+
+        if $z0 != 0 goto label02;
+
+        $r12 = virtualinvoke r0.<org.apache.lucene.index.SegmentInfo: org.apache.lucene.codecs.Codec getCodec()>();
+
+        $z2 = $r12 instanceof org.apache.lucene.codecs.lucene3x.Lucene3xCodec;
+
+        if $z2 != 0 goto label02;
+
+        $r13 = new java.lang.AssertionError;
+
+        specialinvoke $r13.<java.lang.AssertionError: void <init>(java.lang.Object)>("broken test, trying to mix preflex with other codecs");
+
+        throw $r13;
+
+     label02:
+        staticinvoke <org.apache.lucene.codecs.CodecUtil: void writeHeader(org.apache.lucene.store.DataOutput,java.lang.String,int)>($r5, "Lucene3xSegmentInfo", 0);
+
+        $r6 = virtualinvoke r0.<org.apache.lucene.index.SegmentInfo: java.lang.String getVersion()>();
+
+        virtualinvoke $r5.<org.apache.lucene.store.IndexOutput: void writeString(java.lang.String)>($r6);
+
+        $i0 = virtualinvoke r0.<org.apache.lucene.index.SegmentInfo: int getDocCount()>();
+
+        virtualinvoke $r5.<org.apache.lucene.store.IndexOutput: void writeInt(int)>($i0);
+
+        $r7 = virtualinvoke r0.<org.apache.lucene.index.SegmentInfo: java.util.Map attributes()>();
+
+        virtualinvoke $r5.<org.apache.lucene.store.IndexOutput: void writeStringStringMap(java.util.Map)>($r7);
+
+        $z1 = virtualinvoke r0.<org.apache.lucene.index.SegmentInfo: boolean getUseCompoundFile()>();
+
+        if $z1 == 0 goto label03;
+
+        $b2 = 1;
+
+        goto label04;
+
+     label03:
+        $b2 = -1;
+
+     label04:
+        $b1 = (byte) $b2;
+
+        virtualinvoke $r5.<org.apache.lucene.store.IndexOutput: void writeByte(byte)>($b1);
+
+        $r8 = virtualinvoke r0.<org.apache.lucene.index.SegmentInfo: java.util.Map getDiagnostics()>();
+
+        virtualinvoke $r5.<org.apache.lucene.store.IndexOutput: void writeStringStringMap(java.util.Map)>($r8);
+
+        $r9 = virtualinvoke r0.<org.apache.lucene.index.SegmentInfo: java.util.Set files()>();
+
+        virtualinvoke $r5.<org.apache.lucene.store.IndexOutput: void writeStringSet(java.util.Set)>($r9);
+
+        virtualinvoke $r5.<org.apache.lucene.store.IndexOutput: void close()>();
+
+     label05:
+        if 1 != 0 goto label15;
+
+        $r10 = newarray (java.io.Closeable)[1];
+
+        $r10[0] = $r5;
+
+        staticinvoke <org.apache.lucene.util.IOUtils: void closeWhileHandlingException(java.io.Closeable[])>($r10);
+
+     label06:
+        $r11 = r0.<org.apache.lucene.index.SegmentInfo: org.apache.lucene.store.Directory dir>;
+
+        virtualinvoke $r11.<org.apache.lucene.store.Directory: void deleteFile(java.lang.String)>($r2);
+
+     label07:
+        goto label15;
+
+     label08:
+        $r18 := @caughtexception;
+
+        goto label15;
+
+     label09:
+        $r15 := @caughtexception;
+
+     label10:
+        if 0 != 0 goto label14;
+
+        $r16 = newarray (java.io.Closeable)[1];
+
+        $r16[0] = $r5;
+
+        staticinvoke <org.apache.lucene.util.IOUtils: void closeWhileHandlingException(java.io.Closeable[])>($r16);
+
+     label11:
+        $r17 = r0.<org.apache.lucene.index.SegmentInfo: org.apache.lucene.store.Directory dir>;
+
+        virtualinvoke $r17.<org.apache.lucene.store.Directory: void deleteFile(java.lang.String)>($r2);
+
+     label12:
+        goto label14;
+
+     label13:
+        $r14 := @caughtexception;
+
+     label14:
+        throw $r15;
+
+     label15:
+        return $r2;
+
+        catch java.lang.Throwable from label06 to label07 with label08;
+        catch java.lang.Throwable from label01 to label05 with label09;
+        catch java.lang.Throwable from label11 to label12 with label13;
+        catch java.lang.Throwable from label09 to label10 with label09;
+    }
+
+    public org.apache.lucene.index.SegmentInfos clone()
+    {
+        org.apache.lucene.index.SegmentInfoPerCommit r7, $r8;
+        java.util.HashMap $r4;
+        java.lang.AssertionError $r11;
+        java.lang.CloneNotSupportedException $r12;
+        java.util.ArrayList $r2;
+        java.util.Map $r5;
+        int $i0;
+        boolean $z0, $z1;
+        java.util.Iterator $r3;
+        org.apache.lucene.index.SegmentInfo $r9;
+        java.lang.RuntimeException $r13;
+        org.apache.lucene.index.SegmentInfos r0, r14;
+        org.apache.lucene.codecs.Codec $r10;
+        java.lang.Object $r1, $r6;
+
+        r0 := @this: org.apache.lucene.index.SegmentInfos;
+
+     label1:
+        $r1 = specialinvoke r0.<java.lang.Object: java.lang.Object clone()>();
+
+        r14 = (org.apache.lucene.index.SegmentInfos) $r1;
+
+        $r2 = new java.util.ArrayList;
+
+        $i0 = virtualinvoke r0.<org.apache.lucene.index.SegmentInfos: int size()>();
+
+        specialinvoke $r2.<java.util.ArrayList: void <init>(int)>($i0);
+
+        r14.<org.apache.lucene.index.SegmentInfos: java.util.List segments> = $r2;
+
+        $r3 = virtualinvoke r0.<org.apache.lucene.index.SegmentInfos: java.util.Iterator iterator()>();
+
+     label2:
+        $z0 = interfaceinvoke $r3.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label4;
+
+        $r6 = interfaceinvoke $r3.<java.util.Iterator: java.lang.Object next()>();
+
+        r7 = (org.apache.lucene.index.SegmentInfoPerCommit) $r6;
+
+        $z1 = <org.apache.lucene.index.SegmentInfos: boolean $assertionsDisabled>;
+
+        if $z1 != 0 goto label3;
+
+        $r9 = r7.<org.apache.lucene.index.SegmentInfoPerCommit: org.apache.lucene.index.SegmentInfo info>;
+
+        $r10 = virtualinvoke $r9.<org.apache.lucene.index.SegmentInfo: org.apache.lucene.codecs.Codec getCodec()>();
+
+        if $r10 != null goto label3;
+
+        $r11 = new java.lang.AssertionError;
+
+        specialinvoke $r11.<java.lang.AssertionError: void <init>()>();
+
+        throw $r11;
+
+     label3:
+        $r8 = virtualinvoke r7.<org.apache.lucene.index.SegmentInfoPerCommit: org.apache.lucene.index.SegmentInfoPerCommit clone()>();
+
+        virtualinvoke r14.<org.apache.lucene.index.SegmentInfos: void add(org.apache.lucene.index.SegmentInfoPerCommit)>($r8);
+
+        goto label2;
+
+     label4:
+        $r4 = new java.util.HashMap;
+
+        $r5 = r0.<org.apache.lucene.index.SegmentInfos: java.util.Map userData>;
+
+        specialinvoke $r4.<java.util.HashMap: void <init>(java.util.Map)>($r5);
+
+        r14.<org.apache.lucene.index.SegmentInfos: java.util.Map userData> = $r4;
+
+     label5:
+        return r14;
+
+     label6:
+        $r12 := @caughtexception;
+
+        $r13 = new java.lang.RuntimeException;
+
+        specialinvoke $r13.<java.lang.RuntimeException: void <init>(java.lang.String,java.lang.Throwable)>("should not happen", $r12);
+
+        throw $r13;
+
+        catch java.lang.CloneNotSupportedException from label1 to label5 with label6;
+    }
+
+    public long getVersion()
+    {
+        long $l0;
+        org.apache.lucene.index.SegmentInfos r0;
+
+        r0 := @this: org.apache.lucene.index.SegmentInfos;
+
+        $l0 = r0.<org.apache.lucene.index.SegmentInfos: long version>;
+
+        return $l0;
+    }
+
+    public long getGeneration()
+    {
+        long $l0;
+        org.apache.lucene.index.SegmentInfos r0;
+
+        r0 := @this: org.apache.lucene.index.SegmentInfos;
+
+        $l0 = r0.<org.apache.lucene.index.SegmentInfos: long generation>;
+
+        return $l0;
+    }
+
+    public long getLastGeneration()
+    {
+        long $l0;
+        org.apache.lucene.index.SegmentInfos r0;
+
+        r0 := @this: org.apache.lucene.index.SegmentInfos;
+
+        $l0 = r0.<org.apache.lucene.index.SegmentInfos: long lastGeneration>;
+
+        return $l0;
+    }
+
+    public static void setInfoStream(java.io.PrintStream)
+    {
+        java.io.PrintStream r0;
+
+        r0 := @parameter0: java.io.PrintStream;
+
+        <org.apache.lucene.index.SegmentInfos: java.io.PrintStream infoStream> = r0;
+
+        return;
+    }
+
+    public static void setDefaultGenLookaheadCount(int)
+    {
+        int i0;
+
+        i0 := @parameter0: int;
+
+        <org.apache.lucene.index.SegmentInfos: int defaultGenLookaheadCount> = i0;
+
+        return;
+    }
+
+    public static int getDefaultGenLookahedCount()
+    {
+        int $i0;
+
+        $i0 = <org.apache.lucene.index.SegmentInfos: int defaultGenLookaheadCount>;
+
+        return $i0;
+    }
+
+    public static java.io.PrintStream getInfoStream()
+    {
+        java.io.PrintStream $r0;
+
+        $r0 = <org.apache.lucene.index.SegmentInfos: java.io.PrintStream infoStream>;
+
+        return $r0;
+    }
+
+    private static void message(java.lang.String)
+    {
+        java.io.PrintStream $r1;
+        java.lang.Thread $r3;
+        java.lang.StringBuilder $r0, $r2, $r5, $r6, $r8;
+        java.lang.String $r4, r7, $r9;
+
+        r7 := @parameter0: java.lang.String;
+
+        $r1 = <org.apache.lucene.index.SegmentInfos: java.io.PrintStream infoStream>;
+
+        $r0 = new java.lang.StringBuilder;
+
+        specialinvoke $r0.<java.lang.StringBuilder: void <init>()>();
+
+        $r2 = virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("SIS [");
+
+        $r3 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        $r4 = virtualinvoke $r3.<java.lang.Thread: java.lang.String getName()>();
+
+        $r5 = virtualinvoke $r2.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r4);
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("]: ");
+
+        $r8 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r7);
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r1.<java.io.PrintStream: void println(java.lang.String)>($r9);
+
+        return;
+    }
+
+    void updateGeneration(org.apache.lucene.index.SegmentInfos)
+    {
+        long $l0, $l1;
+        org.apache.lucene.index.SegmentInfos r0, r1;
+
+        r0 := @this: org.apache.lucene.index.SegmentInfos;
+
+        r1 := @parameter0: org.apache.lucene.index.SegmentInfos;
+
+        $l0 = r1.<org.apache.lucene.index.SegmentInfos: long lastGeneration>;
+
+        r0.<org.apache.lucene.index.SegmentInfos: long lastGeneration> = $l0;
+
+        $l1 = r1.<org.apache.lucene.index.SegmentInfos: long generation>;
+
+        r0.<org.apache.lucene.index.SegmentInfos: long generation> = $l1;
+
+        return;
+    }
+
+    final void rollbackCommit(org.apache.lucene.store.Directory)
+    {
+        org.apache.lucene.store.ChecksumIndexOutput $r1, $r3;
+        long $l0;
+        java.lang.String[] $r6;
+        org.apache.lucene.index.SegmentInfos r0;
+        org.apache.lucene.store.Directory r5;
+        java.io.Closeable[] $r2;
+        java.lang.String $r4;
+
+        r0 := @this: org.apache.lucene.index.SegmentInfos;
+
+        r5 := @parameter0: org.apache.lucene.store.Directory;
+
+        $r1 = r0.<org.apache.lucene.index.SegmentInfos: org.apache.lucene.store.ChecksumIndexOutput pendingSegnOutput>;
+
+        if $r1 == null goto label1;
+
+        $r2 = newarray (java.io.Closeable)[1];
+
+        $r3 = r0.<org.apache.lucene.index.SegmentInfos: org.apache.lucene.store.ChecksumIndexOutput pendingSegnOutput>;
+
+        $r2[0] = $r3;
+
+        staticinvoke <org.apache.lucene.util.IOUtils: void closeWhileHandlingException(java.io.Closeable[])>($r2);
+
+        r0.<org.apache.lucene.index.SegmentInfos: org.apache.lucene.store.ChecksumIndexOutput pendingSegnOutput> = null;
+
+        $l0 = r0.<org.apache.lucene.index.SegmentInfos: long generation>;
+
+        $r4 = staticinvoke <org.apache.lucene.index.IndexFileNames: java.lang.String fileNameFromGeneration(java.lang.String,java.lang.String,long)>("segments", "", $l0);
+
+        $r6 = newarray (java.lang.String)[1];
+
+        $r6[0] = $r4;
+
+        staticinvoke <org.apache.lucene.util.IOUtils: void deleteFilesIgnoringExceptions(org.apache.lucene.store.Directory,java.lang.String[])>(r5, $r6);
+
+     label1:
+        return;
+    }
+
+    final void prepareCommit(org.apache.lucene.store.Directory) throws java.io.IOException
+    {
+        java.lang.IllegalStateException $r3;
+        org.apache.lucene.store.ChecksumIndexOutput $r1;
+        org.apache.lucene.store.Directory r2;
+        org.apache.lucene.index.SegmentInfos r0;
+
+        r0 := @this: org.apache.lucene.index.SegmentInfos;
+
+        r2 := @parameter0: org.apache.lucene.store.Directory;
+
+        $r1 = r0.<org.apache.lucene.index.SegmentInfos: org.apache.lucene.store.ChecksumIndexOutput pendingSegnOutput>;
+
+        if $r1 == null goto label1;
+
+        $r3 = new java.lang.IllegalStateException;
+
+        specialinvoke $r3.<java.lang.IllegalStateException: void <init>(java.lang.String)>("prepareCommit was already called");
+
+        throw $r3;
+
+     label1:
+        specialinvoke r0.<org.apache.lucene.index.SegmentInfos: void write(org.apache.lucene.store.Directory)>(r2);
+
+        return;
+    }
+
+    public java.util.Collection files(org.apache.lucene.store.Directory, boolean) throws java.io.IOException
+    {
+        org.apache.lucene.index.SegmentInfo $r3, $r7;
+        java.util.Collection $r6;
+        org.apache.lucene.index.SegmentInfoPerCommit $r2;
+        java.lang.AssertionError $r9;
+        org.apache.lucene.index.SegmentInfos r1;
+        java.util.HashSet $r0;
+        org.apache.lucene.store.Directory r4, $r5, $r8;
+        int $i0, i1;
+        java.lang.String $r10;
+        boolean z0, $z1;
+
+        r1 := @this: org.apache.lucene.index.SegmentInfos;
+
+        r4 := @parameter0: org.apache.lucene.store.Directory;
+
+        z0 := @parameter1: boolean;
+
+        $r0 = new java.util.HashSet;
+
+        specialinvoke $r0.<java.util.HashSet: void <init>()>();
+
+        if z0 == 0 goto label1;
+
+        $r10 = virtualinvoke r1.<org.apache.lucene.index.SegmentInfos: java.lang.String getSegmentsFileName()>();
+
+        if $r10 == null goto label1;
+
+        virtualinvoke $r0.<java.util.HashSet: boolean add(java.lang.Object)>($r10);
+
+     label1:
+        $i0 = virtualinvoke r1.<org.apache.lucene.index.SegmentInfos: int size()>();
+
+        i1 = 0;
+
+     label2:
+        if i1 >= $i0 goto label5;
+
+        $r2 = virtualinvoke r1.<org.apache.lucene.index.SegmentInfos: org.apache.lucene.index.SegmentInfoPerCommit info(int)>(i1);
+
+        $z1 = <org.apache.lucene.index.SegmentInfos: boolean $assertionsDisabled>;
+
+        if $z1 != 0 goto label3;
+
+        $r7 = $r2.<org.apache.lucene.index.SegmentInfoPerCommit: org.apache.lucene.index.SegmentInfo info>;
+
+        $r8 = $r7.<org.apache.lucene.index.SegmentInfo: org.apache.lucene.store.Directory dir>;
+
+        if $r8 == r4 goto label3;
+
+        $r9 = new java.lang.AssertionError;
+
+        specialinvoke $r9.<java.lang.AssertionError: void <init>()>();
+
+        throw $r9;
+
+     label3:
+        $r3 = $r2.<org.apache.lucene.index.SegmentInfoPerCommit: org.apache.lucene.index.SegmentInfo info>;
+
+        $r5 = $r3.<org.apache.lucene.index.SegmentInfo: org.apache.lucene.store.Directory dir>;
+
+        if $r5 != r4 goto label4;
+
+        $r6 = virtualinvoke $r2.<org.apache.lucene.index.SegmentInfoPerCommit: java.util.Collection files()>();
+
+        virtualinvoke $r0.<java.util.HashSet: boolean addAll(java.util.Collection)>($r6);
+
+     label4:
+        i1 = i1 + 1;
+
+        goto label2;
+
+     label5:
+        return $r0;
+    }
+
+    final void finishCommit(org.apache.lucene.store.Directory) throws java.io.IOException
+    {
+        java.lang.Throwable $r8, $r9, $r10, $r12, $r13, $r14, $r15, $r16, $r18;
+        java.lang.IllegalStateException $r22;
+        org.apache.lucene.store.ChecksumIndexOutput $r1, $r2, $r3, $r17;
+        long $l0, $l1, $l2, $l3;
+        org.apache.lucene.store.Directory r5;
+        int $i5;
+        java.lang.String $r4;
+        org.apache.lucene.store.IOContext $r19;
+        org.apache.lucene.store.IndexOutput $r20;
+        java.util.Set $r6, $r11, $r21;
+        org.apache.lucene.index.SegmentInfos r0;
+
+        r0 := @this: org.apache.lucene.index.SegmentInfos;
+
+        r5 := @parameter0: org.apache.lucene.store.Directory;
+
+        $r1 = r0.<org.apache.lucene.index.SegmentInfos: org.apache.lucene.store.ChecksumIndexOutput pendingSegnOutput>;
+
+        if $r1 != null goto label01;
+
+        $r22 = new java.lang.IllegalStateException;
+
+        specialinvoke $r22.<java.lang.IllegalStateException: void <init>(java.lang.String)>("prepareCommit was not called");
+
+        throw $r22;
+
+     label01:
+        $r2 = r0.<org.apache.lucene.index.SegmentInfos: org.apache.lucene.store.ChecksumIndexOutput pendingSegnOutput>;
+
+        virtualinvoke $r2.<org.apache.lucene.store.ChecksumIndexOutput: void finishCommit()>();
+
+     label02:
+        if 1 != 0 goto label03;
+
+        virtualinvoke r0.<org.apache.lucene.index.SegmentInfos: void rollbackCommit(org.apache.lucene.store.Directory)>(r5);
+
+        goto label21;
+
+     label03:
+        $r3 = r0.<org.apache.lucene.index.SegmentInfos: org.apache.lucene.store.ChecksumIndexOutput pendingSegnOutput>;
+
+        virtualinvoke $r3.<org.apache.lucene.store.ChecksumIndexOutput: void close()>();
+
+     label04:
+        if 1 != 0 goto label05;
+
+        virtualinvoke r0.<org.apache.lucene.index.SegmentInfos: void rollbackCommit(org.apache.lucene.store.Directory)>(r5);
+
+        goto label10;
+
+     label05:
+        r0.<org.apache.lucene.index.SegmentInfos: org.apache.lucene.store.ChecksumIndexOutput pendingSegnOutput> = null;
+
+        goto label10;
+
+     label06:
+        $r18 := @caughtexception;
+
+     label07:
+        if 0 != 0 goto label08;
+
+        virtualinvoke r0.<org.apache.lucene.index.SegmentInfos: void rollbackCommit(org.apache.lucene.store.Directory)>(r5);
+
+        goto label09;
+
+     label08:
+        r0.<org.apache.lucene.index.SegmentInfos: org.apache.lucene.store.ChecksumIndexOutput pendingSegnOutput> = null;
+
+     label09:
+        throw $r18;
+
+     label10:
+        goto label21;
+
+     label11:
+        $r16 := @caughtexception;
+
+     label12:
+        if 0 != 0 goto label13;
+
+        virtualinvoke r0.<org.apache.lucene.index.SegmentInfos: void rollbackCommit(org.apache.lucene.store.Directory)>(r5);
+
+        goto label20;
+
+     label13:
+        $r17 = r0.<org.apache.lucene.index.SegmentInfos: org.apache.lucene.store.ChecksumIndexOutput pendingSegnOutput>;
+
+        virtualinvoke $r17.<org.apache.lucene.store.ChecksumIndexOutput: void close()>();
+
+     label14:
+        if 1 != 0 goto label15;
+
+        virtualinvoke r0.<org.apache.lucene.index.SegmentInfos: void rollbackCommit(org.apache.lucene.store.Directory)>(r5);
+
+        goto label20;
+
+     label15:
+        r0.<org.apache.lucene.index.SegmentInfos: org.apache.lucene.store.ChecksumIndexOutput pendingSegnOutput> = null;
+
+        goto label20;
+
+     label16:
+        $r15 := @caughtexception;
+
+     label17:
+        if 0 != 0 goto label18;
+
+        virtualinvoke r0.<org.apache.lucene.index.SegmentInfos: void rollbackCommit(org.apache.lucene.store.Directory)>(r5);
+
+        goto label19;
+
+     label18:
+        r0.<org.apache.lucene.index.SegmentInfos: org.apache.lucene.store.ChecksumIndexOutput pendingSegnOutput> = null;
+
+     label19:
+        throw $r15;
+
+     label20:
+        throw $r16;
+
+     label21:
+        $l0 = r0.<org.apache.lucene.index.SegmentInfos: long generation>;
+
+        $r4 = staticinvoke <org.apache.lucene.index.IndexFileNames: java.lang.String fileNameFromGeneration(java.lang.String,java.lang.String,long)>("segments", "", $l0);
+
+     label22:
+        $r6 = staticinvoke <java.util.Collections: java.util.Set singleton(java.lang.Object)>($r4);
+
+        virtualinvoke r5.<org.apache.lucene.store.Directory: void sync(java.util.Collection)>($r6);
+
+     label23:
+        if 1 != 0 goto label33;
+
+     label24:
+        virtualinvoke r5.<org.apache.lucene.store.Directory: void deleteFile(java.lang.String)>($r4);
+
+     label25:
+        goto label33;
+
+     label26:
+        $r14 := @caughtexception;
+
+        goto label33;
+
+     label27:
+        $r13 := @caughtexception;
+
+     label28:
+        if 0 != 0 goto label32;
+
+     label29:
+        virtualinvoke r5.<org.apache.lucene.store.Directory: void deleteFile(java.lang.String)>($r4);
+
+     label30:
+        goto label32;
+
+     label31:
+        $r12 := @caughtexception;
+
+     label32:
+        throw $r13;
+
+     label33:
+        $l1 = r0.<org.apache.lucene.index.SegmentInfos: long generation>;
+
+        r0.<org.apache.lucene.index.SegmentInfos: long lastGeneration> = $l1;
+
+     label34:
+        $r19 = <org.apache.lucene.store.IOContext: org.apache.lucene.store.IOContext READONCE>;
+
+        $r20 = virtualinvoke r5.<org.apache.lucene.store.Directory: org.apache.lucene.store.IndexOutput createOutput(java.lang.String,org.apache.lucene.store.IOContext)>("segments.gen", $r19);
+
+     label35:
+        $i5 = (int) -2;
+
+        virtualinvoke $r20.<org.apache.lucene.store.IndexOutput: void writeInt(int)>($i5);
+
+        $l2 = r0.<org.apache.lucene.index.SegmentInfos: long generation>;
+
+        virtualinvoke $r20.<org.apache.lucene.store.IndexOutput: void writeLong(long)>($l2);
+
+        $l3 = r0.<org.apache.lucene.index.SegmentInfos: long generation>;
+
+        virtualinvoke $r20.<org.apache.lucene.store.IndexOutput: void writeLong(long)>($l3);
+
+     label36:
+        virtualinvoke $r20.<org.apache.lucene.store.IndexOutput: void close()>();
+
+        $r21 = staticinvoke <java.util.Collections: java.util.Set singleton(java.lang.Object)>("segments.gen");
+
+        virtualinvoke r5.<org.apache.lucene.store.Directory: void sync(java.util.Collection)>($r21);
+
+        goto label39;
+
+     label37:
+        $r10 := @caughtexception;
+
+     label38:
+        virtualinvoke $r20.<org.apache.lucene.store.IndexOutput: void close()>();
+
+        $r11 = staticinvoke <java.util.Collections: java.util.Set singleton(java.lang.Object)>("segments.gen");
+
+        virtualinvoke r5.<org.apache.lucene.store.Directory: void sync(java.util.Collection)>($r11);
+
+        throw $r10;
+
+     label39:
+        goto label44;
+
+     label40:
+        $r9 := @caughtexception;
+
+     label41:
+        virtualinvoke r5.<org.apache.lucene.store.Directory: void deleteFile(java.lang.String)>("segments.gen");
+
+     label42:
+        goto label44;
+
+     label43:
+        $r8 := @caughtexception;
+
+     label44:
+        return;
+
+        catch java.lang.Throwable from label03 to label04 with label06;
+        catch java.lang.Throwable from label06 to label07 with label06;
+        catch java.lang.Throwable from label01 to label02 with label11;
+        catch java.lang.Throwable from label13 to label14 with label16;
+        catch java.lang.Throwable from label16 to label17 with label16;
+        catch java.lang.Throwable from label11 to label12 with label11;
+        catch java.lang.Throwable from label24 to label25 with label26;
+        catch java.lang.Throwable from label22 to label23 with label27;
+        catch java.lang.Throwable from label29 to label30 with label31;
+        catch java.lang.Throwable from label27 to label28 with label27;
+        catch java.lang.Throwable from label35 to label36 with label37;
+        catch java.lang.Throwable from label37 to label38 with label37;
+        catch java.lang.Throwable from label34 to label39 with label40;
+        catch java.lang.Throwable from label41 to label42 with label43;
+    }
+
+    final void commit(org.apache.lucene.store.Directory) throws java.io.IOException
+    {
+        org.apache.lucene.index.SegmentInfos r0;
+        org.apache.lucene.store.Directory r1;
+
+        r0 := @this: org.apache.lucene.index.SegmentInfos;
+
+        r1 := @parameter0: org.apache.lucene.store.Directory;
+
+        virtualinvoke r0.<org.apache.lucene.index.SegmentInfos: void prepareCommit(org.apache.lucene.store.Directory)>(r1);
+
+        virtualinvoke r0.<org.apache.lucene.index.SegmentInfos: void finishCommit(org.apache.lucene.store.Directory)>(r1);
+
+        return;
+    }
+
+    public java.lang.String toString(org.apache.lucene.store.Directory)
+    {
+        org.apache.lucene.index.SegmentInfoPerCommit $r5;
+        org.apache.lucene.index.SegmentInfos r1;
+        org.apache.lucene.store.Directory r6;
+        int $i0, i1;
+        java.lang.StringBuilder $r0, $r3;
+        java.lang.String $r2, $r4, $r7;
+
+        r1 := @this: org.apache.lucene.index.SegmentInfos;
+
+        r6 := @parameter0: org.apache.lucene.store.Directory;
+
+        $r0 = new java.lang.StringBuilder;
+
+        specialinvoke $r0.<java.lang.StringBuilder: void <init>()>();
+
+        $r2 = virtualinvoke r1.<org.apache.lucene.index.SegmentInfos: java.lang.String getSegmentsFileName()>();
+
+        $r3 = virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r2);
+
+        virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(": ");
+
+        $i0 = virtualinvoke r1.<org.apache.lucene.index.SegmentInfos: int size()>();
+
+        i1 = 0;
+
+     label1:
+        if i1 >= $i0 goto label3;
+
+        if i1 <= 0 goto label2;
+
+        virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(char)>(32);
+
+     label2:
+        $r5 = virtualinvoke r1.<org.apache.lucene.index.SegmentInfos: org.apache.lucene.index.SegmentInfoPerCommit info(int)>(i1);
+
+        $r7 = virtualinvoke $r5.<org.apache.lucene.index.SegmentInfoPerCommit: java.lang.String toString(org.apache.lucene.store.Directory,int)>(r6, 0);
+
+        virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r7);
+
+        i1 = i1 + 1;
+
+        goto label1;
+
+     label3:
+        $r4 = virtualinvoke $r0.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        return $r4;
+    }
+
+    public java.util.Map getUserData()
+    {
+        org.apache.lucene.index.SegmentInfos r0;
+        java.util.Map $r1;
+
+        r0 := @this: org.apache.lucene.index.SegmentInfos;
+
+        $r1 = r0.<org.apache.lucene.index.SegmentInfos: java.util.Map userData>;
+
+        return $r1;
+    }
+
+    void setUserData(java.util.Map)
+    {
+        org.apache.lucene.index.SegmentInfos r1;
+        java.util.Map r0, $r2;
+
+        r1 := @this: org.apache.lucene.index.SegmentInfos;
+
+        r0 := @parameter0: java.util.Map;
+
+        if r0 != null goto label1;
+
+        $r2 = staticinvoke <java.util.Collections: java.util.Map emptyMap()>();
+
+        r1.<org.apache.lucene.index.SegmentInfos: java.util.Map userData> = $r2;
+
+        goto label2;
+
+     label1:
+        r1.<org.apache.lucene.index.SegmentInfos: java.util.Map userData> = r0;
+
+     label2:
+        return;
+    }
+
+    void replace(org.apache.lucene.index.SegmentInfos)
+    {
+        java.util.List $r2;
+        long $l0;
+        org.apache.lucene.index.SegmentInfos r0, r1;
+
+        r0 := @this: org.apache.lucene.index.SegmentInfos;
+
+        r1 := @parameter0: org.apache.lucene.index.SegmentInfos;
+
+        $r2 = virtualinvoke r1.<org.apache.lucene.index.SegmentInfos: java.util.List asList()>();
+
+        virtualinvoke r0.<org.apache.lucene.index.SegmentInfos: void rollbackSegmentInfos(java.util.List)>($r2);
+
+        $l0 = r1.<org.apache.lucene.index.SegmentInfos: long lastGeneration>;
+
+        r0.<org.apache.lucene.index.SegmentInfos: long lastGeneration> = $l0;
+
+        return;
+    }
+
+    public int totalDocCount()
+    {
+        java.util.Iterator $r1;
+        org.apache.lucene.index.SegmentInfo $r4;
+        org.apache.lucene.index.SegmentInfoPerCommit r3;
+        org.apache.lucene.index.SegmentInfos r0;
+        int $i0, i1;
+        java.lang.Object $r2;
+        boolean $z0;
+
+        r0 := @this: org.apache.lucene.index.SegmentInfos;
+
+        i1 = 0;
+
+        $r1 = virtualinvoke r0.<org.apache.lucene.index.SegmentInfos: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r1.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label2;
+
+        $r2 = interfaceinvoke $r1.<java.util.Iterator: java.lang.Object next()>();
+
+        r3 = (org.apache.lucene.index.SegmentInfoPerCommit) $r2;
+
+        $r4 = r3.<org.apache.lucene.index.SegmentInfoPerCommit: org.apache.lucene.index.SegmentInfo info>;
+
+        $i0 = virtualinvoke $r4.<org.apache.lucene.index.SegmentInfo: int getDocCount()>();
+
+        i1 = i1 + $i0;
+
+        goto label1;
+
+     label2:
+        return i1;
+    }
+
+    public void changed()
+    {
+        long $l0, $l1;
+        org.apache.lucene.index.SegmentInfos r0;
+
+        r0 := @this: org.apache.lucene.index.SegmentInfos;
+
+        $l0 = r0.<org.apache.lucene.index.SegmentInfos: long version>;
+
+        $l1 = $l0 + 1L;
+
+        r0.<org.apache.lucene.index.SegmentInfos: long version> = $l1;
+
+        return;
+    }
+
+    void applyMergeChanges(org.apache.lucene.index.MergePolicy$OneMerge, boolean)
+    {
+        org.apache.lucene.index.SegmentInfoPerCommit $r8, $r13, $r15;
+        java.lang.AssertionError $r16;
+        java.util.HashSet $r0;
+        int $i0, $i1, i2, i3;
+        boolean z0, $z1, $z2, z3, z4, z5;
+        org.apache.lucene.index.SegmentInfos r3;
+        java.util.List $r2, $r4, $r5, $r6, $r7, $r9, $r10, $r12, $r14;
+        org.apache.lucene.index.MergePolicy$OneMerge r1;
+        java.lang.Object $r11;
+
+        r3 := @this: org.apache.lucene.index.SegmentInfos;
+
+        r1 := @parameter0: org.apache.lucene.index.MergePolicy$OneMerge;
+
+        z0 := @parameter1: boolean;
+
+        $r0 = new java.util.HashSet;
+
+        $r2 = r1.<org.apache.lucene.index.MergePolicy$OneMerge: java.util.List segments>;
+
+        specialinvoke $r0.<java.util.HashSet: void <init>(java.util.Collection)>($r2);
+
+        z3 = 0;
+
+        z5 = 0;
+
+        z4 = 0;
+
+        i2 = 0;
+
+        i3 = 0;
+
+        $r4 = r3.<org.apache.lucene.index.SegmentInfos: java.util.List segments>;
+
+        $i0 = interfaceinvoke $r4.<java.util.List: int size()>();
+
+     label1:
+        if i3 >= $i0 goto label5;
+
+        $z1 = <org.apache.lucene.index.SegmentInfos: boolean $assertionsDisabled>;
+
+        if $z1 != 0 goto label2;
+
+        if i3 >= i2 goto label2;
+
+        $r16 = new java.lang.AssertionError;
+
+        specialinvoke $r16.<java.lang.AssertionError: void <init>()>();
+
+        throw $r16;
+
+     label2:
+        $r10 = r3.<org.apache.lucene.index.SegmentInfos: java.util.List segments>;
+
+        $r11 = interfaceinvoke $r10.<java.util.List: java.lang.Object get(int)>(i3);
+
+        $r15 = (org.apache.lucene.index.SegmentInfoPerCommit) $r11;
+
+        $z2 = interfaceinvoke $r0.<java.util.Set: boolean contains(java.lang.Object)>($r15);
+
+        if $z2 == 0 goto label3;
+
+        if z4 != 0 goto label4;
+
+        if z0 != 0 goto label4;
+
+        $r14 = r3.<org.apache.lucene.index.SegmentInfos: java.util.List segments>;
+
+        $r13 = r1.<org.apache.lucene.index.MergePolicy$OneMerge: org.apache.lucene.index.SegmentInfoPerCommit info>;
+
+        interfaceinvoke $r14.<java.util.List: java.lang.Object set(int,java.lang.Object)>(i3, $r13);
+
+        z3 = 1;
+
+        z5 = 1;
+
+        z4 = 1;
+
+        i2 = i2 + 1;
+
+        goto label4;
+
+     label3:
+        $r12 = r3.<org.apache.lucene.index.SegmentInfos: java.util.List segments>;
+
+        interfaceinvoke $r12.<java.util.List: java.lang.Object set(int,java.lang.Object)>(i2, $r15);
+
+        i2 = i2 + 1;
+
+     label4:
+        i3 = i3 + 1;
+
+        goto label1;
+
+     label5:
+        $r6 = r3.<org.apache.lucene.index.SegmentInfos: java.util.List segments>;
+
+        $r5 = r3.<org.apache.lucene.index.SegmentInfos: java.util.List segments>;
+
+        $i1 = interfaceinvoke $r5.<java.util.List: int size()>();
+
+        $r7 = interfaceinvoke $r6.<java.util.List: java.util.List subList(int,int)>(i2, $i1);
+
+        interfaceinvoke $r7.<java.util.List: void clear()>();
+
+        if z5 != 0 goto label6;
+
+        if z0 != 0 goto label6;
+
+        $r9 = r3.<org.apache.lucene.index.SegmentInfos: java.util.List segments>;
+
+        $r8 = r1.<org.apache.lucene.index.MergePolicy$OneMerge: org.apache.lucene.index.SegmentInfoPerCommit info>;
+
+        interfaceinvoke $r9.<java.util.List: void add(int,java.lang.Object)>(0, $r8);
+
+     label6:
+        return;
+    }
+
+    java.util.List createBackupSegmentInfos()
+    {
+        java.util.Iterator $r2;
+        org.apache.lucene.index.SegmentInfo $r6;
+        org.apache.lucene.index.SegmentInfoPerCommit r4, $r5;
+        java.lang.AssertionError $r8;
+        org.apache.lucene.index.SegmentInfos r1;
+        java.util.ArrayList $r0;
+        org.apache.lucene.codecs.Codec $r7;
+        int $i0;
+        java.lang.Object $r3;
+        boolean $z0, $z1;
+
+        r1 := @this: org.apache.lucene.index.SegmentInfos;
+
+        $r0 = new java.util.ArrayList;
+
+        $i0 = virtualinvoke r1.<org.apache.lucene.index.SegmentInfos: int size()>();
+
+        specialinvoke $r0.<java.util.ArrayList: void <init>(int)>($i0);
+
+        $r2 = virtualinvoke r1.<org.apache.lucene.index.SegmentInfos: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r2.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label3;
+
+        $r3 = interfaceinvoke $r2.<java.util.Iterator: java.lang.Object next()>();
+
+        r4 = (org.apache.lucene.index.SegmentInfoPerCommit) $r3;
+
+        $z1 = <org.apache.lucene.index.SegmentInfos: boolean $assertionsDisabled>;
+
+        if $z1 != 0 goto label2;
+
+        $r6 = r4.<org.apache.lucene.index.SegmentInfoPerCommit: org.apache.lucene.index.SegmentInfo info>;
+
+        $r7 = virtualinvoke $r6.<org.apache.lucene.index.SegmentInfo: org.apache.lucene.codecs.Codec getCodec()>();
+
+        if $r7 != null goto label2;
+
+        $r8 = new java.lang.AssertionError;
+
+        specialinvoke $r8.<java.lang.AssertionError: void <init>()>();
+
+        throw $r8;
+
+     label2:
+        $r5 = virtualinvoke r4.<org.apache.lucene.index.SegmentInfoPerCommit: org.apache.lucene.index.SegmentInfoPerCommit clone()>();
+
+        interfaceinvoke $r0.<java.util.List: boolean add(java.lang.Object)>($r5);
+
+        goto label1;
+
+     label3:
+        return $r0;
+    }
+
+    void rollbackSegmentInfos(java.util.List)
+    {
+        java.util.List r1;
+        org.apache.lucene.index.SegmentInfos r0;
+
+        r0 := @this: org.apache.lucene.index.SegmentInfos;
+
+        r1 := @parameter0: java.util.List;
+
+        virtualinvoke r0.<org.apache.lucene.index.SegmentInfos: void clear()>();
+
+        virtualinvoke r0.<org.apache.lucene.index.SegmentInfos: void addAll(java.lang.Iterable)>(r1);
+
+        return;
+    }
+
+    public java.util.Iterator iterator()
+    {
+        java.util.List $r1;
+        java.util.Iterator $r2;
+        org.apache.lucene.index.SegmentInfos r0;
+
+        r0 := @this: org.apache.lucene.index.SegmentInfos;
+
+        $r1 = virtualinvoke r0.<org.apache.lucene.index.SegmentInfos: java.util.List asList()>();
+
+        $r2 = interfaceinvoke $r1.<java.util.List: java.util.Iterator iterator()>();
+
+        return $r2;
+    }
+
+    public java.util.List asList()
+    {
+        java.util.List $r1, $r2;
+        org.apache.lucene.index.SegmentInfos r0;
+
+        r0 := @this: org.apache.lucene.index.SegmentInfos;
+
+        $r1 = r0.<org.apache.lucene.index.SegmentInfos: java.util.List segments>;
+
+        $r2 = staticinvoke <java.util.Collections: java.util.List unmodifiableList(java.util.List)>($r1);
+
+        return $r2;
+    }
+
+    public int size()
+    {
+        int $i0;
+        java.util.List $r1;
+        org.apache.lucene.index.SegmentInfos r0;
+
+        r0 := @this: org.apache.lucene.index.SegmentInfos;
+
+        $r1 = r0.<org.apache.lucene.index.SegmentInfos: java.util.List segments>;
+
+        $i0 = interfaceinvoke $r1.<java.util.List: int size()>();
+
+        return $i0;
+    }
+
+    public void add(org.apache.lucene.index.SegmentInfoPerCommit)
+    {
+        org.apache.lucene.index.SegmentInfoPerCommit r1;
+        java.util.List $r2;
+        org.apache.lucene.index.SegmentInfos r0;
+
+        r0 := @this: org.apache.lucene.index.SegmentInfos;
+
+        r1 := @parameter0: org.apache.lucene.index.SegmentInfoPerCommit;
+
+        $r2 = r0.<org.apache.lucene.index.SegmentInfos: java.util.List segments>;
+
+        interfaceinvoke $r2.<java.util.List: boolean add(java.lang.Object)>(r1);
+
+        return;
+    }
+
+    public void addAll(java.lang.Iterable)
+    {
+        java.util.Iterator $r1;
+        org.apache.lucene.index.SegmentInfoPerCommit r3;
+        java.lang.Object $r2;
+        java.lang.Iterable r0;
+        org.apache.lucene.index.SegmentInfos r4;
+        boolean $z0;
+
+        r4 := @this: org.apache.lucene.index.SegmentInfos;
+
+        r0 := @parameter0: java.lang.Iterable;
+
+        $r1 = interfaceinvoke r0.<java.lang.Iterable: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r1.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label2;
+
+        $r2 = interfaceinvoke $r1.<java.util.Iterator: java.lang.Object next()>();
+
+        r3 = (org.apache.lucene.index.SegmentInfoPerCommit) $r2;
+
+        virtualinvoke r4.<org.apache.lucene.index.SegmentInfos: void add(org.apache.lucene.index.SegmentInfoPerCommit)>(r3);
+
+        goto label1;
+
+     label2:
+        return;
+    }
+
+    public void clear()
+    {
+        java.util.List $r1;
+        org.apache.lucene.index.SegmentInfos r0;
+
+        r0 := @this: org.apache.lucene.index.SegmentInfos;
+
+        $r1 = r0.<org.apache.lucene.index.SegmentInfos: java.util.List segments>;
+
+        interfaceinvoke $r1.<java.util.List: void clear()>();
+
+        return;
+    }
+
+    public void remove(org.apache.lucene.index.SegmentInfoPerCommit)
+    {
+        org.apache.lucene.index.SegmentInfoPerCommit r1;
+        java.util.List $r2;
+        org.apache.lucene.index.SegmentInfos r0;
+
+        r0 := @this: org.apache.lucene.index.SegmentInfos;
+
+        r1 := @parameter0: org.apache.lucene.index.SegmentInfoPerCommit;
+
+        $r2 = r0.<org.apache.lucene.index.SegmentInfos: java.util.List segments>;
+
+        interfaceinvoke $r2.<java.util.List: boolean remove(java.lang.Object)>(r1);
+
+        return;
+    }
+
+    void remove(int)
+    {
+        int i0;
+        java.util.List $r1;
+        org.apache.lucene.index.SegmentInfos r0;
+
+        r0 := @this: org.apache.lucene.index.SegmentInfos;
+
+        i0 := @parameter0: int;
+
+        $r1 = r0.<org.apache.lucene.index.SegmentInfos: java.util.List segments>;
+
+        interfaceinvoke $r1.<java.util.List: java.lang.Object remove(int)>(i0);
+
+        return;
+    }
+
+    boolean contains(org.apache.lucene.index.SegmentInfoPerCommit)
+    {
+        java.util.List $r2;
+        org.apache.lucene.index.SegmentInfoPerCommit r1;
+        org.apache.lucene.index.SegmentInfos r0;
+        boolean $z0;
+
+        r0 := @this: org.apache.lucene.index.SegmentInfos;
+
+        r1 := @parameter0: org.apache.lucene.index.SegmentInfoPerCommit;
+
+        $r2 = r0.<org.apache.lucene.index.SegmentInfos: java.util.List segments>;
+
+        $z0 = interfaceinvoke $r2.<java.util.List: boolean contains(java.lang.Object)>(r1);
+
+        return $z0;
+    }
+
+    int indexOf(org.apache.lucene.index.SegmentInfoPerCommit)
+    {
+        java.util.List $r2;
+        int $i0;
+        org.apache.lucene.index.SegmentInfoPerCommit r1;
+        org.apache.lucene.index.SegmentInfos r0;
+
+        r0 := @this: org.apache.lucene.index.SegmentInfos;
+
+        r1 := @parameter0: org.apache.lucene.index.SegmentInfoPerCommit;
+
+        $r2 = r0.<org.apache.lucene.index.SegmentInfos: java.util.List segments>;
+
+        $i0 = interfaceinvoke $r2.<java.util.List: int indexOf(java.lang.Object)>(r1);
+
+        return $i0;
+    }
+
+    public volatile java.lang.Object clone() throws java.lang.CloneNotSupportedException
+    {
+        org.apache.lucene.index.SegmentInfos r0, $r1;
+
+        r0 := @this: org.apache.lucene.index.SegmentInfos;
+
+        $r1 = virtualinvoke r0.<org.apache.lucene.index.SegmentInfos: org.apache.lucene.index.SegmentInfos clone()>();
+
+        return $r1;
+    }
+
+    static java.io.PrintStream access$000()
+    {
+        java.io.PrintStream $r0;
+
+        $r0 = <org.apache.lucene.index.SegmentInfos: java.io.PrintStream infoStream>;
+
+        return $r0;
+    }
+
+    static void access$100(java.lang.String)
+    {
+        java.lang.String r0;
+
+        r0 := @parameter0: java.lang.String;
+
+        staticinvoke <org.apache.lucene.index.SegmentInfos: void message(java.lang.String)>(r0);
+
+        return;
+    }
+
+    static int access$200()
+    {
+        int $i0;
+
+        $i0 = <org.apache.lucene.index.SegmentInfos: int defaultGenLookaheadCount>;
+
+        return $i0;
+    }
+
+    static void <clinit>()
+    {
+        java.lang.Class $r0;
+        boolean $z0, $z1;
+
+        <org.apache.lucene.index.SegmentInfos: int SEGMENT_INFO_UPGRADE_VERSION> = 0;
+
+        <org.apache.lucene.index.SegmentInfos: java.lang.String SEGMENT_INFO_UPGRADE_CODEC> = "SegmentInfo3xUpgrade";
+
+        <org.apache.lucene.index.SegmentInfos: int FORMAT_SEGMENTS_GEN_CURRENT> = -2;
+
+        <org.apache.lucene.index.SegmentInfos: int VERSION_40> = 0;
+
+        $r0 = class "Lorg/apache/lucene/index/SegmentInfos;";
+
+        $z0 = virtualinvoke $r0.<java.lang.Class: boolean desiredAssertionStatus()>();
+
+        if $z0 != 0 goto label1;
+
+        $z1 = 1;
+
+        goto label2;
+
+     label1:
+        $z1 = 0;
+
+     label2:
+        <org.apache.lucene.index.SegmentInfos: boolean $assertionsDisabled> = $z1;
+
+        <org.apache.lucene.index.SegmentInfos: java.io.PrintStream infoStream> = null;
+
+        <org.apache.lucene.index.SegmentInfos: int defaultGenLookaheadCount> = 10;
+
+        return;
+    }
+}

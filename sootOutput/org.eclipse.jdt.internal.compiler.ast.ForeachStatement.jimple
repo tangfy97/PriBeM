@@ -1,0 +1,1661 @@
+public class org.eclipse.jdt.internal.compiler.ast.ForeachStatement extends org.eclipse.jdt.internal.compiler.ast.Statement
+{
+    public org.eclipse.jdt.internal.compiler.ast.LocalDeclaration elementVariable;
+    public int elementVariableImplicitWidening;
+    public org.eclipse.jdt.internal.compiler.ast.Expression collection;
+    public org.eclipse.jdt.internal.compiler.ast.Statement action;
+    private int kind;
+    private static final int ARRAY;
+    private static final int RAW_ITERABLE;
+    private static final int GENERIC_ITERABLE;
+    private org.eclipse.jdt.internal.compiler.lookup.TypeBinding iteratorReceiverType;
+    private org.eclipse.jdt.internal.compiler.lookup.TypeBinding collectionElementType;
+    private org.eclipse.jdt.internal.compiler.codegen.BranchLabel breakLabel;
+    private org.eclipse.jdt.internal.compiler.codegen.BranchLabel continueLabel;
+    public org.eclipse.jdt.internal.compiler.lookup.BlockScope scope;
+    public org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding indexVariable;
+    public org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding collectionVariable;
+    public org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding maxVariable;
+    private static final char[] SecretIndexVariableName;
+    private static final char[] SecretCollectionVariableName;
+    private static final char[] SecretMaxVariableName;
+    int postCollectionInitStateIndex;
+    int mergedInitStateIndex;
+
+    static void <clinit>()
+    {
+        char[] $r1, $r3, $r5;
+        java.lang.String $r0, $r2, $r4;
+
+        <org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int GENERIC_ITERABLE> = 2;
+
+        <org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int RAW_ITERABLE> = 1;
+
+        <org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int ARRAY> = 0;
+
+        $r0 = " index";
+
+        $r1 = virtualinvoke $r0.<java.lang.String: char[] toCharArray()>();
+
+        <org.eclipse.jdt.internal.compiler.ast.ForeachStatement: char[] SecretIndexVariableName> = $r1;
+
+        $r2 = " collection";
+
+        $r3 = virtualinvoke $r2.<java.lang.String: char[] toCharArray()>();
+
+        <org.eclipse.jdt.internal.compiler.ast.ForeachStatement: char[] SecretCollectionVariableName> = $r3;
+
+        $r4 = " max";
+
+        $r5 = virtualinvoke $r4.<java.lang.String: char[] toCharArray()>();
+
+        <org.eclipse.jdt.internal.compiler.ast.ForeachStatement: char[] SecretMaxVariableName> = $r5;
+
+        return;
+    }
+
+    public void <init>(org.eclipse.jdt.internal.compiler.ast.LocalDeclaration, int)
+    {
+        org.eclipse.jdt.internal.compiler.ast.ForeachStatement r0;
+        int i0, $i2, $i4, $i6, $i8;
+        org.eclipse.jdt.internal.compiler.ast.LocalDeclaration r1;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.ast.ForeachStatement;
+
+        r1 := @parameter0: org.eclipse.jdt.internal.compiler.ast.LocalDeclaration;
+
+        i0 := @parameter1: int;
+
+        specialinvoke r0.<org.eclipse.jdt.internal.compiler.ast.Statement: void <init>()>();
+
+        $i2 = (int) -1;
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int elementVariableImplicitWidening> = $i2;
+
+        $i4 = (int) -1;
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int postCollectionInitStateIndex> = $i4;
+
+        $i6 = (int) -1;
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int mergedInitStateIndex> = $i6;
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.LocalDeclaration elementVariable> = r1;
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int sourceStart> = i0;
+
+        $i8 = (int) -1;
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int kind> = $i8;
+
+        return;
+    }
+
+    public org.eclipse.jdt.internal.compiler.flow.FlowInfo analyseCode(org.eclipse.jdt.internal.compiler.lookup.BlockScope, org.eclipse.jdt.internal.compiler.flow.FlowContext, org.eclipse.jdt.internal.compiler.flow.FlowInfo)
+    {
+        org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding $r14, $r22, $r24, $r28, $r30, $r31, $r33;
+        org.eclipse.jdt.internal.compiler.lookup.MethodScope $r15, $r27;
+        byte $b10;
+        org.eclipse.jdt.internal.compiler.flow.FlowContext r4;
+        org.eclipse.jdt.internal.compiler.ast.ForeachStatement r0;
+        org.eclipse.jdt.internal.compiler.impl.CompilerOptions $r49;
+        org.eclipse.jdt.internal.compiler.flow.LoopingFlowContext $r58;
+        org.eclipse.jdt.internal.compiler.lookup.BlockScope r3, $r6, $r10, $r17, $r37, $r45, $r46;
+        org.eclipse.jdt.internal.compiler.flow.FlowInfo $r8, $r11, $r12, $r40, $r41, $r48, r50, r52, $r55;
+        long $l9;
+        org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo $r20, $r25, $r26, $r39, $r42, $r43, $r44, r51, $r54;
+        org.eclipse.jdt.internal.compiler.ast.Statement $r23, $r34, $r35, $r36, $r38, $r47, $r53;
+        org.eclipse.jdt.internal.compiler.ast.Expression $r5, $r9;
+        boolean $z0, $z1, $z2, $z3;
+        org.eclipse.jdt.internal.compiler.codegen.BranchLabel $r18, $r19, $r29, $r56, $r57;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i11, $i12, $i13, $i14, $i16;
+        org.eclipse.jdt.internal.compiler.ast.LocalDeclaration $r7, $r13, $r21, $r32;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.ast.ForeachStatement;
+
+        r3 := @parameter0: org.eclipse.jdt.internal.compiler.lookup.BlockScope;
+
+        r4 := @parameter1: org.eclipse.jdt.internal.compiler.flow.FlowContext;
+
+        r50 := @parameter2: org.eclipse.jdt.internal.compiler.flow.FlowInfo;
+
+        $r56 = new org.eclipse.jdt.internal.compiler.codegen.BranchLabel;
+
+        specialinvoke $r56.<org.eclipse.jdt.internal.compiler.codegen.BranchLabel: void <init>()>();
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel breakLabel> = $r56;
+
+        $r57 = new org.eclipse.jdt.internal.compiler.codegen.BranchLabel;
+
+        specialinvoke $r57.<org.eclipse.jdt.internal.compiler.codegen.BranchLabel: void <init>()>();
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel continueLabel> = $r57;
+
+        $r5 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.Expression collection>;
+
+        virtualinvoke $r5.<org.eclipse.jdt.internal.compiler.ast.Expression: void checkNPE(org.eclipse.jdt.internal.compiler.lookup.BlockScope,org.eclipse.jdt.internal.compiler.flow.FlowContext,org.eclipse.jdt.internal.compiler.flow.FlowInfo)>(r3, r4, r50);
+
+        $r7 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.LocalDeclaration elementVariable>;
+
+        $r6 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        $r8 = virtualinvoke $r7.<org.eclipse.jdt.internal.compiler.ast.LocalDeclaration: org.eclipse.jdt.internal.compiler.flow.FlowInfo analyseCode(org.eclipse.jdt.internal.compiler.lookup.BlockScope,org.eclipse.jdt.internal.compiler.flow.FlowContext,org.eclipse.jdt.internal.compiler.flow.FlowInfo)>($r6, r4, r50);
+
+        $r9 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.Expression collection>;
+
+        $r10 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        $r11 = virtualinvoke $r8.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.FlowInfo copy()>();
+
+        $r12 = virtualinvoke $r9.<org.eclipse.jdt.internal.compiler.ast.Expression: org.eclipse.jdt.internal.compiler.flow.FlowInfo analyseCode(org.eclipse.jdt.internal.compiler.lookup.BlockScope,org.eclipse.jdt.internal.compiler.flow.FlowContext,org.eclipse.jdt.internal.compiler.flow.FlowInfo)>($r10, r4, $r11);
+
+        $r13 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.LocalDeclaration elementVariable>;
+
+        $r14 = $r13.<org.eclipse.jdt.internal.compiler.ast.LocalDeclaration: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding binding>;
+
+        virtualinvoke $r12.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: void markAsDefinitelyAssigned(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r14);
+
+        $r15 = virtualinvoke r3.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.lookup.MethodScope methodScope()>();
+
+        $i0 = virtualinvoke $r15.<org.eclipse.jdt.internal.compiler.lookup.MethodScope: int recordInitializationStates(org.eclipse.jdt.internal.compiler.flow.FlowInfo)>($r12);
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int postCollectionInitStateIndex> = $i0;
+
+        $r58 = new org.eclipse.jdt.internal.compiler.flow.LoopingFlowContext;
+
+        $r19 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel breakLabel>;
+
+        $r18 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel continueLabel>;
+
+        $r17 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        specialinvoke $r58.<org.eclipse.jdt.internal.compiler.flow.LoopingFlowContext: void <init>(org.eclipse.jdt.internal.compiler.flow.FlowContext,org.eclipse.jdt.internal.compiler.flow.FlowInfo,org.eclipse.jdt.internal.compiler.ast.ASTNode,org.eclipse.jdt.internal.compiler.codegen.BranchLabel,org.eclipse.jdt.internal.compiler.codegen.BranchLabel,org.eclipse.jdt.internal.compiler.lookup.Scope)>(r4, $r8, r0, $r19, $r18, $r17);
+
+        $r20 = virtualinvoke $r12.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo nullInfoLessUnconditionalCopy()>();
+
+        r51 = $r20;
+
+        $r21 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.LocalDeclaration elementVariable>;
+
+        $r22 = $r21.<org.eclipse.jdt.internal.compiler.ast.LocalDeclaration: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding binding>;
+
+        virtualinvoke $r20.<org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo: void markAsDefinitelyUnknown(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r22);
+
+        $r23 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.Statement action>;
+
+        if $r23 == null goto label04;
+
+        $r36 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.Statement action>;
+
+        $z1 = virtualinvoke $r36.<org.eclipse.jdt.internal.compiler.ast.Statement: boolean isEmptyBlock()>();
+
+        if $z1 == 0 goto label01;
+
+        $r49 = virtualinvoke r3.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.impl.CompilerOptions compilerOptions()>();
+
+        $l9 = $r49.<org.eclipse.jdt.internal.compiler.impl.CompilerOptions: long complianceLevel>;
+
+        $b10 = $l9 cmp 3080192L;
+
+        $i14 = (int) $b10;
+
+        if $i14 <= 0 goto label04;
+
+     label01:
+        $r38 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.Statement action>;
+
+        $r37 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        $z2 = virtualinvoke $r38.<org.eclipse.jdt.internal.compiler.ast.Statement: boolean complainIfUnreachable(org.eclipse.jdt.internal.compiler.flow.FlowInfo,org.eclipse.jdt.internal.compiler.lookup.BlockScope,boolean)>($r20, $r37, 0);
+
+        if $z2 != 0 goto label02;
+
+        $r47 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.Statement action>;
+
+        $r46 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        $r48 = virtualinvoke $r47.<org.eclipse.jdt.internal.compiler.ast.Statement: org.eclipse.jdt.internal.compiler.flow.FlowInfo analyseCode(org.eclipse.jdt.internal.compiler.lookup.BlockScope,org.eclipse.jdt.internal.compiler.flow.FlowContext,org.eclipse.jdt.internal.compiler.flow.FlowInfo)>($r46, $r58, $r20);
+
+        r51 = virtualinvoke $r48.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo unconditionalCopy()>();
+
+     label02:
+        $r39 = virtualinvoke $r8.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo unconditionalCopy()>();
+
+        $r40 = virtualinvoke $r12.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.FlowInfo initsWhenFalse()>();
+
+        $r41 = virtualinvoke $r39.<org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo: org.eclipse.jdt.internal.compiler.flow.FlowInfo addInitializationsFrom(org.eclipse.jdt.internal.compiler.flow.FlowInfo)>($r40);
+
+        r52 = $r41;
+
+        $i6 = r51.<org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo: int tagBits>;
+
+        $r42 = $r58.<org.eclipse.jdt.internal.compiler.flow.LoopingFlowContext: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo initsOnContinue>;
+
+        $i5 = $r42.<org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo: int tagBits>;
+
+        $i7 = $i6 & $i5;
+
+        $i8 = $i7 & 1;
+
+        if $i8 == 0 goto label03;
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel continueLabel> = null;
+
+        goto label05;
+
+     label03:
+        $r43 = $r58.<org.eclipse.jdt.internal.compiler.flow.LoopingFlowContext: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo initsOnContinue>;
+
+        $r44 = virtualinvoke r51.<org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo mergedWith(org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo)>($r43);
+
+        r51 = $r44;
+
+        $r45 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        virtualinvoke $r58.<org.eclipse.jdt.internal.compiler.flow.LoopingFlowContext: void complainOnDeferredFinalChecks(org.eclipse.jdt.internal.compiler.lookup.BlockScope,org.eclipse.jdt.internal.compiler.flow.FlowInfo)>($r45, $r44);
+
+        virtualinvoke $r41.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.FlowInfo addPotentialInitializationsFrom(org.eclipse.jdt.internal.compiler.flow.FlowInfo)>($r44);
+
+        goto label05;
+
+     label04:
+        r52 = virtualinvoke $r12.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.FlowInfo initsWhenFalse()>();
+
+     label05:
+        $r53 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.Statement action>;
+
+        if $r53 == null goto label06;
+
+        $r34 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.Statement action>;
+
+        $z0 = virtualinvoke $r34.<org.eclipse.jdt.internal.compiler.ast.Statement: boolean isEmptyBlock()>();
+
+        if $z0 != 0 goto label06;
+
+        $r35 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.Statement action>;
+
+        $i3 = $r35.<org.eclipse.jdt.internal.compiler.ast.Statement: int bits>;
+
+        $i4 = $i3 & 1;
+
+        if $i4 != 0 goto label06;
+
+        $z3 = 0;
+
+        goto label07;
+
+     label06:
+        $z3 = 1;
+
+     label07:
+        $i11 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int kind>;
+
+        tableswitch($i11)
+        {
+            case 0: goto label08;
+            case 1: goto label10;
+            case 2: goto label10;
+            default: goto label11;
+        };
+
+     label08:
+        if $z3 == 0 goto label09;
+
+        $r32 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.LocalDeclaration elementVariable>;
+
+        $r33 = $r32.<org.eclipse.jdt.internal.compiler.ast.LocalDeclaration: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding binding>;
+
+        $i2 = $r33.<org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding: int resolvedPosition>;
+
+        $i16 = (int) -1;
+
+        if $i2 == $i16 goto label11;
+
+     label09:
+        $r28 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding collectionVariable>;
+
+        $r28.<org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding: int useFlag> = 1;
+
+        $r29 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel continueLabel>;
+
+        if $r29 == null goto label11;
+
+        $r30 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding indexVariable>;
+
+        $r30.<org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding: int useFlag> = 1;
+
+        $r31 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding maxVariable>;
+
+        $r31.<org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding: int useFlag> = 1;
+
+        goto label11;
+
+     label10:
+        $r24 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding indexVariable>;
+
+        $r24.<org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding: int useFlag> = 1;
+
+     label11:
+        virtualinvoke $r58.<org.eclipse.jdt.internal.compiler.flow.LoopingFlowContext: void complainOnDeferredNullChecks(org.eclipse.jdt.internal.compiler.lookup.BlockScope,org.eclipse.jdt.internal.compiler.flow.FlowInfo)>(r3, r51);
+
+        $r54 = $r58.<org.eclipse.jdt.internal.compiler.flow.LoopingFlowContext: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo initsOnBreak>;
+
+        $i12 = $r54.<org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo: int tagBits>;
+
+        $i13 = $i12 & 1;
+
+        if $i13 == 0 goto label12;
+
+        $r55 = $r58.<org.eclipse.jdt.internal.compiler.flow.LoopingFlowContext: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo initsOnBreak>;
+
+        goto label13;
+
+     label12:
+        $r25 = $r58.<org.eclipse.jdt.internal.compiler.flow.LoopingFlowContext: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo initsOnBreak>;
+
+        $r55 = virtualinvoke $r8.<org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.FlowInfo addInitializationsFrom(org.eclipse.jdt.internal.compiler.flow.FlowInfo)>($r25);
+
+     label13:
+        $r26 = staticinvoke <org.eclipse.jdt.internal.compiler.flow.FlowInfo: org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo mergedOptimizedBranches(org.eclipse.jdt.internal.compiler.flow.FlowInfo,boolean,org.eclipse.jdt.internal.compiler.flow.FlowInfo,boolean,boolean)>($r55, 0, r52, 0, 1);
+
+        $r27 = virtualinvoke r3.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.lookup.MethodScope methodScope()>();
+
+        $i1 = virtualinvoke $r27.<org.eclipse.jdt.internal.compiler.lookup.MethodScope: int recordInitializationStates(org.eclipse.jdt.internal.compiler.flow.FlowInfo)>($r26);
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int mergedInitStateIndex> = $i1;
+
+        return $r26;
+    }
+
+    public void generateCode(org.eclipse.jdt.internal.compiler.lookup.BlockScope, org.eclipse.jdt.internal.compiler.codegen.CodeStream)
+    {
+        org.eclipse.jdt.internal.compiler.lookup.MethodBinding $r88;
+        org.eclipse.jdt.internal.compiler.ast.ForeachStatement r0;
+        org.eclipse.jdt.internal.compiler.lookup.BlockScope $r3, $r8, r33, $r42, $r61, $r72, $r74, $r87;
+        org.eclipse.jdt.internal.compiler.codegen.CodeStream r1;
+        org.eclipse.jdt.internal.compiler.ast.Statement $r2, $r43, $r75, $r76;
+        org.eclipse.jdt.internal.compiler.codegen.BranchLabel $r18, $r19, $r30, $r32, $r37, $r51, $r59, $r60, $r65, $r79, $r80, $r89, $r90;
+        int $i0, $i1, i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i10, $i11, $i12, $i13, $i14, $i15, $i16, $i17, $i18, $i19, $i20, $i21, $i22, $i23, $i24, $i25, $i26, $i27, $i28, $i29, $i30, $i31, $i32, $i33, $i34, $i35, $i36, $i37, $i38, i39, $i40, $i41, i42, $i43, $i44, $i45, $i47, $i49, $i51, $i53, $i55, $i57, $i59, $i61, $i63, $i65;
+        org.eclipse.jdt.internal.compiler.lookup.TypeBinding[] $r11;
+        org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding $r16, $r17, $r20, $r22, $r25, $r27, $r29, $r31, $r34, $r35, $r36, $r38, $r39, $r41, $r45, $r49, $r50, $r52, $r55, $r57, $r58, $r63, $r64, $r66, $r67, $r68, $r69, $r71, $r83, $r84, $r85;
+        org.eclipse.jdt.internal.compiler.lookup.TypeBinding $r10, $r13, $r15, $r23, $r46, $r47, $r53;
+        java.lang.String $r6;
+        char[] $r7;
+        org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding[] $r12;
+        org.eclipse.jdt.internal.compiler.ast.Expression $r4, $r62, $r73;
+        boolean z0, $z1, $z2, $z4, $z5;
+        org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding $r9, $r14;
+        org.eclipse.jdt.internal.compiler.ast.LocalDeclaration $r21, $r24, $r26, $r28, $r40, $r44, $r48, $r54, $r56, $r70, $r81, $r82, $r86;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.ast.ForeachStatement;
+
+        r33 := @parameter0: org.eclipse.jdt.internal.compiler.lookup.BlockScope;
+
+        r1 := @parameter1: org.eclipse.jdt.internal.compiler.codegen.CodeStream;
+
+        $i0 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int bits>;
+
+        $i1 = $i0 & -2147483648;
+
+        if $i1 != 0 goto label01;
+
+        return;
+
+     label01:
+        i2 = r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: int position>;
+
+        $r2 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.Statement action>;
+
+        if $r2 == null goto label02;
+
+        $r75 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.Statement action>;
+
+        $z2 = virtualinvoke $r75.<org.eclipse.jdt.internal.compiler.ast.Statement: boolean isEmptyBlock()>();
+
+        if $z2 != 0 goto label02;
+
+        $r76 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.Statement action>;
+
+        $i32 = $r76.<org.eclipse.jdt.internal.compiler.ast.Statement: int bits>;
+
+        $i33 = $i32 & 1;
+
+        if $i33 != 0 goto label02;
+
+        $z5 = 0;
+
+        $z4 = 0;
+
+        goto label03;
+
+     label02:
+        $z5 = 1;
+
+        $z4 = 1;
+
+     label03:
+        z0 = $z4;
+
+        if $z5 == 0 goto label05;
+
+        $r70 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.LocalDeclaration elementVariable>;
+
+        $r71 = $r70.<org.eclipse.jdt.internal.compiler.ast.LocalDeclaration: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding binding>;
+
+        $i26 = $r71.<org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding: int resolvedPosition>;
+
+        $i47 = (int) -1;
+
+        if $i26 != $i47 goto label05;
+
+        $i27 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int kind>;
+
+        if $i27 != 0 goto label05;
+
+        $r73 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.Expression collection>;
+
+        $r72 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        virtualinvoke $r73.<org.eclipse.jdt.internal.compiler.ast.Expression: void generateCode(org.eclipse.jdt.internal.compiler.lookup.BlockScope,org.eclipse.jdt.internal.compiler.codegen.CodeStream,boolean)>($r72, r1, 0);
+
+        $r74 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void exitUserScope(org.eclipse.jdt.internal.compiler.lookup.BlockScope)>($r74);
+
+        $i28 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int mergedInitStateIndex>;
+
+        $i49 = (int) -1;
+
+        if $i28 == $i49 goto label04;
+
+        $i30 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int mergedInitStateIndex>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void removeNotDefinitelyAssignedVariables(org.eclipse.jdt.internal.compiler.lookup.Scope,int)>(r33, $i30);
+
+        $i31 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int mergedInitStateIndex>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void addDefinitelyAssignedVariables(org.eclipse.jdt.internal.compiler.lookup.Scope,int)>(r33, $i31);
+
+     label04:
+        $i29 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int sourceStart>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void recordPositionsFrom(int,int)>(i2, $i29);
+
+        return;
+
+     label05:
+        $i34 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int kind>;
+
+        tableswitch($i34)
+        {
+            case 0: goto label06;
+            case 1: goto label07;
+            case 2: goto label07;
+            default: goto label10;
+        };
+
+     label06:
+        $r62 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.Expression collection>;
+
+        $r61 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        virtualinvoke $r62.<org.eclipse.jdt.internal.compiler.ast.Expression: void generateCode(org.eclipse.jdt.internal.compiler.lookup.BlockScope,org.eclipse.jdt.internal.compiler.codegen.CodeStream,boolean)>($r61, r1, 1);
+
+        $r63 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding collectionVariable>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void store(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding,boolean)>($r63, 1);
+
+        $r64 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding collectionVariable>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void addVariable(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r64);
+
+        $r65 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel continueLabel>;
+
+        if $r65 == null goto label10;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void arraylength()>();
+
+        $r66 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding maxVariable>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void store(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding,boolean)>($r66, 0);
+
+        $r67 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding maxVariable>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void addVariable(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r67);
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void iconst_0()>();
+
+        $r68 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding indexVariable>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void store(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding,boolean)>($r68, 0);
+
+        $r69 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding indexVariable>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void addVariable(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r69);
+
+        goto label10;
+
+     label07:
+        $r4 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.Expression collection>;
+
+        $r3 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        virtualinvoke $r4.<org.eclipse.jdt.internal.compiler.ast.Expression: void generateCode(org.eclipse.jdt.internal.compiler.lookup.BlockScope,org.eclipse.jdt.internal.compiler.codegen.CodeStream,boolean)>($r3, r1, 1);
+
+        $r88 = new org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
+
+        $r6 = "iterator";
+
+        $r7 = virtualinvoke $r6.<java.lang.String: char[] toCharArray()>();
+
+        $r8 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        $r9 = virtualinvoke $r8.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding getJavaUtilIterator()>();
+
+        $r11 = <org.eclipse.jdt.internal.compiler.lookup.Binding: org.eclipse.jdt.internal.compiler.lookup.TypeBinding[] NO_PARAMETERS>;
+
+        $r12 = <org.eclipse.jdt.internal.compiler.lookup.Binding: org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding[] NO_EXCEPTIONS>;
+
+        $r10 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.TypeBinding iteratorReceiverType>;
+
+        $r13 = virtualinvoke $r10.<org.eclipse.jdt.internal.compiler.lookup.TypeBinding: org.eclipse.jdt.internal.compiler.lookup.TypeBinding erasure()>();
+
+        $r14 = (org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding) $r13;
+
+        specialinvoke $r88.<org.eclipse.jdt.internal.compiler.lookup.MethodBinding: void <init>(int,char[],org.eclipse.jdt.internal.compiler.lookup.TypeBinding,org.eclipse.jdt.internal.compiler.lookup.TypeBinding[],org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding[],org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding)>(1, $r7, $r9, $r11, $r12, $r14);
+
+        $r15 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.TypeBinding iteratorReceiverType>;
+
+        $z1 = virtualinvoke $r15.<org.eclipse.jdt.internal.compiler.lookup.TypeBinding: boolean isInterface()>();
+
+        if $z1 == 0 goto label08;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void invokeinterface(org.eclipse.jdt.internal.compiler.lookup.MethodBinding)>($r88);
+
+        goto label09;
+
+     label08:
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void invokevirtual(org.eclipse.jdt.internal.compiler.lookup.MethodBinding)>($r88);
+
+     label09:
+        $r16 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding indexVariable>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void store(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding,boolean)>($r16, 0);
+
+        $r17 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding indexVariable>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void addVariable(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r17);
+
+     label10:
+        $r89 = new org.eclipse.jdt.internal.compiler.codegen.BranchLabel;
+
+        specialinvoke $r89.<org.eclipse.jdt.internal.compiler.codegen.BranchLabel: void <init>(org.eclipse.jdt.internal.compiler.codegen.CodeStream)>(r1);
+
+        $i35 = $r89.<org.eclipse.jdt.internal.compiler.codegen.BranchLabel: int tagBits>;
+
+        $i36 = $i35 | 2;
+
+        $r89.<org.eclipse.jdt.internal.compiler.codegen.BranchLabel: int tagBits> = $i36;
+
+        $r90 = new org.eclipse.jdt.internal.compiler.codegen.BranchLabel;
+
+        specialinvoke $r90.<org.eclipse.jdt.internal.compiler.codegen.BranchLabel: void <init>(org.eclipse.jdt.internal.compiler.codegen.CodeStream)>(r1);
+
+        $i37 = $r90.<org.eclipse.jdt.internal.compiler.codegen.BranchLabel: int tagBits>;
+
+        $i38 = $i37 | 2;
+
+        $r90.<org.eclipse.jdt.internal.compiler.codegen.BranchLabel: int tagBits> = $i38;
+
+        $r79 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel breakLabel>;
+
+        virtualinvoke $r79.<org.eclipse.jdt.internal.compiler.codegen.BranchLabel: void initialize(org.eclipse.jdt.internal.compiler.codegen.CodeStream)>(r1);
+
+        $r80 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel continueLabel>;
+
+        if $r80 != null goto label14;
+
+        virtualinvoke $r90.<org.eclipse.jdt.internal.compiler.codegen.BranchLabel: void place()>();
+
+        i39 = r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: int position>;
+
+        $i25 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int kind>;
+
+        tableswitch($i25)
+        {
+            case 0: goto label11;
+            case 1: goto label12;
+            case 2: goto label12;
+            default: goto label13;
+        };
+
+     label11:
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void arraylength()>();
+
+        $r60 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel breakLabel>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void ifeq(org.eclipse.jdt.internal.compiler.codegen.BranchLabel)>($r60);
+
+        goto label13;
+
+     label12:
+        $r58 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding indexVariable>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void load(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r58);
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void invokeJavaUtilIteratorHasNext()>();
+
+        $r59 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel breakLabel>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void ifeq(org.eclipse.jdt.internal.compiler.codegen.BranchLabel)>($r59);
+
+     label13:
+        $r81 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.LocalDeclaration elementVariable>;
+
+        $i40 = $r81.<org.eclipse.jdt.internal.compiler.ast.LocalDeclaration: int sourceStart>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void recordPositionsFrom(int,int)>(i39, $i40);
+
+        goto label15;
+
+     label14:
+        $r18 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel continueLabel>;
+
+        virtualinvoke $r18.<org.eclipse.jdt.internal.compiler.codegen.BranchLabel: void initialize(org.eclipse.jdt.internal.compiler.codegen.CodeStream)>(r1);
+
+        $r19 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel continueLabel>;
+
+        $i3 = $r19.<org.eclipse.jdt.internal.compiler.codegen.BranchLabel: int tagBits>;
+
+        $i4 = $i3 | 2;
+
+        $r19.<org.eclipse.jdt.internal.compiler.codegen.BranchLabel: int tagBits> = $i4;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void goto_(org.eclipse.jdt.internal.compiler.codegen.BranchLabel)>($r90);
+
+     label15:
+        virtualinvoke $r89.<org.eclipse.jdt.internal.compiler.codegen.BranchLabel: void place()>();
+
+        $i5 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int kind>;
+
+        tableswitch($i5)
+        {
+            case 0: goto label16;
+            case 1: goto label20;
+            case 2: goto label20;
+            default: goto label24;
+        };
+
+     label16:
+        $r48 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.LocalDeclaration elementVariable>;
+
+        $r49 = $r48.<org.eclipse.jdt.internal.compiler.ast.LocalDeclaration: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding binding>;
+
+        $i19 = $r49.<org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding: int resolvedPosition>;
+
+        $i51 = (int) -1;
+
+        if $i19 == $i51 goto label24;
+
+        $r50 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding collectionVariable>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void load(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r50);
+
+        $r51 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel continueLabel>;
+
+        if $r51 != null goto label17;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void iconst_0()>();
+
+        goto label18;
+
+     label17:
+        $r52 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding indexVariable>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void load(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r52);
+
+     label18:
+        $r53 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.TypeBinding collectionElementType>;
+
+        $i20 = $r53.<org.eclipse.jdt.internal.compiler.lookup.TypeBinding: int id>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void arrayAt(int)>($i20);
+
+        $i21 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int elementVariableImplicitWidening>;
+
+        $i53 = (int) -1;
+
+        if $i21 == $i53 goto label19;
+
+        $i24 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int elementVariableImplicitWidening>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void generateImplicitConversion(int)>($i24);
+
+     label19:
+        $r54 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.LocalDeclaration elementVariable>;
+
+        $r55 = $r54.<org.eclipse.jdt.internal.compiler.ast.LocalDeclaration: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding binding>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void store(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding,boolean)>($r55, 0);
+
+        $r56 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.LocalDeclaration elementVariable>;
+
+        $r57 = $r56.<org.eclipse.jdt.internal.compiler.ast.LocalDeclaration: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding binding>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void addVisibleLocalVariable(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r57);
+
+        $i22 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int postCollectionInitStateIndex>;
+
+        $i55 = (int) -1;
+
+        if $i22 == $i55 goto label24;
+
+        $i23 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int postCollectionInitStateIndex>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void addDefinitelyAssignedVariables(org.eclipse.jdt.internal.compiler.lookup.Scope,int)>(r33, $i23);
+
+        goto label24;
+
+     label20:
+        $r20 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding indexVariable>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void load(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r20);
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void invokeJavaUtilIteratorNext()>();
+
+        $r21 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.LocalDeclaration elementVariable>;
+
+        $r22 = $r21.<org.eclipse.jdt.internal.compiler.ast.LocalDeclaration: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding binding>;
+
+        $r23 = $r22.<org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding: org.eclipse.jdt.internal.compiler.lookup.TypeBinding type>;
+
+        $i6 = $r23.<org.eclipse.jdt.internal.compiler.lookup.TypeBinding: int id>;
+
+        if $i6 == 1 goto label22;
+
+        $i17 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int elementVariableImplicitWidening>;
+
+        $i57 = (int) -1;
+
+        if $i17 == $i57 goto label21;
+
+        $r47 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.TypeBinding collectionElementType>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void checkcast(org.eclipse.jdt.internal.compiler.lookup.TypeBinding)>($r47);
+
+        $i18 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int elementVariableImplicitWidening>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void generateImplicitConversion(int)>($i18);
+
+        goto label22;
+
+     label21:
+        $r44 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.LocalDeclaration elementVariable>;
+
+        $r45 = $r44.<org.eclipse.jdt.internal.compiler.ast.LocalDeclaration: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding binding>;
+
+        $r46 = $r45.<org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding: org.eclipse.jdt.internal.compiler.lookup.TypeBinding type>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void checkcast(org.eclipse.jdt.internal.compiler.lookup.TypeBinding)>($r46);
+
+     label22:
+        $r82 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.LocalDeclaration elementVariable>;
+
+        $r83 = $r82.<org.eclipse.jdt.internal.compiler.ast.LocalDeclaration: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding binding>;
+
+        $i41 = $r83.<org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding: int resolvedPosition>;
+
+        $i59 = (int) -1;
+
+        if $i41 != $i59 goto label23;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void pop()>();
+
+        goto label24;
+
+     label23:
+        $r24 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.LocalDeclaration elementVariable>;
+
+        $r25 = $r24.<org.eclipse.jdt.internal.compiler.ast.LocalDeclaration: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding binding>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void store(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding,boolean)>($r25, 0);
+
+        $r26 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.LocalDeclaration elementVariable>;
+
+        $r27 = $r26.<org.eclipse.jdt.internal.compiler.ast.LocalDeclaration: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding binding>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void addVisibleLocalVariable(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r27);
+
+        $i7 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int postCollectionInitStateIndex>;
+
+        $i61 = (int) -1;
+
+        if $i7 == $i61 goto label24;
+
+        $i16 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int postCollectionInitStateIndex>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void addDefinitelyAssignedVariables(org.eclipse.jdt.internal.compiler.lookup.Scope,int)>(r33, $i16);
+
+     label24:
+        if z0 != 0 goto label25;
+
+        $r43 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.Statement action>;
+
+        $r42 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        virtualinvoke $r43.<org.eclipse.jdt.internal.compiler.ast.Statement: void generateCode(org.eclipse.jdt.internal.compiler.lookup.BlockScope,org.eclipse.jdt.internal.compiler.codegen.CodeStream)>($r42, r1);
+
+     label25:
+        $r28 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.LocalDeclaration elementVariable>;
+
+        $r29 = $r28.<org.eclipse.jdt.internal.compiler.ast.LocalDeclaration: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding binding>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void removeVariable(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r29);
+
+        $i8 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int postCollectionInitStateIndex>;
+
+        $i63 = (int) -1;
+
+        if $i8 == $i63 goto label26;
+
+        $i15 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int postCollectionInitStateIndex>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void removeNotDefinitelyAssignedVariables(org.eclipse.jdt.internal.compiler.lookup.Scope,int)>(r33, $i15);
+
+     label26:
+        $r30 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel continueLabel>;
+
+        if $r30 == null goto label32;
+
+        $r37 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel continueLabel>;
+
+        virtualinvoke $r37.<org.eclipse.jdt.internal.compiler.codegen.BranchLabel: void place()>();
+
+        i42 = r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: int position>;
+
+        $i12 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int kind>;
+
+        tableswitch($i12)
+        {
+            case 0: goto label27;
+            case 1: goto label30;
+            case 2: goto label30;
+            default: goto label31;
+        };
+
+     label27:
+        if z0 == 0 goto label28;
+
+        $r40 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.LocalDeclaration elementVariable>;
+
+        $r41 = $r40.<org.eclipse.jdt.internal.compiler.ast.LocalDeclaration: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding binding>;
+
+        $i14 = $r41.<org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding: int resolvedPosition>;
+
+        if $i14 < 0 goto label29;
+
+     label28:
+        $r39 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding indexVariable>;
+
+        $i13 = $r39.<org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding: int resolvedPosition>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void iinc(int,int)>($i13, 1);
+
+     label29:
+        virtualinvoke $r90.<org.eclipse.jdt.internal.compiler.codegen.BranchLabel: void place()>();
+
+        $r84 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding indexVariable>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void load(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r84);
+
+        $r85 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding maxVariable>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void load(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r85);
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void if_icmplt(org.eclipse.jdt.internal.compiler.codegen.BranchLabel)>($r89);
+
+        goto label31;
+
+     label30:
+        virtualinvoke $r90.<org.eclipse.jdt.internal.compiler.codegen.BranchLabel: void place()>();
+
+        $r38 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding indexVariable>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void load(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r38);
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void invokeJavaUtilIteratorHasNext()>();
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void ifne(org.eclipse.jdt.internal.compiler.codegen.BranchLabel)>($r89);
+
+     label31:
+        $r86 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.LocalDeclaration elementVariable>;
+
+        $i43 = $r86.<org.eclipse.jdt.internal.compiler.ast.LocalDeclaration: int sourceStart>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void recordPositionsFrom(int,int)>(i42, $i43);
+
+     label32:
+        $i44 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int kind>;
+
+        tableswitch($i44)
+        {
+            case 0: goto label33;
+            case 1: goto label34;
+            case 2: goto label34;
+            default: goto label35;
+        };
+
+     label33:
+        $r34 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding indexVariable>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void removeVariable(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r34);
+
+        $r35 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding maxVariable>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void removeVariable(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r35);
+
+        $r36 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding collectionVariable>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void removeVariable(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r36);
+
+        goto label35;
+
+     label34:
+        $r31 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding indexVariable>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void removeVariable(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r31);
+
+     label35:
+        $r87 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void exitUserScope(org.eclipse.jdt.internal.compiler.lookup.BlockScope)>($r87);
+
+        $i45 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int mergedInitStateIndex>;
+
+        $i65 = (int) -1;
+
+        if $i45 == $i65 goto label36;
+
+        $i10 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int mergedInitStateIndex>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void removeNotDefinitelyAssignedVariables(org.eclipse.jdt.internal.compiler.lookup.Scope,int)>(r33, $i10);
+
+        $i11 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int mergedInitStateIndex>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void addDefinitelyAssignedVariables(org.eclipse.jdt.internal.compiler.lookup.Scope,int)>(r33, $i11);
+
+     label36:
+        $r32 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.codegen.BranchLabel breakLabel>;
+
+        virtualinvoke $r32.<org.eclipse.jdt.internal.compiler.codegen.BranchLabel: void place()>();
+
+        $i9 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int sourceStart>;
+
+        virtualinvoke r1.<org.eclipse.jdt.internal.compiler.codegen.CodeStream: void recordPositionsFrom(int,int)>(i2, $i9);
+
+        return;
+    }
+
+    public java.lang.StringBuffer printStatement(int, java.lang.StringBuffer)
+    {
+        org.eclipse.jdt.internal.compiler.ast.LocalDeclaration $r3;
+        org.eclipse.jdt.internal.compiler.ast.Statement $r6, $r7;
+        org.eclipse.jdt.internal.compiler.ast.ForeachStatement r2;
+        org.eclipse.jdt.internal.compiler.ast.Expression $r4;
+        java.lang.StringBuffer r0, $r1, $r5;
+        int i0, $i1;
+
+        r2 := @this: org.eclipse.jdt.internal.compiler.ast.ForeachStatement;
+
+        i0 := @parameter0: int;
+
+        r0 := @parameter1: java.lang.StringBuffer;
+
+        $r1 = staticinvoke <org.eclipse.jdt.internal.compiler.ast.ForeachStatement: java.lang.StringBuffer printIndent(int,java.lang.StringBuffer)>(i0, r0);
+
+        virtualinvoke $r1.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>("for (");
+
+        $r3 = r2.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.LocalDeclaration elementVariable>;
+
+        virtualinvoke $r3.<org.eclipse.jdt.internal.compiler.ast.LocalDeclaration: java.lang.StringBuffer printAsExpression(int,java.lang.StringBuffer)>(0, r0);
+
+        virtualinvoke r0.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>(" : ");
+
+        $r4 = r2.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.Expression collection>;
+
+        $r5 = virtualinvoke $r4.<org.eclipse.jdt.internal.compiler.ast.Expression: java.lang.StringBuffer print(int,java.lang.StringBuffer)>(0, r0);
+
+        virtualinvoke $r5.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>(") ");
+
+        $r6 = r2.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.Statement action>;
+
+        if $r6 != null goto label1;
+
+        virtualinvoke r0.<java.lang.StringBuffer: java.lang.StringBuffer append(char)>(59);
+
+        goto label2;
+
+     label1:
+        virtualinvoke r0.<java.lang.StringBuffer: java.lang.StringBuffer append(char)>(10);
+
+        $r7 = r2.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.Statement action>;
+
+        $i1 = i0 + 1;
+
+        virtualinvoke $r7.<org.eclipse.jdt.internal.compiler.ast.Statement: java.lang.StringBuffer printStatement(int,java.lang.StringBuffer)>($i1, r0);
+
+     label2:
+        return r0;
+    }
+
+    public void resolve(org.eclipse.jdt.internal.compiler.lookup.BlockScope)
+    {
+        org.eclipse.jdt.internal.compiler.ast.TypeReference $r6;
+        org.eclipse.jdt.internal.compiler.impl.Constant $r20, $r27, $r34, $r40;
+        org.eclipse.jdt.internal.compiler.ast.ForeachStatement r0;
+        org.eclipse.jdt.internal.compiler.lookup.BlockScope $r1, r2, $r3, $r9, $r12, $r15, $r19, $r26, $r33, $r39, $r42, $r51, $r56, $r61, $r66, $r67, $r71, $r75, $r76, $r81, $r83, $r89, $r93, $r98, $r102, $r107, $r108;
+        org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment $r57, $r62, $r90, $r99;
+        org.eclipse.jdt.internal.compiler.ast.Statement $r13, $r116;
+        org.eclipse.jdt.internal.compiler.lookup.ParameterizedTypeBinding $r80;
+        int $i0, $i1, i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i10, $i11, $i12, $i13, $i14, $i15, $i16, $i17, $i18, $i19, $i20, $i21, $i22, $i23, $i24, $i25, i26, i27, $i28, i29, $i30;
+        org.eclipse.jdt.internal.compiler.lookup.TypeBinding[] r114;
+        org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding $r14, $r18, $r21, $r22, $r25, $r28, $r29, $r32, $r35, $r36, $r38, $r41;
+        org.eclipse.jdt.internal.compiler.lookup.TypeBinding r7, r11, $r47, $r48, $r53, $r54, $r55, $r58, $r59, $r60, $r63, $r64, $r65, $r69, $r73, $r74, $r78, $r86, $r87, $r88, $r91, $r92, $r95, $r97, $r100, $r101, $r104, $r106, $r110, $r112, $r113, $r115;
+        org.eclipse.jdt.internal.compiler.lookup.ArrayBinding $r85;
+        char[] $r16, $r24, $r31, $r37;
+        org.eclipse.jdt.internal.compiler.problem.ProblemReporter $r43, $r68, $r77, $r94, $r103, $r109;
+        org.eclipse.jdt.internal.compiler.ast.Expression $r8, $r10, $r44, $r52, $r70, $r79, $r82, $r84, $r96, $r105, $r111;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9, $z10, $z11, $z12, $z13, $z14, $z15;
+        org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding $r17, $r45, $r46, $r49, $r50, $r72;
+        org.eclipse.jdt.internal.compiler.lookup.BaseTypeBinding $r23, $r30;
+        org.eclipse.jdt.internal.compiler.ast.LocalDeclaration $r4, $r5;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.ast.ForeachStatement;
+
+        r2 := @parameter0: org.eclipse.jdt.internal.compiler.lookup.BlockScope;
+
+        $r1 = new org.eclipse.jdt.internal.compiler.lookup.BlockScope;
+
+        specialinvoke $r1.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: void <init>(org.eclipse.jdt.internal.compiler.lookup.BlockScope)>(r2);
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope> = $r1;
+
+        $r4 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.LocalDeclaration elementVariable>;
+
+        $r3 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        virtualinvoke $r4.<org.eclipse.jdt.internal.compiler.ast.LocalDeclaration: void resolve(org.eclipse.jdt.internal.compiler.lookup.BlockScope)>($r3);
+
+        $r5 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.LocalDeclaration elementVariable>;
+
+        $r6 = $r5.<org.eclipse.jdt.internal.compiler.ast.LocalDeclaration: org.eclipse.jdt.internal.compiler.ast.TypeReference type>;
+
+        r7 = $r6.<org.eclipse.jdt.internal.compiler.ast.TypeReference: org.eclipse.jdt.internal.compiler.lookup.TypeBinding resolvedType>;
+
+        $r8 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.Expression collection>;
+
+        if $r8 != null goto label01;
+
+        $r112 = null;
+
+        goto label02;
+
+     label01:
+        $r10 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.Expression collection>;
+
+        $r9 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        $r112 = virtualinvoke $r10.<org.eclipse.jdt.internal.compiler.ast.Expression: org.eclipse.jdt.internal.compiler.lookup.TypeBinding resolveType(org.eclipse.jdt.internal.compiler.lookup.BlockScope)>($r9);
+
+     label02:
+        r11 = $r112;
+
+        if r7 == null goto label23;
+
+        if $r112 == null goto label23;
+
+        $z0 = virtualinvoke $r112.<org.eclipse.jdt.internal.compiler.lookup.TypeBinding: boolean isArrayType()>();
+
+        if $z0 == 0 goto label06;
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int kind> = 0;
+
+        $r84 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.Expression collection>;
+
+        $r83 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        virtualinvoke $r84.<org.eclipse.jdt.internal.compiler.ast.Expression: void computeConversion(org.eclipse.jdt.internal.compiler.lookup.Scope,org.eclipse.jdt.internal.compiler.lookup.TypeBinding,org.eclipse.jdt.internal.compiler.lookup.TypeBinding)>($r83, $r112, $r112);
+
+        $r85 = (org.eclipse.jdt.internal.compiler.lookup.ArrayBinding) $r112;
+
+        $r86 = virtualinvoke $r85.<org.eclipse.jdt.internal.compiler.lookup.ArrayBinding: org.eclipse.jdt.internal.compiler.lookup.TypeBinding elementsType()>();
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.TypeBinding collectionElementType> = $r86;
+
+        $r87 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.TypeBinding collectionElementType>;
+
+        $z9 = virtualinvoke $r87.<org.eclipse.jdt.internal.compiler.lookup.TypeBinding: boolean isCompatibleWith(org.eclipse.jdt.internal.compiler.lookup.TypeBinding)>(r7);
+
+        if $z9 != 0 goto label03;
+
+        $r107 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        $r106 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.TypeBinding collectionElementType>;
+
+        $z13 = virtualinvoke $r107.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: boolean isBoxingCompatibleWith(org.eclipse.jdt.internal.compiler.lookup.TypeBinding,org.eclipse.jdt.internal.compiler.lookup.TypeBinding)>($r106, r7);
+
+        if $z13 != 0 goto label03;
+
+        $r108 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        $r109 = virtualinvoke $r108.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.problem.ProblemReporter problemReporter()>();
+
+        $r111 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.Expression collection>;
+
+        $r110 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.TypeBinding collectionElementType>;
+
+        virtualinvoke $r109.<org.eclipse.jdt.internal.compiler.problem.ProblemReporter: void notCompatibleTypesErrorInForeach(org.eclipse.jdt.internal.compiler.ast.Expression,org.eclipse.jdt.internal.compiler.lookup.TypeBinding,org.eclipse.jdt.internal.compiler.lookup.TypeBinding)>($r111, $r110, r7);
+
+     label03:
+        $r113 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.TypeBinding collectionElementType>;
+
+        $i25 = $r113.<org.eclipse.jdt.internal.compiler.lookup.TypeBinding: int id>;
+
+        $z14 = virtualinvoke r7.<org.eclipse.jdt.internal.compiler.lookup.TypeBinding: boolean isBaseType()>();
+
+        if $z14 == 0 goto label05;
+
+        $r97 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.TypeBinding collectionElementType>;
+
+        $z11 = virtualinvoke $r97.<org.eclipse.jdt.internal.compiler.lookup.TypeBinding: boolean isBaseType()>();
+
+        if $z11 != 0 goto label04;
+
+        $r98 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        $r99 = virtualinvoke $r98.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment environment()>();
+
+        $r100 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.TypeBinding collectionElementType>;
+
+        $r101 = virtualinvoke $r99.<org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment: org.eclipse.jdt.internal.compiler.lookup.TypeBinding computeBoxingType(org.eclipse.jdt.internal.compiler.lookup.TypeBinding)>($r100);
+
+        i26 = $r101.<org.eclipse.jdt.internal.compiler.lookup.TypeBinding: int id>;
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int elementVariableImplicitWidening> = 1024;
+
+        $z12 = virtualinvoke r7.<org.eclipse.jdt.internal.compiler.lookup.TypeBinding: boolean isBaseType()>();
+
+        if $z12 == 0 goto label19;
+
+        $i23 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int elementVariableImplicitWidening>;
+
+        $i20 = r7.<org.eclipse.jdt.internal.compiler.lookup.TypeBinding: int id>;
+
+        $i21 = $i20 << 4;
+
+        $i22 = $i21 + i26;
+
+        $i24 = $i23 | $i22;
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int elementVariableImplicitWidening> = $i24;
+
+        $r102 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        $r103 = virtualinvoke $r102.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.problem.ProblemReporter problemReporter()>();
+
+        $r105 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.Expression collection>;
+
+        $r104 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.TypeBinding collectionElementType>;
+
+        virtualinvoke $r103.<org.eclipse.jdt.internal.compiler.problem.ProblemReporter: void autoboxing(org.eclipse.jdt.internal.compiler.ast.Expression,org.eclipse.jdt.internal.compiler.lookup.TypeBinding,org.eclipse.jdt.internal.compiler.lookup.TypeBinding)>($r105, $r104, r7);
+
+        goto label19;
+
+     label04:
+        $i17 = r7.<org.eclipse.jdt.internal.compiler.lookup.TypeBinding: int id>;
+
+        $i18 = $i17 << 4;
+
+        $i19 = $i18 + $i25;
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int elementVariableImplicitWidening> = $i19;
+
+        goto label19;
+
+     label05:
+        $r88 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.TypeBinding collectionElementType>;
+
+        $z10 = virtualinvoke $r88.<org.eclipse.jdt.internal.compiler.lookup.TypeBinding: boolean isBaseType()>();
+
+        if $z10 == 0 goto label19;
+
+        $r89 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        $r90 = virtualinvoke $r89.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment environment()>();
+
+        $r91 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.TypeBinding collectionElementType>;
+
+        $r92 = virtualinvoke $r90.<org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment: org.eclipse.jdt.internal.compiler.lookup.TypeBinding computeBoxingType(org.eclipse.jdt.internal.compiler.lookup.TypeBinding)>($r91);
+
+        i27 = $r92.<org.eclipse.jdt.internal.compiler.lookup.TypeBinding: int id>;
+
+        $i14 = $i25 << 4;
+
+        $i15 = 512 | $i14;
+
+        $i16 = $i15 | $i25;
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int elementVariableImplicitWidening> = $i16;
+
+        $r93 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        $r94 = virtualinvoke $r93.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.problem.ProblemReporter problemReporter()>();
+
+        $r96 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.Expression collection>;
+
+        $r95 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.TypeBinding collectionElementType>;
+
+        virtualinvoke $r94.<org.eclipse.jdt.internal.compiler.problem.ProblemReporter: void autoboxing(org.eclipse.jdt.internal.compiler.ast.Expression,org.eclipse.jdt.internal.compiler.lookup.TypeBinding,org.eclipse.jdt.internal.compiler.lookup.TypeBinding)>($r96, $r95, r7);
+
+        goto label19;
+
+     label06:
+        $z1 = $r112 instanceof org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
+
+        if $z1 == 0 goto label19;
+
+        $r45 = (org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding) $r112;
+
+        $r46 = virtualinvoke $r45.<org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding: org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding findSuperTypeOriginatingFrom(int,boolean)>(38, 0);
+
+        if $r46 != null goto label07;
+
+        goto label19;
+
+     label07:
+        $r47 = virtualinvoke $r112.<org.eclipse.jdt.internal.compiler.lookup.TypeBinding: org.eclipse.jdt.internal.compiler.lookup.TypeBinding erasure()>();
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.TypeBinding iteratorReceiverType> = $r47;
+
+        $r48 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.TypeBinding iteratorReceiverType>;
+
+        $r49 = (org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding) $r48;
+
+        $r50 = virtualinvoke $r49.<org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding: org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding findSuperTypeOriginatingFrom(int,boolean)>(38, 0);
+
+        if $r50 != null goto label08;
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.TypeBinding iteratorReceiverType> = $r46;
+
+        $r82 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.Expression collection>;
+
+        $r81 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        virtualinvoke $r82.<org.eclipse.jdt.internal.compiler.ast.Expression: void computeConversion(org.eclipse.jdt.internal.compiler.lookup.Scope,org.eclipse.jdt.internal.compiler.lookup.TypeBinding,org.eclipse.jdt.internal.compiler.lookup.TypeBinding)>($r81, $r46, $r112);
+
+        goto label09;
+
+     label08:
+        $r52 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.Expression collection>;
+
+        $r51 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        virtualinvoke $r52.<org.eclipse.jdt.internal.compiler.ast.Expression: void computeConversion(org.eclipse.jdt.internal.compiler.lookup.Scope,org.eclipse.jdt.internal.compiler.lookup.TypeBinding,org.eclipse.jdt.internal.compiler.lookup.TypeBinding)>($r51, $r112, $r112);
+
+     label09:
+        $i0 = virtualinvoke $r46.<org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding: int kind()>();
+
+        lookupswitch($i0)
+        {
+            case 260: goto label12;
+            case 1028: goto label10;
+            case 2052: goto label11;
+            default: goto label13;
+        };
+
+     label10:
+        r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int kind> = 1;
+
+        $r71 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        $r72 = virtualinvoke $r71.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding getJavaLangObject()>();
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.TypeBinding collectionElementType> = $r72;
+
+        $r73 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.TypeBinding collectionElementType>;
+
+        $z7 = virtualinvoke $r73.<org.eclipse.jdt.internal.compiler.lookup.TypeBinding: boolean isCompatibleWith(org.eclipse.jdt.internal.compiler.lookup.TypeBinding)>(r7);
+
+        if $z7 != 0 goto label19;
+
+        $r75 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        $r74 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.TypeBinding collectionElementType>;
+
+        $z8 = virtualinvoke $r75.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: boolean isBoxingCompatibleWith(org.eclipse.jdt.internal.compiler.lookup.TypeBinding,org.eclipse.jdt.internal.compiler.lookup.TypeBinding)>($r74, r7);
+
+        if $z8 != 0 goto label19;
+
+        $r76 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        $r77 = virtualinvoke $r76.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.problem.ProblemReporter problemReporter()>();
+
+        $r79 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.Expression collection>;
+
+        $r78 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.TypeBinding collectionElementType>;
+
+        virtualinvoke $r77.<org.eclipse.jdt.internal.compiler.problem.ProblemReporter: void notCompatibleTypesErrorInForeach(org.eclipse.jdt.internal.compiler.ast.Expression,org.eclipse.jdt.internal.compiler.lookup.TypeBinding,org.eclipse.jdt.internal.compiler.lookup.TypeBinding)>($r79, $r78, r7);
+
+        goto label19;
+
+     label11:
+        r114 = virtualinvoke $r46.<org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding: org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding[] typeVariables()>();
+
+        goto label14;
+
+     label12:
+        $r80 = (org.eclipse.jdt.internal.compiler.lookup.ParameterizedTypeBinding) $r46;
+
+        r114 = $r80.<org.eclipse.jdt.internal.compiler.lookup.ParameterizedTypeBinding: org.eclipse.jdt.internal.compiler.lookup.TypeBinding[] arguments>;
+
+        goto label14;
+
+     label13:
+        goto label19;
+
+     label14:
+        $i1 = lengthof r114;
+
+        if $i1 == 1 goto label15;
+
+        goto label19;
+
+     label15:
+        r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int kind> = 2;
+
+        $r53 = r114[0];
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.TypeBinding collectionElementType> = $r53;
+
+        $r54 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.TypeBinding collectionElementType>;
+
+        $z2 = virtualinvoke $r54.<org.eclipse.jdt.internal.compiler.lookup.TypeBinding: boolean isCompatibleWith(org.eclipse.jdt.internal.compiler.lookup.TypeBinding)>(r7);
+
+        if $z2 != 0 goto label16;
+
+        $r66 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        $r65 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.TypeBinding collectionElementType>;
+
+        $z6 = virtualinvoke $r66.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: boolean isBoxingCompatibleWith(org.eclipse.jdt.internal.compiler.lookup.TypeBinding,org.eclipse.jdt.internal.compiler.lookup.TypeBinding)>($r65, r7);
+
+        if $z6 != 0 goto label16;
+
+        $r67 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        $r68 = virtualinvoke $r67.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.problem.ProblemReporter problemReporter()>();
+
+        $r70 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.Expression collection>;
+
+        $r69 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.TypeBinding collectionElementType>;
+
+        virtualinvoke $r68.<org.eclipse.jdt.internal.compiler.problem.ProblemReporter: void notCompatibleTypesErrorInForeach(org.eclipse.jdt.internal.compiler.ast.Expression,org.eclipse.jdt.internal.compiler.lookup.TypeBinding,org.eclipse.jdt.internal.compiler.lookup.TypeBinding)>($r70, $r69, r7);
+
+     label16:
+        $r115 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.TypeBinding collectionElementType>;
+
+        $i28 = $r115.<org.eclipse.jdt.internal.compiler.lookup.TypeBinding: int id>;
+
+        $z15 = virtualinvoke r7.<org.eclipse.jdt.internal.compiler.lookup.TypeBinding: boolean isBaseType()>();
+
+        if $z15 == 0 goto label18;
+
+        $r60 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.TypeBinding collectionElementType>;
+
+        $z4 = virtualinvoke $r60.<org.eclipse.jdt.internal.compiler.lookup.TypeBinding: boolean isBaseType()>();
+
+        if $z4 != 0 goto label17;
+
+        $r61 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        $r62 = virtualinvoke $r61.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment environment()>();
+
+        $r63 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.TypeBinding collectionElementType>;
+
+        $r64 = virtualinvoke $r62.<org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment: org.eclipse.jdt.internal.compiler.lookup.TypeBinding computeBoxingType(org.eclipse.jdt.internal.compiler.lookup.TypeBinding)>($r63);
+
+        i29 = $r64.<org.eclipse.jdt.internal.compiler.lookup.TypeBinding: int id>;
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int elementVariableImplicitWidening> = 1024;
+
+        $z5 = virtualinvoke r7.<org.eclipse.jdt.internal.compiler.lookup.TypeBinding: boolean isBaseType()>();
+
+        if $z5 == 0 goto label19;
+
+        $i12 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int elementVariableImplicitWidening>;
+
+        $i9 = r7.<org.eclipse.jdt.internal.compiler.lookup.TypeBinding: int id>;
+
+        $i10 = $i9 << 4;
+
+        $i11 = $i10 + i29;
+
+        $i13 = $i12 | $i11;
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int elementVariableImplicitWidening> = $i13;
+
+        goto label19;
+
+     label17:
+        $i6 = r7.<org.eclipse.jdt.internal.compiler.lookup.TypeBinding: int id>;
+
+        $i7 = $i6 << 4;
+
+        $i8 = $i7 + $i28;
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int elementVariableImplicitWidening> = $i8;
+
+        goto label19;
+
+     label18:
+        $r55 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.TypeBinding collectionElementType>;
+
+        $z3 = virtualinvoke $r55.<org.eclipse.jdt.internal.compiler.lookup.TypeBinding: boolean isBaseType()>();
+
+        if $z3 == 0 goto label19;
+
+        $r56 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        $r57 = virtualinvoke $r56.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment environment()>();
+
+        $r58 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.TypeBinding collectionElementType>;
+
+        $r59 = virtualinvoke $r57.<org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment: org.eclipse.jdt.internal.compiler.lookup.TypeBinding computeBoxingType(org.eclipse.jdt.internal.compiler.lookup.TypeBinding)>($r58);
+
+        i2 = $r59.<org.eclipse.jdt.internal.compiler.lookup.TypeBinding: int id>;
+
+        $i3 = $i28 << 4;
+
+        $i4 = 512 | $i3;
+
+        $i5 = $i4 | $i28;
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int elementVariableImplicitWidening> = $i5;
+
+     label19:
+        $i30 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: int kind>;
+
+        tableswitch($i30)
+        {
+            case 0: goto label20;
+            case 1: goto label21;
+            case 2: goto label21;
+            default: goto label22;
+        };
+
+     label20:
+        $r22 = new org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding;
+
+        $r24 = <org.eclipse.jdt.internal.compiler.ast.ForeachStatement: char[] SecretIndexVariableName>;
+
+        $r23 = <org.eclipse.jdt.internal.compiler.lookup.TypeBinding: org.eclipse.jdt.internal.compiler.lookup.BaseTypeBinding INT>;
+
+        specialinvoke $r22.<org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding: void <init>(char[],org.eclipse.jdt.internal.compiler.lookup.TypeBinding,int,boolean)>($r24, $r23, 0, 0);
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding indexVariable> = $r22;
+
+        $r26 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        $r25 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding indexVariable>;
+
+        virtualinvoke $r26.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: void addLocalVariable(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r25);
+
+        $r28 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding indexVariable>;
+
+        $r27 = <org.eclipse.jdt.internal.compiler.impl.Constant: org.eclipse.jdt.internal.compiler.impl.Constant NotAConstant>;
+
+        virtualinvoke $r28.<org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding: void setConstant(org.eclipse.jdt.internal.compiler.impl.Constant)>($r27);
+
+        $r29 = new org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding;
+
+        $r31 = <org.eclipse.jdt.internal.compiler.ast.ForeachStatement: char[] SecretMaxVariableName>;
+
+        $r30 = <org.eclipse.jdt.internal.compiler.lookup.TypeBinding: org.eclipse.jdt.internal.compiler.lookup.BaseTypeBinding INT>;
+
+        specialinvoke $r29.<org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding: void <init>(char[],org.eclipse.jdt.internal.compiler.lookup.TypeBinding,int,boolean)>($r31, $r30, 0, 0);
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding maxVariable> = $r29;
+
+        $r33 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        $r32 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding maxVariable>;
+
+        virtualinvoke $r33.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: void addLocalVariable(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r32);
+
+        $r35 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding maxVariable>;
+
+        $r34 = <org.eclipse.jdt.internal.compiler.impl.Constant: org.eclipse.jdt.internal.compiler.impl.Constant NotAConstant>;
+
+        virtualinvoke $r35.<org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding: void setConstant(org.eclipse.jdt.internal.compiler.impl.Constant)>($r34);
+
+        $r36 = new org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding;
+
+        $r37 = <org.eclipse.jdt.internal.compiler.ast.ForeachStatement: char[] SecretCollectionVariableName>;
+
+        specialinvoke $r36.<org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding: void <init>(char[],org.eclipse.jdt.internal.compiler.lookup.TypeBinding,int,boolean)>($r37, r11, 0, 0);
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding collectionVariable> = $r36;
+
+        $r39 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        $r38 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding collectionVariable>;
+
+        virtualinvoke $r39.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: void addLocalVariable(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r38);
+
+        $r41 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding collectionVariable>;
+
+        $r40 = <org.eclipse.jdt.internal.compiler.impl.Constant: org.eclipse.jdt.internal.compiler.impl.Constant NotAConstant>;
+
+        virtualinvoke $r41.<org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding: void setConstant(org.eclipse.jdt.internal.compiler.impl.Constant)>($r40);
+
+        goto label23;
+
+     label21:
+        $r14 = new org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding;
+
+        $r16 = <org.eclipse.jdt.internal.compiler.ast.ForeachStatement: char[] SecretIndexVariableName>;
+
+        $r15 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        $r17 = virtualinvoke $r15.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding getJavaUtilIterator()>();
+
+        specialinvoke $r14.<org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding: void <init>(char[],org.eclipse.jdt.internal.compiler.lookup.TypeBinding,int,boolean)>($r16, $r17, 0, 0);
+
+        r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding indexVariable> = $r14;
+
+        $r19 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        $r18 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding indexVariable>;
+
+        virtualinvoke $r19.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: void addLocalVariable(org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding)>($r18);
+
+        $r21 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding indexVariable>;
+
+        $r20 = <org.eclipse.jdt.internal.compiler.impl.Constant: org.eclipse.jdt.internal.compiler.impl.Constant NotAConstant>;
+
+        virtualinvoke $r21.<org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding: void setConstant(org.eclipse.jdt.internal.compiler.impl.Constant)>($r20);
+
+        goto label23;
+
+     label22:
+        $r42 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        $r43 = virtualinvoke $r42.<org.eclipse.jdt.internal.compiler.lookup.BlockScope: org.eclipse.jdt.internal.compiler.problem.ProblemReporter problemReporter()>();
+
+        $r44 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.Expression collection>;
+
+        virtualinvoke $r43.<org.eclipse.jdt.internal.compiler.problem.ProblemReporter: void invalidTypeForCollection(org.eclipse.jdt.internal.compiler.ast.Expression)>($r44);
+
+     label23:
+        $r116 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.Statement action>;
+
+        if $r116 == null goto label24;
+
+        $r13 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.Statement action>;
+
+        $r12 = r0.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        virtualinvoke $r13.<org.eclipse.jdt.internal.compiler.ast.Statement: void resolve(org.eclipse.jdt.internal.compiler.lookup.BlockScope)>($r12);
+
+     label24:
+        return;
+    }
+
+    public void traverse(org.eclipse.jdt.internal.compiler.ASTVisitor, org.eclipse.jdt.internal.compiler.lookup.BlockScope)
+    {
+        org.eclipse.jdt.internal.compiler.lookup.BlockScope r2, $r3, $r5, $r8;
+        org.eclipse.jdt.internal.compiler.ast.LocalDeclaration $r4;
+        org.eclipse.jdt.internal.compiler.ASTVisitor r0;
+        org.eclipse.jdt.internal.compiler.ast.Statement $r7, $r9;
+        org.eclipse.jdt.internal.compiler.ast.ForeachStatement r1;
+        org.eclipse.jdt.internal.compiler.ast.Expression $r6;
+        boolean $z0;
+
+        r1 := @this: org.eclipse.jdt.internal.compiler.ast.ForeachStatement;
+
+        r0 := @parameter0: org.eclipse.jdt.internal.compiler.ASTVisitor;
+
+        r2 := @parameter1: org.eclipse.jdt.internal.compiler.lookup.BlockScope;
+
+        $z0 = virtualinvoke r0.<org.eclipse.jdt.internal.compiler.ASTVisitor: boolean visit(org.eclipse.jdt.internal.compiler.ast.ForeachStatement,org.eclipse.jdt.internal.compiler.lookup.BlockScope)>(r1, r2);
+
+        if $z0 == 0 goto label1;
+
+        $r4 = r1.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.LocalDeclaration elementVariable>;
+
+        $r3 = r1.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        virtualinvoke $r4.<org.eclipse.jdt.internal.compiler.ast.LocalDeclaration: void traverse(org.eclipse.jdt.internal.compiler.ASTVisitor,org.eclipse.jdt.internal.compiler.lookup.BlockScope)>(r0, $r3);
+
+        $r6 = r1.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.Expression collection>;
+
+        $r5 = r1.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        virtualinvoke $r6.<org.eclipse.jdt.internal.compiler.ast.Expression: void traverse(org.eclipse.jdt.internal.compiler.ASTVisitor,org.eclipse.jdt.internal.compiler.lookup.BlockScope)>(r0, $r5);
+
+        $r7 = r1.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.Statement action>;
+
+        if $r7 == null goto label1;
+
+        $r9 = r1.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.ast.Statement action>;
+
+        $r8 = r1.<org.eclipse.jdt.internal.compiler.ast.ForeachStatement: org.eclipse.jdt.internal.compiler.lookup.BlockScope scope>;
+
+        virtualinvoke $r9.<org.eclipse.jdt.internal.compiler.ast.Statement: void traverse(org.eclipse.jdt.internal.compiler.ASTVisitor,org.eclipse.jdt.internal.compiler.lookup.BlockScope)>(r0, $r8);
+
+     label1:
+        virtualinvoke r0.<org.eclipse.jdt.internal.compiler.ASTVisitor: void endVisit(org.eclipse.jdt.internal.compiler.ast.ForeachStatement,org.eclipse.jdt.internal.compiler.lookup.BlockScope)>(r1, r2);
+
+        return;
+    }
+}

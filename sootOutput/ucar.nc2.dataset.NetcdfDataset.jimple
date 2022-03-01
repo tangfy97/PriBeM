@@ -1,0 +1,3768 @@
+public class ucar.nc2.dataset.NetcdfDataset extends ucar.nc2.NetcdfFile
+{
+    private static java.util.Set EnhanceAll;
+    private static java.util.Set EnhanceNone;
+    private static java.util.Set defaultEnhanceMode;
+    private static java.util.Set coordSysEnhanceMode;
+    private static org.slf4j.Logger log;
+    protected static boolean useNaNs;
+    protected static boolean fillValueIsMissing;
+    protected static boolean invalidDataIsMissing;
+    protected static boolean missingDataIsMissing;
+    private static ucar.nc2.util.cache.FileCache fileCache;
+    private static ucar.nc2.util.cache.FileFactory defaultNetcdfFileFactory;
+    private ucar.nc2.NetcdfFile orgFile;
+    private java.util.List coordSys;
+    private java.util.List coordAxes;
+    private java.util.List coordTransforms;
+    private java.lang.String convUsed;
+    private java.util.EnumSet enhanceMode;
+    private ucar.nc2.ncml.Aggregation agg;
+
+    public static java.util.Set getEnhanceAll()
+    {
+        java.util.Set $r0;
+
+        $r0 = <ucar.nc2.dataset.NetcdfDataset: java.util.Set EnhanceAll>;
+
+        return $r0;
+    }
+
+    public static java.util.Set getEnhanceNone()
+    {
+        java.util.Set $r0;
+
+        $r0 = <ucar.nc2.dataset.NetcdfDataset: java.util.Set EnhanceNone>;
+
+        return $r0;
+    }
+
+    public static java.util.Set getEnhanceDefault()
+    {
+        java.util.Set $r0;
+
+        $r0 = <ucar.nc2.dataset.NetcdfDataset: java.util.Set defaultEnhanceMode>;
+
+        return $r0;
+    }
+
+    public static java.util.Set getDefaultEnhanceMode()
+    {
+        java.util.Set $r0;
+
+        $r0 = <ucar.nc2.dataset.NetcdfDataset: java.util.Set defaultEnhanceMode>;
+
+        return $r0;
+    }
+
+    public static java.util.Set parseEnhanceMode(java.lang.String)
+    {
+        java.lang.String r0;
+        ucar.nc2.dataset.NetcdfDataset$Enhance $r1, $r2, $r3, $r4, $r5, $r6, $r7;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6;
+        java.util.Set r8;
+
+        r0 := @parameter0: java.lang.String;
+
+        if r0 != null goto label1;
+
+        return null;
+
+     label1:
+        r8 = null;
+
+        $z0 = virtualinvoke r0.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("true");
+
+        if $z0 != 0 goto label2;
+
+        $z1 = virtualinvoke r0.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("All");
+
+        if $z1 == 0 goto label3;
+
+     label2:
+        r8 = staticinvoke <ucar.nc2.dataset.NetcdfDataset: java.util.Set getEnhanceAll()>();
+
+        goto label8;
+
+     label3:
+        $z2 = virtualinvoke r0.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("AllDefer");
+
+        if $z2 == 0 goto label4;
+
+        $r7 = <ucar.nc2.dataset.NetcdfDataset$Enhance: ucar.nc2.dataset.NetcdfDataset$Enhance ScaleMissingDefer>;
+
+        $r6 = <ucar.nc2.dataset.NetcdfDataset$Enhance: ucar.nc2.dataset.NetcdfDataset$Enhance CoordSystems>;
+
+        $r5 = <ucar.nc2.dataset.NetcdfDataset$Enhance: ucar.nc2.dataset.NetcdfDataset$Enhance ConvertEnums>;
+
+        r8 = staticinvoke <java.util.EnumSet: java.util.EnumSet of(java.lang.Enum,java.lang.Enum,java.lang.Enum)>($r7, $r6, $r5);
+
+        goto label8;
+
+     label4:
+        $z3 = virtualinvoke r0.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("ScaleMissing");
+
+        if $z3 == 0 goto label5;
+
+        $r4 = <ucar.nc2.dataset.NetcdfDataset$Enhance: ucar.nc2.dataset.NetcdfDataset$Enhance ScaleMissing>;
+
+        r8 = staticinvoke <java.util.EnumSet: java.util.EnumSet of(java.lang.Enum)>($r4);
+
+        goto label8;
+
+     label5:
+        $z4 = virtualinvoke r0.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("ScaleMissingDefer");
+
+        if $z4 == 0 goto label6;
+
+        $r3 = <ucar.nc2.dataset.NetcdfDataset$Enhance: ucar.nc2.dataset.NetcdfDataset$Enhance ScaleMissingDefer>;
+
+        r8 = staticinvoke <java.util.EnumSet: java.util.EnumSet of(java.lang.Enum)>($r3);
+
+        goto label8;
+
+     label6:
+        $z5 = virtualinvoke r0.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("CoordSystems");
+
+        if $z5 == 0 goto label7;
+
+        $r2 = <ucar.nc2.dataset.NetcdfDataset$Enhance: ucar.nc2.dataset.NetcdfDataset$Enhance CoordSystems>;
+
+        r8 = staticinvoke <java.util.EnumSet: java.util.EnumSet of(java.lang.Enum)>($r2);
+
+        goto label8;
+
+     label7:
+        $z6 = virtualinvoke r0.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("ConvertEnums");
+
+        if $z6 == 0 goto label8;
+
+        $r1 = <ucar.nc2.dataset.NetcdfDataset$Enhance: ucar.nc2.dataset.NetcdfDataset$Enhance ConvertEnums>;
+
+        r8 = staticinvoke <java.util.EnumSet: java.util.EnumSet of(java.lang.Enum)>($r1);
+
+     label8:
+        return r8;
+    }
+
+    public static void setUseNaNs(boolean)
+    {
+        boolean z0;
+
+        z0 := @parameter0: boolean;
+
+        <ucar.nc2.dataset.NetcdfDataset: boolean useNaNs> = z0;
+
+        return;
+    }
+
+    public static boolean getUseNaNs()
+    {
+        boolean $z0;
+
+        $z0 = <ucar.nc2.dataset.NetcdfDataset: boolean useNaNs>;
+
+        return $z0;
+    }
+
+    public static void setFillValueIsMissing(boolean)
+    {
+        boolean z0;
+
+        z0 := @parameter0: boolean;
+
+        <ucar.nc2.dataset.NetcdfDataset: boolean fillValueIsMissing> = z0;
+
+        return;
+    }
+
+    public static boolean getFillValueIsMissing()
+    {
+        boolean $z0;
+
+        $z0 = <ucar.nc2.dataset.NetcdfDataset: boolean fillValueIsMissing>;
+
+        return $z0;
+    }
+
+    public static void setInvalidDataIsMissing(boolean)
+    {
+        boolean z0;
+
+        z0 := @parameter0: boolean;
+
+        <ucar.nc2.dataset.NetcdfDataset: boolean invalidDataIsMissing> = z0;
+
+        return;
+    }
+
+    public static boolean getInvalidDataIsMissing()
+    {
+        boolean $z0;
+
+        $z0 = <ucar.nc2.dataset.NetcdfDataset: boolean invalidDataIsMissing>;
+
+        return $z0;
+    }
+
+    public static void setMissingDataIsMissing(boolean)
+    {
+        boolean z0;
+
+        z0 := @parameter0: boolean;
+
+        <ucar.nc2.dataset.NetcdfDataset: boolean missingDataIsMissing> = z0;
+
+        return;
+    }
+
+    public static boolean getMissingDataIsMissing()
+    {
+        boolean $z0;
+
+        $z0 = <ucar.nc2.dataset.NetcdfDataset: boolean missingDataIsMissing>;
+
+        return $z0;
+    }
+
+    public static void initNetcdfFileCache(int, int, int)
+    {
+        ucar.nc2.util.cache.FileCache $r2;
+        int i0, i1, i2, $i4;
+        ucar.nc2.dataset.NetcdfDataset$MyNetcdfFileFactory $r3;
+
+        i0 := @parameter0: int;
+
+        i1 := @parameter1: int;
+
+        i2 := @parameter2: int;
+
+        $r2 = new ucar.nc2.util.cache.FileCache;
+
+        $i4 = (int) -1;
+
+        specialinvoke $r2.<ucar.nc2.util.cache.FileCache: void <init>(java.lang.String,int,int,int,int)>("NetcdfFileCache ", i0, i1, $i4, i2);
+
+        <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.util.cache.FileCache fileCache> = $r2;
+
+        $r3 = new ucar.nc2.dataset.NetcdfDataset$MyNetcdfFileFactory;
+
+        specialinvoke $r3.<ucar.nc2.dataset.NetcdfDataset$MyNetcdfFileFactory: void <init>(ucar.nc2.dataset.NetcdfDataset$1)>(null);
+
+        <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.util.cache.FileFactory defaultNetcdfFileFactory> = $r3;
+
+        return;
+    }
+
+    public static void initNetcdfFileCache(int, int, int, int)
+    {
+        ucar.nc2.util.cache.FileCache $r0;
+        int i0, i1, i2, i3;
+        ucar.nc2.dataset.NetcdfDataset$MyNetcdfFileFactory $r1;
+
+        i0 := @parameter0: int;
+
+        i1 := @parameter1: int;
+
+        i2 := @parameter2: int;
+
+        i3 := @parameter3: int;
+
+        $r0 = new ucar.nc2.util.cache.FileCache;
+
+        specialinvoke $r0.<ucar.nc2.util.cache.FileCache: void <init>(java.lang.String,int,int,int,int)>("NetcdfFileCache ", i0, i1, i2, i3);
+
+        <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.util.cache.FileCache fileCache> = $r0;
+
+        $r1 = new ucar.nc2.dataset.NetcdfDataset$MyNetcdfFileFactory;
+
+        specialinvoke $r1.<ucar.nc2.dataset.NetcdfDataset$MyNetcdfFileFactory: void <init>(ucar.nc2.dataset.NetcdfDataset$1)>(null);
+
+        <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.util.cache.FileFactory defaultNetcdfFileFactory> = $r1;
+
+        return;
+    }
+
+    public static void disableNetcdfFileCache()
+    {
+        ucar.nc2.util.cache.FileCache $r0, $r1;
+
+        $r0 = <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.util.cache.FileCache fileCache>;
+
+        if null == $r0 goto label1;
+
+        $r1 = <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.util.cache.FileCache fileCache>;
+
+        virtualinvoke $r1.<ucar.nc2.util.cache.FileCache: void disable()>();
+
+     label1:
+        <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.util.cache.FileCache fileCache> = null;
+
+        staticinvoke <ucar.nc2.dataset.NetcdfDataset: void shutdown()>();
+
+        return;
+    }
+
+    public static void shutdown()
+    {
+        staticinvoke <ucar.nc2.util.cache.FileCache: void shutdown()>();
+
+        return;
+    }
+
+    public static ucar.nc2.util.cache.FileCache getNetcdfFileCache()
+    {
+        ucar.nc2.util.cache.FileCache $r0;
+
+        $r0 = <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.util.cache.FileCache fileCache>;
+
+        return $r0;
+    }
+
+    public static ucar.nc2.dataset.NetcdfDataset wrap(ucar.nc2.NetcdfFile, java.util.Set) throws java.io.IOException
+    {
+        java.util.Set r2;
+        ucar.nc2.NetcdfFile r0;
+        ucar.nc2.dataset.NetcdfDataset $r1, r3, $r4;
+        boolean $z0, $z1;
+
+        r0 := @parameter0: ucar.nc2.NetcdfFile;
+
+        r2 := @parameter1: java.util.Set;
+
+        $z0 = r0 instanceof ucar.nc2.dataset.NetcdfDataset;
+
+        if $z0 == 0 goto label1;
+
+        r3 = (ucar.nc2.dataset.NetcdfDataset) r0;
+
+        $z1 = virtualinvoke r3.<ucar.nc2.dataset.NetcdfDataset: boolean enhanceNeeded(java.util.Set)>(r2);
+
+        if $z1 != 0 goto label1;
+
+        $r4 = (ucar.nc2.dataset.NetcdfDataset) r0;
+
+        return $r4;
+
+     label1:
+        $r1 = new ucar.nc2.dataset.NetcdfDataset;
+
+        specialinvoke $r1.<ucar.nc2.dataset.NetcdfDataset: void <init>(ucar.nc2.NetcdfFile,java.util.Set)>(r0, r2);
+
+        return $r1;
+    }
+
+    public static ucar.nc2.dataset.NetcdfDataset openDataset(java.lang.String) throws java.io.IOException
+    {
+        java.lang.String r0;
+        ucar.nc2.dataset.NetcdfDataset $r1;
+
+        r0 := @parameter0: java.lang.String;
+
+        $r1 = staticinvoke <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.dataset.NetcdfDataset openDataset(java.lang.String,boolean,ucar.nc2.util.CancelTask)>(r0, 1, null);
+
+        return $r1;
+    }
+
+    public static ucar.nc2.dataset.NetcdfDataset openDataset(java.lang.String, boolean, ucar.nc2.util.CancelTask) throws java.io.IOException
+    {
+        ucar.nc2.util.CancelTask r1;
+        int $i1;
+        java.lang.String r0;
+        ucar.nc2.dataset.NetcdfDataset $r2;
+        boolean z0;
+
+        r0 := @parameter0: java.lang.String;
+
+        z0 := @parameter1: boolean;
+
+        r1 := @parameter2: ucar.nc2.util.CancelTask;
+
+        $i1 = (int) -1;
+
+        $r2 = staticinvoke <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.dataset.NetcdfDataset openDataset(java.lang.String,boolean,int,ucar.nc2.util.CancelTask,java.lang.Object)>(r0, z0, $i1, r1, null);
+
+        return $r2;
+    }
+
+    public static ucar.nc2.dataset.NetcdfDataset openDataset(java.lang.String, boolean, int, ucar.nc2.util.CancelTask, java.lang.Object) throws java.io.IOException
+    {
+        ucar.nc2.util.CancelTask r1;
+        int i0;
+        java.util.Set $r4;
+        java.lang.Object r2;
+        java.lang.String r0;
+        ucar.nc2.dataset.NetcdfDataset $r3;
+        boolean z0;
+
+        r0 := @parameter0: java.lang.String;
+
+        z0 := @parameter1: boolean;
+
+        i0 := @parameter2: int;
+
+        r1 := @parameter3: ucar.nc2.util.CancelTask;
+
+        r2 := @parameter4: java.lang.Object;
+
+        if z0 == 0 goto label1;
+
+        $r4 = <ucar.nc2.dataset.NetcdfDataset: java.util.Set defaultEnhanceMode>;
+
+        goto label2;
+
+     label1:
+        $r4 = null;
+
+     label2:
+        $r3 = staticinvoke <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.dataset.NetcdfDataset openDataset(java.lang.String,java.util.Set,int,ucar.nc2.util.CancelTask,java.lang.Object)>(r0, $r4, i0, r1, r2);
+
+        return $r3;
+    }
+
+    public static ucar.nc2.dataset.NetcdfDataset openDataset(java.lang.String, java.util.Set, int, ucar.nc2.util.CancelTask, java.lang.Object) throws java.io.IOException
+    {
+        java.util.Set r5;
+        ucar.nc2.util.CancelTask r1;
+        int i0;
+        java.lang.Object r2;
+        java.lang.String r0;
+        ucar.nc2.NetcdfFile $r3;
+        ucar.nc2.dataset.NetcdfDataset $r4, r6;
+        boolean $z0;
+
+        r0 := @parameter0: java.lang.String;
+
+        r5 := @parameter1: java.util.Set;
+
+        i0 := @parameter2: int;
+
+        r1 := @parameter3: ucar.nc2.util.CancelTask;
+
+        r2 := @parameter4: java.lang.Object;
+
+        $r3 = staticinvoke <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile openOrAcquireFile(ucar.nc2.util.cache.FileCache,ucar.nc2.util.cache.FileFactory,java.lang.Object,java.lang.String,int,ucar.nc2.util.CancelTask,java.lang.Object)>(null, null, null, r0, i0, r1, r2);
+
+        $z0 = $r3 instanceof ucar.nc2.dataset.NetcdfDataset;
+
+        if $z0 == 0 goto label1;
+
+        r6 = (ucar.nc2.dataset.NetcdfDataset) $r3;
+
+        staticinvoke <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.dataset.CoordSysBuilderIF enhance(ucar.nc2.dataset.NetcdfDataset,java.util.Set,ucar.nc2.util.CancelTask)>(r6, r5, r1);
+
+        goto label2;
+
+     label1:
+        $r4 = new ucar.nc2.dataset.NetcdfDataset;
+
+        specialinvoke $r4.<ucar.nc2.dataset.NetcdfDataset: void <init>(ucar.nc2.NetcdfFile,java.util.Set)>($r3, r5);
+
+        r6 = $r4;
+
+     label2:
+        return r6;
+    }
+
+    private static ucar.nc2.dataset.CoordSysBuilderIF enhance(ucar.nc2.dataset.NetcdfDataset, java.util.Set, ucar.nc2.util.CancelTask) throws java.io.IOException
+    {
+        ucar.nc2.util.CancelTask r11;
+        java.util.EnumSet $r5, $r7, $r13, $r15, $r17;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9;
+        java.util.Set r0;
+        java.util.List $r22;
+        ucar.nc2.dataset.CoordSysBuilderIF $r18, r20;
+        ucar.nc2.Variable r9;
+        java.lang.String $r19;
+        ucar.nc2.dataset.NetcdfDataset$Enhance $r1, $r2, $r3, $r6, $r12, $r14, $r16, $r21;
+        java.util.Iterator $r23;
+        ucar.nc2.dataset.VariableEnhanced r10;
+        java.lang.Object $r8;
+        ucar.nc2.dataset.NetcdfDataset r4;
+
+        r4 := @parameter0: ucar.nc2.dataset.NetcdfDataset;
+
+        r0 := @parameter1: java.util.Set;
+
+        r11 := @parameter2: ucar.nc2.util.CancelTask;
+
+        if r0 != null goto label1;
+
+        return null;
+
+     label1:
+        r20 = null;
+
+        $r1 = <ucar.nc2.dataset.NetcdfDataset$Enhance: ucar.nc2.dataset.NetcdfDataset$Enhance CoordSystems>;
+
+        $z0 = interfaceinvoke r0.<java.util.Set: boolean contains(java.lang.Object)>($r1);
+
+        if $z0 == 0 goto label2;
+
+        $r17 = r4.<ucar.nc2.dataset.NetcdfDataset: java.util.EnumSet enhanceMode>;
+
+        $r16 = <ucar.nc2.dataset.NetcdfDataset$Enhance: ucar.nc2.dataset.NetcdfDataset$Enhance CoordSystems>;
+
+        $z7 = virtualinvoke $r17.<java.util.EnumSet: boolean contains(java.lang.Object)>($r16);
+
+        if $z7 != 0 goto label2;
+
+        $r18 = staticinvoke <ucar.nc2.dataset.CoordSysBuilder: ucar.nc2.dataset.CoordSysBuilderIF factory(ucar.nc2.dataset.NetcdfDataset,ucar.nc2.util.CancelTask)>(r4, r11);
+
+        r20 = $r18;
+
+        interfaceinvoke $r18.<ucar.nc2.dataset.CoordSysBuilderIF: void augmentDataset(ucar.nc2.dataset.NetcdfDataset,ucar.nc2.util.CancelTask)>(r4, r11);
+
+        $r19 = interfaceinvoke $r18.<ucar.nc2.dataset.CoordSysBuilderIF: java.lang.String getConventionUsed()>();
+
+        r4.<ucar.nc2.dataset.NetcdfDataset: java.lang.String convUsed> = $r19;
+
+     label2:
+        $r21 = <ucar.nc2.dataset.NetcdfDataset$Enhance: ucar.nc2.dataset.NetcdfDataset$Enhance ConvertEnums>;
+
+        $z8 = interfaceinvoke r0.<java.util.Set: boolean contains(java.lang.Object)>($r21);
+
+        if $z8 == 0 goto label3;
+
+        $r15 = r4.<ucar.nc2.dataset.NetcdfDataset: java.util.EnumSet enhanceMode>;
+
+        $r14 = <ucar.nc2.dataset.NetcdfDataset$Enhance: ucar.nc2.dataset.NetcdfDataset$Enhance ConvertEnums>;
+
+        $z6 = virtualinvoke $r15.<java.util.EnumSet: boolean contains(java.lang.Object)>($r14);
+
+        if $z6 == 0 goto label5;
+
+     label3:
+        $r2 = <ucar.nc2.dataset.NetcdfDataset$Enhance: ucar.nc2.dataset.NetcdfDataset$Enhance ScaleMissing>;
+
+        $z1 = interfaceinvoke r0.<java.util.Set: boolean contains(java.lang.Object)>($r2);
+
+        if $z1 == 0 goto label4;
+
+        $r13 = r4.<ucar.nc2.dataset.NetcdfDataset: java.util.EnumSet enhanceMode>;
+
+        $r12 = <ucar.nc2.dataset.NetcdfDataset$Enhance: ucar.nc2.dataset.NetcdfDataset$Enhance ScaleMissing>;
+
+        $z5 = virtualinvoke $r13.<java.util.EnumSet: boolean contains(java.lang.Object)>($r12);
+
+        if $z5 == 0 goto label5;
+
+     label4:
+        $r3 = <ucar.nc2.dataset.NetcdfDataset$Enhance: ucar.nc2.dataset.NetcdfDataset$Enhance ScaleMissingDefer>;
+
+        $z2 = interfaceinvoke r0.<java.util.Set: boolean contains(java.lang.Object)>($r3);
+
+        if $z2 == 0 goto label8;
+
+        $r7 = r4.<ucar.nc2.dataset.NetcdfDataset: java.util.EnumSet enhanceMode>;
+
+        $r6 = <ucar.nc2.dataset.NetcdfDataset$Enhance: ucar.nc2.dataset.NetcdfDataset$Enhance ScaleMissingDefer>;
+
+        $z3 = virtualinvoke $r7.<java.util.EnumSet: boolean contains(java.lang.Object)>($r6);
+
+        if $z3 != 0 goto label8;
+
+     label5:
+        $r22 = virtualinvoke r4.<ucar.nc2.dataset.NetcdfDataset: java.util.List getVariables()>();
+
+        $r23 = interfaceinvoke $r22.<java.util.List: java.util.Iterator iterator()>();
+
+     label6:
+        $z9 = interfaceinvoke $r23.<java.util.Iterator: boolean hasNext()>();
+
+        if $z9 == 0 goto label8;
+
+        $r8 = interfaceinvoke $r23.<java.util.Iterator: java.lang.Object next()>();
+
+        r9 = (ucar.nc2.Variable) $r8;
+
+        r10 = (ucar.nc2.dataset.VariableEnhanced) r9;
+
+        interfaceinvoke r10.<ucar.nc2.dataset.VariableEnhanced: void enhance(java.util.Set)>(r0);
+
+        if r11 == null goto label7;
+
+        $z4 = interfaceinvoke r11.<ucar.nc2.util.CancelTask: boolean isCancel()>();
+
+        if $z4 == 0 goto label7;
+
+        return null;
+
+     label7:
+        goto label6;
+
+     label8:
+        if r20 == null goto label9;
+
+        interfaceinvoke r20.<ucar.nc2.dataset.CoordSysBuilderIF: void buildCoordinateSystems(ucar.nc2.dataset.NetcdfDataset)>(r4);
+
+     label9:
+        virtualinvoke r4.<ucar.nc2.dataset.NetcdfDataset: void finish()>();
+
+        $r5 = r4.<ucar.nc2.dataset.NetcdfDataset: java.util.EnumSet enhanceMode>;
+
+        virtualinvoke $r5.<java.util.EnumSet: boolean addAll(java.util.Collection)>(r0);
+
+        return r20;
+    }
+
+    public static ucar.nc2.dataset.NetcdfDataset acquireDataset(java.lang.String, ucar.nc2.util.CancelTask) throws java.io.IOException
+    {
+        ucar.nc2.util.CancelTask r1;
+        int $i1;
+        java.util.Set $r2;
+        java.lang.String r0;
+        ucar.nc2.dataset.NetcdfDataset $r3;
+
+        r0 := @parameter0: java.lang.String;
+
+        r1 := @parameter1: ucar.nc2.util.CancelTask;
+
+        $r2 = <ucar.nc2.dataset.NetcdfDataset: java.util.Set defaultEnhanceMode>;
+
+        $i1 = (int) -1;
+
+        $r3 = staticinvoke <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.dataset.NetcdfDataset acquireDataset(ucar.nc2.util.cache.FileFactory,java.lang.String,java.util.Set,int,ucar.nc2.util.CancelTask,java.lang.Object)>(null, r0, $r2, $i1, r1, null);
+
+        return $r3;
+    }
+
+    public static ucar.nc2.dataset.NetcdfDataset acquireDataset(java.lang.String, boolean, ucar.nc2.util.CancelTask) throws java.io.IOException
+    {
+        ucar.nc2.util.CancelTask r1;
+        int $i1;
+        java.util.Set $r3;
+        java.lang.String r0;
+        ucar.nc2.dataset.NetcdfDataset $r2;
+        boolean z0;
+
+        r0 := @parameter0: java.lang.String;
+
+        z0 := @parameter1: boolean;
+
+        r1 := @parameter2: ucar.nc2.util.CancelTask;
+
+        if z0 == 0 goto label1;
+
+        $r3 = <ucar.nc2.dataset.NetcdfDataset: java.util.Set defaultEnhanceMode>;
+
+        goto label2;
+
+     label1:
+        $r3 = null;
+
+     label2:
+        $i1 = (int) -1;
+
+        $r2 = staticinvoke <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.dataset.NetcdfDataset acquireDataset(ucar.nc2.util.cache.FileFactory,java.lang.String,java.util.Set,int,ucar.nc2.util.CancelTask,java.lang.Object)>(null, r0, $r3, $i1, r1, null);
+
+        return $r2;
+    }
+
+    public static ucar.nc2.dataset.NetcdfDataset acquireDataset(ucar.nc2.util.cache.FileFactory, java.lang.String, java.util.Set, int, ucar.nc2.util.CancelTask, java.lang.Object) throws java.io.IOException
+    {
+        ucar.nc2.util.cache.FileCacheable $r13;
+        ucar.nc2.util.cache.FileCache $r0, $r4, $r10;
+        ucar.nc2.dataset.NetcdfDataset$MyNetcdfDatasetFactory $r1;
+        java.lang.Integer $r5;
+        ucar.nc2.util.CancelTask r6;
+        int $i0, i1;
+        java.lang.String r2;
+        java.util.Set r3;
+        java.lang.Object r7;
+        ucar.nc2.NetcdfFile $r8, $r11;
+        ucar.nc2.dataset.NetcdfDataset $r9, $r12, $r14, $r15;
+        ucar.nc2.util.cache.FileFactory r16;
+
+        r16 := @parameter0: ucar.nc2.util.cache.FileFactory;
+
+        r2 := @parameter1: java.lang.String;
+
+        r3 := @parameter2: java.util.Set;
+
+        i1 := @parameter3: int;
+
+        r6 := @parameter4: ucar.nc2.util.CancelTask;
+
+        r7 := @parameter5: java.lang.Object;
+
+        $r0 = <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.util.cache.FileCache fileCache>;
+
+        if $r0 != null goto label2;
+
+        if r16 != null goto label1;
+
+        $r15 = staticinvoke <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.dataset.NetcdfDataset openDataset(java.lang.String,java.util.Set,int,ucar.nc2.util.CancelTask,java.lang.Object)>(r2, r3, i1, r6, r7);
+
+        return $r15;
+
+     label1:
+        $r13 = interfaceinvoke r16.<ucar.nc2.util.cache.FileFactory: ucar.nc2.util.cache.FileCacheable open(java.lang.String,int,ucar.nc2.util.CancelTask,java.lang.Object)>(r2, i1, r6, r7);
+
+        $r14 = (ucar.nc2.dataset.NetcdfDataset) $r13;
+
+        return $r14;
+
+     label2:
+        if r16 == null goto label3;
+
+        $r10 = <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.util.cache.FileCache fileCache>;
+
+        $r11 = staticinvoke <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile openOrAcquireFile(ucar.nc2.util.cache.FileCache,ucar.nc2.util.cache.FileFactory,java.lang.Object,java.lang.String,int,ucar.nc2.util.CancelTask,java.lang.Object)>($r10, r16, null, r2, i1, r6, r7);
+
+        $r12 = (ucar.nc2.dataset.NetcdfDataset) $r11;
+
+        return $r12;
+
+     label3:
+        $r1 = new ucar.nc2.dataset.NetcdfDataset$MyNetcdfDatasetFactory;
+
+        specialinvoke $r1.<ucar.nc2.dataset.NetcdfDataset$MyNetcdfDatasetFactory: void <init>(java.lang.String,java.util.Set)>(r2, r3);
+
+        $r4 = <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.util.cache.FileCache fileCache>;
+
+        $i0 = virtualinvoke $r1.<java.lang.Object: int hashCode()>();
+
+        $r5 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i0);
+
+        $r8 = staticinvoke <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile openOrAcquireFile(ucar.nc2.util.cache.FileCache,ucar.nc2.util.cache.FileFactory,java.lang.Object,java.lang.String,int,ucar.nc2.util.CancelTask,java.lang.Object)>($r4, $r1, $r5, r2, i1, r6, r7);
+
+        $r9 = (ucar.nc2.dataset.NetcdfDataset) $r8;
+
+        return $r9;
+    }
+
+    public static ucar.nc2.NetcdfFile openFile(java.lang.String, ucar.nc2.util.CancelTask) throws java.io.IOException
+    {
+        ucar.nc2.util.CancelTask r1;
+        int $i1;
+        java.lang.String r0;
+        ucar.nc2.NetcdfFile $r2;
+
+        r0 := @parameter0: java.lang.String;
+
+        r1 := @parameter1: ucar.nc2.util.CancelTask;
+
+        $i1 = (int) -1;
+
+        $r2 = staticinvoke <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile openOrAcquireFile(ucar.nc2.util.cache.FileCache,ucar.nc2.util.cache.FileFactory,java.lang.Object,java.lang.String,int,ucar.nc2.util.CancelTask,java.lang.Object)>(null, null, null, r0, $i1, r1, null);
+
+        return $r2;
+    }
+
+    public static ucar.nc2.NetcdfFile openFile(java.lang.String, int, ucar.nc2.util.CancelTask, java.lang.Object) throws java.io.IOException
+    {
+        ucar.nc2.util.CancelTask r1;
+        int i0;
+        java.lang.Object r2;
+        java.lang.String r0;
+        ucar.nc2.NetcdfFile $r3;
+
+        r0 := @parameter0: java.lang.String;
+
+        i0 := @parameter1: int;
+
+        r1 := @parameter2: ucar.nc2.util.CancelTask;
+
+        r2 := @parameter3: java.lang.Object;
+
+        $r3 = staticinvoke <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile openOrAcquireFile(ucar.nc2.util.cache.FileCache,ucar.nc2.util.cache.FileFactory,java.lang.Object,java.lang.String,int,ucar.nc2.util.CancelTask,java.lang.Object)>(null, null, null, r0, i0, r1, r2);
+
+        return $r3;
+    }
+
+    public static ucar.nc2.NetcdfFile acquireFile(java.lang.String, ucar.nc2.util.CancelTask) throws java.io.IOException
+    {
+        ucar.nc2.util.CancelTask r1;
+        int $i1;
+        java.lang.String r0;
+        ucar.nc2.NetcdfFile $r2;
+
+        r0 := @parameter0: java.lang.String;
+
+        r1 := @parameter1: ucar.nc2.util.CancelTask;
+
+        $i1 = (int) -1;
+
+        $r2 = staticinvoke <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile acquireFile(ucar.nc2.util.cache.FileFactory,java.lang.Object,java.lang.String,int,ucar.nc2.util.CancelTask,java.lang.Object)>(null, null, r0, $i1, r1, null);
+
+        return $r2;
+    }
+
+    public static ucar.nc2.NetcdfFile acquireFile(ucar.nc2.util.cache.FileFactory, java.lang.Object, java.lang.String, int, ucar.nc2.util.CancelTask, java.lang.Object) throws java.io.IOException
+    {
+        ucar.nc2.util.cache.FileCacheable $r8;
+        ucar.nc2.util.cache.FileCache $r0, $r6;
+        ucar.nc2.util.CancelTask r4;
+        int i0;
+        java.lang.Object r2, r5;
+        java.lang.String r3;
+        ucar.nc2.NetcdfFile $r7, $r9;
+        ucar.nc2.util.cache.FileFactory r1;
+
+        r1 := @parameter0: ucar.nc2.util.cache.FileFactory;
+
+        r2 := @parameter1: java.lang.Object;
+
+        r3 := @parameter2: java.lang.String;
+
+        i0 := @parameter3: int;
+
+        r4 := @parameter4: ucar.nc2.util.CancelTask;
+
+        r5 := @parameter5: java.lang.Object;
+
+        $r0 = <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.util.cache.FileCache fileCache>;
+
+        if $r0 != null goto label1;
+
+        if r1 == null goto label1;
+
+        $r8 = interfaceinvoke r1.<ucar.nc2.util.cache.FileFactory: ucar.nc2.util.cache.FileCacheable open(java.lang.String,int,ucar.nc2.util.CancelTask,java.lang.Object)>(r3, i0, r4, r5);
+
+        $r9 = (ucar.nc2.NetcdfFile) $r8;
+
+        return $r9;
+
+     label1:
+        $r6 = <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.util.cache.FileCache fileCache>;
+
+        $r7 = staticinvoke <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile openOrAcquireFile(ucar.nc2.util.cache.FileCache,ucar.nc2.util.cache.FileFactory,java.lang.Object,java.lang.String,int,ucar.nc2.util.CancelTask,java.lang.Object)>($r6, r1, r2, r3, i0, r4, r5);
+
+        return $r7;
+    }
+
+    private static ucar.nc2.NetcdfFile openOrAcquireFile(ucar.nc2.util.cache.FileCache, ucar.nc2.util.cache.FileFactory, java.lang.Object, java.lang.String, int, ucar.nc2.util.CancelTask, java.lang.Object) throws java.io.IOException
+    {
+        ucar.nc2.util.cache.FileCacheable $r10;
+        ucar.nc2.util.cache.FileCache r2;
+        java.util.Formatter $r17;
+        ucar.nc2.util.CancelTask r4;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7;
+        java.lang.StringBuilder $r6, $r7, $r8;
+        ucar.nc2.NetcdfFile $r9, $r11, $r15, $r16, $r22, $r23, $r28;
+        ucar.nc2.util.cache.FileFactory r25;
+        ucar.nc2.thredds.ThreddsDataFactory $r18;
+        thredds.catalog.ServiceType $r12, $r13, $r14;
+        int i0;
+        java.lang.String $r0, $r1, $r21, r26, r27;
+        java.io.IOException $r20, $r24;
+        java.lang.Object r3, r5;
+        ucar.nc2.dataset.NetcdfDataset $r19;
+
+        r2 := @parameter0: ucar.nc2.util.cache.FileCache;
+
+        r25 := @parameter1: ucar.nc2.util.cache.FileFactory;
+
+        r3 := @parameter2: java.lang.Object;
+
+        r26 := @parameter3: java.lang.String;
+
+        i0 := @parameter4: int;
+
+        r4 := @parameter5: ucar.nc2.util.CancelTask;
+
+        r5 := @parameter6: java.lang.Object;
+
+        if r26 != null goto label01;
+
+        $r24 = new java.io.IOException;
+
+        specialinvoke $r24.<java.io.IOException: void <init>(java.lang.String)>("NetcdfDataset.openFile: location is null");
+
+        throw $r24;
+
+     label01:
+        $r0 = virtualinvoke r26.<java.lang.String: java.lang.String trim()>();
+
+        $r1 = staticinvoke <ucar.unidata.util.StringUtil: java.lang.String replace(java.lang.String,char,java.lang.String)>($r0, 92, "/");
+
+        r27 = $r1;
+
+        $z0 = virtualinvoke $r1.<java.lang.String: boolean startsWith(java.lang.String)>("dods:");
+
+        if $z0 == 0 goto label02;
+
+        $r23 = staticinvoke <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile acquireDODS(ucar.nc2.util.cache.FileCache,ucar.nc2.util.cache.FileFactory,java.lang.Object,java.lang.String,int,ucar.nc2.util.CancelTask,java.lang.Object)>(r2, r25, r3, $r1, i0, r4, r5);
+
+        return $r23;
+
+     label02:
+        $z1 = virtualinvoke $r1.<java.lang.String: boolean startsWith(java.lang.String)>("cdmremote:");
+
+        if $z1 == 0 goto label03;
+
+        $r22 = staticinvoke <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile acquireRemote(ucar.nc2.util.cache.FileCache,ucar.nc2.util.cache.FileFactory,java.lang.Object,java.lang.String,int,ucar.nc2.util.CancelTask,java.lang.Object)>(r2, r25, r3, $r1, i0, r4, r5);
+
+        return $r22;
+
+     label03:
+        $z2 = virtualinvoke $r1.<java.lang.String: boolean startsWith(java.lang.String)>("thredds:");
+
+        if $z2 == 0 goto label05;
+
+        $r17 = new java.util.Formatter;
+
+        specialinvoke $r17.<java.util.Formatter: void <init>()>();
+
+        $r18 = new ucar.nc2.thredds.ThreddsDataFactory;
+
+        specialinvoke $r18.<ucar.nc2.thredds.ThreddsDataFactory: void <init>()>();
+
+        $r19 = virtualinvoke $r18.<ucar.nc2.thredds.ThreddsDataFactory: ucar.nc2.dataset.NetcdfDataset openDataset(java.lang.String,boolean,ucar.nc2.util.CancelTask,java.util.Formatter)>($r1, 0, r4, $r17);
+
+        if $r19 != null goto label04;
+
+        $r20 = new java.io.IOException;
+
+        $r21 = virtualinvoke $r17.<java.util.Formatter: java.lang.String toString()>();
+
+        specialinvoke $r20.<java.io.IOException: void <init>(java.lang.String)>($r21);
+
+        throw $r20;
+
+     label04:
+        return $r19;
+
+     label05:
+        $z3 = virtualinvoke $r1.<java.lang.String: boolean endsWith(java.lang.String)>(".xml");
+
+        if $z3 != 0 goto label06;
+
+        $z6 = virtualinvoke $r1.<java.lang.String: boolean endsWith(java.lang.String)>(".ncml");
+
+        if $z6 == 0 goto label08;
+
+     label06:
+        $z4 = virtualinvoke $r1.<java.lang.String: boolean startsWith(java.lang.String)>("http:");
+
+        if $z4 != 0 goto label07;
+
+        $z5 = virtualinvoke $r1.<java.lang.String: boolean startsWith(java.lang.String)>("file:");
+
+        if $z5 != 0 goto label07;
+
+        $r6 = new java.lang.StringBuilder;
+
+        specialinvoke $r6.<java.lang.StringBuilder: void <init>()>();
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("file:");
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r1);
+
+        r27 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.String toString()>();
+
+     label07:
+        $r28 = staticinvoke <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile acquireNcml(ucar.nc2.util.cache.FileCache,ucar.nc2.util.cache.FileFactory,java.lang.Object,java.lang.String,int,ucar.nc2.util.CancelTask,java.lang.Object)>(r2, r25, r3, r27, i0, r4, r5);
+
+        return $r28;
+
+     label08:
+        $z7 = virtualinvoke $r1.<java.lang.String: boolean startsWith(java.lang.String)>("http:");
+
+        if $z7 == 0 goto label10;
+
+        $r12 = staticinvoke <ucar.nc2.dataset.NetcdfDataset: thredds.catalog.ServiceType disambiguateHttp(java.lang.String)>($r1);
+
+        $r13 = <thredds.catalog.ServiceType: thredds.catalog.ServiceType OPENDAP>;
+
+        if $r12 != $r13 goto label09;
+
+        $r16 = staticinvoke <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile acquireDODS(ucar.nc2.util.cache.FileCache,ucar.nc2.util.cache.FileFactory,java.lang.Object,java.lang.String,int,ucar.nc2.util.CancelTask,java.lang.Object)>(r2, r25, r3, $r1, i0, r4, r5);
+
+        return $r16;
+
+     label09:
+        $r14 = <thredds.catalog.ServiceType: thredds.catalog.ServiceType CdmRemote>;
+
+        if $r12 != $r14 goto label10;
+
+        $r15 = staticinvoke <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile acquireRemote(ucar.nc2.util.cache.FileCache,ucar.nc2.util.cache.FileFactory,java.lang.Object,java.lang.String,int,ucar.nc2.util.CancelTask,java.lang.Object)>(r2, r25, r3, $r1, i0, r4, r5);
+
+        return $r15;
+
+     label10:
+        if r2 == null goto label12;
+
+        if r25 != null goto label11;
+
+        r25 = <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.util.cache.FileFactory defaultNetcdfFileFactory>;
+
+     label11:
+        $r10 = virtualinvoke r2.<ucar.nc2.util.cache.FileCache: ucar.nc2.util.cache.FileCacheable acquire(ucar.nc2.util.cache.FileFactory,java.lang.Object,java.lang.String,int,ucar.nc2.util.CancelTask,java.lang.Object)>(r25, r3, $r1, i0, r4, r5);
+
+        $r11 = (ucar.nc2.NetcdfFile) $r10;
+
+        return $r11;
+
+     label12:
+        $r9 = staticinvoke <ucar.nc2.NetcdfFile: ucar.nc2.NetcdfFile open(java.lang.String,int,ucar.nc2.util.CancelTask,java.lang.Object)>($r1, i0, r4, r5);
+
+        return $r9;
+    }
+
+    private static thredds.catalog.ServiceType disambiguateHttp(java.lang.String) throws java.io.IOException
+    {
+        java.lang.Throwable $r19;
+        opendap.dap.http.HTTPSession $r0;
+        org.apache.commons.httpclient.Header $r4;
+        thredds.catalog.ServiceType $r2, r7;
+        int $i0;
+        java.lang.String r1, $r5, $r6, $r13, $r18;
+        boolean $z0;
+        opendap.dap.http.HTTPMethod $r3;
+        java.io.IOException $r8, $r14;
+        java.lang.StringBuilder $r9, $r10, $r11, $r12, $r15, $r16, $r17;
+
+        r1 := @parameter0: java.lang.String;
+
+        $r0 = new opendap.dap.http.HTTPSession;
+
+        specialinvoke $r0.<opendap.dap.http.HTTPSession: void <init>()>();
+
+        $r2 = staticinvoke <ucar.nc2.dataset.NetcdfDataset: thredds.catalog.ServiceType checkIfDods(opendap.dap.http.HTTPSession,java.lang.String)>($r0, r1);
+
+        if $r2 == null goto label01;
+
+        return $r2;
+
+     label01:
+        $r3 = virtualinvoke $r0.<opendap.dap.http.HTTPSession: opendap.dap.http.HTTPMethod newMethodHead(java.lang.String)>(r1);
+
+        $i0 = virtualinvoke $r3.<opendap.dap.http.HTTPMethod: int execute()>();
+
+        if $i0 < 300 goto label03;
+
+        if $i0 != 401 goto label02;
+
+        $r14 = new java.io.IOException;
+
+        $r15 = new java.lang.StringBuilder;
+
+        specialinvoke $r15.<java.lang.StringBuilder: void <init>()>();
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Unauthorized to open dataset ");
+
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r1);
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r14.<java.io.IOException: void <init>(java.lang.String)>($r18);
+
+        throw $r14;
+
+     label02:
+        $r8 = new java.io.IOException;
+
+        $r9 = new java.lang.StringBuilder;
+
+        specialinvoke $r9.<java.lang.StringBuilder: void <init>()>();
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r1);
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" is not a valid URL, return status=");
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i0);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r8.<java.io.IOException: void <init>(java.lang.String)>($r13);
+
+        throw $r8;
+
+     label03:
+        $r4 = virtualinvoke $r3.<opendap.dap.http.HTTPMethod: org.apache.commons.httpclient.Header getResponseHeader(java.lang.String)>("Content-Description");
+
+        if $r4 == null goto label06;
+
+        $r5 = virtualinvoke $r4.<org.apache.commons.httpclient.Header: java.lang.String getValue()>();
+
+        if $r5 == null goto label06;
+
+        $r6 = virtualinvoke $r4.<org.apache.commons.httpclient.Header: java.lang.String getValue()>();
+
+        $z0 = virtualinvoke $r6.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("ncstream");
+
+        if $z0 == 0 goto label06;
+
+        r7 = <thredds.catalog.ServiceType: thredds.catalog.ServiceType CdmRemote>;
+
+     label04:
+        if $r0 == null goto label05;
+
+        virtualinvoke $r0.<opendap.dap.http.HTTPSession: void close()>();
+
+     label05:
+        return r7;
+
+     label06:
+        if $r0 == null goto label07;
+
+        virtualinvoke $r0.<opendap.dap.http.HTTPSession: void close()>();
+
+     label07:
+        return null;
+
+     label08:
+        $r19 := @caughtexception;
+
+     label09:
+        if $r0 == null goto label10;
+
+        virtualinvoke $r0.<opendap.dap.http.HTTPSession: void close()>();
+
+     label10:
+        throw $r19;
+
+        catch java.lang.Throwable from label01 to label04 with label08;
+        catch java.lang.Throwable from label08 to label09 with label08;
+    }
+
+    private static thredds.catalog.ServiceType checkIfDods(opendap.dap.http.HTTPSession, java.lang.String) throws java.io.IOException
+    {
+        java.lang.Throwable $r22;
+        opendap.dap.http.HTTPSession r0;
+        org.apache.commons.httpclient.Header $r12;
+        thredds.catalog.ServiceType $r21;
+        int $i0;
+        java.lang.String r2, $r5, $r11, $r13, $r14, $r18, $r20;
+        boolean $z0, $z1;
+        opendap.dap.http.HTTPMethod $r6, r23;
+        java.io.IOException $r7, $r15;
+        java.lang.StringBuilder $r1, $r3, $r4, $r8, $r9, $r10, $r16, $r17, $r19;
+
+        r0 := @parameter0: opendap.dap.http.HTTPSession;
+
+        r2 := @parameter1: java.lang.String;
+
+        r23 = null;
+
+     label01:
+        $r1 = new java.lang.StringBuilder;
+
+        specialinvoke $r1.<java.lang.StringBuilder: void <init>()>();
+
+        $r3 = virtualinvoke $r1.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r2);
+
+        $r4 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(".dds");
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r6 = virtualinvoke r0.<opendap.dap.http.HTTPSession: opendap.dap.http.HTTPMethod newMethodGet(java.lang.String)>($r5);
+
+        r23 = $r6;
+
+        $i0 = virtualinvoke $r6.<opendap.dap.http.HTTPMethod: int execute()>();
+
+        if $i0 != 200 goto label06;
+
+        $r12 = virtualinvoke $r6.<opendap.dap.http.HTTPMethod: org.apache.commons.httpclient.Header getResponseHeader(java.lang.String)>("Content-Description");
+
+        if $r12 == null goto label06;
+
+        $r13 = virtualinvoke $r12.<org.apache.commons.httpclient.Header: java.lang.String getValue()>();
+
+        if $r13 == null goto label06;
+
+        $r14 = virtualinvoke $r12.<org.apache.commons.httpclient.Header: java.lang.String getValue()>();
+
+        $z0 = virtualinvoke $r14.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("dods-dds");
+
+        if $z0 != 0 goto label02;
+
+        $z1 = virtualinvoke $r14.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("dods_dds");
+
+        if $z1 == 0 goto label05;
+
+     label02:
+        $r21 = <thredds.catalog.ServiceType: thredds.catalog.ServiceType OPENDAP>;
+
+     label03:
+        if $r6 == null goto label04;
+
+        virtualinvoke $r6.<opendap.dap.http.HTTPMethod: void close()>();
+
+     label04:
+        return $r21;
+
+     label05:
+        $r15 = new java.io.IOException;
+
+        $r16 = new java.lang.StringBuilder;
+
+        specialinvoke $r16.<java.lang.StringBuilder: void <init>()>();
+
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("OPeNDAP Server Error= ");
+
+        $r18 = virtualinvoke $r6.<opendap.dap.http.HTTPMethod: java.lang.String getResponseAsString()>();
+
+        $r19 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r18);
+
+        $r20 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r15.<java.io.IOException: void <init>(java.lang.String)>($r20);
+
+        throw $r15;
+
+     label06:
+        if $i0 != 401 goto label07;
+
+        $r7 = new java.io.IOException;
+
+        $r8 = new java.lang.StringBuilder;
+
+        specialinvoke $r8.<java.lang.StringBuilder: void <init>()>();
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Unauthorized to open dataset ");
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r2);
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r7.<java.io.IOException: void <init>(java.lang.String)>($r11);
+
+        throw $r7;
+
+     label07:
+        if $r6 == null goto label08;
+
+        virtualinvoke $r6.<opendap.dap.http.HTTPMethod: void close()>();
+
+     label08:
+        return null;
+
+     label09:
+        $r22 := @caughtexception;
+
+     label10:
+        if r23 == null goto label11;
+
+        virtualinvoke r23.<opendap.dap.http.HTTPMethod: void close()>();
+
+     label11:
+        throw $r22;
+
+        catch java.lang.Throwable from label01 to label03 with label09;
+        catch java.lang.Throwable from label05 to label07 with label09;
+        catch java.lang.Throwable from label09 to label10 with label09;
+    }
+
+    private static ucar.nc2.NetcdfFile acquireDODS(ucar.nc2.util.cache.FileCache, ucar.nc2.util.cache.FileFactory, java.lang.Object, java.lang.String, int, ucar.nc2.util.CancelTask, java.lang.Object) throws java.io.IOException
+    {
+        ucar.nc2.util.cache.FileCacheable $r5;
+        ucar.nc2.util.cache.FileCache r0;
+        ucar.nc2.dataset.NetcdfDataset$DodsFactory $r7;
+        ucar.nc2.dods.DODSNetcdfFile $r8;
+        ucar.nc2.util.CancelTask r3;
+        int i0;
+        java.lang.Object r1, r4;
+        java.lang.String r2;
+        ucar.nc2.NetcdfFile $r6;
+        ucar.nc2.util.cache.FileFactory r9;
+
+        r0 := @parameter0: ucar.nc2.util.cache.FileCache;
+
+        r9 := @parameter1: ucar.nc2.util.cache.FileFactory;
+
+        r1 := @parameter2: java.lang.Object;
+
+        r2 := @parameter3: java.lang.String;
+
+        i0 := @parameter4: int;
+
+        r3 := @parameter5: ucar.nc2.util.CancelTask;
+
+        r4 := @parameter6: java.lang.Object;
+
+        if r0 != null goto label1;
+
+        $r8 = new ucar.nc2.dods.DODSNetcdfFile;
+
+        specialinvoke $r8.<ucar.nc2.dods.DODSNetcdfFile: void <init>(java.lang.String,ucar.nc2.util.CancelTask)>(r2, r3);
+
+        return $r8;
+
+     label1:
+        if r9 != null goto label2;
+
+        $r7 = new ucar.nc2.dataset.NetcdfDataset$DodsFactory;
+
+        specialinvoke $r7.<ucar.nc2.dataset.NetcdfDataset$DodsFactory: void <init>(ucar.nc2.dataset.NetcdfDataset$1)>(null);
+
+        r9 = $r7;
+
+     label2:
+        $r5 = virtualinvoke r0.<ucar.nc2.util.cache.FileCache: ucar.nc2.util.cache.FileCacheable acquire(ucar.nc2.util.cache.FileFactory,java.lang.Object,java.lang.String,int,ucar.nc2.util.CancelTask,java.lang.Object)>(r9, r1, r2, i0, r3, r4);
+
+        $r6 = (ucar.nc2.NetcdfFile) $r5;
+
+        return $r6;
+    }
+
+    private static ucar.nc2.NetcdfFile acquireNcml(ucar.nc2.util.cache.FileCache, ucar.nc2.util.cache.FileFactory, java.lang.Object, java.lang.String, int, ucar.nc2.util.CancelTask, java.lang.Object) throws java.io.IOException
+    {
+        ucar.nc2.util.cache.FileCacheable $r5;
+        ucar.nc2.util.cache.FileCache r0;
+        ucar.nc2.dataset.NetcdfDataset$NcMLFactory $r7;
+        ucar.nc2.util.CancelTask r3;
+        int i0;
+        java.lang.Object r1, r4;
+        java.lang.String r2;
+        ucar.nc2.NetcdfFile $r6;
+        ucar.nc2.dataset.NetcdfDataset $r8;
+        ucar.nc2.util.cache.FileFactory r9;
+
+        r0 := @parameter0: ucar.nc2.util.cache.FileCache;
+
+        r9 := @parameter1: ucar.nc2.util.cache.FileFactory;
+
+        r1 := @parameter2: java.lang.Object;
+
+        r2 := @parameter3: java.lang.String;
+
+        i0 := @parameter4: int;
+
+        r3 := @parameter5: ucar.nc2.util.CancelTask;
+
+        r4 := @parameter6: java.lang.Object;
+
+        if r0 != null goto label1;
+
+        $r8 = staticinvoke <ucar.nc2.ncml.NcMLReader: ucar.nc2.dataset.NetcdfDataset readNcML(java.lang.String,ucar.nc2.util.CancelTask)>(r2, r3);
+
+        return $r8;
+
+     label1:
+        if r9 != null goto label2;
+
+        $r7 = new ucar.nc2.dataset.NetcdfDataset$NcMLFactory;
+
+        specialinvoke $r7.<ucar.nc2.dataset.NetcdfDataset$NcMLFactory: void <init>(ucar.nc2.dataset.NetcdfDataset$1)>(null);
+
+        r9 = $r7;
+
+     label2:
+        $r5 = virtualinvoke r0.<ucar.nc2.util.cache.FileCache: ucar.nc2.util.cache.FileCacheable acquire(ucar.nc2.util.cache.FileFactory,java.lang.Object,java.lang.String,int,ucar.nc2.util.CancelTask,java.lang.Object)>(r9, r1, r2, i0, r3, r4);
+
+        $r6 = (ucar.nc2.NetcdfFile) $r5;
+
+        return $r6;
+    }
+
+    private static ucar.nc2.NetcdfFile acquireRemote(ucar.nc2.util.cache.FileCache, ucar.nc2.util.cache.FileFactory, java.lang.Object, java.lang.String, int, ucar.nc2.util.CancelTask, java.lang.Object) throws java.io.IOException
+    {
+        ucar.nc2.dataset.NetcdfDataset$RemoteFactory $r7;
+        ucar.nc2.util.cache.FileCacheable $r5;
+        ucar.nc2.util.cache.FileCache r0;
+        ucar.nc2.util.CancelTask r3;
+        ucar.nc2.stream.CdmRemote $r8;
+        int i0;
+        java.lang.Object r1, r4;
+        java.lang.String r2;
+        ucar.nc2.NetcdfFile $r6;
+        ucar.nc2.util.cache.FileFactory r9;
+
+        r0 := @parameter0: ucar.nc2.util.cache.FileCache;
+
+        r9 := @parameter1: ucar.nc2.util.cache.FileFactory;
+
+        r1 := @parameter2: java.lang.Object;
+
+        r2 := @parameter3: java.lang.String;
+
+        i0 := @parameter4: int;
+
+        r3 := @parameter5: ucar.nc2.util.CancelTask;
+
+        r4 := @parameter6: java.lang.Object;
+
+        if r0 != null goto label1;
+
+        $r8 = new ucar.nc2.stream.CdmRemote;
+
+        specialinvoke $r8.<ucar.nc2.stream.CdmRemote: void <init>(java.lang.String)>(r2);
+
+        return $r8;
+
+     label1:
+        if r9 != null goto label2;
+
+        $r7 = new ucar.nc2.dataset.NetcdfDataset$RemoteFactory;
+
+        specialinvoke $r7.<ucar.nc2.dataset.NetcdfDataset$RemoteFactory: void <init>(ucar.nc2.dataset.NetcdfDataset$1)>(null);
+
+        r9 = $r7;
+
+     label2:
+        $r5 = virtualinvoke r0.<ucar.nc2.util.cache.FileCache: ucar.nc2.util.cache.FileCacheable acquire(ucar.nc2.util.cache.FileFactory,java.lang.Object,java.lang.String,int,ucar.nc2.util.CancelTask,java.lang.Object)>(r9, r1, r2, i0, r3, r4);
+
+        $r6 = (ucar.nc2.NetcdfFile) $r5;
+
+        return $r6;
+    }
+
+    public ucar.nc2.ncml.Aggregation getAggregation()
+    {
+        ucar.nc2.dataset.NetcdfDataset r0;
+        ucar.nc2.ncml.Aggregation $r1;
+
+        r0 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        $r1 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.ncml.Aggregation agg>;
+
+        return $r1;
+    }
+
+    public void setAggregation(ucar.nc2.ncml.Aggregation)
+    {
+        ucar.nc2.dataset.NetcdfDataset r0;
+        ucar.nc2.ncml.Aggregation r1;
+
+        r0 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        r1 := @parameter0: ucar.nc2.ncml.Aggregation;
+
+        r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.ncml.Aggregation agg> = r1;
+
+        return;
+    }
+
+    public java.util.List getCoordinateSystems()
+    {
+        java.util.List $r1;
+        ucar.nc2.dataset.NetcdfDataset r0;
+
+        r0 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        $r1 = r0.<ucar.nc2.dataset.NetcdfDataset: java.util.List coordSys>;
+
+        return $r1;
+    }
+
+    public java.lang.String getConventionUsed()
+    {
+        java.lang.String $r1;
+        ucar.nc2.dataset.NetcdfDataset r0;
+
+        r0 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        $r1 = r0.<ucar.nc2.dataset.NetcdfDataset: java.lang.String convUsed>;
+
+        return $r1;
+    }
+
+    public java.util.EnumSet getEnhanceMode()
+    {
+        ucar.nc2.dataset.NetcdfDataset r0;
+        java.util.EnumSet $r1;
+
+        r0 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        $r1 = r0.<ucar.nc2.dataset.NetcdfDataset: java.util.EnumSet enhanceMode>;
+
+        return $r1;
+    }
+
+    public java.util.List getCoordinateTransforms()
+    {
+        java.util.List $r1;
+        ucar.nc2.dataset.NetcdfDataset r0;
+
+        r0 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        $r1 = r0.<ucar.nc2.dataset.NetcdfDataset: java.util.List coordTransforms>;
+
+        return $r1;
+    }
+
+    public java.util.List getCoordinateAxes()
+    {
+        java.util.List $r1;
+        ucar.nc2.dataset.NetcdfDataset r0;
+
+        r0 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        $r1 = r0.<ucar.nc2.dataset.NetcdfDataset: java.util.List coordAxes>;
+
+        return $r1;
+    }
+
+    public void clearCoordinateSystems()
+    {
+        java.util.Iterator $r5;
+        java.util.ArrayList $r1, $r2, $r3;
+        java.util.List $r4;
+        ucar.nc2.dataset.VariableEnhanced r10;
+        java.lang.Object $r8;
+        ucar.nc2.Variable r9;
+        ucar.nc2.dataset.NetcdfDataset$Enhance $r6;
+        ucar.nc2.dataset.NetcdfDataset r0;
+        java.util.EnumSet $r7;
+        boolean $z0;
+
+        r0 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        $r1 = new java.util.ArrayList;
+
+        specialinvoke $r1.<java.util.ArrayList: void <init>()>();
+
+        r0.<ucar.nc2.dataset.NetcdfDataset: java.util.List coordSys> = $r1;
+
+        $r2 = new java.util.ArrayList;
+
+        specialinvoke $r2.<java.util.ArrayList: void <init>()>();
+
+        r0.<ucar.nc2.dataset.NetcdfDataset: java.util.List coordAxes> = $r2;
+
+        $r3 = new java.util.ArrayList;
+
+        specialinvoke $r3.<java.util.ArrayList: void <init>()>();
+
+        r0.<ucar.nc2.dataset.NetcdfDataset: java.util.List coordTransforms> = $r3;
+
+        $r4 = virtualinvoke r0.<ucar.nc2.dataset.NetcdfDataset: java.util.List getVariables()>();
+
+        $r5 = interfaceinvoke $r4.<java.util.List: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r5.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label2;
+
+        $r8 = interfaceinvoke $r5.<java.util.Iterator: java.lang.Object next()>();
+
+        r9 = (ucar.nc2.Variable) $r8;
+
+        r10 = (ucar.nc2.dataset.VariableEnhanced) r9;
+
+        interfaceinvoke r10.<ucar.nc2.dataset.VariableEnhanced: void clearCoordinateSystems()>();
+
+        goto label1;
+
+     label2:
+        $r7 = r0.<ucar.nc2.dataset.NetcdfDataset: java.util.EnumSet enhanceMode>;
+
+        $r6 = <ucar.nc2.dataset.NetcdfDataset$Enhance: ucar.nc2.dataset.NetcdfDataset$Enhance CoordSystems>;
+
+        virtualinvoke $r7.<java.util.EnumSet: boolean remove(java.lang.Object)>($r6);
+
+        return;
+    }
+
+    public ucar.nc2.dataset.CoordinateAxis findCoordinateAxis(ucar.nc2.constants.AxisType)
+    {
+        java.util.Iterator $r3;
+        ucar.nc2.dataset.CoordinateAxis r5;
+        java.util.List $r2;
+        ucar.nc2.constants.AxisType r0, $r6;
+        java.lang.Object $r4;
+        ucar.nc2.dataset.NetcdfDataset r1;
+        boolean $z0;
+
+        r1 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        r0 := @parameter0: ucar.nc2.constants.AxisType;
+
+        if r0 != null goto label1;
+
+        return null;
+
+     label1:
+        $r2 = r1.<ucar.nc2.dataset.NetcdfDataset: java.util.List coordAxes>;
+
+        $r3 = interfaceinvoke $r2.<java.util.List: java.util.Iterator iterator()>();
+
+     label2:
+        $z0 = interfaceinvoke $r3.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label4;
+
+        $r4 = interfaceinvoke $r3.<java.util.Iterator: java.lang.Object next()>();
+
+        r5 = (ucar.nc2.dataset.CoordinateAxis) $r4;
+
+        $r6 = virtualinvoke r5.<ucar.nc2.dataset.CoordinateAxis: ucar.nc2.constants.AxisType getAxisType()>();
+
+        if r0 != $r6 goto label3;
+
+        return r5;
+
+     label3:
+        goto label2;
+
+     label4:
+        return null;
+    }
+
+    public ucar.nc2.dataset.CoordinateAxis findCoordinateAxis(java.lang.String)
+    {
+        java.util.Iterator $r3;
+        ucar.nc2.dataset.CoordinateAxis r5;
+        java.util.List $r2;
+        java.lang.Object $r4;
+        java.lang.String r0, $r6;
+        ucar.nc2.dataset.NetcdfDataset r1;
+        boolean $z0, $z1;
+
+        r1 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        r0 := @parameter0: java.lang.String;
+
+        if r0 != null goto label1;
+
+        return null;
+
+     label1:
+        $r2 = r1.<ucar.nc2.dataset.NetcdfDataset: java.util.List coordAxes>;
+
+        $r3 = interfaceinvoke $r2.<java.util.List: java.util.Iterator iterator()>();
+
+     label2:
+        $z0 = interfaceinvoke $r3.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label4;
+
+        $r4 = interfaceinvoke $r3.<java.util.Iterator: java.lang.Object next()>();
+
+        r5 = (ucar.nc2.dataset.CoordinateAxis) $r4;
+
+        $r6 = virtualinvoke r5.<ucar.nc2.dataset.CoordinateAxis: java.lang.String getName()>();
+
+        $z1 = virtualinvoke r0.<java.lang.String: boolean equals(java.lang.Object)>($r6);
+
+        if $z1 == 0 goto label3;
+
+        return r5;
+
+     label3:
+        goto label2;
+
+     label4:
+        return null;
+    }
+
+    public ucar.nc2.dataset.CoordinateSystem findCoordinateSystem(java.lang.String)
+    {
+        java.util.Iterator $r3;
+        java.util.List $r2;
+        java.lang.Object $r4;
+        java.lang.String r0, $r6;
+        ucar.nc2.dataset.CoordinateSystem r5;
+        ucar.nc2.dataset.NetcdfDataset r1;
+        boolean $z0, $z1;
+
+        r1 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        r0 := @parameter0: java.lang.String;
+
+        if r0 != null goto label1;
+
+        return null;
+
+     label1:
+        $r2 = r1.<ucar.nc2.dataset.NetcdfDataset: java.util.List coordSys>;
+
+        $r3 = interfaceinvoke $r2.<java.util.List: java.util.Iterator iterator()>();
+
+     label2:
+        $z0 = interfaceinvoke $r3.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label4;
+
+        $r4 = interfaceinvoke $r3.<java.util.Iterator: java.lang.Object next()>();
+
+        r5 = (ucar.nc2.dataset.CoordinateSystem) $r4;
+
+        $r6 = virtualinvoke r5.<ucar.nc2.dataset.CoordinateSystem: java.lang.String getName()>();
+
+        $z1 = virtualinvoke r0.<java.lang.String: boolean equals(java.lang.Object)>($r6);
+
+        if $z1 == 0 goto label3;
+
+        return r5;
+
+     label3:
+        goto label2;
+
+     label4:
+        return null;
+    }
+
+    public ucar.nc2.dataset.CoordinateTransform findCoordinateTransform(java.lang.String)
+    {
+        java.util.Iterator $r3;
+        java.util.List $r2;
+        ucar.nc2.dataset.CoordinateTransform r5;
+        java.lang.Object $r4;
+        java.lang.String r0, $r6;
+        ucar.nc2.dataset.NetcdfDataset r1;
+        boolean $z0, $z1;
+
+        r1 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        r0 := @parameter0: java.lang.String;
+
+        if r0 != null goto label1;
+
+        return null;
+
+     label1:
+        $r2 = r1.<ucar.nc2.dataset.NetcdfDataset: java.util.List coordTransforms>;
+
+        $r3 = interfaceinvoke $r2.<java.util.List: java.util.Iterator iterator()>();
+
+     label2:
+        $z0 = interfaceinvoke $r3.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label4;
+
+        $r4 = interfaceinvoke $r3.<java.util.Iterator: java.lang.Object next()>();
+
+        r5 = (ucar.nc2.dataset.CoordinateTransform) $r4;
+
+        $r6 = virtualinvoke r5.<ucar.nc2.dataset.CoordinateTransform: java.lang.String getName()>();
+
+        $z1 = virtualinvoke r0.<java.lang.String: boolean equals(java.lang.Object)>($r6);
+
+        if $z1 == 0 goto label3;
+
+        return r5;
+
+     label3:
+        goto label2;
+
+     label4:
+        return null;
+    }
+
+    public synchronized void close() throws java.io.IOException
+    {
+        ucar.nc2.util.cache.FileCache $r2, $r7;
+        ucar.nc2.ncml.Aggregation $r1, $r3, $r6, $r8;
+        ucar.nc2.NetcdfFile $r4, $r5;
+        ucar.nc2.dataset.NetcdfDataset r0;
+
+        r0 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        $r1 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.ncml.Aggregation agg>;
+
+        if $r1 == null goto label1;
+
+        $r8 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.ncml.Aggregation agg>;
+
+        virtualinvoke $r8.<ucar.nc2.ncml.Aggregation: void persistWrite()>();
+
+     label1:
+        $r2 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.util.cache.FileCache cache>;
+
+        if $r2 == null goto label2;
+
+        r0.<ucar.nc2.dataset.NetcdfDataset: boolean unlocked> = 1;
+
+        $r7 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.util.cache.FileCache cache>;
+
+        virtualinvoke $r7.<ucar.nc2.util.cache.FileCache: void release(ucar.nc2.util.cache.FileCacheable)>(r0);
+
+        goto label5;
+
+     label2:
+        $r3 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.ncml.Aggregation agg>;
+
+        if $r3 == null goto label3;
+
+        $r6 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.ncml.Aggregation agg>;
+
+        virtualinvoke $r6.<ucar.nc2.ncml.Aggregation: void close()>();
+
+     label3:
+        r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.ncml.Aggregation agg> = null;
+
+        $r4 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile orgFile>;
+
+        if $r4 == null goto label4;
+
+        $r5 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile orgFile>;
+
+        virtualinvoke $r5.<ucar.nc2.NetcdfFile: void close()>();
+
+     label4:
+        r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile orgFile> = null;
+
+     label5:
+        return;
+    }
+
+    public boolean sync() throws java.io.IOException
+    {
+        ucar.nc2.ncml.Aggregation $r1, $r15;
+        java.lang.String $r5, $r7, $r9;
+        java.util.EnumSet r13, $r14;
+        boolean $z0, $z1;
+        ucar.nc2.Group $r10, $r12;
+        ucar.nc2.NetcdfFile $r2, $r3, $r4, $r6, $r8, $r11;
+        ucar.nc2.dataset.NetcdfDataset r0;
+
+        r0 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        r0.<ucar.nc2.dataset.NetcdfDataset: boolean unlocked> = 0;
+
+        $r1 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.ncml.Aggregation agg>;
+
+        if $r1 == null goto label1;
+
+        $r15 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.ncml.Aggregation agg>;
+
+        $z1 = virtualinvoke $r15.<ucar.nc2.ncml.Aggregation: boolean sync()>();
+
+        return $z1;
+
+     label1:
+        $r2 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile orgFile>;
+
+        if $r2 == null goto label2;
+
+        $r3 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile orgFile>;
+
+        $z0 = virtualinvoke $r3.<ucar.nc2.NetcdfFile: boolean sync()>();
+
+        if $z0 == 0 goto label2;
+
+        $r4 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile orgFile>;
+
+        $r5 = virtualinvoke $r4.<ucar.nc2.NetcdfFile: java.lang.String getLocation()>();
+
+        r0.<ucar.nc2.dataset.NetcdfDataset: java.lang.String location> = $r5;
+
+        $r6 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile orgFile>;
+
+        $r7 = virtualinvoke $r6.<ucar.nc2.NetcdfFile: java.lang.String getId()>();
+
+        r0.<ucar.nc2.dataset.NetcdfDataset: java.lang.String id> = $r7;
+
+        $r8 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile orgFile>;
+
+        $r9 = virtualinvoke $r8.<ucar.nc2.NetcdfFile: java.lang.String getTitle()>();
+
+        r0.<ucar.nc2.dataset.NetcdfDataset: java.lang.String title> = $r9;
+
+        virtualinvoke r0.<ucar.nc2.dataset.NetcdfDataset: void empty()>();
+
+        $r10 = virtualinvoke r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.Group getRootGroup()>();
+
+        $r11 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile orgFile>;
+
+        $r12 = virtualinvoke $r11.<ucar.nc2.NetcdfFile: ucar.nc2.Group getRootGroup()>();
+
+        specialinvoke r0.<ucar.nc2.dataset.NetcdfDataset: void convertGroup(ucar.nc2.Group,ucar.nc2.Group)>($r10, $r12);
+
+        virtualinvoke r0.<ucar.nc2.dataset.NetcdfDataset: void finish()>();
+
+        r13 = r0.<ucar.nc2.dataset.NetcdfDataset: java.util.EnumSet enhanceMode>;
+
+        $r14 = staticinvoke <java.util.EnumSet: java.util.EnumSet noneOf(java.lang.Class)>(class "Lucar/nc2/dataset/NetcdfDataset$Enhance;");
+
+        r0.<ucar.nc2.dataset.NetcdfDataset: java.util.EnumSet enhanceMode> = $r14;
+
+        staticinvoke <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.dataset.CoordSysBuilderIF enhance(ucar.nc2.dataset.NetcdfDataset,java.util.Set,ucar.nc2.util.CancelTask)>(r0, r13, null);
+
+        return 1;
+
+     label2:
+        return 0;
+    }
+
+    public void empty()
+    {
+        ucar.nc2.dataset.NetcdfDataset r0;
+        java.util.ArrayList $r1, $r2, $r3;
+
+        r0 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        specialinvoke r0.<ucar.nc2.NetcdfFile: void empty()>();
+
+        $r1 = new java.util.ArrayList;
+
+        specialinvoke $r1.<java.util.ArrayList: void <init>()>();
+
+        r0.<ucar.nc2.dataset.NetcdfDataset: java.util.List coordSys> = $r1;
+
+        $r2 = new java.util.ArrayList;
+
+        specialinvoke $r2.<java.util.ArrayList: void <init>()>();
+
+        r0.<ucar.nc2.dataset.NetcdfDataset: java.util.List coordAxes> = $r2;
+
+        $r3 = new java.util.ArrayList;
+
+        specialinvoke $r3.<java.util.ArrayList: void <init>()>();
+
+        r0.<ucar.nc2.dataset.NetcdfDataset: java.util.List coordTransforms> = $r3;
+
+        r0.<ucar.nc2.dataset.NetcdfDataset: java.lang.String convUsed> = null;
+
+        return;
+    }
+
+    public boolean syncExtend() throws java.io.IOException
+    {
+        ucar.nc2.ncml.Aggregation $r1, $r12;
+        int $i0;
+        ucar.nc2.Variable r10;
+        boolean $z0, $z1, $z2, $z3;
+        java.util.Iterator $r8;
+        java.util.List $r7, $r11;
+        ucar.nc2.Dimension $r5, $r6;
+        java.lang.Object $r9;
+        ucar.nc2.NetcdfFile $r2, $r3, $r4;
+        ucar.nc2.dataset.NetcdfDataset r0;
+
+        r0 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        r0.<ucar.nc2.dataset.NetcdfDataset: boolean unlocked> = 0;
+
+        $r1 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.ncml.Aggregation agg>;
+
+        if $r1 == null goto label1;
+
+        $r12 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.ncml.Aggregation agg>;
+
+        $z3 = virtualinvoke $r12.<ucar.nc2.ncml.Aggregation: boolean syncExtend()>();
+
+        return $z3;
+
+     label1:
+        $r2 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile orgFile>;
+
+        if $r2 == null goto label5;
+
+        $r3 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile orgFile>;
+
+        $z0 = virtualinvoke $r3.<ucar.nc2.NetcdfFile: boolean syncExtend()>();
+
+        if $z0 == 0 goto label5;
+
+        $r4 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile orgFile>;
+
+        $r5 = virtualinvoke $r4.<ucar.nc2.NetcdfFile: ucar.nc2.Dimension getUnlimitedDimension()>();
+
+        $i0 = virtualinvoke $r5.<ucar.nc2.Dimension: int getLength()>();
+
+        $r6 = virtualinvoke r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.Dimension getUnlimitedDimension()>();
+
+        virtualinvoke $r6.<ucar.nc2.Dimension: void setLength(int)>($i0);
+
+        $r7 = virtualinvoke r0.<ucar.nc2.dataset.NetcdfDataset: java.util.List getVariables()>();
+
+        $r8 = interfaceinvoke $r7.<java.util.List: java.util.Iterator iterator()>();
+
+     label2:
+        $z1 = interfaceinvoke $r8.<java.util.Iterator: boolean hasNext()>();
+
+        if $z1 == 0 goto label4;
+
+        $r9 = interfaceinvoke $r8.<java.util.Iterator: java.lang.Object next()>();
+
+        r10 = (ucar.nc2.Variable) $r9;
+
+        $z2 = virtualinvoke r10.<ucar.nc2.Variable: boolean isUnlimited()>();
+
+        if $z2 == 0 goto label3;
+
+        $r11 = virtualinvoke r10.<ucar.nc2.Variable: java.util.List getDimensions()>();
+
+        virtualinvoke r10.<ucar.nc2.Variable: void setDimensions(java.util.List)>($r11);
+
+     label3:
+        goto label2;
+
+     label4:
+        return 1;
+
+     label5:
+        return 0;
+    }
+
+    public void writeNcML(java.io.OutputStream, java.lang.String) throws java.io.IOException
+    {
+        java.io.OutputStream r2;
+        java.lang.String r3;
+        ucar.nc2.dataset.NetcdfDataset r1;
+        ucar.nc2.ncml.NcMLWriter $r0;
+
+        r1 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        r2 := @parameter0: java.io.OutputStream;
+
+        r3 := @parameter1: java.lang.String;
+
+        $r0 = new ucar.nc2.ncml.NcMLWriter;
+
+        specialinvoke $r0.<ucar.nc2.ncml.NcMLWriter: void <init>()>();
+
+        virtualinvoke $r0.<ucar.nc2.ncml.NcMLWriter: void writeXML(ucar.nc2.NetcdfFile,java.io.OutputStream,java.lang.String)>(r1, r2, r3);
+
+        return;
+    }
+
+    public void writeNcMLG(java.io.OutputStream, boolean, java.lang.String) throws java.io.IOException
+    {
+        java.io.OutputStream r2;
+        ucar.nc2.ncml.NcMLGWriter $r0;
+        java.lang.String r3;
+        ucar.nc2.dataset.NetcdfDataset r1;
+        boolean z0;
+
+        r1 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        r2 := @parameter0: java.io.OutputStream;
+
+        z0 := @parameter1: boolean;
+
+        r3 := @parameter2: java.lang.String;
+
+        $r0 = new ucar.nc2.ncml.NcMLGWriter;
+
+        specialinvoke $r0.<ucar.nc2.ncml.NcMLGWriter: void <init>()>();
+
+        virtualinvoke $r0.<ucar.nc2.ncml.NcMLGWriter: void writeXML(ucar.nc2.dataset.NetcdfDataset,java.io.OutputStream,boolean,java.lang.String)>(r1, r2, z0, r3);
+
+        return;
+    }
+
+    public void <init>(ucar.nc2.NetcdfFile) throws java.io.IOException
+    {
+        java.util.Set $r2;
+        ucar.nc2.NetcdfFile r1;
+        ucar.nc2.dataset.NetcdfDataset r0;
+
+        r0 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        r1 := @parameter0: ucar.nc2.NetcdfFile;
+
+        $r2 = <ucar.nc2.dataset.NetcdfDataset: java.util.Set defaultEnhanceMode>;
+
+        specialinvoke r0.<ucar.nc2.dataset.NetcdfDataset: void <init>(ucar.nc2.NetcdfFile,java.util.Set)>(r1, $r2);
+
+        return;
+    }
+
+    public void <init>(ucar.nc2.NetcdfFile, boolean) throws java.io.IOException
+    {
+        java.util.Set $r2;
+        ucar.nc2.NetcdfFile r1;
+        ucar.nc2.dataset.NetcdfDataset r0;
+        boolean z0;
+
+        r0 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        r1 := @parameter0: ucar.nc2.NetcdfFile;
+
+        z0 := @parameter1: boolean;
+
+        if z0 == 0 goto label1;
+
+        $r2 = <ucar.nc2.dataset.NetcdfDataset: java.util.Set defaultEnhanceMode>;
+
+        goto label2;
+
+     label1:
+        $r2 = null;
+
+     label2:
+        specialinvoke r0.<ucar.nc2.dataset.NetcdfDataset: void <init>(ucar.nc2.NetcdfFile,java.util.Set)>(r1, $r2);
+
+        return;
+    }
+
+    public void <init>(ucar.nc2.NetcdfFile, java.util.Set) throws java.io.IOException
+    {
+        java.util.Set r8;
+        ucar.nc2.Group $r6, $r7;
+        java.util.ArrayList $r2, $r3, $r4;
+        ucar.nc2.NetcdfFile r1;
+        ucar.nc2.dataset.NetcdfDataset r0;
+        java.util.EnumSet $r5;
+
+        r0 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        r1 := @parameter0: ucar.nc2.NetcdfFile;
+
+        r8 := @parameter1: java.util.Set;
+
+        specialinvoke r0.<ucar.nc2.NetcdfFile: void <init>(ucar.nc2.NetcdfFile)>(r1);
+
+        r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile orgFile> = null;
+
+        $r2 = new java.util.ArrayList;
+
+        specialinvoke $r2.<java.util.ArrayList: void <init>()>();
+
+        r0.<ucar.nc2.dataset.NetcdfDataset: java.util.List coordSys> = $r2;
+
+        $r3 = new java.util.ArrayList;
+
+        specialinvoke $r3.<java.util.ArrayList: void <init>()>();
+
+        r0.<ucar.nc2.dataset.NetcdfDataset: java.util.List coordAxes> = $r3;
+
+        $r4 = new java.util.ArrayList;
+
+        specialinvoke $r4.<java.util.ArrayList: void <init>()>();
+
+        r0.<ucar.nc2.dataset.NetcdfDataset: java.util.List coordTransforms> = $r4;
+
+        $r5 = staticinvoke <java.util.EnumSet: java.util.EnumSet noneOf(java.lang.Class)>(class "Lucar/nc2/dataset/NetcdfDataset$Enhance;");
+
+        r0.<ucar.nc2.dataset.NetcdfDataset: java.util.EnumSet enhanceMode> = $r5;
+
+        r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.ncml.Aggregation agg> = null;
+
+        r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile orgFile> = r1;
+
+        r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.iosp.IOServiceProvider spi> = null;
+
+        $r6 = virtualinvoke r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.Group getRootGroup()>();
+
+        $r7 = virtualinvoke r1.<ucar.nc2.NetcdfFile: ucar.nc2.Group getRootGroup()>();
+
+        specialinvoke r0.<ucar.nc2.dataset.NetcdfDataset: void convertGroup(ucar.nc2.Group,ucar.nc2.Group)>($r6, $r7);
+
+        virtualinvoke r0.<ucar.nc2.dataset.NetcdfDataset: void finish()>();
+
+        staticinvoke <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.dataset.CoordSysBuilderIF enhance(ucar.nc2.dataset.NetcdfDataset,java.util.Set,ucar.nc2.util.CancelTask)>(r0, r8, null);
+
+        return;
+    }
+
+    private void convertGroup(ucar.nc2.Group, ucar.nc2.Group)
+    {
+        boolean $z0, $z1, $z2, $z3, $z4;
+        ucar.nc2.Group r0, $r12, r14, r27;
+        java.util.List $r1, $r3, $r5, $r7, $r9;
+        ucar.nc2.Attribute r25;
+        ucar.nc2.Variable $r17, r26;
+        java.lang.String $r15, $r21;
+        java.util.Iterator $r2, $r4, $r6, $r8, $r10;
+        ucar.nc2.EnumTypedef r23;
+        java.lang.Object $r11, $r16, $r18, $r19, $r22;
+        ucar.nc2.Dimension $r20, r24;
+        ucar.nc2.dataset.NetcdfDataset r13;
+
+        r13 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        r14 := @parameter0: ucar.nc2.Group;
+
+        r0 := @parameter1: ucar.nc2.Group;
+
+        $r1 = virtualinvoke r0.<ucar.nc2.Group: java.util.List getEnumTypedefs()>();
+
+        $r2 = interfaceinvoke $r1.<java.util.List: java.util.Iterator iterator()>();
+
+     label01:
+        $z0 = interfaceinvoke $r2.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label02;
+
+        $r22 = interfaceinvoke $r2.<java.util.Iterator: java.lang.Object next()>();
+
+        r23 = (ucar.nc2.EnumTypedef) $r22;
+
+        virtualinvoke r14.<ucar.nc2.Group: void addEnumeration(ucar.nc2.EnumTypedef)>(r23);
+
+        goto label01;
+
+     label02:
+        $r3 = virtualinvoke r0.<ucar.nc2.Group: java.util.List getDimensions()>();
+
+        $r4 = interfaceinvoke $r3.<java.util.List: java.util.Iterator iterator()>();
+
+     label03:
+        $z1 = interfaceinvoke $r4.<java.util.Iterator: boolean hasNext()>();
+
+        if $z1 == 0 goto label04;
+
+        $r19 = interfaceinvoke $r4.<java.util.Iterator: java.lang.Object next()>();
+
+        r24 = (ucar.nc2.Dimension) $r19;
+
+        $r20 = new ucar.nc2.Dimension;
+
+        $r21 = virtualinvoke r24.<ucar.nc2.Dimension: java.lang.String getName()>();
+
+        specialinvoke $r20.<ucar.nc2.Dimension: void <init>(java.lang.String,ucar.nc2.Dimension)>($r21, r24);
+
+        virtualinvoke r14.<ucar.nc2.Group: void addDimension(ucar.nc2.Dimension)>($r20);
+
+        goto label03;
+
+     label04:
+        $r5 = virtualinvoke r0.<ucar.nc2.Group: java.util.List getAttributes()>();
+
+        $r6 = interfaceinvoke $r5.<java.util.List: java.util.Iterator iterator()>();
+
+     label05:
+        $z2 = interfaceinvoke $r6.<java.util.Iterator: boolean hasNext()>();
+
+        if $z2 == 0 goto label06;
+
+        $r18 = interfaceinvoke $r6.<java.util.Iterator: java.lang.Object next()>();
+
+        r25 = (ucar.nc2.Attribute) $r18;
+
+        virtualinvoke r14.<ucar.nc2.Group: void addAttribute(ucar.nc2.Attribute)>(r25);
+
+        goto label05;
+
+     label06:
+        $r7 = virtualinvoke r0.<ucar.nc2.Group: java.util.List getVariables()>();
+
+        $r8 = interfaceinvoke $r7.<java.util.List: java.util.Iterator iterator()>();
+
+     label07:
+        $z3 = interfaceinvoke $r8.<java.util.Iterator: boolean hasNext()>();
+
+        if $z3 == 0 goto label08;
+
+        $r16 = interfaceinvoke $r8.<java.util.Iterator: java.lang.Object next()>();
+
+        r26 = (ucar.nc2.Variable) $r16;
+
+        $r17 = specialinvoke r13.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.Variable convertVariable(ucar.nc2.Group,ucar.nc2.Variable)>(r14, r26);
+
+        virtualinvoke r14.<ucar.nc2.Group: void addVariable(ucar.nc2.Variable)>($r17);
+
+        goto label07;
+
+     label08:
+        $r9 = virtualinvoke r0.<ucar.nc2.Group: java.util.List getGroups()>();
+
+        $r10 = interfaceinvoke $r9.<java.util.List: java.util.Iterator iterator()>();
+
+     label09:
+        $z4 = interfaceinvoke $r10.<java.util.Iterator: boolean hasNext()>();
+
+        if $z4 == 0 goto label10;
+
+        $r11 = interfaceinvoke $r10.<java.util.Iterator: java.lang.Object next()>();
+
+        r27 = (ucar.nc2.Group) $r11;
+
+        $r12 = new ucar.nc2.Group;
+
+        $r15 = virtualinvoke r27.<ucar.nc2.Group: java.lang.String getShortName()>();
+
+        specialinvoke $r12.<ucar.nc2.Group: void <init>(ucar.nc2.NetcdfFile,ucar.nc2.Group,java.lang.String)>(r13, r14, $r15);
+
+        virtualinvoke r14.<ucar.nc2.Group: void addGroup(ucar.nc2.Group)>($r12);
+
+        specialinvoke r13.<ucar.nc2.dataset.NetcdfDataset: void convertGroup(ucar.nc2.Group,ucar.nc2.Group)>($r12, r27);
+
+        goto label09;
+
+     label10:
+        return;
+    }
+
+    private ucar.nc2.Variable convertVariable(ucar.nc2.Group, ucar.nc2.Variable)
+    {
+        ucar.nc2.dataset.VariableDS $r1;
+        ucar.nc2.Group r2;
+        ucar.nc2.Structure $r4;
+        ucar.nc2.dataset.StructureDS $r3;
+        ucar.nc2.Sequence $r6;
+        ucar.nc2.Variable r0, r8;
+        ucar.nc2.dataset.NetcdfDataset r7;
+        boolean $z0, $z1;
+        ucar.nc2.dataset.SequenceDS $r5;
+
+        r7 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        r2 := @parameter0: ucar.nc2.Group;
+
+        r0 := @parameter1: ucar.nc2.Variable;
+
+        $z0 = r0 instanceof ucar.nc2.Sequence;
+
+        if $z0 == 0 goto label1;
+
+        $r5 = new ucar.nc2.dataset.SequenceDS;
+
+        $r6 = (ucar.nc2.Sequence) r0;
+
+        specialinvoke $r5.<ucar.nc2.dataset.SequenceDS: void <init>(ucar.nc2.Group,ucar.nc2.Sequence)>(r2, $r6);
+
+        r8 = $r5;
+
+        goto label3;
+
+     label1:
+        $z1 = r0 instanceof ucar.nc2.Structure;
+
+        if $z1 == 0 goto label2;
+
+        $r3 = new ucar.nc2.dataset.StructureDS;
+
+        $r4 = (ucar.nc2.Structure) r0;
+
+        specialinvoke $r3.<ucar.nc2.dataset.StructureDS: void <init>(ucar.nc2.Group,ucar.nc2.Structure)>(r2, $r4);
+
+        r8 = $r3;
+
+        goto label3;
+
+     label2:
+        $r1 = new ucar.nc2.dataset.VariableDS;
+
+        specialinvoke $r1.<ucar.nc2.dataset.VariableDS: void <init>(ucar.nc2.Group,ucar.nc2.Variable,boolean)>(r2, r0, 0);
+
+        r8 = $r1;
+
+     label3:
+        return r8;
+    }
+
+    protected java.lang.Boolean makeRecordStructure()
+    {
+        boolean $z0, $z1, $z2, $z3;
+        ucar.nc2.dataset.VariableDS r21;
+        ucar.nc2.Group $r7, $r12;
+        java.util.List $r15;
+        java.lang.StringBuilder $r25, $r27, $r28;
+        ucar.nc2.NetcdfFile $r1, $r2, $r6;
+        ucar.nc2.Structure r10;
+        java.lang.Boolean r4, $r5, $r9, $r17, $r22, $r23, $r30;
+        ucar.nc2.Variable $r8, r19, $r20;
+        java.lang.String $r14, $r29;
+        org.slf4j.Logger $r26;
+        java.util.Iterator $r16;
+        ucar.ma2.InvalidRangeException $r24;
+        ucar.nc2.dataset.StructureDS $r13;
+        java.lang.Object $r3, $r18;
+        ucar.nc2.Dimension $r11;
+        ucar.nc2.dataset.NetcdfDataset r0;
+
+        r0 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        $r1 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile orgFile>;
+
+        if $r1 != null goto label01;
+
+        $r23 = staticinvoke <java.lang.Boolean: java.lang.Boolean valueOf(boolean)>(0);
+
+        return $r23;
+
+     label01:
+        $r2 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile orgFile>;
+
+        $r3 = virtualinvoke $r2.<ucar.nc2.NetcdfFile: java.lang.Object sendIospMessage(java.lang.Object)>("AddRecordStructure");
+
+        r4 = (java.lang.Boolean) $r3;
+
+        if r4 == null goto label02;
+
+        $z0 = virtualinvoke r4.<java.lang.Boolean: boolean booleanValue()>();
+
+        if $z0 != 0 goto label03;
+
+     label02:
+        $r5 = staticinvoke <java.lang.Boolean: java.lang.Boolean valueOf(boolean)>(0);
+
+        return $r5;
+
+     label03:
+        $r6 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile orgFile>;
+
+        $r7 = virtualinvoke $r6.<ucar.nc2.NetcdfFile: ucar.nc2.Group getRootGroup()>();
+
+        $r8 = virtualinvoke $r7.<ucar.nc2.Group: ucar.nc2.Variable findVariable(java.lang.String)>("record");
+
+        if $r8 == null goto label04;
+
+        $z1 = $r8 instanceof ucar.nc2.Structure;
+
+        if $z1 != 0 goto label05;
+
+     label04:
+        $r9 = staticinvoke <java.lang.Boolean: java.lang.Boolean valueOf(boolean)>(0);
+
+        return $r9;
+
+     label05:
+        r10 = (ucar.nc2.Structure) $r8;
+
+        $r11 = virtualinvoke r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.Dimension getUnlimitedDimension()>();
+
+        if $r11 != null goto label06;
+
+        $r22 = staticinvoke <java.lang.Boolean: java.lang.Boolean valueOf(boolean)>(0);
+
+        return $r22;
+
+     label06:
+        $r12 = virtualinvoke r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.Group getRootGroup()>();
+
+        $r13 = new ucar.nc2.dataset.StructureDS;
+
+        $r14 = virtualinvoke $r11.<ucar.nc2.Dimension: java.lang.String getName()>();
+
+        specialinvoke $r13.<ucar.nc2.dataset.StructureDS: void <init>(ucar.nc2.dataset.NetcdfDataset,ucar.nc2.Group,ucar.nc2.Structure,java.lang.String,java.lang.String,java.lang.String,java.lang.String)>(r0, $r12, null, "record", $r14, null, null);
+
+        virtualinvoke $r13.<ucar.nc2.dataset.StructureDS: void setOriginalVariable(ucar.nc2.Variable)>(r10);
+
+        $r15 = virtualinvoke r0.<ucar.nc2.dataset.NetcdfDataset: java.util.List getVariables()>();
+
+        $r16 = interfaceinvoke $r15.<java.util.List: java.util.Iterator iterator()>();
+
+     label07:
+        $z3 = interfaceinvoke $r16.<java.util.Iterator: boolean hasNext()>();
+
+        if $z3 == 0 goto label12;
+
+        $r18 = interfaceinvoke $r16.<java.util.Iterator: java.lang.Object next()>();
+
+        r19 = (ucar.nc2.Variable) $r18;
+
+        $z2 = virtualinvoke r19.<ucar.nc2.Variable: boolean isUnlimited()>();
+
+        if $z2 != 0 goto label08;
+
+        goto label07;
+
+     label08:
+        $r20 = virtualinvoke r19.<ucar.nc2.Variable: ucar.nc2.Variable slice(int,int)>(0, 0);
+
+        r21 = (ucar.nc2.dataset.VariableDS) $r20;
+
+     label09:
+        goto label11;
+
+     label10:
+        $r24 := @caughtexception;
+
+        $r26 = <ucar.nc2.dataset.NetcdfDataset: org.slf4j.Logger log>;
+
+        $r25 = new java.lang.StringBuilder;
+
+        specialinvoke $r25.<java.lang.StringBuilder: void <init>()>();
+
+        $r27 = virtualinvoke $r25.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Cant slice variable ");
+
+        $r28 = virtualinvoke $r27.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r19);
+
+        $r29 = virtualinvoke $r28.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r26.<org.slf4j.Logger: void error(java.lang.String)>($r29);
+
+        $r30 = staticinvoke <java.lang.Boolean: java.lang.Boolean valueOf(boolean)>(0);
+
+        return $r30;
+
+     label11:
+        virtualinvoke r21.<ucar.nc2.dataset.VariableDS: void setParentStructure(ucar.nc2.Structure)>($r13);
+
+        virtualinvoke $r13.<ucar.nc2.dataset.StructureDS: ucar.nc2.Variable addMemberVariable(ucar.nc2.Variable)>(r21);
+
+        goto label07;
+
+     label12:
+        virtualinvoke $r12.<ucar.nc2.Group: void addVariable(ucar.nc2.Variable)>($r13);
+
+        virtualinvoke r0.<ucar.nc2.dataset.NetcdfDataset: void finish()>();
+
+        $r17 = staticinvoke <java.lang.Boolean: java.lang.Boolean valueOf(boolean)>(1);
+
+        return $r17;
+
+        catch ucar.ma2.InvalidRangeException from label08 to label09 with label10;
+    }
+
+    public void sort()
+    {
+        java.util.List $r2, $r4;
+        ucar.nc2.dataset.NetcdfDataset$VariableComparator $r1, $r3;
+        ucar.nc2.dataset.NetcdfDataset r0;
+
+        r0 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        $r2 = r0.<ucar.nc2.dataset.NetcdfDataset: java.util.List variables>;
+
+        $r1 = new ucar.nc2.dataset.NetcdfDataset$VariableComparator;
+
+        specialinvoke $r1.<ucar.nc2.dataset.NetcdfDataset$VariableComparator: void <init>(ucar.nc2.dataset.NetcdfDataset,ucar.nc2.dataset.NetcdfDataset$1)>(r0, null);
+
+        staticinvoke <java.util.Collections: void sort(java.util.List,java.util.Comparator)>($r2, $r1);
+
+        $r4 = r0.<ucar.nc2.dataset.NetcdfDataset: java.util.List coordAxes>;
+
+        $r3 = new ucar.nc2.dataset.NetcdfDataset$VariableComparator;
+
+        specialinvoke $r3.<ucar.nc2.dataset.NetcdfDataset$VariableComparator: void <init>(ucar.nc2.dataset.NetcdfDataset,ucar.nc2.dataset.NetcdfDataset$1)>(r0, null);
+
+        staticinvoke <java.util.Collections: void sort(java.util.List,java.util.Comparator)>($r4, $r3);
+
+        return;
+    }
+
+    public void <init>()
+    {
+        ucar.nc2.dataset.NetcdfDataset r0;
+        java.util.EnumSet $r4;
+        java.util.ArrayList $r1, $r2, $r3;
+
+        r0 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        specialinvoke r0.<ucar.nc2.NetcdfFile: void <init>()>();
+
+        r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile orgFile> = null;
+
+        $r1 = new java.util.ArrayList;
+
+        specialinvoke $r1.<java.util.ArrayList: void <init>()>();
+
+        r0.<ucar.nc2.dataset.NetcdfDataset: java.util.List coordSys> = $r1;
+
+        $r2 = new java.util.ArrayList;
+
+        specialinvoke $r2.<java.util.ArrayList: void <init>()>();
+
+        r0.<ucar.nc2.dataset.NetcdfDataset: java.util.List coordAxes> = $r2;
+
+        $r3 = new java.util.ArrayList;
+
+        specialinvoke $r3.<java.util.ArrayList: void <init>()>();
+
+        r0.<ucar.nc2.dataset.NetcdfDataset: java.util.List coordTransforms> = $r3;
+
+        $r4 = staticinvoke <java.util.EnumSet: java.util.EnumSet noneOf(java.lang.Class)>(class "Lucar/nc2/dataset/NetcdfDataset$Enhance;");
+
+        r0.<ucar.nc2.dataset.NetcdfDataset: java.util.EnumSet enhanceMode> = $r4;
+
+        r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.ncml.Aggregation agg> = null;
+
+        return;
+    }
+
+    public ucar.nc2.NetcdfFile getReferencedFile()
+    {
+        ucar.nc2.NetcdfFile $r1;
+        ucar.nc2.dataset.NetcdfDataset r0;
+
+        r0 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        $r1 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile orgFile>;
+
+        return $r1;
+    }
+
+    public ucar.nc2.iosp.IOServiceProvider getIosp()
+    {
+        ucar.nc2.iosp.IOServiceProvider $r3;
+        ucar.nc2.NetcdfFile $r1, $r2;
+        ucar.nc2.dataset.NetcdfDataset r0;
+
+        r0 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        $r1 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile orgFile>;
+
+        if $r1 != null goto label1;
+
+        $r3 = null;
+
+        goto label2;
+
+     label1:
+        $r2 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile orgFile>;
+
+        $r3 = virtualinvoke $r2.<ucar.nc2.NetcdfFile: ucar.nc2.iosp.IOServiceProvider getIosp()>();
+
+     label2:
+        return $r3;
+    }
+
+    public void setReferencedFile(ucar.nc2.NetcdfFile)
+    {
+        ucar.nc2.NetcdfFile r1;
+        ucar.nc2.dataset.NetcdfDataset r0;
+
+        r0 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        r1 := @parameter0: ucar.nc2.NetcdfFile;
+
+        r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile orgFile> = r1;
+
+        return;
+    }
+
+    protected java.lang.String toStringDebug(java.lang.Object)
+    {
+        java.lang.Object r1;
+        ucar.nc2.dataset.NetcdfDataset r0;
+
+        r0 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        r1 := @parameter0: java.lang.Object;
+
+        return "";
+    }
+
+    public void addCoordinateSystem(ucar.nc2.dataset.CoordinateSystem)
+    {
+        java.util.List $r2;
+        ucar.nc2.dataset.CoordinateSystem r1;
+        ucar.nc2.dataset.NetcdfDataset r0;
+
+        r0 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        r1 := @parameter0: ucar.nc2.dataset.CoordinateSystem;
+
+        $r2 = r0.<ucar.nc2.dataset.NetcdfDataset: java.util.List coordSys>;
+
+        interfaceinvoke $r2.<java.util.List: boolean add(java.lang.Object)>(r1);
+
+        return;
+    }
+
+    public void addCoordinateTransform(ucar.nc2.dataset.CoordinateTransform)
+    {
+        java.util.List $r2, $r3;
+        ucar.nc2.dataset.CoordinateTransform r1;
+        ucar.nc2.dataset.NetcdfDataset r0;
+        boolean $z0;
+
+        r0 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        r1 := @parameter0: ucar.nc2.dataset.CoordinateTransform;
+
+        $r2 = r0.<ucar.nc2.dataset.NetcdfDataset: java.util.List coordTransforms>;
+
+        $z0 = interfaceinvoke $r2.<java.util.List: boolean contains(java.lang.Object)>(r1);
+
+        if $z0 != 0 goto label1;
+
+        $r3 = r0.<ucar.nc2.dataset.NetcdfDataset: java.util.List coordTransforms>;
+
+        interfaceinvoke $r3.<java.util.List: boolean add(java.lang.Object)>(r1);
+
+     label1:
+        return;
+    }
+
+    public ucar.nc2.dataset.CoordinateAxis addCoordinateAxis(ucar.nc2.dataset.VariableDS)
+    {
+        ucar.nc2.Structure $r9, r12;
+        ucar.nc2.dataset.CoordinateAxis $r3, r4, $r14;
+        ucar.nc2.Variable $r11;
+        java.lang.String $r2, $r7, $r10;
+        boolean $z0, $z1;
+        ucar.nc2.dataset.VariableDS r0;
+        ucar.nc2.Group $r6, $r8;
+        java.util.List $r5, $r13;
+        ucar.nc2.dataset.NetcdfDataset r1;
+
+        r1 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        r0 := @parameter0: ucar.nc2.dataset.VariableDS;
+
+        if r0 != null goto label1;
+
+        return null;
+
+     label1:
+        $r2 = virtualinvoke r0.<ucar.nc2.dataset.VariableDS: java.lang.String getName()>();
+
+        $r3 = virtualinvoke r1.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.dataset.CoordinateAxis findCoordinateAxis(java.lang.String)>($r2);
+
+        if $r3 == null goto label2;
+
+        $r13 = r1.<ucar.nc2.dataset.NetcdfDataset: java.util.List coordAxes>;
+
+        interfaceinvoke $r13.<java.util.List: boolean remove(java.lang.Object)>($r3);
+
+     label2:
+        $z0 = r0 instanceof ucar.nc2.dataset.CoordinateAxis;
+
+        if $z0 == 0 goto label3;
+
+        $r14 = (ucar.nc2.dataset.CoordinateAxis) r0;
+
+        goto label4;
+
+     label3:
+        $r14 = staticinvoke <ucar.nc2.dataset.CoordinateAxis: ucar.nc2.dataset.CoordinateAxis factory(ucar.nc2.dataset.NetcdfDataset,ucar.nc2.dataset.VariableDS)>(r1, r0);
+
+     label4:
+        r4 = $r14;
+
+        $r5 = r1.<ucar.nc2.dataset.NetcdfDataset: java.util.List coordAxes>;
+
+        interfaceinvoke $r5.<java.util.List: boolean add(java.lang.Object)>($r14);
+
+        $z1 = virtualinvoke r0.<ucar.nc2.dataset.VariableDS: boolean isMemberOfStructure()>();
+
+        if $z1 == 0 goto label5;
+
+        $r9 = virtualinvoke r0.<ucar.nc2.dataset.VariableDS: ucar.nc2.Structure getParentStructure()>();
+
+        $r10 = virtualinvoke $r9.<ucar.nc2.Structure: java.lang.String getNameEscaped()>();
+
+        $r11 = virtualinvoke r1.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.Variable findVariable(java.lang.String)>($r10);
+
+        r12 = (ucar.nc2.Structure) $r11;
+
+        virtualinvoke r12.<ucar.nc2.Structure: boolean replaceMemberVariable(ucar.nc2.Variable)>($r14);
+
+        goto label6;
+
+     label5:
+        $r6 = virtualinvoke r0.<ucar.nc2.dataset.VariableDS: ucar.nc2.Group getParentGroup()>();
+
+        $r7 = virtualinvoke r0.<ucar.nc2.dataset.VariableDS: java.lang.String getShortName()>();
+
+        virtualinvoke r1.<ucar.nc2.dataset.NetcdfDataset: boolean removeVariable(ucar.nc2.Group,java.lang.String)>($r6, $r7);
+
+        $r8 = virtualinvoke $r14.<ucar.nc2.dataset.CoordinateAxis: ucar.nc2.Group getParentGroup()>();
+
+        virtualinvoke r1.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.Variable addVariable(ucar.nc2.Group,ucar.nc2.Variable)>($r8, $r14);
+
+     label6:
+        return r4;
+    }
+
+    public ucar.nc2.Variable addVariable(ucar.nc2.Group, ucar.nc2.Variable)
+    {
+        ucar.nc2.Variable r0, $r3;
+        java.lang.IllegalArgumentException $r4;
+        ucar.nc2.dataset.NetcdfDataset r1;
+        ucar.nc2.Group r2;
+        boolean $z0, $z1;
+
+        r1 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        r2 := @parameter0: ucar.nc2.Group;
+
+        r0 := @parameter1: ucar.nc2.Variable;
+
+        $z0 = r0 instanceof ucar.nc2.dataset.VariableDS;
+
+        if $z0 != 0 goto label1;
+
+        $z1 = r0 instanceof ucar.nc2.dataset.StructureDS;
+
+        if $z1 != 0 goto label1;
+
+        $r4 = new java.lang.IllegalArgumentException;
+
+        specialinvoke $r4.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>("NetcdfDataset variables must be VariableEnhanced objects");
+
+        throw $r4;
+
+     label1:
+        $r3 = specialinvoke r1.<ucar.nc2.NetcdfFile: ucar.nc2.Variable addVariable(ucar.nc2.Group,ucar.nc2.Variable)>(r2, r0);
+
+        return $r3;
+    }
+
+    public ucar.nc2.dataset.CoordSysBuilderIF enhance() throws java.io.IOException
+    {
+        java.util.Set $r1;
+        ucar.nc2.dataset.NetcdfDataset r0;
+        ucar.nc2.dataset.CoordSysBuilderIF $r2;
+
+        r0 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        $r1 = <ucar.nc2.dataset.NetcdfDataset: java.util.Set defaultEnhanceMode>;
+
+        $r2 = staticinvoke <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.dataset.CoordSysBuilderIF enhance(ucar.nc2.dataset.NetcdfDataset,java.util.Set,ucar.nc2.util.CancelTask)>(r0, $r1, null);
+
+        return $r2;
+    }
+
+    public void enhance(java.util.Set) throws java.io.IOException
+    {
+        java.util.Set r1;
+        ucar.nc2.dataset.NetcdfDataset r0;
+
+        r0 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        r1 := @parameter0: java.util.Set;
+
+        staticinvoke <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.dataset.CoordSysBuilderIF enhance(ucar.nc2.dataset.NetcdfDataset,java.util.Set,ucar.nc2.util.CancelTask)>(r0, r1, null);
+
+        return;
+    }
+
+    public boolean enhanceNeeded(java.util.Set) throws java.io.IOException
+    {
+        java.util.Iterator $r1;
+        java.util.Set r0;
+        java.lang.Object $r2;
+        ucar.nc2.dataset.NetcdfDataset$Enhance r3;
+        ucar.nc2.dataset.NetcdfDataset r4;
+        java.util.EnumSet $r5;
+        boolean $z0, $z1;
+
+        r4 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        r0 := @parameter0: java.util.Set;
+
+        if r0 != null goto label1;
+
+        return 0;
+
+     label1:
+        $r1 = interfaceinvoke r0.<java.util.Set: java.util.Iterator iterator()>();
+
+     label2:
+        $z0 = interfaceinvoke $r1.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label4;
+
+        $r2 = interfaceinvoke $r1.<java.util.Iterator: java.lang.Object next()>();
+
+        r3 = (ucar.nc2.dataset.NetcdfDataset$Enhance) $r2;
+
+        $r5 = r4.<ucar.nc2.dataset.NetcdfDataset: java.util.EnumSet enhanceMode>;
+
+        $z1 = virtualinvoke $r5.<java.util.EnumSet: boolean contains(java.lang.Object)>(r3);
+
+        if $z1 != 0 goto label3;
+
+        return 1;
+
+     label3:
+        goto label2;
+
+     label4:
+        return 0;
+    }
+
+    public void setValues(ucar.nc2.Variable, int, double, double)
+    {
+        long $l1, $l2, $l5;
+        byte $b3;
+        int[] $r3;
+        int i0, $i4;
+        ucar.nc2.Variable r0;
+        java.lang.String $r10;
+        double d0, d1;
+        ucar.ma2.DataType $r1;
+        java.lang.IllegalArgumentException $r4;
+        ucar.ma2.Array $r2, r12;
+        java.lang.StringBuilder $r5, $r6, $r7, $r8, $r9;
+        ucar.nc2.dataset.NetcdfDataset r11;
+
+        r11 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        r0 := @parameter0: ucar.nc2.Variable;
+
+        i0 := @parameter1: int;
+
+        d0 := @parameter2: double;
+
+        d1 := @parameter3: double;
+
+        $l1 = (long) i0;
+
+        $l2 = virtualinvoke r0.<ucar.nc2.Variable: long getSize()>();
+
+        $b3 = $l1 cmp $l2;
+
+        if $b3 == 0 goto label1;
+
+        $r4 = new java.lang.IllegalArgumentException;
+
+        $r5 = new java.lang.StringBuilder;
+
+        specialinvoke $r5.<java.lang.StringBuilder: void <init>()>();
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("bad npts = ");
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>(i0);
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" should be ");
+
+        $l5 = virtualinvoke r0.<ucar.nc2.Variable: long getSize()>();
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l5);
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r4.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>($r10);
+
+        throw $r4;
+
+     label1:
+        $r1 = virtualinvoke r0.<ucar.nc2.Variable: ucar.ma2.DataType getDataType()>();
+
+        $r2 = staticinvoke <ucar.ma2.Array: ucar.ma2.Array makeArray(ucar.ma2.DataType,int,double,double)>($r1, i0, d0, d1);
+
+        r12 = $r2;
+
+        $i4 = virtualinvoke r0.<ucar.nc2.Variable: int getRank()>();
+
+        if $i4 == 1 goto label2;
+
+        $r3 = virtualinvoke r0.<ucar.nc2.Variable: int[] getShape()>();
+
+        r12 = virtualinvoke $r2.<ucar.ma2.Array: ucar.ma2.Array reshape(int[])>($r3);
+
+     label2:
+        virtualinvoke r0.<ucar.nc2.Variable: void setCachedData(ucar.ma2.Array,boolean)>(r12, 1);
+
+        return;
+    }
+
+    public void setValues(ucar.nc2.Variable, java.util.List) throws java.lang.IllegalArgumentException
+    {
+        long $l0, $l1, $l4, $l5;
+        byte $b2;
+        int[] $r4;
+        int $i3;
+        ucar.nc2.Variable r0;
+        java.lang.String $r8, $r14;
+        ucar.ma2.DataType $r1;
+        java.lang.IllegalArgumentException $r5;
+        ucar.ma2.Array $r3, r16;
+        java.util.List r2;
+        java.lang.StringBuilder $r6, $r7, $r9, $r10, $r11, $r12, $r13;
+        ucar.nc2.dataset.NetcdfDataset r15;
+
+        r15 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        r0 := @parameter0: ucar.nc2.Variable;
+
+        r2 := @parameter1: java.util.List;
+
+        $r1 = virtualinvoke r0.<ucar.nc2.Variable: ucar.ma2.DataType getDataType()>();
+
+        $r3 = staticinvoke <ucar.ma2.Array: ucar.ma2.Array makeArray(ucar.ma2.DataType,java.util.List)>($r1, r2);
+
+        r16 = $r3;
+
+        $l0 = virtualinvoke $r3.<ucar.ma2.Array: long getSize()>();
+
+        $l1 = virtualinvoke r0.<ucar.nc2.Variable: long getSize()>();
+
+        $b2 = $l0 cmp $l1;
+
+        if $b2 == 0 goto label1;
+
+        $r5 = new java.lang.IllegalArgumentException;
+
+        $r6 = new java.lang.StringBuilder;
+
+        specialinvoke $r6.<java.lang.StringBuilder: void <init>()>();
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Incorrect number of values specified for the Variable ");
+
+        $r8 = virtualinvoke r0.<ucar.nc2.Variable: java.lang.String getName()>();
+
+        $r9 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r8);
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" needed= ");
+
+        $l4 = virtualinvoke r0.<ucar.nc2.Variable: long getSize()>();
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l4);
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" given=");
+
+        $l5 = virtualinvoke $r3.<ucar.ma2.Array: long getSize()>();
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l5);
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r5.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>($r14);
+
+        throw $r5;
+
+     label1:
+        $i3 = virtualinvoke r0.<ucar.nc2.Variable: int getRank()>();
+
+        if $i3 == 1 goto label2;
+
+        $r4 = virtualinvoke r0.<ucar.nc2.Variable: int[] getShape()>();
+
+        r16 = virtualinvoke $r3.<ucar.ma2.Array: ucar.ma2.Array reshape(int[])>($r4);
+
+     label2:
+        virtualinvoke r0.<ucar.nc2.Variable: void setCachedData(ucar.ma2.Array,boolean)>(r16, 1);
+
+        return;
+    }
+
+    public static ucar.ma2.Array makeArray(ucar.ma2.DataType, java.util.List) throws java.lang.NumberFormatException
+    {
+        ucar.ma2.DataType r0;
+        java.util.List r1;
+        ucar.ma2.Array $r2;
+
+        r0 := @parameter0: ucar.ma2.DataType;
+
+        r1 := @parameter1: java.util.List;
+
+        $r2 = staticinvoke <ucar.ma2.Array: ucar.ma2.Array makeArray(ucar.ma2.DataType,java.util.List)>(r0, r1);
+
+        return $r2;
+    }
+
+    public void getDetailInfo(java.util.Formatter)
+    {
+        java.lang.Object[] $r1, $r4, $r6, $r8, $r10, $r12, $r16, $r19, $r22, $r23, $r24;
+        ucar.nc2.ncml.Aggregation $r15, $r17;
+        java.util.Formatter r0;
+        java.lang.String $r3, $r5, $r7, $r9, $r11, $r14, $r21;
+        java.lang.Class $r13;
+        ucar.nc2.NetcdfFile $r18, $r20;
+        ucar.nc2.dataset.NetcdfDataset r2;
+
+        r2 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        r0 := @parameter0: java.util.Formatter;
+
+        $r1 = newarray (java.lang.Object)[1];
+
+        $r3 = virtualinvoke r2.<ucar.nc2.dataset.NetcdfDataset: java.lang.String getLocation()>();
+
+        $r1[0] = $r3;
+
+        virtualinvoke r0.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("NetcdfDataset location= %s%n", $r1);
+
+        $r4 = newarray (java.lang.Object)[1];
+
+        $r5 = virtualinvoke r2.<ucar.nc2.dataset.NetcdfDataset: java.lang.String getTitle()>();
+
+        $r4[0] = $r5;
+
+        virtualinvoke r0.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("  title= %s%n", $r4);
+
+        $r6 = newarray (java.lang.Object)[1];
+
+        $r7 = virtualinvoke r2.<ucar.nc2.dataset.NetcdfDataset: java.lang.String getId()>();
+
+        $r6[0] = $r7;
+
+        virtualinvoke r0.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("  id= %s%n", $r6);
+
+        $r8 = newarray (java.lang.Object)[1];
+
+        $r9 = virtualinvoke r2.<ucar.nc2.dataset.NetcdfDataset: java.lang.String getFileTypeId()>();
+
+        $r8[0] = $r9;
+
+        virtualinvoke r0.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("  fileType= %s%n", $r8);
+
+        $r10 = newarray (java.lang.Object)[1];
+
+        $r11 = virtualinvoke r2.<ucar.nc2.dataset.NetcdfDataset: java.lang.String getFileTypeDescription()>();
+
+        $r10[0] = $r11;
+
+        virtualinvoke r0.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("  fileDesc= %s%n", $r10);
+
+        $r12 = newarray (java.lang.Object)[1];
+
+        $r13 = virtualinvoke r2.<java.lang.Object: java.lang.Class getClass()>();
+
+        $r14 = virtualinvoke $r13.<java.lang.Class: java.lang.String getName()>();
+
+        $r12[0] = $r14;
+
+        virtualinvoke r0.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("  class= %s%n", $r12);
+
+        $r15 = r2.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.ncml.Aggregation agg>;
+
+        if $r15 != null goto label1;
+
+        $r24 = newarray (java.lang.Object)[0];
+
+        virtualinvoke r0.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("  has no Aggregation element%n", $r24);
+
+        goto label2;
+
+     label1:
+        $r16 = newarray (java.lang.Object)[0];
+
+        virtualinvoke r0.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("%nAggregation:%n", $r16);
+
+        $r17 = r2.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.ncml.Aggregation agg>;
+
+        virtualinvoke $r17.<ucar.nc2.ncml.Aggregation: void getDetailInfo(java.util.Formatter)>(r0);
+
+     label2:
+        $r18 = r2.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile orgFile>;
+
+        if $r18 != null goto label3;
+
+        $r23 = newarray (java.lang.Object)[0];
+
+        virtualinvoke r0.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("  has no referenced NetcdfFile%n", $r23);
+
+        virtualinvoke r2.<ucar.nc2.dataset.NetcdfDataset: void showCached(java.util.Formatter)>(r0);
+
+        virtualinvoke r2.<ucar.nc2.dataset.NetcdfDataset: void showProxies(java.util.Formatter)>(r0);
+
+        goto label4;
+
+     label3:
+        $r19 = newarray (java.lang.Object)[0];
+
+        virtualinvoke r0.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("%nReferenced File:%n", $r19);
+
+        $r20 = r2.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile orgFile>;
+
+        $r21 = virtualinvoke $r20.<ucar.nc2.NetcdfFile: java.lang.String getDetailInfo()>();
+
+        $r22 = newarray (java.lang.Object)[0];
+
+        virtualinvoke r0.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>($r21, $r22);
+
+     label4:
+        return;
+    }
+
+    void dumpClasses(ucar.nc2.Group, java.io.PrintStream)
+    {
+        boolean $z0, $z1, $z2;
+        ucar.nc2.Group r1, r42;
+        java.util.List $r2, $r4, $r7, $r8;
+        ucar.nc2.Attribute r41;
+        java.lang.StringBuilder $r11, $r12, $r14, $r15, $r18, $r21, $r22, $r24, $r25, $r28, $r31, $r32, $r34, $r35, $r38;
+        java.lang.String $r13, $r17, $r19, $r23, $r27, $r29, $r33, $r37, $r39;
+        java.io.PrintStream r0;
+        java.util.Iterator $r3, $r5, $r9;
+        java.lang.Object $r10, $r20, $r30;
+        java.lang.Class $r16, $r26, $r36;
+        ucar.nc2.Dimension r40;
+        ucar.nc2.dataset.NetcdfDataset r6;
+
+        r6 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        r1 := @parameter0: ucar.nc2.Group;
+
+        r0 := @parameter1: java.io.PrintStream;
+
+        virtualinvoke r0.<java.io.PrintStream: void println(java.lang.String)>("Dimensions:");
+
+        $r2 = virtualinvoke r1.<ucar.nc2.Group: java.util.List getDimensions()>();
+
+        $r3 = interfaceinvoke $r2.<java.util.List: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r3.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label2;
+
+        $r30 = interfaceinvoke $r3.<java.util.Iterator: java.lang.Object next()>();
+
+        r40 = (ucar.nc2.Dimension) $r30;
+
+        $r31 = new java.lang.StringBuilder;
+
+        specialinvoke $r31.<java.lang.StringBuilder: void <init>()>();
+
+        $r32 = virtualinvoke $r31.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("  ");
+
+        $r33 = virtualinvoke r40.<ucar.nc2.Dimension: java.lang.String getName()>();
+
+        $r34 = virtualinvoke $r32.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r33);
+
+        $r35 = virtualinvoke $r34.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" ");
+
+        $r36 = virtualinvoke r40.<java.lang.Object: java.lang.Class getClass()>();
+
+        $r37 = virtualinvoke $r36.<java.lang.Class: java.lang.String getName()>();
+
+        $r38 = virtualinvoke $r35.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r37);
+
+        $r39 = virtualinvoke $r38.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke r0.<java.io.PrintStream: void println(java.lang.String)>($r39);
+
+        goto label1;
+
+     label2:
+        virtualinvoke r0.<java.io.PrintStream: void println(java.lang.String)>("Atributes:");
+
+        $r4 = virtualinvoke r1.<ucar.nc2.Group: java.util.List getAttributes()>();
+
+        $r5 = interfaceinvoke $r4.<java.util.List: java.util.Iterator iterator()>();
+
+     label3:
+        $z1 = interfaceinvoke $r5.<java.util.Iterator: boolean hasNext()>();
+
+        if $z1 == 0 goto label4;
+
+        $r20 = interfaceinvoke $r5.<java.util.Iterator: java.lang.Object next()>();
+
+        r41 = (ucar.nc2.Attribute) $r20;
+
+        $r21 = new java.lang.StringBuilder;
+
+        specialinvoke $r21.<java.lang.StringBuilder: void <init>()>();
+
+        $r22 = virtualinvoke $r21.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("  ");
+
+        $r23 = virtualinvoke r41.<ucar.nc2.Attribute: java.lang.String getName()>();
+
+        $r24 = virtualinvoke $r22.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r23);
+
+        $r25 = virtualinvoke $r24.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" ");
+
+        $r26 = virtualinvoke r41.<java.lang.Object: java.lang.Class getClass()>();
+
+        $r27 = virtualinvoke $r26.<java.lang.Class: java.lang.String getName()>();
+
+        $r28 = virtualinvoke $r25.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r27);
+
+        $r29 = virtualinvoke $r28.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke r0.<java.io.PrintStream: void println(java.lang.String)>($r29);
+
+        goto label3;
+
+     label4:
+        virtualinvoke r0.<java.io.PrintStream: void println(java.lang.String)>("Variables:");
+
+        $r7 = virtualinvoke r1.<ucar.nc2.Group: java.util.List getVariables()>();
+
+        specialinvoke r6.<ucar.nc2.dataset.NetcdfDataset: void dumpVariables(java.util.List,java.io.PrintStream)>($r7, r0);
+
+        virtualinvoke r0.<java.io.PrintStream: void println(java.lang.String)>("Groups:");
+
+        $r8 = virtualinvoke r1.<ucar.nc2.Group: java.util.List getGroups()>();
+
+        $r9 = interfaceinvoke $r8.<java.util.List: java.util.Iterator iterator()>();
+
+     label5:
+        $z2 = interfaceinvoke $r9.<java.util.Iterator: boolean hasNext()>();
+
+        if $z2 == 0 goto label6;
+
+        $r10 = interfaceinvoke $r9.<java.util.Iterator: java.lang.Object next()>();
+
+        r42 = (ucar.nc2.Group) $r10;
+
+        $r11 = new java.lang.StringBuilder;
+
+        specialinvoke $r11.<java.lang.StringBuilder: void <init>()>();
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("  ");
+
+        $r13 = virtualinvoke r42.<ucar.nc2.Group: java.lang.String getName()>();
+
+        $r14 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r13);
+
+        $r15 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" ");
+
+        $r16 = virtualinvoke r42.<java.lang.Object: java.lang.Class getClass()>();
+
+        $r17 = virtualinvoke $r16.<java.lang.Class: java.lang.String getName()>();
+
+        $r18 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r17);
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke r0.<java.io.PrintStream: void println(java.lang.String)>($r19);
+
+        virtualinvoke r6.<ucar.nc2.dataset.NetcdfDataset: void dumpClasses(ucar.nc2.Group,java.io.PrintStream)>(r42, r0);
+
+        goto label5;
+
+     label6:
+        return;
+    }
+
+    private void dumpVariables(java.util.List, java.io.PrintStream)
+    {
+        ucar.nc2.Structure $r15;
+        ucar.nc2.dataset.CoordinateAxis $r19;
+        ucar.nc2.constants.AxisType $r20;
+        ucar.nc2.Variable r3;
+        java.lang.String $r7, $r11, $r13, $r22;
+        boolean $z0, $z1, $z2;
+        java.io.PrintStream r4;
+        java.util.Iterator $r1;
+        java.util.List r0, $r16;
+        java.lang.Object $r2;
+        java.lang.StringBuilder $r5, $r6, $r8, $r9, $r12, $r17, $r18, $r21;
+        java.lang.Class $r10;
+        ucar.nc2.dataset.NetcdfDataset r14;
+
+        r14 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        r0 := @parameter0: java.util.List;
+
+        r4 := @parameter1: java.io.PrintStream;
+
+        $r1 = interfaceinvoke r0.<java.util.List: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r1.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label5;
+
+        $r2 = interfaceinvoke $r1.<java.util.Iterator: java.lang.Object next()>();
+
+        r3 = (ucar.nc2.Variable) $r2;
+
+        $r5 = new java.lang.StringBuilder;
+
+        specialinvoke $r5.<java.lang.StringBuilder: void <init>()>();
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("  ");
+
+        $r7 = virtualinvoke r3.<ucar.nc2.Variable: java.lang.String getName()>();
+
+        $r8 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r7);
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" ");
+
+        $r10 = virtualinvoke r3.<java.lang.Object: java.lang.Class getClass()>();
+
+        $r11 = virtualinvoke $r10.<java.lang.Class: java.lang.String getName()>();
+
+        $r12 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r11);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke r4.<java.io.PrintStream: void print(java.lang.String)>($r13);
+
+        $z1 = r3 instanceof ucar.nc2.dataset.CoordinateAxis;
+
+        if $z1 == 0 goto label2;
+
+        $r17 = new java.lang.StringBuilder;
+
+        specialinvoke $r17.<java.lang.StringBuilder: void <init>()>();
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("  ");
+
+        $r19 = (ucar.nc2.dataset.CoordinateAxis) r3;
+
+        $r20 = virtualinvoke $r19.<ucar.nc2.dataset.CoordinateAxis: ucar.nc2.constants.AxisType getAxisType()>();
+
+        $r21 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r20);
+
+        $r22 = virtualinvoke $r21.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke r4.<java.io.PrintStream: void println(java.lang.String)>($r22);
+
+        goto label3;
+
+     label2:
+        virtualinvoke r4.<java.io.PrintStream: void println()>();
+
+     label3:
+        $z2 = r3 instanceof ucar.nc2.Structure;
+
+        if $z2 == 0 goto label4;
+
+        $r15 = (ucar.nc2.Structure) r3;
+
+        $r16 = virtualinvoke $r15.<ucar.nc2.Structure: java.util.List getVariables()>();
+
+        specialinvoke r14.<ucar.nc2.dataset.NetcdfDataset: void dumpVariables(java.util.List,java.io.PrintStream)>($r16, r4);
+
+     label4:
+        goto label1;
+
+     label5:
+        return;
+    }
+
+    public static void debugDump(java.io.PrintStream, ucar.nc2.dataset.NetcdfDataset)
+    {
+        java.io.PrintStream r3;
+        ucar.nc2.Group $r12;
+        java.lang.StringBuilder $r4, $r5, $r7, $r8, $r9, $r10;
+        ucar.nc2.NetcdfFile $r1, $r2;
+        java.lang.String $r6, $r11, $r13;
+        ucar.nc2.dataset.NetcdfDataset r0;
+
+        r3 := @parameter0: java.io.PrintStream;
+
+        r0 := @parameter1: ucar.nc2.dataset.NetcdfDataset;
+
+        $r1 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile orgFile>;
+
+        if $r1 != null goto label1;
+
+        $r13 = "(null)";
+
+        goto label2;
+
+     label1:
+        $r2 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile orgFile>;
+
+        $r13 = virtualinvoke $r2.<ucar.nc2.NetcdfFile: java.lang.String getLocation()>();
+
+     label2:
+        $r4 = new java.lang.StringBuilder;
+
+        specialinvoke $r4.<java.lang.StringBuilder: void <init>()>();
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("\nNetcdfDataset dump = ");
+
+        $r6 = virtualinvoke r0.<ucar.nc2.dataset.NetcdfDataset: java.lang.String getLocation()>();
+
+        $r7 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r6);
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" uri= ");
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r13);
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("\n");
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke r3.<java.io.PrintStream: void println(java.lang.String)>($r11);
+
+        $r12 = virtualinvoke r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.Group getRootGroup()>();
+
+        virtualinvoke r0.<ucar.nc2.dataset.NetcdfDataset: void dumpClasses(ucar.nc2.Group,java.io.PrintStream)>($r12, r3);
+
+        return;
+    }
+
+    public java.lang.String getFileTypeId()
+    {
+        ucar.nc2.ncml.Aggregation $r2, $r3;
+        ucar.nc2.NetcdfFile $r1, $r5;
+        java.lang.String $r4, $r6;
+        ucar.nc2.dataset.NetcdfDataset r0;
+
+        r0 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        $r1 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile orgFile>;
+
+        if $r1 == null goto label1;
+
+        $r5 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile orgFile>;
+
+        $r6 = virtualinvoke $r5.<ucar.nc2.NetcdfFile: java.lang.String getFileTypeId()>();
+
+        return $r6;
+
+     label1:
+        $r2 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.ncml.Aggregation agg>;
+
+        if $r2 == null goto label2;
+
+        $r3 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.ncml.Aggregation agg>;
+
+        $r4 = virtualinvoke $r3.<ucar.nc2.ncml.Aggregation: java.lang.String getFileTypeId()>();
+
+        return $r4;
+
+     label2:
+        return "N/A";
+    }
+
+    public java.lang.String getFileTypeDescription()
+    {
+        ucar.nc2.ncml.Aggregation $r2, $r3;
+        ucar.nc2.NetcdfFile $r1, $r5;
+        java.lang.String $r4, $r6;
+        ucar.nc2.dataset.NetcdfDataset r0;
+
+        r0 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        $r1 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile orgFile>;
+
+        if $r1 == null goto label1;
+
+        $r5 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile orgFile>;
+
+        $r6 = virtualinvoke $r5.<ucar.nc2.NetcdfFile: java.lang.String getFileTypeDescription()>();
+
+        return $r6;
+
+     label1:
+        $r2 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.ncml.Aggregation agg>;
+
+        if $r2 == null goto label2;
+
+        $r3 = r0.<ucar.nc2.dataset.NetcdfDataset: ucar.nc2.ncml.Aggregation agg>;
+
+        $r4 = virtualinvoke $r3.<ucar.nc2.ncml.Aggregation: java.lang.String getFileTypeDescription()>();
+
+        return $r4;
+
+     label2:
+        return "N/A";
+    }
+
+    public void check(java.util.Formatter)
+    {
+        java.lang.Object[] $r11, $r15;
+        java.lang.Integer $r13, $r14;
+        java.util.Formatter r10;
+        int $i0, $i1, $i2, $i3;
+        ucar.nc2.Variable r4, $r8, $r9;
+        java.lang.String $r12, $r16;
+        boolean $z0;
+        ucar.nc2.dataset.VariableDS r5;
+        java.util.Iterator $r2;
+        ucar.ma2.DataType $r6, $r7, $r17, $r18;
+        java.util.List $r1;
+        java.lang.Object $r3;
+        ucar.nc2.dataset.NetcdfDataset r0;
+
+        r0 := @this: ucar.nc2.dataset.NetcdfDataset;
+
+        r10 := @parameter0: java.util.Formatter;
+
+        $r1 = virtualinvoke r0.<ucar.nc2.dataset.NetcdfDataset: java.util.List getVariables()>();
+
+        $r2 = interfaceinvoke $r1.<java.util.List: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r2.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label4;
+
+        $r3 = interfaceinvoke $r2.<java.util.Iterator: java.lang.Object next()>();
+
+        r4 = (ucar.nc2.Variable) $r3;
+
+        r5 = (ucar.nc2.dataset.VariableDS) r4;
+
+        $r6 = virtualinvoke r5.<ucar.nc2.dataset.VariableDS: ucar.ma2.DataType getOriginalDataType()>();
+
+        $r7 = virtualinvoke r5.<ucar.nc2.dataset.VariableDS: ucar.ma2.DataType getDataType()>();
+
+        if $r6 == $r7 goto label2;
+
+        $r15 = newarray (java.lang.Object)[3];
+
+        $r16 = virtualinvoke r5.<ucar.nc2.dataset.VariableDS: java.lang.String getName()>();
+
+        $r15[0] = $r16;
+
+        $r17 = virtualinvoke r5.<ucar.nc2.dataset.VariableDS: ucar.ma2.DataType getOriginalDataType()>();
+
+        $r15[1] = $r17;
+
+        $r18 = virtualinvoke r5.<ucar.nc2.dataset.VariableDS: ucar.ma2.DataType getDataType()>();
+
+        $r15[2] = $r18;
+
+        virtualinvoke r10.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("Variable %s has type %s, org = %s%n", $r15);
+
+     label2:
+        $r8 = virtualinvoke r5.<ucar.nc2.dataset.VariableDS: ucar.nc2.Variable getOriginalVariable()>();
+
+        if $r8 == null goto label3;
+
+        $r9 = virtualinvoke r5.<ucar.nc2.dataset.VariableDS: ucar.nc2.Variable getOriginalVariable()>();
+
+        $i0 = virtualinvoke $r9.<ucar.nc2.Variable: int getRank()>();
+
+        $i1 = virtualinvoke r5.<ucar.nc2.dataset.VariableDS: int getRank()>();
+
+        if $i0 == $i1 goto label3;
+
+        $r11 = newarray (java.lang.Object)[3];
+
+        $r12 = virtualinvoke r5.<ucar.nc2.dataset.VariableDS: java.lang.String getName()>();
+
+        $r11[0] = $r12;
+
+        $i2 = virtualinvoke r5.<ucar.nc2.dataset.VariableDS: int getRank()>();
+
+        $r13 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i2);
+
+        $r11[1] = $r13;
+
+        $i3 = virtualinvoke $r9.<ucar.nc2.Variable: int getRank()>();
+
+        $r14 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i3);
+
+        $r11[2] = $r14;
+
+        virtualinvoke r10.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("Variable %s has rank %d, org = %d%n", $r11);
+
+     label3:
+        goto label1;
+
+     label4:
+        return;
+    }
+
+    public static void main(java.lang.String[]) throws java.io.IOException
+    {
+        java.lang.String[] r0;
+        int $i0, $i1, $i2, i3, $i4, $i6;
+        java.lang.String r3, r4, r5, $r13, $r19;
+        boolean $z0, $z1, $z2, z3;
+        java.io.PrintStream $r1, $r2, $r7, $r15;
+        java.lang.StringBuilder $r9, $r10, $r11, $r12, $r17, $r18, $r20, $r21;
+        ucar.nc2.NetcdfFile $r6, $r14;
+
+        r0 := @parameter0: java.lang.String[];
+
+        $i0 = lengthof r0;
+
+        if $i0 >= 4 goto label1;
+
+        $r2 = <java.lang.System: java.io.PrintStream out>;
+
+        virtualinvoke $r2.<java.io.PrintStream: void println(java.lang.String)>("usage: ucar.nc2.dataset.NetcdfDataset -in <fileIn> -out <fileOut> [-isLargeFile]");
+
+        staticinvoke <java.lang.System: void exit(int)>(0);
+
+     label1:
+        z3 = 0;
+
+        r3 = null;
+
+        r4 = null;
+
+        i3 = 0;
+
+     label2:
+        $i4 = lengthof r0;
+
+        if i3 >= $i4 goto label6;
+
+        r5 = r0[i3];
+
+        $z0 = virtualinvoke r5.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("-in");
+
+        if $z0 == 0 goto label3;
+
+        $i2 = i3 + 1;
+
+        r3 = r0[$i2];
+
+     label3:
+        $z1 = virtualinvoke r5.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("-out");
+
+        if $z1 == 0 goto label4;
+
+        $i1 = i3 + 1;
+
+        r4 = r0[$i1];
+
+     label4:
+        $z2 = virtualinvoke r5.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("-isLargeFile");
+
+        if $z2 == 0 goto label5;
+
+        z3 = 1;
+
+     label5:
+        i3 = i3 + 1;
+
+        goto label2;
+
+     label6:
+        if r3 == null goto label7;
+
+        if r4 != null goto label8;
+
+     label7:
+        $r1 = <java.lang.System: java.io.PrintStream out>;
+
+        virtualinvoke $r1.<java.io.PrintStream: void println(java.lang.String)>("usage: ucar.nc2.dataset.NetcdfDataset -in <fileIn> -out <fileOut> [-isLargeFile]");
+
+        staticinvoke <java.lang.System: void exit(int)>(0);
+
+     label8:
+        $r6 = staticinvoke <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.NetcdfFile openFile(java.lang.String,ucar.nc2.util.CancelTask)>(r3, null);
+
+        $r7 = <java.lang.System: java.io.PrintStream out>;
+
+        $r20 = new java.lang.StringBuilder;
+
+        specialinvoke $r20.<java.lang.StringBuilder: void <init>()>();
+
+        $r9 = virtualinvoke $r20.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Read from ");
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r3);
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" write to ");
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r4);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r7.<java.io.PrintStream: void println(java.lang.String)>($r13);
+
+        $i6 = (int) -1;
+
+        $r14 = staticinvoke <ucar.nc2.FileWriter: ucar.nc2.NetcdfFile writeToFile(ucar.nc2.NetcdfFile,java.lang.String,boolean,int,boolean)>($r6, r4, 0, $i6, z3);
+
+        virtualinvoke $r6.<ucar.nc2.NetcdfFile: void close()>();
+
+        virtualinvoke $r14.<ucar.nc2.NetcdfFile: void close()>();
+
+        $r15 = <java.lang.System: java.io.PrintStream out>;
+
+        $r21 = new java.lang.StringBuilder;
+
+        specialinvoke $r21.<java.lang.StringBuilder: void <init>()>();
+
+        $r17 = virtualinvoke $r21.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("NetcdfFile written = ");
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r14);
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r15.<java.io.PrintStream: void println(java.lang.String)>($r19);
+
+        return;
+    }
+
+    static void <clinit>()
+    {
+        org.slf4j.Logger $r8;
+        java.util.Set $r4, $r6, $r7;
+        ucar.nc2.dataset.NetcdfDataset$Enhance $r0, $r1, $r2;
+        java.util.EnumSet $r3, $r5;
+
+        $r2 = <ucar.nc2.dataset.NetcdfDataset$Enhance: ucar.nc2.dataset.NetcdfDataset$Enhance ScaleMissing>;
+
+        $r1 = <ucar.nc2.dataset.NetcdfDataset$Enhance: ucar.nc2.dataset.NetcdfDataset$Enhance CoordSystems>;
+
+        $r0 = <ucar.nc2.dataset.NetcdfDataset$Enhance: ucar.nc2.dataset.NetcdfDataset$Enhance ConvertEnums>;
+
+        $r3 = staticinvoke <java.util.EnumSet: java.util.EnumSet of(java.lang.Enum,java.lang.Enum,java.lang.Enum)>($r2, $r1, $r0);
+
+        $r4 = staticinvoke <java.util.Collections: java.util.Set unmodifiableSet(java.util.Set)>($r3);
+
+        <ucar.nc2.dataset.NetcdfDataset: java.util.Set EnhanceAll> = $r4;
+
+        $r5 = staticinvoke <java.util.EnumSet: java.util.EnumSet noneOf(java.lang.Class)>(class "Lucar/nc2/dataset/NetcdfDataset$Enhance;");
+
+        $r6 = staticinvoke <java.util.Collections: java.util.Set unmodifiableSet(java.util.Set)>($r5);
+
+        <ucar.nc2.dataset.NetcdfDataset: java.util.Set EnhanceNone> = $r6;
+
+        $r7 = <ucar.nc2.dataset.NetcdfDataset: java.util.Set EnhanceAll>;
+
+        <ucar.nc2.dataset.NetcdfDataset: java.util.Set defaultEnhanceMode> = $r7;
+
+        <ucar.nc2.dataset.NetcdfDataset: java.util.Set coordSysEnhanceMode> = null;
+
+        $r8 = staticinvoke <org.slf4j.LoggerFactory: org.slf4j.Logger getLogger(java.lang.Class)>(class "Lucar/nc2/dataset/NetcdfDataset;");
+
+        <ucar.nc2.dataset.NetcdfDataset: org.slf4j.Logger log> = $r8;
+
+        <ucar.nc2.dataset.NetcdfDataset: boolean useNaNs> = 1;
+
+        <ucar.nc2.dataset.NetcdfDataset: boolean fillValueIsMissing> = 1;
+
+        <ucar.nc2.dataset.NetcdfDataset: boolean invalidDataIsMissing> = 1;
+
+        <ucar.nc2.dataset.NetcdfDataset: boolean missingDataIsMissing> = 1;
+
+        <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.util.cache.FileCache fileCache> = null;
+
+        <ucar.nc2.dataset.NetcdfDataset: ucar.nc2.util.cache.FileFactory defaultNetcdfFileFactory> = null;
+
+        return;
+    }
+}

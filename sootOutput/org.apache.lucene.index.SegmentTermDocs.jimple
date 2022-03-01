@@ -1,0 +1,742 @@
+class org.apache.lucene.index.SegmentTermDocs extends java.lang.Object implements org.apache.lucene.index.TermDocs
+{
+    protected org.apache.lucene.index.SegmentReader parent;
+    protected org.apache.lucene.store.IndexInput freqStream;
+    protected int count;
+    protected int df;
+    protected org.apache.lucene.util.BitVector deletedDocs;
+    int doc;
+    int freq;
+    private int skipInterval;
+    private int maxSkipLevels;
+    private org.apache.lucene.index.DefaultSkipListReader skipListReader;
+    private long freqBasePointer;
+    private long proxBasePointer;
+    private long skipPointer;
+    private boolean haveSkipped;
+    protected boolean currentFieldStoresPayloads;
+    protected org.apache.lucene.index.FieldInfo$IndexOptions indexOptions;
+
+    protected void <init>(org.apache.lucene.index.SegmentReader)
+    {
+        java.lang.Throwable $r11;
+        org.apache.lucene.store.IndexInput $r3, $r5;
+        org.apache.lucene.index.SegmentTermDocs r0;
+        org.apache.lucene.index.TermInfosReader $r8, $r10;
+        org.apache.lucene.index.SegmentCoreReaders $r2, $r7, $r9;
+        org.apache.lucene.util.BitVector $r6;
+        int $i0, $i1;
+        java.lang.Object $r4;
+        org.apache.lucene.index.SegmentReader r1;
+
+        r0 := @this: org.apache.lucene.index.SegmentTermDocs;
+
+        r1 := @parameter0: org.apache.lucene.index.SegmentReader;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        r0.<org.apache.lucene.index.SegmentTermDocs: int doc> = 0;
+
+        r0.<org.apache.lucene.index.SegmentTermDocs: org.apache.lucene.index.SegmentReader parent> = r1;
+
+        $r2 = r1.<org.apache.lucene.index.SegmentReader: org.apache.lucene.index.SegmentCoreReaders core>;
+
+        $r3 = $r2.<org.apache.lucene.index.SegmentCoreReaders: org.apache.lucene.store.IndexInput freqStream>;
+
+        $r4 = virtualinvoke $r3.<org.apache.lucene.store.IndexInput: java.lang.Object clone()>();
+
+        $r5 = (org.apache.lucene.store.IndexInput) $r4;
+
+        r0.<org.apache.lucene.index.SegmentTermDocs: org.apache.lucene.store.IndexInput freqStream> = $r5;
+
+        entermonitor r1;
+
+     label1:
+        $r6 = r1.<org.apache.lucene.index.SegmentReader: org.apache.lucene.util.BitVector deletedDocs>;
+
+        r0.<org.apache.lucene.index.SegmentTermDocs: org.apache.lucene.util.BitVector deletedDocs> = $r6;
+
+        exitmonitor r1;
+
+     label2:
+        goto label5;
+
+     label3:
+        $r11 := @caughtexception;
+
+        exitmonitor r1;
+
+     label4:
+        throw $r11;
+
+     label5:
+        $r7 = r1.<org.apache.lucene.index.SegmentReader: org.apache.lucene.index.SegmentCoreReaders core>;
+
+        $r8 = virtualinvoke $r7.<org.apache.lucene.index.SegmentCoreReaders: org.apache.lucene.index.TermInfosReader getTermsReader()>();
+
+        $i0 = virtualinvoke $r8.<org.apache.lucene.index.TermInfosReader: int getSkipInterval()>();
+
+        r0.<org.apache.lucene.index.SegmentTermDocs: int skipInterval> = $i0;
+
+        $r9 = r1.<org.apache.lucene.index.SegmentReader: org.apache.lucene.index.SegmentCoreReaders core>;
+
+        $r10 = virtualinvoke $r9.<org.apache.lucene.index.SegmentCoreReaders: org.apache.lucene.index.TermInfosReader getTermsReader()>();
+
+        $i1 = virtualinvoke $r10.<org.apache.lucene.index.TermInfosReader: int getMaxSkipLevels()>();
+
+        r0.<org.apache.lucene.index.SegmentTermDocs: int maxSkipLevels> = $i1;
+
+        return;
+
+        catch java.lang.Throwable from label1 to label2 with label3;
+        catch java.lang.Throwable from label3 to label4 with label3;
+    }
+
+    public void seek(org.apache.lucene.index.Term) throws java.io.IOException
+    {
+        org.apache.lucene.index.TermInfo $r5;
+        org.apache.lucene.index.SegmentTermDocs r0;
+        org.apache.lucene.index.TermInfosReader $r3;
+        org.apache.lucene.index.Term r4;
+        org.apache.lucene.index.SegmentCoreReaders $r2;
+        org.apache.lucene.index.SegmentReader $r1;
+
+        r0 := @this: org.apache.lucene.index.SegmentTermDocs;
+
+        r4 := @parameter0: org.apache.lucene.index.Term;
+
+        $r1 = r0.<org.apache.lucene.index.SegmentTermDocs: org.apache.lucene.index.SegmentReader parent>;
+
+        $r2 = $r1.<org.apache.lucene.index.SegmentReader: org.apache.lucene.index.SegmentCoreReaders core>;
+
+        $r3 = virtualinvoke $r2.<org.apache.lucene.index.SegmentCoreReaders: org.apache.lucene.index.TermInfosReader getTermsReader()>();
+
+        $r5 = virtualinvoke $r3.<org.apache.lucene.index.TermInfosReader: org.apache.lucene.index.TermInfo get(org.apache.lucene.index.Term)>(r4);
+
+        virtualinvoke r0.<org.apache.lucene.index.SegmentTermDocs: void seek(org.apache.lucene.index.TermInfo,org.apache.lucene.index.Term)>($r5, r4);
+
+        return;
+    }
+
+    public void seek(org.apache.lucene.index.TermEnum) throws java.io.IOException
+    {
+        org.apache.lucene.index.SegmentTermEnum $r6, r11;
+        org.apache.lucene.index.TermEnum r0;
+        org.apache.lucene.index.SegmentTermDocs r2;
+        org.apache.lucene.index.Term $r1, r12;
+        org.apache.lucene.index.TermInfosReader $r5;
+        org.apache.lucene.index.SegmentCoreReaders $r4, $r8;
+        org.apache.lucene.index.TermInfo r13;
+        org.apache.lucene.index.SegmentReader $r3, $r7;
+        org.apache.lucene.index.FieldInfos $r9, $r10;
+        boolean $z0;
+
+        r2 := @this: org.apache.lucene.index.SegmentTermDocs;
+
+        r0 := @parameter0: org.apache.lucene.index.TermEnum;
+
+        $z0 = r0 instanceof org.apache.lucene.index.SegmentTermEnum;
+
+        if $z0 == 0 goto label1;
+
+        $r6 = (org.apache.lucene.index.SegmentTermEnum) r0;
+
+        $r10 = $r6.<org.apache.lucene.index.SegmentTermEnum: org.apache.lucene.index.FieldInfos fieldInfos>;
+
+        $r7 = r2.<org.apache.lucene.index.SegmentTermDocs: org.apache.lucene.index.SegmentReader parent>;
+
+        $r8 = $r7.<org.apache.lucene.index.SegmentReader: org.apache.lucene.index.SegmentCoreReaders core>;
+
+        $r9 = $r8.<org.apache.lucene.index.SegmentCoreReaders: org.apache.lucene.index.FieldInfos fieldInfos>;
+
+        if $r10 != $r9 goto label1;
+
+        r11 = (org.apache.lucene.index.SegmentTermEnum) r0;
+
+        r12 = virtualinvoke r11.<org.apache.lucene.index.SegmentTermEnum: org.apache.lucene.index.Term term()>();
+
+        r13 = virtualinvoke r11.<org.apache.lucene.index.SegmentTermEnum: org.apache.lucene.index.TermInfo termInfo()>();
+
+        goto label2;
+
+     label1:
+        $r1 = virtualinvoke r0.<org.apache.lucene.index.TermEnum: org.apache.lucene.index.Term term()>();
+
+        r12 = $r1;
+
+        $r3 = r2.<org.apache.lucene.index.SegmentTermDocs: org.apache.lucene.index.SegmentReader parent>;
+
+        $r4 = $r3.<org.apache.lucene.index.SegmentReader: org.apache.lucene.index.SegmentCoreReaders core>;
+
+        $r5 = virtualinvoke $r4.<org.apache.lucene.index.SegmentCoreReaders: org.apache.lucene.index.TermInfosReader getTermsReader()>();
+
+        r13 = virtualinvoke $r5.<org.apache.lucene.index.TermInfosReader: org.apache.lucene.index.TermInfo get(org.apache.lucene.index.Term)>($r1);
+
+     label2:
+        virtualinvoke r2.<org.apache.lucene.index.SegmentTermDocs: void seek(org.apache.lucene.index.TermInfo,org.apache.lucene.index.Term)>(r13, r12);
+
+        return;
+    }
+
+    void seek(org.apache.lucene.index.TermInfo, org.apache.lucene.index.Term) throws java.io.IOException
+    {
+        org.apache.lucene.index.Term r3;
+        org.apache.lucene.index.SegmentCoreReaders $r2;
+        long $l1, $l2, $l4, $l5, $l6, $l7;
+        org.apache.lucene.index.TermInfo r7;
+        int $i0, $i3;
+        org.apache.lucene.index.SegmentReader $r1;
+        java.lang.String $r4;
+        org.apache.lucene.index.FieldInfos $r5;
+        boolean $z0;
+        org.apache.lucene.index.FieldInfo$IndexOptions $r9;
+        org.apache.lucene.store.IndexInput $r8;
+        org.apache.lucene.index.SegmentTermDocs r0;
+        org.apache.lucene.index.FieldInfo $r6;
+
+        r0 := @this: org.apache.lucene.index.SegmentTermDocs;
+
+        r7 := @parameter0: org.apache.lucene.index.TermInfo;
+
+        r3 := @parameter1: org.apache.lucene.index.Term;
+
+        r0.<org.apache.lucene.index.SegmentTermDocs: int count> = 0;
+
+        $r1 = r0.<org.apache.lucene.index.SegmentTermDocs: org.apache.lucene.index.SegmentReader parent>;
+
+        $r2 = $r1.<org.apache.lucene.index.SegmentReader: org.apache.lucene.index.SegmentCoreReaders core>;
+
+        $r5 = $r2.<org.apache.lucene.index.SegmentCoreReaders: org.apache.lucene.index.FieldInfos fieldInfos>;
+
+        $r4 = r3.<org.apache.lucene.index.Term: java.lang.String field>;
+
+        $r6 = virtualinvoke $r5.<org.apache.lucene.index.FieldInfos: org.apache.lucene.index.FieldInfo fieldInfo(java.lang.String)>($r4);
+
+        if $r6 == null goto label1;
+
+        $r9 = $r6.<org.apache.lucene.index.FieldInfo: org.apache.lucene.index.FieldInfo$IndexOptions indexOptions>;
+
+        goto label2;
+
+     label1:
+        $r9 = <org.apache.lucene.index.FieldInfo$IndexOptions: org.apache.lucene.index.FieldInfo$IndexOptions DOCS_AND_FREQS_AND_POSITIONS>;
+
+     label2:
+        r0.<org.apache.lucene.index.SegmentTermDocs: org.apache.lucene.index.FieldInfo$IndexOptions indexOptions> = $r9;
+
+        if $r6 == null goto label3;
+
+        $z0 = $r6.<org.apache.lucene.index.FieldInfo: boolean storePayloads>;
+
+        goto label4;
+
+     label3:
+        $z0 = 0;
+
+     label4:
+        r0.<org.apache.lucene.index.SegmentTermDocs: boolean currentFieldStoresPayloads> = $z0;
+
+        if r7 != null goto label5;
+
+        r0.<org.apache.lucene.index.SegmentTermDocs: int df> = 0;
+
+        goto label6;
+
+     label5:
+        $i0 = r7.<org.apache.lucene.index.TermInfo: int docFreq>;
+
+        r0.<org.apache.lucene.index.SegmentTermDocs: int df> = $i0;
+
+        r0.<org.apache.lucene.index.SegmentTermDocs: int doc> = 0;
+
+        $l1 = r7.<org.apache.lucene.index.TermInfo: long freqPointer>;
+
+        r0.<org.apache.lucene.index.SegmentTermDocs: long freqBasePointer> = $l1;
+
+        $l2 = r7.<org.apache.lucene.index.TermInfo: long proxPointer>;
+
+        r0.<org.apache.lucene.index.SegmentTermDocs: long proxBasePointer> = $l2;
+
+        $l5 = r0.<org.apache.lucene.index.SegmentTermDocs: long freqBasePointer>;
+
+        $i3 = r7.<org.apache.lucene.index.TermInfo: int skipOffset>;
+
+        $l4 = (long) $i3;
+
+        $l6 = $l5 + $l4;
+
+        r0.<org.apache.lucene.index.SegmentTermDocs: long skipPointer> = $l6;
+
+        $r8 = r0.<org.apache.lucene.index.SegmentTermDocs: org.apache.lucene.store.IndexInput freqStream>;
+
+        $l7 = r0.<org.apache.lucene.index.SegmentTermDocs: long freqBasePointer>;
+
+        virtualinvoke $r8.<org.apache.lucene.store.IndexInput: void seek(long)>($l7);
+
+        r0.<org.apache.lucene.index.SegmentTermDocs: boolean haveSkipped> = 0;
+
+     label6:
+        return;
+    }
+
+    public void close() throws java.io.IOException
+    {
+        org.apache.lucene.store.IndexInput $r1;
+        org.apache.lucene.index.DefaultSkipListReader $r2, $r3;
+        org.apache.lucene.index.SegmentTermDocs r0;
+
+        r0 := @this: org.apache.lucene.index.SegmentTermDocs;
+
+        $r1 = r0.<org.apache.lucene.index.SegmentTermDocs: org.apache.lucene.store.IndexInput freqStream>;
+
+        virtualinvoke $r1.<org.apache.lucene.store.IndexInput: void close()>();
+
+        $r2 = r0.<org.apache.lucene.index.SegmentTermDocs: org.apache.lucene.index.DefaultSkipListReader skipListReader>;
+
+        if $r2 == null goto label1;
+
+        $r3 = r0.<org.apache.lucene.index.SegmentTermDocs: org.apache.lucene.index.DefaultSkipListReader skipListReader>;
+
+        virtualinvoke $r3.<org.apache.lucene.index.DefaultSkipListReader: void close()>();
+
+     label1:
+        return;
+    }
+
+    public final int doc()
+    {
+        int $i0;
+        org.apache.lucene.index.SegmentTermDocs r0;
+
+        r0 := @this: org.apache.lucene.index.SegmentTermDocs;
+
+        $i0 = r0.<org.apache.lucene.index.SegmentTermDocs: int doc>;
+
+        return $i0;
+    }
+
+    public final int freq()
+    {
+        int $i0;
+        org.apache.lucene.index.SegmentTermDocs r0;
+
+        r0 := @this: org.apache.lucene.index.SegmentTermDocs;
+
+        $i0 = r0.<org.apache.lucene.index.SegmentTermDocs: int freq>;
+
+        return $i0;
+    }
+
+    protected void skippingDoc() throws java.io.IOException
+    {
+        org.apache.lucene.index.SegmentTermDocs r0;
+
+        r0 := @this: org.apache.lucene.index.SegmentTermDocs;
+
+        return;
+    }
+
+    public boolean next() throws java.io.IOException
+    {
+        org.apache.lucene.util.BitVector $r5, $r6;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i10, $i11, $i12;
+        boolean $z0;
+        org.apache.lucene.index.FieldInfo$IndexOptions $r2, $r3;
+        org.apache.lucene.store.IndexInput $r1, $r4;
+        org.apache.lucene.index.SegmentTermDocs r0;
+
+        r0 := @this: org.apache.lucene.index.SegmentTermDocs;
+
+     label1:
+        $i1 = r0.<org.apache.lucene.index.SegmentTermDocs: int count>;
+
+        $i0 = r0.<org.apache.lucene.index.SegmentTermDocs: int df>;
+
+        if $i1 != $i0 goto label2;
+
+        return 0;
+
+     label2:
+        $r1 = r0.<org.apache.lucene.index.SegmentTermDocs: org.apache.lucene.store.IndexInput freqStream>;
+
+        $i2 = virtualinvoke $r1.<org.apache.lucene.store.IndexInput: int readVInt()>();
+
+        $r3 = r0.<org.apache.lucene.index.SegmentTermDocs: org.apache.lucene.index.FieldInfo$IndexOptions indexOptions>;
+
+        $r2 = <org.apache.lucene.index.FieldInfo$IndexOptions: org.apache.lucene.index.FieldInfo$IndexOptions DOCS_ONLY>;
+
+        if $r3 != $r2 goto label3;
+
+        $i9 = r0.<org.apache.lucene.index.SegmentTermDocs: int doc>;
+
+        $i10 = $i9 + $i2;
+
+        r0.<org.apache.lucene.index.SegmentTermDocs: int doc> = $i10;
+
+        r0.<org.apache.lucene.index.SegmentTermDocs: int freq> = 1;
+
+        goto label5;
+
+     label3:
+        $i4 = r0.<org.apache.lucene.index.SegmentTermDocs: int doc>;
+
+        $i3 = $i2 >>> 1;
+
+        $i5 = $i4 + $i3;
+
+        r0.<org.apache.lucene.index.SegmentTermDocs: int doc> = $i5;
+
+        $i6 = $i2 & 1;
+
+        if $i6 == 0 goto label4;
+
+        r0.<org.apache.lucene.index.SegmentTermDocs: int freq> = 1;
+
+        goto label5;
+
+     label4:
+        $r4 = r0.<org.apache.lucene.index.SegmentTermDocs: org.apache.lucene.store.IndexInput freqStream>;
+
+        $i7 = virtualinvoke $r4.<org.apache.lucene.store.IndexInput: int readVInt()>();
+
+        r0.<org.apache.lucene.index.SegmentTermDocs: int freq> = $i7;
+
+     label5:
+        $i11 = r0.<org.apache.lucene.index.SegmentTermDocs: int count>;
+
+        $i12 = $i11 + 1;
+
+        r0.<org.apache.lucene.index.SegmentTermDocs: int count> = $i12;
+
+        $r6 = r0.<org.apache.lucene.index.SegmentTermDocs: org.apache.lucene.util.BitVector deletedDocs>;
+
+        if $r6 == null goto label7;
+
+        $r5 = r0.<org.apache.lucene.index.SegmentTermDocs: org.apache.lucene.util.BitVector deletedDocs>;
+
+        $i8 = r0.<org.apache.lucene.index.SegmentTermDocs: int doc>;
+
+        $z0 = virtualinvoke $r5.<org.apache.lucene.util.BitVector: boolean get(int)>($i8);
+
+        if $z0 != 0 goto label6;
+
+        goto label7;
+
+     label6:
+        virtualinvoke r0.<org.apache.lucene.index.SegmentTermDocs: void skippingDoc()>();
+
+        goto label1;
+
+     label7:
+        return 1;
+    }
+
+    public int read(int[], int[]) throws java.io.IOException
+    {
+        org.apache.lucene.util.BitVector $r6, $r8;
+        int[] r0, r7;
+        int i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i10, $i11, $i12, $i13, $i14, i15;
+        boolean $z0;
+        org.apache.lucene.index.FieldInfo$IndexOptions $r2, $r3;
+        org.apache.lucene.store.IndexInput $r4, $r5;
+        org.apache.lucene.index.SegmentTermDocs r1;
+
+        r1 := @this: org.apache.lucene.index.SegmentTermDocs;
+
+        r0 := @parameter0: int[];
+
+        r7 := @parameter1: int[];
+
+        i0 = lengthof r0;
+
+        $r3 = r1.<org.apache.lucene.index.SegmentTermDocs: org.apache.lucene.index.FieldInfo$IndexOptions indexOptions>;
+
+        $r2 = <org.apache.lucene.index.FieldInfo$IndexOptions: org.apache.lucene.index.FieldInfo$IndexOptions DOCS_ONLY>;
+
+        if $r3 != $r2 goto label1;
+
+        $i14 = specialinvoke r1.<org.apache.lucene.index.SegmentTermDocs: int readNoTf(int[],int[],int)>(r0, r7, i0);
+
+        return $i14;
+
+     label1:
+        i15 = 0;
+
+     label2:
+        if i15 >= i0 goto label7;
+
+        $i2 = r1.<org.apache.lucene.index.SegmentTermDocs: int count>;
+
+        $i1 = r1.<org.apache.lucene.index.SegmentTermDocs: int df>;
+
+        if $i2 >= $i1 goto label7;
+
+        $r4 = r1.<org.apache.lucene.index.SegmentTermDocs: org.apache.lucene.store.IndexInput freqStream>;
+
+        $i3 = virtualinvoke $r4.<org.apache.lucene.store.IndexInput: int readVInt()>();
+
+        $i5 = r1.<org.apache.lucene.index.SegmentTermDocs: int doc>;
+
+        $i4 = $i3 >>> 1;
+
+        $i6 = $i5 + $i4;
+
+        r1.<org.apache.lucene.index.SegmentTermDocs: int doc> = $i6;
+
+        $i7 = $i3 & 1;
+
+        if $i7 == 0 goto label3;
+
+        r1.<org.apache.lucene.index.SegmentTermDocs: int freq> = 1;
+
+        goto label4;
+
+     label3:
+        $r5 = r1.<org.apache.lucene.index.SegmentTermDocs: org.apache.lucene.store.IndexInput freqStream>;
+
+        $i8 = virtualinvoke $r5.<org.apache.lucene.store.IndexInput: int readVInt()>();
+
+        r1.<org.apache.lucene.index.SegmentTermDocs: int freq> = $i8;
+
+     label4:
+        $i9 = r1.<org.apache.lucene.index.SegmentTermDocs: int count>;
+
+        $i10 = $i9 + 1;
+
+        r1.<org.apache.lucene.index.SegmentTermDocs: int count> = $i10;
+
+        $r6 = r1.<org.apache.lucene.index.SegmentTermDocs: org.apache.lucene.util.BitVector deletedDocs>;
+
+        if $r6 == null goto label5;
+
+        $r8 = r1.<org.apache.lucene.index.SegmentTermDocs: org.apache.lucene.util.BitVector deletedDocs>;
+
+        $i13 = r1.<org.apache.lucene.index.SegmentTermDocs: int doc>;
+
+        $z0 = virtualinvoke $r8.<org.apache.lucene.util.BitVector: boolean get(int)>($i13);
+
+        if $z0 != 0 goto label6;
+
+     label5:
+        $i11 = r1.<org.apache.lucene.index.SegmentTermDocs: int doc>;
+
+        r0[i15] = $i11;
+
+        $i12 = r1.<org.apache.lucene.index.SegmentTermDocs: int freq>;
+
+        r7[i15] = $i12;
+
+        i15 = i15 + 1;
+
+     label6:
+        goto label2;
+
+     label7:
+        return i15;
+    }
+
+    private final int readNoTf(int[], int[], int) throws java.io.IOException
+    {
+        org.apache.lucene.util.BitVector $r2, $r5;
+        int[] r3, r4;
+        int i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, i10;
+        boolean $z0;
+        org.apache.lucene.store.IndexInput $r1;
+        org.apache.lucene.index.SegmentTermDocs r0;
+
+        r0 := @this: org.apache.lucene.index.SegmentTermDocs;
+
+        r3 := @parameter0: int[];
+
+        r4 := @parameter1: int[];
+
+        i0 := @parameter2: int;
+
+        i10 = 0;
+
+     label1:
+        if i10 >= i0 goto label3;
+
+        $i2 = r0.<org.apache.lucene.index.SegmentTermDocs: int count>;
+
+        $i1 = r0.<org.apache.lucene.index.SegmentTermDocs: int df>;
+
+        if $i2 >= $i1 goto label3;
+
+        $i3 = r0.<org.apache.lucene.index.SegmentTermDocs: int doc>;
+
+        $r1 = r0.<org.apache.lucene.index.SegmentTermDocs: org.apache.lucene.store.IndexInput freqStream>;
+
+        $i4 = virtualinvoke $r1.<org.apache.lucene.store.IndexInput: int readVInt()>();
+
+        $i5 = $i3 + $i4;
+
+        r0.<org.apache.lucene.index.SegmentTermDocs: int doc> = $i5;
+
+        $i6 = r0.<org.apache.lucene.index.SegmentTermDocs: int count>;
+
+        $i7 = $i6 + 1;
+
+        r0.<org.apache.lucene.index.SegmentTermDocs: int count> = $i7;
+
+        $r2 = r0.<org.apache.lucene.index.SegmentTermDocs: org.apache.lucene.util.BitVector deletedDocs>;
+
+        if $r2 == null goto label2;
+
+        $r5 = r0.<org.apache.lucene.index.SegmentTermDocs: org.apache.lucene.util.BitVector deletedDocs>;
+
+        $i9 = r0.<org.apache.lucene.index.SegmentTermDocs: int doc>;
+
+        $z0 = virtualinvoke $r5.<org.apache.lucene.util.BitVector: boolean get(int)>($i9);
+
+        if $z0 != 0 goto label1;
+
+     label2:
+        $i8 = r0.<org.apache.lucene.index.SegmentTermDocs: int doc>;
+
+        r3[i10] = $i8;
+
+        r4[i10] = 1;
+
+        i10 = i10 + 1;
+
+        goto label1;
+
+     label3:
+        return i10;
+    }
+
+    protected void skipProx(long, int) throws java.io.IOException
+    {
+        int i1;
+        long l0;
+        org.apache.lucene.index.SegmentTermDocs r0;
+
+        r0 := @this: org.apache.lucene.index.SegmentTermDocs;
+
+        l0 := @parameter0: long;
+
+        i1 := @parameter1: int;
+
+        return;
+    }
+
+    public boolean skipTo(int) throws java.io.IOException
+    {
+        boolean $z0, $z1, $z2;
+        org.apache.lucene.index.DefaultSkipListReader $r1, $r2, $r3, $r5, $r6, $r7, $r8, $r9;
+        org.apache.lucene.index.SegmentTermDocs r0;
+        long $l9, $l10, $l14, $l15, $l16;
+        int i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i11, $i12, $i13, $i17, $i18;
+        org.apache.lucene.store.IndexInput $r4, $r10, $r12;
+        java.lang.Object $r11;
+
+        r0 := @this: org.apache.lucene.index.SegmentTermDocs;
+
+        i0 := @parameter0: int;
+
+        $i1 = r0.<org.apache.lucene.index.SegmentTermDocs: int skipInterval>;
+
+        $i3 = i0 - $i1;
+
+        $i2 = r0.<org.apache.lucene.index.SegmentTermDocs: int doc>;
+
+        if $i3 < $i2 goto label3;
+
+        $i6 = r0.<org.apache.lucene.index.SegmentTermDocs: int df>;
+
+        $i5 = r0.<org.apache.lucene.index.SegmentTermDocs: int skipInterval>;
+
+        if $i6 < $i5 goto label3;
+
+        $r1 = r0.<org.apache.lucene.index.SegmentTermDocs: org.apache.lucene.index.DefaultSkipListReader skipListReader>;
+
+        if $r1 != null goto label1;
+
+        $r9 = new org.apache.lucene.index.DefaultSkipListReader;
+
+        $r10 = r0.<org.apache.lucene.index.SegmentTermDocs: org.apache.lucene.store.IndexInput freqStream>;
+
+        $r11 = virtualinvoke $r10.<org.apache.lucene.store.IndexInput: java.lang.Object clone()>();
+
+        $r12 = (org.apache.lucene.store.IndexInput) $r11;
+
+        $i18 = r0.<org.apache.lucene.index.SegmentTermDocs: int maxSkipLevels>;
+
+        $i17 = r0.<org.apache.lucene.index.SegmentTermDocs: int skipInterval>;
+
+        specialinvoke $r9.<org.apache.lucene.index.DefaultSkipListReader: void <init>(org.apache.lucene.store.IndexInput,int,int)>($r12, $i18, $i17);
+
+        r0.<org.apache.lucene.index.SegmentTermDocs: org.apache.lucene.index.DefaultSkipListReader skipListReader> = $r9;
+
+     label1:
+        $z0 = r0.<org.apache.lucene.index.SegmentTermDocs: boolean haveSkipped>;
+
+        if $z0 != 0 goto label2;
+
+        $r8 = r0.<org.apache.lucene.index.SegmentTermDocs: org.apache.lucene.index.DefaultSkipListReader skipListReader>;
+
+        $l16 = r0.<org.apache.lucene.index.SegmentTermDocs: long skipPointer>;
+
+        $l15 = r0.<org.apache.lucene.index.SegmentTermDocs: long freqBasePointer>;
+
+        $l14 = r0.<org.apache.lucene.index.SegmentTermDocs: long proxBasePointer>;
+
+        $i13 = r0.<org.apache.lucene.index.SegmentTermDocs: int df>;
+
+        $z1 = r0.<org.apache.lucene.index.SegmentTermDocs: boolean currentFieldStoresPayloads>;
+
+        virtualinvoke $r8.<org.apache.lucene.index.DefaultSkipListReader: void init(long,long,long,int,boolean)>($l16, $l15, $l14, $i13, $z1);
+
+        r0.<org.apache.lucene.index.SegmentTermDocs: boolean haveSkipped> = 1;
+
+     label2:
+        $r2 = r0.<org.apache.lucene.index.SegmentTermDocs: org.apache.lucene.index.DefaultSkipListReader skipListReader>;
+
+        $i7 = virtualinvoke $r2.<org.apache.lucene.index.DefaultSkipListReader: int skipTo(int)>(i0);
+
+        $i8 = r0.<org.apache.lucene.index.SegmentTermDocs: int count>;
+
+        if $i7 <= $i8 goto label3;
+
+        $r4 = r0.<org.apache.lucene.index.SegmentTermDocs: org.apache.lucene.store.IndexInput freqStream>;
+
+        $r3 = r0.<org.apache.lucene.index.SegmentTermDocs: org.apache.lucene.index.DefaultSkipListReader skipListReader>;
+
+        $l9 = virtualinvoke $r3.<org.apache.lucene.index.DefaultSkipListReader: long getFreqPointer()>();
+
+        virtualinvoke $r4.<org.apache.lucene.store.IndexInput: void seek(long)>($l9);
+
+        $r5 = r0.<org.apache.lucene.index.SegmentTermDocs: org.apache.lucene.index.DefaultSkipListReader skipListReader>;
+
+        $l10 = virtualinvoke $r5.<org.apache.lucene.index.DefaultSkipListReader: long getProxPointer()>();
+
+        $r6 = r0.<org.apache.lucene.index.SegmentTermDocs: org.apache.lucene.index.DefaultSkipListReader skipListReader>;
+
+        $i11 = virtualinvoke $r6.<org.apache.lucene.index.DefaultSkipListReader: int getPayloadLength()>();
+
+        virtualinvoke r0.<org.apache.lucene.index.SegmentTermDocs: void skipProx(long,int)>($l10, $i11);
+
+        $r7 = r0.<org.apache.lucene.index.SegmentTermDocs: org.apache.lucene.index.DefaultSkipListReader skipListReader>;
+
+        $i12 = virtualinvoke $r7.<org.apache.lucene.index.DefaultSkipListReader: int getDoc()>();
+
+        r0.<org.apache.lucene.index.SegmentTermDocs: int doc> = $i12;
+
+        r0.<org.apache.lucene.index.SegmentTermDocs: int count> = $i7;
+
+     label3:
+        $z2 = virtualinvoke r0.<org.apache.lucene.index.SegmentTermDocs: boolean next()>();
+
+        if $z2 != 0 goto label4;
+
+        return 0;
+
+     label4:
+        $i4 = r0.<org.apache.lucene.index.SegmentTermDocs: int doc>;
+
+        if i0 > $i4 goto label3;
+
+        return 1;
+    }
+}

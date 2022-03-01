@@ -1,0 +1,921 @@
+public abstract class org.apache.jena.fuseki.servlets.SPARQL_REST extends org.apache.jena.fuseki.servlets.SPARQL_ServletBase
+{
+    protected static org.slf4j.Logger classLog;
+    protected static org.apache.jena.riot.system.ErrorHandler errorHandler;
+
+    protected static final org.apache.jena.fuseki.servlets.SPARQL_REST$Target determineTarget(org.apache.jena.fuseki.servlets.HttpAction)
+    {
+        com.hp.hpl.jena.graph.Node $r27;
+        boolean z0, $z1, $z2, $z3, $z5, $z6;
+        org.apache.jena.fuseki.server.DatasetRef $r22;
+        org.apache.jena.fuseki.servlets.HttpAction r0;
+        java.lang.StringBuilder $r11, $r12, $r13;
+        javax.servlet.http.HttpServletRequest $r2, $r4, $r6, $r9, $r18, $r20;
+        java.lang.StringBuffer $r7, $r19;
+        org.apache.jena.fuseki.servlets.SPARQL_REST$Target $r15, $r17, $r29;
+        java.lang.String $r3, $r5, $r8, $r10, $r21, $r23, r24, r25, $r26;
+        com.hp.hpl.jena.sparql.core.DatasetGraph $r1, $r14, $r16, $r28;
+
+        r0 := @parameter0: org.apache.jena.fuseki.servlets.HttpAction;
+
+        $r1 = virtualinvoke r0.<org.apache.jena.fuseki.servlets.HttpAction: com.hp.hpl.jena.sparql.core.DatasetGraph getActiveDSG()>();
+
+        if $r1 != null goto label1;
+
+        staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST: void errorOccurred(java.lang.String)>("Internal error : No action graph (not in a transaction?)");
+
+     label1:
+        $r2 = r0.<org.apache.jena.fuseki.servlets.HttpAction: javax.servlet.http.HttpServletRequest request>;
+
+        $r3 = staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST: java.lang.String getOneOnly(javax.servlet.http.HttpServletRequest,java.lang.String)>($r2, "default");
+
+        if $r3 == null goto label2;
+
+        $z6 = 1;
+
+        $z5 = 1;
+
+        goto label3;
+
+     label2:
+        $z6 = 0;
+
+        $z5 = 0;
+
+     label3:
+        z0 = $z5;
+
+        $r4 = r0.<org.apache.jena.fuseki.servlets.HttpAction: javax.servlet.http.HttpServletRequest request>;
+
+        $r5 = staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST: java.lang.String getOneOnly(javax.servlet.http.HttpServletRequest,java.lang.String)>($r4, "graph");
+
+        r24 = $r5;
+
+        if $z6 != 0 goto label4;
+
+        if $r5 != null goto label4;
+
+        $r18 = r0.<org.apache.jena.fuseki.servlets.HttpAction: javax.servlet.http.HttpServletRequest request>;
+
+        $r19 = interfaceinvoke $r18.<javax.servlet.http.HttpServletRequest: java.lang.StringBuffer getRequestURL()>();
+
+        r24 = virtualinvoke $r19.<java.lang.StringBuffer: java.lang.String toString()>();
+
+        $r20 = r0.<org.apache.jena.fuseki.servlets.HttpAction: javax.servlet.http.HttpServletRequest request>;
+
+        $r21 = interfaceinvoke $r20.<javax.servlet.http.HttpServletRequest: java.lang.String getRequestURI()>();
+
+        $r22 = virtualinvoke r0.<org.apache.jena.fuseki.servlets.HttpAction: org.apache.jena.fuseki.server.DatasetRef getDatasetRef()>();
+
+        $r23 = $r22.<org.apache.jena.fuseki.server.DatasetRef: java.lang.String name>;
+
+        $z3 = virtualinvoke $r21.<java.lang.String: boolean equals(java.lang.Object)>($r23);
+
+        if $z3 == 0 goto label4;
+
+        staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST: void errorBadRequest(java.lang.String)>("Neither default graph nor named graph specified; no direct name");
+
+     label4:
+        if z0 == 0 goto label5;
+
+        $r16 = virtualinvoke r0.<org.apache.jena.fuseki.servlets.HttpAction: com.hp.hpl.jena.sparql.core.DatasetGraph getActiveDSG()>();
+
+        $r17 = staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST$Target: org.apache.jena.fuseki.servlets.SPARQL_REST$Target createDefault(com.hp.hpl.jena.sparql.core.DatasetGraph)>($r16);
+
+        return $r17;
+
+     label5:
+        $z1 = virtualinvoke r24.<java.lang.String: boolean equals(java.lang.Object)>("default");
+
+        if $z1 == 0 goto label6;
+
+        $r14 = virtualinvoke r0.<org.apache.jena.fuseki.servlets.HttpAction: com.hp.hpl.jena.sparql.core.DatasetGraph getActiveDSG()>();
+
+        $r15 = staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST$Target: org.apache.jena.fuseki.servlets.SPARQL_REST$Target createDefault(com.hp.hpl.jena.sparql.core.DatasetGraph)>($r14);
+
+        return $r15;
+
+     label6:
+        $r6 = r0.<org.apache.jena.fuseki.servlets.HttpAction: javax.servlet.http.HttpServletRequest request>;
+
+        $r7 = interfaceinvoke $r6.<javax.servlet.http.HttpServletRequest: java.lang.StringBuffer getRequestURL()>();
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuffer: java.lang.String toString()>();
+
+        r25 = $r8;
+
+        $r9 = r0.<org.apache.jena.fuseki.servlets.HttpAction: javax.servlet.http.HttpServletRequest request>;
+
+        $r10 = interfaceinvoke $r9.<javax.servlet.http.HttpServletRequest: java.lang.String getQueryString()>();
+
+        if $r10 == null goto label7;
+
+        $z2 = virtualinvoke $r8.<java.lang.String: boolean endsWith(java.lang.String)>("/");
+
+        if $z2 != 0 goto label7;
+
+        $r11 = new java.lang.StringBuilder;
+
+        specialinvoke $r11.<java.lang.StringBuilder: void <init>()>();
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r8);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("/");
+
+        r25 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.String toString()>();
+
+     label7:
+        $r26 = staticinvoke <org.apache.jena.riot.system.IRIResolver: java.lang.String resolveString(java.lang.String,java.lang.String)>(r24, r25);
+
+        $r27 = staticinvoke <com.hp.hpl.jena.graph.NodeFactory: com.hp.hpl.jena.graph.Node createURI(java.lang.String)>($r26);
+
+        $r28 = virtualinvoke r0.<org.apache.jena.fuseki.servlets.HttpAction: com.hp.hpl.jena.sparql.core.DatasetGraph getActiveDSG()>();
+
+        $r29 = staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST$Target: org.apache.jena.fuseki.servlets.SPARQL_REST$Target createNamed(com.hp.hpl.jena.sparql.core.DatasetGraph,java.lang.String,com.hp.hpl.jena.graph.Node)>($r28, $r26, $r27);
+
+        return $r29;
+    }
+
+    public void <init>()
+    {
+        org.apache.jena.fuseki.servlets.SPARQL_REST r0;
+
+        r0 := @this: org.apache.jena.fuseki.servlets.SPARQL_REST;
+
+        specialinvoke r0.<org.apache.jena.fuseki.servlets.SPARQL_ServletBase: void <init>()>();
+
+        return;
+    }
+
+    protected void service(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse) throws javax.servlet.ServletException, java.io.IOException
+    {
+        javax.servlet.http.HttpServletResponse r2;
+        org.apache.jena.fuseki.servlets.SPARQL_REST r0;
+        javax.servlet.http.HttpServletRequest r1;
+
+        r0 := @this: org.apache.jena.fuseki.servlets.SPARQL_REST;
+
+        r1 := @parameter0: javax.servlet.http.HttpServletRequest;
+
+        r2 := @parameter1: javax.servlet.http.HttpServletResponse;
+
+        virtualinvoke r0.<org.apache.jena.fuseki.servlets.SPARQL_REST: void doCommon(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse)>(r1, r2);
+
+        return;
+    }
+
+    private void maybeSetLastModified(javax.servlet.http.HttpServletResponse, long)
+    {
+        byte $b1;
+        javax.servlet.http.HttpServletResponse r0;
+        int $i2;
+        org.apache.jena.fuseki.servlets.SPARQL_REST r1;
+        long l0;
+        boolean $z0;
+
+        r1 := @this: org.apache.jena.fuseki.servlets.SPARQL_REST;
+
+        r0 := @parameter0: javax.servlet.http.HttpServletResponse;
+
+        l0 := @parameter1: long;
+
+        $z0 = interfaceinvoke r0.<javax.servlet.http.HttpServletResponse: boolean containsHeader(java.lang.String)>("Last-Modified");
+
+        if $z0 == 0 goto label1;
+
+        return;
+
+     label1:
+        $b1 = l0 cmp 0L;
+
+        $i2 = (int) $b1;
+
+        if $i2 < 0 goto label2;
+
+        interfaceinvoke r0.<javax.servlet.http.HttpServletResponse: void setDateHeader(java.lang.String,long)>("Last-Modified", l0);
+
+     label2:
+        return;
+    }
+
+    protected void perform(org.apache.jena.fuseki.servlets.HttpAction)
+    {
+        org.apache.jena.fuseki.servlets.SPARQL_REST r0;
+        org.apache.jena.fuseki.servlets.HttpAction r1;
+
+        r0 := @this: org.apache.jena.fuseki.servlets.SPARQL_REST;
+
+        r1 := @parameter0: org.apache.jena.fuseki.servlets.HttpAction;
+
+        specialinvoke r0.<org.apache.jena.fuseki.servlets.SPARQL_REST: void dispatch(org.apache.jena.fuseki.servlets.HttpAction)>(r1);
+
+        return;
+    }
+
+    private void dispatch(org.apache.jena.fuseki.servlets.HttpAction)
+    {
+        javax.servlet.http.HttpServletRequest r1;
+        java.util.Locale $r4;
+        java.lang.String $r3, $r5, $r9;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7;
+        org.apache.jena.fuseki.servlets.HttpServletResponseTracker r2;
+        org.apache.jena.fuseki.servlets.HttpAction r0;
+        org.apache.jena.fuseki.servlets.SPARQL_REST r10;
+        java.lang.StringBuilder $r6, $r7, $r8;
+
+        r10 := @this: org.apache.jena.fuseki.servlets.SPARQL_REST;
+
+        r0 := @parameter0: org.apache.jena.fuseki.servlets.HttpAction;
+
+        r1 = r0.<org.apache.jena.fuseki.servlets.HttpAction: javax.servlet.http.HttpServletRequest request>;
+
+        r2 = r0.<org.apache.jena.fuseki.servlets.HttpAction: org.apache.jena.fuseki.servlets.HttpServletResponseTracker response>;
+
+        $r3 = interfaceinvoke r1.<javax.servlet.http.HttpServletRequest: java.lang.String getMethod()>();
+
+        $r4 = <java.util.Locale: java.util.Locale ENGLISH>;
+
+        $r5 = virtualinvoke $r3.<java.lang.String: java.lang.String toUpperCase(java.util.Locale)>($r4);
+
+        $z0 = virtualinvoke $r5.<java.lang.String: boolean equals(java.lang.Object)>("GET");
+
+        if $z0 == 0 goto label1;
+
+        virtualinvoke r10.<org.apache.jena.fuseki.servlets.SPARQL_REST: void doGet$(org.apache.jena.fuseki.servlets.HttpAction)>(r0);
+
+        goto label9;
+
+     label1:
+        $z1 = virtualinvoke $r5.<java.lang.String: boolean equals(java.lang.Object)>("HEAD");
+
+        if $z1 == 0 goto label2;
+
+        virtualinvoke r10.<org.apache.jena.fuseki.servlets.SPARQL_REST: void doHead$(org.apache.jena.fuseki.servlets.HttpAction)>(r0);
+
+        goto label9;
+
+     label2:
+        $z2 = virtualinvoke $r5.<java.lang.String: boolean equals(java.lang.Object)>("POST");
+
+        if $z2 == 0 goto label3;
+
+        virtualinvoke r10.<org.apache.jena.fuseki.servlets.SPARQL_REST: void doPost$(org.apache.jena.fuseki.servlets.HttpAction)>(r0);
+
+        goto label9;
+
+     label3:
+        $z3 = virtualinvoke $r5.<java.lang.String: boolean equals(java.lang.Object)>("PATCH");
+
+        if $z3 == 0 goto label4;
+
+        virtualinvoke r10.<org.apache.jena.fuseki.servlets.SPARQL_REST: void doPatch$(org.apache.jena.fuseki.servlets.HttpAction)>(r0);
+
+        goto label9;
+
+     label4:
+        $z4 = virtualinvoke $r5.<java.lang.String: boolean equals(java.lang.Object)>("OPTIONS");
+
+        if $z4 == 0 goto label5;
+
+        virtualinvoke r10.<org.apache.jena.fuseki.servlets.SPARQL_REST: void doOptions$(org.apache.jena.fuseki.servlets.HttpAction)>(r0);
+
+        goto label9;
+
+     label5:
+        $z5 = virtualinvoke $r5.<java.lang.String: boolean equals(java.lang.Object)>("TRACE");
+
+        if $z5 == 0 goto label6;
+
+        staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST: void errorMethodNotAllowed(java.lang.String)>("TRACE");
+
+        goto label9;
+
+     label6:
+        $z6 = virtualinvoke $r5.<java.lang.String: boolean equals(java.lang.Object)>("PUT");
+
+        if $z6 == 0 goto label7;
+
+        virtualinvoke r10.<org.apache.jena.fuseki.servlets.SPARQL_REST: void doPut$(org.apache.jena.fuseki.servlets.HttpAction)>(r0);
+
+        goto label9;
+
+     label7:
+        $z7 = virtualinvoke $r5.<java.lang.String: boolean equals(java.lang.Object)>("DELETE");
+
+        if $z7 == 0 goto label8;
+
+        virtualinvoke r10.<org.apache.jena.fuseki.servlets.SPARQL_REST: void doDelete$(org.apache.jena.fuseki.servlets.HttpAction)>(r0);
+
+        goto label9;
+
+     label8:
+        $r6 = new java.lang.StringBuilder;
+
+        specialinvoke $r6.<java.lang.StringBuilder: void <init>()>();
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Unknown method: ");
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r5);
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST: void errorNotImplemented(java.lang.String)>($r9);
+
+     label9:
+        return;
+    }
+
+    protected void doGet$(org.apache.jena.fuseki.servlets.HttpAction)
+    {
+        org.apache.jena.fuseki.servlets.ActionErrorException $r6;
+        org.apache.jena.fuseki.server.CounterName $r1, $r4, $r7;
+        org.apache.jena.fuseki.server.ServiceRef $r2, $r5, $r8;
+        org.apache.jena.fuseki.servlets.HttpAction r0;
+        org.apache.jena.fuseki.servlets.SPARQL_REST r3;
+
+        r3 := @this: org.apache.jena.fuseki.servlets.SPARQL_REST;
+
+        r0 := @parameter0: org.apache.jena.fuseki.servlets.HttpAction;
+
+        $r2 = r0.<org.apache.jena.fuseki.servlets.HttpAction: org.apache.jena.fuseki.server.ServiceRef srvRef>;
+
+        $r1 = <org.apache.jena.fuseki.server.CounterName: org.apache.jena.fuseki.server.CounterName GSPget>;
+
+        staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST: void incCounter(org.apache.jena.fuseki.server.Counters,org.apache.jena.fuseki.server.CounterName)>($r2, $r1);
+
+     label1:
+        virtualinvoke r3.<org.apache.jena.fuseki.servlets.SPARQL_REST: void doGet(org.apache.jena.fuseki.servlets.HttpAction)>(r0);
+
+        $r5 = r0.<org.apache.jena.fuseki.servlets.HttpAction: org.apache.jena.fuseki.server.ServiceRef srvRef>;
+
+        $r4 = <org.apache.jena.fuseki.server.CounterName: org.apache.jena.fuseki.server.CounterName GSPgetGood>;
+
+        staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST: void incCounter(org.apache.jena.fuseki.server.Counters,org.apache.jena.fuseki.server.CounterName)>($r5, $r4);
+
+     label2:
+        goto label4;
+
+     label3:
+        $r6 := @caughtexception;
+
+        $r8 = r0.<org.apache.jena.fuseki.servlets.HttpAction: org.apache.jena.fuseki.server.ServiceRef srvRef>;
+
+        $r7 = <org.apache.jena.fuseki.server.CounterName: org.apache.jena.fuseki.server.CounterName GSPgetBad>;
+
+        staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST: void incCounter(org.apache.jena.fuseki.server.Counters,org.apache.jena.fuseki.server.CounterName)>($r8, $r7);
+
+        throw $r6;
+
+     label4:
+        return;
+
+        catch org.apache.jena.fuseki.servlets.ActionErrorException from label1 to label2 with label3;
+    }
+
+    protected void doHead$(org.apache.jena.fuseki.servlets.HttpAction)
+    {
+        org.apache.jena.fuseki.servlets.ActionErrorException $r6;
+        org.apache.jena.fuseki.server.CounterName $r1, $r4, $r7;
+        org.apache.jena.fuseki.server.ServiceRef $r2, $r5, $r8;
+        org.apache.jena.fuseki.servlets.HttpAction r0;
+        org.apache.jena.fuseki.servlets.SPARQL_REST r3;
+
+        r3 := @this: org.apache.jena.fuseki.servlets.SPARQL_REST;
+
+        r0 := @parameter0: org.apache.jena.fuseki.servlets.HttpAction;
+
+        $r2 = r0.<org.apache.jena.fuseki.servlets.HttpAction: org.apache.jena.fuseki.server.ServiceRef srvRef>;
+
+        $r1 = <org.apache.jena.fuseki.server.CounterName: org.apache.jena.fuseki.server.CounterName GSPhead>;
+
+        staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST: void incCounter(org.apache.jena.fuseki.server.Counters,org.apache.jena.fuseki.server.CounterName)>($r2, $r1);
+
+     label1:
+        virtualinvoke r3.<org.apache.jena.fuseki.servlets.SPARQL_REST: void doHead(org.apache.jena.fuseki.servlets.HttpAction)>(r0);
+
+        $r5 = r0.<org.apache.jena.fuseki.servlets.HttpAction: org.apache.jena.fuseki.server.ServiceRef srvRef>;
+
+        $r4 = <org.apache.jena.fuseki.server.CounterName: org.apache.jena.fuseki.server.CounterName GSPheadGood>;
+
+        staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST: void incCounter(org.apache.jena.fuseki.server.Counters,org.apache.jena.fuseki.server.CounterName)>($r5, $r4);
+
+     label2:
+        goto label4;
+
+     label3:
+        $r6 := @caughtexception;
+
+        $r8 = r0.<org.apache.jena.fuseki.servlets.HttpAction: org.apache.jena.fuseki.server.ServiceRef srvRef>;
+
+        $r7 = <org.apache.jena.fuseki.server.CounterName: org.apache.jena.fuseki.server.CounterName GSPheadBad>;
+
+        staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST: void incCounter(org.apache.jena.fuseki.server.Counters,org.apache.jena.fuseki.server.CounterName)>($r8, $r7);
+
+        throw $r6;
+
+     label4:
+        return;
+
+        catch org.apache.jena.fuseki.servlets.ActionErrorException from label1 to label2 with label3;
+    }
+
+    protected void doPost$(org.apache.jena.fuseki.servlets.HttpAction)
+    {
+        org.apache.jena.fuseki.servlets.ActionErrorException $r6;
+        org.apache.jena.fuseki.server.CounterName $r1, $r4, $r7;
+        org.apache.jena.fuseki.server.ServiceRef $r2, $r5, $r8;
+        org.apache.jena.fuseki.servlets.HttpAction r0;
+        org.apache.jena.fuseki.servlets.SPARQL_REST r3;
+
+        r3 := @this: org.apache.jena.fuseki.servlets.SPARQL_REST;
+
+        r0 := @parameter0: org.apache.jena.fuseki.servlets.HttpAction;
+
+        $r2 = r0.<org.apache.jena.fuseki.servlets.HttpAction: org.apache.jena.fuseki.server.ServiceRef srvRef>;
+
+        $r1 = <org.apache.jena.fuseki.server.CounterName: org.apache.jena.fuseki.server.CounterName GSPpost>;
+
+        staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST: void incCounter(org.apache.jena.fuseki.server.Counters,org.apache.jena.fuseki.server.CounterName)>($r2, $r1);
+
+     label1:
+        virtualinvoke r3.<org.apache.jena.fuseki.servlets.SPARQL_REST: void doPost(org.apache.jena.fuseki.servlets.HttpAction)>(r0);
+
+        $r5 = r0.<org.apache.jena.fuseki.servlets.HttpAction: org.apache.jena.fuseki.server.ServiceRef srvRef>;
+
+        $r4 = <org.apache.jena.fuseki.server.CounterName: org.apache.jena.fuseki.server.CounterName GSPpostGood>;
+
+        staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST: void incCounter(org.apache.jena.fuseki.server.Counters,org.apache.jena.fuseki.server.CounterName)>($r5, $r4);
+
+     label2:
+        goto label4;
+
+     label3:
+        $r6 := @caughtexception;
+
+        $r8 = r0.<org.apache.jena.fuseki.servlets.HttpAction: org.apache.jena.fuseki.server.ServiceRef srvRef>;
+
+        $r7 = <org.apache.jena.fuseki.server.CounterName: org.apache.jena.fuseki.server.CounterName GSPpostBad>;
+
+        staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST: void incCounter(org.apache.jena.fuseki.server.Counters,org.apache.jena.fuseki.server.CounterName)>($r8, $r7);
+
+        throw $r6;
+
+     label4:
+        return;
+
+        catch org.apache.jena.fuseki.servlets.ActionErrorException from label1 to label2 with label3;
+    }
+
+    protected void doPatch$(org.apache.jena.fuseki.servlets.HttpAction)
+    {
+        org.apache.jena.fuseki.servlets.ActionErrorException $r6;
+        org.apache.jena.fuseki.server.CounterName $r1, $r4, $r7;
+        org.apache.jena.fuseki.server.ServiceRef $r2, $r5, $r8;
+        org.apache.jena.fuseki.servlets.HttpAction r0;
+        org.apache.jena.fuseki.servlets.SPARQL_REST r3;
+
+        r3 := @this: org.apache.jena.fuseki.servlets.SPARQL_REST;
+
+        r0 := @parameter0: org.apache.jena.fuseki.servlets.HttpAction;
+
+        $r2 = r0.<org.apache.jena.fuseki.servlets.HttpAction: org.apache.jena.fuseki.server.ServiceRef srvRef>;
+
+        $r1 = <org.apache.jena.fuseki.server.CounterName: org.apache.jena.fuseki.server.CounterName GSPpatch>;
+
+        staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST: void incCounter(org.apache.jena.fuseki.server.Counters,org.apache.jena.fuseki.server.CounterName)>($r2, $r1);
+
+     label1:
+        virtualinvoke r3.<org.apache.jena.fuseki.servlets.SPARQL_REST: void doPatch(org.apache.jena.fuseki.servlets.HttpAction)>(r0);
+
+        $r5 = r0.<org.apache.jena.fuseki.servlets.HttpAction: org.apache.jena.fuseki.server.ServiceRef srvRef>;
+
+        $r4 = <org.apache.jena.fuseki.server.CounterName: org.apache.jena.fuseki.server.CounterName GSPpatchGood>;
+
+        staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST: void incCounter(org.apache.jena.fuseki.server.Counters,org.apache.jena.fuseki.server.CounterName)>($r5, $r4);
+
+     label2:
+        goto label4;
+
+     label3:
+        $r6 := @caughtexception;
+
+        $r8 = r0.<org.apache.jena.fuseki.servlets.HttpAction: org.apache.jena.fuseki.server.ServiceRef srvRef>;
+
+        $r7 = <org.apache.jena.fuseki.server.CounterName: org.apache.jena.fuseki.server.CounterName GSPpatchBad>;
+
+        staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST: void incCounter(org.apache.jena.fuseki.server.Counters,org.apache.jena.fuseki.server.CounterName)>($r8, $r7);
+
+        throw $r6;
+
+     label4:
+        return;
+
+        catch org.apache.jena.fuseki.servlets.ActionErrorException from label1 to label2 with label3;
+    }
+
+    protected void doDelete$(org.apache.jena.fuseki.servlets.HttpAction)
+    {
+        org.apache.jena.fuseki.servlets.ActionErrorException $r6;
+        org.apache.jena.fuseki.server.CounterName $r1, $r4, $r7;
+        org.apache.jena.fuseki.server.ServiceRef $r2, $r5, $r8;
+        org.apache.jena.fuseki.servlets.HttpAction r0;
+        org.apache.jena.fuseki.servlets.SPARQL_REST r3;
+
+        r3 := @this: org.apache.jena.fuseki.servlets.SPARQL_REST;
+
+        r0 := @parameter0: org.apache.jena.fuseki.servlets.HttpAction;
+
+        $r2 = r0.<org.apache.jena.fuseki.servlets.HttpAction: org.apache.jena.fuseki.server.ServiceRef srvRef>;
+
+        $r1 = <org.apache.jena.fuseki.server.CounterName: org.apache.jena.fuseki.server.CounterName GSPdelete>;
+
+        staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST: void incCounter(org.apache.jena.fuseki.server.Counters,org.apache.jena.fuseki.server.CounterName)>($r2, $r1);
+
+     label1:
+        virtualinvoke r3.<org.apache.jena.fuseki.servlets.SPARQL_REST: void doDelete(org.apache.jena.fuseki.servlets.HttpAction)>(r0);
+
+        $r5 = r0.<org.apache.jena.fuseki.servlets.HttpAction: org.apache.jena.fuseki.server.ServiceRef srvRef>;
+
+        $r4 = <org.apache.jena.fuseki.server.CounterName: org.apache.jena.fuseki.server.CounterName GSPdeleteGood>;
+
+        staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST: void incCounter(org.apache.jena.fuseki.server.Counters,org.apache.jena.fuseki.server.CounterName)>($r5, $r4);
+
+     label2:
+        goto label4;
+
+     label3:
+        $r6 := @caughtexception;
+
+        $r8 = r0.<org.apache.jena.fuseki.servlets.HttpAction: org.apache.jena.fuseki.server.ServiceRef srvRef>;
+
+        $r7 = <org.apache.jena.fuseki.server.CounterName: org.apache.jena.fuseki.server.CounterName GSPdeleteBad>;
+
+        staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST: void incCounter(org.apache.jena.fuseki.server.Counters,org.apache.jena.fuseki.server.CounterName)>($r8, $r7);
+
+        throw $r6;
+
+     label4:
+        return;
+
+        catch org.apache.jena.fuseki.servlets.ActionErrorException from label1 to label2 with label3;
+    }
+
+    protected void doPut$(org.apache.jena.fuseki.servlets.HttpAction)
+    {
+        org.apache.jena.fuseki.servlets.ActionErrorException $r6;
+        org.apache.jena.fuseki.server.CounterName $r1, $r4, $r7;
+        org.apache.jena.fuseki.server.ServiceRef $r2, $r5, $r8;
+        org.apache.jena.fuseki.servlets.HttpAction r0;
+        org.apache.jena.fuseki.servlets.SPARQL_REST r3;
+
+        r3 := @this: org.apache.jena.fuseki.servlets.SPARQL_REST;
+
+        r0 := @parameter0: org.apache.jena.fuseki.servlets.HttpAction;
+
+        $r2 = r0.<org.apache.jena.fuseki.servlets.HttpAction: org.apache.jena.fuseki.server.ServiceRef srvRef>;
+
+        $r1 = <org.apache.jena.fuseki.server.CounterName: org.apache.jena.fuseki.server.CounterName GSPput>;
+
+        staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST: void incCounter(org.apache.jena.fuseki.server.Counters,org.apache.jena.fuseki.server.CounterName)>($r2, $r1);
+
+     label1:
+        virtualinvoke r3.<org.apache.jena.fuseki.servlets.SPARQL_REST: void doPut(org.apache.jena.fuseki.servlets.HttpAction)>(r0);
+
+        $r5 = r0.<org.apache.jena.fuseki.servlets.HttpAction: org.apache.jena.fuseki.server.ServiceRef srvRef>;
+
+        $r4 = <org.apache.jena.fuseki.server.CounterName: org.apache.jena.fuseki.server.CounterName GSPputGood>;
+
+        staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST: void incCounter(org.apache.jena.fuseki.server.Counters,org.apache.jena.fuseki.server.CounterName)>($r5, $r4);
+
+     label2:
+        goto label4;
+
+     label3:
+        $r6 := @caughtexception;
+
+        $r8 = r0.<org.apache.jena.fuseki.servlets.HttpAction: org.apache.jena.fuseki.server.ServiceRef srvRef>;
+
+        $r7 = <org.apache.jena.fuseki.server.CounterName: org.apache.jena.fuseki.server.CounterName GSPputBad>;
+
+        staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST: void incCounter(org.apache.jena.fuseki.server.Counters,org.apache.jena.fuseki.server.CounterName)>($r8, $r7);
+
+        throw $r6;
+
+     label4:
+        return;
+
+        catch org.apache.jena.fuseki.servlets.ActionErrorException from label1 to label2 with label3;
+    }
+
+    protected void doOptions$(org.apache.jena.fuseki.servlets.HttpAction)
+    {
+        org.apache.jena.fuseki.servlets.ActionErrorException $r6;
+        org.apache.jena.fuseki.server.CounterName $r1, $r4, $r7;
+        org.apache.jena.fuseki.server.ServiceRef $r2, $r5, $r8;
+        org.apache.jena.fuseki.servlets.HttpAction r0;
+        org.apache.jena.fuseki.servlets.SPARQL_REST r3;
+
+        r3 := @this: org.apache.jena.fuseki.servlets.SPARQL_REST;
+
+        r0 := @parameter0: org.apache.jena.fuseki.servlets.HttpAction;
+
+        $r2 = r0.<org.apache.jena.fuseki.servlets.HttpAction: org.apache.jena.fuseki.server.ServiceRef srvRef>;
+
+        $r1 = <org.apache.jena.fuseki.server.CounterName: org.apache.jena.fuseki.server.CounterName GSPoptions>;
+
+        staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST: void incCounter(org.apache.jena.fuseki.server.Counters,org.apache.jena.fuseki.server.CounterName)>($r2, $r1);
+
+     label1:
+        virtualinvoke r3.<org.apache.jena.fuseki.servlets.SPARQL_REST: void doOptions(org.apache.jena.fuseki.servlets.HttpAction)>(r0);
+
+        $r5 = r0.<org.apache.jena.fuseki.servlets.HttpAction: org.apache.jena.fuseki.server.ServiceRef srvRef>;
+
+        $r4 = <org.apache.jena.fuseki.server.CounterName: org.apache.jena.fuseki.server.CounterName GSPoptionsGood>;
+
+        staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST: void incCounter(org.apache.jena.fuseki.server.Counters,org.apache.jena.fuseki.server.CounterName)>($r5, $r4);
+
+     label2:
+        goto label4;
+
+     label3:
+        $r6 := @caughtexception;
+
+        $r8 = r0.<org.apache.jena.fuseki.servlets.HttpAction: org.apache.jena.fuseki.server.ServiceRef srvRef>;
+
+        $r7 = <org.apache.jena.fuseki.server.CounterName: org.apache.jena.fuseki.server.CounterName GSPoptionsBad>;
+
+        staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST: void incCounter(org.apache.jena.fuseki.server.Counters,org.apache.jena.fuseki.server.CounterName)>($r8, $r7);
+
+        throw $r6;
+
+     label4:
+        return;
+
+        catch org.apache.jena.fuseki.servlets.ActionErrorException from label1 to label2 with label3;
+    }
+
+    protected abstract void doGet(org.apache.jena.fuseki.servlets.HttpAction);
+
+    protected abstract void doHead(org.apache.jena.fuseki.servlets.HttpAction);
+
+    protected abstract void doPost(org.apache.jena.fuseki.servlets.HttpAction);
+
+    protected abstract void doPatch(org.apache.jena.fuseki.servlets.HttpAction);
+
+    protected abstract void doDelete(org.apache.jena.fuseki.servlets.HttpAction);
+
+    protected abstract void doPut(org.apache.jena.fuseki.servlets.HttpAction);
+
+    protected abstract void doOptions(org.apache.jena.fuseki.servlets.HttpAction);
+
+    public static void parse(org.apache.jena.fuseki.servlets.HttpAction, org.apache.jena.riot.system.StreamRDF, java.io.InputStream, org.apache.jena.riot.Lang, java.lang.String)
+    {
+        org.apache.jena.riot.Lang r1;
+        org.apache.jena.riot.RiotException $r7;
+        org.apache.jena.riot.system.ParserProfile $r5;
+        org.apache.jena.riot.system.StreamRDF r3;
+        org.apache.jena.riot.lang.LangRIOT $r4;
+        org.apache.jena.riot.system.ErrorHandler $r6;
+        org.apache.jena.fuseki.servlets.HttpAction r13;
+        java.lang.StringBuilder $r8, $r9, $r11;
+        java.lang.String r2, $r10, $r12;
+        java.io.InputStream r0;
+
+        r13 := @parameter0: org.apache.jena.fuseki.servlets.HttpAction;
+
+        r3 := @parameter1: org.apache.jena.riot.system.StreamRDF;
+
+        r0 := @parameter2: java.io.InputStream;
+
+        r1 := @parameter3: org.apache.jena.riot.Lang;
+
+        r2 := @parameter4: java.lang.String;
+
+        $r4 = staticinvoke <org.apache.jena.riot.RiotReader: org.apache.jena.riot.lang.LangRIOT createParser(java.io.InputStream,org.apache.jena.riot.Lang,java.lang.String,org.apache.jena.riot.system.StreamRDF)>(r0, r1, r2, r3);
+
+        $r5 = interfaceinvoke $r4.<org.apache.jena.riot.lang.LangRIOT: org.apache.jena.riot.system.ParserProfile getProfile()>();
+
+        $r6 = <org.apache.jena.fuseki.servlets.SPARQL_REST: org.apache.jena.riot.system.ErrorHandler errorHandler>;
+
+        interfaceinvoke $r5.<org.apache.jena.riot.system.ParserProfile: void setHandler(org.apache.jena.riot.system.ErrorHandler)>($r6);
+
+     label1:
+        interfaceinvoke $r4.<org.apache.jena.riot.lang.LangRIOT: void parse()>();
+
+     label2:
+        goto label4;
+
+     label3:
+        $r7 := @caughtexception;
+
+        $r8 = new java.lang.StringBuilder;
+
+        specialinvoke $r8.<java.lang.StringBuilder: void <init>()>();
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Parse error: ");
+
+        $r10 = virtualinvoke $r7.<org.apache.jena.riot.RiotException: java.lang.String getMessage()>();
+
+        $r11 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r10);
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST: void errorBadRequest(java.lang.String)>($r12);
+
+     label4:
+        return;
+
+        catch org.apache.jena.riot.RiotException from label1 to label2 with label3;
+    }
+
+    protected void validate(org.apache.jena.fuseki.servlets.HttpAction)
+    {
+        java.util.Enumeration $r5;
+        java.lang.String[] $r21;
+        javax.servlet.http.HttpServletRequest r1;
+        int $i0, $i1, $i2;
+        java.lang.String $r2, $r3, $r4, r7, $r8, $r13, $r14, $r19;
+        boolean $z0, $z1, $z2;
+        org.apache.jena.fuseki.servlets.HttpAction r0;
+        org.apache.jena.fuseki.servlets.SPARQL_REST r20;
+        java.lang.Object $r6;
+        java.lang.StringBuilder $r9, $r10, $r11, $r12, $r15, $r16, $r17, $r18;
+
+        r20 := @this: org.apache.jena.fuseki.servlets.SPARQL_REST;
+
+        r0 := @parameter0: org.apache.jena.fuseki.servlets.HttpAction;
+
+        r1 = r0.<org.apache.jena.fuseki.servlets.HttpAction: javax.servlet.http.HttpServletRequest request>;
+
+        $r2 = interfaceinvoke r1.<javax.servlet.http.HttpServletRequest: java.lang.String getQueryString()>();
+
+        if $r2 != null goto label1;
+
+        return;
+
+     label1:
+        $r3 = interfaceinvoke r1.<javax.servlet.http.HttpServletRequest: java.lang.String getParameter(java.lang.String)>("graph");
+
+        $r4 = interfaceinvoke r1.<javax.servlet.http.HttpServletRequest: java.lang.String getParameter(java.lang.String)>("default");
+
+        if $r3 == null goto label2;
+
+        if $r4 == null goto label2;
+
+        staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST: void errorBadRequest(java.lang.String)>("Both ?default and ?graph in the query string of the request");
+
+     label2:
+        if $r3 != null goto label3;
+
+        if $r4 != null goto label3;
+
+        staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST: void errorBadRequest(java.lang.String)>("Neither ?default nor ?graph in the query string of the request");
+
+     label3:
+        $i0 = staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_Protocol: int countParamOccurences(javax.servlet.http.HttpServletRequest,java.lang.String)>(r1, "graph");
+
+        $i1 = staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_Protocol: int countParamOccurences(javax.servlet.http.HttpServletRequest,java.lang.String)>(r1, "default");
+
+        if $i0 <= 1 goto label4;
+
+        staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST: void errorBadRequest(java.lang.String)>("Multiple ?default in the query string of the request");
+
+     label4:
+        if $i1 <= 1 goto label5;
+
+        staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST: void errorBadRequest(java.lang.String)>("Multiple ?graph in the query string of the request");
+
+     label5:
+        $r5 = interfaceinvoke r1.<javax.servlet.http.HttpServletRequest: java.util.Enumeration getParameterNames()>();
+
+     label6:
+        $z2 = interfaceinvoke $r5.<java.util.Enumeration: boolean hasMoreElements()>();
+
+        if $z2 == 0 goto label9;
+
+        $r6 = interfaceinvoke $r5.<java.util.Enumeration: java.lang.Object nextElement()>();
+
+        r7 = (java.lang.String) $r6;
+
+        $r8 = "graph";
+
+        $z0 = virtualinvoke $r8.<java.lang.String: boolean equals(java.lang.Object)>(r7);
+
+        if $z0 != 0 goto label7;
+
+        $r14 = "default";
+
+        $z1 = virtualinvoke $r14.<java.lang.String: boolean equals(java.lang.Object)>(r7);
+
+        if $z1 != 0 goto label7;
+
+        $r15 = new java.lang.StringBuilder;
+
+        specialinvoke $r15.<java.lang.StringBuilder: void <init>()>();
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Unknown parameter \'");
+
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r7);
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("\'");
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST: void errorBadRequest(java.lang.String)>($r19);
+
+     label7:
+        $r21 = interfaceinvoke r1.<javax.servlet.http.HttpServletRequest: java.lang.String[] getParameterValues(java.lang.String)>(r7);
+
+        $i2 = lengthof $r21;
+
+        if $i2 == 1 goto label8;
+
+        $r9 = new java.lang.StringBuilder;
+
+        specialinvoke $r9.<java.lang.StringBuilder: void <init>()>();
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Multiple parameters \'");
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r7);
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("\'");
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST: void errorBadRequest(java.lang.String)>($r13);
+
+     label8:
+        goto label6;
+
+     label9:
+        return;
+    }
+
+    protected static java.lang.String getOneOnly(javax.servlet.http.HttpServletRequest, java.lang.String)
+    {
+        java.lang.String[] $r2;
+        javax.servlet.http.HttpServletRequest r0;
+        int $i0, $i1;
+        java.lang.StringBuilder $r4, $r5, $r6, $r7;
+        java.lang.String r1, $r3, $r8;
+
+        r0 := @parameter0: javax.servlet.http.HttpServletRequest;
+
+        r1 := @parameter1: java.lang.String;
+
+        $r2 = interfaceinvoke r0.<javax.servlet.http.HttpServletRequest: java.lang.String[] getParameterValues(java.lang.String)>(r1);
+
+        if $r2 != null goto label1;
+
+        return null;
+
+     label1:
+        $i0 = lengthof $r2;
+
+        if $i0 != 0 goto label2;
+
+        return null;
+
+     label2:
+        $i1 = lengthof $r2;
+
+        if $i1 <= 1 goto label3;
+
+        $r4 = new java.lang.StringBuilder;
+
+        specialinvoke $r4.<java.lang.StringBuilder: void <init>()>();
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Multiple occurrences of \'");
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r1);
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("\'");
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        staticinvoke <org.apache.jena.fuseki.servlets.SPARQL_REST: void errorBadRequest(java.lang.String)>($r8);
+
+     label3:
+        $r3 = $r2[0];
+
+        return $r3;
+    }
+
+    static void <clinit>()
+    {
+        org.slf4j.Logger $r0, $r1;
+        org.apache.jena.riot.system.ErrorHandler $r2;
+
+        $r0 = staticinvoke <org.slf4j.LoggerFactory: org.slf4j.Logger getLogger(java.lang.Class)>(class "Lorg/apache/jena/fuseki/servlets/SPARQL_REST;");
+
+        <org.apache.jena.fuseki.servlets.SPARQL_REST: org.slf4j.Logger classLog> = $r0;
+
+        $r1 = <org.apache.jena.fuseki.servlets.SPARQL_REST: org.slf4j.Logger log>;
+
+        $r2 = staticinvoke <org.apache.jena.riot.system.ErrorHandlerFactory: org.apache.jena.riot.system.ErrorHandler errorHandlerStd(org.slf4j.Logger)>($r1);
+
+        <org.apache.jena.fuseki.servlets.SPARQL_REST: org.apache.jena.riot.system.ErrorHandler errorHandler> = $r2;
+
+        return;
+    }
+}

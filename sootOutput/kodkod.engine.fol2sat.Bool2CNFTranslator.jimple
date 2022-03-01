@@ -1,0 +1,650 @@
+final class kodkod.engine.fol2sat.Bool2CNFTranslator extends java.lang.Object implements kodkod.engine.bool.BooleanVisitor
+{
+    private final kodkod.engine.satlab.SATSolver solver;
+    private final kodkod.util.ints.IntSet visited;
+    private final kodkod.engine.fol2sat.Bool2CNFTranslator$PolarityDetector pdetector;
+    private final int[] unaryClause;
+    private final int[] binaryClause;
+    private final int[] ternaryClause;
+
+    static kodkod.engine.satlab.SATSolver translate(kodkod.engine.bool.BooleanFormula, kodkod.engine.satlab.SATFactory, int)
+    {
+        kodkod.engine.bool.Operator$Nary $r5;
+        kodkod.engine.bool.BooleanFormula r3, r14, r15;
+        kodkod.engine.bool.Operator $r4;
+        kodkod.engine.fol2sat.Bool2CNFTranslator $r2;
+        int[] $r7, $r12, $r13;
+        int i0, $i1;
+        boolean $z0, $z1;
+        kodkod.engine.satlab.SATFactory r0;
+        java.util.Iterator $r8, $r10;
+        java.lang.Object $r6, $r9, $r11;
+        kodkod.engine.satlab.SATSolver $r1;
+
+        r3 := @parameter0: kodkod.engine.bool.BooleanFormula;
+
+        r0 := @parameter1: kodkod.engine.satlab.SATFactory;
+
+        i0 := @parameter2: int;
+
+        $r1 = virtualinvoke r0.<kodkod.engine.satlab.SATFactory: kodkod.engine.satlab.SATSolver instance()>();
+
+        $r2 = new kodkod.engine.fol2sat.Bool2CNFTranslator;
+
+        specialinvoke $r2.<kodkod.engine.fol2sat.Bool2CNFTranslator: void <init>(kodkod.engine.satlab.SATSolver,int,kodkod.engine.bool.BooleanFormula)>($r1, i0, r3);
+
+        $r4 = virtualinvoke r3.<kodkod.engine.bool.BooleanFormula: kodkod.engine.bool.Operator op()>();
+
+        $r5 = <kodkod.engine.bool.Operator: kodkod.engine.bool.Operator$Nary AND>;
+
+        if $r4 != $r5 goto label5;
+
+        $r8 = virtualinvoke r3.<kodkod.engine.bool.BooleanFormula: java.util.Iterator iterator()>();
+
+        goto label2;
+
+     label1:
+        $r9 = interfaceinvoke $r8.<java.util.Iterator: java.lang.Object next()>();
+
+        r14 = (kodkod.engine.bool.BooleanFormula) $r9;
+
+        virtualinvoke r14.<kodkod.engine.bool.BooleanFormula: java.lang.Object accept(kodkod.engine.bool.BooleanVisitor,java.lang.Object)>($r2, null);
+
+     label2:
+        $z0 = interfaceinvoke $r8.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 != 0 goto label1;
+
+        $r10 = virtualinvoke r3.<kodkod.engine.bool.BooleanFormula: java.util.Iterator iterator()>();
+
+        goto label4;
+
+     label3:
+        $r11 = interfaceinvoke $r10.<java.util.Iterator: java.lang.Object next()>();
+
+        r15 = (kodkod.engine.bool.BooleanFormula) $r11;
+
+        $r12 = $r2.<kodkod.engine.fol2sat.Bool2CNFTranslator: int[] unaryClause>;
+
+        $i1 = virtualinvoke r15.<kodkod.engine.bool.BooleanFormula: int label()>();
+
+        $r12[0] = $i1;
+
+        $r13 = $r2.<kodkod.engine.fol2sat.Bool2CNFTranslator: int[] unaryClause>;
+
+        interfaceinvoke $r1.<kodkod.engine.satlab.SATSolver: boolean addClause(int[])>($r13);
+
+     label4:
+        $z1 = interfaceinvoke $r10.<java.util.Iterator: boolean hasNext()>();
+
+        if $z1 != 0 goto label3;
+
+        goto label6;
+
+     label5:
+        $r6 = virtualinvoke r3.<kodkod.engine.bool.BooleanFormula: java.lang.Object accept(kodkod.engine.bool.BooleanVisitor,java.lang.Object)>($r2, null);
+
+        $r7 = (int[]) $r6;
+
+        interfaceinvoke $r1.<kodkod.engine.satlab.SATSolver: boolean addClause(int[])>($r7);
+
+     label6:
+        return $r1;
+    }
+
+    private void <init>(kodkod.engine.satlab.SATSolver, int, kodkod.engine.bool.BooleanFormula)
+    {
+        kodkod.engine.bool.BooleanFormula r4;
+        kodkod.engine.fol2sat.Bool2CNFTranslator$PolarityDetector $r7, $r8, $r9, $r10;
+        kodkod.engine.fol2sat.Bool2CNFTranslator r0;
+        int[] $r1, $r2, $r3;
+        int $i0, $i1, i2, $i3, $i4, $i5, $i6;
+        kodkod.util.ints.IntSet $r11;
+        kodkod.engine.satlab.SATSolver r5, $r6;
+
+        r0 := @this: kodkod.engine.fol2sat.Bool2CNFTranslator;
+
+        r5 := @parameter0: kodkod.engine.satlab.SATSolver;
+
+        i2 := @parameter1: int;
+
+        r4 := @parameter2: kodkod.engine.bool.BooleanFormula;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        $r1 = newarray (int)[1];
+
+        r0.<kodkod.engine.fol2sat.Bool2CNFTranslator: int[] unaryClause> = $r1;
+
+        $r2 = newarray (int)[2];
+
+        r0.<kodkod.engine.fol2sat.Bool2CNFTranslator: int[] binaryClause> = $r2;
+
+        $r3 = newarray (int)[3];
+
+        r0.<kodkod.engine.fol2sat.Bool2CNFTranslator: int[] ternaryClause> = $r3;
+
+        $i0 = virtualinvoke r4.<kodkod.engine.bool.BooleanFormula: int label()>();
+
+        $i1 = staticinvoke <java.lang.StrictMath: int abs(int)>($i0);
+
+        r0.<kodkod.engine.fol2sat.Bool2CNFTranslator: kodkod.engine.satlab.SATSolver solver> = r5;
+
+        $r6 = r0.<kodkod.engine.fol2sat.Bool2CNFTranslator: kodkod.engine.satlab.SATSolver solver>;
+
+        $i3 = staticinvoke <java.lang.StrictMath: int max(int,int)>(i2, $i1);
+
+        interfaceinvoke $r6.<kodkod.engine.satlab.SATSolver: void addVariables(int)>($i3);
+
+        $r7 = new kodkod.engine.fol2sat.Bool2CNFTranslator$PolarityDetector;
+
+        specialinvoke $r7.<kodkod.engine.fol2sat.Bool2CNFTranslator$PolarityDetector: void <init>(int,int)>(i2, $i1);
+
+        $r8 = virtualinvoke $r7.<kodkod.engine.fol2sat.Bool2CNFTranslator$PolarityDetector: kodkod.engine.fol2sat.Bool2CNFTranslator$PolarityDetector apply(kodkod.engine.bool.BooleanFormula)>(r4);
+
+        r0.<kodkod.engine.fol2sat.Bool2CNFTranslator: kodkod.engine.fol2sat.Bool2CNFTranslator$PolarityDetector pdetector> = $r8;
+
+        $r9 = r0.<kodkod.engine.fol2sat.Bool2CNFTranslator: kodkod.engine.fol2sat.Bool2CNFTranslator$PolarityDetector pdetector>;
+
+        $i5 = $r9.<kodkod.engine.fol2sat.Bool2CNFTranslator$PolarityDetector: int offset>;
+
+        $r10 = r0.<kodkod.engine.fol2sat.Bool2CNFTranslator: kodkod.engine.fol2sat.Bool2CNFTranslator$PolarityDetector pdetector>;
+
+        $i4 = $r10.<kodkod.engine.fol2sat.Bool2CNFTranslator$PolarityDetector: int offset>;
+
+        $i6 = staticinvoke <java.lang.StrictMath: int max(int,int)>($i4, $i1);
+
+        $r11 = staticinvoke <kodkod.util.ints.Ints: kodkod.util.ints.IntSet bestSet(int,int)>($i5, $i6);
+
+        r0.<kodkod.engine.fol2sat.Bool2CNFTranslator: kodkod.util.ints.IntSet visited> = $r11;
+
+        return;
+    }
+
+    final int[] clause(int)
+    {
+        kodkod.engine.fol2sat.Bool2CNFTranslator r0;
+        int[] $r1, $r2;
+        int i0;
+
+        r0 := @this: kodkod.engine.fol2sat.Bool2CNFTranslator;
+
+        i0 := @parameter0: int;
+
+        $r1 = r0.<kodkod.engine.fol2sat.Bool2CNFTranslator: int[] unaryClause>;
+
+        $r1[0] = i0;
+
+        $r2 = r0.<kodkod.engine.fol2sat.Bool2CNFTranslator: int[] unaryClause>;
+
+        return $r2;
+    }
+
+    final int[] clause(int, int)
+    {
+        kodkod.engine.fol2sat.Bool2CNFTranslator r0;
+        int[] $r1, $r2, $r3;
+        int i0, i1;
+
+        r0 := @this: kodkod.engine.fol2sat.Bool2CNFTranslator;
+
+        i0 := @parameter0: int;
+
+        i1 := @parameter1: int;
+
+        $r1 = r0.<kodkod.engine.fol2sat.Bool2CNFTranslator: int[] binaryClause>;
+
+        $r1[0] = i0;
+
+        $r2 = r0.<kodkod.engine.fol2sat.Bool2CNFTranslator: int[] binaryClause>;
+
+        $r2[1] = i1;
+
+        $r3 = r0.<kodkod.engine.fol2sat.Bool2CNFTranslator: int[] binaryClause>;
+
+        return $r3;
+    }
+
+    final int[] clause(int, int, int)
+    {
+        kodkod.engine.fol2sat.Bool2CNFTranslator r0;
+        int[] $r1, $r2, $r3, $r4;
+        int i0, i1, i2;
+
+        r0 := @this: kodkod.engine.fol2sat.Bool2CNFTranslator;
+
+        i0 := @parameter0: int;
+
+        i1 := @parameter1: int;
+
+        i2 := @parameter2: int;
+
+        $r1 = r0.<kodkod.engine.fol2sat.Bool2CNFTranslator: int[] ternaryClause>;
+
+        $r1[0] = i0;
+
+        $r2 = r0.<kodkod.engine.fol2sat.Bool2CNFTranslator: int[] ternaryClause>;
+
+        $r2[1] = i1;
+
+        $r3 = r0.<kodkod.engine.fol2sat.Bool2CNFTranslator: int[] ternaryClause>;
+
+        $r3[2] = i2;
+
+        $r4 = r0.<kodkod.engine.fol2sat.Bool2CNFTranslator: int[] ternaryClause>;
+
+        return $r4;
+    }
+
+    public int[] visit(kodkod.engine.bool.MultiGate, java.lang.Object)
+    {
+        kodkod.engine.fol2sat.Bool2CNFTranslator$PolarityDetector $r5, $r6, $r17, $r18;
+        byte b11, b13, b14, b15, b16;
+        kodkod.engine.fol2sat.Bool2CNFTranslator r1;
+        int[] r7, $r13, $r15, $r19, $r20;
+        boolean $z0, z1, z2, $z3;
+        kodkod.engine.satlab.SATSolver $r14, $r16;
+        kodkod.engine.bool.Operator$Nary $r3, $r4;
+        kodkod.engine.bool.BooleanFormula r10;
+        int $i0, $i1, i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i10, i12;
+        java.util.Iterator $r8;
+        kodkod.util.ints.IntSet $r2;
+        kodkod.engine.bool.MultiGate r0;
+        java.lang.Object $r9, r11, $r12;
+
+        r1 := @this: kodkod.engine.fol2sat.Bool2CNFTranslator;
+
+        r0 := @parameter0: kodkod.engine.bool.MultiGate;
+
+        r11 := @parameter1: java.lang.Object;
+
+        $i0 = virtualinvoke r0.<kodkod.engine.bool.MultiGate: int label()>();
+
+        $r2 = r1.<kodkod.engine.fol2sat.Bool2CNFTranslator: kodkod.util.ints.IntSet visited>;
+
+        $z0 = interfaceinvoke $r2.<kodkod.util.ints.IntSet: boolean add(int)>($i0);
+
+        if $z0 == 0 goto label8;
+
+        $r3 = virtualinvoke r0.<kodkod.engine.bool.MultiGate: kodkod.engine.bool.Operator$Nary op()>();
+
+        $r4 = <kodkod.engine.bool.Operator: kodkod.engine.bool.Operator$Nary AND>;
+
+        if $r3 != $r4 goto label1;
+
+        b11 = 1;
+
+        b16 = 1;
+
+        b15 = 1;
+
+        b14 = 1;
+
+        b13 = 1;
+
+        $r17 = r1.<kodkod.engine.fol2sat.Bool2CNFTranslator: kodkod.engine.fol2sat.Bool2CNFTranslator$PolarityDetector pdetector>;
+
+        z1 = virtualinvoke $r17.<kodkod.engine.fol2sat.Bool2CNFTranslator$PolarityDetector: boolean positive(int)>($i0);
+
+        $r18 = r1.<kodkod.engine.fol2sat.Bool2CNFTranslator: kodkod.engine.fol2sat.Bool2CNFTranslator$PolarityDetector pdetector>;
+
+        z2 = virtualinvoke $r18.<kodkod.engine.fol2sat.Bool2CNFTranslator$PolarityDetector: boolean negative(int)>($i0);
+
+        goto label2;
+
+     label1:
+        b11 = -1;
+
+        b16 = -1;
+
+        b15 = -1;
+
+        b14 = -1;
+
+        b13 = -1;
+
+        $r5 = r1.<kodkod.engine.fol2sat.Bool2CNFTranslator: kodkod.engine.fol2sat.Bool2CNFTranslator$PolarityDetector pdetector>;
+
+        z2 = virtualinvoke $r5.<kodkod.engine.fol2sat.Bool2CNFTranslator$PolarityDetector: boolean positive(int)>($i0);
+
+        $r6 = r1.<kodkod.engine.fol2sat.Bool2CNFTranslator: kodkod.engine.fol2sat.Bool2CNFTranslator$PolarityDetector pdetector>;
+
+        z1 = virtualinvoke $r6.<kodkod.engine.fol2sat.Bool2CNFTranslator$PolarityDetector: boolean negative(int)>($i0);
+
+     label2:
+        if z2 == 0 goto label3;
+
+        $i8 = virtualinvoke r0.<kodkod.engine.bool.MultiGate: int size()>();
+
+        $i9 = $i8 + 1;
+
+        $r19 = newarray (int)[$i9];
+
+        goto label4;
+
+     label3:
+        $r19 = null;
+
+     label4:
+        r7 = $r19;
+
+        $i1 = neg b16;
+
+        $i10 = $i0 * $i1;
+
+        i12 = 0;
+
+        $r8 = virtualinvoke r0.<kodkod.engine.bool.MultiGate: java.util.Iterator iterator()>();
+
+        goto label7;
+
+     label5:
+        $r9 = interfaceinvoke $r8.<java.util.Iterator: java.lang.Object next()>();
+
+        r10 = (kodkod.engine.bool.BooleanFormula) $r9;
+
+        $r12 = virtualinvoke r10.<kodkod.engine.bool.BooleanFormula: java.lang.Object accept(kodkod.engine.bool.BooleanVisitor,java.lang.Object)>(r1, r11);
+
+        $r13 = (int[]) $r12;
+
+        i2 = $r13[0];
+
+        if z1 == 0 goto label6;
+
+        $r14 = r1.<kodkod.engine.fol2sat.Bool2CNFTranslator: kodkod.engine.satlab.SATSolver solver>;
+
+        $i6 = i2 * b15;
+
+        $r15 = virtualinvoke r1.<kodkod.engine.fol2sat.Bool2CNFTranslator: int[] clause(int,int)>($i6, $i10);
+
+        interfaceinvoke $r14.<kodkod.engine.satlab.SATSolver: boolean addClause(int[])>($r15);
+
+     label6:
+        if z2 == 0 goto label7;
+
+        $i3 = i12;
+
+        i12 = i12 + 1;
+
+        $i4 = neg b13;
+
+        $i5 = i2 * $i4;
+
+        r7[$i3] = $i5;
+
+     label7:
+        $z3 = interfaceinvoke $r8.<java.util.Iterator: boolean hasNext()>();
+
+        if $z3 != 0 goto label5;
+
+        if z2 == 0 goto label8;
+
+        $i7 = $i0 * b14;
+
+        r7[i12] = $i7;
+
+        $r16 = r1.<kodkod.engine.fol2sat.Bool2CNFTranslator: kodkod.engine.satlab.SATSolver solver>;
+
+        interfaceinvoke $r16.<kodkod.engine.satlab.SATSolver: boolean addClause(int[])>(r7);
+
+     label8:
+        $r20 = virtualinvoke r1.<kodkod.engine.fol2sat.Bool2CNFTranslator: int[] clause(int)>($i0);
+
+        return $r20;
+    }
+
+    public int[] visit(kodkod.engine.bool.ITEGate, java.lang.Object)
+    {
+        kodkod.engine.bool.ITEGate r0;
+        kodkod.engine.fol2sat.Bool2CNFTranslator$PolarityDetector $r13, $r14;
+        kodkod.engine.fol2sat.Bool2CNFTranslator r1;
+        int[] $r6, $r9, $r12, $r16, $r18, $r20, $r22, $r24, $r26, $r27;
+        boolean $z0, $z1, $z2;
+        kodkod.engine.satlab.SATSolver $r15, $r17, $r19, $r21, $r23, $r25;
+        kodkod.engine.bool.BooleanFormula $r3, $r7, $r10;
+        int $i0, i1, i2, i3, $i4, $i5, $i6, $i7, $i8, $i9, $i10, $i11, $i12;
+        kodkod.util.ints.IntSet $r2;
+        java.lang.Object r4, $r5, $r8, $r11;
+
+        r1 := @this: kodkod.engine.fol2sat.Bool2CNFTranslator;
+
+        r0 := @parameter0: kodkod.engine.bool.ITEGate;
+
+        r4 := @parameter1: java.lang.Object;
+
+        $i0 = virtualinvoke r0.<kodkod.engine.bool.ITEGate: int label()>();
+
+        $r2 = r1.<kodkod.engine.fol2sat.Bool2CNFTranslator: kodkod.util.ints.IntSet visited>;
+
+        $z0 = interfaceinvoke $r2.<kodkod.util.ints.IntSet: boolean add(int)>($i0);
+
+        if $z0 == 0 goto label2;
+
+        $r3 = virtualinvoke r0.<kodkod.engine.bool.ITEGate: kodkod.engine.bool.BooleanFormula input(int)>(0);
+
+        $r5 = virtualinvoke $r3.<kodkod.engine.bool.BooleanFormula: java.lang.Object accept(kodkod.engine.bool.BooleanVisitor,java.lang.Object)>(r1, r4);
+
+        $r6 = (int[]) $r5;
+
+        i1 = $r6[0];
+
+        $r7 = virtualinvoke r0.<kodkod.engine.bool.ITEGate: kodkod.engine.bool.BooleanFormula input(int)>(1);
+
+        $r8 = virtualinvoke $r7.<kodkod.engine.bool.BooleanFormula: java.lang.Object accept(kodkod.engine.bool.BooleanVisitor,java.lang.Object)>(r1, r4);
+
+        $r9 = (int[]) $r8;
+
+        i2 = $r9[0];
+
+        $r10 = virtualinvoke r0.<kodkod.engine.bool.ITEGate: kodkod.engine.bool.BooleanFormula input(int)>(2);
+
+        $r11 = virtualinvoke $r10.<kodkod.engine.bool.BooleanFormula: java.lang.Object accept(kodkod.engine.bool.BooleanVisitor,java.lang.Object)>(r1, r4);
+
+        $r12 = (int[]) $r11;
+
+        i3 = $r12[0];
+
+        $r13 = r1.<kodkod.engine.fol2sat.Bool2CNFTranslator: kodkod.engine.fol2sat.Bool2CNFTranslator$PolarityDetector pdetector>;
+
+        $z1 = virtualinvoke $r13.<kodkod.engine.fol2sat.Bool2CNFTranslator$PolarityDetector: boolean positive(int)>($i0);
+
+        $r14 = r1.<kodkod.engine.fol2sat.Bool2CNFTranslator: kodkod.engine.fol2sat.Bool2CNFTranslator$PolarityDetector pdetector>;
+
+        $z2 = virtualinvoke $r14.<kodkod.engine.fol2sat.Bool2CNFTranslator$PolarityDetector: boolean negative(int)>($i0);
+
+        if $z1 == 0 goto label1;
+
+        $r21 = r1.<kodkod.engine.fol2sat.Bool2CNFTranslator: kodkod.engine.satlab.SATSolver solver>;
+
+        $i10 = neg i1;
+
+        $i9 = neg $i0;
+
+        $r22 = virtualinvoke r1.<kodkod.engine.fol2sat.Bool2CNFTranslator: int[] clause(int,int,int)>($i10, i2, $i9);
+
+        interfaceinvoke $r21.<kodkod.engine.satlab.SATSolver: boolean addClause(int[])>($r22);
+
+        $r23 = r1.<kodkod.engine.fol2sat.Bool2CNFTranslator: kodkod.engine.satlab.SATSolver solver>;
+
+        $i11 = neg $i0;
+
+        $r24 = virtualinvoke r1.<kodkod.engine.fol2sat.Bool2CNFTranslator: int[] clause(int,int,int)>(i1, i3, $i11);
+
+        interfaceinvoke $r23.<kodkod.engine.satlab.SATSolver: boolean addClause(int[])>($r24);
+
+        $r25 = r1.<kodkod.engine.fol2sat.Bool2CNFTranslator: kodkod.engine.satlab.SATSolver solver>;
+
+        $i12 = neg $i0;
+
+        $r26 = virtualinvoke r1.<kodkod.engine.fol2sat.Bool2CNFTranslator: int[] clause(int,int,int)>(i2, i3, $i12);
+
+        interfaceinvoke $r25.<kodkod.engine.satlab.SATSolver: boolean addClause(int[])>($r26);
+
+     label1:
+        if $z2 == 0 goto label2;
+
+        $r15 = r1.<kodkod.engine.fol2sat.Bool2CNFTranslator: kodkod.engine.satlab.SATSolver solver>;
+
+        $i5 = neg i1;
+
+        $i4 = neg i2;
+
+        $r16 = virtualinvoke r1.<kodkod.engine.fol2sat.Bool2CNFTranslator: int[] clause(int,int,int)>($i5, $i4, $i0);
+
+        interfaceinvoke $r15.<kodkod.engine.satlab.SATSolver: boolean addClause(int[])>($r16);
+
+        $r17 = r1.<kodkod.engine.fol2sat.Bool2CNFTranslator: kodkod.engine.satlab.SATSolver solver>;
+
+        $i6 = neg i3;
+
+        $r18 = virtualinvoke r1.<kodkod.engine.fol2sat.Bool2CNFTranslator: int[] clause(int,int,int)>(i1, $i6, $i0);
+
+        interfaceinvoke $r17.<kodkod.engine.satlab.SATSolver: boolean addClause(int[])>($r18);
+
+        $r19 = r1.<kodkod.engine.fol2sat.Bool2CNFTranslator: kodkod.engine.satlab.SATSolver solver>;
+
+        $i8 = neg i2;
+
+        $i7 = neg i3;
+
+        $r20 = virtualinvoke r1.<kodkod.engine.fol2sat.Bool2CNFTranslator: int[] clause(int,int,int)>($i8, $i7, $i0);
+
+        interfaceinvoke $r19.<kodkod.engine.satlab.SATSolver: boolean addClause(int[])>($r20);
+
+     label2:
+        $r27 = virtualinvoke r1.<kodkod.engine.fol2sat.Bool2CNFTranslator: int[] clause(int)>($i0);
+
+        return $r27;
+    }
+
+    public int[] visit(kodkod.engine.bool.NotGate, java.lang.Object)
+    {
+        kodkod.engine.bool.BooleanFormula $r2;
+        kodkod.engine.fol2sat.Bool2CNFTranslator r0;
+        int[] $r5, $r6;
+        int $i0, $i1;
+        kodkod.engine.bool.NotGate r1;
+        java.lang.Object r3, $r4;
+
+        r0 := @this: kodkod.engine.fol2sat.Bool2CNFTranslator;
+
+        r1 := @parameter0: kodkod.engine.bool.NotGate;
+
+        r3 := @parameter1: java.lang.Object;
+
+        $r2 = virtualinvoke r1.<kodkod.engine.bool.NotGate: kodkod.engine.bool.BooleanFormula input(int)>(0);
+
+        $r4 = virtualinvoke $r2.<kodkod.engine.bool.BooleanFormula: java.lang.Object accept(kodkod.engine.bool.BooleanVisitor,java.lang.Object)>(r0, r3);
+
+        $r5 = (int[]) $r4;
+
+        $i0 = $r5[0];
+
+        $i1 = neg $i0;
+
+        $r6 = virtualinvoke r0.<kodkod.engine.fol2sat.Bool2CNFTranslator: int[] clause(int)>($i1);
+
+        return $r6;
+    }
+
+    public int[] visit(kodkod.engine.bool.BooleanVariable, java.lang.Object)
+    {
+        kodkod.engine.bool.BooleanVariable r1;
+        kodkod.engine.fol2sat.Bool2CNFTranslator r0;
+        int[] $r2;
+        int $i0;
+        java.lang.Object r3;
+
+        r0 := @this: kodkod.engine.fol2sat.Bool2CNFTranslator;
+
+        r1 := @parameter0: kodkod.engine.bool.BooleanVariable;
+
+        r3 := @parameter1: java.lang.Object;
+
+        $i0 = virtualinvoke r1.<kodkod.engine.bool.BooleanVariable: int label()>();
+
+        $r2 = virtualinvoke r0.<kodkod.engine.fol2sat.Bool2CNFTranslator: int[] clause(int)>($i0);
+
+        return $r2;
+    }
+
+    public volatile java.lang.Object visit(kodkod.engine.bool.BooleanVariable, java.lang.Object)
+    {
+        kodkod.engine.bool.BooleanVariable r1;
+        kodkod.engine.fol2sat.Bool2CNFTranslator r0;
+        int[] $r4;
+        java.lang.Object r2, $r3;
+
+        r0 := @this: kodkod.engine.fol2sat.Bool2CNFTranslator;
+
+        r1 := @parameter0: kodkod.engine.bool.BooleanVariable;
+
+        r2 := @parameter1: java.lang.Object;
+
+        $r3 = (java.lang.Object) r2;
+
+        $r4 = virtualinvoke r0.<kodkod.engine.fol2sat.Bool2CNFTranslator: int[] visit(kodkod.engine.bool.BooleanVariable,java.lang.Object)>(r1, $r3);
+
+        return $r4;
+    }
+
+    public volatile java.lang.Object visit(kodkod.engine.bool.NotGate, java.lang.Object)
+    {
+        kodkod.engine.fol2sat.Bool2CNFTranslator r0;
+        int[] $r4;
+        kodkod.engine.bool.NotGate r1;
+        java.lang.Object r2, $r3;
+
+        r0 := @this: kodkod.engine.fol2sat.Bool2CNFTranslator;
+
+        r1 := @parameter0: kodkod.engine.bool.NotGate;
+
+        r2 := @parameter1: java.lang.Object;
+
+        $r3 = (java.lang.Object) r2;
+
+        $r4 = virtualinvoke r0.<kodkod.engine.fol2sat.Bool2CNFTranslator: int[] visit(kodkod.engine.bool.NotGate,java.lang.Object)>(r1, $r3);
+
+        return $r4;
+    }
+
+    public volatile java.lang.Object visit(kodkod.engine.bool.ITEGate, java.lang.Object)
+    {
+        kodkod.engine.fol2sat.Bool2CNFTranslator r0;
+        int[] $r4;
+        kodkod.engine.bool.ITEGate r1;
+        java.lang.Object r2, $r3;
+
+        r0 := @this: kodkod.engine.fol2sat.Bool2CNFTranslator;
+
+        r1 := @parameter0: kodkod.engine.bool.ITEGate;
+
+        r2 := @parameter1: java.lang.Object;
+
+        $r3 = (java.lang.Object) r2;
+
+        $r4 = virtualinvoke r0.<kodkod.engine.fol2sat.Bool2CNFTranslator: int[] visit(kodkod.engine.bool.ITEGate,java.lang.Object)>(r1, $r3);
+
+        return $r4;
+    }
+
+    public volatile java.lang.Object visit(kodkod.engine.bool.MultiGate, java.lang.Object)
+    {
+        kodkod.engine.fol2sat.Bool2CNFTranslator r0;
+        int[] $r4;
+        java.lang.Object r2, $r3;
+        kodkod.engine.bool.MultiGate r1;
+
+        r0 := @this: kodkod.engine.fol2sat.Bool2CNFTranslator;
+
+        r1 := @parameter0: kodkod.engine.bool.MultiGate;
+
+        r2 := @parameter1: java.lang.Object;
+
+        $r3 = (java.lang.Object) r2;
+
+        $r4 = virtualinvoke r0.<kodkod.engine.fol2sat.Bool2CNFTranslator: int[] visit(kodkod.engine.bool.MultiGate,java.lang.Object)>(r1, $r3);
+
+        return $r4;
+    }
+}

@@ -1,0 +1,1206 @@
+public class org.apache.http.impl.auth.DigestScheme extends org.apache.http.impl.auth.RFC2617Scheme
+{
+    private static final char[] HEXADECIMAL;
+    private boolean complete;
+    private static final int QOP_UNKNOWN;
+    private static final int QOP_MISSING;
+    private static final int QOP_AUTH_INT;
+    private static final int QOP_AUTH;
+    private java.lang.String lastNonce;
+    private long nounceCount;
+    private java.lang.String cnonce;
+    private java.lang.String a1;
+    private java.lang.String a2;
+
+    public void <init>(org.apache.http.auth.ChallengeState)
+    {
+        org.apache.http.impl.auth.DigestScheme r0;
+        org.apache.http.auth.ChallengeState r1;
+
+        r0 := @this: org.apache.http.impl.auth.DigestScheme;
+
+        r1 := @parameter0: org.apache.http.auth.ChallengeState;
+
+        specialinvoke r0.<org.apache.http.impl.auth.RFC2617Scheme: void <init>(org.apache.http.auth.ChallengeState)>(r1);
+
+        r0.<org.apache.http.impl.auth.DigestScheme: boolean complete> = 0;
+
+        return;
+    }
+
+    public void <init>()
+    {
+        org.apache.http.impl.auth.DigestScheme r0;
+
+        r0 := @this: org.apache.http.impl.auth.DigestScheme;
+
+        specialinvoke r0.<org.apache.http.impl.auth.DigestScheme: void <init>(org.apache.http.auth.ChallengeState)>(null);
+
+        return;
+    }
+
+    public void processChallenge(org.apache.http.Header) throws org.apache.http.auth.MalformedChallengeException
+    {
+        org.apache.http.impl.auth.DigestScheme r0;
+        org.apache.http.Header r1;
+
+        r0 := @this: org.apache.http.impl.auth.DigestScheme;
+
+        r1 := @parameter0: org.apache.http.Header;
+
+        specialinvoke r0.<org.apache.http.impl.auth.RFC2617Scheme: void processChallenge(org.apache.http.Header)>(r1);
+
+        r0.<org.apache.http.impl.auth.DigestScheme: boolean complete> = 1;
+
+        return;
+    }
+
+    public boolean isComplete()
+    {
+        org.apache.http.impl.auth.DigestScheme r0;
+        java.lang.String $r1, $r2;
+        boolean $z0, $z1;
+
+        r0 := @this: org.apache.http.impl.auth.DigestScheme;
+
+        $r1 = virtualinvoke r0.<org.apache.http.impl.auth.DigestScheme: java.lang.String getParameter(java.lang.String)>("stale");
+
+        $r2 = "true";
+
+        $z0 = virtualinvoke $r2.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>($r1);
+
+        if $z0 == 0 goto label1;
+
+        return 0;
+
+     label1:
+        $z1 = r0.<org.apache.http.impl.auth.DigestScheme: boolean complete>;
+
+        return $z1;
+    }
+
+    public java.lang.String getSchemeName()
+    {
+        org.apache.http.impl.auth.DigestScheme r0;
+
+        r0 := @this: org.apache.http.impl.auth.DigestScheme;
+
+        return "digest";
+    }
+
+    public boolean isConnectionBased()
+    {
+        org.apache.http.impl.auth.DigestScheme r0;
+
+        r0 := @this: org.apache.http.impl.auth.DigestScheme;
+
+        return 0;
+    }
+
+    public void overrideParamter(java.lang.String, java.lang.String)
+    {
+        java.util.Map $r1;
+        org.apache.http.impl.auth.DigestScheme r0;
+        java.lang.String r2, r3;
+
+        r0 := @this: org.apache.http.impl.auth.DigestScheme;
+
+        r2 := @parameter0: java.lang.String;
+
+        r3 := @parameter1: java.lang.String;
+
+        $r1 = virtualinvoke r0.<org.apache.http.impl.auth.DigestScheme: java.util.Map getParameters()>();
+
+        interfaceinvoke $r1.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>(r2, r3);
+
+        return;
+    }
+
+    public org.apache.http.Header authenticate(org.apache.http.auth.Credentials, org.apache.http.HttpRequest) throws org.apache.http.auth.AuthenticationException
+    {
+        org.apache.http.protocol.BasicHttpContext $r3;
+        org.apache.http.auth.Credentials r1;
+        org.apache.http.impl.auth.DigestScheme r0;
+        org.apache.http.HttpRequest r2;
+        org.apache.http.Header $r4;
+
+        r0 := @this: org.apache.http.impl.auth.DigestScheme;
+
+        r1 := @parameter0: org.apache.http.auth.Credentials;
+
+        r2 := @parameter1: org.apache.http.HttpRequest;
+
+        $r3 = new org.apache.http.protocol.BasicHttpContext;
+
+        specialinvoke $r3.<org.apache.http.protocol.BasicHttpContext: void <init>()>();
+
+        $r4 = virtualinvoke r0.<org.apache.http.impl.auth.DigestScheme: org.apache.http.Header authenticate(org.apache.http.auth.Credentials,org.apache.http.HttpRequest,org.apache.http.protocol.HttpContext)>(r1, r2, $r3);
+
+        return $r4;
+    }
+
+    public org.apache.http.Header authenticate(org.apache.http.auth.Credentials, org.apache.http.HttpRequest, org.apache.http.protocol.HttpContext) throws org.apache.http.auth.AuthenticationException
+    {
+        org.apache.http.Header $r12;
+        org.apache.http.RequestLine $r6, $r9;
+        org.apache.http.auth.Credentials r0;
+        java.util.Map $r5, $r8, $r15;
+        java.lang.String $r3, $r4, $r7, $r10, $r11, $r14;
+        java.lang.IllegalArgumentException $r18, $r19;
+        org.apache.http.HttpRequest r1;
+        org.apache.http.protocol.HttpContext r20;
+        org.apache.http.params.HttpParams $r13;
+        org.apache.http.impl.auth.DigestScheme r2;
+        org.apache.http.auth.AuthenticationException $r16, $r17;
+
+        r2 := @this: org.apache.http.impl.auth.DigestScheme;
+
+        r0 := @parameter0: org.apache.http.auth.Credentials;
+
+        r1 := @parameter1: org.apache.http.HttpRequest;
+
+        r20 := @parameter2: org.apache.http.protocol.HttpContext;
+
+        if r0 != null goto label1;
+
+        $r19 = new java.lang.IllegalArgumentException;
+
+        specialinvoke $r19.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>("Credentials may not be null");
+
+        throw $r19;
+
+     label1:
+        if r1 != null goto label2;
+
+        $r18 = new java.lang.IllegalArgumentException;
+
+        specialinvoke $r18.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>("HTTP request may not be null");
+
+        throw $r18;
+
+     label2:
+        $r3 = virtualinvoke r2.<org.apache.http.impl.auth.DigestScheme: java.lang.String getParameter(java.lang.String)>("realm");
+
+        if $r3 != null goto label3;
+
+        $r17 = new org.apache.http.auth.AuthenticationException;
+
+        specialinvoke $r17.<org.apache.http.auth.AuthenticationException: void <init>(java.lang.String)>("missing realm in challenge");
+
+        throw $r17;
+
+     label3:
+        $r4 = virtualinvoke r2.<org.apache.http.impl.auth.DigestScheme: java.lang.String getParameter(java.lang.String)>("nonce");
+
+        if $r4 != null goto label4;
+
+        $r16 = new org.apache.http.auth.AuthenticationException;
+
+        specialinvoke $r16.<org.apache.http.auth.AuthenticationException: void <init>(java.lang.String)>("missing nonce in challenge");
+
+        throw $r16;
+
+     label4:
+        $r5 = virtualinvoke r2.<org.apache.http.impl.auth.DigestScheme: java.util.Map getParameters()>();
+
+        $r6 = interfaceinvoke r1.<org.apache.http.HttpRequest: org.apache.http.RequestLine getRequestLine()>();
+
+        $r7 = interfaceinvoke $r6.<org.apache.http.RequestLine: java.lang.String getMethod()>();
+
+        interfaceinvoke $r5.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>("methodname", $r7);
+
+        $r8 = virtualinvoke r2.<org.apache.http.impl.auth.DigestScheme: java.util.Map getParameters()>();
+
+        $r9 = interfaceinvoke r1.<org.apache.http.HttpRequest: org.apache.http.RequestLine getRequestLine()>();
+
+        $r10 = interfaceinvoke $r9.<org.apache.http.RequestLine: java.lang.String getUri()>();
+
+        interfaceinvoke $r8.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>("uri", $r10);
+
+        $r11 = virtualinvoke r2.<org.apache.http.impl.auth.DigestScheme: java.lang.String getParameter(java.lang.String)>("charset");
+
+        if $r11 != null goto label5;
+
+        $r13 = interfaceinvoke r1.<org.apache.http.HttpRequest: org.apache.http.params.HttpParams getParams()>();
+
+        $r14 = staticinvoke <org.apache.http.auth.params.AuthParams: java.lang.String getCredentialCharset(org.apache.http.params.HttpParams)>($r13);
+
+        $r15 = virtualinvoke r2.<org.apache.http.impl.auth.DigestScheme: java.util.Map getParameters()>();
+
+        interfaceinvoke $r15.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>("charset", $r14);
+
+     label5:
+        $r12 = specialinvoke r2.<org.apache.http.impl.auth.DigestScheme: org.apache.http.Header createDigestHeader(org.apache.http.auth.Credentials,org.apache.http.HttpRequest)>(r0, r1);
+
+        return $r12;
+    }
+
+    private static java.security.MessageDigest createMessageDigest(java.lang.String) throws org.apache.http.impl.auth.UnsupportedDigestAlgorithmException
+    {
+        java.security.MessageDigest $r1;
+        org.apache.http.impl.auth.UnsupportedDigestAlgorithmException $r3;
+        java.lang.Exception $r2;
+        java.lang.StringBuilder $r4, $r5, $r6;
+        java.lang.String r0, $r7;
+
+        r0 := @parameter0: java.lang.String;
+
+     label1:
+        $r1 = staticinvoke <java.security.MessageDigest: java.security.MessageDigest getInstance(java.lang.String)>(r0);
+
+     label2:
+        return $r1;
+
+     label3:
+        $r2 := @caughtexception;
+
+        $r3 = new org.apache.http.impl.auth.UnsupportedDigestAlgorithmException;
+
+        $r4 = new java.lang.StringBuilder;
+
+        specialinvoke $r4.<java.lang.StringBuilder: void <init>()>();
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Unsupported algorithm in HTTP Digest authentication: ");
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r0);
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r3.<org.apache.http.impl.auth.UnsupportedDigestAlgorithmException: void <init>(java.lang.String)>($r7);
+
+        throw $r3;
+
+        catch java.lang.Exception from label1 to label2 with label3;
+    }
+
+    private org.apache.http.Header createDigestHeader(org.apache.http.auth.Credentials, org.apache.http.HttpRequest) throws org.apache.http.auth.AuthenticationException
+    {
+        byte[] $r29, $r30, $r79, $r100, $r101, $r133, $r134, $r138, $r139;
+        org.apache.http.impl.auth.HttpEntityDigester $r154;
+        byte b3, b6, b7, b8, b9, b10, b11, b12;
+        java.lang.Long $r20;
+        java.lang.StringBuilder $r23, $r24, $r25, $r26, $r33, $r34, $r35, $r37, $r38, $r39, $r40, $r41, $r42, $r44, $r45, $r46, $r47, $r68, $r69, $r70, $r71, $r75, $r76, $r77, $r78, $r81, $r85, $r86, $r87, $r91, $r92, $r93, $r95, $r96, $r97, $r98, $r103, $r104, $r105, $r106, $r112, $r113, $r125, $r126, $r145, $r147, $r149, $r151, $r152, $r156, $r157;
+        java.lang.Object[] $r19;
+        org.apache.http.impl.auth.UnsupportedDigestAlgorithmException $r122;
+        long $l0, $l1, $l2;
+        org.apache.http.auth.Credentials r11;
+        java.util.StringTokenizer $r144;
+        java.io.IOException $r120;
+        java.util.Locale $r18, $r118;
+        org.apache.http.HttpEntity r131;
+        java.security.MessageDigest $r10;
+        java.util.HashSet $r143;
+        int i4, $i5, $i14;
+        org.apache.http.HttpEntityEnclosingRequest $r89;
+        java.lang.Object $r55;
+        org.apache.http.HttpRequest r72;
+        java.util.ArrayList $r159;
+        java.lang.String $r1, $r2, $r3, $r4, $r5, $r6, $r8, $r9, $r13, $r14, $r15, $r21, $r22, $r27, $r28, $r31, $r36, $r43, $r57, $r58, $r60, $r61, $r67, $r80, $r82, $r88, $r94, $r99, $r102, $r107, $r108, $r109, $r114, $r116, $r117, $r119, $r127, r128, r129, r130, $r132, $r135, r136, $r137, $r140, $r142;
+        org.apache.http.message.BasicHeaderValueFormatter $r59;
+        java.util.Formatter $r150;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9, $z10, $z11, $z12, $z13, $z14;
+        org.apache.http.message.BufferedHeader $r170;
+        java.security.Principal $r12;
+        org.apache.http.impl.auth.DigestScheme r0;
+        org.apache.http.auth.AuthenticationException $r146, $r148, $r153, $r155;
+        org.apache.http.message.BasicNameValuePair r56, $r160, $r161, $r162, $r163, $r164, $r165, $r166, $r167, $r168, $r169;
+        org.apache.http.util.CharArrayBuffer $r158;
+
+        r0 := @this: org.apache.http.impl.auth.DigestScheme;
+
+        r11 := @parameter0: org.apache.http.auth.Credentials;
+
+        r72 := @parameter1: org.apache.http.HttpRequest;
+
+        $r1 = virtualinvoke r0.<org.apache.http.impl.auth.DigestScheme: java.lang.String getParameter(java.lang.String)>("uri");
+
+        $r2 = virtualinvoke r0.<org.apache.http.impl.auth.DigestScheme: java.lang.String getParameter(java.lang.String)>("realm");
+
+        $r3 = virtualinvoke r0.<org.apache.http.impl.auth.DigestScheme: java.lang.String getParameter(java.lang.String)>("nonce");
+
+        $r4 = virtualinvoke r0.<org.apache.http.impl.auth.DigestScheme: java.lang.String getParameter(java.lang.String)>("opaque");
+
+        $r5 = virtualinvoke r0.<org.apache.http.impl.auth.DigestScheme: java.lang.String getParameter(java.lang.String)>("methodname");
+
+        $r6 = virtualinvoke r0.<org.apache.http.impl.auth.DigestScheme: java.lang.String getParameter(java.lang.String)>("algorithm");
+
+        r128 = $r6;
+
+        $r143 = new java.util.HashSet;
+
+        specialinvoke $r143.<java.util.HashSet: void <init>(int)>(8);
+
+        b3 = -1;
+
+        b12 = -1;
+
+        b11 = -1;
+
+        b10 = -1;
+
+        b9 = -1;
+
+        b8 = -1;
+
+        b7 = -1;
+
+        b6 = -1;
+
+        $r8 = virtualinvoke r0.<org.apache.http.impl.auth.DigestScheme: java.lang.String getParameter(java.lang.String)>("qop");
+
+        if $r8 == null goto label05;
+
+        $r144 = new java.util.StringTokenizer;
+
+        specialinvoke $r144.<java.util.StringTokenizer: void <init>(java.lang.String,java.lang.String)>($r8, ",");
+
+     label01:
+        $z8 = virtualinvoke $r144.<java.util.StringTokenizer: boolean hasMoreTokens()>();
+
+        if $z8 == 0 goto label02;
+
+        $r116 = virtualinvoke $r144.<java.util.StringTokenizer: java.lang.String nextToken()>();
+
+        $r117 = virtualinvoke $r116.<java.lang.String: java.lang.String trim()>();
+
+        $r118 = <java.util.Locale: java.util.Locale US>;
+
+        $r119 = virtualinvoke $r117.<java.lang.String: java.lang.String toLowerCase(java.util.Locale)>($r118);
+
+        interfaceinvoke $r143.<java.util.Set: boolean add(java.lang.Object)>($r119);
+
+        goto label01;
+
+     label02:
+        $z9 = r72 instanceof org.apache.http.HttpEntityEnclosingRequest;
+
+        if $z9 == 0 goto label03;
+
+        $z11 = interfaceinvoke $r143.<java.util.Set: boolean contains(java.lang.Object)>("auth-int");
+
+        if $z11 == 0 goto label03;
+
+        b3 = 1;
+
+        b12 = 1;
+
+        b11 = 1;
+
+        b10 = 1;
+
+        b9 = 1;
+
+        b8 = 1;
+
+        b7 = 1;
+
+        b6 = 1;
+
+        goto label04;
+
+     label03:
+        $z10 = interfaceinvoke $r143.<java.util.Set: boolean contains(java.lang.Object)>("auth");
+
+        if $z10 == 0 goto label04;
+
+        b3 = 2;
+
+        b12 = 2;
+
+        b11 = 2;
+
+        b10 = 2;
+
+        b9 = 2;
+
+        b8 = 2;
+
+        b7 = 2;
+
+        b6 = 2;
+
+     label04:
+        goto label06;
+
+     label05:
+        b3 = 0;
+
+        b12 = 0;
+
+        b11 = 0;
+
+        b10 = 0;
+
+        b9 = 0;
+
+        b8 = 0;
+
+        b7 = 0;
+
+        b6 = 0;
+
+     label06:
+        $i14 = (int) -1;
+
+        if b6 != $i14 goto label07;
+
+        $r146 = new org.apache.http.auth.AuthenticationException;
+
+        $r145 = new java.lang.StringBuilder;
+
+        specialinvoke $r145.<java.lang.StringBuilder: void <init>()>();
+
+        $r112 = virtualinvoke $r145.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("None of the qop methods is supported: ");
+
+        $r113 = virtualinvoke $r112.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r8);
+
+        $r114 = virtualinvoke $r113.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r146.<org.apache.http.auth.AuthenticationException: void <init>(java.lang.String)>($r114);
+
+        throw $r146;
+
+     label07:
+        if $r6 != null goto label08;
+
+        r128 = "MD5";
+
+     label08:
+        $r9 = virtualinvoke r0.<org.apache.http.impl.auth.DigestScheme: java.lang.String getParameter(java.lang.String)>("charset");
+
+        r129 = $r9;
+
+        if $r9 != null goto label09;
+
+        r129 = "ISO-8859-1";
+
+     label09:
+        r130 = r128;
+
+        $z0 = virtualinvoke r128.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("MD5-sess");
+
+        if $z0 == 0 goto label10;
+
+        r130 = "MD5";
+
+     label10:
+        $r10 = staticinvoke <org.apache.http.impl.auth.DigestScheme: java.security.MessageDigest createMessageDigest(java.lang.String)>(r130);
+
+     label11:
+        goto label13;
+
+     label12:
+        $r122 := @caughtexception;
+
+        $r148 = new org.apache.http.auth.AuthenticationException;
+
+        $r147 = new java.lang.StringBuilder;
+
+        specialinvoke $r147.<java.lang.StringBuilder: void <init>()>();
+
+        $r125 = virtualinvoke $r147.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Unsuppported digest algorithm: ");
+
+        $r126 = virtualinvoke $r125.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r130);
+
+        $r127 = virtualinvoke $r126.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r148.<org.apache.http.auth.AuthenticationException: void <init>(java.lang.String)>($r127);
+
+        throw $r148;
+
+     label13:
+        $r12 = interfaceinvoke r11.<org.apache.http.auth.Credentials: java.security.Principal getUserPrincipal()>();
+
+        $r13 = interfaceinvoke $r12.<java.security.Principal: java.lang.String getName()>();
+
+        $r14 = interfaceinvoke r11.<org.apache.http.auth.Credentials: java.lang.String getPassword()>();
+
+        $r15 = r0.<org.apache.http.impl.auth.DigestScheme: java.lang.String lastNonce>;
+
+        $z1 = virtualinvoke $r3.<java.lang.String: boolean equals(java.lang.Object)>($r15);
+
+        if $z1 == 0 goto label14;
+
+        $l1 = r0.<org.apache.http.impl.auth.DigestScheme: long nounceCount>;
+
+        $l2 = $l1 + 1L;
+
+        r0.<org.apache.http.impl.auth.DigestScheme: long nounceCount> = $l2;
+
+        goto label15;
+
+     label14:
+        r0.<org.apache.http.impl.auth.DigestScheme: long nounceCount> = 1L;
+
+        r0.<org.apache.http.impl.auth.DigestScheme: java.lang.String cnonce> = null;
+
+        r0.<org.apache.http.impl.auth.DigestScheme: java.lang.String lastNonce> = $r3;
+
+     label15:
+        $r149 = new java.lang.StringBuilder;
+
+        specialinvoke $r149.<java.lang.StringBuilder: void <init>(int)>(256);
+
+        $r150 = new java.util.Formatter;
+
+        $r18 = <java.util.Locale: java.util.Locale US>;
+
+        specialinvoke $r150.<java.util.Formatter: void <init>(java.lang.Appendable,java.util.Locale)>($r149, $r18);
+
+        $r19 = newarray (java.lang.Object)[1];
+
+        $l0 = r0.<org.apache.http.impl.auth.DigestScheme: long nounceCount>;
+
+        $r20 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l0);
+
+        $r19[0] = $r20;
+
+        virtualinvoke $r150.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("%08x", $r19);
+
+        $r21 = virtualinvoke $r149.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r22 = r0.<org.apache.http.impl.auth.DigestScheme: java.lang.String cnonce>;
+
+        if $r22 != null goto label16;
+
+        $r109 = staticinvoke <org.apache.http.impl.auth.DigestScheme: java.lang.String createCnonce()>();
+
+        r0.<org.apache.http.impl.auth.DigestScheme: java.lang.String cnonce> = $r109;
+
+     label16:
+        r0.<org.apache.http.impl.auth.DigestScheme: java.lang.String a1> = null;
+
+        r0.<org.apache.http.impl.auth.DigestScheme: java.lang.String a2> = null;
+
+        $z2 = virtualinvoke r128.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("MD5-sess");
+
+        if $z2 == 0 goto label17;
+
+        virtualinvoke $r149.<java.lang.StringBuilder: void setLength(int)>(0);
+
+        $r95 = virtualinvoke $r149.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r13);
+
+        $r96 = virtualinvoke $r95.<java.lang.StringBuilder: java.lang.StringBuilder append(char)>(58);
+
+        $r97 = virtualinvoke $r96.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r2);
+
+        $r98 = virtualinvoke $r97.<java.lang.StringBuilder: java.lang.StringBuilder append(char)>(58);
+
+        virtualinvoke $r98.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r14);
+
+        $r99 = virtualinvoke $r149.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r100 = staticinvoke <org.apache.http.util.EncodingUtils: byte[] getBytes(java.lang.String,java.lang.String)>($r99, r129);
+
+        $r101 = virtualinvoke $r10.<java.security.MessageDigest: byte[] digest(byte[])>($r100);
+
+        $r102 = staticinvoke <org.apache.http.impl.auth.DigestScheme: java.lang.String encode(byte[])>($r101);
+
+        virtualinvoke $r149.<java.lang.StringBuilder: void setLength(int)>(0);
+
+        $r103 = virtualinvoke $r149.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r102);
+
+        $r104 = virtualinvoke $r103.<java.lang.StringBuilder: java.lang.StringBuilder append(char)>(58);
+
+        $r105 = virtualinvoke $r104.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r3);
+
+        $r106 = virtualinvoke $r105.<java.lang.StringBuilder: java.lang.StringBuilder append(char)>(58);
+
+        $r107 = r0.<org.apache.http.impl.auth.DigestScheme: java.lang.String cnonce>;
+
+        virtualinvoke $r106.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r107);
+
+        $r108 = virtualinvoke $r149.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        r0.<org.apache.http.impl.auth.DigestScheme: java.lang.String a1> = $r108;
+
+        goto label18;
+
+     label17:
+        virtualinvoke $r149.<java.lang.StringBuilder: void setLength(int)>(0);
+
+        $r23 = virtualinvoke $r149.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r13);
+
+        $r24 = virtualinvoke $r23.<java.lang.StringBuilder: java.lang.StringBuilder append(char)>(58);
+
+        $r25 = virtualinvoke $r24.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r2);
+
+        $r26 = virtualinvoke $r25.<java.lang.StringBuilder: java.lang.StringBuilder append(char)>(58);
+
+        virtualinvoke $r26.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r14);
+
+        $r27 = virtualinvoke $r149.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        r0.<org.apache.http.impl.auth.DigestScheme: java.lang.String a1> = $r27;
+
+     label18:
+        $r28 = r0.<org.apache.http.impl.auth.DigestScheme: java.lang.String a1>;
+
+        $r29 = staticinvoke <org.apache.http.util.EncodingUtils: byte[] getBytes(java.lang.String,java.lang.String)>($r28, r129);
+
+        $r30 = virtualinvoke $r10.<java.security.MessageDigest: byte[] digest(byte[])>($r29);
+
+        $r31 = staticinvoke <org.apache.http.impl.auth.DigestScheme: java.lang.String encode(byte[])>($r30);
+
+        if b7 != 2 goto label19;
+
+        $r151 = new java.lang.StringBuilder;
+
+        specialinvoke $r151.<java.lang.StringBuilder: void <init>()>();
+
+        $r91 = virtualinvoke $r151.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r5);
+
+        $r92 = virtualinvoke $r91.<java.lang.StringBuilder: java.lang.StringBuilder append(char)>(58);
+
+        $r93 = virtualinvoke $r92.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r1);
+
+        $r94 = virtualinvoke $r93.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        r0.<org.apache.http.impl.auth.DigestScheme: java.lang.String a2> = $r94;
+
+        goto label30;
+
+     label19:
+        if b8 != 1 goto label29;
+
+        r131 = null;
+
+        $z5 = r72 instanceof org.apache.http.HttpEntityEnclosingRequest;
+
+        if $z5 == 0 goto label20;
+
+        $r89 = (org.apache.http.HttpEntityEnclosingRequest) r72;
+
+        r131 = interfaceinvoke $r89.<org.apache.http.HttpEntityEnclosingRequest: org.apache.http.HttpEntity getEntity()>();
+
+     label20:
+        if r131 == null goto label22;
+
+        $z6 = interfaceinvoke r131.<org.apache.http.HttpEntity: boolean isRepeatable()>();
+
+        if $z6 != 0 goto label22;
+
+        $z7 = interfaceinvoke $r143.<java.util.Set: boolean contains(java.lang.Object)>("auth");
+
+        if $z7 == 0 goto label21;
+
+        b3 = 2;
+
+        b12 = 2;
+
+        b11 = 2;
+
+        b10 = 2;
+
+        b9 = 2;
+
+        $r152 = new java.lang.StringBuilder;
+
+        specialinvoke $r152.<java.lang.StringBuilder: void <init>()>();
+
+        $r85 = virtualinvoke $r152.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r5);
+
+        $r86 = virtualinvoke $r85.<java.lang.StringBuilder: java.lang.StringBuilder append(char)>(58);
+
+        $r87 = virtualinvoke $r86.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r1);
+
+        $r88 = virtualinvoke $r87.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        r0.<org.apache.http.impl.auth.DigestScheme: java.lang.String a2> = $r88;
+
+        goto label28;
+
+     label21:
+        $r153 = new org.apache.http.auth.AuthenticationException;
+
+        specialinvoke $r153.<org.apache.http.auth.AuthenticationException: void <init>(java.lang.String)>("Qop auth-int cannot be used with a non-repeatable entity");
+
+        throw $r153;
+
+     label22:
+        $r154 = new org.apache.http.impl.auth.HttpEntityDigester;
+
+        specialinvoke $r154.<org.apache.http.impl.auth.HttpEntityDigester: void <init>(java.security.MessageDigest)>($r10);
+
+     label23:
+        if r131 == null goto label24;
+
+        interfaceinvoke r131.<org.apache.http.HttpEntity: void writeTo(java.io.OutputStream)>($r154);
+
+     label24:
+        virtualinvoke $r154.<org.apache.http.impl.auth.HttpEntityDigester: void close()>();
+
+     label25:
+        goto label27;
+
+     label26:
+        $r120 := @caughtexception;
+
+        $r155 = new org.apache.http.auth.AuthenticationException;
+
+        specialinvoke $r155.<org.apache.http.auth.AuthenticationException: void <init>(java.lang.String,java.lang.Throwable)>("I/O error reading entity content", $r120);
+
+        throw $r155;
+
+     label27:
+        $r156 = new java.lang.StringBuilder;
+
+        specialinvoke $r156.<java.lang.StringBuilder: void <init>()>();
+
+        $r75 = virtualinvoke $r156.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r5);
+
+        $r76 = virtualinvoke $r75.<java.lang.StringBuilder: java.lang.StringBuilder append(char)>(58);
+
+        $r77 = virtualinvoke $r76.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r1);
+
+        $r78 = virtualinvoke $r77.<java.lang.StringBuilder: java.lang.StringBuilder append(char)>(58);
+
+        $r79 = virtualinvoke $r154.<org.apache.http.impl.auth.HttpEntityDigester: byte[] getDigest()>();
+
+        $r80 = staticinvoke <org.apache.http.impl.auth.DigestScheme: java.lang.String encode(byte[])>($r79);
+
+        $r81 = virtualinvoke $r78.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r80);
+
+        $r82 = virtualinvoke $r81.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        r0.<org.apache.http.impl.auth.DigestScheme: java.lang.String a2> = $r82;
+
+     label28:
+        goto label30;
+
+     label29:
+        $r157 = new java.lang.StringBuilder;
+
+        specialinvoke $r157.<java.lang.StringBuilder: void <init>()>();
+
+        $r33 = virtualinvoke $r157.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r5);
+
+        $r34 = virtualinvoke $r33.<java.lang.StringBuilder: java.lang.StringBuilder append(char)>(58);
+
+        $r35 = virtualinvoke $r34.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r1);
+
+        $r36 = virtualinvoke $r35.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        r0.<org.apache.http.impl.auth.DigestScheme: java.lang.String a2> = $r36;
+
+     label30:
+        $r132 = r0.<org.apache.http.impl.auth.DigestScheme: java.lang.String a2>;
+
+        $r133 = staticinvoke <org.apache.http.util.EncodingUtils: byte[] getBytes(java.lang.String,java.lang.String)>($r132, r129);
+
+        $r134 = virtualinvoke $r10.<java.security.MessageDigest: byte[] digest(byte[])>($r133);
+
+        $r135 = staticinvoke <org.apache.http.impl.auth.DigestScheme: java.lang.String encode(byte[])>($r134);
+
+        if b9 != 0 goto label31;
+
+        virtualinvoke $r149.<java.lang.StringBuilder: void setLength(int)>(0);
+
+        $r68 = virtualinvoke $r149.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r31);
+
+        $r69 = virtualinvoke $r68.<java.lang.StringBuilder: java.lang.StringBuilder append(char)>(58);
+
+        $r70 = virtualinvoke $r69.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r3);
+
+        $r71 = virtualinvoke $r70.<java.lang.StringBuilder: java.lang.StringBuilder append(char)>(58);
+
+        virtualinvoke $r71.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r135);
+
+        r136 = virtualinvoke $r149.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        goto label34;
+
+     label31:
+        virtualinvoke $r149.<java.lang.StringBuilder: void setLength(int)>(0);
+
+        $r37 = virtualinvoke $r149.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r31);
+
+        $r38 = virtualinvoke $r37.<java.lang.StringBuilder: java.lang.StringBuilder append(char)>(58);
+
+        $r39 = virtualinvoke $r38.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r3);
+
+        $r40 = virtualinvoke $r39.<java.lang.StringBuilder: java.lang.StringBuilder append(char)>(58);
+
+        $r41 = virtualinvoke $r40.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r21);
+
+        $r42 = virtualinvoke $r41.<java.lang.StringBuilder: java.lang.StringBuilder append(char)>(58);
+
+        $r43 = r0.<org.apache.http.impl.auth.DigestScheme: java.lang.String cnonce>;
+
+        $r44 = virtualinvoke $r42.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r43);
+
+        $r45 = virtualinvoke $r44.<java.lang.StringBuilder: java.lang.StringBuilder append(char)>(58);
+
+        if b10 != 1 goto label32;
+
+        $r137 = "auth-int";
+
+        goto label33;
+
+     label32:
+        $r137 = "auth";
+
+     label33:
+        $r46 = virtualinvoke $r45.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r137);
+
+        $r47 = virtualinvoke $r46.<java.lang.StringBuilder: java.lang.StringBuilder append(char)>(58);
+
+        virtualinvoke $r47.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r135);
+
+        r136 = virtualinvoke $r149.<java.lang.StringBuilder: java.lang.String toString()>();
+
+     label34:
+        $r138 = staticinvoke <org.apache.http.util.EncodingUtils: byte[] getAsciiBytes(java.lang.String)>(r136);
+
+        $r139 = virtualinvoke $r10.<java.security.MessageDigest: byte[] digest(byte[])>($r138);
+
+        $r140 = staticinvoke <org.apache.http.impl.auth.DigestScheme: java.lang.String encode(byte[])>($r139);
+
+        $r158 = new org.apache.http.util.CharArrayBuffer;
+
+        specialinvoke $r158.<org.apache.http.util.CharArrayBuffer: void <init>(int)>(128);
+
+        $z12 = virtualinvoke r0.<org.apache.http.impl.auth.DigestScheme: boolean isProxy()>();
+
+        if $z12 == 0 goto label35;
+
+        virtualinvoke $r158.<org.apache.http.util.CharArrayBuffer: void append(java.lang.String)>("Proxy-Authorization");
+
+        goto label36;
+
+     label35:
+        virtualinvoke $r158.<org.apache.http.util.CharArrayBuffer: void append(java.lang.String)>("Authorization");
+
+     label36:
+        virtualinvoke $r158.<org.apache.http.util.CharArrayBuffer: void append(java.lang.String)>(": Digest ");
+
+        $r159 = new java.util.ArrayList;
+
+        specialinvoke $r159.<java.util.ArrayList: void <init>(int)>(20);
+
+        $r160 = new org.apache.http.message.BasicNameValuePair;
+
+        specialinvoke $r160.<org.apache.http.message.BasicNameValuePair: void <init>(java.lang.String,java.lang.String)>("username", $r13);
+
+        interfaceinvoke $r159.<java.util.List: boolean add(java.lang.Object)>($r160);
+
+        $r161 = new org.apache.http.message.BasicNameValuePair;
+
+        specialinvoke $r161.<org.apache.http.message.BasicNameValuePair: void <init>(java.lang.String,java.lang.String)>("realm", $r2);
+
+        interfaceinvoke $r159.<java.util.List: boolean add(java.lang.Object)>($r161);
+
+        $r162 = new org.apache.http.message.BasicNameValuePair;
+
+        specialinvoke $r162.<org.apache.http.message.BasicNameValuePair: void <init>(java.lang.String,java.lang.String)>("nonce", $r3);
+
+        interfaceinvoke $r159.<java.util.List: boolean add(java.lang.Object)>($r162);
+
+        $r163 = new org.apache.http.message.BasicNameValuePair;
+
+        specialinvoke $r163.<org.apache.http.message.BasicNameValuePair: void <init>(java.lang.String,java.lang.String)>("uri", $r1);
+
+        interfaceinvoke $r159.<java.util.List: boolean add(java.lang.Object)>($r163);
+
+        $r164 = new org.apache.http.message.BasicNameValuePair;
+
+        specialinvoke $r164.<org.apache.http.message.BasicNameValuePair: void <init>(java.lang.String,java.lang.String)>("response", $r140);
+
+        interfaceinvoke $r159.<java.util.List: boolean add(java.lang.Object)>($r164);
+
+        if b11 == 0 goto label39;
+
+        $r165 = new org.apache.http.message.BasicNameValuePair;
+
+        if b12 != 1 goto label37;
+
+        $r142 = "auth-int";
+
+        goto label38;
+
+     label37:
+        $r142 = "auth";
+
+     label38:
+        specialinvoke $r165.<org.apache.http.message.BasicNameValuePair: void <init>(java.lang.String,java.lang.String)>("qop", $r142);
+
+        interfaceinvoke $r159.<java.util.List: boolean add(java.lang.Object)>($r165);
+
+        $r166 = new org.apache.http.message.BasicNameValuePair;
+
+        specialinvoke $r166.<org.apache.http.message.BasicNameValuePair: void <init>(java.lang.String,java.lang.String)>("nc", $r21);
+
+        interfaceinvoke $r159.<java.util.List: boolean add(java.lang.Object)>($r166);
+
+        $r167 = new org.apache.http.message.BasicNameValuePair;
+
+        $r67 = r0.<org.apache.http.impl.auth.DigestScheme: java.lang.String cnonce>;
+
+        specialinvoke $r167.<org.apache.http.message.BasicNameValuePair: void <init>(java.lang.String,java.lang.String)>("cnonce", $r67);
+
+        interfaceinvoke $r159.<java.util.List: boolean add(java.lang.Object)>($r167);
+
+     label39:
+        if r128 == null goto label40;
+
+        $r168 = new org.apache.http.message.BasicNameValuePair;
+
+        specialinvoke $r168.<org.apache.http.message.BasicNameValuePair: void <init>(java.lang.String,java.lang.String)>("algorithm", r128);
+
+        interfaceinvoke $r159.<java.util.List: boolean add(java.lang.Object)>($r168);
+
+     label40:
+        if $r4 == null goto label41;
+
+        $r169 = new org.apache.http.message.BasicNameValuePair;
+
+        specialinvoke $r169.<org.apache.http.message.BasicNameValuePair: void <init>(java.lang.String,java.lang.String)>("opaque", $r4);
+
+        interfaceinvoke $r159.<java.util.List: boolean add(java.lang.Object)>($r169);
+
+     label41:
+        i4 = 0;
+
+     label42:
+        $i5 = interfaceinvoke $r159.<java.util.List: int size()>();
+
+        if i4 >= $i5 goto label49;
+
+        $r55 = interfaceinvoke $r159.<java.util.List: java.lang.Object get(int)>(i4);
+
+        r56 = (org.apache.http.message.BasicNameValuePair) $r55;
+
+        if i4 <= 0 goto label43;
+
+        virtualinvoke $r158.<org.apache.http.util.CharArrayBuffer: void append(java.lang.String)>(", ");
+
+     label43:
+        $r57 = "nc";
+
+        $r58 = virtualinvoke r56.<org.apache.http.message.BasicNameValuePair: java.lang.String getName()>();
+
+        $z3 = virtualinvoke $r57.<java.lang.String: boolean equals(java.lang.Object)>($r58);
+
+        if $z3 != 0 goto label44;
+
+        $r60 = "qop";
+
+        $r61 = virtualinvoke r56.<org.apache.http.message.BasicNameValuePair: java.lang.String getName()>();
+
+        $z4 = virtualinvoke $r60.<java.lang.String: boolean equals(java.lang.Object)>($r61);
+
+        if $z4 == 0 goto label45;
+
+     label44:
+        $z13 = 1;
+
+        goto label46;
+
+     label45:
+        $z13 = 0;
+
+     label46:
+        $r59 = <org.apache.http.message.BasicHeaderValueFormatter: org.apache.http.message.BasicHeaderValueFormatter DEFAULT>;
+
+        if $z13 != 0 goto label47;
+
+        $z14 = 1;
+
+        goto label48;
+
+     label47:
+        $z14 = 0;
+
+     label48:
+        virtualinvoke $r59.<org.apache.http.message.BasicHeaderValueFormatter: org.apache.http.util.CharArrayBuffer formatNameValuePair(org.apache.http.util.CharArrayBuffer,org.apache.http.NameValuePair,boolean)>($r158, r56, $z14);
+
+        i4 = i4 + 1;
+
+        goto label42;
+
+     label49:
+        $r170 = new org.apache.http.message.BufferedHeader;
+
+        specialinvoke $r170.<org.apache.http.message.BufferedHeader: void <init>(org.apache.http.util.CharArrayBuffer)>($r158);
+
+        return $r170;
+
+        catch org.apache.http.impl.auth.UnsupportedDigestAlgorithmException from label10 to label11 with label12;
+        catch java.io.IOException from label23 to label25 with label26;
+    }
+
+    java.lang.String getCnonce()
+    {
+        org.apache.http.impl.auth.DigestScheme r0;
+        java.lang.String $r1;
+
+        r0 := @this: org.apache.http.impl.auth.DigestScheme;
+
+        $r1 = r0.<org.apache.http.impl.auth.DigestScheme: java.lang.String cnonce>;
+
+        return $r1;
+    }
+
+    java.lang.String getA1()
+    {
+        org.apache.http.impl.auth.DigestScheme r0;
+        java.lang.String $r1;
+
+        r0 := @this: org.apache.http.impl.auth.DigestScheme;
+
+        $r1 = r0.<org.apache.http.impl.auth.DigestScheme: java.lang.String a1>;
+
+        return $r1;
+    }
+
+    java.lang.String getA2()
+    {
+        org.apache.http.impl.auth.DigestScheme r0;
+        java.lang.String $r1;
+
+        r0 := @this: org.apache.http.impl.auth.DigestScheme;
+
+        $r1 = r0.<org.apache.http.impl.auth.DigestScheme: java.lang.String a2>;
+
+        return $r1;
+    }
+
+    static java.lang.String encode(byte[])
+    {
+        byte[] r0;
+        short $s5, $s13;
+        byte $b2, b3, $b4;
+        int i0, $i1, i6, $i8, $i9, $i11, i12, $i14, $i15;
+        java.lang.String $r5;
+        char $c7, $c10;
+        char[] r1, $r3, $r4;
+
+        r0 := @parameter0: byte[];
+
+        i0 = lengthof r0;
+
+        $i1 = i0 * 2;
+
+        r1 = newarray (char)[$i1];
+
+        i12 = 0;
+
+     label1:
+        if i12 >= i0 goto label2;
+
+        $b2 = r0[i12];
+
+        b3 = $b2 & 15;
+
+        $b4 = r0[i12];
+
+        $s13 = (short) $b4;
+
+        $s5 = $s13 & 240;
+
+        $i14 = (int) $s5;
+
+        i6 = $i14 >> 4;
+
+        $i8 = i12 * 2;
+
+        $r3 = <org.apache.http.impl.auth.DigestScheme: char[] HEXADECIMAL>;
+
+        $c7 = $r3[i6];
+
+        r1[$i8] = $c7;
+
+        $i9 = i12 * 2;
+
+        $i11 = $i9 + 1;
+
+        $r4 = <org.apache.http.impl.auth.DigestScheme: char[] HEXADECIMAL>;
+
+        $i15 = (int) b3;
+
+        $c10 = $r4[$i15];
+
+        r1[$i11] = $c10;
+
+        i12 = i12 + 1;
+
+        goto label1;
+
+     label2:
+        $r5 = new java.lang.String;
+
+        specialinvoke $r5.<java.lang.String: void <init>(char[])>(r1);
+
+        return $r5;
+    }
+
+    public static java.lang.String createCnonce()
+    {
+        java.security.SecureRandom $r0;
+        byte[] r1;
+        java.lang.String $r2;
+
+        $r0 = new java.security.SecureRandom;
+
+        specialinvoke $r0.<java.security.SecureRandom: void <init>()>();
+
+        r1 = newarray (byte)[8];
+
+        virtualinvoke $r0.<java.security.SecureRandom: void nextBytes(byte[])>(r1);
+
+        $r2 = staticinvoke <org.apache.http.impl.auth.DigestScheme: java.lang.String encode(byte[])>(r1);
+
+        return $r2;
+    }
+
+    static void <clinit>()
+    {
+        char[] $r0;
+
+        <org.apache.http.impl.auth.DigestScheme: int QOP_AUTH> = 2;
+
+        <org.apache.http.impl.auth.DigestScheme: int QOP_AUTH_INT> = 1;
+
+        <org.apache.http.impl.auth.DigestScheme: int QOP_MISSING> = 0;
+
+        <org.apache.http.impl.auth.DigestScheme: int QOP_UNKNOWN> = -1;
+
+        $r0 = newarray (char)[16];
+
+        $r0[0] = 48;
+
+        $r0[1] = 49;
+
+        $r0[2] = 50;
+
+        $r0[3] = 51;
+
+        $r0[4] = 52;
+
+        $r0[5] = 53;
+
+        $r0[6] = 54;
+
+        $r0[7] = 55;
+
+        $r0[8] = 56;
+
+        $r0[9] = 57;
+
+        $r0[10] = 97;
+
+        $r0[11] = 98;
+
+        $r0[12] = 99;
+
+        $r0[13] = 100;
+
+        $r0[14] = 101;
+
+        $r0[15] = 102;
+
+        <org.apache.http.impl.auth.DigestScheme: char[] HEXADECIMAL> = $r0;
+
+        return;
+    }
+}

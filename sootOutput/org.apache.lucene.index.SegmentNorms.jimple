@@ -1,0 +1,995 @@
+final class org.apache.lucene.index.SegmentNorms extends java.lang.Object implements java.lang.Cloneable
+{
+    static final byte[] NORMS_HEADER;
+    int refCount;
+    private org.apache.lucene.index.SegmentNorms origNorm;
+    private org.apache.lucene.store.IndexInput in;
+    private long normSeek;
+    private java.util.concurrent.atomic.AtomicInteger bytesRef;
+    private byte[] bytes;
+    private int number;
+    boolean dirty;
+    boolean rollbackDirty;
+    private final org.apache.lucene.index.SegmentReader owner;
+    static final boolean $assertionsDisabled;
+
+    public void <init>(org.apache.lucene.store.IndexInput, int, long, org.apache.lucene.index.SegmentReader)
+    {
+        org.apache.lucene.store.IndexInput r1;
+        org.apache.lucene.index.SegmentNorms r0;
+        int i0;
+        long l1;
+        org.apache.lucene.index.SegmentReader r2;
+
+        r0 := @this: org.apache.lucene.index.SegmentNorms;
+
+        r1 := @parameter0: org.apache.lucene.store.IndexInput;
+
+        i0 := @parameter1: int;
+
+        l1 := @parameter2: long;
+
+        r2 := @parameter3: org.apache.lucene.index.SegmentReader;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        r0.<org.apache.lucene.index.SegmentNorms: int refCount> = 1;
+
+        r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.store.IndexInput in> = r1;
+
+        r0.<org.apache.lucene.index.SegmentNorms: int number> = i0;
+
+        r0.<org.apache.lucene.index.SegmentNorms: long normSeek> = l1;
+
+        r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentReader owner> = r2;
+
+        return;
+    }
+
+    public synchronized void incRef()
+    {
+        org.apache.lucene.index.SegmentNorms r0, $r2, $r3;
+        java.lang.AssertionError $r1;
+        int $i0, $i1, $i2, $i3;
+        boolean $z0;
+
+        r0 := @this: org.apache.lucene.index.SegmentNorms;
+
+        $z0 = <org.apache.lucene.index.SegmentNorms: boolean $assertionsDisabled>;
+
+        if $z0 != 0 goto label2;
+
+        $i0 = r0.<org.apache.lucene.index.SegmentNorms: int refCount>;
+
+        if $i0 <= 0 goto label1;
+
+        $r2 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentNorms origNorm>;
+
+        if $r2 == null goto label2;
+
+        $r3 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentNorms origNorm>;
+
+        $i1 = $r3.<org.apache.lucene.index.SegmentNorms: int refCount>;
+
+        if $i1 > 0 goto label2;
+
+     label1:
+        $r1 = new java.lang.AssertionError;
+
+        specialinvoke $r1.<java.lang.AssertionError: void <init>()>();
+
+        throw $r1;
+
+     label2:
+        $i2 = r0.<org.apache.lucene.index.SegmentNorms: int refCount>;
+
+        $i3 = $i2 + 1;
+
+        r0.<org.apache.lucene.index.SegmentNorms: int refCount> = $i3;
+
+        return;
+    }
+
+    private void closeInput() throws java.io.IOException
+    {
+        org.apache.lucene.store.IndexInput $r1, $r3, $r4, $r8, $r10;
+        org.apache.lucene.index.SegmentNorms r0;
+        java.util.concurrent.atomic.AtomicInteger $r6;
+        int $i0;
+        org.apache.lucene.index.SegmentReader $r2, $r5, $r7, $r9;
+
+        r0 := @this: org.apache.lucene.index.SegmentNorms;
+
+        $r1 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.store.IndexInput in>;
+
+        if $r1 == null goto label3;
+
+        $r4 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.store.IndexInput in>;
+
+        $r2 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentReader owner>;
+
+        $r3 = $r2.<org.apache.lucene.index.SegmentReader: org.apache.lucene.store.IndexInput singleNormStream>;
+
+        if $r4 == $r3 goto label1;
+
+        $r10 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.store.IndexInput in>;
+
+        virtualinvoke $r10.<org.apache.lucene.store.IndexInput: void close()>();
+
+        goto label2;
+
+     label1:
+        $r5 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentReader owner>;
+
+        $r6 = $r5.<org.apache.lucene.index.SegmentReader: java.util.concurrent.atomic.AtomicInteger singleNormRef>;
+
+        $i0 = virtualinvoke $r6.<java.util.concurrent.atomic.AtomicInteger: int decrementAndGet()>();
+
+        if $i0 != 0 goto label2;
+
+        $r7 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentReader owner>;
+
+        $r8 = $r7.<org.apache.lucene.index.SegmentReader: org.apache.lucene.store.IndexInput singleNormStream>;
+
+        virtualinvoke $r8.<org.apache.lucene.store.IndexInput: void close()>();
+
+        $r9 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentReader owner>;
+
+        $r9.<org.apache.lucene.index.SegmentReader: org.apache.lucene.store.IndexInput singleNormStream> = null;
+
+     label2:
+        r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.store.IndexInput in> = null;
+
+     label3:
+        return;
+    }
+
+    public synchronized void decRef() throws java.io.IOException
+    {
+        byte[] $r2;
+        org.apache.lucene.index.SegmentNorms r0, $r1, $r8, $r10, $r11;
+        java.lang.AssertionError $r4, $r7, $r9;
+        java.util.concurrent.atomic.AtomicInteger $r3, $r5, $r6;
+        int $i0, $i1, $i2, $i3;
+        boolean $z0, $z1, $z2;
+
+        r0 := @this: org.apache.lucene.index.SegmentNorms;
+
+        $z0 = <org.apache.lucene.index.SegmentNorms: boolean $assertionsDisabled>;
+
+        if $z0 != 0 goto label2;
+
+        $i0 = r0.<org.apache.lucene.index.SegmentNorms: int refCount>;
+
+        if $i0 <= 0 goto label1;
+
+        $r10 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentNorms origNorm>;
+
+        if $r10 == null goto label2;
+
+        $r11 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentNorms origNorm>;
+
+        $i1 = $r11.<org.apache.lucene.index.SegmentNorms: int refCount>;
+
+        if $i1 > 0 goto label2;
+
+     label1:
+        $r9 = new java.lang.AssertionError;
+
+        specialinvoke $r9.<java.lang.AssertionError: void <init>()>();
+
+        throw $r9;
+
+     label2:
+        $i2 = r0.<org.apache.lucene.index.SegmentNorms: int refCount>;
+
+        $i3 = $i2 - 1;
+
+        r0.<org.apache.lucene.index.SegmentNorms: int refCount> = $i3;
+
+        if $i3 != 0 goto label7;
+
+        $r1 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentNorms origNorm>;
+
+        if $r1 == null goto label3;
+
+        $r8 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentNorms origNorm>;
+
+        virtualinvoke $r8.<org.apache.lucene.index.SegmentNorms: void decRef()>();
+
+        r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentNorms origNorm> = null;
+
+        goto label4;
+
+     label3:
+        specialinvoke r0.<org.apache.lucene.index.SegmentNorms: void closeInput()>();
+
+     label4:
+        $r2 = r0.<org.apache.lucene.index.SegmentNorms: byte[] bytes>;
+
+        if $r2 == null goto label6;
+
+        $z2 = <org.apache.lucene.index.SegmentNorms: boolean $assertionsDisabled>;
+
+        if $z2 != 0 goto label5;
+
+        $r6 = r0.<org.apache.lucene.index.SegmentNorms: java.util.concurrent.atomic.AtomicInteger bytesRef>;
+
+        if $r6 != null goto label5;
+
+        $r7 = new java.lang.AssertionError;
+
+        specialinvoke $r7.<java.lang.AssertionError: void <init>()>();
+
+        throw $r7;
+
+     label5:
+        $r5 = r0.<org.apache.lucene.index.SegmentNorms: java.util.concurrent.atomic.AtomicInteger bytesRef>;
+
+        virtualinvoke $r5.<java.util.concurrent.atomic.AtomicInteger: int decrementAndGet()>();
+
+        r0.<org.apache.lucene.index.SegmentNorms: byte[] bytes> = null;
+
+        r0.<org.apache.lucene.index.SegmentNorms: java.util.concurrent.atomic.AtomicInteger bytesRef> = null;
+
+        goto label7;
+
+     label6:
+        $z1 = <org.apache.lucene.index.SegmentNorms: boolean $assertionsDisabled>;
+
+        if $z1 != 0 goto label7;
+
+        $r3 = r0.<org.apache.lucene.index.SegmentNorms: java.util.concurrent.atomic.AtomicInteger bytesRef>;
+
+        if $r3 == null goto label7;
+
+        $r4 = new java.lang.AssertionError;
+
+        specialinvoke $r4.<java.lang.AssertionError: void <init>()>();
+
+        throw $r4;
+
+     label7:
+        return;
+    }
+
+    public synchronized void bytes(byte[], int, int) throws java.io.IOException
+    {
+        java.lang.Throwable $r13;
+        byte[] r4, $r7, $r14;
+        org.apache.lucene.index.SegmentNorms r0, $r1, $r6, $r11, $r12;
+        long $l0;
+        java.lang.AssertionError $r9, $r10;
+        int i1, i2, $i3, $i4, $i5;
+        org.apache.lucene.index.SegmentReader $r8;
+        boolean $z0, $z1;
+        org.apache.lucene.store.IndexInput $r2, $r3, $r5;
+
+        r0 := @this: org.apache.lucene.index.SegmentNorms;
+
+        r4 := @parameter0: byte[];
+
+        i1 := @parameter1: int;
+
+        i2 := @parameter2: int;
+
+        $z0 = <org.apache.lucene.index.SegmentNorms: boolean $assertionsDisabled>;
+
+        if $z0 != 0 goto label02;
+
+        $i4 = r0.<org.apache.lucene.index.SegmentNorms: int refCount>;
+
+        if $i4 <= 0 goto label01;
+
+        $r11 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentNorms origNorm>;
+
+        if $r11 == null goto label02;
+
+        $r12 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentNorms origNorm>;
+
+        $i5 = $r12.<org.apache.lucene.index.SegmentNorms: int refCount>;
+
+        if $i5 > 0 goto label02;
+
+     label01:
+        $r10 = new java.lang.AssertionError;
+
+        specialinvoke $r10.<java.lang.AssertionError: void <init>()>();
+
+        throw $r10;
+
+     label02:
+        $r14 = r0.<org.apache.lucene.index.SegmentNorms: byte[] bytes>;
+
+        if $r14 == null goto label04;
+
+        $z1 = <org.apache.lucene.index.SegmentNorms: boolean $assertionsDisabled>;
+
+        if $z1 != 0 goto label03;
+
+        $r8 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentReader owner>;
+
+        $i3 = virtualinvoke $r8.<org.apache.lucene.index.SegmentReader: int maxDoc()>();
+
+        if i2 <= $i3 goto label03;
+
+        $r9 = new java.lang.AssertionError;
+
+        specialinvoke $r9.<java.lang.AssertionError: void <init>()>();
+
+        throw $r9;
+
+     label03:
+        $r7 = r0.<org.apache.lucene.index.SegmentNorms: byte[] bytes>;
+
+        staticinvoke <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)>($r7, 0, r4, i1, i2);
+
+        goto label10;
+
+     label04:
+        $r1 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentNorms origNorm>;
+
+        if $r1 == null goto label05;
+
+        $r6 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentNorms origNorm>;
+
+        virtualinvoke $r6.<org.apache.lucene.index.SegmentNorms: void bytes(byte[],int,int)>(r4, i1, i2);
+
+        goto label10;
+
+     label05:
+        $r2 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.store.IndexInput in>;
+
+        entermonitor $r2;
+
+     label06:
+        $r3 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.store.IndexInput in>;
+
+        $l0 = r0.<org.apache.lucene.index.SegmentNorms: long normSeek>;
+
+        virtualinvoke $r3.<org.apache.lucene.store.IndexInput: void seek(long)>($l0);
+
+        $r5 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.store.IndexInput in>;
+
+        virtualinvoke $r5.<org.apache.lucene.store.IndexInput: void readBytes(byte[],int,int,boolean)>(r4, i1, i2, 0);
+
+        exitmonitor $r2;
+
+     label07:
+        goto label10;
+
+     label08:
+        $r13 := @caughtexception;
+
+        exitmonitor $r2;
+
+     label09:
+        throw $r13;
+
+     label10:
+        return;
+
+        catch java.lang.Throwable from label06 to label07 with label08;
+        catch java.lang.Throwable from label08 to label09 with label08;
+    }
+
+    public synchronized byte[] bytes() throws java.io.IOException
+    {
+        byte[] $r3, $r6, $r12, $r23, $r24;
+        java.util.concurrent.atomic.AtomicInteger $r8, $r14, $r15, $r17;
+        boolean $z0, $z1, $z2;
+        java.lang.Throwable $r22;
+        org.apache.lucene.index.SegmentNorms r0, $r1, $r11, $r13, $r16, $r20, $r21;
+        long $l1;
+        java.lang.AssertionError $r10, $r18, $r19;
+        int $i0, $i2, $i3;
+        org.apache.lucene.index.SegmentReader $r2;
+        org.apache.lucene.store.IndexInput $r4, $r5, $r7, $r9;
+
+        r0 := @this: org.apache.lucene.index.SegmentNorms;
+
+        $z0 = <org.apache.lucene.index.SegmentNorms: boolean $assertionsDisabled>;
+
+        if $z0 != 0 goto label02;
+
+        $i2 = r0.<org.apache.lucene.index.SegmentNorms: int refCount>;
+
+        if $i2 <= 0 goto label01;
+
+        $r20 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentNorms origNorm>;
+
+        if $r20 == null goto label02;
+
+        $r21 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentNorms origNorm>;
+
+        $i3 = $r21.<org.apache.lucene.index.SegmentNorms: int refCount>;
+
+        if $i3 > 0 goto label02;
+
+     label01:
+        $r19 = new java.lang.AssertionError;
+
+        specialinvoke $r19.<java.lang.AssertionError: void <init>()>();
+
+        throw $r19;
+
+     label02:
+        $r23 = r0.<org.apache.lucene.index.SegmentNorms: byte[] bytes>;
+
+        if $r23 != null goto label11;
+
+        $z1 = <org.apache.lucene.index.SegmentNorms: boolean $assertionsDisabled>;
+
+        if $z1 != 0 goto label03;
+
+        $r17 = r0.<org.apache.lucene.index.SegmentNorms: java.util.concurrent.atomic.AtomicInteger bytesRef>;
+
+        if $r17 == null goto label03;
+
+        $r18 = new java.lang.AssertionError;
+
+        specialinvoke $r18.<java.lang.AssertionError: void <init>()>();
+
+        throw $r18;
+
+     label03:
+        $r1 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentNorms origNorm>;
+
+        if $r1 == null goto label04;
+
+        $r11 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentNorms origNorm>;
+
+        $r12 = virtualinvoke $r11.<org.apache.lucene.index.SegmentNorms: byte[] bytes()>();
+
+        r0.<org.apache.lucene.index.SegmentNorms: byte[] bytes> = $r12;
+
+        $r13 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentNorms origNorm>;
+
+        $r14 = $r13.<org.apache.lucene.index.SegmentNorms: java.util.concurrent.atomic.AtomicInteger bytesRef>;
+
+        r0.<org.apache.lucene.index.SegmentNorms: java.util.concurrent.atomic.AtomicInteger bytesRef> = $r14;
+
+        $r15 = r0.<org.apache.lucene.index.SegmentNorms: java.util.concurrent.atomic.AtomicInteger bytesRef>;
+
+        virtualinvoke $r15.<java.util.concurrent.atomic.AtomicInteger: int incrementAndGet()>();
+
+        $r16 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentNorms origNorm>;
+
+        virtualinvoke $r16.<org.apache.lucene.index.SegmentNorms: void decRef()>();
+
+        r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentNorms origNorm> = null;
+
+        goto label11;
+
+     label04:
+        $r2 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentReader owner>;
+
+        $i0 = virtualinvoke $r2.<org.apache.lucene.index.SegmentReader: int maxDoc()>();
+
+        $r3 = newarray (byte)[$i0];
+
+        r0.<org.apache.lucene.index.SegmentNorms: byte[] bytes> = $r3;
+
+        $z2 = <org.apache.lucene.index.SegmentNorms: boolean $assertionsDisabled>;
+
+        if $z2 != 0 goto label05;
+
+        $r9 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.store.IndexInput in>;
+
+        if $r9 != null goto label05;
+
+        $r10 = new java.lang.AssertionError;
+
+        specialinvoke $r10.<java.lang.AssertionError: void <init>()>();
+
+        throw $r10;
+
+     label05:
+        $r4 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.store.IndexInput in>;
+
+        entermonitor $r4;
+
+     label06:
+        $r5 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.store.IndexInput in>;
+
+        $l1 = r0.<org.apache.lucene.index.SegmentNorms: long normSeek>;
+
+        virtualinvoke $r5.<org.apache.lucene.store.IndexInput: void seek(long)>($l1);
+
+        $r7 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.store.IndexInput in>;
+
+        $r6 = r0.<org.apache.lucene.index.SegmentNorms: byte[] bytes>;
+
+        virtualinvoke $r7.<org.apache.lucene.store.IndexInput: void readBytes(byte[],int,int,boolean)>($r6, 0, $i0, 0);
+
+        exitmonitor $r4;
+
+     label07:
+        goto label10;
+
+     label08:
+        $r22 := @caughtexception;
+
+        exitmonitor $r4;
+
+     label09:
+        throw $r22;
+
+     label10:
+        $r8 = new java.util.concurrent.atomic.AtomicInteger;
+
+        specialinvoke $r8.<java.util.concurrent.atomic.AtomicInteger: void <init>(int)>(1);
+
+        r0.<org.apache.lucene.index.SegmentNorms: java.util.concurrent.atomic.AtomicInteger bytesRef> = $r8;
+
+        specialinvoke r0.<org.apache.lucene.index.SegmentNorms: void closeInput()>();
+
+     label11:
+        $r24 = r0.<org.apache.lucene.index.SegmentNorms: byte[] bytes>;
+
+        return $r24;
+
+        catch java.lang.Throwable from label06 to label07 with label08;
+        catch java.lang.Throwable from label08 to label09 with label08;
+    }
+
+    java.util.concurrent.atomic.AtomicInteger bytesRef()
+    {
+        java.util.concurrent.atomic.AtomicInteger $r1;
+        org.apache.lucene.index.SegmentNorms r0;
+
+        r0 := @this: org.apache.lucene.index.SegmentNorms;
+
+        $r1 = r0.<org.apache.lucene.index.SegmentNorms: java.util.concurrent.atomic.AtomicInteger bytesRef>;
+
+        return $r1;
+    }
+
+    public synchronized byte[] copyOnWrite() throws java.io.IOException
+    {
+        byte[] $r2, $r4, $r10, $r15;
+        org.apache.lucene.index.SegmentNorms r0, $r13, $r14;
+        java.lang.AssertionError $r7, $r9, $r11, $r12;
+        java.util.concurrent.atomic.AtomicInteger $r1, $r5, $r6, $r8;
+        int $i0, $i1, $i2, $i3;
+        org.apache.lucene.index.SegmentReader $r3;
+        boolean $z0, $z1, $z2, $z3;
+
+        r0 := @this: org.apache.lucene.index.SegmentNorms;
+
+        $z0 = <org.apache.lucene.index.SegmentNorms: boolean $assertionsDisabled>;
+
+        if $z0 != 0 goto label2;
+
+        $i2 = r0.<org.apache.lucene.index.SegmentNorms: int refCount>;
+
+        if $i2 <= 0 goto label1;
+
+        $r13 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentNorms origNorm>;
+
+        if $r13 == null goto label2;
+
+        $r14 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentNorms origNorm>;
+
+        $i3 = $r14.<org.apache.lucene.index.SegmentNorms: int refCount>;
+
+        if $i3 > 0 goto label2;
+
+     label1:
+        $r12 = new java.lang.AssertionError;
+
+        specialinvoke $r12.<java.lang.AssertionError: void <init>()>();
+
+        throw $r12;
+
+     label2:
+        virtualinvoke r0.<org.apache.lucene.index.SegmentNorms: byte[] bytes()>();
+
+        $z3 = <org.apache.lucene.index.SegmentNorms: boolean $assertionsDisabled>;
+
+        if $z3 != 0 goto label3;
+
+        $r10 = r0.<org.apache.lucene.index.SegmentNorms: byte[] bytes>;
+
+        if $r10 != null goto label3;
+
+        $r11 = new java.lang.AssertionError;
+
+        specialinvoke $r11.<java.lang.AssertionError: void <init>()>();
+
+        throw $r11;
+
+     label3:
+        $z1 = <org.apache.lucene.index.SegmentNorms: boolean $assertionsDisabled>;
+
+        if $z1 != 0 goto label4;
+
+        $r8 = r0.<org.apache.lucene.index.SegmentNorms: java.util.concurrent.atomic.AtomicInteger bytesRef>;
+
+        if $r8 != null goto label4;
+
+        $r9 = new java.lang.AssertionError;
+
+        specialinvoke $r9.<java.lang.AssertionError: void <init>()>();
+
+        throw $r9;
+
+     label4:
+        $r1 = r0.<org.apache.lucene.index.SegmentNorms: java.util.concurrent.atomic.AtomicInteger bytesRef>;
+
+        $i0 = virtualinvoke $r1.<java.util.concurrent.atomic.AtomicInteger: int get()>();
+
+        if $i0 <= 1 goto label6;
+
+        $z2 = <org.apache.lucene.index.SegmentNorms: boolean $assertionsDisabled>;
+
+        if $z2 != 0 goto label5;
+
+        $i1 = r0.<org.apache.lucene.index.SegmentNorms: int refCount>;
+
+        if $i1 == 1 goto label5;
+
+        $r7 = new java.lang.AssertionError;
+
+        specialinvoke $r7.<java.lang.AssertionError: void <init>()>();
+
+        throw $r7;
+
+     label5:
+        $r6 = r0.<org.apache.lucene.index.SegmentNorms: java.util.concurrent.atomic.AtomicInteger bytesRef>;
+
+        $r3 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentReader owner>;
+
+        $r2 = r0.<org.apache.lucene.index.SegmentNorms: byte[] bytes>;
+
+        $r4 = virtualinvoke $r3.<org.apache.lucene.index.SegmentReader: byte[] cloneNormBytes(byte[])>($r2);
+
+        r0.<org.apache.lucene.index.SegmentNorms: byte[] bytes> = $r4;
+
+        $r5 = new java.util.concurrent.atomic.AtomicInteger;
+
+        specialinvoke $r5.<java.util.concurrent.atomic.AtomicInteger: void <init>(int)>(1);
+
+        r0.<org.apache.lucene.index.SegmentNorms: java.util.concurrent.atomic.AtomicInteger bytesRef> = $r5;
+
+        virtualinvoke $r6.<java.util.concurrent.atomic.AtomicInteger: int decrementAndGet()>();
+
+     label6:
+        r0.<org.apache.lucene.index.SegmentNorms: boolean dirty> = 1;
+
+        $r15 = r0.<org.apache.lucene.index.SegmentNorms: byte[] bytes>;
+
+        return $r15;
+    }
+
+    public synchronized java.lang.Object clone()
+    {
+        byte[] $r1;
+        org.apache.lucene.index.SegmentNorms r0, $r2, $r3, $r7, $r12, $r13, $r17;
+        java.lang.AssertionError $r5, $r8, $r10, $r11;
+        java.lang.CloneNotSupportedException $r14;
+        java.util.concurrent.atomic.AtomicInteger $r4, $r6, $r9;
+        int $i0, $i1;
+        boolean $z0, $z1, $z2, $z3;
+        java.lang.RuntimeException $r15;
+        java.lang.Object $r16;
+
+        r0 := @this: org.apache.lucene.index.SegmentNorms;
+
+        $z0 = <org.apache.lucene.index.SegmentNorms: boolean $assertionsDisabled>;
+
+        if $z0 != 0 goto label02;
+
+        $i0 = r0.<org.apache.lucene.index.SegmentNorms: int refCount>;
+
+        if $i0 <= 0 goto label01;
+
+        $r12 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentNorms origNorm>;
+
+        if $r12 == null goto label02;
+
+        $r13 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentNorms origNorm>;
+
+        $i1 = $r13.<org.apache.lucene.index.SegmentNorms: int refCount>;
+
+        if $i1 > 0 goto label02;
+
+     label01:
+        $r11 = new java.lang.AssertionError;
+
+        specialinvoke $r11.<java.lang.AssertionError: void <init>()>();
+
+        throw $r11;
+
+     label02:
+        $r16 = specialinvoke r0.<java.lang.Object: java.lang.Object clone()>();
+
+        $r17 = (org.apache.lucene.index.SegmentNorms) $r16;
+
+     label03:
+        goto label05;
+
+     label04:
+        $r14 := @caughtexception;
+
+        $r15 = new java.lang.RuntimeException;
+
+        specialinvoke $r15.<java.lang.RuntimeException: void <init>(java.lang.String,java.lang.Throwable)>("unexpected CloneNotSupportedException", $r14);
+
+        throw $r15;
+
+     label05:
+        $r17.<org.apache.lucene.index.SegmentNorms: int refCount> = 1;
+
+        $r1 = r0.<org.apache.lucene.index.SegmentNorms: byte[] bytes>;
+
+        if $r1 == null goto label08;
+
+        $z2 = <org.apache.lucene.index.SegmentNorms: boolean $assertionsDisabled>;
+
+        if $z2 != 0 goto label06;
+
+        $r9 = r0.<org.apache.lucene.index.SegmentNorms: java.util.concurrent.atomic.AtomicInteger bytesRef>;
+
+        if $r9 != null goto label06;
+
+        $r10 = new java.lang.AssertionError;
+
+        specialinvoke $r10.<java.lang.AssertionError: void <init>()>();
+
+        throw $r10;
+
+     label06:
+        $z3 = <org.apache.lucene.index.SegmentNorms: boolean $assertionsDisabled>;
+
+        if $z3 != 0 goto label07;
+
+        $r7 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentNorms origNorm>;
+
+        if $r7 == null goto label07;
+
+        $r8 = new java.lang.AssertionError;
+
+        specialinvoke $r8.<java.lang.AssertionError: void <init>()>();
+
+        throw $r8;
+
+     label07:
+        $r6 = $r17.<org.apache.lucene.index.SegmentNorms: java.util.concurrent.atomic.AtomicInteger bytesRef>;
+
+        virtualinvoke $r6.<java.util.concurrent.atomic.AtomicInteger: int incrementAndGet()>();
+
+        goto label11;
+
+     label08:
+        $z1 = <org.apache.lucene.index.SegmentNorms: boolean $assertionsDisabled>;
+
+        if $z1 != 0 goto label09;
+
+        $r4 = r0.<org.apache.lucene.index.SegmentNorms: java.util.concurrent.atomic.AtomicInteger bytesRef>;
+
+        if $r4 == null goto label09;
+
+        $r5 = new java.lang.AssertionError;
+
+        specialinvoke $r5.<java.lang.AssertionError: void <init>()>();
+
+        throw $r5;
+
+     label09:
+        $r2 = r0.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentNorms origNorm>;
+
+        if $r2 != null goto label10;
+
+        $r17.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentNorms origNorm> = r0;
+
+     label10:
+        $r3 = $r17.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentNorms origNorm>;
+
+        virtualinvoke $r3.<org.apache.lucene.index.SegmentNorms: void incRef()>();
+
+     label11:
+        $r17.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.store.IndexInput in> = null;
+
+        return $r17;
+
+        catch java.lang.CloneNotSupportedException from label02 to label03 with label04;
+    }
+
+    public void reWrite(org.apache.lucene.index.SegmentInfo) throws java.io.IOException
+    {
+        byte[] $r24, $r25, $r26;
+        org.apache.lucene.store.Directory $r3, $r17, $r22;
+        boolean $z0;
+        org.apache.lucene.index.SegmentInfo r0;
+        java.lang.StringBuilder $r5, $r6, $r7, $r8, $r10;
+        java.lang.Throwable $r14, $r15, $r18, $r19;
+        org.apache.lucene.index.SegmentNorms r1, $r9, $r12, $r13;
+        java.lang.AssertionError $r4;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6;
+        org.apache.lucene.index.SegmentReader $r2, $r16, $r21, $r27;
+        java.lang.String $r11, $r20;
+        org.apache.lucene.store.IndexOutput $r23;
+
+        r1 := @this: org.apache.lucene.index.SegmentNorms;
+
+        r0 := @parameter0: org.apache.lucene.index.SegmentInfo;
+
+        $z0 = <org.apache.lucene.index.SegmentNorms: boolean $assertionsDisabled>;
+
+        if $z0 != 0 goto label02;
+
+        $i0 = r1.<org.apache.lucene.index.SegmentNorms: int refCount>;
+
+        if $i0 <= 0 goto label01;
+
+        $r12 = r1.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentNorms origNorm>;
+
+        if $r12 == null goto label02;
+
+        $r13 = r1.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentNorms origNorm>;
+
+        $i2 = $r13.<org.apache.lucene.index.SegmentNorms: int refCount>;
+
+        if $i2 > 0 goto label02;
+
+     label01:
+        $r4 = new java.lang.AssertionError;
+
+        $r5 = new java.lang.StringBuilder;
+
+        specialinvoke $r5.<java.lang.StringBuilder: void <init>()>();
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("refCount=");
+
+        $i1 = r1.<org.apache.lucene.index.SegmentNorms: int refCount>;
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i1);
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" origNorm=");
+
+        $r9 = r1.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentNorms origNorm>;
+
+        $r10 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r9);
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r4.<java.lang.AssertionError: void <init>(java.lang.Object)>($r11);
+
+        throw $r4;
+
+     label02:
+        $i3 = r1.<org.apache.lucene.index.SegmentNorms: int number>;
+
+        virtualinvoke r0.<org.apache.lucene.index.SegmentInfo: void advanceNormGen(int)>($i3);
+
+        $i4 = r1.<org.apache.lucene.index.SegmentNorms: int number>;
+
+        $r20 = virtualinvoke r0.<org.apache.lucene.index.SegmentInfo: java.lang.String getNormFileName(int)>($i4);
+
+        $r21 = r1.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentReader owner>;
+
+        $r22 = virtualinvoke $r21.<org.apache.lucene.index.SegmentReader: org.apache.lucene.store.Directory directory()>();
+
+        $r23 = virtualinvoke $r22.<org.apache.lucene.store.Directory: org.apache.lucene.store.IndexOutput createOutput(java.lang.String)>($r20);
+
+     label03:
+        $r24 = <org.apache.lucene.index.SegmentNorms: byte[] NORMS_HEADER>;
+
+        $r25 = <org.apache.lucene.index.SegmentNorms: byte[] NORMS_HEADER>;
+
+        $i5 = lengthof $r25;
+
+        virtualinvoke $r23.<org.apache.lucene.store.IndexOutput: void writeBytes(byte[],int,int)>($r24, 0, $i5);
+
+        $r26 = r1.<org.apache.lucene.index.SegmentNorms: byte[] bytes>;
+
+        $r27 = r1.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentReader owner>;
+
+        $i6 = virtualinvoke $r27.<org.apache.lucene.index.SegmentReader: int maxDoc()>();
+
+        virtualinvoke $r23.<org.apache.lucene.store.IndexOutput: void writeBytes(byte[],int)>($r26, $i6);
+
+     label04:
+        virtualinvoke $r23.<org.apache.lucene.store.IndexOutput: void close()>();
+
+        goto label07;
+
+     label05:
+        $r19 := @caughtexception;
+
+     label06:
+        virtualinvoke $r23.<org.apache.lucene.store.IndexOutput: void close()>();
+
+        throw $r19;
+
+     label07:
+        if 1 != 0 goto label17;
+
+     label08:
+        $r2 = r1.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentReader owner>;
+
+        $r3 = virtualinvoke $r2.<org.apache.lucene.index.SegmentReader: org.apache.lucene.store.Directory directory()>();
+
+        virtualinvoke $r3.<org.apache.lucene.store.Directory: void deleteFile(java.lang.String)>($r20);
+
+     label09:
+        goto label17;
+
+     label10:
+        $r18 := @caughtexception;
+
+        goto label17;
+
+     label11:
+        $r15 := @caughtexception;
+
+     label12:
+        if 0 != 0 goto label16;
+
+     label13:
+        $r16 = r1.<org.apache.lucene.index.SegmentNorms: org.apache.lucene.index.SegmentReader owner>;
+
+        $r17 = virtualinvoke $r16.<org.apache.lucene.index.SegmentReader: org.apache.lucene.store.Directory directory()>();
+
+        virtualinvoke $r17.<org.apache.lucene.store.Directory: void deleteFile(java.lang.String)>($r20);
+
+     label14:
+        goto label16;
+
+     label15:
+        $r14 := @caughtexception;
+
+     label16:
+        throw $r15;
+
+     label17:
+        r1.<org.apache.lucene.index.SegmentNorms: boolean dirty> = 0;
+
+        return;
+
+        catch java.lang.Throwable from label03 to label04 with label05;
+        catch java.lang.Throwable from label05 to label06 with label05;
+        catch java.lang.Throwable from label08 to label09 with label10;
+        catch java.lang.Throwable from label03 to label07 with label11;
+        catch java.lang.Throwable from label13 to label14 with label15;
+        catch java.lang.Throwable from label11 to label12 with label11;
+    }
+
+    static void <clinit>()
+    {
+        byte[] $r1;
+        java.lang.Class $r0;
+        boolean $z0, $z1;
+
+        $r0 = class "Lorg/apache/lucene/index/SegmentNorms;";
+
+        $z0 = virtualinvoke $r0.<java.lang.Class: boolean desiredAssertionStatus()>();
+
+        if $z0 != 0 goto label1;
+
+        $z1 = 1;
+
+        goto label2;
+
+     label1:
+        $z1 = 0;
+
+     label2:
+        <org.apache.lucene.index.SegmentNorms: boolean $assertionsDisabled> = $z1;
+
+        $r1 = newarray (byte)[4];
+
+        $r1[0] = 78;
+
+        $r1[1] = 82;
+
+        $r1[2] = 77;
+
+        $r1[3] = -1;
+
+        <org.apache.lucene.index.SegmentNorms: byte[] NORMS_HEADER> = $r1;
+
+        return;
+    }
+}

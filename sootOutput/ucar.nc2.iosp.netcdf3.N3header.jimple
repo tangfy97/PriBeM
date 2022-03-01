@@ -1,0 +1,4368 @@
+public class ucar.nc2.iosp.netcdf3.N3header extends java.lang.Object
+{
+    private static org.slf4j.Logger log;
+    private static final long MAX_UNSIGNED_INT;
+    static final byte[] MAGIC;
+    static final byte[] MAGIC_LONG;
+    static final int MAGIC_DIM;
+    static final int MAGIC_VAR;
+    static final int MAGIC_ATT;
+    public static boolean disallowFileTruncation;
+    public static boolean debugHeaderSize;
+    private static boolean debugVariablePos;
+    private static boolean debugStreaming;
+    private ucar.unidata.io.RandomAccessFile raf;
+    private ucar.nc2.NetcdfFile ncfile;
+    private java.util.List uvars;
+    private ucar.nc2.Dimension udim;
+    boolean isStreaming;
+    int numrecs;
+    long recsize;
+    long recStart;
+    private boolean useLongOffset;
+    private long nonRecordDataSize;
+    private long dataStart;
+    private long globalAttsPos;
+
+    public void <init>()
+    {
+        ucar.nc2.iosp.netcdf3.N3header r0;
+        java.util.ArrayList $r1;
+
+        r0 := @this: ucar.nc2.iosp.netcdf3.N3header;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        $r1 = new java.util.ArrayList;
+
+        specialinvoke $r1.<java.util.ArrayList: void <init>()>();
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: java.util.List uvars> = $r1;
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: boolean isStreaming> = 0;
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: int numrecs> = 0;
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: long recsize> = 0L;
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: long recStart> = 2147483647L;
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: long dataStart> = 9223372036854775807L;
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: long globalAttsPos> = 0L;
+
+        return;
+    }
+
+    public static boolean isValidFile(ucar.unidata.io.RandomAccessFile) throws java.io.IOException
+    {
+        byte[] r1, $r2;
+        ucar.unidata.io.RandomAccessFile r0;
+        byte $b0, $b1, $b2, $b3;
+        int i4, $i5, $i6, $i7;
+        boolean $z0;
+
+        r0 := @parameter0: ucar.unidata.io.RandomAccessFile;
+
+        virtualinvoke r0.<ucar.unidata.io.RandomAccessFile: void seek(long)>(0L);
+
+        r1 = newarray (byte)[4];
+
+        virtualinvoke r0.<ucar.unidata.io.RandomAccessFile: int read(byte[])>(r1);
+
+        i4 = 0;
+
+     label1:
+        if i4 >= 3 goto label3;
+
+        $b3 = r1[i4];
+
+        $r2 = <ucar.nc2.iosp.netcdf3.N3header: byte[] MAGIC>;
+
+        $b2 = $r2[i4];
+
+        $i5 = (int) $b3;
+
+        $i6 = (int) $b2;
+
+        if $i5 == $i6 goto label2;
+
+        return 0;
+
+     label2:
+        i4 = i4 + 1;
+
+        goto label1;
+
+     label3:
+        $b0 = r1[3];
+
+        if $b0 == 1 goto label4;
+
+        $b1 = r1[3];
+
+        $i7 = (int) $b1;
+
+        if $i7 != 2 goto label5;
+
+     label4:
+        $z0 = 1;
+
+        goto label6;
+
+     label5:
+        $z0 = 0;
+
+     label6:
+        return $z0;
+    }
+
+    void read(ucar.unidata.io.RandomAccessFile, ucar.nc2.NetcdfFile, java.util.Formatter) throws java.io.IOException
+    {
+        java.lang.Integer $r98, $r118, $r120, $r127, $r130, $r133;
+        ucar.ma2.DataType $r66, $r67, $r70, $r71, $r77, $r141;
+        int $i3, $i4, $i5, $i6, $i8, $i14, $i15, $i19, $i20, $i21, $i31, $i34, $i40, $i42, $i43, $i44, $i61, $i64, $i66, $i69, $i74, $i75, $i77, $i78, $i80, i84, i85, i86, i87, i88, i90, $i94, $i101, $i107, $i108, $i109, $i110, $i112, $i113, $i114, $i115;
+        java.lang.Boolean $r88, $r95, $r102;
+        java.io.PrintStream $r22, $r31, $r38, $r45, $r50, $r55, $r60, $r80, $r91;
+        ucar.nc2.iosp.netcdf3.N3header$Vinfo r145, $r155;
+        java.util.ArrayList $r154;
+        ucar.nc2.iosp.netcdf3.N3header r0;
+        java.lang.String $r15, $r29, $r36, $r43, $r48, $r53, $r58, $r63, $r72, $r81, $r85, $r92, $r112, $r122;
+        ucar.nc2.Dimension $r16, $r17, r137, r138, r139, r144, $r150, $r151;
+        ucar.unidata.io.RandomAccessFile r1;
+        java.util.Formatter r4;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9, $z10, z11, $z12, $z13, z14, z15, z16, z17, z18;
+        java.util.List $r6, $r7, $r8, $r18, $r64, $r76, $r114, $r116, $r142;
+        byte[] r3, $r135;
+        byte $b1, $b2, $b11, $b13, $b33, $b72, $b81, $b82, $b83, $b93, $b106;
+        java.lang.Long $r82, $r83, $r86, $r87, $r89, $r93, $r94, $r96, $r99, $r100, $r101, $r103, $r105, $r106, $r128;
+        java.lang.StringBuilder $r11, $r12, $r13, $r14, $r23, $r24, $r25, $r26, $r27, $r28, $r32, $r33, $r34, $r35, $r39, $r40, $r41, $r42, $r46, $r47, $r51, $r52, $r56, $r57, $r61, $r62, $r156, $r157, $r158, $r159, $r160, $r161, $r162, $r163;
+        java.lang.Object[] $r79, $r84, $r90, $r97, $r104, $r107, $r109, $r111, $r117, $r119, $r124, $r126, $r129, $r132;
+        long $l0, $l7, $l9, $l10, $l12, $l16, $l17, $l18, $l22, $l23, $l24, $l25, $l26, $l27, $l28, $l29, $l30, $l32, $l35, $l36, $l37, $l38, $l39, $l41, l45, $l46, $l47, $l48, $l49, $l50, $l51, $l52, $l53, $l54, $l55, $l56, $l57, $l58, $l59, $l60, $l62, $l63, $l65, $l67, $l68, $l70, l71, $l73, $l76, $l79, l89, l91, $l92, l95, l96, $l97, $l98, $l99, $l100, $l102, $l103, $l104, $l105;
+        java.io.IOException $r147, $r148, $r149, $r152, $r164;
+        ucar.nc2.Variable r140, r146, $r153;
+        java.lang.Object $r20, $r65, $r68, $r69, $r110, $r115;
+        ucar.nc2.Group $r5, $r74, $r113;
+        ucar.nc2.NetcdfFile r2;
+        java.util.Iterator $r19, $r108, $r143;
+
+        r0 := @this: ucar.nc2.iosp.netcdf3.N3header;
+
+        r1 := @parameter0: ucar.unidata.io.RandomAccessFile;
+
+        r2 := @parameter1: ucar.nc2.NetcdfFile;
+
+        r4 := @parameter2: java.util.Formatter;
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf> = r1;
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.nc2.NetcdfFile ncfile> = r2;
+
+        $l0 = virtualinvoke r1.<ucar.unidata.io.RandomAccessFile: long length()>();
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: long nonRecordDataSize> = 0L;
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: long recsize> = 0L;
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: long recStart> = 2147483647L;
+
+        virtualinvoke r1.<ucar.unidata.io.RandomAccessFile: void order(int)>(0);
+
+        virtualinvoke r1.<ucar.unidata.io.RandomAccessFile: void seek(long)>(0L);
+
+        r3 = newarray (byte)[4];
+
+        virtualinvoke r1.<ucar.unidata.io.RandomAccessFile: int read(byte[])>(r3);
+
+        i84 = 0;
+
+     label01:
+        if i84 >= 3 goto label03;
+
+        $b83 = r3[i84];
+
+        $r135 = <ucar.nc2.iosp.netcdf3.N3header: byte[] MAGIC>;
+
+        $b82 = $r135[i84];
+
+        $i107 = (int) $b83;
+
+        $i108 = (int) $b82;
+
+        if $i107 == $i108 goto label02;
+
+        $r147 = new java.io.IOException;
+
+        specialinvoke $r147.<java.io.IOException: void <init>(java.lang.String)>("Not a netCDF file");
+
+        throw $r147;
+
+     label02:
+        i84 = i84 + 1;
+
+        goto label01;
+
+     label03:
+        $b1 = r3[3];
+
+        if $b1 == 1 goto label04;
+
+        $b81 = r3[3];
+
+        $i109 = (int) $b81;
+
+        if $i109 == 2 goto label04;
+
+        $r148 = new java.io.IOException;
+
+        specialinvoke $r148.<java.io.IOException: void <init>(java.lang.String)>("Not a netCDF file");
+
+        throw $r148;
+
+     label04:
+        $b2 = r3[3];
+
+        $i110 = (int) $b2;
+
+        if $i110 != 2 goto label05;
+
+        $z10 = 1;
+
+        goto label06;
+
+     label05:
+        $z10 = 0;
+
+     label06:
+        r0.<ucar.nc2.iosp.netcdf3.N3header: boolean useLongOffset> = $z10;
+
+        $i3 = virtualinvoke r1.<ucar.unidata.io.RandomAccessFile: int readInt()>();
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: int numrecs> = $i3;
+
+        if r4 == null goto label07;
+
+        $r132 = newarray (java.lang.Object)[1];
+
+        $i80 = r0.<ucar.nc2.iosp.netcdf3.N3header: int numrecs>;
+
+        $r133 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i80);
+
+        $r132[0] = $r133;
+
+        virtualinvoke r4.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("numrecs= %d\n", $r132);
+
+     label07:
+        $i4 = r0.<ucar.nc2.iosp.netcdf3.N3header: int numrecs>;
+
+        $i112 = (int) -1;
+
+        if $i4 != $i112 goto label08;
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: boolean isStreaming> = 1;
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: int numrecs> = 0;
+
+     label08:
+        i85 = 0;
+
+        $i5 = virtualinvoke r1.<ucar.unidata.io.RandomAccessFile: int readInt()>();
+
+        if $i5 != 0 goto label09;
+
+        virtualinvoke r1.<ucar.unidata.io.RandomAccessFile: int readInt()>();
+
+        goto label11;
+
+     label09:
+        if $i5 == 10 goto label10;
+
+        $r149 = new java.io.IOException;
+
+        specialinvoke $r149.<java.io.IOException: void <init>(java.lang.String)>("Misformed netCDF file - dim magic number wrong");
+
+        throw $r149;
+
+     label10:
+        $i6 = virtualinvoke r1.<ucar.unidata.io.RandomAccessFile: int readInt()>();
+
+        i85 = $i6;
+
+        if r4 == null goto label11;
+
+        $r129 = newarray (java.lang.Object)[1];
+
+        $r130 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i6);
+
+        $r129[0] = $r130;
+
+        virtualinvoke r4.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("numdims= %d\n", $r129);
+
+     label11:
+        i86 = 0;
+
+     label12:
+        if i86 >= i85 goto label17;
+
+        if r4 == null goto label13;
+
+        $r126 = newarray (java.lang.Object)[2];
+
+        $r127 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i86);
+
+        $r126[0] = $r127;
+
+        $l79 = virtualinvoke r1.<ucar.unidata.io.RandomAccessFile: long getFilePointer()>();
+
+        $r128 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l79);
+
+        $r126[1] = $r128;
+
+        virtualinvoke r4.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("  dim %d pos= %d\n", $r126);
+
+     label13:
+        $r122 = specialinvoke r0.<ucar.nc2.iosp.netcdf3.N3header: java.lang.String readString()>();
+
+        $i77 = virtualinvoke r1.<ucar.unidata.io.RandomAccessFile: int readInt()>();
+
+        if $i77 != 0 goto label14;
+
+        $r150 = new ucar.nc2.Dimension;
+
+        $i78 = r0.<ucar.nc2.iosp.netcdf3.N3header: int numrecs>;
+
+        specialinvoke $r150.<ucar.nc2.Dimension: void <init>(java.lang.String,int,boolean,boolean,boolean)>($r122, $i78, 1, 1, 0);
+
+        r137 = $r150;
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.nc2.Dimension udim> = $r150;
+
+        goto label15;
+
+     label14:
+        $r151 = new ucar.nc2.Dimension;
+
+        specialinvoke $r151.<ucar.nc2.Dimension: void <init>(java.lang.String,int,boolean,boolean,boolean)>($r122, $i77, 1, 0, 0);
+
+        r137 = $r151;
+
+     label15:
+        virtualinvoke r2.<ucar.nc2.NetcdfFile: ucar.nc2.Dimension addDimension(ucar.nc2.Group,ucar.nc2.Dimension)>(null, r137);
+
+        if r4 == null goto label16;
+
+        $r124 = newarray (java.lang.Object)[1];
+
+        $r124[0] = r137;
+
+        virtualinvoke r4.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>(" added dimension %s\n", $r124);
+
+     label16:
+        i86 = i86 + 1;
+
+        goto label12;
+
+     label17:
+        $l7 = virtualinvoke r1.<ucar.unidata.io.RandomAccessFile: long getFilePointer()>();
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: long globalAttsPos> = $l7;
+
+        $r5 = virtualinvoke r2.<ucar.nc2.NetcdfFile: ucar.nc2.Group getRootGroup()>();
+
+        $r6 = virtualinvoke $r5.<ucar.nc2.Group: java.util.List getAttributes()>();
+
+        specialinvoke r0.<ucar.nc2.iosp.netcdf3.N3header: int readAtts(java.util.List,java.util.Formatter)>($r6, r4);
+
+        i87 = 0;
+
+        $i8 = virtualinvoke r1.<ucar.unidata.io.RandomAccessFile: int readInt()>();
+
+        if $i8 != 0 goto label18;
+
+        virtualinvoke r1.<ucar.unidata.io.RandomAccessFile: int readInt()>();
+
+        goto label20;
+
+     label18:
+        if $i8 == 11 goto label19;
+
+        $r152 = new java.io.IOException;
+
+        specialinvoke $r152.<java.io.IOException: void <init>(java.lang.String)>("Misformed netCDF file  - var magic number wrong");
+
+        throw $r152;
+
+     label19:
+        i87 = virtualinvoke r1.<ucar.unidata.io.RandomAccessFile: int readInt()>();
+
+        if r4 == null goto label20;
+
+        $r119 = newarray (java.lang.Object)[1];
+
+        $r120 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i85);
+
+        $r119[0] = $r120;
+
+        virtualinvoke r4.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("numdims= %d\n", $r119);
+
+     label20:
+        if r4 == null goto label21;
+
+        $r117 = newarray (java.lang.Object)[1];
+
+        $r118 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i87);
+
+        $r117[0] = $r118;
+
+        virtualinvoke r4.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("num variables= %d\n", $r117);
+
+     label21:
+        i88 = 0;
+
+     label22:
+        if i88 >= i87 goto label39;
+
+        $l39 = virtualinvoke r1.<ucar.unidata.io.RandomAccessFile: long getFilePointer()>();
+
+        $r72 = specialinvoke r0.<ucar.nc2.iosp.netcdf3.N3header: java.lang.String readString()>();
+
+        $r153 = new ucar.nc2.Variable;
+
+        $r74 = virtualinvoke r2.<ucar.nc2.NetcdfFile: ucar.nc2.Group getRootGroup()>();
+
+        specialinvoke $r153.<ucar.nc2.Variable: void <init>(ucar.nc2.NetcdfFile,ucar.nc2.Group,ucar.nc2.Structure,java.lang.String)>(r2, $r74, null, $r72);
+
+        l89 = 1L;
+
+        z11 = 0;
+
+        z18 = 0;
+
+        z17 = 0;
+
+        z16 = 0;
+
+        z15 = 0;
+
+        z14 = 0;
+
+        $i40 = virtualinvoke r1.<ucar.unidata.io.RandomAccessFile: int readInt()>();
+
+        $r154 = new java.util.ArrayList;
+
+        specialinvoke $r154.<java.util.ArrayList: void <init>()>();
+
+        i90 = 0;
+
+     label23:
+        if i90 >= $i40 goto label26;
+
+        $i74 = virtualinvoke r1.<ucar.unidata.io.RandomAccessFile: int readInt()>();
+
+        $r113 = virtualinvoke r2.<ucar.nc2.NetcdfFile: ucar.nc2.Group getRootGroup()>();
+
+        $r114 = virtualinvoke $r113.<ucar.nc2.Group: java.util.List getDimensions()>();
+
+        $r115 = interfaceinvoke $r114.<java.util.List: java.lang.Object get(int)>($i74);
+
+        r138 = (ucar.nc2.Dimension) $r115;
+
+        $z9 = virtualinvoke r138.<ucar.nc2.Dimension: boolean isUnlimited()>();
+
+        if $z9 == 0 goto label24;
+
+        z11 = 1;
+
+        z18 = 1;
+
+        z17 = 1;
+
+        z16 = 1;
+
+        z15 = 1;
+
+        z14 = 1;
+
+        $r116 = r0.<ucar.nc2.iosp.netcdf3.N3header: java.util.List uvars>;
+
+        interfaceinvoke $r116.<java.util.List: boolean add(java.lang.Object)>($r153);
+
+        goto label25;
+
+     label24:
+        $i75 = virtualinvoke r138.<ucar.nc2.Dimension: int getLength()>();
+
+        $l76 = (long) $i75;
+
+        l89 = l89 * $l76;
+
+     label25:
+        interfaceinvoke $r154.<java.util.List: boolean add(java.lang.Object)>(r138);
+
+        i90 = i90 + 1;
+
+        goto label23;
+
+     label26:
+        virtualinvoke $r153.<ucar.nc2.Variable: void setDimensions(java.util.List)>($r154);
+
+        if r4 == null goto label29;
+
+        $r107 = newarray (java.lang.Object)[1];
+
+        $r107[0] = $r72;
+
+        virtualinvoke r4.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("---name=<%s> dims = [", $r107);
+
+        $r108 = interfaceinvoke $r154.<java.util.List: java.util.Iterator iterator()>();
+
+     label27:
+        $z8 = interfaceinvoke $r108.<java.util.Iterator: boolean hasNext()>();
+
+        if $z8 == 0 goto label28;
+
+        $r110 = interfaceinvoke $r108.<java.util.Iterator: java.lang.Object next()>();
+
+        r139 = (ucar.nc2.Dimension) $r110;
+
+        $r111 = newarray (java.lang.Object)[1];
+
+        $r112 = virtualinvoke r139.<ucar.nc2.Dimension: java.lang.String getName()>();
+
+        $r111[0] = $r112;
+
+        virtualinvoke r4.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("%s ", $r111);
+
+        goto label27;
+
+     label28:
+        $r109 = newarray (java.lang.Object)[0];
+
+        virtualinvoke r4.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("]\n", $r109);
+
+     label29:
+        $l41 = virtualinvoke r1.<ucar.unidata.io.RandomAccessFile: long getFilePointer()>();
+
+        $r76 = virtualinvoke $r153.<ucar.nc2.Variable: java.util.List getAttributes()>();
+
+        specialinvoke r0.<ucar.nc2.iosp.netcdf3.N3header: int readAtts(java.util.List,java.util.Formatter)>($r76, r4);
+
+        $i42 = virtualinvoke r1.<ucar.unidata.io.RandomAccessFile: int readInt()>();
+
+        $r77 = specialinvoke r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.ma2.DataType getDataType(int)>($i42);
+
+        virtualinvoke $r153.<ucar.nc2.Variable: void setDataType(ucar.ma2.DataType)>($r77);
+
+        $i43 = virtualinvoke r1.<ucar.unidata.io.RandomAccessFile: int readInt()>();
+
+        $l73 = (long) $i43;
+
+        l91 = $l73;
+
+        $z5 = r0.<ucar.nc2.iosp.netcdf3.N3header: boolean useLongOffset>;
+
+        if $z5 == 0 goto label30;
+
+        $l92 = virtualinvoke r1.<ucar.unidata.io.RandomAccessFile: long readLong()>();
+
+        goto label31;
+
+     label30:
+        $i44 = virtualinvoke r1.<ucar.unidata.io.RandomAccessFile: int readInt()>();
+
+        $l92 = (long) $i44;
+
+     label31:
+        l45 = $l92;
+
+        if r4 == null goto label32;
+
+        $r97 = newarray (java.lang.Object)[7];
+
+        $r97[0] = $r72;
+
+        $r98 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i42);
+
+        $r97[1] = $r98;
+
+        $r99 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l73);
+
+        $r97[2] = $r99;
+
+        $r100 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>(l89);
+
+        $r97[3] = $r100;
+
+        $r101 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l92);
+
+        $r97[4] = $r101;
+
+        $r102 = staticinvoke <java.lang.Boolean: java.lang.Boolean valueOf(boolean)>(z15);
+
+        $r97[5] = $r102;
+
+        $r103 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l41);
+
+        $r97[6] = $r103;
+
+        virtualinvoke r4.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>(" name= %s type=%d vsize=%s velems=%d begin= %d isRecord=%s attsPos=%d\n", $r97);
+
+        $i66 = staticinvoke <ucar.nc2.iosp.netcdf3.N3header: int padding(long)>(l89);
+
+        $l67 = (long) $i66;
+
+        $l68 = l89 + $l67;
+
+        $i69 = virtualinvoke $r77.<ucar.ma2.DataType: int getSize()>();
+
+        $l70 = (long) $i69;
+
+        l71 = $l68 * $l70;
+
+        $b72 = $l73 cmp l71;
+
+        if $b72 == 0 goto label32;
+
+        $r104 = newarray (java.lang.Object)[2];
+
+        $r105 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l73);
+
+        $r104[0] = $r105;
+
+        $r106 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>(l71);
+
+        $r104[1] = $r106;
+
+        virtualinvoke r4.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>(" *** readVsize %d != calcVsize %d\n", $r104);
+
+     label32:
+        $b93 = $l73 cmp 0L;
+
+        $i113 = (int) $b93;
+
+        if $i113 >= 0 goto label33;
+
+        $i61 = staticinvoke <ucar.nc2.iosp.netcdf3.N3header: int padding(long)>(l89);
+
+        $l62 = (long) $i61;
+
+        $l63 = l89 + $l62;
+
+        $i64 = virtualinvoke $r77.<ucar.ma2.DataType: int getSize()>();
+
+        $l65 = (long) $i64;
+
+        l91 = $l63 * $l65;
+
+     label33:
+        $r155 = new ucar.nc2.iosp.netcdf3.N3header$Vinfo;
+
+        specialinvoke $r155.<ucar.nc2.iosp.netcdf3.N3header$Vinfo: void <init>(long,long,boolean,long)>(l91, l45, z14, $l41);
+
+        virtualinvoke $r153.<ucar.nc2.Variable: void setSPobject(java.lang.Object)>($r155);
+
+        if z16 == 0 goto label34;
+
+        $l57 = r0.<ucar.nc2.iosp.netcdf3.N3header: long recsize>;
+
+        $l58 = $l57 + l91;
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: long recsize> = $l58;
+
+        $l59 = r0.<ucar.nc2.iosp.netcdf3.N3header: long recStart>;
+
+        $l60 = staticinvoke <java.lang.Math: long min(long,long)>($l59, l45);
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: long recStart> = $l60;
+
+        goto label35;
+
+     label34:
+        $l47 = r0.<ucar.nc2.iosp.netcdf3.N3header: long nonRecordDataSize>;
+
+        $l46 = l45 + l91;
+
+        $l48 = staticinvoke <java.lang.Math: long max(long,long)>($l47, $l46);
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: long nonRecordDataSize> = $l48;
+
+     label35:
+        $l49 = r0.<ucar.nc2.iosp.netcdf3.N3header: long dataStart>;
+
+        $l50 = staticinvoke <java.lang.Math: long min(long,long)>($l49, l45);
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: long dataStart> = $l50;
+
+        $z6 = <ucar.nc2.iosp.netcdf3.N3header: boolean debugVariablePos>;
+
+        if $z6 == 0 goto label36;
+
+        $r91 = <java.lang.System: java.io.PrintStream out>;
+
+        $r90 = newarray (java.lang.Object)[5];
+
+        $r92 = virtualinvoke $r153.<ucar.nc2.Variable: java.lang.String getName()>();
+
+        $r90[0] = $r92;
+
+        $r93 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>(l45);
+
+        $r90[1] = $r93;
+
+        $l55 = l45 + l91;
+
+        $r94 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l55);
+
+        $r90[2] = $r94;
+
+        $r95 = staticinvoke <java.lang.Boolean: java.lang.Boolean valueOf(boolean)>(z18);
+
+        $r90[3] = $r95;
+
+        $l56 = r0.<ucar.nc2.iosp.netcdf3.N3header: long nonRecordDataSize>;
+
+        $r96 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l56);
+
+        $r90[4] = $r96;
+
+        virtualinvoke $r91.<java.io.PrintStream: java.io.PrintStream printf(java.lang.String,java.lang.Object[])>("%s begin at=%d end=%d  isRecord=%s nonRecordDataSize=%d\n", $r90);
+
+     label36:
+        if r4 == null goto label37;
+
+        $r84 = newarray (java.lang.Object)[5];
+
+        $r85 = virtualinvoke $r153.<ucar.nc2.Variable: java.lang.String getName()>();
+
+        $r84[0] = $r85;
+
+        $r86 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>(l45);
+
+        $r84[1] = $r86;
+
+        $l53 = l45 + l91;
+
+        $r87 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l53);
+
+        $r84[2] = $r87;
+
+        $r88 = staticinvoke <java.lang.Boolean: java.lang.Boolean valueOf(boolean)>(z17);
+
+        $r84[3] = $r88;
+
+        $l54 = r0.<ucar.nc2.iosp.netcdf3.N3header: long nonRecordDataSize>;
+
+        $r89 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l54);
+
+        $r84[4] = $r89;
+
+        virtualinvoke r4.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("%s begin at=%d end=%d  isRecord=%s nonRecordDataSize=%d%n", $r84);
+
+     label37:
+        $z7 = <ucar.nc2.iosp.netcdf3.N3header: boolean debugHeaderSize>;
+
+        if $z7 == 0 goto label38;
+
+        $r80 = <java.lang.System: java.io.PrintStream out>;
+
+        $r79 = newarray (java.lang.Object)[3];
+
+        $r81 = virtualinvoke $r153.<ucar.nc2.Variable: java.lang.String getName()>();
+
+        $r79[0] = $r81;
+
+        $l51 = virtualinvoke r1.<ucar.unidata.io.RandomAccessFile: long getFilePointer()>();
+
+        $l52 = $l51 - $l39;
+
+        $r82 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l52);
+
+        $r79[1] = $r82;
+
+        $r83 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>(l91);
+
+        $r79[2] = $r83;
+
+        virtualinvoke $r80.<java.io.PrintStream: java.io.PrintStream printf(java.lang.String,java.lang.Object[])>("%s header size=%d data size= %d\n", $r79);
+
+     label38:
+        virtualinvoke r2.<ucar.nc2.NetcdfFile: ucar.nc2.Variable addVariable(ucar.nc2.Group,ucar.nc2.Variable)>(null, $r153);
+
+        i88 = i88 + 1;
+
+        goto label22;
+
+     label39:
+        $l9 = virtualinvoke r1.<ucar.unidata.io.RandomAccessFile: long getFilePointer()>();
+
+        $l10 = r0.<ucar.nc2.iosp.netcdf3.N3header: long dataStart>;
+
+        $b11 = $l10 cmp 9223372036854775807L;
+
+        if $b11 != 0 goto label40;
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: long dataStart> = $l9;
+
+     label40:
+        $l12 = r0.<ucar.nc2.iosp.netcdf3.N3header: long nonRecordDataSize>;
+
+        $b13 = $l12 cmp 0L;
+
+        $i114 = (int) $b13;
+
+        if $i114 <= 0 goto label41;
+
+        $l37 = r0.<ucar.nc2.iosp.netcdf3.N3header: long nonRecordDataSize>;
+
+        $l36 = r0.<ucar.nc2.iosp.netcdf3.N3header: long dataStart>;
+
+        $l38 = $l37 - $l36;
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: long nonRecordDataSize> = $l38;
+
+     label41:
+        $r7 = r0.<ucar.nc2.iosp.netcdf3.N3header: java.util.List uvars>;
+
+        $i14 = interfaceinvoke $r7.<java.util.List: int size()>();
+
+        if $i14 != 0 goto label42;
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: long recStart> = 0L;
+
+     label42:
+        $r8 = r0.<ucar.nc2.iosp.netcdf3.N3header: java.util.List uvars>;
+
+        $i15 = interfaceinvoke $r8.<java.util.List: int size()>();
+
+        if $i15 != 1 goto label47;
+
+        $r64 = r0.<ucar.nc2.iosp.netcdf3.N3header: java.util.List uvars>;
+
+        $r65 = interfaceinvoke $r64.<java.util.List: java.lang.Object get(int)>(0);
+
+        r140 = (ucar.nc2.Variable) $r65;
+
+        $r66 = virtualinvoke r140.<ucar.nc2.Variable: ucar.ma2.DataType getDataType()>();
+
+        $r67 = <ucar.ma2.DataType: ucar.ma2.DataType CHAR>;
+
+        if $r66 == $r67 goto label43;
+
+        $r70 = <ucar.ma2.DataType: ucar.ma2.DataType BYTE>;
+
+        if $r66 == $r70 goto label43;
+
+        $r71 = <ucar.ma2.DataType: ucar.ma2.DataType SHORT>;
+
+        if $r66 != $r71 goto label47;
+
+     label43:
+        $r141 = virtualinvoke r140.<ucar.nc2.Variable: ucar.ma2.DataType getDataType()>();
+
+        $i94 = virtualinvoke $r141.<ucar.ma2.DataType: int getSize()>();
+
+        l95 = (long) $i94;
+
+        $r142 = virtualinvoke r140.<ucar.nc2.Variable: java.util.List getDimensions()>();
+
+        $r143 = interfaceinvoke $r142.<java.util.List: java.util.Iterator iterator()>();
+
+     label44:
+        $z12 = interfaceinvoke $r143.<java.util.Iterator: boolean hasNext()>();
+
+        if $z12 == 0 goto label46;
+
+        $r69 = interfaceinvoke $r143.<java.util.Iterator: java.lang.Object next()>();
+
+        r144 = (ucar.nc2.Dimension) $r69;
+
+        $z4 = virtualinvoke r144.<ucar.nc2.Dimension: boolean isUnlimited()>();
+
+        if $z4 != 0 goto label45;
+
+        $i34 = virtualinvoke r144.<ucar.nc2.Dimension: int getLength()>();
+
+        $l35 = (long) $i34;
+
+        l95 = l95 * $l35;
+
+     label45:
+        goto label44;
+
+     label46:
+        $r68 = virtualinvoke r140.<ucar.nc2.Variable: java.lang.Object getSPobject()>();
+
+        r145 = (ucar.nc2.iosp.netcdf3.N3header$Vinfo) $r68;
+
+        $l32 = r145.<ucar.nc2.iosp.netcdf3.N3header$Vinfo: long vsize>;
+
+        $b33 = l95 cmp $l32;
+
+        if $b33 == 0 goto label47;
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: long recsize> = l95;
+
+        r145.<ucar.nc2.iosp.netcdf3.N3header$Vinfo: long vsize> = l95;
+
+     label47:
+        $z13 = <ucar.nc2.iosp.netcdf3.N3header: boolean debugHeaderSize>;
+
+        if $z13 == 0 goto label48;
+
+        $r31 = <java.lang.System: java.io.PrintStream out>;
+
+        $r156 = new java.lang.StringBuilder;
+
+        specialinvoke $r156.<java.lang.StringBuilder: void <init>()>();
+
+        $r32 = virtualinvoke $r156.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("  filePointer = ");
+
+        $r33 = virtualinvoke $r32.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l9);
+
+        $r34 = virtualinvoke $r33.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" dataStart=");
+
+        $l24 = r0.<ucar.nc2.iosp.netcdf3.N3header: long dataStart>;
+
+        $r35 = virtualinvoke $r34.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l24);
+
+        $r36 = virtualinvoke $r35.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r31.<java.io.PrintStream: void println(java.lang.String)>($r36);
+
+        $r38 = <java.lang.System: java.io.PrintStream out>;
+
+        $r157 = new java.lang.StringBuilder;
+
+        specialinvoke $r157.<java.lang.StringBuilder: void <init>()>();
+
+        $r39 = virtualinvoke $r157.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("  recStart = ");
+
+        $l25 = r0.<ucar.nc2.iosp.netcdf3.N3header: long recStart>;
+
+        $r40 = virtualinvoke $r39.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l25);
+
+        $r41 = virtualinvoke $r40.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" dataStart+nonRecordDataSize =");
+
+        $l27 = r0.<ucar.nc2.iosp.netcdf3.N3header: long dataStart>;
+
+        $l26 = r0.<ucar.nc2.iosp.netcdf3.N3header: long nonRecordDataSize>;
+
+        $l28 = $l27 + $l26;
+
+        $r42 = virtualinvoke $r41.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l28);
+
+        $r43 = virtualinvoke $r42.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r38.<java.io.PrintStream: void println(java.lang.String)>($r43);
+
+        $r45 = <java.lang.System: java.io.PrintStream out>;
+
+        $r158 = new java.lang.StringBuilder;
+
+        specialinvoke $r158.<java.lang.StringBuilder: void <init>()>();
+
+        $r46 = virtualinvoke $r158.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("  nonRecordDataSize size= ");
+
+        $l29 = r0.<ucar.nc2.iosp.netcdf3.N3header: long nonRecordDataSize>;
+
+        $r47 = virtualinvoke $r46.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l29);
+
+        $r48 = virtualinvoke $r47.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r45.<java.io.PrintStream: void println(java.lang.String)>($r48);
+
+        $r50 = <java.lang.System: java.io.PrintStream out>;
+
+        $r159 = new java.lang.StringBuilder;
+
+        specialinvoke $r159.<java.lang.StringBuilder: void <init>()>();
+
+        $r51 = virtualinvoke $r159.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("  recsize= ");
+
+        $l30 = r0.<ucar.nc2.iosp.netcdf3.N3header: long recsize>;
+
+        $r52 = virtualinvoke $r51.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l30);
+
+        $r53 = virtualinvoke $r52.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r50.<java.io.PrintStream: void println(java.lang.String)>($r53);
+
+        $r55 = <java.lang.System: java.io.PrintStream out>;
+
+        $r160 = new java.lang.StringBuilder;
+
+        specialinvoke $r160.<java.lang.StringBuilder: void <init>()>();
+
+        $r56 = virtualinvoke $r160.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("  numrecs= ");
+
+        $i31 = r0.<ucar.nc2.iosp.netcdf3.N3header: int numrecs>;
+
+        $r57 = virtualinvoke $r56.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i31);
+
+        $r58 = virtualinvoke $r57.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r55.<java.io.PrintStream: void println(java.lang.String)>($r58);
+
+        $r60 = <java.lang.System: java.io.PrintStream out>;
+
+        $r161 = new java.lang.StringBuilder;
+
+        specialinvoke $r161.<java.lang.StringBuilder: void <init>()>();
+
+        $r61 = virtualinvoke $r161.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("  actualSize= ");
+
+        $r62 = virtualinvoke $r61.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l0);
+
+        $r63 = virtualinvoke $r62.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r60.<java.io.PrintStream: void println(java.lang.String)>($r63);
+
+     label48:
+        $z0 = r0.<ucar.nc2.iosp.netcdf3.N3header: boolean isStreaming>;
+
+        if $z0 == 0 goto label51;
+
+        $l16 = r0.<ucar.nc2.iosp.netcdf3.N3header: long recStart>;
+
+        l96 = $l0 - $l16;
+
+        $l17 = r0.<ucar.nc2.iosp.netcdf3.N3header: long recsize>;
+
+        $l18 = l96 / $l17;
+
+        $i19 = (int) $l18;
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: int numrecs> = $i19;
+
+        $z2 = <ucar.nc2.iosp.netcdf3.N3header: boolean debugStreaming>;
+
+        if $z2 == 0 goto label49;
+
+        $r22 = <java.lang.System: java.io.PrintStream out>;
+
+        $r162 = new java.lang.StringBuilder;
+
+        specialinvoke $r162.<java.lang.StringBuilder: void <init>()>();
+
+        $r23 = virtualinvoke $r162.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" isStreaming recordSpace=");
+
+        $r24 = virtualinvoke $r23.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>(l96);
+
+        $r25 = virtualinvoke $r24.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" numrecs=");
+
+        $i21 = r0.<ucar.nc2.iosp.netcdf3.N3header: int numrecs>;
+
+        $r26 = virtualinvoke $r25.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i21);
+
+        $r27 = virtualinvoke $r26.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" has extra bytes = ");
+
+        $l22 = r0.<ucar.nc2.iosp.netcdf3.N3header: long recsize>;
+
+        $l23 = l96 % $l22;
+
+        $r28 = virtualinvoke $r27.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l23);
+
+        $r29 = virtualinvoke $r28.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r22.<java.io.PrintStream: void println(java.lang.String)>($r29);
+
+     label49:
+        $r16 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.nc2.Dimension udim>;
+
+        if $r16 == null goto label51;
+
+        $r17 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.nc2.Dimension udim>;
+
+        $i20 = r0.<ucar.nc2.iosp.netcdf3.N3header: int numrecs>;
+
+        virtualinvoke $r17.<ucar.nc2.Dimension: void setLength(int)>($i20);
+
+        $r18 = r0.<ucar.nc2.iosp.netcdf3.N3header: java.util.List uvars>;
+
+        $r19 = interfaceinvoke $r18.<java.util.List: java.util.Iterator iterator()>();
+
+     label50:
+        $z3 = interfaceinvoke $r19.<java.util.Iterator: boolean hasNext()>();
+
+        if $z3 == 0 goto label51;
+
+        $r20 = interfaceinvoke $r19.<java.util.Iterator: java.lang.Object next()>();
+
+        r146 = (ucar.nc2.Variable) $r20;
+
+        virtualinvoke r146.<ucar.nc2.Variable: void resetShape()>();
+
+        virtualinvoke r146.<ucar.nc2.Variable: void invalidateCache()>();
+
+        goto label50;
+
+     label51:
+        $l97 = r0.<ucar.nc2.iosp.netcdf3.N3header: long dataStart>;
+
+        $l98 = r0.<ucar.nc2.iosp.netcdf3.N3header: long nonRecordDataSize>;
+
+        $l99 = $l97 + $l98;
+
+        $l100 = r0.<ucar.nc2.iosp.netcdf3.N3header: long recsize>;
+
+        $i101 = r0.<ucar.nc2.iosp.netcdf3.N3header: int numrecs>;
+
+        $l102 = (long) $i101;
+
+        $l103 = $l100 * $l102;
+
+        $l104 = $l99 + $l103;
+
+        $l105 = $l0 + 3L;
+
+        $b106 = $l104 cmp $l105;
+
+        $i115 = (int) $b106;
+
+        if $i115 <= 0 goto label53;
+
+        $z1 = <ucar.nc2.iosp.netcdf3.N3header: boolean disallowFileTruncation>;
+
+        if $z1 == 0 goto label52;
+
+        $r164 = new java.io.IOException;
+
+        $r163 = new java.lang.StringBuilder;
+
+        specialinvoke $r163.<java.lang.StringBuilder: void <init>()>();
+
+        $r11 = virtualinvoke $r163.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("File is truncated calculated size= ");
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l104);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" actual = ");
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l0);
+
+        $r15 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r164.<java.io.IOException: void <init>(java.lang.String)>($r15);
+
+        throw $r164;
+
+     label52:
+        virtualinvoke r1.<ucar.unidata.io.RandomAccessFile: void setExtendMode()>();
+
+     label53:
+        return;
+    }
+
+    long calcFileSize()
+    {
+        long $l0, $l1, $l2, $l4, $l5, $l6, $l7, $l8;
+        ucar.nc2.iosp.netcdf3.N3header r0;
+        int $i3;
+        ucar.nc2.Dimension $r1;
+
+        r0 := @this: ucar.nc2.iosp.netcdf3.N3header;
+
+        $r1 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.nc2.Dimension udim>;
+
+        if $r1 == null goto label1;
+
+        $l7 = r0.<ucar.nc2.iosp.netcdf3.N3header: long recStart>;
+
+        $l5 = r0.<ucar.nc2.iosp.netcdf3.N3header: long recsize>;
+
+        $i3 = r0.<ucar.nc2.iosp.netcdf3.N3header: int numrecs>;
+
+        $l4 = (long) $i3;
+
+        $l6 = $l5 * $l4;
+
+        $l8 = $l7 + $l6;
+
+        return $l8;
+
+     label1:
+        $l1 = r0.<ucar.nc2.iosp.netcdf3.N3header: long dataStart>;
+
+        $l0 = r0.<ucar.nc2.iosp.netcdf3.N3header: long nonRecordDataSize>;
+
+        $l2 = $l1 + $l0;
+
+        return $l2;
+    }
+
+    void showDetail(java.util.Formatter) throws java.io.IOException
+    {
+        ucar.unidata.io.RandomAccessFile $r1;
+        java.lang.Integer $r38;
+        java.util.Formatter r2;
+        byte $b4, $b5;
+        java.lang.Long $r4, $r10, $r12, $r17, $r24, $r25, $r28, $r29, $r31, $r32, $r34, $r36;
+        boolean $z0, $z1, $z2, $z3;
+        java.util.List $r41;
+        ucar.nc2.NetcdfFile $r40;
+        java.lang.Object[] $r3, $r5, $r7, $r9, $r11, $r13, $r16, $r22, $r27, $r30, $r33, $r35, $r37, $r39;
+        long $l0, $l1, $l2, $l3, $l6, $l7, $l8, $l9, $l10, $l11;
+        ucar.nc2.iosp.netcdf3.N3header r0;
+        int $i12, $i13;
+        java.lang.Boolean $r6, $r8, $r26;
+        ucar.nc2.Variable r19;
+        java.lang.String $r23;
+        ucar.nc2.iosp.netcdf3.N3header$Vinfo r21;
+        java.util.Iterator $r42;
+        ucar.nc2.Dimension $r14, $r15;
+        java.lang.Object $r18, $r20;
+
+        r0 := @this: ucar.nc2.iosp.netcdf3.N3header;
+
+        r2 := @parameter0: java.util.Formatter;
+
+        $r1 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $l0 = virtualinvoke $r1.<ucar.unidata.io.RandomAccessFile: long length()>();
+
+        $r3 = newarray (java.lang.Object)[1];
+
+        $r4 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l0);
+
+        $r3[0] = $r4;
+
+        virtualinvoke r2.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("  raf length= %s %n", $r3);
+
+        $r5 = newarray (java.lang.Object)[1];
+
+        $z0 = r0.<ucar.nc2.iosp.netcdf3.N3header: boolean isStreaming>;
+
+        $r6 = staticinvoke <java.lang.Boolean: java.lang.Boolean valueOf(boolean)>($z0);
+
+        $r5[0] = $r6;
+
+        virtualinvoke r2.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("  isStreaming= %s %n", $r5);
+
+        $r7 = newarray (java.lang.Object)[1];
+
+        $z1 = r0.<ucar.nc2.iosp.netcdf3.N3header: boolean useLongOffset>;
+
+        $r8 = staticinvoke <java.lang.Boolean: java.lang.Boolean valueOf(boolean)>($z1);
+
+        $r7[0] = $r8;
+
+        virtualinvoke r2.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("  useLongOffset= %s %n", $r7);
+
+        $r9 = newarray (java.lang.Object)[1];
+
+        $l1 = r0.<ucar.nc2.iosp.netcdf3.N3header: long dataStart>;
+
+        $r10 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l1);
+
+        $r9[0] = $r10;
+
+        virtualinvoke r2.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("  dataStart= %d%n", $r9);
+
+        $r11 = newarray (java.lang.Object)[1];
+
+        $l2 = r0.<ucar.nc2.iosp.netcdf3.N3header: long nonRecordDataSize>;
+
+        $r12 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l2);
+
+        $r11[0] = $r12;
+
+        virtualinvoke r2.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("  nonRecordData size= %d %n", $r11);
+
+        $r13 = newarray (java.lang.Object)[1];
+
+        $r14 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.nc2.Dimension udim>;
+
+        $r13[0] = $r14;
+
+        virtualinvoke r2.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("  unlimited dimension = %s %n", $r13);
+
+        $r15 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.nc2.Dimension udim>;
+
+        if $r15 == null goto label1;
+
+        $r33 = newarray (java.lang.Object)[1];
+
+        $l10 = r0.<ucar.nc2.iosp.netcdf3.N3header: long recStart>;
+
+        $r34 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l10);
+
+        $r33[0] = $r34;
+
+        virtualinvoke r2.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("  record Data starts = %d %n", $r33);
+
+        $r35 = newarray (java.lang.Object)[1];
+
+        $l11 = r0.<ucar.nc2.iosp.netcdf3.N3header: long recsize>;
+
+        $r36 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l11);
+
+        $r35[0] = $r36;
+
+        virtualinvoke r2.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("  recsize = %d %n", $r35);
+
+        $r37 = newarray (java.lang.Object)[1];
+
+        $i12 = r0.<ucar.nc2.iosp.netcdf3.N3header: int numrecs>;
+
+        $r38 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i12);
+
+        $r37[0] = $r38;
+
+        virtualinvoke r2.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("  numrecs = %d %n", $r37);
+
+     label1:
+        $l3 = virtualinvoke r0.<ucar.nc2.iosp.netcdf3.N3header: long calcFileSize()>();
+
+        $r16 = newarray (java.lang.Object)[1];
+
+        $r17 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l3);
+
+        $r16[0] = $r17;
+
+        virtualinvoke r2.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("  computedSize = %d %n", $r16);
+
+        $b4 = $l0 cmp $l3;
+
+        $i13 = (int) $b4;
+
+        if $i13 >= 0 goto label2;
+
+        $r30 = newarray (java.lang.Object)[2];
+
+        $r31 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l0);
+
+        $r30[0] = $r31;
+
+        $l9 = $l3 - $l0;
+
+        $r32 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l9);
+
+        $r30[1] = $r32;
+
+        virtualinvoke r2.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("  TRUNCATED!! actual size = %d (%d bytes) %n", $r30);
+
+        goto label3;
+
+     label2:
+        $b5 = $l0 cmp $l3;
+
+        if $b5 == 0 goto label3;
+
+        $r27 = newarray (java.lang.Object)[2];
+
+        $r28 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l0);
+
+        $r27[0] = $r28;
+
+        $l8 = $l0 - $l3;
+
+        $r29 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l8);
+
+        $r27[1] = $r29;
+
+        virtualinvoke r2.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>(" actual size larger = %d (%d byte extra) %n", $r27);
+
+     label3:
+        $r39 = newarray (java.lang.Object)[1];
+
+        $r39[0] = "name";
+
+        virtualinvoke r2.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("%n  %20s____start_____size__unlim%n", $r39);
+
+        $r40 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.nc2.NetcdfFile ncfile>;
+
+        $r41 = virtualinvoke $r40.<ucar.nc2.NetcdfFile: java.util.List getVariables()>();
+
+        $r42 = interfaceinvoke $r41.<java.util.List: java.util.Iterator iterator()>();
+
+     label4:
+        $z3 = interfaceinvoke $r42.<java.util.Iterator: boolean hasNext()>();
+
+        if $z3 == 0 goto label5;
+
+        $r18 = interfaceinvoke $r42.<java.util.Iterator: java.lang.Object next()>();
+
+        r19 = (ucar.nc2.Variable) $r18;
+
+        $r20 = virtualinvoke r19.<ucar.nc2.Variable: java.lang.Object getSPobject()>();
+
+        r21 = (ucar.nc2.iosp.netcdf3.N3header$Vinfo) $r20;
+
+        $r22 = newarray (java.lang.Object)[4];
+
+        $r23 = virtualinvoke r19.<ucar.nc2.Variable: java.lang.String getShortName()>();
+
+        $r22[0] = $r23;
+
+        $l6 = r21.<ucar.nc2.iosp.netcdf3.N3header$Vinfo: long begin>;
+
+        $r24 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l6);
+
+        $r22[1] = $r24;
+
+        $l7 = r21.<ucar.nc2.iosp.netcdf3.N3header$Vinfo: long vsize>;
+
+        $r25 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l7);
+
+        $r22[2] = $r25;
+
+        $z2 = r21.<ucar.nc2.iosp.netcdf3.N3header$Vinfo: boolean isRecord>;
+
+        $r26 = staticinvoke <java.lang.Boolean: java.lang.Boolean valueOf(boolean)>($z2);
+
+        $r22[3] = $r26;
+
+        virtualinvoke r2.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("  %20s %8d %8d  %s %n", $r22);
+
+        goto label4;
+
+     label5:
+        return;
+    }
+
+    synchronized boolean removeRecordStructure()
+    {
+        java.util.Iterator $r2;
+        ucar.nc2.Group $r9;
+        ucar.nc2.iosp.netcdf3.N3header r0;
+        java.util.List $r1, $r7, $r10;
+        java.lang.Object $r4;
+        ucar.nc2.Variable r5;
+        ucar.nc2.NetcdfFile $r3, $r8;
+        java.lang.String $r6;
+        boolean $z0, $z1, z2;
+
+        r0 := @this: ucar.nc2.iosp.netcdf3.N3header;
+
+        z2 = 0;
+
+        $r1 = r0.<ucar.nc2.iosp.netcdf3.N3header: java.util.List uvars>;
+
+        $r2 = interfaceinvoke $r1.<java.util.List: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r2.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label3;
+
+        $r4 = interfaceinvoke $r2.<java.util.Iterator: java.lang.Object next()>();
+
+        r5 = (ucar.nc2.Variable) $r4;
+
+        $r6 = virtualinvoke r5.<ucar.nc2.Variable: java.lang.String getName()>();
+
+        $z1 = virtualinvoke $r6.<java.lang.String: boolean equals(java.lang.Object)>("record");
+
+        if $z1 == 0 goto label2;
+
+        $r7 = r0.<ucar.nc2.iosp.netcdf3.N3header: java.util.List uvars>;
+
+        interfaceinvoke $r7.<java.util.List: boolean remove(java.lang.Object)>(r5);
+
+        $r8 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.nc2.NetcdfFile ncfile>;
+
+        $r9 = virtualinvoke $r8.<ucar.nc2.NetcdfFile: ucar.nc2.Group getRootGroup()>();
+
+        $r10 = virtualinvoke $r9.<ucar.nc2.Group: java.util.List getVariables()>();
+
+        interfaceinvoke $r10.<java.util.List: boolean remove(java.lang.Object)>(r5);
+
+        z2 = 1;
+
+        goto label3;
+
+     label2:
+        goto label1;
+
+     label3:
+        $r3 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.nc2.NetcdfFile ncfile>;
+
+        virtualinvoke $r3.<ucar.nc2.NetcdfFile: void finish()>();
+
+        return z2;
+    }
+
+    synchronized boolean makeRecordStructure()
+    {
+        ucar.nc2.Structure $r2;
+        ucar.nc2.iosp.netcdf3.N3header r0;
+        int $i0;
+        ucar.nc2.Variable r15, $r16;
+        java.lang.String $r7, $r23, $r25;
+        boolean $z0;
+        org.slf4j.Logger $r19;
+        java.util.Iterator $r9;
+        ucar.nc2.Group $r5, $r12;
+        java.util.List $r1, $r8, $r10;
+        ucar.ma2.InvalidRangeException $r17;
+        ucar.nc2.Dimension $r6;
+        java.lang.Object $r14;
+        java.lang.StringBuilder $r18, $r20, $r21, $r22, $r24;
+        ucar.nc2.NetcdfFile $r3, $r4, $r11, $r13;
+
+        r0 := @this: ucar.nc2.iosp.netcdf3.N3header;
+
+        $r1 = r0.<ucar.nc2.iosp.netcdf3.N3header: java.util.List uvars>;
+
+        $i0 = interfaceinvoke $r1.<java.util.List: int size()>();
+
+        if $i0 <= 0 goto label7;
+
+        $r2 = new ucar.nc2.Structure;
+
+        $r4 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.nc2.NetcdfFile ncfile>;
+
+        $r3 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.nc2.NetcdfFile ncfile>;
+
+        $r5 = virtualinvoke $r3.<ucar.nc2.NetcdfFile: ucar.nc2.Group getRootGroup()>();
+
+        specialinvoke $r2.<ucar.nc2.Structure: void <init>(ucar.nc2.NetcdfFile,ucar.nc2.Group,ucar.nc2.Structure,java.lang.String)>($r4, $r5, null, "record");
+
+        $r6 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.nc2.Dimension udim>;
+
+        $r7 = virtualinvoke $r6.<ucar.nc2.Dimension: java.lang.String getName()>();
+
+        virtualinvoke $r2.<ucar.nc2.Structure: void setDimensions(java.lang.String)>($r7);
+
+        $r8 = r0.<ucar.nc2.iosp.netcdf3.N3header: java.util.List uvars>;
+
+        $r9 = interfaceinvoke $r8.<java.util.List: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r9.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label6;
+
+        $r14 = interfaceinvoke $r9.<java.util.Iterator: java.lang.Object next()>();
+
+        r15 = (ucar.nc2.Variable) $r14;
+
+     label2:
+        $r16 = virtualinvoke r15.<ucar.nc2.Variable: ucar.nc2.Variable slice(int,int)>(0, 0);
+
+     label3:
+        goto label5;
+
+     label4:
+        $r17 := @caughtexception;
+
+        $r19 = <ucar.nc2.iosp.netcdf3.N3header: org.slf4j.Logger log>;
+
+        $r18 = new java.lang.StringBuilder;
+
+        specialinvoke $r18.<java.lang.StringBuilder: void <init>()>();
+
+        $r20 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("N3header.makeRecordStructure cant slice variable ");
+
+        $r21 = virtualinvoke $r20.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r15);
+
+        $r22 = virtualinvoke $r21.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" ");
+
+        $r23 = virtualinvoke $r17.<ucar.ma2.InvalidRangeException: java.lang.String getMessage()>();
+
+        $r24 = virtualinvoke $r22.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r23);
+
+        $r25 = virtualinvoke $r24.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r19.<org.slf4j.Logger: void warn(java.lang.String)>($r25);
+
+        return 0;
+
+     label5:
+        virtualinvoke $r16.<ucar.nc2.Variable: void setParentStructure(ucar.nc2.Structure)>($r2);
+
+        virtualinvoke $r2.<ucar.nc2.Structure: ucar.nc2.Variable addMemberVariable(ucar.nc2.Variable)>($r16);
+
+        goto label1;
+
+     label6:
+        $r10 = r0.<ucar.nc2.iosp.netcdf3.N3header: java.util.List uvars>;
+
+        interfaceinvoke $r10.<java.util.List: boolean add(java.lang.Object)>($r2);
+
+        $r11 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.nc2.NetcdfFile ncfile>;
+
+        $r12 = virtualinvoke $r11.<ucar.nc2.NetcdfFile: ucar.nc2.Group getRootGroup()>();
+
+        virtualinvoke $r12.<ucar.nc2.Group: void addVariable(ucar.nc2.Variable)>($r2);
+
+        $r13 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.nc2.NetcdfFile ncfile>;
+
+        virtualinvoke $r13.<ucar.nc2.NetcdfFile: void finish()>();
+
+        return 1;
+
+     label7:
+        return 0;
+
+        catch ucar.ma2.InvalidRangeException from label2 to label3 with label4;
+    }
+
+    private int readAtts(java.util.List, java.util.Formatter) throws java.io.IOException
+    {
+        ucar.unidata.io.RandomAccessFile $r1, $r2, $r5, $r6, $r16, $r20, $r25, $r28, $r32, $r37;
+        java.lang.Integer $r31, $r35;
+        java.util.Formatter r3;
+        int[] $r8;
+        java.lang.Long $r17, $r21, $r26, $r29, $r33;
+        ucar.ma2.DataType $r7;
+        java.util.List r13;
+        ucar.nc2.Attribute $r12, $r18, $r23, r38;
+        java.lang.Object[] $r14, $r15, $r19, $r24, $r27, $r30, $r34;
+        long $l3, $l5, $l6, $l7, $l8;
+        ucar.nc2.iosp.netcdf3.N3header r0;
+        int $i0, $i1, $i2, $i4, i9, i10, i11, i12;
+        java.lang.String $r4, $r22;
+        ucar.ma2.IndexIterator $r11;
+        java.io.IOException $r36;
+        ucar.ma2.Array $r10;
+        java.lang.Class $r9;
+
+        r0 := @this: ucar.nc2.iosp.netcdf3.N3header;
+
+        r13 := @parameter0: java.util.List;
+
+        r3 := @parameter1: java.util.Formatter;
+
+        i9 = 0;
+
+        $r1 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $i0 = virtualinvoke $r1.<ucar.unidata.io.RandomAccessFile: int readInt()>();
+
+        if $i0 != 0 goto label01;
+
+        $r37 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        virtualinvoke $r37.<ucar.unidata.io.RandomAccessFile: int readInt()>();
+
+        goto label03;
+
+     label01:
+        if $i0 == 12 goto label02;
+
+        $r36 = new java.io.IOException;
+
+        specialinvoke $r36.<java.io.IOException: void <init>(java.lang.String)>("Misformed netCDF file  - att magic number wrong");
+
+        throw $r36;
+
+     label02:
+        $r2 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        i9 = virtualinvoke $r2.<ucar.unidata.io.RandomAccessFile: int readInt()>();
+
+     label03:
+        if r3 == null goto label04;
+
+        $r34 = newarray (java.lang.Object)[1];
+
+        $r35 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i9);
+
+        $r34[0] = $r35;
+
+        virtualinvoke r3.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>(" num atts= %d\n", $r34);
+
+     label04:
+        i10 = 0;
+
+     label05:
+        if i10 >= i9 goto label17;
+
+        if r3 == null goto label06;
+
+        $r30 = newarray (java.lang.Object)[2];
+
+        $r31 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i10);
+
+        $r30[0] = $r31;
+
+        $r32 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $l8 = virtualinvoke $r32.<ucar.unidata.io.RandomAccessFile: long getFilePointer()>();
+
+        $r33 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l8);
+
+        $r30[1] = $r33;
+
+        virtualinvoke r3.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("***att %d pos= %d\n", $r30);
+
+     label06:
+        $r4 = specialinvoke r0.<ucar.nc2.iosp.netcdf3.N3header: java.lang.String readString()>();
+
+        $r5 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $i1 = virtualinvoke $r5.<ucar.unidata.io.RandomAccessFile: int readInt()>();
+
+        if $i1 != 2 goto label09;
+
+        if r3 == null goto label07;
+
+        $r27 = newarray (java.lang.Object)[1];
+
+        $r28 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $l7 = virtualinvoke $r28.<ucar.unidata.io.RandomAccessFile: long getFilePointer()>();
+
+        $r29 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l7);
+
+        $r27[0] = $r29;
+
+        virtualinvoke r3.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>(" begin read String val pos= %d\n", $r27);
+
+     label07:
+        $r22 = specialinvoke r0.<ucar.nc2.iosp.netcdf3.N3header: java.lang.String readString()>();
+
+        if r3 == null goto label08;
+
+        $r24 = newarray (java.lang.Object)[1];
+
+        $r25 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $l6 = virtualinvoke $r25.<ucar.unidata.io.RandomAccessFile: long getFilePointer()>();
+
+        $r26 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l6);
+
+        $r24[0] = $r26;
+
+        virtualinvoke r3.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>(" end read String val pos= %d\n", $r24);
+
+     label08:
+        $r23 = new ucar.nc2.Attribute;
+
+        specialinvoke $r23.<ucar.nc2.Attribute: void <init>(java.lang.String,java.lang.String)>($r4, $r22);
+
+        r38 = $r23;
+
+        goto label15;
+
+     label09:
+        if r3 == null goto label10;
+
+        $r19 = newarray (java.lang.Object)[1];
+
+        $r20 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $l5 = virtualinvoke $r20.<ucar.unidata.io.RandomAccessFile: long getFilePointer()>();
+
+        $r21 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l5);
+
+        $r19[0] = $r21;
+
+        virtualinvoke r3.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>(" begin read val pos= %d\n", $r19);
+
+     label10:
+        $r6 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $i2 = virtualinvoke $r6.<ucar.unidata.io.RandomAccessFile: int readInt()>();
+
+        $r7 = specialinvoke r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.ma2.DataType getDataType(int)>($i1);
+
+        if $i2 != 0 goto label11;
+
+        $r18 = new ucar.nc2.Attribute;
+
+        specialinvoke $r18.<ucar.nc2.Attribute: void <init>(java.lang.String,ucar.ma2.DataType)>($r4, $r7);
+
+        r38 = $r18;
+
+        goto label14;
+
+     label11:
+        $r8 = newarray (int)[1];
+
+        $r8[0] = $i2;
+
+        $r9 = virtualinvoke $r7.<ucar.ma2.DataType: java.lang.Class getPrimitiveClassType()>();
+
+        $r10 = staticinvoke <ucar.ma2.Array: ucar.ma2.Array factory(java.lang.Class,int[])>($r9, $r8);
+
+        $r11 = virtualinvoke $r10.<ucar.ma2.Array: ucar.ma2.IndexIterator getIndexIterator()>();
+
+        i11 = 0;
+
+        i12 = 0;
+
+     label12:
+        if i12 >= $i2 goto label13;
+
+        $i4 = specialinvoke r0.<ucar.nc2.iosp.netcdf3.N3header: int readAttributeValue(ucar.ma2.DataType,ucar.ma2.IndexIterator)>($r7, $r11);
+
+        i11 = i11 + $i4;
+
+        i12 = i12 + 1;
+
+        goto label12;
+
+     label13:
+        $r12 = new ucar.nc2.Attribute;
+
+        specialinvoke $r12.<ucar.nc2.Attribute: void <init>(java.lang.String,ucar.ma2.Array)>($r4, $r10);
+
+        r38 = $r12;
+
+        specialinvoke r0.<ucar.nc2.iosp.netcdf3.N3header: void skip(int)>(i11);
+
+     label14:
+        if r3 == null goto label15;
+
+        $r15 = newarray (java.lang.Object)[1];
+
+        $r16 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $l3 = virtualinvoke $r16.<ucar.unidata.io.RandomAccessFile: long getFilePointer()>();
+
+        $r17 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l3);
+
+        $r15[0] = $r17;
+
+        virtualinvoke r3.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>(" end read val pos= %d\n", $r15);
+
+     label15:
+        interfaceinvoke r13.<java.util.List: boolean add(java.lang.Object)>(r38);
+
+        if r3 == null goto label16;
+
+        $r14 = newarray (java.lang.Object)[1];
+
+        $r14[0] = r38;
+
+        virtualinvoke r3.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("  %s\n", $r14);
+
+     label16:
+        i10 = i10 + 1;
+
+        goto label05;
+
+     label17:
+        return i9;
+    }
+
+    private int readAttributeValue(ucar.ma2.DataType, ucar.ma2.IndexIterator) throws java.io.IOException
+    {
+        ucar.unidata.io.RandomAccessFile $r8, $r10, $r11, $r12, $r13, $r14;
+        ucar.nc2.iosp.netcdf3.N3header r7;
+        short $s1;
+        byte b4;
+        int $i0, $i2, $i3;
+        double $d0;
+        ucar.ma2.IndexIterator r9;
+        ucar.ma2.DataType r0, $r1, $r2, $r3, $r4, $r5, $r6;
+        char c5;
+        float $f0;
+
+        r7 := @this: ucar.nc2.iosp.netcdf3.N3header;
+
+        r0 := @parameter0: ucar.ma2.DataType;
+
+        r9 := @parameter1: ucar.ma2.IndexIterator;
+
+        $r1 = <ucar.ma2.DataType: ucar.ma2.DataType BYTE>;
+
+        if r0 != $r1 goto label1;
+
+        $r14 = r7.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $i3 = virtualinvoke $r14.<ucar.unidata.io.RandomAccessFile: int read()>();
+
+        b4 = (byte) $i3;
+
+        interfaceinvoke r9.<ucar.ma2.IndexIterator: void setByteNext(byte)>(b4);
+
+        return 1;
+
+     label1:
+        $r2 = <ucar.ma2.DataType: ucar.ma2.DataType CHAR>;
+
+        if r0 != $r2 goto label2;
+
+        $r13 = r7.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $i2 = virtualinvoke $r13.<ucar.unidata.io.RandomAccessFile: int read()>();
+
+        c5 = (char) $i2;
+
+        interfaceinvoke r9.<ucar.ma2.IndexIterator: void setCharNext(char)>(c5);
+
+        return 1;
+
+     label2:
+        $r3 = <ucar.ma2.DataType: ucar.ma2.DataType SHORT>;
+
+        if r0 != $r3 goto label3;
+
+        $r12 = r7.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $s1 = virtualinvoke $r12.<ucar.unidata.io.RandomAccessFile: short readShort()>();
+
+        interfaceinvoke r9.<ucar.ma2.IndexIterator: void setShortNext(short)>($s1);
+
+        return 2;
+
+     label3:
+        $r4 = <ucar.ma2.DataType: ucar.ma2.DataType INT>;
+
+        if r0 != $r4 goto label4;
+
+        $r11 = r7.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $i0 = virtualinvoke $r11.<ucar.unidata.io.RandomAccessFile: int readInt()>();
+
+        interfaceinvoke r9.<ucar.ma2.IndexIterator: void setIntNext(int)>($i0);
+
+        return 4;
+
+     label4:
+        $r5 = <ucar.ma2.DataType: ucar.ma2.DataType FLOAT>;
+
+        if r0 != $r5 goto label5;
+
+        $r10 = r7.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $f0 = virtualinvoke $r10.<ucar.unidata.io.RandomAccessFile: float readFloat()>();
+
+        interfaceinvoke r9.<ucar.ma2.IndexIterator: void setFloatNext(float)>($f0);
+
+        return 4;
+
+     label5:
+        $r6 = <ucar.ma2.DataType: ucar.ma2.DataType DOUBLE>;
+
+        if r0 != $r6 goto label6;
+
+        $r8 = r7.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $d0 = virtualinvoke $r8.<ucar.unidata.io.RandomAccessFile: double readDouble()>();
+
+        interfaceinvoke r9.<ucar.ma2.IndexIterator: void setDoubleNext(double)>($d0);
+
+        return 8;
+
+     label6:
+        return 0;
+    }
+
+    private java.lang.String readString() throws java.io.IOException
+    {
+        byte[] r2;
+        ucar.unidata.io.RandomAccessFile $r1, $r3;
+        ucar.nc2.iosp.netcdf3.N3header r0;
+        byte $b1;
+        int $i0, i2;
+        java.lang.String $r4;
+
+        r0 := @this: ucar.nc2.iosp.netcdf3.N3header;
+
+        $r1 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $i0 = virtualinvoke $r1.<ucar.unidata.io.RandomAccessFile: int readInt()>();
+
+        r2 = newarray (byte)[$i0];
+
+        $r3 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        virtualinvoke $r3.<ucar.unidata.io.RandomAccessFile: int read(byte[])>(r2);
+
+        specialinvoke r0.<ucar.nc2.iosp.netcdf3.N3header: void skip(int)>($i0);
+
+        i2 = 0;
+
+     label1:
+        if i2 >= $i0 goto label3;
+
+        $b1 = r2[i2];
+
+        if $b1 != 0 goto label2;
+
+        goto label3;
+
+     label2:
+        i2 = i2 + 1;
+
+        goto label1;
+
+     label3:
+        $r4 = new java.lang.String;
+
+        specialinvoke $r4.<java.lang.String: void <init>(byte[],int,int,java.lang.String)>(r2, 0, i2, "UTF-8");
+
+        return $r4;
+    }
+
+    private void skip(int) throws java.io.IOException
+    {
+        ucar.unidata.io.RandomAccessFile $r1, $r2;
+        long $l2, $l3, $l4;
+        ucar.nc2.iosp.netcdf3.N3header r0;
+        int i0, $i1;
+
+        r0 := @this: ucar.nc2.iosp.netcdf3.N3header;
+
+        i0 := @parameter0: int;
+
+        $i1 = staticinvoke <ucar.nc2.iosp.netcdf3.N3header: int padding(int)>(i0);
+
+        if $i1 <= 0 goto label1;
+
+        $r2 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $r1 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $l2 = virtualinvoke $r1.<ucar.unidata.io.RandomAccessFile: long getFilePointer()>();
+
+        $l3 = (long) $i1;
+
+        $l4 = $l2 + $l3;
+
+        virtualinvoke $r2.<ucar.unidata.io.RandomAccessFile: void seek(long)>($l4);
+
+     label1:
+        return;
+    }
+
+    static int padding(int)
+    {
+        int i0, i1;
+
+        i0 := @parameter0: int;
+
+        i1 = i0 % 4;
+
+        if i1 == 0 goto label1;
+
+        i1 = 4 - i1;
+
+     label1:
+        return i1;
+    }
+
+    static int padding(long)
+    {
+        int i2;
+        long l0, $l1;
+
+        l0 := @parameter0: long;
+
+        $l1 = l0 % 4L;
+
+        i2 = (int) $l1;
+
+        if i2 == 0 goto label1;
+
+        i2 = 4 - i2;
+
+     label1:
+        return i2;
+    }
+
+    private void printBytes(int, java.util.Formatter) throws java.io.IOException
+    {
+        ucar.unidata.io.RandomAccessFile $r1, $r2;
+        java.lang.Object[] $r4, $r6;
+        long $l0, $l2, $l3, $l4, $l6, $l7, $l9, $l10, $l11, l13;
+        java.util.Formatter r3;
+        ucar.nc2.iosp.netcdf3.N3header r0;
+        byte $b5, $b8;
+        java.lang.Long $r5, $r7;
+        int i1, $i12, $i14, $i15;
+
+        r0 := @this: ucar.nc2.iosp.netcdf3.N3header;
+
+        i1 := @parameter0: int;
+
+        r3 := @parameter1: java.util.Formatter;
+
+        $r1 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $l0 = virtualinvoke $r1.<ucar.unidata.io.RandomAccessFile: long getFilePointer()>();
+
+        l13 = $l0;
+
+     label1:
+        $l2 = (long) i1;
+
+        $l3 = $l0 + $l2;
+
+        $l4 = $l3 - 9L;
+
+        $b5 = l13 cmp $l4;
+
+        $i14 = (int) $b5;
+
+        if $i14 >= 0 goto label2;
+
+        $r6 = newarray (java.lang.Object)[1];
+
+        $r7 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>(l13);
+
+        $r6[0] = $r7;
+
+        virtualinvoke r3.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("%d: ", $r6);
+
+        specialinvoke r0.<ucar.nc2.iosp.netcdf3.N3header: void _printBytes(int,java.util.Formatter)>(10, r3);
+
+        l13 = l13 + 10L;
+
+        goto label1;
+
+     label2:
+        $l6 = (long) i1;
+
+        $l7 = $l0 + $l6;
+
+        $b8 = l13 cmp $l7;
+
+        $i15 = (int) $b8;
+
+        if $i15 >= 0 goto label3;
+
+        $r4 = newarray (java.lang.Object)[1];
+
+        $r5 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>(l13);
+
+        $r4[0] = $r5;
+
+        virtualinvoke r3.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("%d: ", $r4);
+
+        $l9 = (long) i1;
+
+        $l10 = $l0 + $l9;
+
+        $l11 = $l10 - l13;
+
+        $i12 = (int) $l11;
+
+        specialinvoke r0.<ucar.nc2.iosp.netcdf3.N3header: void _printBytes(int,java.util.Formatter)>($i12, r3);
+
+     label3:
+        $r2 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        virtualinvoke $r2.<ucar.unidata.io.RandomAccessFile: void seek(long)>($l0);
+
+        return;
+    }
+
+    private void _printBytes(int, java.util.Formatter) throws java.io.IOException
+    {
+        ucar.unidata.io.RandomAccessFile $r3;
+        java.lang.Object[] $r1, $r8;
+        java.lang.Integer $r9;
+        java.util.Formatter r0;
+        ucar.nc2.iosp.netcdf3.N3header r2;
+        byte b2;
+        int i0, $i1, i3, $i4, $i5, $i6, $i7;
+        java.lang.String $r7;
+        java.lang.Byte $r10;
+        java.lang.StringBuilder $r5, $r6, $r11;
+
+        r2 := @this: ucar.nc2.iosp.netcdf3.N3header;
+
+        i0 := @parameter0: int;
+
+        r0 := @parameter1: java.util.Formatter;
+
+        i3 = 0;
+
+     label1:
+        if i3 >= i0 goto label4;
+
+        $r3 = r2.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $i1 = virtualinvoke $r3.<ucar.unidata.io.RandomAccessFile: int read()>();
+
+        b2 = (byte) $i1;
+
+        $i5 = (int) b2;
+
+        if $i5 >= 0 goto label2;
+
+        $i6 = (int) b2;
+
+        $i4 = $i6 + 256;
+
+        goto label3;
+
+     label2:
+        $i7 = (int) b2;
+
+        $i4 = $i7;
+
+     label3:
+        $r11 = new java.lang.StringBuilder;
+
+        specialinvoke $r11.<java.lang.StringBuilder: void <init>()>();
+
+        $r5 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i4);
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("%d(%b) ");
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r8 = newarray (java.lang.Object)[2];
+
+        $r9 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i4);
+
+        $r8[0] = $r9;
+
+        $r10 = staticinvoke <java.lang.Byte: java.lang.Byte valueOf(byte)>(b2);
+
+        $r8[1] = $r10;
+
+        virtualinvoke r0.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>($r7, $r8);
+
+        i3 = i3 + 1;
+
+        goto label1;
+
+     label4:
+        $r1 = newarray (java.lang.Object)[0];
+
+        virtualinvoke r0.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("\n", $r1);
+
+        return;
+    }
+
+    private ucar.ma2.DataType getDataType(int)
+    {
+        ucar.ma2.DataType $r0, $r1, $r2, $r3, $r4, $r5;
+        java.lang.IllegalArgumentException $r6;
+        ucar.nc2.iosp.netcdf3.N3header r11;
+        int i0;
+        java.lang.StringBuilder $r7, $r8, $r9;
+        java.lang.String $r10;
+
+        r11 := @this: ucar.nc2.iosp.netcdf3.N3header;
+
+        i0 := @parameter0: int;
+
+        tableswitch(i0)
+        {
+            case 1: goto label1;
+            case 2: goto label2;
+            case 3: goto label3;
+            case 4: goto label4;
+            case 5: goto label5;
+            case 6: goto label6;
+            default: goto label7;
+        };
+
+     label1:
+        $r5 = <ucar.ma2.DataType: ucar.ma2.DataType BYTE>;
+
+        return $r5;
+
+     label2:
+        $r4 = <ucar.ma2.DataType: ucar.ma2.DataType CHAR>;
+
+        return $r4;
+
+     label3:
+        $r3 = <ucar.ma2.DataType: ucar.ma2.DataType SHORT>;
+
+        return $r3;
+
+     label4:
+        $r2 = <ucar.ma2.DataType: ucar.ma2.DataType INT>;
+
+        return $r2;
+
+     label5:
+        $r1 = <ucar.ma2.DataType: ucar.ma2.DataType FLOAT>;
+
+        return $r1;
+
+     label6:
+        $r0 = <ucar.ma2.DataType: ucar.ma2.DataType DOUBLE>;
+
+        return $r0;
+
+     label7:
+        $r6 = new java.lang.IllegalArgumentException;
+
+        $r7 = new java.lang.StringBuilder;
+
+        specialinvoke $r7.<java.lang.StringBuilder: void <init>()>();
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("unknown type == ");
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>(i0);
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r6.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>($r10);
+
+        throw $r6;
+    }
+
+    static int getType(ucar.ma2.DataType)
+    {
+        ucar.ma2.DataType r0, $r1, $r2, $r3, $r4, $r5, $r6, $r7;
+        java.lang.IllegalArgumentException $r8;
+        java.lang.StringBuilder $r9, $r10, $r11;
+        java.lang.String $r12;
+
+        r0 := @parameter0: ucar.ma2.DataType;
+
+        $r1 = <ucar.ma2.DataType: ucar.ma2.DataType BYTE>;
+
+        if r0 != $r1 goto label1;
+
+        return 1;
+
+     label1:
+        $r2 = <ucar.ma2.DataType: ucar.ma2.DataType CHAR>;
+
+        if r0 == $r2 goto label2;
+
+        $r3 = <ucar.ma2.DataType: ucar.ma2.DataType STRING>;
+
+        if r0 != $r3 goto label3;
+
+     label2:
+        return 2;
+
+     label3:
+        $r4 = <ucar.ma2.DataType: ucar.ma2.DataType SHORT>;
+
+        if r0 != $r4 goto label4;
+
+        return 3;
+
+     label4:
+        $r5 = <ucar.ma2.DataType: ucar.ma2.DataType INT>;
+
+        if r0 != $r5 goto label5;
+
+        return 4;
+
+     label5:
+        $r6 = <ucar.ma2.DataType: ucar.ma2.DataType FLOAT>;
+
+        if r0 != $r6 goto label6;
+
+        return 5;
+
+     label6:
+        $r7 = <ucar.ma2.DataType: ucar.ma2.DataType DOUBLE>;
+
+        if r0 != $r7 goto label7;
+
+        return 6;
+
+     label7:
+        $r8 = new java.lang.IllegalArgumentException;
+
+        $r9 = new java.lang.StringBuilder;
+
+        specialinvoke $r9.<java.lang.StringBuilder: void <init>()>();
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("unknown DataType == ");
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r0);
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r8.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>($r12);
+
+        throw $r8;
+    }
+
+    void create(ucar.unidata.io.RandomAccessFile, ucar.nc2.NetcdfFile, int, boolean, java.util.Formatter) throws java.io.IOException
+    {
+        ucar.nc2.iosp.netcdf3.N3header r0;
+        ucar.unidata.io.RandomAccessFile r1;
+        int i0;
+        ucar.nc2.NetcdfFile r2;
+        boolean z0;
+        java.util.Formatter r3;
+
+        r0 := @this: ucar.nc2.iosp.netcdf3.N3header;
+
+        r1 := @parameter0: ucar.unidata.io.RandomAccessFile;
+
+        r2 := @parameter1: ucar.nc2.NetcdfFile;
+
+        i0 := @parameter2: int;
+
+        z0 := @parameter3: boolean;
+
+        r3 := @parameter4: java.util.Formatter;
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf> = r1;
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.nc2.NetcdfFile ncfile> = r2;
+
+        virtualinvoke r0.<ucar.nc2.iosp.netcdf3.N3header: void writeHeader(int,boolean,boolean,java.util.Formatter)>(i0, z0, 0, r3);
+
+        return;
+    }
+
+    boolean rewriteHeader(boolean, java.util.Formatter) throws java.io.IOException
+    {
+        long $l1, $l2;
+        java.util.Formatter r1;
+        ucar.nc2.iosp.netcdf3.N3header r0;
+        byte $b3;
+        int $i0, $i4;
+        boolean z0;
+
+        r0 := @this: ucar.nc2.iosp.netcdf3.N3header;
+
+        z0 := @parameter0: boolean;
+
+        r1 := @parameter1: java.util.Formatter;
+
+        $i0 = virtualinvoke r0.<ucar.nc2.iosp.netcdf3.N3header: int sizeHeader(boolean)>(z0);
+
+        $l2 = (long) $i0;
+
+        $l1 = r0.<ucar.nc2.iosp.netcdf3.N3header: long dataStart>;
+
+        $b3 = $l2 cmp $l1;
+
+        $i4 = (int) $b3;
+
+        if $i4 <= 0 goto label1;
+
+        return 0;
+
+     label1:
+        virtualinvoke r0.<ucar.nc2.iosp.netcdf3.N3header: void writeHeader(int,boolean,boolean,java.util.Formatter)>(0, z0, 1, r1);
+
+        return 1;
+    }
+
+    void writeHeader(int, boolean, boolean, java.util.Formatter) throws java.io.IOException
+    {
+        byte[] $r54;
+        java.lang.Integer $r49;
+        byte $b3, $b19;
+        java.lang.Long $r23, $r31, $r32, $r51;
+        java.lang.StringBuilder $r35, $r36, $r37, $r38, $r61;
+        java.lang.Object[] $r21, $r29, $r48;
+        long $l1, $l2, $l5, $l6, $l7, $l8, $l10, $l11, $l12, $l13, $l14, $l15, $l16, $l17, $l18, $l21, $l22, $l23, $l24, $l25, $l26, $l27, $l28, $l29, $l30, $l31, $l33, $l34, $l35, $l36, l39;
+        ucar.nc2.iosp.netcdf3.N3header r0;
+        java.lang.String $r22, $r30, $r39, $r46;
+        ucar.nc2.Dimension r55;
+        ucar.unidata.io.RandomAccessFile $r1, $r2, $r3, $r6, $r7, $r8, $r19, $r20, $r24, $r27, $r28, $r40, $r41, $r47, $r50, $r52, $r53;
+        java.util.Formatter r11;
+        boolean z0, $z1, z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9;
+        java.util.List $r5, $r10, $r13, $r16, $r44;
+        ucar.nc2.NetcdfFile $r4, $r9, $r12;
+        int $i0, $i4, $i9, $i20, i32, i37, $i38, $i40, $i41;
+        ucar.nc2.Variable r43, r57, r59;
+        ucar.nc2.iosp.netcdf3.N3header$Vinfo r58, r60;
+        java.util.Iterator $r14, $r15, $r56;
+        java.lang.IllegalArgumentException $r62;
+        java.lang.Object $r17, $r18, $r25, $r26, $r42, $r45;
+
+        r0 := @this: ucar.nc2.iosp.netcdf3.N3header;
+
+        i32 := @parameter0: int;
+
+        z0 := @parameter1: boolean;
+
+        z2 := @parameter2: boolean;
+
+        r11 := @parameter3: java.util.Formatter;
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: boolean useLongOffset> = z0;
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: long nonRecordDataSize> = 0L;
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: long recsize> = 0L;
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: long recStart> = 9223372036854775807L;
+
+        $r1 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        virtualinvoke $r1.<ucar.unidata.io.RandomAccessFile: void seek(long)>(0L);
+
+        $r2 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        if z0 == 0 goto label01;
+
+        $r54 = <ucar.nc2.iosp.netcdf3.N3header: byte[] MAGIC_LONG>;
+
+        goto label02;
+
+     label01:
+        $r54 = <ucar.nc2.iosp.netcdf3.N3header: byte[] MAGIC>;
+
+     label02:
+        virtualinvoke $r2.<ucar.unidata.io.RandomAccessFile: void write(byte[])>($r54);
+
+        $r3 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        virtualinvoke $r3.<ucar.unidata.io.RandomAccessFile: void writeInt(int)>(0);
+
+        $r4 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.nc2.NetcdfFile ncfile>;
+
+        $r5 = virtualinvoke $r4.<ucar.nc2.NetcdfFile: java.util.List getDimensions()>();
+
+        $i0 = interfaceinvoke $r5.<java.util.List: int size()>();
+
+        if $i0 != 0 goto label03;
+
+        $r52 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        virtualinvoke $r52.<ucar.unidata.io.RandomAccessFile: void writeInt(int)>(0);
+
+        $r53 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        virtualinvoke $r53.<ucar.unidata.io.RandomAccessFile: void writeInt(int)>(0);
+
+        goto label04;
+
+     label03:
+        $r6 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        virtualinvoke $r6.<ucar.unidata.io.RandomAccessFile: void writeInt(int)>(10);
+
+        $r7 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        virtualinvoke $r7.<ucar.unidata.io.RandomAccessFile: void writeInt(int)>($i0);
+
+     label04:
+        i37 = 0;
+
+     label05:
+        if i37 >= $i0 goto label10;
+
+        $r45 = interfaceinvoke $r5.<java.util.List: java.lang.Object get(int)>(i37);
+
+        r55 = (ucar.nc2.Dimension) $r45;
+
+        if r11 == null goto label06;
+
+        $r48 = newarray (java.lang.Object)[2];
+
+        $r49 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i37);
+
+        $r48[0] = $r49;
+
+        $r50 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $l36 = virtualinvoke $r50.<ucar.unidata.io.RandomAccessFile: long getFilePointer()>();
+
+        $r51 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l36);
+
+        $r48[1] = $r51;
+
+        virtualinvoke r11.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("  dim %d pos %d\n", $r48);
+
+     label06:
+        $r46 = virtualinvoke r55.<ucar.nc2.Dimension: java.lang.String getName()>();
+
+        specialinvoke r0.<ucar.nc2.iosp.netcdf3.N3header: void writeString(java.lang.String)>($r46);
+
+        $r47 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $z7 = virtualinvoke r55.<ucar.nc2.Dimension: boolean isUnlimited()>();
+
+        if $z7 == 0 goto label07;
+
+        $i38 = 0;
+
+        goto label08;
+
+     label07:
+        $i38 = virtualinvoke r55.<ucar.nc2.Dimension: int getLength()>();
+
+     label08:
+        virtualinvoke $r47.<ucar.unidata.io.RandomAccessFile: void writeInt(int)>($i38);
+
+        $z8 = virtualinvoke r55.<ucar.nc2.Dimension: boolean isUnlimited()>();
+
+        if $z8 == 0 goto label09;
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.nc2.Dimension udim> = r55;
+
+     label09:
+        i37 = i37 + 1;
+
+        goto label05;
+
+     label10:
+        $r8 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $l1 = virtualinvoke $r8.<ucar.unidata.io.RandomAccessFile: long getFilePointer()>();
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: long globalAttsPos> = $l1;
+
+        $r9 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.nc2.NetcdfFile ncfile>;
+
+        $r10 = virtualinvoke $r9.<ucar.nc2.NetcdfFile: java.util.List getGlobalAttributes()>();
+
+        specialinvoke r0.<ucar.nc2.iosp.netcdf3.N3header: void writeAtts(java.util.List,java.util.Formatter)>($r10, r11);
+
+        $r12 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.nc2.NetcdfFile ncfile>;
+
+        $r13 = virtualinvoke $r12.<ucar.nc2.NetcdfFile: java.util.List getVariables()>();
+
+        $r14 = interfaceinvoke $r13.<java.util.List: java.util.Iterator iterator()>();
+
+     label11:
+        $z1 = interfaceinvoke $r14.<java.util.Iterator: boolean hasNext()>();
+
+        if $z1 == 0 goto label13;
+
+        $r42 = interfaceinvoke $r14.<java.util.Iterator: java.lang.Object next()>();
+
+        r43 = (ucar.nc2.Variable) $r42;
+
+        $z6 = virtualinvoke r43.<ucar.nc2.Variable: boolean isUnlimited()>();
+
+        if $z6 == 0 goto label12;
+
+        $r44 = r0.<ucar.nc2.iosp.netcdf3.N3header: java.util.List uvars>;
+
+        interfaceinvoke $r44.<java.util.List: boolean add(java.lang.Object)>(r43);
+
+     label12:
+        goto label11;
+
+     label13:
+        specialinvoke r0.<ucar.nc2.iosp.netcdf3.N3header: void writeVars(java.util.List,boolean,java.util.Formatter)>($r13, z0, r11);
+
+        if z2 != 0 goto label14;
+
+        $r41 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $l31 = virtualinvoke $r41.<ucar.unidata.io.RandomAccessFile: long getFilePointer()>();
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: long dataStart> = $l31;
+
+        if i32 <= 0 goto label14;
+
+        $l34 = r0.<ucar.nc2.iosp.netcdf3.N3header: long dataStart>;
+
+        $l33 = (long) i32;
+
+        $l35 = $l34 + $l33;
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: long dataStart> = $l35;
+
+     label14:
+        l39 = r0.<ucar.nc2.iosp.netcdf3.N3header: long dataStart>;
+
+        $r56 = interfaceinvoke $r13.<java.util.List: java.util.Iterator iterator()>();
+
+     label15:
+        $z9 = interfaceinvoke $r56.<java.util.Iterator: boolean hasNext()>();
+
+        if $z9 == 0 goto label21;
+
+        $r25 = interfaceinvoke $r56.<java.util.Iterator: java.lang.Object next()>();
+
+        r57 = (ucar.nc2.Variable) $r25;
+
+        $r26 = virtualinvoke r57.<ucar.nc2.Variable: java.lang.Object getSPobject()>();
+
+        r58 = (ucar.nc2.iosp.netcdf3.N3header$Vinfo) $r26;
+
+        $z5 = r58.<ucar.nc2.iosp.netcdf3.N3header$Vinfo: boolean isRecord>;
+
+        if $z5 != 0 goto label20;
+
+        $r27 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $l18 = r58.<ucar.nc2.iosp.netcdf3.N3header$Vinfo: long begin>;
+
+        virtualinvoke $r27.<ucar.unidata.io.RandomAccessFile: void seek(long)>($l18);
+
+        if z0 == 0 goto label16;
+
+        $r40 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        virtualinvoke $r40.<ucar.unidata.io.RandomAccessFile: void writeLong(long)>(l39);
+
+        goto label18;
+
+     label16:
+        $b19 = l39 cmp 2147483647L;
+
+        $i40 = (int) $b19;
+
+        if $i40 <= 0 goto label17;
+
+        $r62 = new java.lang.IllegalArgumentException;
+
+        $r61 = new java.lang.StringBuilder;
+
+        specialinvoke $r61.<java.lang.StringBuilder: void <init>()>();
+
+        $r35 = virtualinvoke $r61.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Variable starting pos=");
+
+        $r36 = virtualinvoke $r35.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>(l39);
+
+        $r37 = virtualinvoke $r36.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" may not exceed ");
+
+        $r38 = virtualinvoke $r37.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>(2147483647);
+
+        $r39 = virtualinvoke $r38.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r62.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>($r39);
+
+        throw $r62;
+
+     label17:
+        $r28 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $i20 = (int) l39;
+
+        virtualinvoke $r28.<ucar.unidata.io.RandomAccessFile: void writeInt(int)>($i20);
+
+     label18:
+        r58.<ucar.nc2.iosp.netcdf3.N3header$Vinfo: long begin> = l39;
+
+        if r11 == null goto label19;
+
+        $r29 = newarray (java.lang.Object)[3];
+
+        $r30 = virtualinvoke r57.<ucar.nc2.Variable: java.lang.String getName()>();
+
+        $r29[0] = $r30;
+
+        $l27 = r58.<ucar.nc2.iosp.netcdf3.N3header$Vinfo: long begin>;
+
+        $r31 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l27);
+
+        $r29[1] = $r31;
+
+        $l29 = r58.<ucar.nc2.iosp.netcdf3.N3header$Vinfo: long begin>;
+
+        $l28 = r58.<ucar.nc2.iosp.netcdf3.N3header$Vinfo: long vsize>;
+
+        $l30 = $l29 + $l28;
+
+        $r32 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l30);
+
+        $r29[2] = $r32;
+
+        virtualinvoke r11.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("  %s begin at = %d end= %d\n", $r29);
+
+     label19:
+        $l21 = r58.<ucar.nc2.iosp.netcdf3.N3header$Vinfo: long vsize>;
+
+        l39 = l39 + $l21;
+
+        $l25 = r0.<ucar.nc2.iosp.netcdf3.N3header: long nonRecordDataSize>;
+
+        $l23 = r58.<ucar.nc2.iosp.netcdf3.N3header$Vinfo: long begin>;
+
+        $l22 = r58.<ucar.nc2.iosp.netcdf3.N3header$Vinfo: long vsize>;
+
+        $l24 = $l23 + $l22;
+
+        $l26 = staticinvoke <java.lang.Math: long max(long,long)>($l25, $l24);
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: long nonRecordDataSize> = $l26;
+
+     label20:
+        goto label15;
+
+     label21:
+        r0.<ucar.nc2.iosp.netcdf3.N3header: long recStart> = l39;
+
+        $r15 = interfaceinvoke $r13.<java.util.List: java.util.Iterator iterator()>();
+
+     label22:
+        $z3 = interfaceinvoke $r15.<java.util.Iterator: boolean hasNext()>();
+
+        if $z3 == 0 goto label27;
+
+        $r17 = interfaceinvoke $r15.<java.util.Iterator: java.lang.Object next()>();
+
+        r59 = (ucar.nc2.Variable) $r17;
+
+        $r18 = virtualinvoke r59.<ucar.nc2.Variable: java.lang.Object getSPobject()>();
+
+        r60 = (ucar.nc2.iosp.netcdf3.N3header$Vinfo) $r18;
+
+        $z4 = r60.<ucar.nc2.iosp.netcdf3.N3header$Vinfo: boolean isRecord>;
+
+        if $z4 == 0 goto label26;
+
+        $r19 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $l8 = r60.<ucar.nc2.iosp.netcdf3.N3header$Vinfo: long begin>;
+
+        virtualinvoke $r19.<ucar.unidata.io.RandomAccessFile: void seek(long)>($l8);
+
+        if z0 == 0 goto label23;
+
+        $r24 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        virtualinvoke $r24.<ucar.unidata.io.RandomAccessFile: void writeLong(long)>(l39);
+
+        goto label24;
+
+     label23:
+        $r20 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $i9 = (int) l39;
+
+        virtualinvoke $r20.<ucar.unidata.io.RandomAccessFile: void writeInt(int)>($i9);
+
+     label24:
+        r60.<ucar.nc2.iosp.netcdf3.N3header$Vinfo: long begin> = l39;
+
+        if r11 == null goto label25;
+
+        $r21 = newarray (java.lang.Object)[2];
+
+        $r22 = virtualinvoke r59.<ucar.nc2.Variable: java.lang.String getName()>();
+
+        $r21[0] = $r22;
+
+        $l17 = r0.<ucar.nc2.iosp.netcdf3.N3header: long dataStart>;
+
+        $r23 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l17);
+
+        $r21[1] = $r23;
+
+        virtualinvoke r11.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>(" %s record begin at = %d\n", $r21);
+
+     label25:
+        $l10 = r60.<ucar.nc2.iosp.netcdf3.N3header$Vinfo: long vsize>;
+
+        l39 = l39 + $l10;
+
+        $l12 = r0.<ucar.nc2.iosp.netcdf3.N3header: long recsize>;
+
+        $l11 = r60.<ucar.nc2.iosp.netcdf3.N3header$Vinfo: long vsize>;
+
+        $l13 = $l12 + $l11;
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: long recsize> = $l13;
+
+        $l15 = r0.<ucar.nc2.iosp.netcdf3.N3header: long recStart>;
+
+        $l14 = r60.<ucar.nc2.iosp.netcdf3.N3header$Vinfo: long begin>;
+
+        $l16 = staticinvoke <java.lang.Math: long min(long,long)>($l15, $l14);
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: long recStart> = $l16;
+
+     label26:
+        goto label22;
+
+     label27:
+        $l2 = r0.<ucar.nc2.iosp.netcdf3.N3header: long nonRecordDataSize>;
+
+        $b3 = $l2 cmp 0L;
+
+        $i41 = (int) $b3;
+
+        if $i41 <= 0 goto label28;
+
+        $l6 = r0.<ucar.nc2.iosp.netcdf3.N3header: long nonRecordDataSize>;
+
+        $l5 = r0.<ucar.nc2.iosp.netcdf3.N3header: long dataStart>;
+
+        $l7 = $l6 - $l5;
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: long nonRecordDataSize> = $l7;
+
+     label28:
+        $r16 = r0.<ucar.nc2.iosp.netcdf3.N3header: java.util.List uvars>;
+
+        $i4 = interfaceinvoke $r16.<java.util.List: int size()>();
+
+        if $i4 != 0 goto label29;
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: long recStart> = 0L;
+
+     label29:
+        return;
+    }
+
+    int sizeHeader(boolean)
+    {
+        byte $b15;
+        boolean $z0, $z1, z2;
+        java.util.List $r2, $r5, $r7, $r11, $r12;
+        ucar.nc2.NetcdfFile $r1, $r4, $r6;
+        ucar.nc2.iosp.netcdf3.N3header r0;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, i7, i8, i9, i10, i11, i12, i13, i14;
+        ucar.nc2.Variable r16;
+        java.lang.String $r10, $r14;
+        java.util.Iterator $r3, $r8;
+        java.lang.Object $r9, $r13;
+        ucar.nc2.Dimension r15;
+
+        r0 := @this: ucar.nc2.iosp.netcdf3.N3header;
+
+        z2 := @parameter0: boolean;
+
+        i7 = 16;
+
+        $r1 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.nc2.NetcdfFile ncfile>;
+
+        $r2 = virtualinvoke $r1.<ucar.nc2.NetcdfFile: java.util.List getDimensions()>();
+
+        $r3 = interfaceinvoke $r2.<java.util.List: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r3.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label2;
+
+        $r13 = interfaceinvoke $r3.<java.util.Iterator: java.lang.Object next()>();
+
+        r15 = (ucar.nc2.Dimension) $r13;
+
+        $r14 = virtualinvoke r15.<ucar.nc2.Dimension: java.lang.String getName()>();
+
+        $i5 = specialinvoke r0.<ucar.nc2.iosp.netcdf3.N3header: int sizeString(java.lang.String)>($r14);
+
+        $i6 = $i5 + 4;
+
+        i7 = i7 + $i6;
+
+        goto label1;
+
+     label2:
+        $r4 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.nc2.NetcdfFile ncfile>;
+
+        $r5 = virtualinvoke $r4.<ucar.nc2.NetcdfFile: java.util.List getGlobalAttributes()>();
+
+        $i0 = specialinvoke r0.<ucar.nc2.iosp.netcdf3.N3header: int sizeAtts(java.util.List)>($r5);
+
+        i8 = i7 + $i0;
+
+        i9 = i8 + 8;
+
+        $r6 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.nc2.NetcdfFile ncfile>;
+
+        $r7 = virtualinvoke $r6.<ucar.nc2.NetcdfFile: java.util.List getVariables()>();
+
+        $r8 = interfaceinvoke $r7.<java.util.List: java.util.Iterator iterator()>();
+
+     label3:
+        $z1 = interfaceinvoke $r8.<java.util.Iterator: boolean hasNext()>();
+
+        if $z1 == 0 goto label6;
+
+        $r9 = interfaceinvoke $r8.<java.util.Iterator: java.lang.Object next()>();
+
+        r16 = (ucar.nc2.Variable) $r9;
+
+        $r10 = virtualinvoke r16.<ucar.nc2.Variable: java.lang.String getName()>();
+
+        $i1 = specialinvoke r0.<ucar.nc2.iosp.netcdf3.N3header: int sizeString(java.lang.String)>($r10);
+
+        i10 = i9 + $i1;
+
+        i11 = i10 + 4;
+
+        $r11 = virtualinvoke r16.<ucar.nc2.Variable: java.util.List getDimensions()>();
+
+        $i2 = interfaceinvoke $r11.<java.util.List: int size()>();
+
+        $i3 = 4 * $i2;
+
+        i12 = i11 + $i3;
+
+        $r12 = virtualinvoke r16.<ucar.nc2.Variable: java.util.List getAttributes()>();
+
+        $i4 = specialinvoke r0.<ucar.nc2.iosp.netcdf3.N3header: int sizeAtts(java.util.List)>($r12);
+
+        i13 = i12 + $i4;
+
+        i14 = i13 + 8;
+
+        if z2 == 0 goto label4;
+
+        $b15 = 8;
+
+        goto label5;
+
+     label4:
+        $b15 = 4;
+
+     label5:
+        i9 = i14 + $b15;
+
+        goto label3;
+
+     label6:
+        return i9;
+    }
+
+    private void writeAtts(java.util.List, java.util.Formatter) throws java.io.IOException
+    {
+        ucar.unidata.io.RandomAccessFile $r2, $r3, $r8, $r9, $r12, $r17, $r20, $r21;
+        java.lang.Object[] $r10, $r11, $r15;
+        long $l3, $l5;
+        java.lang.Integer $r16;
+        java.util.Formatter r4;
+        ucar.nc2.iosp.netcdf3.N3header r1;
+        java.lang.Long $r13, $r18;
+        int $i0, $i1, $i2, $i4, i6, i7, i8;
+        java.lang.String $r6;
+        java.lang.Number $r14;
+        ucar.ma2.DataType $r7;
+        java.util.List r0;
+        ucar.nc2.Attribute $r19;
+        java.lang.Object $r5;
+
+        r1 := @this: ucar.nc2.iosp.netcdf3.N3header;
+
+        r0 := @parameter0: java.util.List;
+
+        r4 := @parameter1: java.util.Formatter;
+
+        $i0 = interfaceinvoke r0.<java.util.List: int size()>();
+
+        if $i0 != 0 goto label01;
+
+        $r20 = r1.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        virtualinvoke $r20.<ucar.unidata.io.RandomAccessFile: void writeInt(int)>(0);
+
+        $r21 = r1.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        virtualinvoke $r21.<ucar.unidata.io.RandomAccessFile: void writeInt(int)>(0);
+
+        goto label02;
+
+     label01:
+        $r2 = r1.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        virtualinvoke $r2.<ucar.unidata.io.RandomAccessFile: void writeInt(int)>(12);
+
+        $r3 = r1.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        virtualinvoke $r3.<ucar.unidata.io.RandomAccessFile: void writeInt(int)>($i0);
+
+     label02:
+        i6 = 0;
+
+     label03:
+        if i6 >= $i0 goto label10;
+
+        if r4 == null goto label04;
+
+        $r15 = newarray (java.lang.Object)[2];
+
+        $r16 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i6);
+
+        $r15[0] = $r16;
+
+        $r17 = r1.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $l5 = virtualinvoke $r17.<ucar.unidata.io.RandomAccessFile: long getFilePointer()>();
+
+        $r18 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l5);
+
+        $r15[1] = $r18;
+
+        virtualinvoke r4.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("***att %d pos= %d\n", $r15);
+
+     label04:
+        $r5 = interfaceinvoke r0.<java.util.List: java.lang.Object get(int)>(i6);
+
+        $r19 = (ucar.nc2.Attribute) $r5;
+
+        $r6 = virtualinvoke $r19.<ucar.nc2.Attribute: java.lang.String getName()>();
+
+        specialinvoke r1.<ucar.nc2.iosp.netcdf3.N3header: void writeString(java.lang.String)>($r6);
+
+        $r7 = virtualinvoke $r19.<ucar.nc2.Attribute: ucar.ma2.DataType getDataType()>();
+
+        $i1 = staticinvoke <ucar.nc2.iosp.netcdf3.N3header: int getType(ucar.ma2.DataType)>($r7);
+
+        $r8 = r1.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        virtualinvoke $r8.<ucar.unidata.io.RandomAccessFile: void writeInt(int)>($i1);
+
+        if $i1 != 2 goto label05;
+
+        specialinvoke r1.<ucar.nc2.iosp.netcdf3.N3header: void writeStringValues(ucar.nc2.Attribute)>($r19);
+
+        goto label08;
+
+     label05:
+        $i2 = virtualinvoke $r19.<ucar.nc2.Attribute: int getLength()>();
+
+        $r9 = r1.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        virtualinvoke $r9.<ucar.unidata.io.RandomAccessFile: void writeInt(int)>($i2);
+
+        i7 = 0;
+
+        i8 = 0;
+
+     label06:
+        if i8 >= $i2 goto label07;
+
+        $r14 = virtualinvoke $r19.<ucar.nc2.Attribute: java.lang.Number getNumericValue(int)>(i8);
+
+        $i4 = specialinvoke r1.<ucar.nc2.iosp.netcdf3.N3header: int writeAttributeValue(java.lang.Number)>($r14);
+
+        i7 = i7 + $i4;
+
+        i8 = i8 + 1;
+
+        goto label06;
+
+     label07:
+        specialinvoke r1.<ucar.nc2.iosp.netcdf3.N3header: void pad(int,byte)>(i7, 0);
+
+        if r4 == null goto label08;
+
+        $r11 = newarray (java.lang.Object)[1];
+
+        $r12 = r1.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $l3 = virtualinvoke $r12.<ucar.unidata.io.RandomAccessFile: long getFilePointer()>();
+
+        $r13 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l3);
+
+        $r11[0] = $r13;
+
+        virtualinvoke r4.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>(" end write val pos= %d\n", $r11);
+
+     label08:
+        if r4 == null goto label09;
+
+        $r10 = newarray (java.lang.Object)[1];
+
+        $r10[0] = $r19;
+
+        virtualinvoke r4.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("  %s\n", $r10);
+
+     label09:
+        i6 = i6 + 1;
+
+        goto label03;
+
+     label10:
+        return;
+    }
+
+    private int sizeAtts(java.util.List)
+    {
+        ucar.nc2.iosp.netcdf3.N3header r4;
+        int $i0, $i1, $i2, $i3, $i4, $i5, i6, i7, i8, i9, i10, i11, i12;
+        java.lang.String $r5;
+        java.lang.Number $r7;
+        boolean $z0;
+        java.util.Iterator $r1;
+        ucar.ma2.DataType $r6;
+        java.util.List r0;
+        ucar.nc2.Attribute r3;
+        java.lang.Object $r2;
+
+        r4 := @this: ucar.nc2.iosp.netcdf3.N3header;
+
+        r0 := @parameter0: java.util.List;
+
+        i6 = 8;
+
+        $r1 = interfaceinvoke r0.<java.util.List: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r1.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label6;
+
+        $r2 = interfaceinvoke $r1.<java.util.Iterator: java.lang.Object next()>();
+
+        r3 = (ucar.nc2.Attribute) $r2;
+
+        $r5 = virtualinvoke r3.<ucar.nc2.Attribute: java.lang.String getName()>();
+
+        $i0 = specialinvoke r4.<ucar.nc2.iosp.netcdf3.N3header: int sizeString(java.lang.String)>($r5);
+
+        i7 = i6 + $i0;
+
+        i8 = i7 + 4;
+
+        $r6 = virtualinvoke r3.<ucar.nc2.Attribute: ucar.ma2.DataType getDataType()>();
+
+        $i1 = staticinvoke <ucar.nc2.iosp.netcdf3.N3header: int getType(ucar.ma2.DataType)>($r6);
+
+        if $i1 != 2 goto label2;
+
+        $i5 = specialinvoke r4.<ucar.nc2.iosp.netcdf3.N3header: int sizeStringValues(ucar.nc2.Attribute)>(r3);
+
+        i6 = i8 + $i5;
+
+        goto label5;
+
+     label2:
+        i9 = i8 + 4;
+
+        $i2 = virtualinvoke r3.<ucar.nc2.Attribute: int getLength()>();
+
+        i10 = 0;
+
+        i11 = 0;
+
+     label3:
+        if i11 >= $i2 goto label4;
+
+        $r7 = virtualinvoke r3.<ucar.nc2.Attribute: java.lang.Number getNumericValue(int)>(i11);
+
+        $i4 = specialinvoke r4.<ucar.nc2.iosp.netcdf3.N3header: int sizeAttributeValue(java.lang.Number)>($r7);
+
+        i10 = i10 + $i4;
+
+        i11 = i11 + 1;
+
+        goto label3;
+
+     label4:
+        i12 = i9 + i10;
+
+        $i3 = staticinvoke <ucar.nc2.iosp.netcdf3.N3header: int padding(int)>(i10);
+
+        i6 = i12 + $i3;
+
+     label5:
+        goto label1;
+
+     label6:
+        return i6;
+    }
+
+    private void writeStringValues(ucar.nc2.Attribute) throws java.io.IOException
+    {
+        ucar.nc2.iosp.netcdf3.N3header r2;
+        ucar.nc2.Attribute r0;
+        int $i0, i1;
+        java.lang.StringBuilder $r1;
+        java.lang.String $r3, $r4, $r5;
+
+        r2 := @this: ucar.nc2.iosp.netcdf3.N3header;
+
+        r0 := @parameter0: ucar.nc2.Attribute;
+
+        $i0 = virtualinvoke r0.<ucar.nc2.Attribute: int getLength()>();
+
+        if $i0 != 1 goto label1;
+
+        $r5 = virtualinvoke r0.<ucar.nc2.Attribute: java.lang.String getStringValue()>();
+
+        specialinvoke r2.<ucar.nc2.iosp.netcdf3.N3header: void writeString(java.lang.String)>($r5);
+
+        goto label4;
+
+     label1:
+        $r1 = new java.lang.StringBuilder;
+
+        specialinvoke $r1.<java.lang.StringBuilder: void <init>()>();
+
+        i1 = 0;
+
+     label2:
+        if i1 >= $i0 goto label3;
+
+        $r4 = virtualinvoke r0.<ucar.nc2.Attribute: java.lang.String getStringValue(int)>(i1);
+
+        virtualinvoke $r1.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r4);
+
+        i1 = i1 + 1;
+
+        goto label2;
+
+     label3:
+        $r3 = virtualinvoke $r1.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke r2.<ucar.nc2.iosp.netcdf3.N3header: void writeString(java.lang.String)>($r3);
+
+     label4:
+        return;
+    }
+
+    private int sizeStringValues(ucar.nc2.Attribute)
+    {
+        ucar.nc2.iosp.netcdf3.N3header r2;
+        ucar.nc2.Attribute r0;
+        int $i0, $i1, $i2, i3, i4;
+        java.lang.StringBuilder $r1;
+        java.lang.String $r3, $r4, $r5;
+
+        r2 := @this: ucar.nc2.iosp.netcdf3.N3header;
+
+        r0 := @parameter0: ucar.nc2.Attribute;
+
+        $i0 = virtualinvoke r0.<ucar.nc2.Attribute: int getLength()>();
+
+        if $i0 != 1 goto label1;
+
+        $r5 = virtualinvoke r0.<ucar.nc2.Attribute: java.lang.String getStringValue()>();
+
+        $i2 = specialinvoke r2.<ucar.nc2.iosp.netcdf3.N3header: int sizeString(java.lang.String)>($r5);
+
+        i3 = 0 + $i2;
+
+        goto label4;
+
+     label1:
+        $r1 = new java.lang.StringBuilder;
+
+        specialinvoke $r1.<java.lang.StringBuilder: void <init>()>();
+
+        i4 = 0;
+
+     label2:
+        if i4 >= $i0 goto label3;
+
+        $r4 = virtualinvoke r0.<ucar.nc2.Attribute: java.lang.String getStringValue(int)>(i4);
+
+        virtualinvoke $r1.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r4);
+
+        i4 = i4 + 1;
+
+        goto label2;
+
+     label3:
+        $r3 = virtualinvoke $r1.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $i1 = specialinvoke r2.<ucar.nc2.iosp.netcdf3.N3header: int sizeString(java.lang.String)>($r3);
+
+        i3 = 0 + $i1;
+
+     label4:
+        return i3;
+    }
+
+    private int writeAttributeValue(java.lang.Number) throws java.io.IOException
+    {
+        java.lang.IllegalStateException $r15;
+        ucar.unidata.io.RandomAccessFile $r9, $r10, $r11, $r12, $r13;
+        ucar.nc2.iosp.netcdf3.N3header r8;
+        short $s1;
+        byte $b2;
+        int $i0, $i3, $i4;
+        java.lang.String $r5, $r7;
+        java.lang.Number r0;
+        boolean $z0, $z1, $z2, $z3, $z4;
+        double $d0;
+        float $f0;
+        java.lang.StringBuilder $r3, $r6, $r14;
+        java.lang.Class $r4;
+
+        r8 := @this: ucar.nc2.iosp.netcdf3.N3header;
+
+        r0 := @parameter0: java.lang.Number;
+
+        $z0 = r0 instanceof java.lang.Byte;
+
+        if $z0 == 0 goto label1;
+
+        $r13 = r8.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $b2 = virtualinvoke r0.<java.lang.Number: byte byteValue()>();
+
+        $i3 = (int) $b2;
+
+        virtualinvoke $r13.<ucar.unidata.io.RandomAccessFile: void write(int)>($i3);
+
+        return 1;
+
+     label1:
+        $z1 = r0 instanceof java.lang.Short;
+
+        if $z1 == 0 goto label2;
+
+        $r12 = r8.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $s1 = virtualinvoke r0.<java.lang.Number: short shortValue()>();
+
+        $i4 = (int) $s1;
+
+        virtualinvoke $r12.<ucar.unidata.io.RandomAccessFile: void writeShort(int)>($i4);
+
+        return 2;
+
+     label2:
+        $z2 = r0 instanceof java.lang.Integer;
+
+        if $z2 == 0 goto label3;
+
+        $r11 = r8.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $i0 = virtualinvoke r0.<java.lang.Number: int intValue()>();
+
+        virtualinvoke $r11.<ucar.unidata.io.RandomAccessFile: void writeInt(int)>($i0);
+
+        return 4;
+
+     label3:
+        $z3 = r0 instanceof java.lang.Float;
+
+        if $z3 == 0 goto label4;
+
+        $r10 = r8.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $f0 = virtualinvoke r0.<java.lang.Number: float floatValue()>();
+
+        virtualinvoke $r10.<ucar.unidata.io.RandomAccessFile: void writeFloat(float)>($f0);
+
+        return 4;
+
+     label4:
+        $z4 = r0 instanceof java.lang.Double;
+
+        if $z4 == 0 goto label5;
+
+        $r9 = r8.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $d0 = virtualinvoke r0.<java.lang.Number: double doubleValue()>();
+
+        virtualinvoke $r9.<ucar.unidata.io.RandomAccessFile: void writeDouble(double)>($d0);
+
+        return 8;
+
+     label5:
+        $r15 = new java.lang.IllegalStateException;
+
+        $r14 = new java.lang.StringBuilder;
+
+        specialinvoke $r14.<java.lang.StringBuilder: void <init>()>();
+
+        $r3 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("unknown attribute type == ");
+
+        $r4 = virtualinvoke r0.<java.lang.Object: java.lang.Class getClass()>();
+
+        $r5 = virtualinvoke $r4.<java.lang.Class: java.lang.String getName()>();
+
+        $r6 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r5);
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r15.<java.lang.IllegalStateException: void <init>(java.lang.String)>($r7);
+
+        throw $r15;
+    }
+
+    private int sizeAttributeValue(java.lang.Number)
+    {
+        java.lang.IllegalStateException $r1;
+        ucar.nc2.iosp.netcdf3.N3header r8;
+        java.lang.StringBuilder $r2, $r3, $r6;
+        java.lang.Class $r4;
+        java.lang.String $r5, $r7;
+        java.lang.Number r0;
+        boolean $z0, $z1, $z2, $z3, $z4;
+
+        r8 := @this: ucar.nc2.iosp.netcdf3.N3header;
+
+        r0 := @parameter0: java.lang.Number;
+
+        $z0 = r0 instanceof java.lang.Byte;
+
+        if $z0 == 0 goto label1;
+
+        return 1;
+
+     label1:
+        $z1 = r0 instanceof java.lang.Short;
+
+        if $z1 == 0 goto label2;
+
+        return 2;
+
+     label2:
+        $z2 = r0 instanceof java.lang.Integer;
+
+        if $z2 == 0 goto label3;
+
+        return 4;
+
+     label3:
+        $z3 = r0 instanceof java.lang.Float;
+
+        if $z3 == 0 goto label4;
+
+        return 4;
+
+     label4:
+        $z4 = r0 instanceof java.lang.Double;
+
+        if $z4 == 0 goto label5;
+
+        return 8;
+
+     label5:
+        $r1 = new java.lang.IllegalStateException;
+
+        $r2 = new java.lang.StringBuilder;
+
+        specialinvoke $r2.<java.lang.StringBuilder: void <init>()>();
+
+        $r3 = virtualinvoke $r2.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("unknown attribute type == ");
+
+        $r4 = virtualinvoke r0.<java.lang.Object: java.lang.Class getClass()>();
+
+        $r5 = virtualinvoke $r4.<java.lang.Class: java.lang.String getName()>();
+
+        $r6 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r5);
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r1.<java.lang.IllegalStateException: void <init>(java.lang.String)>($r7);
+
+        throw $r1;
+    }
+
+    private void writeVars(java.util.List, boolean, java.util.Formatter) throws java.io.IOException
+    {
+        ucar.unidata.io.RandomAccessFile $r2, $r3, $r9, $r11, $r15, $r16, $r17, $r18, $r25, $r29, $r30, $r31;
+        java.util.Formatter r13;
+        byte $b7;
+        boolean $z0, z1, $z2, $z3;
+        ucar.ma2.DataType $r7, $r14, $r22, $r23, $r24;
+        java.util.List r0, $r8, $r12, $r19, $r20;
+        ucar.nc2.NetcdfFile $r28;
+        long $l4, $l5, $l8, $l12, l14, l15, l16;
+        ucar.nc2.iosp.netcdf3.N3header r1;
+        int $i0, $i1, $i2, $i3, $i6, $i9, $i10, $i11, i13, $i17, $i18, $i20;
+        ucar.nc2.Variable r5;
+        java.lang.String $r6;
+        ucar.nc2.iosp.netcdf3.N3header$Vinfo $r33;
+        java.util.Iterator $r10;
+        java.lang.Object $r4, $r21, $r26;
+        ucar.nc2.Dimension r27;
+
+        r1 := @this: ucar.nc2.iosp.netcdf3.N3header;
+
+        r0 := @parameter0: java.util.List;
+
+        z1 := @parameter1: boolean;
+
+        r13 := @parameter2: java.util.Formatter;
+
+        $i0 = interfaceinvoke r0.<java.util.List: int size()>();
+
+        if $i0 != 0 goto label01;
+
+        $r30 = r1.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        virtualinvoke $r30.<ucar.unidata.io.RandomAccessFile: void writeInt(int)>(0);
+
+        $r31 = r1.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        virtualinvoke $r31.<ucar.unidata.io.RandomAccessFile: void writeInt(int)>(0);
+
+        goto label02;
+
+     label01:
+        $r2 = r1.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        virtualinvoke $r2.<ucar.unidata.io.RandomAccessFile: void writeInt(int)>(11);
+
+        $r3 = r1.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        virtualinvoke $r3.<ucar.unidata.io.RandomAccessFile: void writeInt(int)>($i0);
+
+     label02:
+        i13 = 0;
+
+     label03:
+        if i13 >= $i0 goto label13;
+
+        $r4 = interfaceinvoke r0.<java.util.List: java.lang.Object get(int)>(i13);
+
+        r5 = (ucar.nc2.Variable) $r4;
+
+        $r6 = virtualinvoke r5.<ucar.nc2.Variable: java.lang.String getName()>();
+
+        specialinvoke r1.<ucar.nc2.iosp.netcdf3.N3header: void writeString(java.lang.String)>($r6);
+
+        $r7 = virtualinvoke r5.<ucar.nc2.Variable: ucar.ma2.DataType getDataType()>();
+
+        $i1 = virtualinvoke $r7.<ucar.ma2.DataType: int getSize()>();
+
+        l14 = (long) $i1;
+
+        $r8 = virtualinvoke r5.<ucar.nc2.Variable: java.util.List getDimensions()>();
+
+        $r9 = r1.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $i2 = interfaceinvoke $r8.<java.util.List: int size()>();
+
+        virtualinvoke $r9.<ucar.unidata.io.RandomAccessFile: void writeInt(int)>($i2);
+
+        $r10 = interfaceinvoke $r8.<java.util.List: java.util.Iterator iterator()>();
+
+     label04:
+        $z0 = interfaceinvoke $r10.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label06;
+
+        $r26 = interfaceinvoke $r10.<java.util.Iterator: java.lang.Object next()>();
+
+        r27 = (ucar.nc2.Dimension) $r26;
+
+        $r28 = r1.<ucar.nc2.iosp.netcdf3.N3header: ucar.nc2.NetcdfFile ncfile>;
+
+        $i10 = specialinvoke r1.<ucar.nc2.iosp.netcdf3.N3header: int findDimensionIndex(ucar.nc2.NetcdfFile,ucar.nc2.Dimension)>($r28, r27);
+
+        $r29 = r1.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        virtualinvoke $r29.<ucar.unidata.io.RandomAccessFile: void writeInt(int)>($i10);
+
+        $z2 = virtualinvoke r27.<ucar.nc2.Dimension: boolean isUnlimited()>();
+
+        if $z2 != 0 goto label05;
+
+        $i11 = virtualinvoke r27.<ucar.nc2.Dimension: int getLength()>();
+
+        $l12 = (long) $i11;
+
+        l14 = l14 * $l12;
+
+     label05:
+        goto label04;
+
+     label06:
+        l15 = l14;
+
+        $i3 = staticinvoke <ucar.nc2.iosp.netcdf3.N3header: int padding(long)>(l14);
+
+        $l4 = (long) $i3;
+
+        l16 = l14 + $l4;
+
+        $r11 = r1.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $l5 = virtualinvoke $r11.<ucar.unidata.io.RandomAccessFile: long getFilePointer()>();
+
+        $r12 = virtualinvoke r5.<ucar.nc2.Variable: java.util.List getAttributes()>();
+
+        specialinvoke r1.<ucar.nc2.iosp.netcdf3.N3header: void writeAtts(java.util.List,java.util.Formatter)>($r12, r13);
+
+        $r14 = virtualinvoke r5.<ucar.nc2.Variable: ucar.ma2.DataType getDataType()>();
+
+        $i6 = staticinvoke <ucar.nc2.iosp.netcdf3.N3header: int getType(ucar.ma2.DataType)>($r14);
+
+        $r15 = r1.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        virtualinvoke $r15.<ucar.unidata.io.RandomAccessFile: void writeInt(int)>($i6);
+
+        $b7 = l16 cmp 4294967295L;
+
+        $i18 = (int) $b7;
+
+        if $i18 >= 0 goto label07;
+
+        $i17 = (int) l16;
+
+        goto label08;
+
+     label07:
+        $i20 = (int) -1;
+
+        $i17 = $i20;
+
+     label08:
+        $r16 = r1.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        virtualinvoke $r16.<ucar.unidata.io.RandomAccessFile: void writeInt(int)>($i17);
+
+        $r17 = r1.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $l8 = virtualinvoke $r17.<ucar.unidata.io.RandomAccessFile: long getFilePointer()>();
+
+        if z1 == 0 goto label09;
+
+        $r25 = r1.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        virtualinvoke $r25.<ucar.unidata.io.RandomAccessFile: void writeLong(long)>(0L);
+
+        goto label10;
+
+     label09:
+        $r18 = r1.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        virtualinvoke $r18.<ucar.unidata.io.RandomAccessFile: void writeInt(int)>(0);
+
+     label10:
+        $r19 = r1.<ucar.nc2.iosp.netcdf3.N3header: java.util.List uvars>;
+
+        $i9 = interfaceinvoke $r19.<java.util.List: int size()>();
+
+        if $i9 != 1 goto label12;
+
+        $r20 = r1.<ucar.nc2.iosp.netcdf3.N3header: java.util.List uvars>;
+
+        $r21 = interfaceinvoke $r20.<java.util.List: java.lang.Object get(int)>(0);
+
+        if $r21 != r5 goto label12;
+
+        $r22 = <ucar.ma2.DataType: ucar.ma2.DataType CHAR>;
+
+        if $r14 == $r22 goto label11;
+
+        $r23 = <ucar.ma2.DataType: ucar.ma2.DataType BYTE>;
+
+        if $r14 == $r23 goto label11;
+
+        $r24 = <ucar.ma2.DataType: ucar.ma2.DataType SHORT>;
+
+        if $r14 != $r24 goto label12;
+
+     label11:
+        l16 = l15;
+
+     label12:
+        $r33 = new ucar.nc2.iosp.netcdf3.N3header$Vinfo;
+
+        $z3 = virtualinvoke r5.<ucar.nc2.Variable: boolean isUnlimited()>();
+
+        specialinvoke $r33.<ucar.nc2.iosp.netcdf3.N3header$Vinfo: void <init>(long,long,boolean,long)>(l16, $l8, $z3, $l5);
+
+        virtualinvoke r5.<ucar.nc2.Variable: void setSPobject(java.lang.Object)>($r33);
+
+        i13 = i13 + 1;
+
+        goto label03;
+
+     label13:
+        return;
+    }
+
+    private void writeString(java.lang.String) throws java.io.IOException
+    {
+        ucar.nc2.iosp.netcdf3.N3header r2;
+        byte[] $r1;
+        ucar.unidata.io.RandomAccessFile $r3, $r4;
+        int $i0, $i1;
+        java.lang.String r0;
+
+        r2 := @this: ucar.nc2.iosp.netcdf3.N3header;
+
+        r0 := @parameter0: java.lang.String;
+
+        $r1 = virtualinvoke r0.<java.lang.String: byte[] getBytes(java.lang.String)>("UTF-8");
+
+        $r3 = r2.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $i0 = lengthof $r1;
+
+        virtualinvoke $r3.<ucar.unidata.io.RandomAccessFile: void writeInt(int)>($i0);
+
+        $r4 = r2.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        virtualinvoke $r4.<ucar.unidata.io.RandomAccessFile: void write(byte[])>($r1);
+
+        $i1 = lengthof $r1;
+
+        specialinvoke r2.<ucar.nc2.iosp.netcdf3.N3header: void pad(int,byte)>($i1, 0);
+
+        return;
+    }
+
+    private int sizeString(java.lang.String)
+    {
+        ucar.nc2.iosp.netcdf3.N3header r1;
+        int $i0, i1, $i2, $i3, $i4;
+        java.lang.String r0;
+
+        r1 := @this: ucar.nc2.iosp.netcdf3.N3header;
+
+        r0 := @parameter0: java.lang.String;
+
+        $i0 = virtualinvoke r0.<java.lang.String: int length()>();
+
+        i1 = $i0 + 4;
+
+        $i2 = virtualinvoke r0.<java.lang.String: int length()>();
+
+        $i3 = staticinvoke <ucar.nc2.iosp.netcdf3.N3header: int padding(int)>($i2);
+
+        $i4 = i1 + $i3;
+
+        return $i4;
+    }
+
+    private int findDimensionIndex(ucar.nc2.NetcdfFile, ucar.nc2.Dimension)
+    {
+        java.lang.IllegalStateException $r2;
+        ucar.nc2.iosp.netcdf3.N3header r10;
+        java.util.List $r1;
+        int $i0, i1;
+        java.lang.StringBuilder $r3, $r4, $r6;
+        ucar.nc2.Dimension r5, r9;
+        java.lang.Object $r8;
+        ucar.nc2.NetcdfFile r0;
+        java.lang.String $r7;
+        boolean $z0;
+
+        r10 := @this: ucar.nc2.iosp.netcdf3.N3header;
+
+        r0 := @parameter0: ucar.nc2.NetcdfFile;
+
+        r5 := @parameter1: ucar.nc2.Dimension;
+
+        $r1 = virtualinvoke r0.<ucar.nc2.NetcdfFile: java.util.List getDimensions()>();
+
+        i1 = 0;
+
+     label1:
+        $i0 = interfaceinvoke $r1.<java.util.List: int size()>();
+
+        if i1 >= $i0 goto label3;
+
+        $r8 = interfaceinvoke $r1.<java.util.List: java.lang.Object get(int)>(i1);
+
+        r9 = (ucar.nc2.Dimension) $r8;
+
+        $z0 = virtualinvoke r9.<ucar.nc2.Dimension: boolean equals(java.lang.Object)>(r5);
+
+        if $z0 == 0 goto label2;
+
+        return i1;
+
+     label2:
+        i1 = i1 + 1;
+
+        goto label1;
+
+     label3:
+        $r2 = new java.lang.IllegalStateException;
+
+        $r3 = new java.lang.StringBuilder;
+
+        specialinvoke $r3.<java.lang.StringBuilder: void <init>()>();
+
+        $r4 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("unknown Dimension == ");
+
+        $r6 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r5);
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r2.<java.lang.IllegalStateException: void <init>(java.lang.String)>($r7);
+
+        throw $r2;
+    }
+
+    private void pad(int, byte) throws java.io.IOException
+    {
+        ucar.nc2.iosp.netcdf3.N3header r0;
+        ucar.unidata.io.RandomAccessFile $r1;
+        byte b2;
+        int i0, $i1, i3, $i4;
+
+        r0 := @this: ucar.nc2.iosp.netcdf3.N3header;
+
+        i0 := @parameter0: int;
+
+        b2 := @parameter1: byte;
+
+        $i1 = staticinvoke <ucar.nc2.iosp.netcdf3.N3header: int padding(int)>(i0);
+
+        i3 = 0;
+
+     label1:
+        if i3 >= $i1 goto label2;
+
+        $r1 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $i4 = (int) b2;
+
+        virtualinvoke $r1.<ucar.unidata.io.RandomAccessFile: void write(int)>($i4);
+
+        i3 = i3 + 1;
+
+        goto label1;
+
+     label2:
+        return;
+    }
+
+    void writeNumrecs() throws java.io.IOException
+    {
+        ucar.nc2.iosp.netcdf3.N3header r0;
+        ucar.unidata.io.RandomAccessFile $r1, $r2;
+        int $i0;
+
+        r0 := @this: ucar.nc2.iosp.netcdf3.N3header;
+
+        $r1 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        virtualinvoke $r1.<ucar.unidata.io.RandomAccessFile: void seek(long)>(4L);
+
+        $r2 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $i0 = r0.<ucar.nc2.iosp.netcdf3.N3header: int numrecs>;
+
+        virtualinvoke $r2.<ucar.unidata.io.RandomAccessFile: void writeInt(int)>($i0);
+
+        return;
+    }
+
+    void setNumrecs(int) throws java.io.IOException
+    {
+        ucar.nc2.iosp.netcdf3.N3header r0;
+        int i0;
+
+        r0 := @this: ucar.nc2.iosp.netcdf3.N3header;
+
+        i0 := @parameter0: int;
+
+        r0.<ucar.nc2.iosp.netcdf3.N3header: int numrecs> = i0;
+
+        return;
+    }
+
+    synchronized boolean synchNumrecs() throws java.io.IOException
+    {
+        ucar.unidata.io.RandomAccessFile $r1;
+        java.util.Iterator $r4;
+        ucar.nc2.iosp.netcdf3.N3header r0;
+        java.util.List $r3;
+        int $i0, $i1, $i2;
+        ucar.nc2.Dimension $r2;
+        java.lang.Object $r5;
+        ucar.nc2.Variable r6;
+        boolean $z0;
+
+        r0 := @this: ucar.nc2.iosp.netcdf3.N3header;
+
+        $r1 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $i0 = virtualinvoke $r1.<ucar.unidata.io.RandomAccessFile: int readIntUnbuffered(long)>(4L);
+
+        $i1 = r0.<ucar.nc2.iosp.netcdf3.N3header: int numrecs>;
+
+        if $i0 != $i1 goto label1;
+
+        return 0;
+
+     label1:
+        if $i0 >= 0 goto label2;
+
+        return 0;
+
+     label2:
+        r0.<ucar.nc2.iosp.netcdf3.N3header: int numrecs> = $i0;
+
+        $r2 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.nc2.Dimension udim>;
+
+        $i2 = r0.<ucar.nc2.iosp.netcdf3.N3header: int numrecs>;
+
+        virtualinvoke $r2.<ucar.nc2.Dimension: void setLength(int)>($i2);
+
+        $r3 = r0.<ucar.nc2.iosp.netcdf3.N3header: java.util.List uvars>;
+
+        $r4 = interfaceinvoke $r3.<java.util.List: java.util.Iterator iterator()>();
+
+     label3:
+        $z0 = interfaceinvoke $r4.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label4;
+
+        $r5 = interfaceinvoke $r4.<java.util.Iterator: java.lang.Object next()>();
+
+        r6 = (ucar.nc2.Variable) $r5;
+
+        virtualinvoke r6.<ucar.nc2.Variable: void resetShape()>();
+
+        virtualinvoke r6.<ucar.nc2.Variable: void invalidateCache()>();
+
+        goto label3;
+
+     label4:
+        return 1;
+    }
+
+    void updateAttribute(ucar.nc2.Variable, ucar.nc2.Attribute) throws java.io.IOException
+    {
+        byte[] $r17;
+        ucar.unidata.io.RandomAccessFile $r5, $r6, $r10, $r13, $r14, $r15, $r16;
+        byte $b10;
+        ucar.ma2.DataType $r7, $r8, $r9, r25;
+        ucar.nc2.Attribute r3;
+        java.lang.StringBuilder $r19, $r20, $r21;
+        long $l0, $l11, $l12, l13;
+        ucar.nc2.iosp.netcdf3.N3header r2;
+        int $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, i14, i15, i16;
+        ucar.nc2.Variable r0;
+        java.lang.String $r4, $r12, $r22, $r23;
+        java.lang.Number $r11;
+        ucar.nc2.iosp.netcdf3.N3header$Vinfo r24;
+        char $c9;
+        java.lang.IllegalArgumentException $r18;
+        java.lang.Object $r1;
+
+        r2 := @this: ucar.nc2.iosp.netcdf3.N3header;
+
+        r0 := @parameter0: ucar.nc2.Variable;
+
+        r3 := @parameter1: ucar.nc2.Attribute;
+
+        if r0 != null goto label01;
+
+        $l12 = r2.<ucar.nc2.iosp.netcdf3.N3header: long globalAttsPos>;
+
+        $r23 = virtualinvoke r3.<ucar.nc2.Attribute: java.lang.String getName()>();
+
+        l13 = specialinvoke r2.<ucar.nc2.iosp.netcdf3.N3header: long findAtt(long,java.lang.String)>($l12, $r23);
+
+        goto label02;
+
+     label01:
+        $r1 = virtualinvoke r0.<ucar.nc2.Variable: java.lang.Object getSPobject()>();
+
+        r24 = (ucar.nc2.iosp.netcdf3.N3header$Vinfo) $r1;
+
+        $l0 = r24.<ucar.nc2.iosp.netcdf3.N3header$Vinfo: long attsPos>;
+
+        $r4 = virtualinvoke r3.<ucar.nc2.Attribute: java.lang.String getName()>();
+
+        l13 = specialinvoke r2.<ucar.nc2.iosp.netcdf3.N3header: long findAtt(long,java.lang.String)>($l0, $r4);
+
+     label02:
+        $r5 = r2.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        virtualinvoke $r5.<ucar.unidata.io.RandomAccessFile: void seek(long)>(l13);
+
+        $r6 = r2.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $i1 = virtualinvoke $r6.<ucar.unidata.io.RandomAccessFile: int readInt()>();
+
+        $r7 = specialinvoke r2.<ucar.nc2.iosp.netcdf3.N3header: ucar.ma2.DataType getDataType(int)>($i1);
+
+        $r8 = virtualinvoke r3.<ucar.nc2.Attribute: ucar.ma2.DataType getDataType()>();
+
+        r25 = $r8;
+
+        $r9 = <ucar.ma2.DataType: ucar.ma2.DataType STRING>;
+
+        if $r8 != $r9 goto label03;
+
+        r25 = <ucar.ma2.DataType: ucar.ma2.DataType CHAR>;
+
+     label03:
+        if r25 == $r7 goto label04;
+
+        $r18 = new java.lang.IllegalArgumentException;
+
+        $r19 = new java.lang.StringBuilder;
+
+        specialinvoke $r19.<java.lang.StringBuilder: void <init>()>();
+
+        $r20 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Update Attribute must have same type or original = ");
+
+        $r21 = virtualinvoke $r20.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r7);
+
+        $r22 = virtualinvoke $r21.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r18.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>($r22);
+
+        throw $r18;
+
+     label04:
+        if $i1 != 2 goto label08;
+
+        $r12 = virtualinvoke r3.<ucar.nc2.Attribute: java.lang.String getStringValue()>();
+
+        $r13 = r2.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $i5 = virtualinvoke $r13.<ucar.unidata.io.RandomAccessFile: int readInt()>();
+
+        $i6 = staticinvoke <ucar.nc2.iosp.netcdf3.N3header: int padding(int)>($i5);
+
+        i14 = $i5 + $i6;
+
+        $i7 = virtualinvoke $r12.<java.lang.String: int length()>();
+
+        $i8 = staticinvoke <java.lang.Math: int min(int,int)>(i14, $i7);
+
+        if $i8 <= $i5 goto label05;
+
+        $r15 = r2.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $l11 = l13 + 4L;
+
+        virtualinvoke $r15.<ucar.unidata.io.RandomAccessFile: void seek(long)>($l11);
+
+        $r16 = r2.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        virtualinvoke $r16.<ucar.unidata.io.RandomAccessFile: void writeInt(int)>($i8);
+
+     label05:
+        $r17 = newarray (byte)[i14];
+
+        i15 = 0;
+
+     label06:
+        if i15 >= $i8 goto label07;
+
+        $c9 = virtualinvoke $r12.<java.lang.String: char charAt(int)>(i15);
+
+        $b10 = (byte) $c9;
+
+        $r17[i15] = $b10;
+
+        i15 = i15 + 1;
+
+        goto label06;
+
+     label07:
+        $r14 = r2.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        virtualinvoke $r14.<ucar.unidata.io.RandomAccessFile: void write(byte[])>($r17);
+
+        goto label10;
+
+     label08:
+        $r10 = r2.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $i2 = virtualinvoke $r10.<ucar.unidata.io.RandomAccessFile: int readInt()>();
+
+        $i3 = virtualinvoke r3.<ucar.nc2.Attribute: int getLength()>();
+
+        $i4 = staticinvoke <java.lang.Math: int min(int,int)>($i2, $i3);
+
+        i16 = 0;
+
+     label09:
+        if i16 >= $i4 goto label10;
+
+        $r11 = virtualinvoke r3.<ucar.nc2.Attribute: java.lang.Number getNumericValue(int)>(i16);
+
+        specialinvoke r2.<ucar.nc2.iosp.netcdf3.N3header: int writeAttributeValue(java.lang.Number)>($r11);
+
+        i16 = i16 + 1;
+
+        goto label09;
+
+     label10:
+        return;
+    }
+
+    private long findAtt(long, java.lang.String) throws java.io.IOException
+    {
+        ucar.unidata.io.RandomAccessFile $r1, $r2, $r10, $r11, $r17;
+        long l0, $l1, $l6;
+        ucar.nc2.iosp.netcdf3.N3header r0;
+        int[] $r13;
+        int $i2, $i3, $i4, $i5, i7, i8, i9;
+        java.lang.String r6, $r8, $r9;
+        boolean $z0;
+        ucar.ma2.IndexIterator $r16;
+        ucar.ma2.DataType $r12;
+        java.lang.IllegalArgumentException $r3;
+        ucar.ma2.Array $r15;
+        java.lang.StringBuilder $r4, $r5, $r7;
+        java.lang.Class $r14;
+
+        r0 := @this: ucar.nc2.iosp.netcdf3.N3header;
+
+        l0 := @parameter0: long;
+
+        r6 := @parameter1: java.lang.String;
+
+        $r1 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $l1 = l0 + 4L;
+
+        virtualinvoke $r1.<ucar.unidata.io.RandomAccessFile: void seek(long)>($l1);
+
+        $r2 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $i2 = virtualinvoke $r2.<ucar.unidata.io.RandomAccessFile: int readInt()>();
+
+        i7 = 0;
+
+     label1:
+        if i7 >= $i2 goto label7;
+
+        $r9 = specialinvoke r0.<ucar.nc2.iosp.netcdf3.N3header: java.lang.String readString()>();
+
+        $z0 = virtualinvoke $r9.<java.lang.String: boolean equals(java.lang.Object)>(r6);
+
+        if $z0 == 0 goto label2;
+
+        $r17 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $l6 = virtualinvoke $r17.<ucar.unidata.io.RandomAccessFile: long getFilePointer()>();
+
+        return $l6;
+
+     label2:
+        $r10 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $i3 = virtualinvoke $r10.<ucar.unidata.io.RandomAccessFile: int readInt()>();
+
+        if $i3 != 2 goto label3;
+
+        specialinvoke r0.<ucar.nc2.iosp.netcdf3.N3header: java.lang.String readString()>();
+
+        goto label6;
+
+     label3:
+        $r11 = r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $i4 = virtualinvoke $r11.<ucar.unidata.io.RandomAccessFile: int readInt()>();
+
+        $r12 = specialinvoke r0.<ucar.nc2.iosp.netcdf3.N3header: ucar.ma2.DataType getDataType(int)>($i3);
+
+        $r13 = newarray (int)[1];
+
+        $r13[0] = $i4;
+
+        $r14 = virtualinvoke $r12.<ucar.ma2.DataType: java.lang.Class getPrimitiveClassType()>();
+
+        $r15 = staticinvoke <ucar.ma2.Array: ucar.ma2.Array factory(java.lang.Class,int[])>($r14, $r13);
+
+        $r16 = virtualinvoke $r15.<ucar.ma2.Array: ucar.ma2.IndexIterator getIndexIterator()>();
+
+        i8 = 0;
+
+        i9 = 0;
+
+     label4:
+        if i9 >= $i4 goto label5;
+
+        $i5 = specialinvoke r0.<ucar.nc2.iosp.netcdf3.N3header: int readAttributeValue(ucar.ma2.DataType,ucar.ma2.IndexIterator)>($r12, $r16);
+
+        i8 = i8 + $i5;
+
+        i9 = i9 + 1;
+
+        goto label4;
+
+     label5:
+        specialinvoke r0.<ucar.nc2.iosp.netcdf3.N3header: void skip(int)>(i8);
+
+     label6:
+        i7 = i7 + 1;
+
+        goto label1;
+
+     label7:
+        $r3 = new java.lang.IllegalArgumentException;
+
+        $r4 = new java.lang.StringBuilder;
+
+        specialinvoke $r4.<java.lang.StringBuilder: void <init>()>();
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("no such attribute ");
+
+        $r7 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r6);
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r3.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>($r8);
+
+        throw $r3;
+    }
+
+    private static void dump(java.lang.String) throws java.io.IOException
+    {
+        java.io.PrintStream $r2, $r7;
+        ucar.unidata.io.RandomAccessFile $r3;
+        java.lang.Object[] $r0;
+        ucar.nc2.iosp.netcdf3.N3header$MyNetcdfFile $r4;
+        java.util.Formatter $r6;
+        ucar.nc2.iosp.netcdf3.N3header $r5;
+        java.lang.String r1;
+
+        r1 := @parameter0: java.lang.String;
+
+        $r2 = <java.lang.System: java.io.PrintStream out>;
+
+        $r0 = newarray (java.lang.Object)[1];
+
+        $r0[0] = r1;
+
+        virtualinvoke $r2.<java.io.PrintStream: java.io.PrintStream printf(java.lang.String,java.lang.Object[])>("Dump %s%n", $r0);
+
+        $r3 = new ucar.unidata.io.RandomAccessFile;
+
+        specialinvoke $r3.<ucar.unidata.io.RandomAccessFile: void <init>(java.lang.String,java.lang.String)>(r1, "r");
+
+        $r4 = new ucar.nc2.iosp.netcdf3.N3header$MyNetcdfFile;
+
+        specialinvoke $r4.<ucar.nc2.iosp.netcdf3.N3header$MyNetcdfFile: void <init>(ucar.nc2.iosp.netcdf3.N3header$1)>(null);
+
+        virtualinvoke $r3.<ucar.unidata.io.RandomAccessFile: void order(int)>(0);
+
+        $r5 = new ucar.nc2.iosp.netcdf3.N3header;
+
+        specialinvoke $r5.<ucar.nc2.iosp.netcdf3.N3header: void <init>()>();
+
+        $r6 = new java.util.Formatter;
+
+        $r7 = <java.lang.System: java.io.PrintStream out>;
+
+        specialinvoke $r6.<java.util.Formatter: void <init>(java.io.PrintStream)>($r7);
+
+        virtualinvoke $r5.<ucar.nc2.iosp.netcdf3.N3header: void read(ucar.unidata.io.RandomAccessFile,ucar.nc2.NetcdfFile,java.util.Formatter)>($r3, $r4, $r6);
+
+        virtualinvoke $r3.<ucar.unidata.io.RandomAccessFile: void close()>();
+
+        return;
+    }
+
+    public static void main(java.lang.String[]) throws java.io.IOException
+    {
+        java.lang.String[] r0;
+
+        r0 := @parameter0: java.lang.String[];
+
+        staticinvoke <ucar.nc2.iosp.netcdf3.N3header: void dump(java.lang.String)>("D:/work/csiro/testWrite.nc");
+
+        return;
+    }
+
+    static void <clinit>()
+    {
+        byte[] $r1, $r2;
+        org.slf4j.Logger $r0;
+
+        <ucar.nc2.iosp.netcdf3.N3header: int MAGIC_ATT> = 12;
+
+        <ucar.nc2.iosp.netcdf3.N3header: int MAGIC_VAR> = 11;
+
+        <ucar.nc2.iosp.netcdf3.N3header: int MAGIC_DIM> = 10;
+
+        <ucar.nc2.iosp.netcdf3.N3header: long MAX_UNSIGNED_INT> = 4294967295L;
+
+        $r0 = staticinvoke <org.slf4j.LoggerFactory: org.slf4j.Logger getLogger(java.lang.Class)>(class "Lucar/nc2/iosp/netcdf3/N3header;");
+
+        <ucar.nc2.iosp.netcdf3.N3header: org.slf4j.Logger log> = $r0;
+
+        $r1 = newarray (byte)[4];
+
+        $r1[0] = 67;
+
+        $r1[1] = 68;
+
+        $r1[2] = 70;
+
+        $r1[3] = 1;
+
+        <ucar.nc2.iosp.netcdf3.N3header: byte[] MAGIC> = $r1;
+
+        $r2 = newarray (byte)[4];
+
+        $r2[0] = 67;
+
+        $r2[1] = 68;
+
+        $r2[2] = 70;
+
+        $r2[3] = 2;
+
+        <ucar.nc2.iosp.netcdf3.N3header: byte[] MAGIC_LONG> = $r2;
+
+        <ucar.nc2.iosp.netcdf3.N3header: boolean disallowFileTruncation> = 0;
+
+        <ucar.nc2.iosp.netcdf3.N3header: boolean debugHeaderSize> = 0;
+
+        <ucar.nc2.iosp.netcdf3.N3header: boolean debugVariablePos> = 0;
+
+        <ucar.nc2.iosp.netcdf3.N3header: boolean debugStreaming> = 0;
+
+        return;
+    }
+}

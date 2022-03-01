@@ -1,0 +1,1223 @@
+public class org.eclipse.jdt.internal.compiler.parser.RecoveryScanner extends org.eclipse.jdt.internal.compiler.parser.Scanner
+{
+    public static final char[] FAKE_IDENTIFIER;
+    private org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data;
+    private int[] pendingTokens;
+    private int pendingTokensPtr;
+    private char[] fakeTokenSource;
+    private boolean isInserted;
+    private boolean precededByRemoved;
+    private int skipNextInsertedTokens;
+    public boolean record;
+
+    static void <clinit>()
+    {
+        char[] $r1;
+        java.lang.String $r0;
+
+        $r0 = "$missing$";
+
+        $r1 = virtualinvoke $r0.<java.lang.String: char[] toCharArray()>();
+
+        <org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: char[] FAKE_IDENTIFIER> = $r1;
+
+        return;
+    }
+
+    public void <init>(org.eclipse.jdt.internal.compiler.parser.Scanner, org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData)
+    {
+        org.eclipse.jdt.internal.compiler.parser.Scanner r1;
+        long $l0, $l1;
+        char[][] $r2, $r3;
+        org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData r4;
+        org.eclipse.jdt.internal.compiler.parser.RecoveryScanner r0;
+        int $i3, $i5;
+        boolean $z0, $z1, $z2;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.parser.RecoveryScanner;
+
+        r1 := @parameter0: org.eclipse.jdt.internal.compiler.parser.Scanner;
+
+        r4 := @parameter1: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData;
+
+        $z2 = r1.<org.eclipse.jdt.internal.compiler.parser.Scanner: boolean tokenizeWhiteSpace>;
+
+        $z1 = r1.<org.eclipse.jdt.internal.compiler.parser.Scanner: boolean checkNonExternalizedStringLiterals>;
+
+        $l1 = r1.<org.eclipse.jdt.internal.compiler.parser.Scanner: long sourceLevel>;
+
+        $l0 = r1.<org.eclipse.jdt.internal.compiler.parser.Scanner: long complianceLevel>;
+
+        $r3 = r1.<org.eclipse.jdt.internal.compiler.parser.Scanner: char[][] taskTags>;
+
+        $r2 = r1.<org.eclipse.jdt.internal.compiler.parser.Scanner: char[][] taskPriorities>;
+
+        $z0 = r1.<org.eclipse.jdt.internal.compiler.parser.Scanner: boolean isTaskCaseSensitive>;
+
+        specialinvoke r0.<org.eclipse.jdt.internal.compiler.parser.Scanner: void <init>(boolean,boolean,boolean,long,long,char[][],char[][],boolean)>(0, $z2, $z1, $l1, $l0, $r3, $r2, $z0);
+
+        $i3 = (int) -1;
+
+        r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: int pendingTokensPtr> = $i3;
+
+        r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: char[] fakeTokenSource> = null;
+
+        r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: boolean isInserted> = 1;
+
+        r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: boolean precededByRemoved> = 0;
+
+        $i5 = (int) -1;
+
+        r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: int skipNextInsertedTokens> = $i5;
+
+        r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: boolean record> = 1;
+
+        virtualinvoke r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: void setData(org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData)>(r4);
+
+        return;
+    }
+
+    public void insertToken(int, int, int)
+    {
+        int[] $r1;
+        int i0, i1, i2;
+        org.eclipse.jdt.internal.compiler.parser.RecoveryScanner r0;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.parser.RecoveryScanner;
+
+        i0 := @parameter0: int;
+
+        i1 := @parameter1: int;
+
+        i2 := @parameter2: int;
+
+        $r1 = newarray (int)[1];
+
+        $r1[0] = i0;
+
+        virtualinvoke r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: void insertTokens(int[],int,int)>($r1, i1, i2);
+
+        return;
+    }
+
+    private int[] reverse(int[])
+    {
+        org.eclipse.jdt.internal.compiler.parser.RecoveryScanner r1;
+        int[] r0;
+        int i0, i1, i2, $i3, $i4, $i5, $i6, $i7, i8;
+
+        r1 := @this: org.eclipse.jdt.internal.compiler.parser.RecoveryScanner;
+
+        r0 := @parameter0: int[];
+
+        i0 = lengthof r0;
+
+        i8 = 0;
+
+        i1 = i0 / 2;
+
+        goto label2;
+
+     label1:
+        i2 = r0[i8];
+
+        $i3 = i0 - i8;
+
+        $i4 = $i3 - 1;
+
+        $i5 = r0[$i4];
+
+        r0[i8] = $i5;
+
+        $i6 = i0 - i8;
+
+        $i7 = $i6 - 1;
+
+        r0[$i7] = i2;
+
+        i8 = i8 + 1;
+
+     label2:
+        if i8 < i1 goto label1;
+
+        return r0;
+    }
+
+    public void insertTokens(int[], int, int)
+    {
+        int[][] $r3, $r5, $r9, $r11, $r13, $r22, $r30;
+        org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData $r1, $r2, $r4, $r6, $r8, $r10, $r12, $r14, $r16, $r18, $r20, $r23, $r25, $r27, $r29, $r31, $r33, $r35, $r36, $r38;
+        int[] r7, $r15, $r17, $r24, $r32, $r34;
+        boolean $z0;
+        int i0, $i1, $i2, $i3, $i4, i5, i6, $i7, $i8, $i9, $i11, $i12, $i13, $i15;
+        boolean[] $r19, $r21, $r26, $r37;
+        char $c10;
+        org.eclipse.jdt.internal.compiler.parser.RecoveryScanner r0;
+        char[] $r28;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.parser.RecoveryScanner;
+
+        r7 := @parameter0: int[];
+
+        i0 := @parameter1: int;
+
+        i5 := @parameter2: int;
+
+        $z0 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: boolean record>;
+
+        if $z0 != 0 goto label1;
+
+        return;
+
+     label1:
+        $i15 = (int) -1;
+
+        if i0 <= $i15 goto label2;
+
+        $r28 = <org.eclipse.jdt.internal.compiler.parser.Parser: char[] statements_recovery_filter>;
+
+        $c10 = $r28[i0];
+
+        if $c10 == 0 goto label2;
+
+        return;
+
+     label2:
+        $r1 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $i1 = $r1.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int insertedTokensPtr>;
+
+        $i2 = $i1 + 1;
+
+        $r1.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int insertedTokensPtr> = $i2;
+
+        $r2 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r3 = $r2.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[][] insertedTokens>;
+
+        if $r3 != null goto label3;
+
+        $r23 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r22 = newarray (int[])[10];
+
+        $r23.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[][] insertedTokens> = $r22;
+
+        $r25 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r24 = newarray (int)[10];
+
+        $r25.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] insertedTokensPosition> = $r24;
+
+        $r27 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r26 = newarray (boolean)[10];
+
+        $r27.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: boolean[] insertedTokenUsed> = $r26;
+
+        goto label4;
+
+     label3:
+        $r4 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r5 = $r4.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[][] insertedTokens>;
+
+        $i4 = lengthof $r5;
+
+        $r6 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $i3 = $r6.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int insertedTokensPtr>;
+
+        if $i4 != $i3 goto label4;
+
+        $r8 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r9 = $r8.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[][] insertedTokens>;
+
+        i6 = lengthof $r9;
+
+        $r10 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r13 = $r10.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[][] insertedTokens>;
+
+        $r12 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $i7 = i6 * 2;
+
+        $r11 = newarray (int[])[$i7];
+
+        $r12.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[][] insertedTokens> = $r11;
+
+        staticinvoke <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)>($r13, 0, $r11, 0, i6);
+
+        $r14 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r17 = $r14.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] insertedTokensPosition>;
+
+        $r16 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $i8 = i6 * 2;
+
+        $r15 = newarray (int)[$i8];
+
+        $r16.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] insertedTokensPosition> = $r15;
+
+        staticinvoke <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)>($r17, 0, $r15, 0, i6);
+
+        $r18 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r21 = $r18.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: boolean[] insertedTokenUsed>;
+
+        $r20 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $i9 = i6 * 2;
+
+        $r19 = newarray (boolean)[$i9];
+
+        $r20.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: boolean[] insertedTokenUsed> = $r19;
+
+        staticinvoke <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)>($r21, 0, $r19, 0, i6);
+
+     label4:
+        $r29 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r30 = $r29.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[][] insertedTokens>;
+
+        $r31 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $i11 = $r31.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int insertedTokensPtr>;
+
+        $r32 = specialinvoke r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: int[] reverse(int[])>(r7);
+
+        $r30[$i11] = $r32;
+
+        $r33 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r34 = $r33.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] insertedTokensPosition>;
+
+        $r35 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $i12 = $r35.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int insertedTokensPtr>;
+
+        $r34[$i12] = i5;
+
+        $r36 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r37 = $r36.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: boolean[] insertedTokenUsed>;
+
+        $r38 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $i13 = $r38.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int insertedTokensPtr>;
+
+        $r37[$i13] = 0;
+
+        return;
+    }
+
+    public void replaceTokens(int, int, int)
+    {
+        int[] $r1;
+        int i0, i1, i2;
+        org.eclipse.jdt.internal.compiler.parser.RecoveryScanner r0;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.parser.RecoveryScanner;
+
+        i0 := @parameter0: int;
+
+        i1 := @parameter1: int;
+
+        i2 := @parameter2: int;
+
+        $r1 = newarray (int)[1];
+
+        $r1[0] = i0;
+
+        virtualinvoke r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: void replaceTokens(int[],int,int)>($r1, i1, i2);
+
+        return;
+    }
+
+    public void replaceTokens(int[], int, int)
+    {
+        int[][] $r11, $r13, $r26, $r35;
+        org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData $r1, $r2, $r4, $r6, $r8, $r10, $r12, $r14, $r16, $r18, $r20, $r22, $r24, $r27, $r29, $r31, $r33, $r34, $r36, $r38, $r40, $r41, $r43, $r44, $r46;
+        int[] $r3, $r5, r7, $r9, $r15, $r17, $r19, $r21, $r28, $r30, $r37, $r39, $r42;
+        boolean $z0;
+        int $i0, $i1, $i2, $i3, i4, i5, i6, $i7, $i8, $i9, $i10, $i11, $i12, $i13, $i14;
+        boolean[] $r23, $r25, $r32, $r45;
+        org.eclipse.jdt.internal.compiler.parser.RecoveryScanner r0;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.parser.RecoveryScanner;
+
+        r7 := @parameter0: int[];
+
+        i4 := @parameter1: int;
+
+        i5 := @parameter2: int;
+
+        $z0 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: boolean record>;
+
+        if $z0 != 0 goto label1;
+
+        return;
+
+     label1:
+        $r1 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $i0 = $r1.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int replacedTokensPtr>;
+
+        $i1 = $i0 + 1;
+
+        $r1.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int replacedTokensPtr> = $i1;
+
+        $r2 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r3 = $r2.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] replacedTokensStart>;
+
+        if $r3 != null goto label2;
+
+        $r27 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r26 = newarray (int[])[10];
+
+        $r27.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[][] replacedTokens> = $r26;
+
+        $r29 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r28 = newarray (int)[10];
+
+        $r29.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] replacedTokensStart> = $r28;
+
+        $r31 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r30 = newarray (int)[10];
+
+        $r31.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] replacedTokensEnd> = $r30;
+
+        $r33 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r32 = newarray (boolean)[10];
+
+        $r33.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: boolean[] replacedTokenUsed> = $r32;
+
+        goto label3;
+
+     label2:
+        $r4 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r5 = $r4.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] replacedTokensStart>;
+
+        $i3 = lengthof $r5;
+
+        $r6 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $i2 = $r6.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int replacedTokensPtr>;
+
+        if $i3 != $i2 goto label3;
+
+        $r8 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r9 = $r8.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] replacedTokensStart>;
+
+        i6 = lengthof $r9;
+
+        $r10 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r13 = $r10.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[][] replacedTokens>;
+
+        $r12 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $i7 = i6 * 2;
+
+        $r11 = newarray (int[])[$i7];
+
+        $r12.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[][] replacedTokens> = $r11;
+
+        staticinvoke <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)>($r13, 0, $r11, 0, i6);
+
+        $r14 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r17 = $r14.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] replacedTokensStart>;
+
+        $r16 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $i8 = i6 * 2;
+
+        $r15 = newarray (int)[$i8];
+
+        $r16.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] replacedTokensStart> = $r15;
+
+        staticinvoke <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)>($r17, 0, $r15, 0, i6);
+
+        $r18 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r21 = $r18.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] replacedTokensEnd>;
+
+        $r20 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $i9 = i6 * 2;
+
+        $r19 = newarray (int)[$i9];
+
+        $r20.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] replacedTokensEnd> = $r19;
+
+        staticinvoke <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)>($r21, 0, $r19, 0, i6);
+
+        $r22 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r25 = $r22.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: boolean[] replacedTokenUsed>;
+
+        $r24 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $i10 = i6 * 2;
+
+        $r23 = newarray (boolean)[$i10];
+
+        $r24.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: boolean[] replacedTokenUsed> = $r23;
+
+        staticinvoke <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)>($r25, 0, $r23, 0, i6);
+
+     label3:
+        $r34 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r35 = $r34.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[][] replacedTokens>;
+
+        $r36 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $i11 = $r36.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int replacedTokensPtr>;
+
+        $r37 = specialinvoke r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: int[] reverse(int[])>(r7);
+
+        $r35[$i11] = $r37;
+
+        $r38 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r39 = $r38.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] replacedTokensStart>;
+
+        $r40 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $i12 = $r40.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int replacedTokensPtr>;
+
+        $r39[$i12] = i4;
+
+        $r41 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r42 = $r41.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] replacedTokensEnd>;
+
+        $r43 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $i13 = $r43.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int replacedTokensPtr>;
+
+        $r42[$i13] = i5;
+
+        $r44 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r45 = $r44.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: boolean[] replacedTokenUsed>;
+
+        $r46 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $i14 = $r46.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int replacedTokensPtr>;
+
+        $r45[$i14] = 0;
+
+        return;
+    }
+
+    public void removeTokens(int, int)
+    {
+        org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData $r1, $r2, $r4, $r6, $r7, $r9, $r11, $r13, $r15, $r17, $r19, $r22, $r24, $r26, $r27, $r29, $r30, $r32, $r33, $r35;
+        int[] $r3, $r5, $r8, $r10, $r12, $r14, $r16, $r21, $r23, $r28, $r31;
+        boolean $z0;
+        int $i0, $i1, $i2, $i3, i4, i5, i6, $i7, $i8, $i9, $i10, $i11, $i12;
+        boolean[] $r18, $r20, $r25, $r34;
+        org.eclipse.jdt.internal.compiler.parser.RecoveryScanner r0;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.parser.RecoveryScanner;
+
+        i4 := @parameter0: int;
+
+        i5 := @parameter1: int;
+
+        $z0 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: boolean record>;
+
+        if $z0 != 0 goto label1;
+
+        return;
+
+     label1:
+        $r1 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $i0 = $r1.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int removedTokensPtr>;
+
+        $i1 = $i0 + 1;
+
+        $r1.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int removedTokensPtr> = $i1;
+
+        $r2 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r3 = $r2.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] removedTokensStart>;
+
+        if $r3 != null goto label2;
+
+        $r22 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r21 = newarray (int)[10];
+
+        $r22.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] removedTokensStart> = $r21;
+
+        $r24 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r23 = newarray (int)[10];
+
+        $r24.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] removedTokensEnd> = $r23;
+
+        $r26 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r25 = newarray (boolean)[10];
+
+        $r26.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: boolean[] removedTokenUsed> = $r25;
+
+        goto label3;
+
+     label2:
+        $r4 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r5 = $r4.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] removedTokensStart>;
+
+        $i3 = lengthof $r5;
+
+        $r6 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $i2 = $r6.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int removedTokensPtr>;
+
+        if $i3 != $i2 goto label3;
+
+        $r7 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r8 = $r7.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] removedTokensStart>;
+
+        i6 = lengthof $r8;
+
+        $r9 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r12 = $r9.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] removedTokensStart>;
+
+        $r11 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $i7 = i6 * 2;
+
+        $r10 = newarray (int)[$i7];
+
+        $r11.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] removedTokensStart> = $r10;
+
+        staticinvoke <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)>($r12, 0, $r10, 0, i6);
+
+        $r13 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r16 = $r13.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] removedTokensEnd>;
+
+        $r15 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $i8 = i6 * 2;
+
+        $r14 = newarray (int)[$i8];
+
+        $r15.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] removedTokensEnd> = $r14;
+
+        staticinvoke <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)>($r16, 0, $r14, 0, i6);
+
+        $r17 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r20 = $r17.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: boolean[] removedTokenUsed>;
+
+        $r19 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $i9 = i6 * 2;
+
+        $r18 = newarray (boolean)[$i9];
+
+        $r19.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: boolean[] removedTokenUsed> = $r18;
+
+        staticinvoke <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)>($r20, 0, $r18, 0, i6);
+
+     label3:
+        $r27 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r28 = $r27.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] removedTokensStart>;
+
+        $r29 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $i10 = $r29.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int removedTokensPtr>;
+
+        $r28[$i10] = i4;
+
+        $r30 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r31 = $r30.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] removedTokensEnd>;
+
+        $r32 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $i11 = $r32.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int removedTokensPtr>;
+
+        $r31[$i11] = i5;
+
+        $r33 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r34 = $r33.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: boolean[] removedTokenUsed>;
+
+        $r35 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $i12 = $r35.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int removedTokensPtr>;
+
+        $r34[$i12] = 0;
+
+        return;
+    }
+
+    public int getNextToken() throws org.eclipse.jdt.core.compiler.InvalidInputException
+    {
+        boolean[] $r14, $r24, $r40;
+        char[] $r31, $r35, $r36, $r48, $r49, $r51, $r52;
+        int[][] $r2, $r4, $r26, $r29, $r42, $r45;
+        org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData $r1, $r3, $r5, $r7, $r9, $r11, $r13, $r15, $r17, $r19, $r21, $r23, $r25, $r28, $r32, $r37, $r39, $r41, $r44, $r53, $r54, $r55;
+        int[] $r6, $r8, $r10, $r12, $r16, $r18, $r20, $r22, $r27, $r30, $r33, $r34, $r38, $r43, $r46, $r47, $r50;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i10, $i11, $i12, $i13, $i14, $i15, $i16, $i17, $i18, $i19, $i20, $i21, $i22, i23, $i24, $i25, $i26, $i27, $i28, $i29, $i30, $i31, $i32, $i33, $i34, $i35, i36, i37, i38, $i39, i40, $i41, i42, $i43, $i45, $i47;
+        org.eclipse.jdt.internal.compiler.parser.RecoveryScanner r0;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.parser.RecoveryScanner;
+
+        $i0 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: int pendingTokensPtr>;
+
+        $i45 = (int) -1;
+
+        if $i0 <= $i45 goto label03;
+
+        $r50 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: int[] pendingTokens>;
+
+        $i34 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: int pendingTokensPtr>;
+
+        $i35 = $i34 - 1;
+
+        r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: int pendingTokensPtr> = $i35;
+
+        i36 = $r50[$i34];
+
+        if i36 != 26 goto label01;
+
+        $r52 = <org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: char[] FAKE_IDENTIFIER>;
+
+        r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: char[] fakeTokenSource> = $r52;
+
+        goto label02;
+
+     label01:
+        $r51 = <org.eclipse.jdt.core.compiler.CharOperation: char[] NO_CHAR>;
+
+        r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: char[] fakeTokenSource> = $r51;
+
+     label02:
+        return i36;
+
+     label03:
+        r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: char[] fakeTokenSource> = null;
+
+        r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: boolean precededByRemoved> = 0;
+
+        $r1 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r2 = $r1.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[][] insertedTokens>;
+
+        if $r2 == null goto label09;
+
+        i37 = 0;
+
+        goto label08;
+
+     label04:
+        $r37 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r38 = $r37.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] insertedTokensPosition>;
+
+        $i26 = $r38[i37];
+
+        $i24 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: int currentPosition>;
+
+        $i25 = $i24 - 1;
+
+        if $i26 != $i25 goto label07;
+
+        $i27 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: int skipNextInsertedTokens>;
+
+        if i37 <= $i27 goto label07;
+
+        $r39 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r40 = $r39.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: boolean[] insertedTokenUsed>;
+
+        $r40[i37] = 1;
+
+        $r41 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r42 = $r41.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[][] insertedTokens>;
+
+        $r43 = $r42[i37];
+
+        r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: int[] pendingTokens> = $r43;
+
+        $r44 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r45 = $r44.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[][] insertedTokens>;
+
+        $r46 = $r45[i37];
+
+        $i28 = lengthof $r46;
+
+        $i29 = $i28 - 1;
+
+        r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: int pendingTokensPtr> = $i29;
+
+        r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: boolean isInserted> = 1;
+
+        $i30 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: int currentPosition>;
+
+        r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: int startPosition> = $i30;
+
+        r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: int skipNextInsertedTokens> = i37;
+
+        $r47 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: int[] pendingTokens>;
+
+        $i31 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: int pendingTokensPtr>;
+
+        $i32 = $i31 - 1;
+
+        r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: int pendingTokensPtr> = $i32;
+
+        i38 = $r47[$i31];
+
+        if i38 != 26 goto label05;
+
+        $r49 = <org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: char[] FAKE_IDENTIFIER>;
+
+        r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: char[] fakeTokenSource> = $r49;
+
+        goto label06;
+
+     label05:
+        $r48 = <org.eclipse.jdt.core.compiler.CharOperation: char[] NO_CHAR>;
+
+        r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: char[] fakeTokenSource> = $r48;
+
+     label06:
+        return i38;
+
+     label07:
+        i37 = i37 + 1;
+
+     label08:
+        $r53 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $i39 = $r53.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int insertedTokensPtr>;
+
+        if i37 <= $i39 goto label04;
+
+        $i47 = (int) -1;
+
+        r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: int skipNextInsertedTokens> = $i47;
+
+     label09:
+        $i33 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: int currentPosition>;
+
+        $i1 = specialinvoke r0.<org.eclipse.jdt.internal.compiler.parser.Scanner: int getNextToken()>();
+
+        $r3 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r4 = $r3.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[][] replacedTokens>;
+
+        if $r4 == null goto label15;
+
+        i40 = 0;
+
+        goto label14;
+
+     label10:
+        $r17 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r18 = $r17.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] replacedTokensStart>;
+
+        $i11 = $r18[i40];
+
+        if $i11 < $i33 goto label13;
+
+        $r19 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r20 = $r19.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] replacedTokensStart>;
+
+        $i13 = $r20[i40];
+
+        $i12 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: int startPosition>;
+
+        if $i13 > $i12 goto label13;
+
+        $r21 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r22 = $r21.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] replacedTokensEnd>;
+
+        $i16 = $r22[i40];
+
+        $i14 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: int currentPosition>;
+
+        $i15 = $i14 - 1;
+
+        if $i16 < $i15 goto label13;
+
+        $r23 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r24 = $r23.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: boolean[] replacedTokenUsed>;
+
+        $r24[i40] = 1;
+
+        $r25 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r26 = $r25.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[][] replacedTokens>;
+
+        $r27 = $r26[i40];
+
+        r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: int[] pendingTokens> = $r27;
+
+        $r28 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r29 = $r28.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[][] replacedTokens>;
+
+        $r30 = $r29[i40];
+
+        $i17 = lengthof $r30;
+
+        $i18 = $i17 - 1;
+
+        r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: int pendingTokensPtr> = $i18;
+
+        $r31 = <org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: char[] FAKE_IDENTIFIER>;
+
+        r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: char[] fakeTokenSource> = $r31;
+
+        r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: boolean isInserted> = 0;
+
+        $r32 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r33 = $r32.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] replacedTokensEnd>;
+
+        $i19 = $r33[i40];
+
+        $i20 = $i19 + 1;
+
+        r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: int currentPosition> = $i20;
+
+        $r34 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: int[] pendingTokens>;
+
+        $i21 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: int pendingTokensPtr>;
+
+        $i22 = $i21 - 1;
+
+        r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: int pendingTokensPtr> = $i22;
+
+        i23 = $r34[$i21];
+
+        if i23 != 26 goto label11;
+
+        $r36 = <org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: char[] FAKE_IDENTIFIER>;
+
+        r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: char[] fakeTokenSource> = $r36;
+
+        goto label12;
+
+     label11:
+        $r35 = <org.eclipse.jdt.core.compiler.CharOperation: char[] NO_CHAR>;
+
+        r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: char[] fakeTokenSource> = $r35;
+
+     label12:
+        return i23;
+
+     label13:
+        i40 = i40 + 1;
+
+     label14:
+        $r54 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $i41 = $r54.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int replacedTokensPtr>;
+
+        if i40 <= $i41 goto label10;
+
+     label15:
+        $r5 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r6 = $r5.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] removedTokensStart>;
+
+        if $r6 == null goto label19;
+
+        i42 = 0;
+
+        goto label18;
+
+     label16:
+        $r7 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r8 = $r7.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] removedTokensStart>;
+
+        $i2 = $r8[i42];
+
+        if $i2 < $i33 goto label17;
+
+        $r9 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r10 = $r9.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] removedTokensStart>;
+
+        $i4 = $r10[i42];
+
+        $i3 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: int startPosition>;
+
+        if $i4 > $i3 goto label17;
+
+        $r11 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r12 = $r11.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] removedTokensEnd>;
+
+        $i7 = $r12[i42];
+
+        $i5 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: int currentPosition>;
+
+        $i6 = $i5 - 1;
+
+        if $i7 < $i6 goto label17;
+
+        $r13 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r14 = $r13.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: boolean[] removedTokenUsed>;
+
+        $r14[i42] = 1;
+
+        $r15 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $r16 = $r15.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int[] removedTokensEnd>;
+
+        $i8 = $r16[i42];
+
+        $i9 = $i8 + 1;
+
+        r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: int currentPosition> = $i9;
+
+        r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: boolean precededByRemoved> = 0;
+
+        $i10 = virtualinvoke r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: int getNextToken()>();
+
+        return $i10;
+
+     label17:
+        i42 = i42 + 1;
+
+     label18:
+        $r55 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        $i43 = $r55.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: int removedTokensPtr>;
+
+        if i42 <= $i43 goto label16;
+
+     label19:
+        return $i1;
+    }
+
+    public char[] getCurrentIdentifierSource()
+    {
+        char[] $r1, $r2, $r3;
+        org.eclipse.jdt.internal.compiler.parser.RecoveryScanner r0;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.parser.RecoveryScanner;
+
+        $r1 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: char[] fakeTokenSource>;
+
+        if $r1 == null goto label1;
+
+        $r3 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: char[] fakeTokenSource>;
+
+        return $r3;
+
+     label1:
+        $r2 = specialinvoke r0.<org.eclipse.jdt.internal.compiler.parser.Scanner: char[] getCurrentIdentifierSource()>();
+
+        return $r2;
+    }
+
+    public char[] getCurrentTokenSourceString()
+    {
+        char[] $r1, $r2, $r3;
+        org.eclipse.jdt.internal.compiler.parser.RecoveryScanner r0;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.parser.RecoveryScanner;
+
+        $r1 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: char[] fakeTokenSource>;
+
+        if $r1 == null goto label1;
+
+        $r3 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: char[] fakeTokenSource>;
+
+        return $r3;
+
+     label1:
+        $r2 = specialinvoke r0.<org.eclipse.jdt.internal.compiler.parser.Scanner: char[] getCurrentTokenSourceString()>();
+
+        return $r2;
+    }
+
+    public char[] getCurrentTokenSource()
+    {
+        char[] $r1, $r2, $r3;
+        org.eclipse.jdt.internal.compiler.parser.RecoveryScanner r0;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.parser.RecoveryScanner;
+
+        $r1 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: char[] fakeTokenSource>;
+
+        if $r1 == null goto label1;
+
+        $r3 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: char[] fakeTokenSource>;
+
+        return $r3;
+
+     label1:
+        $r2 = specialinvoke r0.<org.eclipse.jdt.internal.compiler.parser.Scanner: char[] getCurrentTokenSource()>();
+
+        return $r2;
+    }
+
+    public org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData getData()
+    {
+        org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData $r1;
+        org.eclipse.jdt.internal.compiler.parser.RecoveryScanner r0;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.parser.RecoveryScanner;
+
+        $r1 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data>;
+
+        return $r1;
+    }
+
+    public boolean isFakeToken()
+    {
+        char[] $r1;
+        org.eclipse.jdt.internal.compiler.parser.RecoveryScanner r0;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.parser.RecoveryScanner;
+
+        $r1 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: char[] fakeTokenSource>;
+
+        if $r1 == null goto label1;
+
+        return 1;
+
+     label1:
+        return 0;
+    }
+
+    public boolean isInsertedToken()
+    {
+        char[] $r1;
+        org.eclipse.jdt.internal.compiler.parser.RecoveryScanner r0;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.parser.RecoveryScanner;
+
+        $r1 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: char[] fakeTokenSource>;
+
+        if $r1 == null goto label1;
+
+        $z0 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: boolean isInserted>;
+
+        if $z0 == 0 goto label1;
+
+        return 1;
+
+     label1:
+        return 0;
+    }
+
+    public boolean isReplacedToken()
+    {
+        char[] $r1;
+        org.eclipse.jdt.internal.compiler.parser.RecoveryScanner r0;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.parser.RecoveryScanner;
+
+        $r1 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: char[] fakeTokenSource>;
+
+        if $r1 == null goto label1;
+
+        $z0 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: boolean isInserted>;
+
+        if $z0 != 0 goto label1;
+
+        return 1;
+
+     label1:
+        return 0;
+    }
+
+    public boolean isPrecededByRemovedToken()
+    {
+        org.eclipse.jdt.internal.compiler.parser.RecoveryScanner r0;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.parser.RecoveryScanner;
+
+        $z0 = r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: boolean precededByRemoved>;
+
+        return $z0;
+    }
+
+    public void setData(org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData)
+    {
+        org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData r0, $r2;
+        org.eclipse.jdt.internal.compiler.parser.RecoveryScanner r1;
+
+        r1 := @this: org.eclipse.jdt.internal.compiler.parser.RecoveryScanner;
+
+        r0 := @parameter0: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData;
+
+        if r0 != null goto label1;
+
+        $r2 = new org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData;
+
+        specialinvoke $r2.<org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData: void <init>()>();
+
+        r1.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data> = $r2;
+
+        goto label2;
+
+     label1:
+        r1.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData data> = r0;
+
+     label2:
+        return;
+    }
+
+    public void setPendingTokens(int[])
+    {
+        int[] r1;
+        int $i0, $i1;
+        org.eclipse.jdt.internal.compiler.parser.RecoveryScanner r0;
+
+        r0 := @this: org.eclipse.jdt.internal.compiler.parser.RecoveryScanner;
+
+        r1 := @parameter0: int[];
+
+        r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: int[] pendingTokens> = r1;
+
+        $i0 = lengthof r1;
+
+        $i1 = $i0 - 1;
+
+        r0.<org.eclipse.jdt.internal.compiler.parser.RecoveryScanner: int pendingTokensPtr> = $i1;
+
+        return;
+    }
+}

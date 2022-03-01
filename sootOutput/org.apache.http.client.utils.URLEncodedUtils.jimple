@@ -1,0 +1,1102 @@
+public class org.apache.http.client.utils.URLEncodedUtils extends java.lang.Object
+{
+    public static final java.lang.String CONTENT_TYPE;
+    private static final java.lang.String PARAMETER_SEPARATOR;
+    private static final java.lang.String NAME_VALUE_SEPARATOR;
+    private static final char[] DELIM;
+    private static final java.util.BitSet UNRESERVED;
+    private static final java.util.BitSet PUNCT;
+    private static final java.util.BitSet USERINFO;
+    private static final java.util.BitSet PATHSAFE;
+    private static final java.util.BitSet FRAGMENT;
+    private static final java.util.BitSet RESERVED;
+    private static final java.util.BitSet URLENCODER;
+    private static final int RADIX;
+
+    public void <init>()
+    {
+        org.apache.http.client.utils.URLEncodedUtils r0;
+
+        r0 := @this: org.apache.http.client.utils.URLEncodedUtils;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        return;
+    }
+
+    public static java.util.List parse(java.net.URI, java.lang.String)
+    {
+        java.util.List $r2;
+        int $i0;
+        java.util.Scanner $r4;
+        java.net.URI r0;
+        java.lang.String $r1, r5;
+        java.util.ArrayList $r3;
+
+        r0 := @parameter0: java.net.URI;
+
+        r5 := @parameter1: java.lang.String;
+
+        $r1 = virtualinvoke r0.<java.net.URI: java.lang.String getRawQuery()>();
+
+        if $r1 == null goto label1;
+
+        $i0 = virtualinvoke $r1.<java.lang.String: int length()>();
+
+        if $i0 <= 0 goto label1;
+
+        $r3 = new java.util.ArrayList;
+
+        specialinvoke $r3.<java.util.ArrayList: void <init>()>();
+
+        $r4 = new java.util.Scanner;
+
+        specialinvoke $r4.<java.util.Scanner: void <init>(java.lang.String)>($r1);
+
+        staticinvoke <org.apache.http.client.utils.URLEncodedUtils: void parse(java.util.List,java.util.Scanner,java.lang.String)>($r3, $r4, r5);
+
+        return $r3;
+
+     label1:
+        $r2 = staticinvoke <java.util.Collections: java.util.List emptyList()>();
+
+        return $r2;
+    }
+
+    public static java.util.List parse(org.apache.http.HttpEntity) throws java.io.IOException
+    {
+        org.apache.http.HttpEntity r0;
+        org.apache.http.entity.ContentType $r1;
+        java.util.List $r6, $r8;
+        java.nio.charset.Charset $r3, $r5, r7;
+        int $i0;
+        java.lang.String $r2, $r4;
+        boolean $z0;
+
+        r0 := @parameter0: org.apache.http.HttpEntity;
+
+        $r1 = staticinvoke <org.apache.http.entity.ContentType: org.apache.http.entity.ContentType get(org.apache.http.HttpEntity)>(r0);
+
+        if $r1 == null goto label2;
+
+        $r2 = virtualinvoke $r1.<org.apache.http.entity.ContentType: java.lang.String getMimeType()>();
+
+        $z0 = virtualinvoke $r2.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("application/x-www-form-urlencoded");
+
+        if $z0 == 0 goto label2;
+
+        $r3 = <org.apache.http.Consts: java.nio.charset.Charset ASCII>;
+
+        $r4 = staticinvoke <org.apache.http.util.EntityUtils: java.lang.String toString(org.apache.http.HttpEntity,java.nio.charset.Charset)>(r0, $r3);
+
+        if $r4 == null goto label2;
+
+        $i0 = virtualinvoke $r4.<java.lang.String: int length()>();
+
+        if $i0 <= 0 goto label2;
+
+        $r5 = virtualinvoke $r1.<org.apache.http.entity.ContentType: java.nio.charset.Charset getCharset()>();
+
+        r7 = $r5;
+
+        if $r5 != null goto label1;
+
+        r7 = <org.apache.http.protocol.HTTP: java.nio.charset.Charset DEF_CONTENT_CHARSET>;
+
+     label1:
+        $r6 = staticinvoke <org.apache.http.client.utils.URLEncodedUtils: java.util.List parse(java.lang.String,java.nio.charset.Charset)>($r4, r7);
+
+        return $r6;
+
+     label2:
+        $r8 = staticinvoke <java.util.Collections: java.util.List emptyList()>();
+
+        return $r8;
+    }
+
+    public static boolean isEncoded(org.apache.http.HttpEntity)
+    {
+        org.apache.http.HeaderElement[] $r2;
+        org.apache.http.HttpEntity r0;
+        int $i0;
+        org.apache.http.HeaderElement $r3;
+        java.lang.String $r4;
+        org.apache.http.Header $r1;
+        boolean $z0;
+
+        r0 := @parameter0: org.apache.http.HttpEntity;
+
+        $r1 = interfaceinvoke r0.<org.apache.http.HttpEntity: org.apache.http.Header getContentType()>();
+
+        if $r1 == null goto label2;
+
+        $r2 = interfaceinvoke $r1.<org.apache.http.Header: org.apache.http.HeaderElement[] getElements()>();
+
+        $i0 = lengthof $r2;
+
+        if $i0 <= 0 goto label1;
+
+        $r3 = $r2[0];
+
+        $r4 = interfaceinvoke $r3.<org.apache.http.HeaderElement: java.lang.String getName()>();
+
+        $z0 = virtualinvoke $r4.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("application/x-www-form-urlencoded");
+
+        return $z0;
+
+     label1:
+        return 0;
+
+     label2:
+        return 0;
+    }
+
+    public static void parse(java.util.List, java.util.Scanner, java.lang.String)
+    {
+        org.apache.http.message.BasicNameValuePair $r12;
+        java.util.Scanner r0;
+        int $i0, $i1, $i3;
+        java.lang.String $r1, $r2, r3, $r6, $r7, $r8, $r9, r10, r11;
+        boolean $z0;
+        java.util.List r4;
+
+        r4 := @parameter0: java.util.List;
+
+        r0 := @parameter1: java.util.Scanner;
+
+        r3 := @parameter2: java.lang.String;
+
+        virtualinvoke r0.<java.util.Scanner: java.util.Scanner useDelimiter(java.lang.String)>("&");
+
+     label1:
+        $z0 = virtualinvoke r0.<java.util.Scanner: boolean hasNext()>();
+
+        if $z0 == 0 goto label4;
+
+        r10 = null;
+
+        $r1 = virtualinvoke r0.<java.util.Scanner: java.lang.String next()>();
+
+        $i0 = virtualinvoke $r1.<java.lang.String: int indexOf(java.lang.String)>("=");
+
+        $i3 = (int) -1;
+
+        if $i0 == $i3 goto label2;
+
+        $r6 = virtualinvoke $r1.<java.lang.String: java.lang.String substring(int,int)>(0, $i0);
+
+        $r7 = virtualinvoke $r6.<java.lang.String: java.lang.String trim()>();
+
+        r11 = staticinvoke <org.apache.http.client.utils.URLEncodedUtils: java.lang.String decodeFormFields(java.lang.String,java.lang.String)>($r7, r3);
+
+        $i1 = $i0 + 1;
+
+        $r8 = virtualinvoke $r1.<java.lang.String: java.lang.String substring(int)>($i1);
+
+        $r9 = virtualinvoke $r8.<java.lang.String: java.lang.String trim()>();
+
+        r10 = staticinvoke <org.apache.http.client.utils.URLEncodedUtils: java.lang.String decodeFormFields(java.lang.String,java.lang.String)>($r9, r3);
+
+        goto label3;
+
+     label2:
+        $r2 = virtualinvoke $r1.<java.lang.String: java.lang.String trim()>();
+
+        r11 = staticinvoke <org.apache.http.client.utils.URLEncodedUtils: java.lang.String decodeFormFields(java.lang.String,java.lang.String)>($r2, r3);
+
+     label3:
+        $r12 = new org.apache.http.message.BasicNameValuePair;
+
+        specialinvoke $r12.<org.apache.http.message.BasicNameValuePair: void <init>(java.lang.String,java.lang.String)>(r11, r10);
+
+        interfaceinvoke r4.<java.util.List: boolean add(java.lang.Object)>($r12);
+
+        goto label1;
+
+     label4:
+        return;
+    }
+
+    public static java.util.List parse(java.lang.String, java.nio.charset.Charset)
+    {
+        org.apache.http.message.BasicNameValuePair $r8;
+        org.apache.http.message.BasicHeaderValueParser r1;
+        java.util.ArrayList $r4;
+        java.nio.charset.Charset r10;
+        int $i0, $i1, $i2;
+        java.lang.String r0, $r7, $r9, $r11, $r12, $r13;
+        boolean $z0;
+        org.apache.http.util.CharArrayBuffer $r2;
+        java.util.List $r14;
+        char[] $r5;
+        org.apache.http.NameValuePair $r6;
+        org.apache.http.message.ParserCursor $r3;
+
+        r0 := @parameter0: java.lang.String;
+
+        r10 := @parameter1: java.nio.charset.Charset;
+
+        if r0 != null goto label1;
+
+        $r14 = staticinvoke <java.util.Collections: java.util.List emptyList()>();
+
+        return $r14;
+
+     label1:
+        r1 = <org.apache.http.message.BasicHeaderValueParser: org.apache.http.message.BasicHeaderValueParser DEFAULT>;
+
+        $r2 = new org.apache.http.util.CharArrayBuffer;
+
+        $i0 = virtualinvoke r0.<java.lang.String: int length()>();
+
+        specialinvoke $r2.<org.apache.http.util.CharArrayBuffer: void <init>(int)>($i0);
+
+        virtualinvoke $r2.<org.apache.http.util.CharArrayBuffer: void append(java.lang.String)>(r0);
+
+        $r3 = new org.apache.http.message.ParserCursor;
+
+        $i1 = virtualinvoke $r2.<org.apache.http.util.CharArrayBuffer: int length()>();
+
+        specialinvoke $r3.<org.apache.http.message.ParserCursor: void <init>(int,int)>(0, $i1);
+
+        $r4 = new java.util.ArrayList;
+
+        specialinvoke $r4.<java.util.ArrayList: void <init>()>();
+
+     label2:
+        $z0 = virtualinvoke $r3.<org.apache.http.message.ParserCursor: boolean atEnd()>();
+
+        if $z0 != 0 goto label4;
+
+        $r5 = <org.apache.http.client.utils.URLEncodedUtils: char[] DELIM>;
+
+        $r6 = virtualinvoke r1.<org.apache.http.message.BasicHeaderValueParser: org.apache.http.NameValuePair parseNameValuePair(org.apache.http.util.CharArrayBuffer,org.apache.http.message.ParserCursor,char[])>($r2, $r3, $r5);
+
+        $r7 = interfaceinvoke $r6.<org.apache.http.NameValuePair: java.lang.String getName()>();
+
+        $i2 = virtualinvoke $r7.<java.lang.String: int length()>();
+
+        if $i2 <= 0 goto label3;
+
+        $r8 = new org.apache.http.message.BasicNameValuePair;
+
+        $r9 = interfaceinvoke $r6.<org.apache.http.NameValuePair: java.lang.String getName()>();
+
+        $r11 = staticinvoke <org.apache.http.client.utils.URLEncodedUtils: java.lang.String decodeFormFields(java.lang.String,java.nio.charset.Charset)>($r9, r10);
+
+        $r12 = interfaceinvoke $r6.<org.apache.http.NameValuePair: java.lang.String getValue()>();
+
+        $r13 = staticinvoke <org.apache.http.client.utils.URLEncodedUtils: java.lang.String decodeFormFields(java.lang.String,java.nio.charset.Charset)>($r12, r10);
+
+        specialinvoke $r8.<org.apache.http.message.BasicNameValuePair: void <init>(java.lang.String,java.lang.String)>($r11, $r13);
+
+        interfaceinvoke $r4.<java.util.List: boolean add(java.lang.Object)>($r8);
+
+     label3:
+        goto label2;
+
+     label4:
+        return $r4;
+    }
+
+    public static java.lang.String format(java.util.List, java.lang.String)
+    {
+        java.util.Iterator $r2;
+        java.util.List r1;
+        int $i0;
+        java.lang.StringBuilder $r0;
+        java.lang.Object $r4;
+        java.lang.String $r3, $r6, r7, $r8, $r9, $r10;
+        org.apache.http.NameValuePair r5;
+        boolean $z0;
+
+        r1 := @parameter0: java.util.List;
+
+        r7 := @parameter1: java.lang.String;
+
+        $r0 = new java.lang.StringBuilder;
+
+        specialinvoke $r0.<java.lang.StringBuilder: void <init>()>();
+
+        $r2 = interfaceinvoke r1.<java.util.List: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r2.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label4;
+
+        $r4 = interfaceinvoke $r2.<java.util.Iterator: java.lang.Object next()>();
+
+        r5 = (org.apache.http.NameValuePair) $r4;
+
+        $r6 = interfaceinvoke r5.<org.apache.http.NameValuePair: java.lang.String getName()>();
+
+        $r8 = staticinvoke <org.apache.http.client.utils.URLEncodedUtils: java.lang.String encodeFormFields(java.lang.String,java.lang.String)>($r6, r7);
+
+        $r9 = interfaceinvoke r5.<org.apache.http.NameValuePair: java.lang.String getValue()>();
+
+        $r10 = staticinvoke <org.apache.http.client.utils.URLEncodedUtils: java.lang.String encodeFormFields(java.lang.String,java.lang.String)>($r9, r7);
+
+        $i0 = virtualinvoke $r0.<java.lang.StringBuilder: int length()>();
+
+        if $i0 <= 0 goto label2;
+
+        virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("&");
+
+     label2:
+        virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r8);
+
+        if $r10 == null goto label3;
+
+        virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("=");
+
+        virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r10);
+
+     label3:
+        goto label1;
+
+     label4:
+        $r3 = virtualinvoke $r0.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        return $r3;
+    }
+
+    public static java.lang.String format(java.lang.Iterable, java.nio.charset.Charset)
+    {
+        java.util.Iterator $r2;
+        java.lang.Iterable r1;
+        java.nio.charset.Charset r7;
+        int $i0;
+        java.lang.StringBuilder $r0;
+        java.lang.Object $r4;
+        java.lang.String $r3, $r6, $r8, $r9, $r10;
+        org.apache.http.NameValuePair r5;
+        boolean $z0;
+
+        r1 := @parameter0: java.lang.Iterable;
+
+        r7 := @parameter1: java.nio.charset.Charset;
+
+        $r0 = new java.lang.StringBuilder;
+
+        specialinvoke $r0.<java.lang.StringBuilder: void <init>()>();
+
+        $r2 = interfaceinvoke r1.<java.lang.Iterable: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r2.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label4;
+
+        $r4 = interfaceinvoke $r2.<java.util.Iterator: java.lang.Object next()>();
+
+        r5 = (org.apache.http.NameValuePair) $r4;
+
+        $r6 = interfaceinvoke r5.<org.apache.http.NameValuePair: java.lang.String getName()>();
+
+        $r8 = staticinvoke <org.apache.http.client.utils.URLEncodedUtils: java.lang.String encodeFormFields(java.lang.String,java.nio.charset.Charset)>($r6, r7);
+
+        $r9 = interfaceinvoke r5.<org.apache.http.NameValuePair: java.lang.String getValue()>();
+
+        $r10 = staticinvoke <org.apache.http.client.utils.URLEncodedUtils: java.lang.String encodeFormFields(java.lang.String,java.nio.charset.Charset)>($r9, r7);
+
+        $i0 = virtualinvoke $r0.<java.lang.StringBuilder: int length()>();
+
+        if $i0 <= 0 goto label2;
+
+        virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("&");
+
+     label2:
+        virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r8);
+
+        if $r10 == null goto label3;
+
+        virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("=");
+
+        virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r10);
+
+     label3:
+        goto label1;
+
+     label4:
+        $r3 = virtualinvoke $r0.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        return $r3;
+    }
+
+    private static java.lang.String urlencode(java.lang.String, java.nio.charset.Charset, java.util.BitSet, boolean)
+    {
+        java.nio.ByteBuffer $r3;
+        short s1, $s6, $s10;
+        java.nio.charset.Charset r2;
+        byte $b0;
+        int $i2, $i3, $i11, $i12, $i13, $i14;
+        java.lang.String r0, $r4;
+        boolean $z0, $z1, z2;
+        char $c4, $c5, $c7, $c8, $c9;
+        java.lang.StringBuilder $r6;
+        java.util.BitSet r5;
+
+        r0 := @parameter0: java.lang.String;
+
+        r2 := @parameter1: java.nio.charset.Charset;
+
+        r5 := @parameter2: java.util.BitSet;
+
+        z2 := @parameter3: boolean;
+
+        if r0 != null goto label1;
+
+        return null;
+
+     label1:
+        $r6 = new java.lang.StringBuilder;
+
+        specialinvoke $r6.<java.lang.StringBuilder: void <init>()>();
+
+        $r3 = virtualinvoke r2.<java.nio.charset.Charset: java.nio.ByteBuffer encode(java.lang.String)>(r0);
+
+     label2:
+        $z0 = virtualinvoke $r3.<java.nio.ByteBuffer: boolean hasRemaining()>();
+
+        if $z0 == 0 goto label6;
+
+        $b0 = virtualinvoke $r3.<java.nio.ByteBuffer: byte get()>();
+
+        $s10 = (short) $b0;
+
+        s1 = $s10 & 255;
+
+        $i11 = (int) s1;
+
+        $z1 = virtualinvoke r5.<java.util.BitSet: boolean get(int)>($i11);
+
+        if $z1 == 0 goto label3;
+
+        $c9 = (char) s1;
+
+        virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(char)>($c9);
+
+        goto label5;
+
+     label3:
+        if z2 == 0 goto label4;
+
+        $i12 = (int) s1;
+
+        if $i12 != 32 goto label4;
+
+        virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(char)>(43);
+
+        goto label5;
+
+     label4:
+        virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("%");
+
+        $i13 = (int) s1;
+
+        $i2 = $i13 >> 4;
+
+        $i3 = $i2 & 15;
+
+        $c4 = staticinvoke <java.lang.Character: char forDigit(int,int)>($i3, 16);
+
+        $c5 = staticinvoke <java.lang.Character: char toUpperCase(char)>($c4);
+
+        $s6 = s1 & 15;
+
+        $i14 = (int) $s6;
+
+        $c7 = staticinvoke <java.lang.Character: char forDigit(int,int)>($i14, 16);
+
+        $c8 = staticinvoke <java.lang.Character: char toUpperCase(char)>($c7);
+
+        virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(char)>($c5);
+
+        virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(char)>($c8);
+
+     label5:
+        goto label2;
+
+     label6:
+        $r4 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        return $r4;
+    }
+
+    private static java.lang.String urldecode(java.lang.String, java.nio.charset.Charset, boolean)
+    {
+        java.nio.ByteBuffer $r1;
+        java.nio.charset.Charset r3;
+        byte $b2, $b8, $b9, $b12;
+        int $i0, $i3, $i6, $i7, $i10, $i11, $i13, $i15, $i17, $i18;
+        java.lang.String r0, $r5;
+        boolean $z0, z1;
+        java.nio.CharBuffer $r2, $r4;
+        char $c1, $c4, $c5;
+
+        r0 := @parameter0: java.lang.String;
+
+        r3 := @parameter1: java.nio.charset.Charset;
+
+        z1 := @parameter2: boolean;
+
+        if r0 != null goto label1;
+
+        return null;
+
+     label1:
+        $i0 = virtualinvoke r0.<java.lang.String: int length()>();
+
+        $r1 = staticinvoke <java.nio.ByteBuffer: java.nio.ByteBuffer allocate(int)>($i0);
+
+        $r2 = staticinvoke <java.nio.CharBuffer: java.nio.CharBuffer wrap(java.lang.CharSequence)>(r0);
+
+     label2:
+        $z0 = virtualinvoke $r2.<java.nio.CharBuffer: boolean hasRemaining()>();
+
+        if $z0 == 0 goto label8;
+
+        $c1 = virtualinvoke $r2.<java.nio.CharBuffer: char get()>();
+
+        $i13 = (int) $c1;
+
+        if $i13 != 37 goto label5;
+
+        $i3 = virtualinvoke $r2.<java.nio.CharBuffer: int remaining()>();
+
+        if $i3 < 2 goto label5;
+
+        $c4 = virtualinvoke $r2.<java.nio.CharBuffer: char get()>();
+
+        $c5 = virtualinvoke $r2.<java.nio.CharBuffer: char get()>();
+
+        $i6 = staticinvoke <java.lang.Character: int digit(char,int)>($c4, 16);
+
+        $i7 = staticinvoke <java.lang.Character: int digit(char,int)>($c5, 16);
+
+        $i15 = (int) -1;
+
+        if $i6 == $i15 goto label3;
+
+        $i17 = (int) -1;
+
+        if $i7 == $i17 goto label3;
+
+        $i10 = $i6 << 4;
+
+        $i11 = $i10 + $i7;
+
+        $b12 = (byte) $i11;
+
+        virtualinvoke $r1.<java.nio.ByteBuffer: java.nio.ByteBuffer put(byte)>($b12);
+
+        goto label4;
+
+     label3:
+        virtualinvoke $r1.<java.nio.ByteBuffer: java.nio.ByteBuffer put(byte)>(37);
+
+        $b8 = (byte) $c4;
+
+        virtualinvoke $r1.<java.nio.ByteBuffer: java.nio.ByteBuffer put(byte)>($b8);
+
+        $b9 = (byte) $c5;
+
+        virtualinvoke $r1.<java.nio.ByteBuffer: java.nio.ByteBuffer put(byte)>($b9);
+
+     label4:
+        goto label7;
+
+     label5:
+        if z1 == 0 goto label6;
+
+        $i18 = (int) $c1;
+
+        if $i18 != 43 goto label6;
+
+        virtualinvoke $r1.<java.nio.ByteBuffer: java.nio.ByteBuffer put(byte)>(32);
+
+        goto label7;
+
+     label6:
+        $b2 = (byte) $c1;
+
+        virtualinvoke $r1.<java.nio.ByteBuffer: java.nio.ByteBuffer put(byte)>($b2);
+
+     label7:
+        goto label2;
+
+     label8:
+        virtualinvoke $r1.<java.nio.ByteBuffer: java.nio.Buffer flip()>();
+
+        $r4 = virtualinvoke r3.<java.nio.charset.Charset: java.nio.CharBuffer decode(java.nio.ByteBuffer)>($r1);
+
+        $r5 = virtualinvoke $r4.<java.nio.CharBuffer: java.lang.String toString()>();
+
+        return $r5;
+    }
+
+    private static java.lang.String decodeFormFields(java.lang.String, java.lang.String)
+    {
+        java.nio.charset.Charset $r3;
+        java.lang.String r0, r1, $r2;
+
+        r0 := @parameter0: java.lang.String;
+
+        r1 := @parameter1: java.lang.String;
+
+        if r0 != null goto label1;
+
+        return null;
+
+     label1:
+        if r1 == null goto label2;
+
+        $r3 = staticinvoke <java.nio.charset.Charset: java.nio.charset.Charset forName(java.lang.String)>(r1);
+
+        goto label3;
+
+     label2:
+        $r3 = <org.apache.http.Consts: java.nio.charset.Charset UTF_8>;
+
+     label3:
+        $r2 = staticinvoke <org.apache.http.client.utils.URLEncodedUtils: java.lang.String urldecode(java.lang.String,java.nio.charset.Charset,boolean)>(r0, $r3, 1);
+
+        return $r2;
+    }
+
+    private static java.lang.String decodeFormFields(java.lang.String, java.nio.charset.Charset)
+    {
+        java.nio.charset.Charset r1, $r3;
+        java.lang.String r0, $r2;
+
+        r0 := @parameter0: java.lang.String;
+
+        r1 := @parameter1: java.nio.charset.Charset;
+
+        if r0 != null goto label1;
+
+        return null;
+
+     label1:
+        if r1 == null goto label2;
+
+        $r3 = r1;
+
+        goto label3;
+
+     label2:
+        $r3 = <org.apache.http.Consts: java.nio.charset.Charset UTF_8>;
+
+     label3:
+        $r2 = staticinvoke <org.apache.http.client.utils.URLEncodedUtils: java.lang.String urldecode(java.lang.String,java.nio.charset.Charset,boolean)>(r0, $r3, 1);
+
+        return $r2;
+    }
+
+    private static java.lang.String encodeFormFields(java.lang.String, java.lang.String)
+    {
+        java.nio.charset.Charset $r4;
+        java.lang.String r0, r1, $r3;
+        java.util.BitSet $r2;
+
+        r0 := @parameter0: java.lang.String;
+
+        r1 := @parameter1: java.lang.String;
+
+        if r0 != null goto label1;
+
+        return null;
+
+     label1:
+        if r1 == null goto label2;
+
+        $r4 = staticinvoke <java.nio.charset.Charset: java.nio.charset.Charset forName(java.lang.String)>(r1);
+
+        goto label3;
+
+     label2:
+        $r4 = <org.apache.http.Consts: java.nio.charset.Charset UTF_8>;
+
+     label3:
+        $r2 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet URLENCODER>;
+
+        $r3 = staticinvoke <org.apache.http.client.utils.URLEncodedUtils: java.lang.String urlencode(java.lang.String,java.nio.charset.Charset,java.util.BitSet,boolean)>(r0, $r4, $r2, 1);
+
+        return $r3;
+    }
+
+    private static java.lang.String encodeFormFields(java.lang.String, java.nio.charset.Charset)
+    {
+        java.nio.charset.Charset r1, $r4;
+        java.lang.String r0, $r3;
+        java.util.BitSet $r2;
+
+        r0 := @parameter0: java.lang.String;
+
+        r1 := @parameter1: java.nio.charset.Charset;
+
+        if r0 != null goto label1;
+
+        return null;
+
+     label1:
+        if r1 == null goto label2;
+
+        $r4 = r1;
+
+        goto label3;
+
+     label2:
+        $r4 = <org.apache.http.Consts: java.nio.charset.Charset UTF_8>;
+
+     label3:
+        $r2 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet URLENCODER>;
+
+        $r3 = staticinvoke <org.apache.http.client.utils.URLEncodedUtils: java.lang.String urlencode(java.lang.String,java.nio.charset.Charset,java.util.BitSet,boolean)>(r0, $r4, $r2, 1);
+
+        return $r3;
+    }
+
+    static java.lang.String encUserInfo(java.lang.String, java.nio.charset.Charset)
+    {
+        java.nio.charset.Charset r1;
+        java.lang.String r0, $r3;
+        java.util.BitSet $r2;
+
+        r0 := @parameter0: java.lang.String;
+
+        r1 := @parameter1: java.nio.charset.Charset;
+
+        $r2 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet USERINFO>;
+
+        $r3 = staticinvoke <org.apache.http.client.utils.URLEncodedUtils: java.lang.String urlencode(java.lang.String,java.nio.charset.Charset,java.util.BitSet,boolean)>(r0, r1, $r2, 0);
+
+        return $r3;
+    }
+
+    static java.lang.String encFragment(java.lang.String, java.nio.charset.Charset)
+    {
+        java.nio.charset.Charset r1;
+        java.lang.String r0, $r3;
+        java.util.BitSet $r2;
+
+        r0 := @parameter0: java.lang.String;
+
+        r1 := @parameter1: java.nio.charset.Charset;
+
+        $r2 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet FRAGMENT>;
+
+        $r3 = staticinvoke <org.apache.http.client.utils.URLEncodedUtils: java.lang.String urlencode(java.lang.String,java.nio.charset.Charset,java.util.BitSet,boolean)>(r0, r1, $r2, 0);
+
+        return $r3;
+    }
+
+    static java.lang.String encPath(java.lang.String, java.nio.charset.Charset)
+    {
+        java.nio.charset.Charset r1;
+        java.lang.String r0, $r3;
+        java.util.BitSet $r2;
+
+        r0 := @parameter0: java.lang.String;
+
+        r1 := @parameter1: java.nio.charset.Charset;
+
+        $r2 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet PATHSAFE>;
+
+        $r3 = staticinvoke <org.apache.http.client.utils.URLEncodedUtils: java.lang.String urlencode(java.lang.String,java.nio.charset.Charset,java.util.BitSet,boolean)>(r0, r1, $r2, 0);
+
+        return $r3;
+    }
+
+    static void <clinit>()
+    {
+        int i0, i1, i2;
+        char[] $r0;
+        java.util.BitSet $r1, $r2, $r3, $r4, $r5, $r6, $r7, $r8, $r9, $r10, $r11, $r12, $r13, $r14, $r15, $r16, $r17, $r18, $r19, $r20, $r21, $r22, $r23, $r24, $r25, $r26, $r27, $r28, $r29, $r30, $r31, $r32, $r33, $r34, $r35, $r36, $r37, $r38, $r39, $r40, $r41, $r42, $r43, $r44, $r45, $r46, $r47, $r48, $r49, $r50, $r51, $r52, $r53, $r54, $r55, $r56, $r57, $r58, $r59;
+
+        <org.apache.http.client.utils.URLEncodedUtils: int RADIX> = 16;
+
+        <org.apache.http.client.utils.URLEncodedUtils: java.lang.String NAME_VALUE_SEPARATOR> = "=";
+
+        <org.apache.http.client.utils.URLEncodedUtils: java.lang.String PARAMETER_SEPARATOR> = "&";
+
+        <org.apache.http.client.utils.URLEncodedUtils: java.lang.String CONTENT_TYPE> = "application/x-www-form-urlencoded";
+
+        $r0 = newarray (char)[1];
+
+        $r0[0] = 38;
+
+        <org.apache.http.client.utils.URLEncodedUtils: char[] DELIM> = $r0;
+
+        $r1 = new java.util.BitSet;
+
+        specialinvoke $r1.<java.util.BitSet: void <init>(int)>(256);
+
+        <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet UNRESERVED> = $r1;
+
+        $r2 = new java.util.BitSet;
+
+        specialinvoke $r2.<java.util.BitSet: void <init>(int)>(256);
+
+        <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet PUNCT> = $r2;
+
+        $r3 = new java.util.BitSet;
+
+        specialinvoke $r3.<java.util.BitSet: void <init>(int)>(256);
+
+        <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet USERINFO> = $r3;
+
+        $r4 = new java.util.BitSet;
+
+        specialinvoke $r4.<java.util.BitSet: void <init>(int)>(256);
+
+        <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet PATHSAFE> = $r4;
+
+        $r5 = new java.util.BitSet;
+
+        specialinvoke $r5.<java.util.BitSet: void <init>(int)>(256);
+
+        <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet FRAGMENT> = $r5;
+
+        $r6 = new java.util.BitSet;
+
+        specialinvoke $r6.<java.util.BitSet: void <init>(int)>(256);
+
+        <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet RESERVED> = $r6;
+
+        $r7 = new java.util.BitSet;
+
+        specialinvoke $r7.<java.util.BitSet: void <init>(int)>(256);
+
+        <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet URLENCODER> = $r7;
+
+        i0 = 97;
+
+     label1:
+        if i0 > 122 goto label2;
+
+        $r59 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet UNRESERVED>;
+
+        virtualinvoke $r59.<java.util.BitSet: void set(int)>(i0);
+
+        i0 = i0 + 1;
+
+        goto label1;
+
+     label2:
+        i1 = 65;
+
+     label3:
+        if i1 > 90 goto label4;
+
+        $r58 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet UNRESERVED>;
+
+        virtualinvoke $r58.<java.util.BitSet: void set(int)>(i1);
+
+        i1 = i1 + 1;
+
+        goto label3;
+
+     label4:
+        i2 = 48;
+
+     label5:
+        if i2 > 57 goto label6;
+
+        $r57 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet UNRESERVED>;
+
+        virtualinvoke $r57.<java.util.BitSet: void set(int)>(i2);
+
+        i2 = i2 + 1;
+
+        goto label5;
+
+     label6:
+        $r8 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet UNRESERVED>;
+
+        virtualinvoke $r8.<java.util.BitSet: void set(int)>(95);
+
+        $r9 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet UNRESERVED>;
+
+        virtualinvoke $r9.<java.util.BitSet: void set(int)>(45);
+
+        $r10 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet UNRESERVED>;
+
+        virtualinvoke $r10.<java.util.BitSet: void set(int)>(46);
+
+        $r11 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet UNRESERVED>;
+
+        virtualinvoke $r11.<java.util.BitSet: void set(int)>(42);
+
+        $r13 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet URLENCODER>;
+
+        $r12 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet UNRESERVED>;
+
+        virtualinvoke $r13.<java.util.BitSet: void or(java.util.BitSet)>($r12);
+
+        $r14 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet UNRESERVED>;
+
+        virtualinvoke $r14.<java.util.BitSet: void set(int)>(33);
+
+        $r15 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet UNRESERVED>;
+
+        virtualinvoke $r15.<java.util.BitSet: void set(int)>(126);
+
+        $r16 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet UNRESERVED>;
+
+        virtualinvoke $r16.<java.util.BitSet: void set(int)>(39);
+
+        $r17 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet UNRESERVED>;
+
+        virtualinvoke $r17.<java.util.BitSet: void set(int)>(40);
+
+        $r18 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet UNRESERVED>;
+
+        virtualinvoke $r18.<java.util.BitSet: void set(int)>(41);
+
+        $r19 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet PUNCT>;
+
+        virtualinvoke $r19.<java.util.BitSet: void set(int)>(44);
+
+        $r20 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet PUNCT>;
+
+        virtualinvoke $r20.<java.util.BitSet: void set(int)>(59);
+
+        $r21 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet PUNCT>;
+
+        virtualinvoke $r21.<java.util.BitSet: void set(int)>(58);
+
+        $r22 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet PUNCT>;
+
+        virtualinvoke $r22.<java.util.BitSet: void set(int)>(36);
+
+        $r23 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet PUNCT>;
+
+        virtualinvoke $r23.<java.util.BitSet: void set(int)>(38);
+
+        $r24 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet PUNCT>;
+
+        virtualinvoke $r24.<java.util.BitSet: void set(int)>(43);
+
+        $r25 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet PUNCT>;
+
+        virtualinvoke $r25.<java.util.BitSet: void set(int)>(61);
+
+        $r27 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet USERINFO>;
+
+        $r26 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet UNRESERVED>;
+
+        virtualinvoke $r27.<java.util.BitSet: void or(java.util.BitSet)>($r26);
+
+        $r29 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet USERINFO>;
+
+        $r28 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet PUNCT>;
+
+        virtualinvoke $r29.<java.util.BitSet: void or(java.util.BitSet)>($r28);
+
+        $r31 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet PATHSAFE>;
+
+        $r30 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet UNRESERVED>;
+
+        virtualinvoke $r31.<java.util.BitSet: void or(java.util.BitSet)>($r30);
+
+        $r32 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet PATHSAFE>;
+
+        virtualinvoke $r32.<java.util.BitSet: void set(int)>(47);
+
+        $r33 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet PATHSAFE>;
+
+        virtualinvoke $r33.<java.util.BitSet: void set(int)>(59);
+
+        $r34 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet PATHSAFE>;
+
+        virtualinvoke $r34.<java.util.BitSet: void set(int)>(58);
+
+        $r35 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet PATHSAFE>;
+
+        virtualinvoke $r35.<java.util.BitSet: void set(int)>(64);
+
+        $r36 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet PATHSAFE>;
+
+        virtualinvoke $r36.<java.util.BitSet: void set(int)>(38);
+
+        $r37 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet PATHSAFE>;
+
+        virtualinvoke $r37.<java.util.BitSet: void set(int)>(61);
+
+        $r38 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet PATHSAFE>;
+
+        virtualinvoke $r38.<java.util.BitSet: void set(int)>(43);
+
+        $r39 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet PATHSAFE>;
+
+        virtualinvoke $r39.<java.util.BitSet: void set(int)>(36);
+
+        $r40 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet PATHSAFE>;
+
+        virtualinvoke $r40.<java.util.BitSet: void set(int)>(44);
+
+        $r41 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet RESERVED>;
+
+        virtualinvoke $r41.<java.util.BitSet: void set(int)>(59);
+
+        $r42 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet RESERVED>;
+
+        virtualinvoke $r42.<java.util.BitSet: void set(int)>(47);
+
+        $r43 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet RESERVED>;
+
+        virtualinvoke $r43.<java.util.BitSet: void set(int)>(63);
+
+        $r44 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet RESERVED>;
+
+        virtualinvoke $r44.<java.util.BitSet: void set(int)>(58);
+
+        $r45 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet RESERVED>;
+
+        virtualinvoke $r45.<java.util.BitSet: void set(int)>(64);
+
+        $r46 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet RESERVED>;
+
+        virtualinvoke $r46.<java.util.BitSet: void set(int)>(38);
+
+        $r47 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet RESERVED>;
+
+        virtualinvoke $r47.<java.util.BitSet: void set(int)>(61);
+
+        $r48 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet RESERVED>;
+
+        virtualinvoke $r48.<java.util.BitSet: void set(int)>(43);
+
+        $r49 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet RESERVED>;
+
+        virtualinvoke $r49.<java.util.BitSet: void set(int)>(36);
+
+        $r50 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet RESERVED>;
+
+        virtualinvoke $r50.<java.util.BitSet: void set(int)>(44);
+
+        $r51 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet RESERVED>;
+
+        virtualinvoke $r51.<java.util.BitSet: void set(int)>(91);
+
+        $r52 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet RESERVED>;
+
+        virtualinvoke $r52.<java.util.BitSet: void set(int)>(93);
+
+        $r54 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet FRAGMENT>;
+
+        $r53 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet RESERVED>;
+
+        virtualinvoke $r54.<java.util.BitSet: void or(java.util.BitSet)>($r53);
+
+        $r56 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet FRAGMENT>;
+
+        $r55 = <org.apache.http.client.utils.URLEncodedUtils: java.util.BitSet UNRESERVED>;
+
+        virtualinvoke $r56.<java.util.BitSet: void or(java.util.BitSet)>($r55);
+
+        return;
+    }
+}

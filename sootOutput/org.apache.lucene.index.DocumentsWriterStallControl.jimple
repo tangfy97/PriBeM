@@ -1,0 +1,353 @@
+final class org.apache.lucene.index.DocumentsWriterStallControl extends java.lang.Object
+{
+    private volatile boolean stalled;
+    private int numWaiting;
+    private boolean wasStalled;
+    private final java.util.Map waiting;
+    static final boolean $assertionsDisabled;
+
+    void <init>()
+    {
+        java.util.IdentityHashMap $r1;
+        org.apache.lucene.index.DocumentsWriterStallControl r0;
+
+        r0 := @this: org.apache.lucene.index.DocumentsWriterStallControl;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        $r1 = new java.util.IdentityHashMap;
+
+        specialinvoke $r1.<java.util.IdentityHashMap: void <init>()>();
+
+        r0.<org.apache.lucene.index.DocumentsWriterStallControl: java.util.Map waiting> = $r1;
+
+        return;
+    }
+
+    synchronized void updateStalled(boolean)
+    {
+        org.apache.lucene.index.DocumentsWriterStallControl r0;
+        boolean z0;
+
+        r0 := @this: org.apache.lucene.index.DocumentsWriterStallControl;
+
+        z0 := @parameter0: boolean;
+
+        r0.<org.apache.lucene.index.DocumentsWriterStallControl: boolean stalled> = z0;
+
+        if z0 == 0 goto label1;
+
+        r0.<org.apache.lucene.index.DocumentsWriterStallControl: boolean wasStalled> = 1;
+
+     label1:
+        virtualinvoke r0.<java.lang.Object: void notifyAll()>();
+
+        return;
+    }
+
+    void waitIfStalled()
+    {
+        java.lang.Throwable $r3;
+        org.apache.lucene.index.DocumentsWriterStallControl r0;
+        java.lang.AssertionError $r1, $r2;
+        java.lang.InterruptedException $r4;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5;
+        org.apache.lucene.util.ThreadInterruptedException $r5;
+
+        r0 := @this: org.apache.lucene.index.DocumentsWriterStallControl;
+
+        $z0 = r0.<org.apache.lucene.index.DocumentsWriterStallControl: boolean stalled>;
+
+        if $z0 == 0 goto label10;
+
+        entermonitor r0;
+
+     label01:
+        $z1 = r0.<org.apache.lucene.index.DocumentsWriterStallControl: boolean stalled>;
+
+        if $z1 == 0 goto label06;
+
+     label02:
+        $z2 = <org.apache.lucene.index.DocumentsWriterStallControl: boolean $assertionsDisabled>;
+
+        if $z2 != 0 goto label03;
+
+        $z5 = specialinvoke r0.<org.apache.lucene.index.DocumentsWriterStallControl: boolean incWaiters()>();
+
+        if $z5 != 0 goto label03;
+
+        $r2 = new java.lang.AssertionError;
+
+        specialinvoke $r2.<java.lang.AssertionError: void <init>()>();
+
+        throw $r2;
+
+     label03:
+        virtualinvoke r0.<java.lang.Object: void wait()>();
+
+        $z3 = <org.apache.lucene.index.DocumentsWriterStallControl: boolean $assertionsDisabled>;
+
+        if $z3 != 0 goto label04;
+
+        $z4 = specialinvoke r0.<org.apache.lucene.index.DocumentsWriterStallControl: boolean decrWaiters()>();
+
+        if $z4 != 0 goto label04;
+
+        $r1 = new java.lang.AssertionError;
+
+        specialinvoke $r1.<java.lang.AssertionError: void <init>()>();
+
+        throw $r1;
+
+     label04:
+        goto label06;
+
+     label05:
+        $r4 := @caughtexception;
+
+        $r5 = new org.apache.lucene.util.ThreadInterruptedException;
+
+        specialinvoke $r5.<org.apache.lucene.util.ThreadInterruptedException: void <init>(java.lang.InterruptedException)>($r4);
+
+        throw $r5;
+
+     label06:
+        exitmonitor r0;
+
+     label07:
+        goto label10;
+
+     label08:
+        $r3 := @caughtexception;
+
+        exitmonitor r0;
+
+     label09:
+        throw $r3;
+
+     label10:
+        return;
+
+        catch java.lang.InterruptedException from label02 to label04 with label05;
+        catch java.lang.Throwable from label01 to label07 with label08;
+        catch java.lang.Throwable from label08 to label09 with label08;
+    }
+
+    boolean anyStalledThreads()
+    {
+        org.apache.lucene.index.DocumentsWriterStallControl r0;
+        boolean $z0;
+
+        r0 := @this: org.apache.lucene.index.DocumentsWriterStallControl;
+
+        $z0 = r0.<org.apache.lucene.index.DocumentsWriterStallControl: boolean stalled>;
+
+        return $z0;
+    }
+
+    private boolean incWaiters()
+    {
+        org.apache.lucene.index.DocumentsWriterStallControl r0;
+        java.lang.AssertionError $r5;
+        java.util.Map $r1;
+        java.lang.Thread $r2;
+        int $i0, $i1, $i2;
+        java.lang.Boolean $r3;
+        java.lang.Object $r4;
+        boolean $z0, $z1;
+
+        r0 := @this: org.apache.lucene.index.DocumentsWriterStallControl;
+
+        $i0 = r0.<org.apache.lucene.index.DocumentsWriterStallControl: int numWaiting>;
+
+        $i1 = $i0 + 1;
+
+        r0.<org.apache.lucene.index.DocumentsWriterStallControl: int numWaiting> = $i1;
+
+        $z0 = <org.apache.lucene.index.DocumentsWriterStallControl: boolean $assertionsDisabled>;
+
+        if $z0 != 0 goto label1;
+
+        $r1 = r0.<org.apache.lucene.index.DocumentsWriterStallControl: java.util.Map waiting>;
+
+        $r2 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        $r3 = <java.lang.Boolean: java.lang.Boolean TRUE>;
+
+        $r4 = interfaceinvoke $r1.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>($r2, $r3);
+
+        if $r4 == null goto label1;
+
+        $r5 = new java.lang.AssertionError;
+
+        specialinvoke $r5.<java.lang.AssertionError: void <init>()>();
+
+        throw $r5;
+
+     label1:
+        $i2 = r0.<org.apache.lucene.index.DocumentsWriterStallControl: int numWaiting>;
+
+        if $i2 <= 0 goto label2;
+
+        $z1 = 1;
+
+        goto label3;
+
+     label2:
+        $z1 = 0;
+
+     label3:
+        return $z1;
+    }
+
+    private boolean decrWaiters()
+    {
+        org.apache.lucene.index.DocumentsWriterStallControl r0;
+        java.lang.AssertionError $r4;
+        java.util.Map $r1;
+        java.lang.Thread $r2;
+        int $i0, $i1, $i2;
+        java.lang.Object $r3;
+        boolean $z0, $z1;
+
+        r0 := @this: org.apache.lucene.index.DocumentsWriterStallControl;
+
+        $i0 = r0.<org.apache.lucene.index.DocumentsWriterStallControl: int numWaiting>;
+
+        $i1 = $i0 - 1;
+
+        r0.<org.apache.lucene.index.DocumentsWriterStallControl: int numWaiting> = $i1;
+
+        $z0 = <org.apache.lucene.index.DocumentsWriterStallControl: boolean $assertionsDisabled>;
+
+        if $z0 != 0 goto label1;
+
+        $r1 = r0.<org.apache.lucene.index.DocumentsWriterStallControl: java.util.Map waiting>;
+
+        $r2 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        $r3 = interfaceinvoke $r1.<java.util.Map: java.lang.Object remove(java.lang.Object)>($r2);
+
+        if $r3 != null goto label1;
+
+        $r4 = new java.lang.AssertionError;
+
+        specialinvoke $r4.<java.lang.AssertionError: void <init>()>();
+
+        throw $r4;
+
+     label1:
+        $i2 = r0.<org.apache.lucene.index.DocumentsWriterStallControl: int numWaiting>;
+
+        if $i2 < 0 goto label2;
+
+        $z1 = 1;
+
+        goto label3;
+
+     label2:
+        $z1 = 0;
+
+     label3:
+        return $z1;
+    }
+
+    synchronized boolean hasBlocked()
+    {
+        int $i0;
+        org.apache.lucene.index.DocumentsWriterStallControl r0;
+        boolean $z0;
+
+        r0 := @this: org.apache.lucene.index.DocumentsWriterStallControl;
+
+        $i0 = r0.<org.apache.lucene.index.DocumentsWriterStallControl: int numWaiting>;
+
+        if $i0 <= 0 goto label1;
+
+        $z0 = 1;
+
+        goto label2;
+
+     label1:
+        $z0 = 0;
+
+     label2:
+        return $z0;
+    }
+
+    boolean isHealthy()
+    {
+        org.apache.lucene.index.DocumentsWriterStallControl r0;
+        boolean $z0, $z1;
+
+        r0 := @this: org.apache.lucene.index.DocumentsWriterStallControl;
+
+        $z0 = r0.<org.apache.lucene.index.DocumentsWriterStallControl: boolean stalled>;
+
+        if $z0 != 0 goto label1;
+
+        $z1 = 1;
+
+        goto label2;
+
+     label1:
+        $z1 = 0;
+
+     label2:
+        return $z1;
+    }
+
+    synchronized boolean isThreadQueued(java.lang.Thread)
+    {
+        org.apache.lucene.index.DocumentsWriterStallControl r0;
+        java.lang.Thread r1;
+        java.util.Map $r2;
+        boolean $z0;
+
+        r0 := @this: org.apache.lucene.index.DocumentsWriterStallControl;
+
+        r1 := @parameter0: java.lang.Thread;
+
+        $r2 = r0.<org.apache.lucene.index.DocumentsWriterStallControl: java.util.Map waiting>;
+
+        $z0 = interfaceinvoke $r2.<java.util.Map: boolean containsKey(java.lang.Object)>(r1);
+
+        return $z0;
+    }
+
+    synchronized boolean wasStalled()
+    {
+        org.apache.lucene.index.DocumentsWriterStallControl r0;
+        boolean $z0;
+
+        r0 := @this: org.apache.lucene.index.DocumentsWriterStallControl;
+
+        $z0 = r0.<org.apache.lucene.index.DocumentsWriterStallControl: boolean wasStalled>;
+
+        return $z0;
+    }
+
+    static void <clinit>()
+    {
+        java.lang.Class $r0;
+        boolean $z0, $z1;
+
+        $r0 = class "Lorg/apache/lucene/index/DocumentsWriterStallControl;";
+
+        $z0 = virtualinvoke $r0.<java.lang.Class: boolean desiredAssertionStatus()>();
+
+        if $z0 != 0 goto label1;
+
+        $z1 = 1;
+
+        goto label2;
+
+     label1:
+        $z1 = 0;
+
+     label2:
+        <org.apache.lucene.index.DocumentsWriterStallControl: boolean $assertionsDisabled> = $z1;
+
+        return;
+    }
+}

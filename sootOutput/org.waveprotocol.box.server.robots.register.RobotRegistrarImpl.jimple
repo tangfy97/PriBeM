@@ -1,0 +1,521 @@
+public class org.waveprotocol.box.server.robots.register.RobotRegistrarImpl extends java.lang.Object implements org.waveprotocol.box.server.robots.register.RobotRegistrar
+{
+    private static final org.waveprotocol.box.server.robots.register.RobotRegistrar$Listener REGISTRATION_EVENTS_LOGGER;
+    private static final int TOKEN_LENGTH;
+    private final org.waveprotocol.box.server.persistence.AccountStore accountStore;
+    private final org.waveprotocol.wave.model.id.TokenGenerator tokenGenerator;
+    private final java.util.concurrent.CopyOnWriteArraySet listeners;
+
+    private static java.lang.String computeValidateRobotUrl(java.lang.String) throws org.waveprotocol.box.server.robots.util.RobotsUtil$RobotRegistrationException
+    {
+        java.net.URI $r1;
+        boolean $z0, $z1, $z2;
+        java.lang.StringBuilder $r4, $r5, $r7, $r9, $r11, $r12, $r14, $r15, $r16, $r18, $r22, $r23, $r25, $r29, $r31, $r32;
+        int $i0, $i1, $i2, $i3, $i5;
+        java.lang.String r0, $r2, $r6, $r8, $r13, $r17, $r24, $r26, r27, r28;
+        org.waveprotocol.box.server.robots.util.RobotsUtil$RobotRegistrationException $r30;
+        java.lang.IllegalArgumentException $r19;
+
+        r0 := @parameter0: java.lang.String;
+
+     label1:
+        $r1 = staticinvoke <java.net.URI: java.net.URI create(java.lang.String)>(r0);
+
+     label2:
+        goto label4;
+
+     label3:
+        $r19 := @caughtexception;
+
+        $r30 = new org.waveprotocol.box.server.robots.util.RobotsUtil$RobotRegistrationException;
+
+        $r29 = new java.lang.StringBuilder;
+
+        specialinvoke $r29.<java.lang.StringBuilder: void <init>()>();
+
+        $r22 = virtualinvoke $r29.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Invalid Location specified, please specify a location in URI format.");
+
+        $r23 = virtualinvoke $r22.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" ");
+
+        $r24 = virtualinvoke $r19.<java.lang.IllegalArgumentException: java.lang.String getLocalizedMessage()>();
+
+        $r25 = virtualinvoke $r23.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r24);
+
+        $r26 = virtualinvoke $r25.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r30.<org.waveprotocol.box.server.robots.util.RobotsUtil$RobotRegistrationException: void <init>(java.lang.String,java.lang.Throwable)>($r26, $r19);
+
+        throw $r30;
+
+     label4:
+        $r2 = virtualinvoke $r1.<java.net.URI: java.lang.String getScheme()>();
+
+        r27 = $r2;
+
+        if $r2 == null goto label5;
+
+        $z1 = virtualinvoke $r2.<java.lang.String: boolean equals(java.lang.Object)>("http");
+
+        if $z1 != 0 goto label6;
+
+        $z2 = virtualinvoke $r2.<java.lang.String: boolean equals(java.lang.Object)>("https");
+
+        if $z2 != 0 goto label6;
+
+     label5:
+        r27 = "http";
+
+     label6:
+        $i3 = virtualinvoke $r1.<java.net.URI: int getPort()>();
+
+        $i5 = (int) -1;
+
+        if $i3 == $i5 goto label7;
+
+        $r31 = new java.lang.StringBuilder;
+
+        specialinvoke $r31.<java.lang.StringBuilder: void <init>()>();
+
+        $r11 = virtualinvoke $r31.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r27);
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("://");
+
+        $r13 = virtualinvoke $r1.<java.net.URI: java.lang.String getHost()>();
+
+        $r14 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r13);
+
+        $r15 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(":");
+
+        $i2 = virtualinvoke $r1.<java.net.URI: int getPort()>();
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i2);
+
+        $r17 = virtualinvoke $r1.<java.net.URI: java.lang.String getPath()>();
+
+        $r18 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r17);
+
+        r28 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        goto label8;
+
+     label7:
+        $r32 = new java.lang.StringBuilder;
+
+        specialinvoke $r32.<java.lang.StringBuilder: void <init>()>();
+
+        $r4 = virtualinvoke $r32.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r27);
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("://");
+
+        $r6 = virtualinvoke $r1.<java.net.URI: java.lang.String getHost()>();
+
+        $r7 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r6);
+
+        $r8 = virtualinvoke $r1.<java.net.URI: java.lang.String getPath()>();
+
+        $r9 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r8);
+
+        r28 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.String toString()>();
+
+     label8:
+        $z0 = virtualinvoke r28.<java.lang.String: boolean endsWith(java.lang.String)>("/");
+
+        if $z0 == 0 goto label9;
+
+        $i0 = virtualinvoke r28.<java.lang.String: int length()>();
+
+        $i1 = $i0 - 1;
+
+        r28 = virtualinvoke r28.<java.lang.String: java.lang.String substring(int,int)>(0, $i1);
+
+     label9:
+        return r28;
+
+        catch java.lang.IllegalArgumentException from label1 to label2 with label3;
+    }
+
+    public void <init>(org.waveprotocol.box.server.persistence.AccountStore, org.waveprotocol.wave.model.id.TokenGenerator)
+    {
+        org.waveprotocol.box.server.robots.register.RobotRegistrar$Listener $r4;
+        org.waveprotocol.box.server.robots.register.RobotRegistrarImpl r0;
+        org.waveprotocol.wave.model.id.TokenGenerator r3;
+        org.waveprotocol.box.server.persistence.AccountStore r2;
+        java.util.concurrent.CopyOnWriteArraySet $r1;
+
+        r0 := @this: org.waveprotocol.box.server.robots.register.RobotRegistrarImpl;
+
+        r2 := @parameter0: org.waveprotocol.box.server.persistence.AccountStore;
+
+        r3 := @parameter1: org.waveprotocol.wave.model.id.TokenGenerator;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        $r1 = new java.util.concurrent.CopyOnWriteArraySet;
+
+        specialinvoke $r1.<java.util.concurrent.CopyOnWriteArraySet: void <init>()>();
+
+        r0.<org.waveprotocol.box.server.robots.register.RobotRegistrarImpl: java.util.concurrent.CopyOnWriteArraySet listeners> = $r1;
+
+        r0.<org.waveprotocol.box.server.robots.register.RobotRegistrarImpl: org.waveprotocol.box.server.persistence.AccountStore accountStore> = r2;
+
+        r0.<org.waveprotocol.box.server.robots.register.RobotRegistrarImpl: org.waveprotocol.wave.model.id.TokenGenerator tokenGenerator> = r3;
+
+        $r4 = <org.waveprotocol.box.server.robots.register.RobotRegistrarImpl: org.waveprotocol.box.server.robots.register.RobotRegistrar$Listener REGISTRATION_EVENTS_LOGGER>;
+
+        virtualinvoke r0.<org.waveprotocol.box.server.robots.register.RobotRegistrarImpl: void addRegistrationListener(org.waveprotocol.box.server.robots.register.RobotRegistrar$Listener)>($r4);
+
+        return;
+    }
+
+    public org.waveprotocol.box.server.account.RobotAccountData registerNew(org.waveprotocol.wave.model.wave.ParticipantId, java.lang.String) throws org.waveprotocol.box.server.robots.util.RobotsUtil$RobotRegistrationException, org.waveprotocol.box.server.persistence.PersistenceException
+    {
+        org.waveprotocol.box.server.robots.util.RobotsUtil$RobotRegistrationException $r6;
+        org.waveprotocol.box.server.account.RobotAccountData $r5;
+        org.waveprotocol.box.server.account.AccountData $r4;
+        org.waveprotocol.wave.model.wave.ParticipantId r0;
+        org.waveprotocol.box.server.robots.register.RobotRegistrarImpl r2;
+        java.lang.StringBuilder $r7, $r9, $r10;
+        java.lang.String r1, $r8, $r11;
+        org.waveprotocol.box.server.persistence.AccountStore $r3;
+        boolean $z0, $z1;
+
+        r2 := @this: org.waveprotocol.box.server.robots.register.RobotRegistrarImpl;
+
+        r0 := @parameter0: org.waveprotocol.wave.model.wave.ParticipantId;
+
+        r1 := @parameter1: java.lang.String;
+
+        staticinvoke <com.google.common.base.Preconditions: java.lang.Object checkNotNull(java.lang.Object)>(r0);
+
+        staticinvoke <com.google.common.base.Preconditions: java.lang.Object checkNotNull(java.lang.Object)>(r1);
+
+        $z0 = virtualinvoke r1.<java.lang.String: boolean isEmpty()>();
+
+        if $z0 != 0 goto label1;
+
+        $z1 = 1;
+
+        goto label2;
+
+     label1:
+        $z1 = 0;
+
+     label2:
+        staticinvoke <com.google.common.base.Preconditions: void checkArgument(boolean)>($z1);
+
+        $r3 = r2.<org.waveprotocol.box.server.robots.register.RobotRegistrarImpl: org.waveprotocol.box.server.persistence.AccountStore accountStore>;
+
+        $r4 = interfaceinvoke $r3.<org.waveprotocol.box.server.persistence.AccountStore: org.waveprotocol.box.server.account.AccountData getAccount(org.waveprotocol.wave.model.wave.ParticipantId)>(r0);
+
+        if $r4 == null goto label3;
+
+        $r6 = new org.waveprotocol.box.server.robots.util.RobotsUtil$RobotRegistrationException;
+
+        $r7 = new java.lang.StringBuilder;
+
+        specialinvoke $r7.<java.lang.StringBuilder: void <init>()>();
+
+        $r8 = virtualinvoke r0.<org.waveprotocol.wave.model.wave.ParticipantId: java.lang.String getAddress()>();
+
+        $r9 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r8);
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" is already in use, please choose another one.");
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r6.<org.waveprotocol.box.server.robots.util.RobotsUtil$RobotRegistrationException: void <init>(java.lang.String)>($r11);
+
+        throw $r6;
+
+     label3:
+        $r5 = specialinvoke r2.<org.waveprotocol.box.server.robots.register.RobotRegistrarImpl: org.waveprotocol.box.server.account.RobotAccountData registerRobot(org.waveprotocol.wave.model.wave.ParticipantId,java.lang.String)>(r0, r1);
+
+        return $r5;
+    }
+
+    public org.waveprotocol.box.server.account.RobotAccountData unregister(org.waveprotocol.wave.model.wave.ParticipantId) throws org.waveprotocol.box.server.robots.util.RobotsUtil$RobotRegistrationException, org.waveprotocol.box.server.persistence.PersistenceException
+    {
+        org.waveprotocol.box.server.account.RobotAccountData $r4;
+        org.waveprotocol.box.server.robots.register.RobotRegistrarImpl r1;
+        org.waveprotocol.box.server.account.AccountData $r3;
+        org.waveprotocol.wave.model.wave.ParticipantId r0;
+        org.waveprotocol.box.server.persistence.AccountStore $r2;
+
+        r1 := @this: org.waveprotocol.box.server.robots.register.RobotRegistrarImpl;
+
+        r0 := @parameter0: org.waveprotocol.wave.model.wave.ParticipantId;
+
+        staticinvoke <com.google.common.base.Preconditions: java.lang.Object checkNotNull(java.lang.Object)>(r0);
+
+        $r2 = r1.<org.waveprotocol.box.server.robots.register.RobotRegistrarImpl: org.waveprotocol.box.server.persistence.AccountStore accountStore>;
+
+        $r3 = interfaceinvoke $r2.<org.waveprotocol.box.server.persistence.AccountStore: org.waveprotocol.box.server.account.AccountData getAccount(org.waveprotocol.wave.model.wave.ParticipantId)>(r0);
+
+        if $r3 != null goto label1;
+
+        return null;
+
+     label1:
+        specialinvoke r1.<org.waveprotocol.box.server.robots.register.RobotRegistrarImpl: void throwExceptionIfNotRobot(org.waveprotocol.box.server.account.AccountData)>($r3);
+
+        $r4 = interfaceinvoke $r3.<org.waveprotocol.box.server.account.AccountData: org.waveprotocol.box.server.account.RobotAccountData asRobot()>();
+
+        specialinvoke r1.<org.waveprotocol.box.server.robots.register.RobotRegistrarImpl: void removeRobotAccount(org.waveprotocol.box.server.account.RobotAccountData)>($r4);
+
+        return $r4;
+    }
+
+    public org.waveprotocol.box.server.account.RobotAccountData registerOrUpdate(org.waveprotocol.wave.model.wave.ParticipantId, java.lang.String) throws org.waveprotocol.box.server.robots.util.RobotsUtil$RobotRegistrationException, org.waveprotocol.box.server.persistence.PersistenceException
+    {
+        org.waveprotocol.box.server.account.RobotAccountData $r5, $r6;
+        org.waveprotocol.box.server.account.AccountData $r4;
+        org.waveprotocol.wave.model.wave.ParticipantId r0;
+        org.waveprotocol.box.server.robots.register.RobotRegistrarImpl r2;
+        java.lang.String r1, $r7;
+        org.waveprotocol.box.server.persistence.AccountStore $r3;
+        boolean $z0, $z1, $z2;
+
+        r2 := @this: org.waveprotocol.box.server.robots.register.RobotRegistrarImpl;
+
+        r0 := @parameter0: org.waveprotocol.wave.model.wave.ParticipantId;
+
+        r1 := @parameter1: java.lang.String;
+
+        staticinvoke <com.google.common.base.Preconditions: java.lang.Object checkNotNull(java.lang.Object)>(r0);
+
+        staticinvoke <com.google.common.base.Preconditions: java.lang.Object checkNotNull(java.lang.Object)>(r1);
+
+        $z0 = virtualinvoke r1.<java.lang.String: boolean isEmpty()>();
+
+        if $z0 != 0 goto label1;
+
+        $z2 = 1;
+
+        goto label2;
+
+     label1:
+        $z2 = 0;
+
+     label2:
+        staticinvoke <com.google.common.base.Preconditions: void checkArgument(boolean)>($z2);
+
+        $r3 = r2.<org.waveprotocol.box.server.robots.register.RobotRegistrarImpl: org.waveprotocol.box.server.persistence.AccountStore accountStore>;
+
+        $r4 = interfaceinvoke $r3.<org.waveprotocol.box.server.persistence.AccountStore: org.waveprotocol.box.server.account.AccountData getAccount(org.waveprotocol.wave.model.wave.ParticipantId)>(r0);
+
+        if $r4 == null goto label4;
+
+        specialinvoke r2.<org.waveprotocol.box.server.robots.register.RobotRegistrarImpl: void throwExceptionIfNotRobot(org.waveprotocol.box.server.account.AccountData)>($r4);
+
+        $r6 = interfaceinvoke $r4.<org.waveprotocol.box.server.account.AccountData: org.waveprotocol.box.server.account.RobotAccountData asRobot()>();
+
+        $r7 = interfaceinvoke $r6.<org.waveprotocol.box.server.account.RobotAccountData: java.lang.String getUrl()>();
+
+        $z1 = virtualinvoke $r7.<java.lang.String: boolean equals(java.lang.Object)>(r1);
+
+        if $z1 == 0 goto label3;
+
+        return $r6;
+
+     label3:
+        specialinvoke r2.<org.waveprotocol.box.server.robots.register.RobotRegistrarImpl: void removeRobotAccount(org.waveprotocol.box.server.account.RobotAccountData)>($r6);
+
+     label4:
+        $r5 = specialinvoke r2.<org.waveprotocol.box.server.robots.register.RobotRegistrarImpl: org.waveprotocol.box.server.account.RobotAccountData registerRobot(org.waveprotocol.wave.model.wave.ParticipantId,java.lang.String)>(r0, r1);
+
+        return $r5;
+    }
+
+    private org.waveprotocol.box.server.account.RobotAccountData registerRobot(org.waveprotocol.wave.model.wave.ParticipantId, java.lang.String) throws org.waveprotocol.box.server.robots.util.RobotsUtil$RobotRegistrationException, org.waveprotocol.box.server.persistence.PersistenceException
+    {
+        org.waveprotocol.box.server.robots.register.RobotRegistrar$Listener r11;
+        java.util.Iterator $r9;
+        org.waveprotocol.wave.model.id.TokenGenerator $r5;
+        org.waveprotocol.wave.model.wave.ParticipantId r3;
+        java.util.concurrent.CopyOnWriteArraySet $r8;
+        org.waveprotocol.box.server.account.RobotAccountDataImpl $r2;
+        org.waveprotocol.box.server.robots.register.RobotRegistrarImpl r4;
+        java.lang.Object $r10;
+        java.lang.String r0, $r1, $r6;
+        org.waveprotocol.box.server.persistence.AccountStore $r7;
+        boolean $z0;
+
+        r4 := @this: org.waveprotocol.box.server.robots.register.RobotRegistrarImpl;
+
+        r3 := @parameter0: org.waveprotocol.wave.model.wave.ParticipantId;
+
+        r0 := @parameter1: java.lang.String;
+
+        $r1 = staticinvoke <org.waveprotocol.box.server.robots.register.RobotRegistrarImpl: java.lang.String computeValidateRobotUrl(java.lang.String)>(r0);
+
+        $r2 = new org.waveprotocol.box.server.account.RobotAccountDataImpl;
+
+        $r5 = r4.<org.waveprotocol.box.server.robots.register.RobotRegistrarImpl: org.waveprotocol.wave.model.id.TokenGenerator tokenGenerator>;
+
+        $r6 = interfaceinvoke $r5.<org.waveprotocol.wave.model.id.TokenGenerator: java.lang.String generateToken(int)>(48);
+
+        specialinvoke $r2.<org.waveprotocol.box.server.account.RobotAccountDataImpl: void <init>(org.waveprotocol.wave.model.wave.ParticipantId,java.lang.String,java.lang.String,org.waveprotocol.box.server.robots.RobotCapabilities,boolean)>(r3, $r1, $r6, null, 1);
+
+        $r7 = r4.<org.waveprotocol.box.server.robots.register.RobotRegistrarImpl: org.waveprotocol.box.server.persistence.AccountStore accountStore>;
+
+        interfaceinvoke $r7.<org.waveprotocol.box.server.persistence.AccountStore: void putAccount(org.waveprotocol.box.server.account.AccountData)>($r2);
+
+        $r8 = r4.<org.waveprotocol.box.server.robots.register.RobotRegistrarImpl: java.util.concurrent.CopyOnWriteArraySet listeners>;
+
+        $r9 = virtualinvoke $r8.<java.util.concurrent.CopyOnWriteArraySet: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r9.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label2;
+
+        $r10 = interfaceinvoke $r9.<java.util.Iterator: java.lang.Object next()>();
+
+        r11 = (org.waveprotocol.box.server.robots.register.RobotRegistrar$Listener) $r10;
+
+        interfaceinvoke r11.<org.waveprotocol.box.server.robots.register.RobotRegistrar$Listener: void onRegistrationSuccess(org.waveprotocol.box.server.account.RobotAccountData)>($r2);
+
+        goto label1;
+
+     label2:
+        return $r2;
+    }
+
+    private void removeRobotAccount(org.waveprotocol.box.server.account.RobotAccountData) throws org.waveprotocol.box.server.persistence.PersistenceException
+    {
+        org.waveprotocol.box.server.robots.register.RobotRegistrar$Listener r7;
+        java.util.Iterator $r5;
+        org.waveprotocol.box.server.account.RobotAccountData r1;
+        org.waveprotocol.wave.model.wave.ParticipantId $r3;
+        java.util.concurrent.CopyOnWriteArraySet $r4;
+        org.waveprotocol.box.server.robots.register.RobotRegistrarImpl r0;
+        java.lang.Object $r6;
+        org.waveprotocol.box.server.persistence.AccountStore $r2;
+        boolean $z0;
+
+        r0 := @this: org.waveprotocol.box.server.robots.register.RobotRegistrarImpl;
+
+        r1 := @parameter0: org.waveprotocol.box.server.account.RobotAccountData;
+
+        $r2 = r0.<org.waveprotocol.box.server.robots.register.RobotRegistrarImpl: org.waveprotocol.box.server.persistence.AccountStore accountStore>;
+
+        $r3 = interfaceinvoke r1.<org.waveprotocol.box.server.account.RobotAccountData: org.waveprotocol.wave.model.wave.ParticipantId getId()>();
+
+        interfaceinvoke $r2.<org.waveprotocol.box.server.persistence.AccountStore: void removeAccount(org.waveprotocol.wave.model.wave.ParticipantId)>($r3);
+
+        $r4 = r0.<org.waveprotocol.box.server.robots.register.RobotRegistrarImpl: java.util.concurrent.CopyOnWriteArraySet listeners>;
+
+        $r5 = virtualinvoke $r4.<java.util.concurrent.CopyOnWriteArraySet: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r5.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label2;
+
+        $r6 = interfaceinvoke $r5.<java.util.Iterator: java.lang.Object next()>();
+
+        r7 = (org.waveprotocol.box.server.robots.register.RobotRegistrar$Listener) $r6;
+
+        interfaceinvoke r7.<org.waveprotocol.box.server.robots.register.RobotRegistrar$Listener: void onUnregistrationSuccess(org.waveprotocol.box.server.account.RobotAccountData)>(r1);
+
+        goto label1;
+
+     label2:
+        return;
+    }
+
+    private void throwExceptionIfNotRobot(org.waveprotocol.box.server.account.AccountData) throws org.waveprotocol.box.server.robots.util.RobotsUtil$RobotRegistrationException
+    {
+        org.waveprotocol.box.server.robots.util.RobotsUtil$RobotRegistrationException $r1;
+        org.waveprotocol.box.server.account.AccountData r0;
+        org.waveprotocol.wave.model.wave.ParticipantId $r3;
+        org.waveprotocol.box.server.robots.register.RobotRegistrarImpl r8;
+        java.lang.StringBuilder $r2, $r5, $r6;
+        java.lang.String $r4, $r7;
+        boolean $z0;
+
+        r8 := @this: org.waveprotocol.box.server.robots.register.RobotRegistrarImpl;
+
+        r0 := @parameter0: org.waveprotocol.box.server.account.AccountData;
+
+        $z0 = interfaceinvoke r0.<org.waveprotocol.box.server.account.AccountData: boolean isRobot()>();
+
+        if $z0 != 0 goto label1;
+
+        $r1 = new org.waveprotocol.box.server.robots.util.RobotsUtil$RobotRegistrationException;
+
+        $r2 = new java.lang.StringBuilder;
+
+        specialinvoke $r2.<java.lang.StringBuilder: void <init>()>();
+
+        $r3 = interfaceinvoke r0.<org.waveprotocol.box.server.account.AccountData: org.waveprotocol.wave.model.wave.ParticipantId getId()>();
+
+        $r4 = virtualinvoke $r3.<org.waveprotocol.wave.model.wave.ParticipantId: java.lang.String getAddress()>();
+
+        $r5 = virtualinvoke $r2.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r4);
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" is not a robot account!");
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r1.<org.waveprotocol.box.server.robots.util.RobotsUtil$RobotRegistrationException: void <init>(java.lang.String)>($r7);
+
+        throw $r1;
+
+     label1:
+        return;
+    }
+
+    public void addRegistrationListener(org.waveprotocol.box.server.robots.register.RobotRegistrar$Listener)
+    {
+        org.waveprotocol.box.server.robots.register.RobotRegistrarImpl r1;
+        org.waveprotocol.box.server.robots.register.RobotRegistrar$Listener r0;
+        java.util.concurrent.CopyOnWriteArraySet $r2;
+
+        r1 := @this: org.waveprotocol.box.server.robots.register.RobotRegistrarImpl;
+
+        r0 := @parameter0: org.waveprotocol.box.server.robots.register.RobotRegistrar$Listener;
+
+        staticinvoke <com.google.common.base.Preconditions: java.lang.Object checkNotNull(java.lang.Object)>(r0);
+
+        $r2 = r1.<org.waveprotocol.box.server.robots.register.RobotRegistrarImpl: java.util.concurrent.CopyOnWriteArraySet listeners>;
+
+        virtualinvoke $r2.<java.util.concurrent.CopyOnWriteArraySet: boolean add(java.lang.Object)>(r0);
+
+        return;
+    }
+
+    public void removeRegistrationListener(org.waveprotocol.box.server.robots.register.RobotRegistrar$Listener)
+    {
+        org.waveprotocol.box.server.robots.register.RobotRegistrarImpl r1;
+        org.waveprotocol.box.server.robots.register.RobotRegistrar$Listener r0;
+        java.util.concurrent.CopyOnWriteArraySet $r2;
+
+        r1 := @this: org.waveprotocol.box.server.robots.register.RobotRegistrarImpl;
+
+        r0 := @parameter0: org.waveprotocol.box.server.robots.register.RobotRegistrar$Listener;
+
+        staticinvoke <com.google.common.base.Preconditions: java.lang.Object checkNotNull(java.lang.Object)>(r0);
+
+        $r2 = r1.<org.waveprotocol.box.server.robots.register.RobotRegistrarImpl: java.util.concurrent.CopyOnWriteArraySet listeners>;
+
+        virtualinvoke $r2.<java.util.concurrent.CopyOnWriteArraySet: boolean remove(java.lang.Object)>(r0);
+
+        return;
+    }
+
+    static void <clinit>()
+    {
+        org.waveprotocol.box.server.robots.register.RobotRegistrarImpl$1 $r0;
+
+        <org.waveprotocol.box.server.robots.register.RobotRegistrarImpl: int TOKEN_LENGTH> = 48;
+
+        $r0 = new org.waveprotocol.box.server.robots.register.RobotRegistrarImpl$1;
+
+        specialinvoke $r0.<org.waveprotocol.box.server.robots.register.RobotRegistrarImpl$1: void <init>()>();
+
+        <org.waveprotocol.box.server.robots.register.RobotRegistrarImpl: org.waveprotocol.box.server.robots.register.RobotRegistrar$Listener REGISTRATION_EVENTS_LOGGER> = $r0;
+
+        return;
+    }
+}

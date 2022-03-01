@@ -1,0 +1,1057 @@
+final class org.apache.lucene.index.DocFieldProcessorPerThread extends org.apache.lucene.index.DocConsumerPerThread
+{
+    float docBoost;
+    int fieldGen;
+    final org.apache.lucene.index.DocFieldProcessor docFieldProcessor;
+    final org.apache.lucene.index.FieldInfos fieldInfos;
+    final org.apache.lucene.index.DocFieldConsumerPerThread consumer;
+    org.apache.lucene.index.DocFieldProcessorPerField[] fields;
+    int fieldCount;
+    org.apache.lucene.index.DocFieldProcessorPerField[] fieldHash;
+    int hashMask;
+    int totalFieldCount;
+    final org.apache.lucene.index.StoredFieldsWriterPerThread fieldsWriter;
+    final org.apache.lucene.index.DocumentsWriter$DocState docState;
+    private static final java.util.Comparator fieldsComp;
+    org.apache.lucene.index.DocFieldProcessorPerThread$PerDoc[] docFreeList;
+    int freeCount;
+    int allocCount;
+    static final boolean $assertionsDisabled;
+
+    public void <init>(org.apache.lucene.index.DocumentsWriterThreadState, org.apache.lucene.index.DocFieldProcessor) throws java.io.IOException
+    {
+        org.apache.lucene.index.DocFieldProcessorPerField[] $r1, $r2;
+        org.apache.lucene.index.DocFieldConsumerPerThread $r9;
+        org.apache.lucene.index.DocumentsWriter$DocState $r5, $r10;
+        org.apache.lucene.index.DocFieldProcessor r6;
+        org.apache.lucene.index.DocFieldProcessorPerThread r0;
+        org.apache.lucene.index.StoredFieldsWriter $r11;
+        org.apache.lucene.index.DocFieldConsumer $r8;
+        org.apache.lucene.index.DocumentsWriterThreadState r4;
+        org.apache.lucene.index.StoredFieldsWriterPerThread $r12;
+        org.apache.lucene.index.DocFieldProcessorPerThread$PerDoc[] $r3;
+        org.apache.lucene.index.FieldInfos $r7;
+
+        r0 := @this: org.apache.lucene.index.DocFieldProcessorPerThread;
+
+        r4 := @parameter0: org.apache.lucene.index.DocumentsWriterThreadState;
+
+        r6 := @parameter1: org.apache.lucene.index.DocFieldProcessor;
+
+        specialinvoke r0.<org.apache.lucene.index.DocConsumerPerThread: void <init>()>();
+
+        $r1 = newarray (org.apache.lucene.index.DocFieldProcessorPerField)[1];
+
+        r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessorPerField[] fields> = $r1;
+
+        $r2 = newarray (org.apache.lucene.index.DocFieldProcessorPerField)[2];
+
+        r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessorPerField[] fieldHash> = $r2;
+
+        r0.<org.apache.lucene.index.DocFieldProcessorPerThread: int hashMask> = 1;
+
+        $r3 = newarray (org.apache.lucene.index.DocFieldProcessorPerThread$PerDoc)[1];
+
+        r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessorPerThread$PerDoc[] docFreeList> = $r3;
+
+        $r5 = r4.<org.apache.lucene.index.DocumentsWriterThreadState: org.apache.lucene.index.DocumentsWriter$DocState docState>;
+
+        r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocumentsWriter$DocState docState> = $r5;
+
+        r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessor docFieldProcessor> = r6;
+
+        $r7 = r6.<org.apache.lucene.index.DocFieldProcessor: org.apache.lucene.index.FieldInfos fieldInfos>;
+
+        r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.FieldInfos fieldInfos> = $r7;
+
+        $r8 = r6.<org.apache.lucene.index.DocFieldProcessor: org.apache.lucene.index.DocFieldConsumer consumer>;
+
+        $r9 = virtualinvoke $r8.<org.apache.lucene.index.DocFieldConsumer: org.apache.lucene.index.DocFieldConsumerPerThread addThread(org.apache.lucene.index.DocFieldProcessorPerThread)>(r0);
+
+        r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldConsumerPerThread consumer> = $r9;
+
+        $r11 = r6.<org.apache.lucene.index.DocFieldProcessor: org.apache.lucene.index.StoredFieldsWriter fieldsWriter>;
+
+        $r10 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocumentsWriter$DocState docState>;
+
+        $r12 = virtualinvoke $r11.<org.apache.lucene.index.StoredFieldsWriter: org.apache.lucene.index.StoredFieldsWriterPerThread addThread(org.apache.lucene.index.DocumentsWriter$DocState)>($r10);
+
+        r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.StoredFieldsWriterPerThread fieldsWriter> = $r12;
+
+        return;
+    }
+
+    public void abort()
+    {
+        java.lang.Throwable $r6, $r7, $r8, r9;
+        org.apache.lucene.index.DocFieldProcessorPerField[] r10;
+        org.apache.lucene.index.DocFieldConsumerPerThread $r12;
+        java.lang.Error $r3;
+        org.apache.lucene.index.DocFieldProcessorPerThread r0;
+        org.apache.lucene.index.StoredFieldsWriterPerThread $r1;
+        int i0, i1;
+        boolean $z0, $z1;
+        java.lang.RuntimeException $r2, $r4;
+        org.apache.lucene.index.DocFieldProcessorPerField r5, r11;
+
+        r0 := @this: org.apache.lucene.index.DocFieldProcessorPerThread;
+
+        r9 = null;
+
+        r10 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessorPerField[] fieldHash>;
+
+        i0 = lengthof r10;
+
+        i1 = 0;
+
+     label01:
+        if i1 >= i0 goto label08;
+
+        r11 = r10[i1];
+
+     label02:
+        if r11 == null goto label07;
+
+        r5 = r11.<org.apache.lucene.index.DocFieldProcessorPerField: org.apache.lucene.index.DocFieldProcessorPerField next>;
+
+     label03:
+        virtualinvoke r11.<org.apache.lucene.index.DocFieldProcessorPerField: void abort()>();
+
+     label04:
+        goto label06;
+
+     label05:
+        $r8 := @caughtexception;
+
+        if r9 != null goto label06;
+
+        r9 = $r8;
+
+     label06:
+        r11 = r5;
+
+        goto label02;
+
+     label07:
+        i1 = i1 + 1;
+
+        goto label01;
+
+     label08:
+        $r1 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.StoredFieldsWriterPerThread fieldsWriter>;
+
+        virtualinvoke $r1.<org.apache.lucene.index.StoredFieldsWriterPerThread: void abort()>();
+
+     label09:
+        goto label11;
+
+     label10:
+        $r7 := @caughtexception;
+
+        if r9 != null goto label11;
+
+        r9 = $r7;
+
+     label11:
+        $r12 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldConsumerPerThread consumer>;
+
+        virtualinvoke $r12.<org.apache.lucene.index.DocFieldConsumerPerThread: void abort()>();
+
+     label12:
+        goto label14;
+
+     label13:
+        $r6 := @caughtexception;
+
+        if r9 != null goto label14;
+
+        r9 = $r6;
+
+     label14:
+        if r9 == null goto label17;
+
+        $z0 = r9 instanceof java.lang.RuntimeException;
+
+        if $z0 == 0 goto label15;
+
+        $r4 = (java.lang.RuntimeException) r9;
+
+        throw $r4;
+
+     label15:
+        $z1 = r9 instanceof java.lang.Error;
+
+        if $z1 == 0 goto label16;
+
+        $r3 = (java.lang.Error) r9;
+
+        throw $r3;
+
+     label16:
+        $r2 = new java.lang.RuntimeException;
+
+        specialinvoke $r2.<java.lang.RuntimeException: void <init>(java.lang.Throwable)>(r9);
+
+        throw $r2;
+
+     label17:
+        return;
+
+        catch java.lang.Throwable from label03 to label04 with label05;
+        catch java.lang.Throwable from label08 to label09 with label10;
+        catch java.lang.Throwable from label11 to label12 with label13;
+    }
+
+    public java.util.Collection fields()
+    {
+        org.apache.lucene.index.DocFieldProcessorPerField[] $r2, $r4;
+        java.lang.AssertionError $r3;
+        org.apache.lucene.index.DocFieldConsumerPerField $r5;
+        org.apache.lucene.index.DocFieldProcessorPerThread r1;
+        java.util.HashSet $r0;
+        org.apache.lucene.index.DocFieldProcessorPerField r6;
+        int $i0, $i1, $i2, i3;
+        boolean $z0;
+
+        r1 := @this: org.apache.lucene.index.DocFieldProcessorPerThread;
+
+        $r0 = new java.util.HashSet;
+
+        specialinvoke $r0.<java.util.HashSet: void <init>()>();
+
+        i3 = 0;
+
+     label1:
+        $r2 = r1.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessorPerField[] fieldHash>;
+
+        $i0 = lengthof $r2;
+
+        if i3 >= $i0 goto label4;
+
+        $r4 = r1.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessorPerField[] fieldHash>;
+
+        r6 = $r4[i3];
+
+     label2:
+        if r6 == null goto label3;
+
+        $r5 = r6.<org.apache.lucene.index.DocFieldProcessorPerField: org.apache.lucene.index.DocFieldConsumerPerField consumer>;
+
+        interfaceinvoke $r0.<java.util.Collection: boolean add(java.lang.Object)>($r5);
+
+        r6 = r6.<org.apache.lucene.index.DocFieldProcessorPerField: org.apache.lucene.index.DocFieldProcessorPerField next>;
+
+        goto label2;
+
+     label3:
+        i3 = i3 + 1;
+
+        goto label1;
+
+     label4:
+        $z0 = <org.apache.lucene.index.DocFieldProcessorPerThread: boolean $assertionsDisabled>;
+
+        if $z0 != 0 goto label5;
+
+        $i1 = interfaceinvoke $r0.<java.util.Collection: int size()>();
+
+        $i2 = r1.<org.apache.lucene.index.DocFieldProcessorPerThread: int totalFieldCount>;
+
+        if $i1 == $i2 goto label5;
+
+        $r3 = new java.lang.AssertionError;
+
+        specialinvoke $r3.<java.lang.AssertionError: void <init>()>();
+
+        throw $r3;
+
+     label5:
+        return $r0;
+    }
+
+    void trimFields(org.apache.lucene.index.SegmentWriteState)
+    {
+        org.apache.lucene.index.DocFieldProcessorPerField[] $r1, $r2, $r14;
+        org.apache.lucene.index.DocFieldProcessorPerThread r0;
+        int $i0, $i1, $i2, $i3, i4, $i6, $i8;
+        org.apache.lucene.index.SegmentWriteState r4;
+        java.lang.String $r10, $r12;
+        java.io.PrintStream $r5, $r7;
+        org.apache.lucene.index.DocFieldProcessorPerField $r3, $r13, r15, r16;
+        org.apache.lucene.index.FieldInfo $r9;
+        java.lang.StringBuilder $r8, $r11, $r17;
+
+        r0 := @this: org.apache.lucene.index.DocFieldProcessorPerThread;
+
+        r4 := @parameter0: org.apache.lucene.index.SegmentWriteState;
+
+        i4 = 0;
+
+     label1:
+        $r1 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessorPerField[] fieldHash>;
+
+        $i0 = lengthof $r1;
+
+        if i4 >= $i0 goto label9;
+
+        $r2 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessorPerField[] fieldHash>;
+
+        r15 = $r2[i4];
+
+        r16 = null;
+
+     label2:
+        if r15 == null goto label8;
+
+        $i1 = r15.<org.apache.lucene.index.DocFieldProcessorPerField: int lastGen>;
+
+        $i6 = (int) -1;
+
+        if $i1 != $i6 goto label6;
+
+        if r16 != null goto label3;
+
+        $r14 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessorPerField[] fieldHash>;
+
+        $r13 = r15.<org.apache.lucene.index.DocFieldProcessorPerField: org.apache.lucene.index.DocFieldProcessorPerField next>;
+
+        $r14[i4] = $r13;
+
+        goto label4;
+
+     label3:
+        $r3 = r15.<org.apache.lucene.index.DocFieldProcessorPerField: org.apache.lucene.index.DocFieldProcessorPerField next>;
+
+        r16.<org.apache.lucene.index.DocFieldProcessorPerField: org.apache.lucene.index.DocFieldProcessorPerField next> = $r3;
+
+     label4:
+        $r5 = r4.<org.apache.lucene.index.SegmentWriteState: java.io.PrintStream infoStream>;
+
+        if $r5 == null goto label5;
+
+        $r7 = r4.<org.apache.lucene.index.SegmentWriteState: java.io.PrintStream infoStream>;
+
+        $r17 = new java.lang.StringBuilder;
+
+        specialinvoke $r17.<java.lang.StringBuilder: void <init>()>();
+
+        $r8 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("  purge field=");
+
+        $r9 = r15.<org.apache.lucene.index.DocFieldProcessorPerField: org.apache.lucene.index.FieldInfo fieldInfo>;
+
+        $r10 = $r9.<org.apache.lucene.index.FieldInfo: java.lang.String name>;
+
+        $r11 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r10);
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r7.<java.io.PrintStream: void println(java.lang.String)>($r12);
+
+     label5:
+        $i2 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: int totalFieldCount>;
+
+        $i3 = $i2 - 1;
+
+        r0.<org.apache.lucene.index.DocFieldProcessorPerThread: int totalFieldCount> = $i3;
+
+        goto label7;
+
+     label6:
+        $i8 = (int) -1;
+
+        r15.<org.apache.lucene.index.DocFieldProcessorPerField: int lastGen> = $i8;
+
+        r16 = r15;
+
+     label7:
+        r15 = r15.<org.apache.lucene.index.DocFieldProcessorPerField: org.apache.lucene.index.DocFieldProcessorPerField next>;
+
+        goto label2;
+
+     label8:
+        i4 = i4 + 1;
+
+        goto label1;
+
+     label9:
+        return;
+    }
+
+    private void rehash()
+    {
+        org.apache.lucene.index.DocFieldProcessorPerField[] $r1, $r2, $r7, $r8, $r10;
+        java.lang.AssertionError $r9;
+        org.apache.lucene.index.DocFieldProcessorPerThread r0;
+        int $i0, i1, $i2, i3, $i4, $i5, i6, $i7;
+        java.lang.String $r4;
+        boolean $z0;
+        org.apache.lucene.index.DocFieldProcessorPerField r5, $r6, r11;
+        org.apache.lucene.index.FieldInfo $r3;
+
+        r0 := @this: org.apache.lucene.index.DocFieldProcessorPerThread;
+
+        $r1 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessorPerField[] fieldHash>;
+
+        $i0 = lengthof $r1;
+
+        i1 = $i0 * 2;
+
+        $z0 = <org.apache.lucene.index.DocFieldProcessorPerThread: boolean $assertionsDisabled>;
+
+        if $z0 != 0 goto label1;
+
+        $r7 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessorPerField[] fieldHash>;
+
+        $i4 = lengthof $r7;
+
+        if i1 > $i4 goto label1;
+
+        $r9 = new java.lang.AssertionError;
+
+        specialinvoke $r9.<java.lang.AssertionError: void <init>()>();
+
+        throw $r9;
+
+     label1:
+        $r8 = newarray (org.apache.lucene.index.DocFieldProcessorPerField)[i1];
+
+        $i5 = i1 - 1;
+
+        i6 = 0;
+
+     label2:
+        $r10 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessorPerField[] fieldHash>;
+
+        $i7 = lengthof $r10;
+
+        if i6 >= $i7 goto label5;
+
+        $r2 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessorPerField[] fieldHash>;
+
+        r11 = $r2[i6];
+
+     label3:
+        if r11 == null goto label4;
+
+        $r3 = r11.<org.apache.lucene.index.DocFieldProcessorPerField: org.apache.lucene.index.FieldInfo fieldInfo>;
+
+        $r4 = $r3.<org.apache.lucene.index.FieldInfo: java.lang.String name>;
+
+        $i2 = virtualinvoke $r4.<java.lang.String: int hashCode()>();
+
+        i3 = $i2 & $i5;
+
+        r5 = r11.<org.apache.lucene.index.DocFieldProcessorPerField: org.apache.lucene.index.DocFieldProcessorPerField next>;
+
+        $r6 = $r8[i3];
+
+        r11.<org.apache.lucene.index.DocFieldProcessorPerField: org.apache.lucene.index.DocFieldProcessorPerField next> = $r6;
+
+        $r8[i3] = r11;
+
+        r11 = r5;
+
+        goto label3;
+
+     label4:
+        i6 = i6 + 1;
+
+        goto label2;
+
+     label5:
+        r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessorPerField[] fieldHash> = $r8;
+
+        r0.<org.apache.lucene.index.DocFieldProcessorPerThread: int hashMask> = $i5;
+
+        return;
+    }
+
+    public org.apache.lucene.index.DocumentsWriter$DocWriter processDocument() throws java.io.IOException
+    {
+        org.apache.lucene.index.DocFieldProcessor $r61;
+        org.apache.lucene.index.DocFieldProcessorPerThread r0;
+        org.apache.lucene.document.Document r4;
+        org.apache.lucene.index.FieldInfos $r51;
+        org.apache.lucene.index.DocumentsWriter$DocState $r3, $r8, $r11, $r12, $r14, $r16, $r18, $r22, $r27;
+        org.apache.lucene.index.DocFieldConsumerPerField $r35;
+        java.lang.StringBuilder $r19, $r21, $r24, $r25;
+        java.lang.AssertionError $r13, $r15, $r64;
+        java.lang.String $r9, $r23, $r26, $r37, $r60;
+        org.apache.lucene.index.DocumentsWriter$DocWriter $r70, $r72;
+        org.apache.lucene.index.FieldInfo $r39, $r42, $r53, $r59;
+        org.apache.lucene.index.DocFieldProcessorPerField[] $r7, $r28, $r30, $r32, $r38, $r46, $r47, $r48, r49, $r50, $r55, $r57, $r58;
+        org.apache.lucene.document.Fieldable r65;
+        org.apache.lucene.index.DocFieldProcessorPerThread$PerDoc $r10;
+        org.apache.lucene.index.DocumentsWriter $r62;
+        org.apache.lucene.document.Fieldable[] $r34, $r41, $r44, $r45, $r67, r68;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9, $z10, $z11, $z12, $z13, $z14, $z15;
+        org.apache.lucene.index.FieldInfo$IndexOptions $r40, $r52;
+        java.util.List $r5;
+        org.apache.lucene.index.IndexWriter $r63;
+        org.apache.lucene.index.DocFieldProcessorPerField $r29, $r31, $r33, $r54, $r56, r66;
+        org.apache.lucene.index.DocFieldConsumerPerThread $r1, $r71;
+        org.apache.lucene.index.StoredFieldsWriterPerThread $r2, $r43, $r69;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i10, $i11, $i12, i13, $i14, $i15, $i16, $i17, $i18, $i19, $i20, $i21, $i22, $i23, $i24, $i25, $i26, $i27, $i28, $i29, $i30, i31, i32, $i33, $i34, i35;
+        java.io.PrintStream $r17, $r20;
+        java.lang.Object $r36;
+        java.util.Comparator $r6;
+
+        r0 := @this: org.apache.lucene.index.DocFieldProcessorPerThread;
+
+        $r1 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldConsumerPerThread consumer>;
+
+        virtualinvoke $r1.<org.apache.lucene.index.DocFieldConsumerPerThread: void startDocument()>();
+
+        $r2 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.StoredFieldsWriterPerThread fieldsWriter>;
+
+        virtualinvoke $r2.<org.apache.lucene.index.StoredFieldsWriterPerThread: void startDocument()>();
+
+        $r3 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocumentsWriter$DocState docState>;
+
+        r4 = $r3.<org.apache.lucene.index.DocumentsWriter$DocState: org.apache.lucene.document.Document doc>;
+
+        $z0 = <org.apache.lucene.index.DocFieldProcessorPerThread: boolean $assertionsDisabled>;
+
+        if $z0 != 0 goto label01;
+
+        $r61 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessor docFieldProcessor>;
+
+        $r62 = $r61.<org.apache.lucene.index.DocFieldProcessor: org.apache.lucene.index.DocumentsWriter docWriter>;
+
+        $r63 = $r62.<org.apache.lucene.index.DocumentsWriter: org.apache.lucene.index.IndexWriter writer>;
+
+        $z15 = virtualinvoke $r63.<org.apache.lucene.index.IndexWriter: boolean testPoint(java.lang.String)>("DocumentsWriter.ThreadState.init start");
+
+        if $z15 != 0 goto label01;
+
+        $r64 = new java.lang.AssertionError;
+
+        specialinvoke $r64.<java.lang.AssertionError: void <init>()>();
+
+        throw $r64;
+
+     label01:
+        r0.<org.apache.lucene.index.DocFieldProcessorPerThread: int fieldCount> = 0;
+
+        $i0 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: int fieldGen>;
+
+        $i1 = $i0 + 1;
+
+        r0.<org.apache.lucene.index.DocFieldProcessorPerThread: int fieldGen> = $i1;
+
+        $r5 = virtualinvoke r4.<org.apache.lucene.document.Document: java.util.List getFields()>();
+
+        $i2 = interfaceinvoke $r5.<java.util.List: int size()>();
+
+        i31 = 0;
+
+     label02:
+        if i31 >= $i2 goto label12;
+
+        $r36 = interfaceinvoke $r5.<java.util.List: java.lang.Object get(int)>(i31);
+
+        r65 = (org.apache.lucene.document.Fieldable) $r36;
+
+        $r37 = interfaceinvoke r65.<org.apache.lucene.document.Fieldable: java.lang.String name()>();
+
+        $i11 = virtualinvoke $r37.<java.lang.String: int hashCode()>();
+
+        $i12 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: int hashMask>;
+
+        i13 = $i11 & $i12;
+
+        $r38 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessorPerField[] fieldHash>;
+
+        r66 = $r38[i13];
+
+     label03:
+        if r66 == null goto label04;
+
+        $r59 = r66.<org.apache.lucene.index.DocFieldProcessorPerField: org.apache.lucene.index.FieldInfo fieldInfo>;
+
+        $r60 = $r59.<org.apache.lucene.index.FieldInfo: java.lang.String name>;
+
+        $z14 = virtualinvoke $r60.<java.lang.String: boolean equals(java.lang.Object)>($r37);
+
+        if $z14 != 0 goto label04;
+
+        r66 = r66.<org.apache.lucene.index.DocFieldProcessorPerField: org.apache.lucene.index.DocFieldProcessorPerField next>;
+
+        goto label03;
+
+     label04:
+        if r66 != null goto label06;
+
+        $r51 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.FieldInfos fieldInfos>;
+
+        $z9 = interfaceinvoke r65.<org.apache.lucene.document.Fieldable: boolean isIndexed()>();
+
+        $z10 = interfaceinvoke r65.<org.apache.lucene.document.Fieldable: boolean isTermVectorStored()>();
+
+        $z11 = interfaceinvoke r65.<org.apache.lucene.document.Fieldable: boolean isStorePositionWithTermVector()>();
+
+        $z12 = interfaceinvoke r65.<org.apache.lucene.document.Fieldable: boolean isStoreOffsetWithTermVector()>();
+
+        $z13 = interfaceinvoke r65.<org.apache.lucene.document.Fieldable: boolean getOmitNorms()>();
+
+        $r52 = interfaceinvoke r65.<org.apache.lucene.document.Fieldable: org.apache.lucene.index.FieldInfo$IndexOptions getIndexOptions()>();
+
+        $r53 = virtualinvoke $r51.<org.apache.lucene.index.FieldInfos: org.apache.lucene.index.FieldInfo add(java.lang.String,boolean,boolean,boolean,boolean,boolean,boolean,org.apache.lucene.index.FieldInfo$IndexOptions)>($r37, $z9, $z10, $z11, $z12, $z13, 0, $r52);
+
+        $r54 = new org.apache.lucene.index.DocFieldProcessorPerField;
+
+        specialinvoke $r54.<org.apache.lucene.index.DocFieldProcessorPerField: void <init>(org.apache.lucene.index.DocFieldProcessorPerThread,org.apache.lucene.index.FieldInfo)>(r0, $r53);
+
+        r66 = $r54;
+
+        $r55 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessorPerField[] fieldHash>;
+
+        $r56 = $r55[i13];
+
+        $r54.<org.apache.lucene.index.DocFieldProcessorPerField: org.apache.lucene.index.DocFieldProcessorPerField next> = $r56;
+
+        $r57 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessorPerField[] fieldHash>;
+
+        $r57[i13] = $r54;
+
+        $i26 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: int totalFieldCount>;
+
+        $i27 = $i26 + 1;
+
+        r0.<org.apache.lucene.index.DocFieldProcessorPerThread: int totalFieldCount> = $i27;
+
+        $i30 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: int totalFieldCount>;
+
+        $r58 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessorPerField[] fieldHash>;
+
+        $i28 = lengthof $r58;
+
+        $i29 = $i28 / 2;
+
+        if $i30 < $i29 goto label05;
+
+        specialinvoke r0.<org.apache.lucene.index.DocFieldProcessorPerThread: void rehash()>();
+
+     label05:
+        goto label07;
+
+     label06:
+        $r39 = r66.<org.apache.lucene.index.DocFieldProcessorPerField: org.apache.lucene.index.FieldInfo fieldInfo>;
+
+        $z3 = interfaceinvoke r65.<org.apache.lucene.document.Fieldable: boolean isIndexed()>();
+
+        $z4 = interfaceinvoke r65.<org.apache.lucene.document.Fieldable: boolean isTermVectorStored()>();
+
+        $z5 = interfaceinvoke r65.<org.apache.lucene.document.Fieldable: boolean isStorePositionWithTermVector()>();
+
+        $z6 = interfaceinvoke r65.<org.apache.lucene.document.Fieldable: boolean isStoreOffsetWithTermVector()>();
+
+        $z7 = interfaceinvoke r65.<org.apache.lucene.document.Fieldable: boolean getOmitNorms()>();
+
+        $r40 = interfaceinvoke r65.<org.apache.lucene.document.Fieldable: org.apache.lucene.index.FieldInfo$IndexOptions getIndexOptions()>();
+
+        virtualinvoke $r39.<org.apache.lucene.index.FieldInfo: void update(boolean,boolean,boolean,boolean,boolean,boolean,org.apache.lucene.index.FieldInfo$IndexOptions)>($z3, $z4, $z5, $z6, $z7, 0, $r40);
+
+     label07:
+        $i14 = r66.<org.apache.lucene.index.DocFieldProcessorPerField: int lastGen>;
+
+        if $i0 == $i14 goto label09;
+
+        r66.<org.apache.lucene.index.DocFieldProcessorPerField: int fieldCount> = 0;
+
+        $i21 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: int fieldCount>;
+
+        $r46 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessorPerField[] fields>;
+
+        $i20 = lengthof $r46;
+
+        if $i21 != $i20 goto label08;
+
+        $r48 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessorPerField[] fields>;
+
+        $i24 = lengthof $r48;
+
+        i32 = $i24 * 2;
+
+        r49 = newarray (org.apache.lucene.index.DocFieldProcessorPerField)[i32];
+
+        $r50 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessorPerField[] fields>;
+
+        $i25 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: int fieldCount>;
+
+        staticinvoke <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)>($r50, 0, r49, 0, $i25);
+
+        r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessorPerField[] fields> = r49;
+
+     label08:
+        $r47 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessorPerField[] fields>;
+
+        $i22 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: int fieldCount>;
+
+        $i23 = $i22 + 1;
+
+        r0.<org.apache.lucene.index.DocFieldProcessorPerThread: int fieldCount> = $i23;
+
+        $r47[$i22] = r66;
+
+        r66.<org.apache.lucene.index.DocFieldProcessorPerField: int lastGen> = $i0;
+
+     label09:
+        $i33 = r66.<org.apache.lucene.index.DocFieldProcessorPerField: int fieldCount>;
+
+        $r67 = r66.<org.apache.lucene.index.DocFieldProcessorPerField: org.apache.lucene.document.Fieldable[] fields>;
+
+        $i34 = lengthof $r67;
+
+        if $i33 != $i34 goto label10;
+
+        $r44 = r66.<org.apache.lucene.index.DocFieldProcessorPerField: org.apache.lucene.document.Fieldable[] fields>;
+
+        $i17 = lengthof $r44;
+
+        $i18 = $i17 * 2;
+
+        r68 = newarray (org.apache.lucene.document.Fieldable)[$i18];
+
+        $r45 = r66.<org.apache.lucene.index.DocFieldProcessorPerField: org.apache.lucene.document.Fieldable[] fields>;
+
+        $i19 = r66.<org.apache.lucene.index.DocFieldProcessorPerField: int fieldCount>;
+
+        staticinvoke <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)>($r45, 0, r68, 0, $i19);
+
+        r66.<org.apache.lucene.index.DocFieldProcessorPerField: org.apache.lucene.document.Fieldable[] fields> = r68;
+
+     label10:
+        $r41 = r66.<org.apache.lucene.index.DocFieldProcessorPerField: org.apache.lucene.document.Fieldable[] fields>;
+
+        $i15 = r66.<org.apache.lucene.index.DocFieldProcessorPerField: int fieldCount>;
+
+        $i16 = $i15 + 1;
+
+        r66.<org.apache.lucene.index.DocFieldProcessorPerField: int fieldCount> = $i16;
+
+        $r41[$i15] = r65;
+
+        $z8 = interfaceinvoke r65.<org.apache.lucene.document.Fieldable: boolean isStored()>();
+
+        if $z8 == 0 goto label11;
+
+        $r43 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.StoredFieldsWriterPerThread fieldsWriter>;
+
+        $r42 = r66.<org.apache.lucene.index.DocFieldProcessorPerField: org.apache.lucene.index.FieldInfo fieldInfo>;
+
+        virtualinvoke $r43.<org.apache.lucene.index.StoredFieldsWriterPerThread: void addField(org.apache.lucene.document.Fieldable,org.apache.lucene.index.FieldInfo)>(r65, $r42);
+
+     label11:
+        i31 = i31 + 1;
+
+        goto label02;
+
+     label12:
+        $r7 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessorPerField[] fields>;
+
+        $i3 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: int fieldCount>;
+
+        $r6 = <org.apache.lucene.index.DocFieldProcessorPerThread: java.util.Comparator fieldsComp>;
+
+        staticinvoke <org.apache.lucene.util.ArrayUtil: void quickSort(java.lang.Object[],int,int,java.util.Comparator)>($r7, 0, $i3, $r6);
+
+        i35 = 0;
+
+     label13:
+        $i4 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: int fieldCount>;
+
+        if i35 >= $i4 goto label14;
+
+        $r28 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessorPerField[] fields>;
+
+        $r29 = $r28[i35];
+
+        $r35 = $r29.<org.apache.lucene.index.DocFieldProcessorPerField: org.apache.lucene.index.DocFieldConsumerPerField consumer>;
+
+        $r30 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessorPerField[] fields>;
+
+        $r31 = $r30[i35];
+
+        $r34 = $r31.<org.apache.lucene.index.DocFieldProcessorPerField: org.apache.lucene.document.Fieldable[] fields>;
+
+        $r32 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessorPerField[] fields>;
+
+        $r33 = $r32[i35];
+
+        $i10 = $r33.<org.apache.lucene.index.DocFieldProcessorPerField: int fieldCount>;
+
+        virtualinvoke $r35.<org.apache.lucene.index.DocFieldConsumerPerField: void processFields(org.apache.lucene.document.Fieldable[],int)>($r34, $i10);
+
+        i35 = i35 + 1;
+
+        goto label13;
+
+     label14:
+        $r8 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocumentsWriter$DocState docState>;
+
+        $r9 = $r8.<org.apache.lucene.index.DocumentsWriter$DocState: java.lang.String maxTermPrefix>;
+
+        if $r9 == null goto label15;
+
+        $r16 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocumentsWriter$DocState docState>;
+
+        $r17 = $r16.<org.apache.lucene.index.DocumentsWriter$DocState: java.io.PrintStream infoStream>;
+
+        if $r17 == null goto label15;
+
+        $r18 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocumentsWriter$DocState docState>;
+
+        $r20 = $r18.<org.apache.lucene.index.DocumentsWriter$DocState: java.io.PrintStream infoStream>;
+
+        $r19 = new java.lang.StringBuilder;
+
+        specialinvoke $r19.<java.lang.StringBuilder: void <init>()>();
+
+        $r21 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("WARNING: document contains at least one immense term (longer than the max length 16383), all of which were skipped.  Please correct the analyzer to not produce such terms.  The prefix of the first immense term is: \'");
+
+        $r22 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocumentsWriter$DocState docState>;
+
+        $r23 = $r22.<org.apache.lucene.index.DocumentsWriter$DocState: java.lang.String maxTermPrefix>;
+
+        $r24 = virtualinvoke $r21.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r23);
+
+        $r25 = virtualinvoke $r24.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("...\'");
+
+        $r26 = virtualinvoke $r25.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r20.<java.io.PrintStream: void println(java.lang.String)>($r26);
+
+        $r27 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocumentsWriter$DocState docState>;
+
+        $r27.<org.apache.lucene.index.DocumentsWriter$DocState: java.lang.String maxTermPrefix> = null;
+
+     label15:
+        $r69 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.StoredFieldsWriterPerThread fieldsWriter>;
+
+        $r70 = virtualinvoke $r69.<org.apache.lucene.index.StoredFieldsWriterPerThread: org.apache.lucene.index.DocumentsWriter$DocWriter finishDocument()>();
+
+        $r71 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldConsumerPerThread consumer>;
+
+        $r72 = virtualinvoke $r71.<org.apache.lucene.index.DocFieldConsumerPerThread: org.apache.lucene.index.DocumentsWriter$DocWriter finishDocument()>();
+
+        if $r70 != null goto label16;
+
+        return $r72;
+
+     label16:
+        if $r72 != null goto label17;
+
+        return $r70;
+
+     label17:
+        $r10 = virtualinvoke r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessorPerThread$PerDoc getPerDoc()>();
+
+        $r11 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocumentsWriter$DocState docState>;
+
+        $i5 = $r11.<org.apache.lucene.index.DocumentsWriter$DocState: int docID>;
+
+        $r10.<org.apache.lucene.index.DocFieldProcessorPerThread$PerDoc: int docID> = $i5;
+
+        $z1 = <org.apache.lucene.index.DocFieldProcessorPerThread: boolean $assertionsDisabled>;
+
+        if $z1 != 0 goto label18;
+
+        $i9 = $r70.<org.apache.lucene.index.DocumentsWriter$DocWriter: int docID>;
+
+        $r14 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocumentsWriter$DocState docState>;
+
+        $i8 = $r14.<org.apache.lucene.index.DocumentsWriter$DocState: int docID>;
+
+        if $i9 == $i8 goto label18;
+
+        $r15 = new java.lang.AssertionError;
+
+        specialinvoke $r15.<java.lang.AssertionError: void <init>()>();
+
+        throw $r15;
+
+     label18:
+        $z2 = <org.apache.lucene.index.DocFieldProcessorPerThread: boolean $assertionsDisabled>;
+
+        if $z2 != 0 goto label19;
+
+        $i7 = $r72.<org.apache.lucene.index.DocumentsWriter$DocWriter: int docID>;
+
+        $r12 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocumentsWriter$DocState docState>;
+
+        $i6 = $r12.<org.apache.lucene.index.DocumentsWriter$DocState: int docID>;
+
+        if $i7 == $i6 goto label19;
+
+        $r13 = new java.lang.AssertionError;
+
+        specialinvoke $r13.<java.lang.AssertionError: void <init>()>();
+
+        throw $r13;
+
+     label19:
+        $r10.<org.apache.lucene.index.DocFieldProcessorPerThread$PerDoc: org.apache.lucene.index.DocumentsWriter$DocWriter one> = $r70;
+
+        $r10.<org.apache.lucene.index.DocFieldProcessorPerThread$PerDoc: org.apache.lucene.index.DocumentsWriter$DocWriter two> = $r72;
+
+        return $r10;
+    }
+
+    synchronized org.apache.lucene.index.DocFieldProcessorPerThread$PerDoc getPerDoc()
+    {
+        org.apache.lucene.index.DocFieldProcessorPerThread$PerDoc $r2, $r7;
+        java.lang.AssertionError $r6;
+        org.apache.lucene.index.DocFieldProcessorPerThread r0;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i10, $i11, $i12;
+        org.apache.lucene.index.DocFieldProcessorPerThread$PerDoc[] $r1, $r3, $r4, $r5;
+        boolean $z0;
+
+        r0 := @this: org.apache.lucene.index.DocFieldProcessorPerThread;
+
+        $i0 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: int freeCount>;
+
+        if $i0 != 0 goto label3;
+
+        $i3 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: int allocCount>;
+
+        $i4 = $i3 + 1;
+
+        r0.<org.apache.lucene.index.DocFieldProcessorPerThread: int allocCount> = $i4;
+
+        $i6 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: int allocCount>;
+
+        $r3 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessorPerThread$PerDoc[] docFreeList>;
+
+        $i5 = lengthof $r3;
+
+        if $i6 <= $i5 goto label2;
+
+        $z0 = <org.apache.lucene.index.DocFieldProcessorPerThread: boolean $assertionsDisabled>;
+
+        if $z0 != 0 goto label1;
+
+        $i12 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: int allocCount>;
+
+        $r5 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessorPerThread$PerDoc[] docFreeList>;
+
+        $i10 = lengthof $r5;
+
+        $i11 = 1 + $i10;
+
+        if $i12 == $i11 goto label1;
+
+        $r6 = new java.lang.AssertionError;
+
+        specialinvoke $r6.<java.lang.AssertionError: void <init>()>();
+
+        throw $r6;
+
+     label1:
+        $i8 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: int allocCount>;
+
+        $i7 = <org.apache.lucene.util.RamUsageEstimator: int NUM_BYTES_OBJECT_REF>;
+
+        $i9 = staticinvoke <org.apache.lucene.util.ArrayUtil: int oversize(int,int)>($i8, $i7);
+
+        $r4 = newarray (org.apache.lucene.index.DocFieldProcessorPerThread$PerDoc)[$i9];
+
+        r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessorPerThread$PerDoc[] docFreeList> = $r4;
+
+     label2:
+        $r7 = new org.apache.lucene.index.DocFieldProcessorPerThread$PerDoc;
+
+        specialinvoke $r7.<org.apache.lucene.index.DocFieldProcessorPerThread$PerDoc: void <init>(org.apache.lucene.index.DocFieldProcessorPerThread)>(r0);
+
+        return $r7;
+
+     label3:
+        $r1 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessorPerThread$PerDoc[] docFreeList>;
+
+        $i1 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: int freeCount>;
+
+        $i2 = $i1 - 1;
+
+        r0.<org.apache.lucene.index.DocFieldProcessorPerThread: int freeCount> = $i2;
+
+        $r2 = $r1[$i2];
+
+        return $r2;
+    }
+
+    synchronized void freePerDoc(org.apache.lucene.index.DocFieldProcessorPerThread$PerDoc)
+    {
+        org.apache.lucene.index.DocFieldProcessorPerThread$PerDoc r2;
+        java.lang.AssertionError $r4;
+        org.apache.lucene.index.DocFieldProcessorPerThread r0;
+        int $i0, $i1, $i2, $i3;
+        org.apache.lucene.index.DocFieldProcessorPerThread$PerDoc[] $r1, $r3;
+        boolean $z0;
+
+        r0 := @this: org.apache.lucene.index.DocFieldProcessorPerThread;
+
+        r2 := @parameter0: org.apache.lucene.index.DocFieldProcessorPerThread$PerDoc;
+
+        $z0 = <org.apache.lucene.index.DocFieldProcessorPerThread: boolean $assertionsDisabled>;
+
+        if $z0 != 0 goto label1;
+
+        $i3 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: int freeCount>;
+
+        $r3 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessorPerThread$PerDoc[] docFreeList>;
+
+        $i2 = lengthof $r3;
+
+        if $i3 < $i2 goto label1;
+
+        $r4 = new java.lang.AssertionError;
+
+        specialinvoke $r4.<java.lang.AssertionError: void <init>()>();
+
+        throw $r4;
+
+     label1:
+        $r1 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: org.apache.lucene.index.DocFieldProcessorPerThread$PerDoc[] docFreeList>;
+
+        $i0 = r0.<org.apache.lucene.index.DocFieldProcessorPerThread: int freeCount>;
+
+        $i1 = $i0 + 1;
+
+        r0.<org.apache.lucene.index.DocFieldProcessorPerThread: int freeCount> = $i1;
+
+        $r1[$i0] = r2;
+
+        return;
+    }
+
+    static void <clinit>()
+    {
+        java.lang.Class $r0;
+        boolean $z0, $z1;
+        org.apache.lucene.index.DocFieldProcessorPerThread$1 $r1;
+
+        $r0 = class "Lorg/apache/lucene/index/DocFieldProcessorPerThread;";
+
+        $z0 = virtualinvoke $r0.<java.lang.Class: boolean desiredAssertionStatus()>();
+
+        if $z0 != 0 goto label1;
+
+        $z1 = 1;
+
+        goto label2;
+
+     label1:
+        $z1 = 0;
+
+     label2:
+        <org.apache.lucene.index.DocFieldProcessorPerThread: boolean $assertionsDisabled> = $z1;
+
+        $r1 = new org.apache.lucene.index.DocFieldProcessorPerThread$1;
+
+        specialinvoke $r1.<org.apache.lucene.index.DocFieldProcessorPerThread$1: void <init>()>();
+
+        <org.apache.lucene.index.DocFieldProcessorPerThread: java.util.Comparator fieldsComp> = $r1;
+
+        return;
+    }
+}

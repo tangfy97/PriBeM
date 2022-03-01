@@ -1,0 +1,769 @@
+public class org.waveprotocol.box.server.waveserver.ImportServlet extends javax.servlet.http.HttpServlet
+{
+    private static final org.waveprotocol.wave.util.logging.Log LOG;
+    public static final java.lang.String GWAVE_PUBLIC_DOMAIN;
+    public static final java.lang.String GWAVE_PUBLIC_USER_NAME;
+    public static final java.lang.String WIAB_SHARED_USER_NAME;
+    private static final org.waveprotocol.wave.model.id.IdURIEncoderDecoder URI_CODEC;
+    private static final org.waveprotocol.wave.model.version.HashedVersionFactory HASH_FACTORY;
+    private final org.waveprotocol.box.server.waveserver.WaveletProvider waveletProvider;
+    private final org.waveprotocol.box.server.persistence.AttachmentStore attachmentStore;
+    private final org.waveprotocol.box.server.waveserver.WaveMap waveMap;
+
+    private void <init>(org.waveprotocol.box.server.waveserver.WaveletProvider, org.waveprotocol.box.server.persistence.AttachmentStore, org.waveprotocol.box.server.waveserver.WaveMap)
+    {
+        org.waveprotocol.box.server.waveserver.WaveletProvider r1;
+        org.waveprotocol.box.server.persistence.AttachmentStore r2;
+        org.waveprotocol.box.server.waveserver.ImportServlet r0;
+        org.waveprotocol.box.server.waveserver.WaveMap r3;
+
+        r0 := @this: org.waveprotocol.box.server.waveserver.ImportServlet;
+
+        r1 := @parameter0: org.waveprotocol.box.server.waveserver.WaveletProvider;
+
+        r2 := @parameter1: org.waveprotocol.box.server.persistence.AttachmentStore;
+
+        r3 := @parameter2: org.waveprotocol.box.server.waveserver.WaveMap;
+
+        specialinvoke r0.<javax.servlet.http.HttpServlet: void <init>()>();
+
+        r0.<org.waveprotocol.box.server.waveserver.ImportServlet: org.waveprotocol.box.server.waveserver.WaveletProvider waveletProvider> = r1;
+
+        r0.<org.waveprotocol.box.server.waveserver.ImportServlet: org.waveprotocol.box.server.persistence.AttachmentStore attachmentStore> = r2;
+
+        r0.<org.waveprotocol.box.server.waveserver.ImportServlet: org.waveprotocol.box.server.waveserver.WaveMap waveMap> = r3;
+
+        return;
+    }
+
+    protected void doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse) throws javax.servlet.ServletException, java.io.IOException
+    {
+        org.waveprotocol.wave.federation.Proto$ProtocolAppliedWaveletDelta r38, $r54;
+        byte[] $r16, $r19, $r22, $r29, $r53;
+        org.waveprotocol.box.server.waveserver.WaveletProvider $r45;
+        byte $b4;
+        org.waveprotocol.wave.util.logging.Log $r57;
+        org.waveprotocol.wave.model.id.WaveletName $r31;
+        org.waveprotocol.wave.model.id.WaveId $r3;
+        org.waveprotocol.wave.federation.Proto$ProtocolSignedDelta $r39;
+        org.waveprotocol.wave.federation.Proto$ProtocolWaveletDelta $r41, $r43;
+        java.util.Set $r51;
+        java.lang.Exception $r55;
+        java.lang.StringBuilder $r24, $r25, $r27, $r56, $r59, $r61, $r62, $r64;
+        org.waveprotocol.wave.model.id.WaveletId $r5;
+        long $l3, l7;
+        org.waveprotocol.box.server.waveserver.LocalWaveletContainerImpl r67;
+        javax.servlet.http.HttpServletRequest r0;
+        org.waveprotocol.wave.model.wave.data.ReadableWaveletData $r50;
+        java.lang.StringBuffer $r13, $r26, $r46;
+        org.waveprotocol.wave.model.version.HashedVersion $r49;
+        java.lang.String $r1, $r2, $r4, $r9, $r15, $r18, $r21, $r28, $r52, $r60, $r63, $r65;
+        java.io.StringWriter $r6;
+        org.waveprotocol.box.server.waveserver.ImportServlet r32;
+        java.io.IOException $r66;
+        org.waveprotocol.box.server.waveserver.ImportServlet$1 $r44;
+        java.io.BufferedReader $r8;
+        org.waveprotocol.wave.federation.Proto$ProtocolHashedVersion $r42;
+        org.waveprotocol.box.server.waveserver.WaveMap $r33, $r47;
+        org.json.JSONObject $r7, $r10;
+        boolean z0, z1, $z2, z3, z4, z5, z6;
+        org.waveprotocol.box.server.waveserver.LocalWaveletContainer $r34, $r48;
+        com.google.protobuf.ByteString $r40;
+        java.util.logging.Level $r58;
+        java.util.HashSet $r35;
+        javax.servlet.ServletOutputStream $r14, $r17, $r20, $r23;
+        int $i0, $i1, $i2, $i5, i6;
+        java.util.LinkedList $r30;
+        java.util.Iterator $r36;
+        javax.servlet.http.HttpServletResponse r12;
+        java.lang.Object $r37;
+        org.json.JSONArray $r11;
+
+        r32 := @this: org.waveprotocol.box.server.waveserver.ImportServlet;
+
+        r0 := @parameter0: javax.servlet.http.HttpServletRequest;
+
+        r12 := @parameter1: javax.servlet.http.HttpServletResponse;
+
+        $r1 = interfaceinvoke r0.<javax.servlet.http.HttpServletRequest: java.lang.String getHeader(java.lang.String)>("domain");
+
+        $r2 = interfaceinvoke r0.<javax.servlet.http.HttpServletRequest: java.lang.String getHeader(java.lang.String)>("waveId");
+
+        $r3 = staticinvoke <org.waveprotocol.wave.model.id.WaveId: org.waveprotocol.wave.model.id.WaveId deserialise(java.lang.String)>($r2);
+
+        $r4 = interfaceinvoke r0.<javax.servlet.http.HttpServletRequest: java.lang.String getHeader(java.lang.String)>("waveletId");
+
+        $r5 = staticinvoke <org.waveprotocol.wave.model.id.WaveletId: org.waveprotocol.wave.model.id.WaveletId deserialise(java.lang.String)>($r4);
+
+        $r6 = new java.io.StringWriter;
+
+        specialinvoke $r6.<java.io.StringWriter: void <init>()>();
+
+        z0 = 0;
+
+        z6 = 0;
+
+        z5 = 0;
+
+        z1 = 0;
+
+        z4 = 0;
+
+        z3 = 0;
+
+     label01:
+        $r7 = new org.json.JSONObject;
+
+        $r8 = interfaceinvoke r0.<javax.servlet.http.HttpServletRequest: java.io.BufferedReader getReader()>();
+
+        $r9 = staticinvoke <org.waveprotocol.box.server.waveserver.ImportServlet: java.lang.String readToString(java.io.Reader)>($r8);
+
+        specialinvoke $r7.<org.json.JSONObject: void <init>(java.lang.String)>($r9);
+
+        $r10 = virtualinvoke $r7.<org.json.JSONObject: org.json.JSONObject getJSONObject(java.lang.String)>("data");
+
+        $r11 = virtualinvoke $r10.<org.json.JSONObject: org.json.JSONArray getJSONArray(java.lang.String)>("rawDeltas");
+
+        $i0 = virtualinvoke $r11.<org.json.JSONArray: int length()>();
+
+        if $i0 == 0 goto label11;
+
+        $r30 = new java.util.LinkedList;
+
+        specialinvoke $r30.<java.util.LinkedList: void <init>()>();
+
+        i6 = 0;
+
+     label02:
+        $i2 = virtualinvoke $r11.<org.json.JSONArray: int length()>();
+
+        if i6 >= $i2 goto label03;
+
+        $r52 = virtualinvoke $r11.<org.json.JSONArray: java.lang.String getString(int)>(i6);
+
+        $r53 = staticinvoke <com.google.gxp.org.apache.xerces.impl.dv.util.Base64: byte[] decode(java.lang.String)>($r52);
+
+        $r54 = staticinvoke <org.waveprotocol.wave.federation.Proto$ProtocolAppliedWaveletDelta: org.waveprotocol.wave.federation.Proto$ProtocolAppliedWaveletDelta parseFrom(byte[])>($r53);
+
+        interfaceinvoke $r30.<java.util.List: boolean add(java.lang.Object)>($r54);
+
+        i6 = i6 + 1;
+
+        goto label02;
+
+     label03:
+        $r31 = staticinvoke <org.waveprotocol.wave.model.id.WaveletName: org.waveprotocol.wave.model.id.WaveletName of(org.waveprotocol.wave.model.id.WaveId,org.waveprotocol.wave.model.id.WaveletId)>($r3, $r5);
+
+        $r33 = r32.<org.waveprotocol.box.server.waveserver.ImportServlet: org.waveprotocol.box.server.waveserver.WaveMap waveMap>;
+
+        $r34 = virtualinvoke $r33.<org.waveprotocol.box.server.waveserver.WaveMap: org.waveprotocol.box.server.waveserver.LocalWaveletContainer getLocalWavelet(org.waveprotocol.wave.model.id.WaveletName)>($r31);
+
+        r67 = (org.waveprotocol.box.server.waveserver.LocalWaveletContainerImpl) $r34;
+
+        $r35 = new java.util.HashSet;
+
+        specialinvoke $r35.<java.util.HashSet: void <init>()>();
+
+        if r67 == null goto label04;
+
+        $r50 = virtualinvoke r67.<org.waveprotocol.box.server.waveserver.LocalWaveletContainerImpl: org.waveprotocol.wave.model.wave.data.ReadableWaveletData accessSnapshot()>();
+
+        $r51 = interfaceinvoke $r50.<org.waveprotocol.wave.model.wave.data.ReadableWaveletData: java.util.Set getParticipants()>();
+
+        interfaceinvoke $r35.<java.util.Set: boolean addAll(java.util.Collection)>($r51);
+
+     label04:
+        $r36 = interfaceinvoke $r30.<java.util.List: java.util.Iterator iterator()>();
+
+     label05:
+        $z2 = interfaceinvoke $r36.<java.util.Iterator: boolean hasNext()>();
+
+        if $z2 == 0 goto label11;
+
+        $r37 = interfaceinvoke $r36.<java.util.Iterator: java.lang.Object next()>();
+
+        r38 = (org.waveprotocol.wave.federation.Proto$ProtocolAppliedWaveletDelta) $r37;
+
+        $r39 = virtualinvoke r38.<org.waveprotocol.wave.federation.Proto$ProtocolAppliedWaveletDelta: org.waveprotocol.wave.federation.Proto$ProtocolSignedDelta getSignedOriginalDelta()>();
+
+        $r40 = virtualinvoke $r39.<org.waveprotocol.wave.federation.Proto$ProtocolSignedDelta: com.google.protobuf.ByteString getDelta()>();
+
+        $r41 = staticinvoke <org.waveprotocol.wave.federation.Proto$ProtocolWaveletDelta: org.waveprotocol.wave.federation.Proto$ProtocolWaveletDelta parseFrom(com.google.protobuf.ByteString)>($r40);
+
+        l7 = 0L;
+
+        if r67 == null goto label06;
+
+        $r49 = virtualinvoke r67.<org.waveprotocol.box.server.waveserver.LocalWaveletContainerImpl: org.waveprotocol.wave.model.version.HashedVersion getCurrentVersion()>();
+
+        l7 = virtualinvoke $r49.<org.waveprotocol.wave.model.version.HashedVersion: long getVersion()>();
+
+     label06:
+        $r42 = virtualinvoke $r41.<org.waveprotocol.wave.federation.Proto$ProtocolWaveletDelta: org.waveprotocol.wave.federation.Proto$ProtocolHashedVersion getHashedVersion()>();
+
+        $l3 = virtualinvoke $r42.<org.waveprotocol.wave.federation.Proto$ProtocolHashedVersion: long getVersion()>();
+
+        $b4 = l7 cmp $l3;
+
+        if $b4 != 0 goto label09;
+
+        $r43 = staticinvoke <org.waveprotocol.box.server.waveserver.ImportServlet: org.waveprotocol.wave.federation.Proto$ProtocolWaveletDelta convertDelta(org.waveprotocol.wave.federation.Proto$ProtocolWaveletDelta,java.lang.String,org.waveprotocol.box.server.waveserver.LocalWaveletContainerImpl,org.waveprotocol.wave.model.id.WaveletName,java.util.Set)>($r41, $r1, r67, $r31, $r35);
+
+        $r45 = r32.<org.waveprotocol.box.server.waveserver.ImportServlet: org.waveprotocol.box.server.waveserver.WaveletProvider waveletProvider>;
+
+        $r44 = new org.waveprotocol.box.server.waveserver.ImportServlet$1;
+
+        specialinvoke $r44.<org.waveprotocol.box.server.waveserver.ImportServlet$1: void <init>(org.waveprotocol.box.server.waveserver.ImportServlet,java.io.StringWriter)>(r32, $r6);
+
+        interfaceinvoke $r45.<org.waveprotocol.box.server.waveserver.WaveletProvider: void submitRequest(org.waveprotocol.wave.model.id.WaveletName,org.waveprotocol.wave.federation.Proto$ProtocolWaveletDelta,org.waveprotocol.box.server.waveserver.WaveletProvider$SubmitRequestListener)>($r31, $r43, $r44);
+
+        $r46 = virtualinvoke $r6.<java.io.StringWriter: java.lang.StringBuffer getBuffer()>();
+
+        $i5 = virtualinvoke $r46.<java.lang.StringBuffer: int length()>();
+
+        if $i5 == 0 goto label07;
+
+        goto label11;
+
+     label07:
+        if r67 != null goto label08;
+
+        $r47 = r32.<org.waveprotocol.box.server.waveserver.ImportServlet: org.waveprotocol.box.server.waveserver.WaveMap waveMap>;
+
+        $r48 = virtualinvoke $r47.<org.waveprotocol.box.server.waveserver.WaveMap: org.waveprotocol.box.server.waveserver.LocalWaveletContainer getLocalWavelet(org.waveprotocol.wave.model.id.WaveletName)>($r31);
+
+        r67 = (org.waveprotocol.box.server.waveserver.LocalWaveletContainerImpl) $r48;
+
+     label08:
+        z0 = 1;
+
+        z6 = 1;
+
+        z5 = 1;
+
+        goto label10;
+
+     label09:
+        z1 = 1;
+
+        z4 = 1;
+
+        z3 = 1;
+
+     label10:
+        goto label05;
+
+     label11:
+        goto label13;
+
+     label12:
+        $r55 := @caughtexception;
+
+        $r57 = <org.waveprotocol.box.server.waveserver.ImportServlet: org.waveprotocol.wave.util.logging.Log LOG>;
+
+        $r58 = <java.util.logging.Level: java.util.logging.Level SEVERE>;
+
+        $r56 = new java.lang.StringBuilder;
+
+        specialinvoke $r56.<java.lang.StringBuilder: void <init>()>();
+
+        $r59 = virtualinvoke $r56.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("waveId ");
+
+        $r60 = virtualinvoke $r3.<org.waveprotocol.wave.model.id.WaveId: java.lang.String toString()>();
+
+        $r61 = virtualinvoke $r59.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r60);
+
+        $r62 = virtualinvoke $r61.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(", waveletId ");
+
+        $r63 = virtualinvoke $r5.<org.waveprotocol.wave.model.id.WaveletId: java.lang.String toString()>();
+
+        $r64 = virtualinvoke $r62.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r63);
+
+        $r65 = virtualinvoke $r64.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r57.<org.waveprotocol.wave.util.logging.Log: void log(java.util.logging.Level,java.lang.String,java.lang.Throwable)>($r58, $r65, $r55);
+
+        $r66 = new java.io.IOException;
+
+        specialinvoke $r66.<java.io.IOException: void <init>(java.lang.Throwable)>($r55);
+
+        throw $r66;
+
+     label13:
+        interfaceinvoke r12.<javax.servlet.http.HttpServletResponse: void setStatus(int)>(200);
+
+        $r13 = virtualinvoke $r6.<java.io.StringWriter: java.lang.StringBuffer getBuffer()>();
+
+        $i1 = virtualinvoke $r13.<java.lang.StringBuffer: int length()>();
+
+        if $i1 == 0 goto label14;
+
+        $r23 = interfaceinvoke r12.<javax.servlet.http.HttpServletResponse: javax.servlet.ServletOutputStream getOutputStream()>();
+
+        $r24 = new java.lang.StringBuilder;
+
+        specialinvoke $r24.<java.lang.StringBuilder: void <init>()>();
+
+        $r25 = virtualinvoke $r24.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("error : ");
+
+        $r26 = virtualinvoke $r6.<java.io.StringWriter: java.lang.StringBuffer getBuffer()>();
+
+        $r27 = virtualinvoke $r25.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r26);
+
+        $r28 = virtualinvoke $r27.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r29 = virtualinvoke $r28.<java.lang.String: byte[] getBytes()>();
+
+        virtualinvoke $r23.<javax.servlet.ServletOutputStream: void write(byte[])>($r29);
+
+        goto label17;
+
+     label14:
+        if z5 == 0 goto label15;
+
+        if z3 != 0 goto label15;
+
+        $r20 = interfaceinvoke r12.<javax.servlet.http.HttpServletResponse: javax.servlet.ServletOutputStream getOutputStream()>();
+
+        $r21 = "imported";
+
+        $r22 = virtualinvoke $r21.<java.lang.String: byte[] getBytes()>();
+
+        virtualinvoke $r20.<javax.servlet.ServletOutputStream: void write(byte[])>($r22);
+
+        goto label17;
+
+     label15:
+        if z6 == 0 goto label16;
+
+        if z4 == 0 goto label16;
+
+        $r17 = interfaceinvoke r12.<javax.servlet.http.HttpServletResponse: javax.servlet.ServletOutputStream getOutputStream()>();
+
+        $r18 = "appended";
+
+        $r19 = virtualinvoke $r18.<java.lang.String: byte[] getBytes()>();
+
+        virtualinvoke $r17.<javax.servlet.ServletOutputStream: void write(byte[])>($r19);
+
+        goto label17;
+
+     label16:
+        $r14 = interfaceinvoke r12.<javax.servlet.http.HttpServletResponse: javax.servlet.ServletOutputStream getOutputStream()>();
+
+        $r15 = "skipped";
+
+        $r16 = virtualinvoke $r15.<java.lang.String: byte[] getBytes()>();
+
+        virtualinvoke $r14.<javax.servlet.ServletOutputStream: void write(byte[])>($r16);
+
+     label17:
+        return;
+
+        catch java.lang.Exception from label01 to label11 with label12;
+    }
+
+    protected static org.waveprotocol.wave.federation.Proto$ProtocolWaveletDelta convertDelta(org.waveprotocol.wave.federation.Proto$ProtocolWaveletDelta, java.lang.String, org.waveprotocol.box.server.waveserver.LocalWaveletContainerImpl, org.waveprotocol.wave.model.id.WaveletName, java.util.Set) throws org.waveprotocol.wave.model.wave.InvalidParticipantAddress
+    {
+        byte[] $r10, $r20;
+        org.waveprotocol.wave.model.wave.ParticipantId $r5, r39, r40;
+        org.waveprotocol.wave.util.logging.Log $r29;
+        boolean $z0, $z1, $z2, $z3, $z4;
+        org.waveprotocol.wave.model.id.WaveletName r17, $r34;
+        org.waveprotocol.wave.model.id.WaveId $r35;
+        org.waveprotocol.wave.federation.Proto$ProtocolWaveletDelta r0, $r14;
+        java.util.Set r6;
+        com.google.protobuf.ByteString $r11, $r21;
+        java.lang.StringBuilder $r28, $r30, $r32, $r33, $r37;
+        org.waveprotocol.wave.federation.Proto$ProtocolWaveletDelta$Builder $r1;
+        org.waveprotocol.box.server.waveserver.LocalWaveletContainerImpl r2;
+        org.waveprotocol.wave.federation.Proto$ProtocolHashedVersion$Builder $r8, $r12, $r16, $r22;
+        org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation $r24;
+        org.waveprotocol.wave.model.version.HashedVersionFactory $r18;
+        org.waveprotocol.wave.model.version.HashedVersion $r9, $r19;
+        int i0, $i1;
+        java.lang.String $r3, r4, $r26, $r27, $r31, $r36, $r38, $r41;
+        org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation$Builder $r25;
+        org.waveprotocol.wave.federation.Proto$ProtocolHashedVersion $r7, $r13, $r15, $r23;
+
+        r0 := @parameter0: org.waveprotocol.wave.federation.Proto$ProtocolWaveletDelta;
+
+        r4 := @parameter1: java.lang.String;
+
+        r2 := @parameter2: org.waveprotocol.box.server.waveserver.LocalWaveletContainerImpl;
+
+        r17 := @parameter3: org.waveprotocol.wave.model.id.WaveletName;
+
+        r6 := @parameter4: java.util.Set;
+
+        $r1 = staticinvoke <org.waveprotocol.wave.federation.Proto$ProtocolWaveletDelta: org.waveprotocol.wave.federation.Proto$ProtocolWaveletDelta$Builder newBuilder(org.waveprotocol.wave.federation.Proto$ProtocolWaveletDelta)>(r0);
+
+        r39 = null;
+
+        if r2 == null goto label1;
+
+        r39 = virtualinvoke r2.<org.waveprotocol.box.server.waveserver.LocalWaveletContainerImpl: org.waveprotocol.wave.model.wave.ParticipantId getCreator()>();
+
+     label1:
+        $r3 = virtualinvoke r0.<org.waveprotocol.wave.federation.Proto$ProtocolWaveletDelta: java.lang.String getAuthor()>();
+
+        $r5 = staticinvoke <org.waveprotocol.box.server.waveserver.ImportServlet: org.waveprotocol.wave.model.wave.ParticipantId makeParticipantId(java.lang.String,java.lang.String)>($r3, r4);
+
+        r40 = $r5;
+
+        $z0 = interfaceinvoke r6.<java.util.Set: boolean contains(java.lang.Object)>($r5);
+
+        if $z0 != 0 goto label3;
+
+        if r39 == null goto label3;
+
+        $r27 = virtualinvoke $r5.<org.waveprotocol.wave.model.wave.ParticipantId: java.lang.String getAddress()>();
+
+        $z4 = virtualinvoke $r27.<java.lang.String: boolean endsWith(java.lang.String)>("@a.gwave.com");
+
+        if $z4 != 0 goto label2;
+
+        $r29 = <org.waveprotocol.box.server.waveserver.ImportServlet: org.waveprotocol.wave.util.logging.Log LOG>;
+
+        $r28 = new java.lang.StringBuilder;
+
+        specialinvoke $r28.<java.lang.StringBuilder: void <init>()>();
+
+        $r30 = virtualinvoke $r28.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Unknown participant ");
+
+        $r31 = virtualinvoke $r5.<org.waveprotocol.wave.model.wave.ParticipantId: java.lang.String getAddress()>();
+
+        $r32 = virtualinvoke $r30.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r31);
+
+        $r33 = virtualinvoke $r32.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(", wave ");
+
+        $r34 = virtualinvoke r2.<org.waveprotocol.box.server.waveserver.LocalWaveletContainerImpl: org.waveprotocol.wave.model.id.WaveletName getWaveletName()>();
+
+        $r35 = $r34.<org.waveprotocol.wave.model.id.WaveletName: org.waveprotocol.wave.model.id.WaveId waveId>;
+
+        $r36 = virtualinvoke $r35.<org.waveprotocol.wave.model.id.WaveId: java.lang.String getId()>();
+
+        $r37 = virtualinvoke $r33.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r36);
+
+        $r38 = virtualinvoke $r37.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r29.<org.waveprotocol.wave.util.logging.Log: void warning(java.lang.String)>($r38);
+
+     label2:
+        r40 = r39;
+
+     label3:
+        $r41 = virtualinvoke r40.<org.waveprotocol.wave.model.wave.ParticipantId: java.lang.String getAddress()>();
+
+        virtualinvoke $r1.<org.waveprotocol.wave.federation.Proto$ProtocolWaveletDelta$Builder: org.waveprotocol.wave.federation.Proto$ProtocolWaveletDelta$Builder setAuthor(java.lang.String)>($r41);
+
+        i0 = 0;
+
+     label4:
+        $i1 = virtualinvoke r0.<org.waveprotocol.wave.federation.Proto$ProtocolWaveletDelta: int getOperationCount()>();
+
+        if i0 >= $i1 goto label7;
+
+        $r24 = virtualinvoke r0.<org.waveprotocol.wave.federation.Proto$ProtocolWaveletDelta: org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation getOperation(int)>(i0);
+
+        $r25 = staticinvoke <org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation: org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation$Builder newBuilder(org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation)>($r24);
+
+        $z1 = virtualinvoke $r24.<org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation: boolean hasAddParticipant()>();
+
+        if $z1 == 0 goto label5;
+
+        staticinvoke <org.waveprotocol.box.server.waveserver.ImportServlet: void initAddParticipantOperation(org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation$Builder,org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation,java.lang.String,java.util.Set)>($r25, $r24, r4, r6);
+
+        if r39 != null goto label6;
+
+        $z3 = virtualinvoke $r25.<org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation$Builder: boolean hasAddParticipant()>();
+
+        if $z3 == 0 goto label6;
+
+        $r26 = virtualinvoke $r25.<org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation$Builder: java.lang.String getAddParticipant()>();
+
+        r39 = staticinvoke <org.waveprotocol.wave.model.wave.ParticipantId: org.waveprotocol.wave.model.wave.ParticipantId of(java.lang.String)>($r26);
+
+        goto label6;
+
+     label5:
+        $z2 = virtualinvoke $r24.<org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation: boolean hasRemoveParticipant()>();
+
+        if $z2 == 0 goto label6;
+
+        staticinvoke <org.waveprotocol.box.server.waveserver.ImportServlet: void initRemoveParticipantOperation(org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation$Builder,org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation,java.lang.String,java.util.Set)>($r25, $r24, r4, r6);
+
+     label6:
+        virtualinvoke $r1.<org.waveprotocol.wave.federation.Proto$ProtocolWaveletDelta$Builder: org.waveprotocol.wave.federation.Proto$ProtocolWaveletDelta$Builder setOperation(int,org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation$Builder)>(i0, $r25);
+
+        i0 = i0 + 1;
+
+        goto label4;
+
+     label7:
+        if r2 != null goto label8;
+
+        $r15 = virtualinvoke r0.<org.waveprotocol.wave.federation.Proto$ProtocolWaveletDelta: org.waveprotocol.wave.federation.Proto$ProtocolHashedVersion getHashedVersion()>();
+
+        $r16 = staticinvoke <org.waveprotocol.wave.federation.Proto$ProtocolHashedVersion: org.waveprotocol.wave.federation.Proto$ProtocolHashedVersion$Builder newBuilder(org.waveprotocol.wave.federation.Proto$ProtocolHashedVersion)>($r15);
+
+        $r18 = <org.waveprotocol.box.server.waveserver.ImportServlet: org.waveprotocol.wave.model.version.HashedVersionFactory HASH_FACTORY>;
+
+        $r19 = interfaceinvoke $r18.<org.waveprotocol.wave.model.version.HashedVersionFactory: org.waveprotocol.wave.model.version.HashedVersion createVersionZero(org.waveprotocol.wave.model.id.WaveletName)>(r17);
+
+        $r20 = virtualinvoke $r19.<org.waveprotocol.wave.model.version.HashedVersion: byte[] getHistoryHash()>();
+
+        $r21 = staticinvoke <com.google.protobuf.ByteString: com.google.protobuf.ByteString copyFrom(byte[])>($r20);
+
+        $r22 = virtualinvoke $r16.<org.waveprotocol.wave.federation.Proto$ProtocolHashedVersion$Builder: org.waveprotocol.wave.federation.Proto$ProtocolHashedVersion$Builder setHistoryHash(com.google.protobuf.ByteString)>($r21);
+
+        $r23 = virtualinvoke $r22.<org.waveprotocol.wave.federation.Proto$ProtocolHashedVersion$Builder: org.waveprotocol.wave.federation.Proto$ProtocolHashedVersion build()>();
+
+        virtualinvoke $r1.<org.waveprotocol.wave.federation.Proto$ProtocolWaveletDelta$Builder: org.waveprotocol.wave.federation.Proto$ProtocolWaveletDelta$Builder setHashedVersion(org.waveprotocol.wave.federation.Proto$ProtocolHashedVersion)>($r23);
+
+        goto label9;
+
+     label8:
+        $r7 = virtualinvoke r0.<org.waveprotocol.wave.federation.Proto$ProtocolWaveletDelta: org.waveprotocol.wave.federation.Proto$ProtocolHashedVersion getHashedVersion()>();
+
+        $r8 = staticinvoke <org.waveprotocol.wave.federation.Proto$ProtocolHashedVersion: org.waveprotocol.wave.federation.Proto$ProtocolHashedVersion$Builder newBuilder(org.waveprotocol.wave.federation.Proto$ProtocolHashedVersion)>($r7);
+
+        $r9 = virtualinvoke r2.<org.waveprotocol.box.server.waveserver.LocalWaveletContainerImpl: org.waveprotocol.wave.model.version.HashedVersion getCurrentVersion()>();
+
+        $r10 = virtualinvoke $r9.<org.waveprotocol.wave.model.version.HashedVersion: byte[] getHistoryHash()>();
+
+        $r11 = staticinvoke <com.google.protobuf.ByteString: com.google.protobuf.ByteString copyFrom(byte[])>($r10);
+
+        $r12 = virtualinvoke $r8.<org.waveprotocol.wave.federation.Proto$ProtocolHashedVersion$Builder: org.waveprotocol.wave.federation.Proto$ProtocolHashedVersion$Builder setHistoryHash(com.google.protobuf.ByteString)>($r11);
+
+        $r13 = virtualinvoke $r12.<org.waveprotocol.wave.federation.Proto$ProtocolHashedVersion$Builder: org.waveprotocol.wave.federation.Proto$ProtocolHashedVersion build()>();
+
+        virtualinvoke $r1.<org.waveprotocol.wave.federation.Proto$ProtocolWaveletDelta$Builder: org.waveprotocol.wave.federation.Proto$ProtocolWaveletDelta$Builder setHashedVersion(org.waveprotocol.wave.federation.Proto$ProtocolHashedVersion)>($r13);
+
+     label9:
+        $r14 = virtualinvoke $r1.<org.waveprotocol.wave.federation.Proto$ProtocolWaveletDelta$Builder: org.waveprotocol.wave.federation.Proto$ProtocolWaveletDelta build()>();
+
+        return $r14;
+    }
+
+    private static void initAddParticipantOperation(org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation$Builder, org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation, java.lang.String, java.util.Set) throws org.waveprotocol.wave.model.wave.InvalidParticipantAddress
+    {
+        java.util.Set r4;
+        org.waveprotocol.wave.model.wave.ParticipantId $r3;
+        org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation r0;
+        org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation$Builder r5;
+        java.lang.String $r1, r2, $r6;
+        boolean $z0;
+
+        r5 := @parameter0: org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation$Builder;
+
+        r0 := @parameter1: org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation;
+
+        r2 := @parameter2: java.lang.String;
+
+        r4 := @parameter3: java.util.Set;
+
+        $r1 = virtualinvoke r0.<org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation: java.lang.String getAddParticipant()>();
+
+        $r3 = staticinvoke <org.waveprotocol.box.server.waveserver.ImportServlet: org.waveprotocol.wave.model.wave.ParticipantId makeParticipantId(java.lang.String,java.lang.String)>($r1, r2);
+
+        $z0 = interfaceinvoke r4.<java.util.Set: boolean contains(java.lang.Object)>($r3);
+
+        if $z0 != 0 goto label1;
+
+        $r6 = virtualinvoke $r3.<org.waveprotocol.wave.model.wave.ParticipantId: java.lang.String getAddress()>();
+
+        virtualinvoke r5.<org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation$Builder: org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation$Builder setAddParticipant(java.lang.String)>($r6);
+
+        interfaceinvoke r4.<java.util.Set: boolean add(java.lang.Object)>($r3);
+
+        goto label2;
+
+     label1:
+        virtualinvoke r5.<org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation$Builder: org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation$Builder setNoOp(boolean)>(1);
+
+     label2:
+        return;
+    }
+
+    private static void initRemoveParticipantOperation(org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation$Builder, org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation, java.lang.String, java.util.Set) throws org.waveprotocol.wave.model.wave.InvalidParticipantAddress
+    {
+        java.util.Set r4;
+        org.waveprotocol.wave.model.wave.ParticipantId $r3;
+        org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation r0;
+        org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation$Builder r5;
+        java.lang.String $r1, r2, $r6;
+        boolean $z0;
+
+        r5 := @parameter0: org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation$Builder;
+
+        r0 := @parameter1: org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation;
+
+        r2 := @parameter2: java.lang.String;
+
+        r4 := @parameter3: java.util.Set;
+
+        $r1 = virtualinvoke r0.<org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation: java.lang.String getRemoveParticipant()>();
+
+        $r3 = staticinvoke <org.waveprotocol.box.server.waveserver.ImportServlet: org.waveprotocol.wave.model.wave.ParticipantId makeParticipantId(java.lang.String,java.lang.String)>($r1, r2);
+
+        $z0 = interfaceinvoke r4.<java.util.Set: boolean contains(java.lang.Object)>($r3);
+
+        if $z0 == 0 goto label1;
+
+        $r6 = virtualinvoke $r3.<org.waveprotocol.wave.model.wave.ParticipantId: java.lang.String getAddress()>();
+
+        virtualinvoke r5.<org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation$Builder: org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation$Builder setRemoveParticipant(java.lang.String)>($r6);
+
+        interfaceinvoke r4.<java.util.Set: boolean remove(java.lang.Object)>($r3);
+
+        goto label2;
+
+     label1:
+        virtualinvoke r5.<org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation$Builder: org.waveprotocol.wave.federation.Proto$ProtocolWaveletOperation$Builder setNoOp(boolean)>(1);
+
+     label2:
+        return;
+    }
+
+    private static org.waveprotocol.wave.model.wave.ParticipantId makeParticipantId(java.lang.String, java.lang.String) throws org.waveprotocol.wave.model.wave.InvalidParticipantAddress
+    {
+        org.waveprotocol.wave.model.wave.ParticipantId $r11;
+        int $i0, $i1, $i2, $i4;
+        java.lang.String $r0, $r2, r4, $r6, r10;
+        boolean $z0, $z1;
+        java.lang.StringBuilder $r3, $r5, $r8, $r9, $r12, $r13;
+
+        r10 := @parameter0: java.lang.String;
+
+        r4 := @parameter1: java.lang.String;
+
+        $i0 = virtualinvoke r10.<java.lang.String: int indexOf(int)>(64);
+
+        $i4 = (int) -1;
+
+        if $i0 == $i4 goto label2;
+
+        $r0 = virtualinvoke r10.<java.lang.String: java.lang.String substring(int,int)>(0, $i0);
+
+        $z0 = virtualinvoke $r0.<java.lang.String: boolean equals(java.lang.Object)>("public");
+
+        if $z0 == 0 goto label1;
+
+        $i2 = $i0 + 1;
+
+        $r6 = virtualinvoke r10.<java.lang.String: java.lang.String substring(int)>($i2);
+
+        $z1 = virtualinvoke $r6.<java.lang.String: boolean equals(java.lang.Object)>("a.gwave.com");
+
+        if $z1 == 0 goto label1;
+
+        $r12 = new java.lang.StringBuilder;
+
+        specialinvoke $r12.<java.lang.StringBuilder: void <init>()>();
+
+        $r8 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("@");
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r4);
+
+        r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        goto label2;
+
+     label1:
+        $r13 = new java.lang.StringBuilder;
+
+        specialinvoke $r13.<java.lang.StringBuilder: void <init>()>();
+
+        $i1 = $i0 + 1;
+
+        $r2 = virtualinvoke r10.<java.lang.String: java.lang.String substring(int,int)>(0, $i1);
+
+        $r3 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r2);
+
+        $r5 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r4);
+
+        r10 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.String toString()>();
+
+     label2:
+        $r11 = staticinvoke <org.waveprotocol.wave.model.wave.ParticipantId: org.waveprotocol.wave.model.wave.ParticipantId of(java.lang.String)>(r10);
+
+        return $r11;
+    }
+
+    private static java.lang.String readToString(java.io.Reader) throws java.io.FileNotFoundException, java.io.IOException
+    {
+        int $i0, $i1, $i3;
+        char[] r1;
+        java.lang.StringBuilder $r4;
+        java.io.Reader r2;
+        java.lang.String $r3;
+
+        r2 := @parameter0: java.io.Reader;
+
+        $r4 = new java.lang.StringBuilder;
+
+        specialinvoke $r4.<java.lang.StringBuilder: void <init>()>();
+
+        r1 = newarray (char)[1000];
+
+     label1:
+        $i0 = lengthof r1;
+
+        $i1 = virtualinvoke r2.<java.io.Reader: int read(char[],int,int)>(r1, 0, $i0);
+
+        $i3 = (int) -1;
+
+        if $i1 != $i3 goto label2;
+
+        goto label3;
+
+     label2:
+        virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(char[],int,int)>(r1, 0, $i1);
+
+        goto label1;
+
+     label3:
+        $r3 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        return $r3;
+    }
+
+    static void <clinit>()
+    {
+        org.waveprotocol.wave.util.escapers.jvm.JavaUrlCodec $r2;
+        org.waveprotocol.wave.util.logging.Log $r0;
+        org.waveprotocol.wave.model.id.IdURIEncoderDecoder $r1, $r4;
+        org.waveprotocol.wave.model.version.HashedVersionFactoryImpl $r3;
+
+        <org.waveprotocol.box.server.waveserver.ImportServlet: java.lang.String WIAB_SHARED_USER_NAME> = "";
+
+        <org.waveprotocol.box.server.waveserver.ImportServlet: java.lang.String GWAVE_PUBLIC_USER_NAME> = "public";
+
+        <org.waveprotocol.box.server.waveserver.ImportServlet: java.lang.String GWAVE_PUBLIC_DOMAIN> = "a.gwave.com";
+
+        $r0 = staticinvoke <org.waveprotocol.wave.util.logging.Log: org.waveprotocol.wave.util.logging.Log get(java.lang.Class)>(class "Lorg/waveprotocol/box/server/waveserver/ImportServlet;");
+
+        <org.waveprotocol.box.server.waveserver.ImportServlet: org.waveprotocol.wave.util.logging.Log LOG> = $r0;
+
+        $r1 = new org.waveprotocol.wave.model.id.IdURIEncoderDecoder;
+
+        $r2 = new org.waveprotocol.wave.util.escapers.jvm.JavaUrlCodec;
+
+        specialinvoke $r2.<org.waveprotocol.wave.util.escapers.jvm.JavaUrlCodec: void <init>()>();
+
+        specialinvoke $r1.<org.waveprotocol.wave.model.id.IdURIEncoderDecoder: void <init>(org.waveprotocol.wave.model.id.URIEncoderDecoder$PercentEncoderDecoder)>($r2);
+
+        <org.waveprotocol.box.server.waveserver.ImportServlet: org.waveprotocol.wave.model.id.IdURIEncoderDecoder URI_CODEC> = $r1;
+
+        $r3 = new org.waveprotocol.wave.model.version.HashedVersionFactoryImpl;
+
+        $r4 = <org.waveprotocol.box.server.waveserver.ImportServlet: org.waveprotocol.wave.model.id.IdURIEncoderDecoder URI_CODEC>;
+
+        specialinvoke $r3.<org.waveprotocol.wave.model.version.HashedVersionFactoryImpl: void <init>(org.waveprotocol.wave.model.id.IdURIEncoderDecoder)>($r4);
+
+        <org.waveprotocol.box.server.waveserver.ImportServlet: org.waveprotocol.wave.model.version.HashedVersionFactory HASH_FACTORY> = $r3;
+
+        return;
+    }
+}

@@ -1,0 +1,2801 @@
+class org.apache.commons.compress.compressors.bzip2.BlockSort extends java.lang.Object
+{
+    private static final int QSORT_STACK_SIZE;
+    private static final int FALLBACK_QSORT_STACK_SIZE;
+    private static final int STACK_SIZE;
+    private int workDone;
+    private int workLimit;
+    private boolean firstAttempt;
+    private final int[] stack_ll;
+    private final int[] stack_hh;
+    private final int[] stack_dd;
+    private final int[] mainSort_runningOrder;
+    private final int[] mainSort_copy;
+    private final boolean[] mainSort_bigDone;
+    private final int[] ftab;
+    private final char[] quadrant;
+    private static final int FALLBACK_QSORT_SMALL_THRESH;
+    private int[] eclass;
+    private static final int[] INCS;
+    private static final int SMALL_THRESH;
+    private static final int DEPTH_THRESH;
+    private static final int WORK_FACTOR;
+    private static final int SETMASK;
+    private static final int CLEARMASK;
+
+    void <init>(org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data)
+    {
+        boolean[] $r6;
+        org.apache.commons.compress.compressors.bzip2.BlockSort r0;
+        int[] $r1, $r2, $r3, $r4, $r5, $r7;
+        char[] $r9;
+        org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data r8;
+
+        r0 := @this: org.apache.commons.compress.compressors.bzip2.BlockSort;
+
+        r8 := @parameter0: org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        $r1 = newarray (int)[1000];
+
+        r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: int[] stack_ll> = $r1;
+
+        $r2 = newarray (int)[1000];
+
+        r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: int[] stack_hh> = $r2;
+
+        $r3 = newarray (int)[1000];
+
+        r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: int[] stack_dd> = $r3;
+
+        $r4 = newarray (int)[256];
+
+        r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: int[] mainSort_runningOrder> = $r4;
+
+        $r5 = newarray (int)[256];
+
+        r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: int[] mainSort_copy> = $r5;
+
+        $r6 = newarray (boolean)[256];
+
+        r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: boolean[] mainSort_bigDone> = $r6;
+
+        $r7 = newarray (int)[65537];
+
+        r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: int[] ftab> = $r7;
+
+        $r9 = r8.<org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data: char[] sfmap>;
+
+        r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: char[] quadrant> = $r9;
+
+        return;
+    }
+
+    void blockSort(org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data, int)
+    {
+        org.apache.commons.compress.compressors.bzip2.BlockSort r0;
+        int[] $r2;
+        int i0, $i1, $i2, $i3, $i4, $i5, i6, $i8;
+        org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data r1;
+        boolean $z0;
+
+        r0 := @this: org.apache.commons.compress.compressors.bzip2.BlockSort;
+
+        r1 := @parameter0: org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data;
+
+        i0 := @parameter1: int;
+
+        $i1 = 30 * i0;
+
+        r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: int workLimit> = $i1;
+
+        r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: int workDone> = 0;
+
+        r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: boolean firstAttempt> = 1;
+
+        $i2 = i0 + 1;
+
+        if $i2 >= 10000 goto label1;
+
+        virtualinvoke r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: void fallbackSort(org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data,int)>(r1, i0);
+
+        goto label2;
+
+     label1:
+        virtualinvoke r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: void mainSort(org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data,int)>(r1, i0);
+
+        $z0 = r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: boolean firstAttempt>;
+
+        if $z0 == 0 goto label2;
+
+        $i5 = r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: int workDone>;
+
+        $i4 = r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: int workLimit>;
+
+        if $i5 <= $i4 goto label2;
+
+        virtualinvoke r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: void fallbackSort(org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data,int)>(r1, i0);
+
+     label2:
+        $r2 = r1.<org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data: int[] fmap>;
+
+        $i8 = (int) -1;
+
+        r1.<org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data: int origPtr> = $i8;
+
+        i6 = 0;
+
+     label3:
+        if i6 > i0 goto label5;
+
+        $i3 = $r2[i6];
+
+        if $i3 != 0 goto label4;
+
+        r1.<org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data: int origPtr> = i6;
+
+        goto label5;
+
+     label4:
+        i6 = i6 + 1;
+
+        goto label3;
+
+     label5:
+        return;
+    }
+
+    final void fallbackSort(org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data, int)
+    {
+        byte[] $r1, $r2, $r4;
+        org.apache.commons.compress.compressors.bzip2.BlockSort r3;
+        byte $b2;
+        int[] $r5, $r6, $r7, $r8;
+        int i0, $i1, $i3, $i4, $i5, $i6, $i7, $i8, i9, i10, $i12;
+        org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data r0;
+
+        r3 := @this: org.apache.commons.compress.compressors.bzip2.BlockSort;
+
+        r0 := @parameter0: org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data;
+
+        i0 := @parameter1: int;
+
+        $r2 = r0.<org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data: byte[] block>;
+
+        $r1 = r0.<org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data: byte[] block>;
+
+        $i1 = i0 + 1;
+
+        $b2 = $r1[$i1];
+
+        $r2[0] = $b2;
+
+        $r5 = r0.<org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data: int[] fmap>;
+
+        $r4 = r0.<org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data: byte[] block>;
+
+        $i3 = i0 + 1;
+
+        virtualinvoke r3.<org.apache.commons.compress.compressors.bzip2.BlockSort: void fallbackSort(int[],byte[],int)>($r5, $r4, $i3);
+
+        i9 = 0;
+
+     label1:
+        $i4 = i0 + 1;
+
+        if i9 >= $i4 goto label2;
+
+        $r8 = r0.<org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data: int[] fmap>;
+
+        $i7 = $r8[i9];
+
+        $i8 = $i7 - 1;
+
+        $r8[i9] = $i8;
+
+        i9 = i9 + 1;
+
+        goto label1;
+
+     label2:
+        i10 = 0;
+
+     label3:
+        $i5 = i0 + 1;
+
+        if i10 >= $i5 goto label5;
+
+        $r6 = r0.<org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data: int[] fmap>;
+
+        $i6 = $r6[i10];
+
+        $i12 = (int) -1;
+
+        if $i6 != $i12 goto label4;
+
+        $r7 = r0.<org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data: int[] fmap>;
+
+        $r7[i10] = i0;
+
+        goto label5;
+
+     label4:
+        i10 = i10 + 1;
+
+        goto label3;
+
+     label5:
+        return;
+    }
+
+    private void fallbackSimpleSort(int[], int[], int, int)
+    {
+        org.apache.commons.compress.compressors.bzip2.BlockSort r2;
+        int[] r0, r1;
+        int i0, i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i10, $i11, $i12, i13, i14, i15, i16, i17, i18, i19, i20, $i22, $i24;
+
+        r2 := @this: org.apache.commons.compress.compressors.bzip2.BlockSort;
+
+        r0 := @parameter0: int[];
+
+        r1 := @parameter1: int[];
+
+        i0 := @parameter2: int;
+
+        i1 := @parameter3: int;
+
+        if i0 != i1 goto label1;
+
+        return;
+
+     label1:
+        $i2 = i1 - i0;
+
+        if $i2 <= 3 goto label5;
+
+        i13 = i1 - 4;
+
+     label2:
+        if i13 < i0 goto label5;
+
+        i14 = r0[i13];
+
+        i15 = r1[i14];
+
+        i16 = i13 + 4;
+
+     label3:
+        if i16 > i1 goto label4;
+
+        $i9 = r0[i16];
+
+        $i10 = r1[$i9];
+
+        if i15 <= $i10 goto label4;
+
+        $i12 = i16 - 4;
+
+        $i11 = r0[i16];
+
+        r0[$i12] = $i11;
+
+        i16 = i16 + 4;
+
+        goto label3;
+
+     label4:
+        $i8 = i16 - 4;
+
+        r0[$i8] = i14;
+
+        $i22 = (int) -1;
+
+        i13 = i13 + $i22;
+
+        goto label2;
+
+     label5:
+        i17 = i1 - 1;
+
+     label6:
+        if i17 < i0 goto label9;
+
+        i18 = r0[i17];
+
+        i19 = r1[i18];
+
+        i20 = i17 + 1;
+
+     label7:
+        if i20 > i1 goto label8;
+
+        $i4 = r0[i20];
+
+        $i5 = r1[$i4];
+
+        if i19 <= $i5 goto label8;
+
+        $i7 = i20 - 1;
+
+        $i6 = r0[i20];
+
+        r0[$i7] = $i6;
+
+        i20 = i20 + 1;
+
+        goto label7;
+
+     label8:
+        $i3 = i20 - 1;
+
+        r0[$i3] = i18;
+
+        $i24 = (int) -1;
+
+        i17 = i17 + $i24;
+
+        goto label6;
+
+     label9:
+        return;
+    }
+
+    private void fswap(int[], int, int)
+    {
+        int[] r0;
+        int i0, i1, i2, $i3;
+        org.apache.commons.compress.compressors.bzip2.BlockSort r1;
+
+        r1 := @this: org.apache.commons.compress.compressors.bzip2.BlockSort;
+
+        r0 := @parameter0: int[];
+
+        i0 := @parameter1: int;
+
+        i2 := @parameter2: int;
+
+        i1 = r0[i0];
+
+        $i3 = r0[i2];
+
+        r0[i0] = $i3;
+
+        r0[i2] = i1;
+
+        return;
+    }
+
+    private void fvswap(int[], int, int, int)
+    {
+        int[] r1;
+        int i0, i1, i2, $i4;
+        org.apache.commons.compress.compressors.bzip2.BlockSort r0;
+
+        r0 := @this: org.apache.commons.compress.compressors.bzip2.BlockSort;
+
+        r1 := @parameter0: int[];
+
+        i0 := @parameter1: int;
+
+        i1 := @parameter2: int;
+
+        i2 := @parameter3: int;
+
+     label1:
+        if i2 <= 0 goto label2;
+
+        specialinvoke r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: void fswap(int[],int,int)>(r1, i0, i1);
+
+        i0 = i0 + 1;
+
+        i1 = i1 + 1;
+
+        $i4 = (int) -1;
+
+        i2 = i2 + $i4;
+
+        goto label1;
+
+     label2:
+        return;
+    }
+
+    private int fmin(int, int)
+    {
+        int i0, i1, $i2;
+        org.apache.commons.compress.compressors.bzip2.BlockSort r0;
+
+        r0 := @this: org.apache.commons.compress.compressors.bzip2.BlockSort;
+
+        i0 := @parameter0: int;
+
+        i1 := @parameter1: int;
+
+        if i0 >= i1 goto label1;
+
+        $i2 = i0;
+
+        goto label2;
+
+     label1:
+        $i2 = i1;
+
+     label2:
+        return $i2;
+    }
+
+    private void fpush(int, int, int)
+    {
+        int[] $r1, $r2;
+        int i0, i1, i2;
+        org.apache.commons.compress.compressors.bzip2.BlockSort r0;
+
+        r0 := @this: org.apache.commons.compress.compressors.bzip2.BlockSort;
+
+        i0 := @parameter0: int;
+
+        i1 := @parameter1: int;
+
+        i2 := @parameter2: int;
+
+        $r1 = r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: int[] stack_ll>;
+
+        $r1[i0] = i1;
+
+        $r2 = r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: int[] stack_hh>;
+
+        $r2[i0] = i2;
+
+        return;
+    }
+
+    private int[] fpop(int)
+    {
+        int[] $r0, $r2, $r3;
+        int i0, $i1, $i2;
+        org.apache.commons.compress.compressors.bzip2.BlockSort r1;
+
+        r1 := @this: org.apache.commons.compress.compressors.bzip2.BlockSort;
+
+        i0 := @parameter0: int;
+
+        $r0 = newarray (int)[2];
+
+        $r2 = r1.<org.apache.commons.compress.compressors.bzip2.BlockSort: int[] stack_ll>;
+
+        $i1 = $r2[i0];
+
+        $r0[0] = $i1;
+
+        $r3 = r1.<org.apache.commons.compress.compressors.bzip2.BlockSort: int[] stack_hh>;
+
+        $i2 = $r3[i0];
+
+        $r0[1] = $i2;
+
+        return $r0;
+    }
+
+    private void fallbackQSort3(int[], int[], int, int)
+    {
+        org.apache.commons.compress.compressors.bzip2.BlockSort r0;
+        byte $b8, $b9;
+        int[] $r1, r2, r3;
+        long $l5, $l6, l7, l40, l42;
+        int i0, i1, i2, i3, $i4, $i10, $i11, $i12, $i13, $i14, $i15, $i16, $i17, $i18, $i19, $i20, $i21, $i22, $i23, $i24, $i25, $i26, $i27, $i28, $i29, $i30, $i31, $i32, $i33, $i34, $i35, $i36, $i37, $i38, $i39, i41, i43, i44, i45, i46, i47, i48, i49, i50, i51, i52, $i54, $i56, $i58, $i60, $i62;
+
+        r0 := @this: org.apache.commons.compress.compressors.bzip2.BlockSort;
+
+        r3 := @parameter0: int[];
+
+        r2 := @parameter1: int[];
+
+        i0 := @parameter2: int;
+
+        i1 := @parameter3: int;
+
+        l40 = 0L;
+
+        i41 = 1;
+
+        specialinvoke r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: void fpush(int,int,int)>(0, i0, i1);
+
+     label01:
+        if i41 <= 0 goto label20;
+
+        $i54 = (int) -1;
+
+        i41 = i41 + $i54;
+
+        $r1 = specialinvoke r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: int[] fpop(int)>(i41);
+
+        i2 = $r1[0];
+
+        i3 = $r1[1];
+
+        $i4 = i3 - i2;
+
+        if $i4 >= 10 goto label02;
+
+        specialinvoke r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: void fallbackSimpleSort(int[],int[],int,int)>(r3, r2, i2, i3);
+
+        goto label01;
+
+     label02:
+        $l5 = l40 * 7621L;
+
+        $l6 = $l5 + 1L;
+
+        l40 = $l6 % 32768L;
+
+        l7 = l40 % 3L;
+
+        $b8 = l7 cmp 0L;
+
+        if $b8 != 0 goto label03;
+
+        $i38 = r3[i2];
+
+        $i39 = r2[$i38];
+
+        l42 = (long) $i39;
+
+        goto label05;
+
+     label03:
+        $b9 = l7 cmp 1L;
+
+        if $b9 != 0 goto label04;
+
+        $i34 = i2 + i3;
+
+        $i35 = $i34 >>> 1;
+
+        $i36 = r3[$i35];
+
+        $i37 = r2[$i36];
+
+        l42 = (long) $i37;
+
+        goto label05;
+
+     label04:
+        $i10 = r3[i3];
+
+        $i11 = r2[$i10];
+
+        l42 = (long) $i11;
+
+     label05:
+        i43 = i2;
+
+        i44 = i2;
+
+        i45 = i3;
+
+        i46 = i3;
+
+     label06:
+        if i44 <= i46 goto label07;
+
+        goto label10;
+
+     label07:
+        $i12 = r3[i44];
+
+        $i14 = r2[$i12];
+
+        $i13 = (int) l42;
+
+        i47 = $i14 - $i13;
+
+        if i47 != 0 goto label08;
+
+        specialinvoke r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: void fswap(int[],int,int)>(r3, i44, i43);
+
+        i43 = i43 + 1;
+
+        i44 = i44 + 1;
+
+        goto label06;
+
+     label08:
+        if i47 <= 0 goto label09;
+
+        goto label10;
+
+     label09:
+        i44 = i44 + 1;
+
+        goto label06;
+
+     label10:
+        if i44 <= i46 goto label11;
+
+        goto label14;
+
+     label11:
+        $i15 = r3[i46];
+
+        $i17 = r2[$i15];
+
+        $i16 = (int) l42;
+
+        i48 = $i17 - $i16;
+
+        if i48 != 0 goto label12;
+
+        specialinvoke r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: void fswap(int[],int,int)>(r3, i46, i45);
+
+        $i56 = (int) -1;
+
+        i45 = i45 + $i56;
+
+        $i58 = (int) -1;
+
+        i46 = i46 + $i58;
+
+        goto label10;
+
+     label12:
+        if i48 >= 0 goto label13;
+
+        goto label14;
+
+     label13:
+        $i60 = (int) -1;
+
+        i46 = i46 + $i60;
+
+        goto label10;
+
+     label14:
+        if i44 <= i46 goto label15;
+
+        goto label16;
+
+     label15:
+        specialinvoke r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: void fswap(int[],int,int)>(r3, i44, i46);
+
+        i44 = i44 + 1;
+
+        $i62 = (int) -1;
+
+        i46 = i46 + $i62;
+
+        goto label06;
+
+     label16:
+        if i45 >= i43 goto label17;
+
+        goto label01;
+
+     label17:
+        $i19 = i43 - i2;
+
+        $i18 = i44 - i43;
+
+        $i20 = specialinvoke r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: int fmin(int,int)>($i19, $i18);
+
+        $i21 = i44 - $i20;
+
+        specialinvoke r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: void fvswap(int[],int,int,int)>(r3, i2, $i21, $i20);
+
+        $i23 = i3 - i45;
+
+        $i22 = i45 - i46;
+
+        $i24 = specialinvoke r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: int fmin(int,int)>($i23, $i22);
+
+        $i27 = i46 + 1;
+
+        $i25 = i3 - $i24;
+
+        $i26 = $i25 + 1;
+
+        specialinvoke r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: void fvswap(int[],int,int,int)>(r3, $i27, $i26, $i24);
+
+        $i28 = i2 + i44;
+
+        $i29 = $i28 - i43;
+
+        i49 = $i29 - 1;
+
+        $i30 = i45 - i46;
+
+        $i31 = i3 - $i30;
+
+        i50 = $i31 + 1;
+
+        $i33 = i49 - i2;
+
+        $i32 = i3 - i50;
+
+        if $i33 <= $i32 goto label18;
+
+        i51 = i41 + 1;
+
+        specialinvoke r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: void fpush(int,int,int)>(i41, i2, i49);
+
+        i41 = i51 + 1;
+
+        specialinvoke r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: void fpush(int,int,int)>(i51, i50, i3);
+
+        goto label19;
+
+     label18:
+        i52 = i41 + 1;
+
+        specialinvoke r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: void fpush(int,int,int)>(i41, i50, i3);
+
+        i41 = i52 + 1;
+
+        specialinvoke r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: void fpush(int,int,int)>(i52, i2, i49);
+
+     label19:
+        goto label01;
+
+     label20:
+        return;
+    }
+
+    private int[] getEclass()
+    {
+        int[] $r1, $r3;
+        int $i0, $i1;
+        char[] $r2;
+        org.apache.commons.compress.compressors.bzip2.BlockSort r0;
+
+        r0 := @this: org.apache.commons.compress.compressors.bzip2.BlockSort;
+
+        $r1 = r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: int[] eclass>;
+
+        if $r1 != null goto label1;
+
+        $r2 = r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: char[] quadrant>;
+
+        $i0 = lengthof $r2;
+
+        $i1 = $i0 / 2;
+
+        $r3 = newarray (int)[$i1];
+
+        r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: int[] eclass> = $r3;
+
+        goto label2;
+
+     label1:
+        $r3 = r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: int[] eclass>;
+
+     label2:
+        return $r3;
+    }
+
+    final void fallbackSort(int[], byte[], int)
+    {
+        byte[] r5;
+        org.apache.commons.compress.compressors.bzip2.BlockSort r1;
+        byte $b17, $b23;
+        int[] r0, $r2, r4;
+        boolean $z0;
+        short $s24, s31, $s46, $s49;
+        int i0, i1, $i2, $i3, $i4, $i5, $i6, i7, $i8, $i9, $i10, $i11, $i12, $i13, $i14, $i15, $i16, $i18, $i19, $i20, $i21, $i22, $i25, $i26, i27, i28, i29, i30, i32, i33, i34, i35, i36, i37, i38, i39, i40, $i41, $i42, $i43, i44, i45, $i47, $i48, $i50, $i51, $i53, $i55;
+        java.util.BitSet $r6;
+
+        r1 := @this: org.apache.commons.compress.compressors.bzip2.BlockSort;
+
+        r4 := @parameter0: int[];
+
+        r5 := @parameter1: byte[];
+
+        i0 := @parameter2: int;
+
+        r0 = newarray (int)[257];
+
+        $r2 = specialinvoke r1.<org.apache.commons.compress.compressors.bzip2.BlockSort: int[] getEclass()>();
+
+        i27 = 0;
+
+     label01:
+        if i27 >= i0 goto label02;
+
+        $r2[i27] = 0;
+
+        i27 = i27 + 1;
+
+        goto label01;
+
+     label02:
+        i28 = 0;
+
+     label03:
+        if i28 >= i0 goto label04;
+
+        $b23 = r5[i28];
+
+        $s46 = (short) $b23;
+
+        $s24 = $s46 & 255;
+
+        $i47 = (int) $s24;
+
+        $i25 = r0[$i47];
+
+        $i26 = $i25 + 1;
+
+        $i48 = (int) $s24;
+
+        r0[$i48] = $i26;
+
+        i28 = i28 + 1;
+
+        goto label03;
+
+     label04:
+        i29 = 1;
+
+     label05:
+        if i29 >= 257 goto label06;
+
+        $i21 = r0[i29];
+
+        $i19 = i29 - 1;
+
+        $i20 = r0[$i19];
+
+        $i22 = $i21 + $i20;
+
+        r0[i29] = $i22;
+
+        i29 = i29 + 1;
+
+        goto label05;
+
+     label06:
+        i30 = 0;
+
+     label07:
+        if i30 >= i0 goto label08;
+
+        $b17 = r5[i30];
+
+        $s49 = (short) $b17;
+
+        s31 = $s49 & 255;
+
+        $i50 = (int) s31;
+
+        $i18 = r0[$i50];
+
+        i32 = $i18 - 1;
+
+        $i51 = (int) s31;
+
+        r0[$i51] = i32;
+
+        r4[i32] = i30;
+
+        i30 = i30 + 1;
+
+        goto label07;
+
+     label08:
+        i1 = 64 + i0;
+
+        $r6 = new java.util.BitSet;
+
+        specialinvoke $r6.<java.util.BitSet: void <init>(int)>(i1);
+
+        i33 = 0;
+
+     label09:
+        if i33 >= 256 goto label10;
+
+        $i16 = r0[i33];
+
+        virtualinvoke $r6.<java.util.BitSet: void set(int)>($i16);
+
+        i33 = i33 + 1;
+
+        goto label09;
+
+     label10:
+        i34 = 0;
+
+     label11:
+        if i34 >= 32 goto label12;
+
+        $i11 = 2 * i34;
+
+        $i12 = i0 + $i11;
+
+        virtualinvoke $r6.<java.util.BitSet: void set(int)>($i12);
+
+        $i13 = 2 * i34;
+
+        $i14 = i0 + $i13;
+
+        $i15 = $i14 + 1;
+
+        virtualinvoke $r6.<java.util.BitSet: void clear(int)>($i15);
+
+        i34 = i34 + 1;
+
+        goto label11;
+
+     label12:
+        i35 = 1;
+
+     label13:
+        i36 = 0;
+
+        i37 = 0;
+
+     label14:
+        if i37 >= i0 goto label17;
+
+        $z0 = virtualinvoke $r6.<java.util.BitSet: boolean get(int)>(i37);
+
+        if $z0 == 0 goto label15;
+
+        i36 = i37;
+
+     label15:
+        $i9 = r4[i37];
+
+        $i10 = $i9 - i35;
+
+        i38 = $i10;
+
+        if $i10 >= 0 goto label16;
+
+        i38 = $i10 + i0;
+
+     label16:
+        $r2[i38] = i36;
+
+        i37 = i37 + 1;
+
+        goto label14;
+
+     label17:
+        i39 = 0;
+
+        $i53 = (int) -1;
+
+        i40 = $i53;
+
+     label18:
+        $i41 = i40 + 1;
+
+        $i42 = virtualinvoke $r6.<java.util.BitSet: int nextClearBit(int)>($i41);
+
+        $i43 = $i42 - 1;
+
+        if $i43 < i0 goto label19;
+
+        goto label23;
+
+     label19:
+        $i2 = $i42 + 1;
+
+        $i3 = virtualinvoke $r6.<java.util.BitSet: int nextSetBit(int)>($i2);
+
+        i40 = $i3 - 1;
+
+        if i40 < i0 goto label20;
+
+        goto label23;
+
+     label20:
+        if i40 <= $i43 goto label18;
+
+        $i4 = i40 - $i43;
+
+        $i5 = $i4 + 1;
+
+        i39 = i39 + $i5;
+
+        specialinvoke r1.<org.apache.commons.compress.compressors.bzip2.BlockSort: void fallbackQSort3(int[],int[],int,int)>(r4, $r2, $i43, i40);
+
+        $i55 = (int) -1;
+
+        i44 = $i55;
+
+        i45 = $i43;
+
+     label21:
+        if i45 > i40 goto label18;
+
+        $i6 = r4[i45];
+
+        i7 = $r2[$i6];
+
+        if i44 == i7 goto label22;
+
+        virtualinvoke $r6.<java.util.BitSet: void set(int)>(i45);
+
+        i44 = i7;
+
+     label22:
+        i45 = i45 + 1;
+
+        goto label21;
+
+     label23:
+        $i8 = i35 * 2;
+
+        i35 = $i8;
+
+        if $i8 > i0 goto label24;
+
+        if i39 != 0 goto label13;
+
+        goto label24;
+
+     label24:
+        return;
+    }
+
+    private boolean mainSimpleSort(org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data, int, int, int, int)
+    {
+        byte[] r5;
+        byte $b17, $b18, $b20, $b22, $b27, $b28, $b30, $b32, $b37, $b38, $b40, $b42, $b47, $b48, $b50, $b52, $b57, $b58, $b60, $b62, $b65, $b66, $b67, $b68, $b73, $b74, $b76, $b78, $b87, $b88, $b90, $b92, $b105, $b106, $b108, $b110, $b123, $b124, $b126, $b128;
+        short $s23, $s24, $s33, $s34, $s43, $s44, $s53, $s54, $s63, $s64, $s69, $s70, $s79, $s80, $s93, $s94, $s111, $s112, $s129, $s130, $s189, $s190, $s195, $s196, $s201, $s202, $s207, $s208, $s211, $s212, $s215, $s216, $s219, $s220, $s223, $s224, $s227, $s228, $s231, $s232;
+        int[] $r0, r2, $r6;
+        int i0, i1, $i2, i3, $i4, i5, i6, i7, i8, $i9, i10, i11, i12, i13, $i14, $i15, $i16, $i19, $i21, $i25, $i26, $i29, $i31, $i35, $i36, $i39, $i41, $i45, $i46, $i49, $i51, $i55, $i56, $i59, $i61, $i71, $i72, $i75, $i77, $i85, $i86, $i89, $i91, $i95, $i96, $i99, $i100, $i103, $i104, $i107, $i109, $i113, $i114, $i117, $i118, $i121, $i122, $i125, $i127, $i131, $i132, $i135, $i136, $i139, $i140, $i141, $i142, $i143, i144, i145, i146, i147, i148, i149, i150, i151, i152, $i154, $i156, $i157, $i158, $i159, $i160, $i161, $i162, $i163, $i164, $i165, $i166, $i167, $i168, $i170, $i171, $i172, $i173, $i174, $i175, $i176, $i177, $i178, $i179, $i180, $i181, $i182, $i183, $i184, $i185, $i186, $i187, $i188, $i191, $i192, $i193, $i194, $i197, $i198, $i199, $i200, $i203, $i204, $i205, $i206, $i209, $i210, $i213, $i214, $i217, $i218, $i221, $i222, $i225, $i226, $i229, $i230, $i233, $i234;
+        org.apache.commons.compress.compressors.bzip2.BlockSort r3;
+        char[] r4;
+        org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data r1;
+        boolean z0, $z1, $z2, z3, $z4;
+        char $c81, $c82, $c83, $c84, $c97, $c98, $c101, $c102, $c115, $c116, $c119, $c120, $c133, $c134, $c137, $c138;
+
+        r3 := @this: org.apache.commons.compress.compressors.bzip2.BlockSort;
+
+        r1 := @parameter0: org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data;
+
+        i1 := @parameter1: int;
+
+        i0 := @parameter2: int;
+
+        i12 := @parameter3: int;
+
+        i5 := @parameter4: int;
+
+        $i2 = i0 - i1;
+
+        i3 = $i2 + 1;
+
+        if i3 >= 2 goto label03;
+
+        $z1 = r3.<org.apache.commons.compress.compressors.bzip2.BlockSort: boolean firstAttempt>;
+
+        if $z1 == 0 goto label01;
+
+        $i143 = r3.<org.apache.commons.compress.compressors.bzip2.BlockSort: int workDone>;
+
+        $i142 = r3.<org.apache.commons.compress.compressors.bzip2.BlockSort: int workLimit>;
+
+        if $i143 <= $i142 goto label01;
+
+        $z2 = 1;
+
+        goto label02;
+
+     label01:
+        $z2 = 0;
+
+     label02:
+        return $z2;
+
+     label03:
+        i144 = 0;
+
+     label04:
+        $r0 = <org.apache.commons.compress.compressors.bzip2.BlockSort: int[] INCS>;
+
+        $i4 = $r0[i144];
+
+        if $i4 >= i3 goto label05;
+
+        i144 = i144 + 1;
+
+        goto label04;
+
+     label05:
+        r2 = r1.<org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data: int[] fmap>;
+
+        r4 = r3.<org.apache.commons.compress.compressors.bzip2.BlockSort: char[] quadrant>;
+
+        r5 = r1.<org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data: byte[] block>;
+
+        i6 = i5 + 1;
+
+        z0 = r3.<org.apache.commons.compress.compressors.bzip2.BlockSort: boolean firstAttempt>;
+
+        i7 = r3.<org.apache.commons.compress.compressors.bzip2.BlockSort: int workLimit>;
+
+        i145 = r3.<org.apache.commons.compress.compressors.bzip2.BlockSort: int workDone>;
+
+     label06:
+        $i154 = (int) -1;
+
+        i144 = i144 + $i154;
+
+        if i144 < 0 goto label32;
+
+        $r6 = <org.apache.commons.compress.compressors.bzip2.BlockSort: int[] INCS>;
+
+        i8 = $r6[i144];
+
+        $i9 = i1 + i8;
+
+        i10 = $i9 - 1;
+
+        i146 = i1 + i8;
+
+     label07:
+        if i146 > i0 goto label31;
+
+        i147 = 3;
+
+     label08:
+        if i146 > i0 goto label30;
+
+        $i156 = (int) -1;
+
+        i147 = i147 + $i156;
+
+        if i147 < 0 goto label30;
+
+        i11 = r2[i146];
+
+        i13 = i11 + i12;
+
+        i148 = i146;
+
+        z3 = 0;
+
+        i149 = 0;
+
+     label09:
+        if z3 == 0 goto label10;
+
+        r2[i148] = i149;
+
+        $i139 = i148 - i8;
+
+        i148 = $i139;
+
+        if $i139 > i10 goto label11;
+
+        goto label29;
+
+     label10:
+        z3 = 1;
+
+     label11:
+        $i14 = i148 - i8;
+
+        $i140 = r2[$i14];
+
+        i149 = $i140;
+
+        $i141 = $i140 + i12;
+
+        $i15 = $i141 + 1;
+
+        $b18 = r5[$i15];
+
+        $i16 = i13 + 1;
+
+        $b17 = r5[$i16];
+
+        $i157 = (int) $b18;
+
+        $i158 = (int) $b17;
+
+        if $i157 != $i158 goto label28;
+
+        $i25 = $i141 + 2;
+
+        $b28 = r5[$i25];
+
+        $i26 = i13 + 2;
+
+        $b27 = r5[$i26];
+
+        $i159 = (int) $b28;
+
+        $i160 = (int) $b27;
+
+        if $i159 != $i160 goto label27;
+
+        $i35 = $i141 + 3;
+
+        $b38 = r5[$i35];
+
+        $i36 = i13 + 3;
+
+        $b37 = r5[$i36];
+
+        $i161 = (int) $b38;
+
+        $i162 = (int) $b37;
+
+        if $i161 != $i162 goto label26;
+
+        $i45 = $i141 + 4;
+
+        $b48 = r5[$i45];
+
+        $i46 = i13 + 4;
+
+        $b47 = r5[$i46];
+
+        $i163 = (int) $b48;
+
+        $i164 = (int) $b47;
+
+        if $i163 != $i164 goto label25;
+
+        $i55 = $i141 + 5;
+
+        $b58 = r5[$i55];
+
+        $i56 = i13 + 5;
+
+        $b57 = r5[$i56];
+
+        $i165 = (int) $b58;
+
+        $i166 = (int) $b57;
+
+        if $i165 != $i166 goto label24;
+
+        i150 = $i141 + 6;
+
+        $b66 = r5[i150];
+
+        i151 = i13 + 6;
+
+        $b65 = r5[i151];
+
+        $i167 = (int) $b66;
+
+        $i168 = (int) $b65;
+
+        if $i167 != $i168 goto label23;
+
+        i152 = i5;
+
+     label12:
+        if i152 <= 0 goto label29;
+
+        $i170 = (int) -4;
+
+        i152 = i152 + $i170;
+
+        $i71 = i150 + 1;
+
+        $b74 = r5[$i71];
+
+        $i72 = i151 + 1;
+
+        $b73 = r5[$i72];
+
+        $i171 = (int) $b74;
+
+        $i172 = (int) $b73;
+
+        if $i171 != $i172 goto label22;
+
+        $c82 = r4[i150];
+
+        $c81 = r4[i151];
+
+        $i173 = (int) $c82;
+
+        $i174 = (int) $c81;
+
+        if $i173 != $i174 goto label21;
+
+        $i85 = i150 + 2;
+
+        $b88 = r5[$i85];
+
+        $i86 = i151 + 2;
+
+        $b87 = r5[$i86];
+
+        $i175 = (int) $b88;
+
+        $i176 = (int) $b87;
+
+        if $i175 != $i176 goto label20;
+
+        $i95 = i150 + 1;
+
+        $c98 = r4[$i95];
+
+        $i96 = i151 + 1;
+
+        $c97 = r4[$i96];
+
+        $i177 = (int) $c98;
+
+        $i178 = (int) $c97;
+
+        if $i177 != $i178 goto label19;
+
+        $i103 = i150 + 3;
+
+        $b106 = r5[$i103];
+
+        $i104 = i151 + 3;
+
+        $b105 = r5[$i104];
+
+        $i179 = (int) $b106;
+
+        $i180 = (int) $b105;
+
+        if $i179 != $i180 goto label18;
+
+        $i113 = i150 + 2;
+
+        $c116 = r4[$i113];
+
+        $i114 = i151 + 2;
+
+        $c115 = r4[$i114];
+
+        $i181 = (int) $c116;
+
+        $i182 = (int) $c115;
+
+        if $i181 != $i182 goto label17;
+
+        $i121 = i150 + 4;
+
+        $b124 = r5[$i121];
+
+        $i122 = i151 + 4;
+
+        $b123 = r5[$i122];
+
+        $i183 = (int) $b124;
+
+        $i184 = (int) $b123;
+
+        if $i183 != $i184 goto label16;
+
+        $i131 = i150 + 3;
+
+        $c134 = r4[$i131];
+
+        $i132 = i151 + 3;
+
+        $c133 = r4[$i132];
+
+        $i185 = (int) $c134;
+
+        $i186 = (int) $c133;
+
+        if $i185 != $i186 goto label15;
+
+        i150 = i150 + 4;
+
+        if i150 < i6 goto label13;
+
+        i150 = i150 - i6;
+
+     label13:
+        i151 = i151 + 4;
+
+        if i151 < i6 goto label14;
+
+        i151 = i151 - i6;
+
+     label14:
+        i145 = i145 + 1;
+
+        goto label12;
+
+     label15:
+        $i135 = i150 + 3;
+
+        $c138 = r4[$i135];
+
+        $i136 = i151 + 3;
+
+        $c137 = r4[$i136];
+
+        $i187 = (int) $c138;
+
+        $i188 = (int) $c137;
+
+        if $i187 <= $i188 goto label29;
+
+        goto label09;
+
+     label16:
+        $i125 = i150 + 4;
+
+        $b126 = r5[$i125];
+
+        $s189 = (short) $b126;
+
+        $s130 = $s189 & 255;
+
+        $i127 = i151 + 4;
+
+        $b128 = r5[$i127];
+
+        $s190 = (short) $b128;
+
+        $s129 = $s190 & 255;
+
+        $i191 = (int) $s130;
+
+        $i192 = (int) $s129;
+
+        if $i191 <= $i192 goto label29;
+
+        goto label09;
+
+     label17:
+        $i117 = i150 + 2;
+
+        $c120 = r4[$i117];
+
+        $i118 = i151 + 2;
+
+        $c119 = r4[$i118];
+
+        $i193 = (int) $c120;
+
+        $i194 = (int) $c119;
+
+        if $i193 <= $i194 goto label29;
+
+        goto label09;
+
+     label18:
+        $i107 = i150 + 3;
+
+        $b108 = r5[$i107];
+
+        $s195 = (short) $b108;
+
+        $s112 = $s195 & 255;
+
+        $i109 = i151 + 3;
+
+        $b110 = r5[$i109];
+
+        $s196 = (short) $b110;
+
+        $s111 = $s196 & 255;
+
+        $i197 = (int) $s112;
+
+        $i198 = (int) $s111;
+
+        if $i197 <= $i198 goto label29;
+
+        goto label09;
+
+     label19:
+        $i99 = i150 + 1;
+
+        $c102 = r4[$i99];
+
+        $i100 = i151 + 1;
+
+        $c101 = r4[$i100];
+
+        $i199 = (int) $c102;
+
+        $i200 = (int) $c101;
+
+        if $i199 <= $i200 goto label29;
+
+        goto label09;
+
+     label20:
+        $i89 = i150 + 2;
+
+        $b90 = r5[$i89];
+
+        $s201 = (short) $b90;
+
+        $s94 = $s201 & 255;
+
+        $i91 = i151 + 2;
+
+        $b92 = r5[$i91];
+
+        $s202 = (short) $b92;
+
+        $s93 = $s202 & 255;
+
+        $i203 = (int) $s94;
+
+        $i204 = (int) $s93;
+
+        if $i203 <= $i204 goto label29;
+
+        goto label09;
+
+     label21:
+        $c84 = r4[i150];
+
+        $c83 = r4[i151];
+
+        $i205 = (int) $c84;
+
+        $i206 = (int) $c83;
+
+        if $i205 <= $i206 goto label29;
+
+        goto label09;
+
+     label22:
+        $i75 = i150 + 1;
+
+        $b76 = r5[$i75];
+
+        $s207 = (short) $b76;
+
+        $s80 = $s207 & 255;
+
+        $i77 = i151 + 1;
+
+        $b78 = r5[$i77];
+
+        $s208 = (short) $b78;
+
+        $s79 = $s208 & 255;
+
+        $i209 = (int) $s80;
+
+        $i210 = (int) $s79;
+
+        if $i209 <= $i210 goto label29;
+
+        goto label09;
+
+     label23:
+        $b67 = r5[i150];
+
+        $s211 = (short) $b67;
+
+        $s70 = $s211 & 255;
+
+        $b68 = r5[i151];
+
+        $s212 = (short) $b68;
+
+        $s69 = $s212 & 255;
+
+        $i213 = (int) $s70;
+
+        $i214 = (int) $s69;
+
+        if $i213 <= $i214 goto label29;
+
+        goto label09;
+
+     label24:
+        $i59 = $i141 + 5;
+
+        $b60 = r5[$i59];
+
+        $s215 = (short) $b60;
+
+        $s64 = $s215 & 255;
+
+        $i61 = i13 + 5;
+
+        $b62 = r5[$i61];
+
+        $s216 = (short) $b62;
+
+        $s63 = $s216 & 255;
+
+        $i217 = (int) $s64;
+
+        $i218 = (int) $s63;
+
+        if $i217 <= $i218 goto label29;
+
+        goto label09;
+
+     label25:
+        $i49 = $i141 + 4;
+
+        $b50 = r5[$i49];
+
+        $s219 = (short) $b50;
+
+        $s54 = $s219 & 255;
+
+        $i51 = i13 + 4;
+
+        $b52 = r5[$i51];
+
+        $s220 = (short) $b52;
+
+        $s53 = $s220 & 255;
+
+        $i221 = (int) $s54;
+
+        $i222 = (int) $s53;
+
+        if $i221 <= $i222 goto label29;
+
+        goto label09;
+
+     label26:
+        $i39 = $i141 + 3;
+
+        $b40 = r5[$i39];
+
+        $s223 = (short) $b40;
+
+        $s44 = $s223 & 255;
+
+        $i41 = i13 + 3;
+
+        $b42 = r5[$i41];
+
+        $s224 = (short) $b42;
+
+        $s43 = $s224 & 255;
+
+        $i225 = (int) $s44;
+
+        $i226 = (int) $s43;
+
+        if $i225 <= $i226 goto label29;
+
+        goto label09;
+
+     label27:
+        $i29 = $i141 + 2;
+
+        $b30 = r5[$i29];
+
+        $s227 = (short) $b30;
+
+        $s34 = $s227 & 255;
+
+        $i31 = i13 + 2;
+
+        $b32 = r5[$i31];
+
+        $s228 = (short) $b32;
+
+        $s33 = $s228 & 255;
+
+        $i229 = (int) $s34;
+
+        $i230 = (int) $s33;
+
+        if $i229 <= $i230 goto label29;
+
+        goto label09;
+
+     label28:
+        $i19 = $i141 + 1;
+
+        $b20 = r5[$i19];
+
+        $s231 = (short) $b20;
+
+        $s24 = $s231 & 255;
+
+        $i21 = i13 + 1;
+
+        $b22 = r5[$i21];
+
+        $s232 = (short) $b22;
+
+        $s23 = $s232 & 255;
+
+        $i233 = (int) $s24;
+
+        $i234 = (int) $s23;
+
+        if $i233 <= $i234 goto label29;
+
+        goto label09;
+
+     label29:
+        r2[i148] = i11;
+
+        i146 = i146 + 1;
+
+        goto label08;
+
+     label30:
+        if z0 == 0 goto label07;
+
+        if i146 > i0 goto label07;
+
+        if i145 <= i7 goto label07;
+
+        goto label32;
+
+     label31:
+        goto label06;
+
+     label32:
+        r3.<org.apache.commons.compress.compressors.bzip2.BlockSort: int workDone> = i145;
+
+        if z0 == 0 goto label33;
+
+        if i145 <= i7 goto label33;
+
+        $z4 = 1;
+
+        goto label34;
+
+     label33:
+        $z4 = 0;
+
+     label34:
+        return $z4;
+    }
+
+    private static void vswap(int[], int, int, int)
+    {
+        int[] r0;
+        int i0, $i1, $i2, $i3, i4, i5, i6, i7;
+
+        r0 := @parameter0: int[];
+
+        i4 := @parameter1: int;
+
+        i5 := @parameter2: int;
+
+        i6 := @parameter3: int;
+
+        i7 = i6 + i4;
+
+     label1:
+        if i4 >= i7 goto label2;
+
+        i0 = r0[i4];
+
+        $i1 = i4;
+
+        i4 = i4 + 1;
+
+        $i2 = r0[i5];
+
+        r0[$i1] = $i2;
+
+        $i3 = i5;
+
+        i5 = i5 + 1;
+
+        r0[$i3] = i0;
+
+        goto label1;
+
+     label2:
+        return;
+    }
+
+    private static byte med3(byte, byte, byte)
+    {
+        byte b0, b1, b2, $b3;
+        int $i4, $i5, $i6, $i7, $i8, $i9, $i10, $i11, $i12, $i13;
+
+        b0 := @parameter0: byte;
+
+        b1 := @parameter1: byte;
+
+        b2 := @parameter2: byte;
+
+        $i4 = (int) b0;
+
+        $i5 = (int) b1;
+
+        if $i4 >= $i5 goto label3;
+
+        $i6 = (int) b1;
+
+        $i7 = (int) b2;
+
+        if $i6 >= $i7 goto label1;
+
+        $b3 = b1;
+
+        goto label6;
+
+     label1:
+        $i8 = (int) b0;
+
+        $i9 = (int) b2;
+
+        if $i8 >= $i9 goto label2;
+
+        $b3 = b2;
+
+        goto label6;
+
+     label2:
+        $b3 = b0;
+
+        goto label6;
+
+     label3:
+        $i10 = (int) b1;
+
+        $i11 = (int) b2;
+
+        if $i10 <= $i11 goto label4;
+
+        $b3 = b1;
+
+        goto label6;
+
+     label4:
+        $i12 = (int) b0;
+
+        $i13 = (int) b2;
+
+        if $i12 <= $i13 goto label5;
+
+        $b3 = b2;
+
+        goto label6;
+
+     label5:
+        $b3 = b0;
+
+     label6:
+        return $b3;
+    }
+
+    private void mainQSort3(org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data, int, int, int, int)
+    {
+        byte[] r6;
+        org.apache.commons.compress.compressors.bzip2.BlockSort r0;
+        byte $b17, $b18, $b19, $b20, $b42, $b49;
+        short s21, $s43, $s50, $s70, $s71, $s74;
+        org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data r4;
+        int[] r1, r2, r3, r5;
+        boolean $z0;
+        int i0, i1, i2, i3, i4, i5, $i6, i7, i8, $i9, $i10, $i11, $i12, $i13, $i14, $i15, $i16, $i22, $i23, $i24, $i25, $i26, $i27, $i28, $i29, $i30, $i31, $i32, $i33, $i34, $i35, $i36, $i37, $i38, $i39, $i40, $i41, $i44, $i45, $i46, $i47, $i48, $i51, $i52, $i53, i54, i55, i56, i57, i58, i59, i60, i61, i62, i63, $i64, $i65, i66, i67, $i69, $i72, $i73, $i75, $i76, $i78, $i80, $i82, $i84;
+
+        r0 := @this: org.apache.commons.compress.compressors.bzip2.BlockSort;
+
+        r4 := @parameter0: org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data;
+
+        i0 := @parameter1: int;
+
+        i1 := @parameter2: int;
+
+        i2 := @parameter3: int;
+
+        i7 := @parameter4: int;
+
+        r1 = r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: int[] stack_ll>;
+
+        r2 = r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: int[] stack_hh>;
+
+        r3 = r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: int[] stack_dd>;
+
+        r5 = r4.<org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data: int[] fmap>;
+
+        r6 = r4.<org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data: byte[] block>;
+
+        r1[0] = i0;
+
+        r2[0] = i1;
+
+        r3[0] = i2;
+
+        i54 = 1;
+
+     label01:
+        $i69 = (int) -1;
+
+        i54 = i54 + $i69;
+
+        if i54 < 0 goto label18;
+
+        i3 = r1[i54];
+
+        i4 = r2[i54];
+
+        i5 = r3[i54];
+
+        $i6 = i4 - i3;
+
+        if $i6 < 20 goto label02;
+
+        if i5 <= 10 goto label03;
+
+     label02:
+        $z0 = specialinvoke r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: boolean mainSimpleSort(org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data,int,int,int,int)>(r4, i3, i4, i5, i7);
+
+        if $z0 == 0 goto label17;
+
+        return;
+
+     label03:
+        i8 = i5 + 1;
+
+        $i9 = r5[i3];
+
+        $i10 = $i9 + i8;
+
+        $b19 = r6[$i10];
+
+        $i11 = r5[i4];
+
+        $i12 = $i11 + i8;
+
+        $b18 = r6[$i12];
+
+        $i13 = i3 + i4;
+
+        $i14 = $i13 >>> 1;
+
+        $i15 = r5[$i14];
+
+        $i16 = $i15 + i8;
+
+        $b17 = r6[$i16];
+
+        $b20 = staticinvoke <org.apache.commons.compress.compressors.bzip2.BlockSort: byte med3(byte,byte,byte)>($b19, $b18, $b17);
+
+        $s70 = (short) $b20;
+
+        s21 = $s70 & 255;
+
+        i55 = i3;
+
+        i56 = i4;
+
+        i57 = i3;
+
+        i58 = i4;
+
+     label04:
+        if i55 > i56 goto label07;
+
+        $i47 = r5[i55];
+
+        $i48 = $i47 + i8;
+
+        $b49 = r6[$i48];
+
+        $s71 = (short) $b49;
+
+        $s50 = $s71 & 255;
+
+        $i72 = (int) $s50;
+
+        $i73 = (int) s21;
+
+        i59 = $i72 - $i73;
+
+        if i59 != 0 goto label05;
+
+        i60 = r5[i55];
+
+        $i51 = i55;
+
+        i55 = i55 + 1;
+
+        $i52 = r5[i57];
+
+        r5[$i51] = $i52;
+
+        $i53 = i57;
+
+        i57 = i57 + 1;
+
+        r5[$i53] = i60;
+
+        goto label06;
+
+     label05:
+        if i59 >= 0 goto label07;
+
+        i55 = i55 + 1;
+
+     label06:
+        goto label04;
+
+     label07:
+        if i55 > i56 goto label10;
+
+        $i40 = r5[i56];
+
+        $i41 = $i40 + i8;
+
+        $b42 = r6[$i41];
+
+        $s74 = (short) $b42;
+
+        $s43 = $s74 & 255;
+
+        $i75 = (int) $s43;
+
+        $i76 = (int) s21;
+
+        i61 = $i75 - $i76;
+
+        if i61 != 0 goto label08;
+
+        i62 = r5[i56];
+
+        $i44 = i56;
+
+        $i78 = (int) -1;
+
+        i56 = i56 + $i78;
+
+        $i45 = r5[i58];
+
+        r5[$i44] = $i45;
+
+        $i46 = i58;
+
+        $i80 = (int) -1;
+
+        i58 = i58 + $i80;
+
+        r5[$i46] = i62;
+
+        goto label09;
+
+     label08:
+        if i61 <= 0 goto label10;
+
+        $i82 = (int) -1;
+
+        i56 = i56 + $i82;
+
+     label09:
+        goto label07;
+
+     label10:
+        if i55 > i56 goto label11;
+
+        i63 = r5[i55];
+
+        $i37 = i55;
+
+        i55 = i55 + 1;
+
+        $i38 = r5[i56];
+
+        r5[$i37] = $i38;
+
+        $i39 = i56;
+
+        $i84 = (int) -1;
+
+        i56 = i56 + $i84;
+
+        r5[$i39] = i63;
+
+        goto label04;
+
+     label11:
+        if i58 >= i57 goto label12;
+
+        r1[i54] = i3;
+
+        r2[i54] = i4;
+
+        r3[i54] = i8;
+
+        i54 = i54 + 1;
+
+        goto label17;
+
+     label12:
+        $i23 = i57 - i3;
+
+        $i22 = i55 - i57;
+
+        if $i23 >= $i22 goto label13;
+
+        $i64 = i57 - i3;
+
+        goto label14;
+
+     label13:
+        $i64 = i55 - i57;
+
+     label14:
+        $i24 = i55 - $i64;
+
+        staticinvoke <org.apache.commons.compress.compressors.bzip2.BlockSort: void vswap(int[],int,int,int)>(r5, i3, $i24, $i64);
+
+        $i26 = i4 - i58;
+
+        $i25 = i58 - i56;
+
+        if $i26 >= $i25 goto label15;
+
+        $i65 = i4 - i58;
+
+        goto label16;
+
+     label15:
+        $i65 = i58 - i56;
+
+     label16:
+        $i27 = i4 - $i65;
+
+        $i28 = $i27 + 1;
+
+        staticinvoke <org.apache.commons.compress.compressors.bzip2.BlockSort: void vswap(int[],int,int,int)>(r5, i55, $i28, $i65);
+
+        $i29 = i3 + i55;
+
+        $i30 = $i29 - i57;
+
+        $i35 = $i30 - 1;
+
+        $i31 = i58 - i56;
+
+        $i32 = i4 - $i31;
+
+        $i36 = $i32 + 1;
+
+        r1[i54] = i3;
+
+        r2[i54] = $i35;
+
+        r3[i54] = i5;
+
+        i66 = i54 + 1;
+
+        $i33 = $i35 + 1;
+
+        r1[i66] = $i33;
+
+        $i34 = $i36 - 1;
+
+        r2[i66] = $i34;
+
+        r3[i66] = i8;
+
+        i67 = i66 + 1;
+
+        r1[i67] = $i36;
+
+        r2[i67] = i4;
+
+        r3[i67] = i5;
+
+        i54 = i67 + 1;
+
+     label17:
+        goto label01;
+
+     label18:
+        return;
+    }
+
+    final void mainSort(org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data, int)
+    {
+        byte[] r6;
+        byte $b4, $b5, $b6, $b8, $b10, $b37, $b65, $b75, $b84;
+        short $s9, $s11, s89, s91, s93, s95, s116, $s128, $s129, $s132, $s133, $s136, $s138, $s142;
+        boolean[] r3;
+        int[] r1, r2, r4, r7;
+        int i0, i1, $i2, $i3, $i7, $i12, $i13, $i14, $i15, $i16, $i17, $i18, $i19, $i20, $i21, $i22, $i23, $i24, $i25, $i26, $i27, $i28, $i29, $i31, $i32, $i33, $i34, $i35, $i36, $i38, $i39, $i40, $i41, $i42, $i43, $i44, $i45, $i46, $i47, $i48, $i49, $i50, $i51, $i52, $i53, $i54, $i55, $i56, $i57, $i58, $i59, $i60, $i61, $i62, $i63, $i64, $i66, $i67, $i68, $i69, $i70, $i71, $i72, $i73, $i74, $i76, $i77, $i78, $i79, $i80, $i81, $i82, $i83, $i85, i86, i87, i88, i90, i92, i94, i96, i97, i98, i99, i100, i101, i102, i103, i104, i105, i106, i107, i108, i109, i110, $i111, i112, i113, i114, i115, $i117, i118, i119, i120, i121, i122, i123, $i125, $i127, $i130, $i131, $i134, $i135, $i137, $i139, $i141, $i143, $i144, $i145, $i146, $i148, $i150;
+        org.apache.commons.compress.compressors.bzip2.BlockSort r0;
+        char[] r8;
+        org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data r5;
+        boolean z0, $z1;
+        char c30;
+
+        r0 := @this: org.apache.commons.compress.compressors.bzip2.BlockSort;
+
+        r5 := @parameter0: org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data;
+
+        i1 := @parameter1: int;
+
+        r1 = r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: int[] mainSort_runningOrder>;
+
+        r2 = r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: int[] mainSort_copy>;
+
+        r3 = r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: boolean[] mainSort_bigDone>;
+
+        r4 = r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: int[] ftab>;
+
+        r6 = r5.<org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data: byte[] block>;
+
+        r7 = r5.<org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data: int[] fmap>;
+
+        r8 = r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: char[] quadrant>;
+
+        i0 = r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: int workLimit>;
+
+        z0 = r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: boolean firstAttempt>;
+
+        i86 = 65537;
+
+     label01:
+        $i125 = (int) -1;
+
+        i86 = i86 + $i125;
+
+        if i86 < 0 goto label02;
+
+        r4[i86] = 0;
+
+        goto label01;
+
+     label02:
+        i87 = 0;
+
+     label03:
+        if i87 >= 20 goto label04;
+
+        $i80 = i1 + i87;
+
+        $i85 = $i80 + 2;
+
+        $i81 = i1 + 1;
+
+        $i82 = i87 % $i81;
+
+        $i83 = $i82 + 1;
+
+        $b84 = r6[$i83];
+
+        r6[$i85] = $b84;
+
+        i87 = i87 + 1;
+
+        goto label03;
+
+     label04:
+        $i2 = i1 + 20;
+
+        i88 = $i2 + 1;
+
+     label05:
+        $i127 = (int) -1;
+
+        i88 = i88 + $i127;
+
+        if i88 < 0 goto label06;
+
+        r8[i88] = 0;
+
+        goto label05;
+
+     label06:
+        $i3 = i1 + 1;
+
+        $b4 = r6[$i3];
+
+        r6[0] = $b4;
+
+        $b5 = r6[0];
+
+        $s128 = (short) $b5;
+
+        s89 = $s128 & 255;
+
+        i90 = 0;
+
+     label07:
+        if i90 > i1 goto label08;
+
+        $i74 = i90 + 1;
+
+        $b75 = r6[$i74];
+
+        $s129 = (short) $b75;
+
+        s91 = $s129 & 255;
+
+        $i130 = (int) s89;
+
+        $i76 = $i130 << 8;
+
+        $i131 = (int) s91;
+
+        $i77 = $i76 + $i131;
+
+        $i78 = r4[$i77];
+
+        $i79 = $i78 + 1;
+
+        r4[$i77] = $i79;
+
+        s89 = s91;
+
+        i90 = i90 + 1;
+
+        goto label07;
+
+     label08:
+        i92 = 1;
+
+     label09:
+        if i92 > 65536 goto label10;
+
+        $i72 = r4[i92];
+
+        $i70 = i92 - 1;
+
+        $i71 = r4[$i70];
+
+        $i73 = $i72 + $i71;
+
+        r4[i92] = $i73;
+
+        i92 = i92 + 1;
+
+        goto label09;
+
+     label10:
+        $b6 = r6[1];
+
+        $s132 = (short) $b6;
+
+        s93 = $s132 & 255;
+
+        i94 = 0;
+
+     label11:
+        if i94 >= i1 goto label12;
+
+        $i64 = i94 + 2;
+
+        $b65 = r6[$i64];
+
+        $s133 = (short) $b65;
+
+        s95 = $s133 & 255;
+
+        $i134 = (int) s93;
+
+        $i66 = $i134 << 8;
+
+        $i135 = (int) s95;
+
+        $i67 = $i66 + $i135;
+
+        $i68 = r4[$i67];
+
+        $i69 = $i68 - 1;
+
+        r4[$i67] = $i69;
+
+        r7[$i69] = i94;
+
+        s93 = s95;
+
+        i94 = i94 + 1;
+
+        goto label11;
+
+     label12:
+        $i7 = i1 + 1;
+
+        $b8 = r6[$i7];
+
+        $s136 = (short) $b8;
+
+        $s9 = $s136 & 255;
+
+        $i137 = (int) $s9;
+
+        $i12 = $i137 << 8;
+
+        $b10 = r6[1];
+
+        $s138 = (short) $b10;
+
+        $s11 = $s138 & 255;
+
+        $i139 = (int) $s11;
+
+        $i13 = $i12 + $i139;
+
+        $i14 = r4[$i13];
+
+        $i15 = $i14 - 1;
+
+        r4[$i13] = $i15;
+
+        r7[$i15] = i1;
+
+        i96 = 256;
+
+     label13:
+        $i141 = (int) -1;
+
+        i96 = i96 + $i141;
+
+        if i96 < 0 goto label14;
+
+        r3[i96] = 0;
+
+        r1[i96] = i96;
+
+        goto label13;
+
+     label14:
+        i97 = 364;
+
+     label15:
+        if i97 == 1 goto label21;
+
+        i97 = i97 / 3;
+
+        i98 = i97;
+
+     label16:
+        if i98 > 255 goto label20;
+
+        i99 = r1[i98];
+
+        $i51 = i99 + 1;
+
+        $i52 = $i51 << 8;
+
+        $i55 = r4[$i52];
+
+        $i53 = i99 << 8;
+
+        $i54 = r4[$i53];
+
+        i100 = $i55 - $i54;
+
+        i101 = i97 - 1;
+
+        i102 = i98;
+
+        $i56 = i98 - i97;
+
+        i103 = r1[$i56];
+
+     label17:
+        $i57 = i103 + 1;
+
+        $i58 = $i57 << 8;
+
+        $i61 = r4[$i58];
+
+        $i59 = i103 << 8;
+
+        $i60 = r4[$i59];
+
+        $i62 = $i61 - $i60;
+
+        if $i62 <= i100 goto label19;
+
+        r1[i102] = i103;
+
+        i102 = i102 - i97;
+
+        if i102 > i101 goto label18;
+
+        goto label19;
+
+     label18:
+        $i63 = i102 - i97;
+
+        i103 = r1[$i63];
+
+        goto label17;
+
+     label19:
+        r1[i102] = i99;
+
+        i98 = i98 + 1;
+
+        goto label16;
+
+     label20:
+        goto label15;
+
+     label21:
+        i104 = 0;
+
+     label22:
+        if i104 > 255 goto label41;
+
+        i105 = r1[i104];
+
+        i106 = 0;
+
+     label23:
+        if i106 > 255 goto label26;
+
+        $i45 = i105 << 8;
+
+        i107 = $i45 + i106;
+
+        i108 = r4[i107];
+
+        $i46 = i108 & 2097152;
+
+        if $i46 == 2097152 goto label25;
+
+        i109 = i108 & -2097153;
+
+        $i47 = i107 + 1;
+
+        $i48 = r4[$i47];
+
+        $i49 = $i48 & -2097153;
+
+        i110 = $i49 - 1;
+
+        if i110 <= i109 goto label24;
+
+        specialinvoke r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: void mainQSort3(org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream$Data,int,int,int,int)>(r5, i109, i110, 2, i1);
+
+        if z0 == 0 goto label24;
+
+        $i50 = r0.<org.apache.commons.compress.compressors.bzip2.BlockSort: int workDone>;
+
+        if $i50 <= i0 goto label24;
+
+        return;
+
+     label24:
+        $i111 = i108 | 2097152;
+
+        r4[i107] = $i111;
+
+     label25:
+        i106 = i106 + 1;
+
+        goto label23;
+
+     label26:
+        i112 = 0;
+
+     label27:
+        if i112 > 255 goto label28;
+
+        $i41 = i112 << 8;
+
+        $i42 = $i41 + i105;
+
+        $i43 = r4[$i42];
+
+        $i44 = $i43 & -2097153;
+
+        r2[i112] = $i44;
+
+        i112 = i112 + 1;
+
+        goto label27;
+
+     label28:
+        $i16 = i105 << 8;
+
+        $i17 = r4[$i16];
+
+        i113 = $i17 & -2097153;
+
+        $i18 = i105 + 1;
+
+        $i19 = $i18 << 8;
+
+        $i20 = r4[$i19];
+
+        i114 = $i20 & -2097153;
+
+     label29:
+        if i113 >= i114 goto label33;
+
+        i115 = r7[i113];
+
+        $b37 = r6[i115];
+
+        $s142 = (short) $b37;
+
+        s116 = $s142 & 255;
+
+        $i143 = (int) s116;
+
+        $z1 = r3[$i143];
+
+        if $z1 != 0 goto label32;
+
+        $i144 = (int) s116;
+
+        $i38 = r2[$i144];
+
+        if i115 != 0 goto label30;
+
+        $i117 = i1;
+
+        goto label31;
+
+     label30:
+        $i117 = i115 - 1;
+
+     label31:
+        r7[$i38] = $i117;
+
+        $i145 = (int) s116;
+
+        $i39 = r2[$i145];
+
+        $i40 = $i39 + 1;
+
+        $i146 = (int) s116;
+
+        r2[$i146] = $i40;
+
+     label32:
+        i113 = i113 + 1;
+
+        goto label29;
+
+     label33:
+        i118 = 256;
+
+     label34:
+        $i148 = (int) -1;
+
+        i118 = i118 + $i148;
+
+        if i118 < 0 goto label35;
+
+        $i33 = i118 << 8;
+
+        $i34 = $i33 + i105;
+
+        $i35 = r4[$i34];
+
+        $i36 = $i35 | 2097152;
+
+        r4[$i34] = $i36;
+
+        goto label34;
+
+     label35:
+        r3[i105] = 1;
+
+        if i104 >= 255 goto label40;
+
+        $i21 = i105 << 8;
+
+        $i22 = r4[$i21];
+
+        i119 = $i22 & -2097153;
+
+        $i23 = i105 + 1;
+
+        $i24 = $i23 << 8;
+
+        $i25 = r4[$i24];
+
+        $i26 = $i25 & -2097153;
+
+        i120 = $i26 - i119;
+
+        i121 = 0;
+
+     label36:
+        $i27 = i120 >> i121;
+
+        $i150 = (int) 65534;
+
+        if $i27 <= $i150 goto label37;
+
+        i121 = i121 + 1;
+
+        goto label36;
+
+     label37:
+        i122 = 0;
+
+     label38:
+        if i122 >= i120 goto label40;
+
+        $i28 = i119 + i122;
+
+        i123 = r7[$i28];
+
+        $i29 = i122 >> i121;
+
+        c30 = (char) $i29;
+
+        r8[i123] = c30;
+
+        if i123 >= 20 goto label39;
+
+        $i31 = i123 + i1;
+
+        $i32 = $i31 + 1;
+
+        r8[$i32] = c30;
+
+     label39:
+        i122 = i122 + 1;
+
+        goto label38;
+
+     label40:
+        i104 = i104 + 1;
+
+        goto label22;
+
+     label41:
+        return;
+    }
+
+    static void <clinit>()
+    {
+        int[] $r0;
+
+        <org.apache.commons.compress.compressors.bzip2.BlockSort: int CLEARMASK> = -2097153;
+
+        <org.apache.commons.compress.compressors.bzip2.BlockSort: int SETMASK> = 2097152;
+
+        <org.apache.commons.compress.compressors.bzip2.BlockSort: int WORK_FACTOR> = 30;
+
+        <org.apache.commons.compress.compressors.bzip2.BlockSort: int DEPTH_THRESH> = 10;
+
+        <org.apache.commons.compress.compressors.bzip2.BlockSort: int SMALL_THRESH> = 20;
+
+        <org.apache.commons.compress.compressors.bzip2.BlockSort: int FALLBACK_QSORT_SMALL_THRESH> = 10;
+
+        <org.apache.commons.compress.compressors.bzip2.BlockSort: int STACK_SIZE> = 1000;
+
+        <org.apache.commons.compress.compressors.bzip2.BlockSort: int FALLBACK_QSORT_STACK_SIZE> = 100;
+
+        <org.apache.commons.compress.compressors.bzip2.BlockSort: int QSORT_STACK_SIZE> = 1000;
+
+        $r0 = newarray (int)[14];
+
+        $r0[0] = 1;
+
+        $r0[1] = 4;
+
+        $r0[2] = 13;
+
+        $r0[3] = 40;
+
+        $r0[4] = 121;
+
+        $r0[5] = 364;
+
+        $r0[6] = 1093;
+
+        $r0[7] = 3280;
+
+        $r0[8] = 9841;
+
+        $r0[9] = 29524;
+
+        $r0[10] = 88573;
+
+        $r0[11] = 265720;
+
+        $r0[12] = 797161;
+
+        $r0[13] = 2391484;
+
+        <org.apache.commons.compress.compressors.bzip2.BlockSort: int[] INCS> = $r0;
+
+        return;
+    }
+}

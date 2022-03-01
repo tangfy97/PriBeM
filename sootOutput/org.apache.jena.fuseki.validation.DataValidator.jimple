@@ -1,0 +1,327 @@
+public class org.apache.jena.fuseki.validation.DataValidator extends org.apache.jena.fuseki.validation.ValidatorBase
+{
+    static final java.lang.String paramLineNumbers;
+    static final java.lang.String paramFormat;
+    static final java.lang.String paramIndirection;
+    static final java.lang.String paramData;
+    static final java.lang.String paramSyntax;
+    static final long LIMIT;
+
+    public void <init>()
+    {
+        org.apache.jena.fuseki.validation.DataValidator r0;
+
+        r0 := @this: org.apache.jena.fuseki.validation.DataValidator;
+
+        specialinvoke r0.<org.apache.jena.fuseki.validation.ValidatorBase: void <init>()>();
+
+        return;
+    }
+
+    protected void execute(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+    {
+        java.lang.Throwable $r23;
+        org.apache.jena.riot.RiotException $r26;
+        org.apache.jena.fuseki.validation.DataValidator$ErrorHandlerMsg $r7;
+        org.apache.jena.fuseki.validation.DataValidator r0;
+        javax.servlet.http.HttpServletRequest r1;
+        org.apache.jena.riot.lang.LangRIOT $r12;
+        javax.servlet.ServletOutputStream $r6;
+        java.lang.String $r4, $r20, r27;
+        boolean $z0;
+        java.io.PrintStream r8, r9, $r10, $r11, $r13, $r14, $r15, $r16, $r24, $r25;
+        org.apache.jena.riot.Lang $r5, $r28;
+        org.slf4j.Logger $r22;
+        javax.servlet.http.HttpServletResponse r2;
+        java.lang.Exception $r21;
+        org.apache.jena.riot.tokens.Tokenizer $r3;
+        java.lang.StringBuilder $r17, $r18, $r19;
+
+        r0 := @this: org.apache.jena.fuseki.validation.DataValidator;
+
+        r1 := @parameter0: javax.servlet.http.HttpServletRequest;
+
+        r2 := @parameter1: javax.servlet.http.HttpServletResponse;
+
+     label01:
+        $r3 = specialinvoke r0.<org.apache.jena.fuseki.validation.DataValidator: org.apache.jena.riot.tokens.Tokenizer createTokenizer(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse)>(r1, r2);
+
+        if $r3 != null goto label03;
+
+     label02:
+        return;
+
+     label03:
+        $r4 = staticinvoke <org.apache.jena.fuseki.FusekiLib: java.lang.String safeParameter(javax.servlet.http.HttpServletRequest,java.lang.String)>(r1, "languageSyntax");
+
+        r27 = $r4;
+
+        if $r4 == null goto label04;
+
+        $z0 = virtualinvoke $r4.<java.lang.String: boolean equals(java.lang.Object)>("");
+
+        if $z0 == 0 goto label05;
+
+     label04:
+        $r5 = <org.apache.jena.riot.RDFLanguages: org.apache.jena.riot.Lang NQUADS>;
+
+        r27 = virtualinvoke $r5.<org.apache.jena.riot.Lang: java.lang.String getName()>();
+
+     label05:
+        $r28 = staticinvoke <org.apache.jena.riot.RDFLanguages: org.apache.jena.riot.Lang shortnameToLang(java.lang.String)>(r27);
+
+        if $r28 != null goto label07;
+
+        $r17 = new java.lang.StringBuilder;
+
+        specialinvoke $r17.<java.lang.StringBuilder: void <init>()>();
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Unknown syntax: ");
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r27);
+
+        $r20 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke r2.<javax.servlet.http.HttpServletResponse: void sendError(int,java.lang.String)>(400, $r20);
+
+     label06:
+        return;
+
+     label07:
+        $r6 = interfaceinvoke r2.<javax.servlet.http.HttpServletResponse: javax.servlet.ServletOutputStream getOutputStream()>();
+
+        $r7 = new org.apache.jena.fuseki.validation.DataValidator$ErrorHandlerMsg;
+
+        specialinvoke $r7.<org.apache.jena.fuseki.validation.DataValidator$ErrorHandlerMsg: void <init>(javax.servlet.ServletOutputStream)>($r6);
+
+        r8 = <java.lang.System: java.io.PrintStream out>;
+
+        r9 = <java.lang.System: java.io.PrintStream err>;
+
+        $r10 = new java.io.PrintStream;
+
+        specialinvoke $r10.<java.io.PrintStream: void <init>(java.io.OutputStream)>($r6);
+
+        staticinvoke <java.lang.System: void setOut(java.io.PrintStream)>($r10);
+
+        $r11 = new java.io.PrintStream;
+
+        specialinvoke $r11.<java.io.PrintStream: void <init>(java.io.OutputStream)>($r6);
+
+        staticinvoke <java.lang.System: void setErr(java.io.PrintStream)>($r11);
+
+        staticinvoke <org.apache.jena.fuseki.validation.DataValidator: void setHeaders(javax.servlet.http.HttpServletResponse)>(r2);
+
+        virtualinvoke $r6.<javax.servlet.ServletOutputStream: void println(java.lang.String)>("<html>");
+
+        staticinvoke <org.apache.jena.fuseki.validation.DataValidator: void printHead(javax.servlet.ServletOutputStream,java.lang.String)>($r6, "Jena Data Validator Report");
+
+        virtualinvoke $r6.<javax.servlet.ServletOutputStream: void println(java.lang.String)>("<body>");
+
+        virtualinvoke $r6.<javax.servlet.ServletOutputStream: void println(java.lang.String)>("<h1>RIOT Parser Report</h1>");
+
+        virtualinvoke $r6.<javax.servlet.ServletOutputStream: void println(java.lang.String)>("<p>Line and column numbers refer to original input</p>");
+
+        virtualinvoke $r6.<javax.servlet.ServletOutputStream: void println(java.lang.String)>("<p>&nbsp;</p>");
+
+     label08:
+        $r12 = specialinvoke r0.<org.apache.jena.fuseki.validation.DataValidator: org.apache.jena.riot.lang.LangRIOT setupParser(org.apache.jena.riot.tokens.Tokenizer,org.apache.jena.riot.Lang,org.apache.jena.riot.system.ErrorHandler,javax.servlet.ServletOutputStream)>($r3, $r28, $r7, $r6);
+
+        staticinvoke <org.apache.jena.fuseki.validation.DataValidator: void startFixed(javax.servlet.ServletOutputStream)>($r6);
+
+     label09:
+        interfaceinvoke $r12.<org.apache.jena.riot.lang.LangRIOT: void parse()>();
+
+        $r13 = <java.lang.System: java.io.PrintStream out>;
+
+        virtualinvoke $r13.<java.io.PrintStream: void flush()>();
+
+        $r14 = <java.lang.System: java.io.PrintStream err>;
+
+        virtualinvoke $r14.<java.io.PrintStream: void flush()>();
+
+     label10:
+        goto label12;
+
+     label11:
+        $r26 := @caughtexception;
+
+     label12:
+        staticinvoke <org.apache.jena.fuseki.validation.DataValidator: void finishFixed(javax.servlet.ServletOutputStream)>($r6);
+
+        $r15 = <java.lang.System: java.io.PrintStream out>;
+
+        virtualinvoke $r15.<java.io.PrintStream: void flush()>();
+
+        $r16 = <java.lang.System: java.io.PrintStream err>;
+
+        virtualinvoke $r16.<java.io.PrintStream: void flush()>();
+
+        staticinvoke <java.lang.System: void setOut(java.io.PrintStream)>(r8);
+
+        staticinvoke <java.lang.System: void setErr(java.io.PrintStream)>(r8);
+
+        goto label15;
+
+     label13:
+        $r23 := @caughtexception;
+
+     label14:
+        staticinvoke <org.apache.jena.fuseki.validation.DataValidator: void finishFixed(javax.servlet.ServletOutputStream)>($r6);
+
+        $r24 = <java.lang.System: java.io.PrintStream out>;
+
+        virtualinvoke $r24.<java.io.PrintStream: void flush()>();
+
+        $r25 = <java.lang.System: java.io.PrintStream err>;
+
+        virtualinvoke $r25.<java.io.PrintStream: void flush()>();
+
+        staticinvoke <java.lang.System: void setOut(java.io.PrintStream)>(r8);
+
+        staticinvoke <java.lang.System: void setErr(java.io.PrintStream)>(r8);
+
+        throw $r23;
+
+     label15:
+        virtualinvoke $r6.<javax.servlet.ServletOutputStream: void println(java.lang.String)>("</body>");
+
+        virtualinvoke $r6.<javax.servlet.ServletOutputStream: void println(java.lang.String)>("</html>");
+
+     label16:
+        goto label18;
+
+     label17:
+        $r21 := @caughtexception;
+
+        $r22 = <org.apache.jena.fuseki.validation.DataValidator: org.slf4j.Logger serviceLog>;
+
+        interfaceinvoke $r22.<org.slf4j.Logger: void warn(java.lang.String,java.lang.Throwable)>("Exception in validationRequest", $r21);
+
+     label18:
+        return;
+
+        catch org.apache.jena.riot.RiotException from label09 to label10 with label11;
+        catch java.lang.Throwable from label08 to label12 with label13;
+        catch java.lang.Throwable from label13 to label14 with label13;
+        catch java.lang.Exception from label01 to label02 with label17;
+        catch java.lang.Exception from label03 to label06 with label17;
+        catch java.lang.Exception from label07 to label16 with label17;
+    }
+
+    private org.apache.jena.riot.lang.LangRIOT setupParser(org.apache.jena.riot.tokens.Tokenizer, org.apache.jena.riot.Lang, org.apache.jena.riot.system.ErrorHandler, javax.servlet.ServletOutputStream)
+    {
+        org.apache.jena.riot.Lang r5;
+        org.apache.jena.riot.system.ParserProfile $r8;
+        org.apache.jena.riot.system.StreamRDF $r3;
+        org.apache.jena.fuseki.validation.DataValidator r1;
+        org.apache.jena.riot.lang.LangRIOT $r6;
+        org.apache.jena.riot.system.ErrorHandler r7;
+        org.apache.jena.fuseki.validation.DataValidator$1 $r0;
+        org.apache.jena.riot.tokens.Tokenizer r4;
+        javax.servlet.ServletOutputStream r2;
+
+        r1 := @this: org.apache.jena.fuseki.validation.DataValidator;
+
+        r4 := @parameter0: org.apache.jena.riot.tokens.Tokenizer;
+
+        r5 := @parameter1: org.apache.jena.riot.Lang;
+
+        r7 := @parameter2: org.apache.jena.riot.system.ErrorHandler;
+
+        r2 := @parameter3: javax.servlet.ServletOutputStream;
+
+        $r0 = new org.apache.jena.fuseki.validation.DataValidator$1;
+
+        specialinvoke $r0.<org.apache.jena.fuseki.validation.DataValidator$1: void <init>(org.apache.jena.fuseki.validation.DataValidator,javax.servlet.ServletOutputStream)>(r1, r2);
+
+        $r3 = staticinvoke <org.apache.jena.riot.system.StreamRDFLib: org.apache.jena.riot.system.StreamRDF sinkQuads(org.apache.jena.atlas.lib.Sink)>($r0);
+
+        $r6 = staticinvoke <org.apache.jena.riot.RiotReader: org.apache.jena.riot.lang.LangRIOT createParser(org.apache.jena.riot.tokens.Tokenizer,org.apache.jena.riot.Lang,java.lang.String,org.apache.jena.riot.system.StreamRDF)>(r4, r5, null, $r3);
+
+        $r8 = staticinvoke <org.apache.jena.riot.system.RiotLib: org.apache.jena.riot.system.ParserProfile profile(java.lang.String,boolean,boolean,org.apache.jena.riot.system.ErrorHandler)>(null, 0, 1, r7);
+
+        interfaceinvoke $r6.<org.apache.jena.riot.lang.LangRIOT: void setProfile(org.apache.jena.riot.system.ParserProfile)>($r8);
+
+        return $r6;
+    }
+
+    private org.apache.jena.riot.tokens.Tokenizer createTokenizer(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse) throws java.lang.Exception
+    {
+        javax.servlet.http.HttpServletResponse r3;
+        java.lang.String[] $r1;
+        java.io.Reader r7;
+        org.apache.jena.fuseki.validation.DataValidator r6;
+        javax.servlet.http.HttpServletRequest r0;
+        org.apache.jena.riot.tokens.Tokenizer $r2;
+        java.io.StringReader $r4;
+        int $i0, $i1;
+        java.lang.String $r5;
+
+        r6 := @this: org.apache.jena.fuseki.validation.DataValidator;
+
+        r0 := @parameter0: javax.servlet.http.HttpServletRequest;
+
+        r3 := @parameter1: javax.servlet.http.HttpServletResponse;
+
+        $r1 = interfaceinvoke r0.<javax.servlet.http.HttpServletRequest: java.lang.String[] getParameterValues(java.lang.String)>("data");
+
+        if $r1 == null goto label1;
+
+        $i0 = lengthof $r1;
+
+        if $i0 != 0 goto label2;
+
+     label1:
+        r7 = interfaceinvoke r0.<javax.servlet.http.HttpServletRequest: java.io.BufferedReader getReader()>();
+
+        goto label4;
+
+     label2:
+        $i1 = lengthof $r1;
+
+        if $i1 <= 1 goto label3;
+
+        interfaceinvoke r3.<javax.servlet.http.HttpServletResponse: void sendError(int,java.lang.String)>(400, "Too many parameters for \'data=\'");
+
+        return null;
+
+     label3:
+        $r4 = new java.io.StringReader;
+
+        $r5 = $r1[0];
+
+        specialinvoke $r4.<java.io.StringReader: void <init>(java.lang.String)>($r5);
+
+        r7 = $r4;
+
+     label4:
+        if r7 != null goto label5;
+
+        interfaceinvoke r3.<javax.servlet.http.HttpServletResponse: void sendError(int,java.lang.String)>(400, "Can\'t find data to validate");
+
+        return null;
+
+     label5:
+        $r2 = staticinvoke <org.apache.jena.riot.tokens.TokenizerFactory: org.apache.jena.riot.tokens.Tokenizer makeTokenizer(java.io.Reader)>(r7);
+
+        return $r2;
+    }
+
+    public static void <clinit>()
+    {
+        <org.apache.jena.fuseki.validation.DataValidator: long LIMIT> = 50000L;
+
+        <org.apache.jena.fuseki.validation.DataValidator: java.lang.String paramSyntax> = "languageSyntax";
+
+        <org.apache.jena.fuseki.validation.DataValidator: java.lang.String paramData> = "data";
+
+        <org.apache.jena.fuseki.validation.DataValidator: java.lang.String paramIndirection> = "url";
+
+        <org.apache.jena.fuseki.validation.DataValidator: java.lang.String paramFormat> = "outputFormat";
+
+        <org.apache.jena.fuseki.validation.DataValidator: java.lang.String paramLineNumbers> = "linenumbers";
+
+        return;
+    }
+}

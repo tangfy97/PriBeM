@@ -1,0 +1,539 @@
+public class org.apache.zookeeper.server.quorum.CommitProcessor extends java.lang.Thread implements org.apache.zookeeper.server.RequestProcessor
+{
+    private static final org.slf4j.Logger LOG;
+    java.util.LinkedList queuedRequests;
+    java.util.LinkedList committedRequests;
+    org.apache.zookeeper.server.RequestProcessor nextProcessor;
+    java.util.ArrayList toProcess;
+    boolean matchSyncs;
+    volatile boolean finished;
+
+    public void <init>(org.apache.zookeeper.server.RequestProcessor, java.lang.String, boolean)
+    {
+        java.util.ArrayList $r8;
+        org.apache.zookeeper.server.quorum.CommitProcessor r0;
+        java.lang.StringBuilder $r1, $r2, $r4;
+        java.lang.String r3, $r5;
+        java.util.LinkedList $r6, $r7;
+        org.apache.zookeeper.server.RequestProcessor r9;
+        boolean z0;
+
+        r0 := @this: org.apache.zookeeper.server.quorum.CommitProcessor;
+
+        r9 := @parameter0: org.apache.zookeeper.server.RequestProcessor;
+
+        r3 := @parameter1: java.lang.String;
+
+        z0 := @parameter2: boolean;
+
+        $r1 = new java.lang.StringBuilder;
+
+        specialinvoke $r1.<java.lang.StringBuilder: void <init>()>();
+
+        $r2 = virtualinvoke $r1.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("CommitProcessor:");
+
+        $r4 = virtualinvoke $r2.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r3);
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke r0.<java.lang.Thread: void <init>(java.lang.String)>($r5);
+
+        $r6 = new java.util.LinkedList;
+
+        specialinvoke $r6.<java.util.LinkedList: void <init>()>();
+
+        r0.<org.apache.zookeeper.server.quorum.CommitProcessor: java.util.LinkedList queuedRequests> = $r6;
+
+        $r7 = new java.util.LinkedList;
+
+        specialinvoke $r7.<java.util.LinkedList: void <init>()>();
+
+        r0.<org.apache.zookeeper.server.quorum.CommitProcessor: java.util.LinkedList committedRequests> = $r7;
+
+        $r8 = new java.util.ArrayList;
+
+        specialinvoke $r8.<java.util.ArrayList: void <init>()>();
+
+        r0.<org.apache.zookeeper.server.quorum.CommitProcessor: java.util.ArrayList toProcess> = $r8;
+
+        r0.<org.apache.zookeeper.server.quorum.CommitProcessor: boolean finished> = 0;
+
+        r0.<org.apache.zookeeper.server.quorum.CommitProcessor: org.apache.zookeeper.server.RequestProcessor nextProcessor> = r9;
+
+        r0.<org.apache.zookeeper.server.quorum.CommitProcessor: boolean matchSyncs> = z0;
+
+        return;
+    }
+
+    public void run()
+    {
+        byte $b9;
+        org.apache.zookeeper.server.quorum.CommitProcessor r0;
+        org.apache.zookeeper.server.RequestProcessor $r18;
+        boolean $z0, $z1;
+        org.apache.jute.Record $r15;
+        org.apache.zookeeper.server.Request $r20, r27, r28, r30;
+        java.lang.Throwable $r21, $r25, $r26;
+        long $l7, $l8, $l12;
+        java.util.ArrayList $r1, $r2, $r10, $r11, $r16, $r17, $r29;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i10, $i11, i13;
+        java.util.LinkedList $r3, $r4, $r5, $r6, $r7, $r8, $r12;
+        org.slf4j.Logger $r22, $r24, $r31;
+        org.apache.zookeeper.txn.TxnHeader $r14;
+        java.lang.InterruptedException $r23;
+        java.lang.Object $r9, $r13, $r19;
+
+        r0 := @this: org.apache.zookeeper.server.quorum.CommitProcessor;
+
+     label01:
+        r27 = null;
+
+     label02:
+        $z1 = r0.<org.apache.zookeeper.server.quorum.CommitProcessor: boolean finished>;
+
+        if $z1 != 0 goto label28;
+
+        $r1 = r0.<org.apache.zookeeper.server.quorum.CommitProcessor: java.util.ArrayList toProcess>;
+
+        $i0 = virtualinvoke $r1.<java.util.ArrayList: int size()>();
+
+        i13 = 0;
+
+     label03:
+        if i13 >= $i0 goto label04;
+
+        $r18 = r0.<org.apache.zookeeper.server.quorum.CommitProcessor: org.apache.zookeeper.server.RequestProcessor nextProcessor>;
+
+        $r17 = r0.<org.apache.zookeeper.server.quorum.CommitProcessor: java.util.ArrayList toProcess>;
+
+        $r19 = virtualinvoke $r17.<java.util.ArrayList: java.lang.Object get(int)>(i13);
+
+        $r20 = (org.apache.zookeeper.server.Request) $r19;
+
+        interfaceinvoke $r18.<org.apache.zookeeper.server.RequestProcessor: void processRequest(org.apache.zookeeper.server.Request)>($r20);
+
+        i13 = i13 + 1;
+
+        goto label03;
+
+     label04:
+        $r2 = r0.<org.apache.zookeeper.server.quorum.CommitProcessor: java.util.ArrayList toProcess>;
+
+        virtualinvoke $r2.<java.util.ArrayList: void clear()>();
+
+        entermonitor r0;
+
+     label05:
+        $r3 = r0.<org.apache.zookeeper.server.quorum.CommitProcessor: java.util.LinkedList queuedRequests>;
+
+        $i1 = virtualinvoke $r3.<java.util.LinkedList: int size()>();
+
+        if $i1 == 0 goto label06;
+
+        if r27 == null goto label08;
+
+     label06:
+        $r4 = r0.<org.apache.zookeeper.server.quorum.CommitProcessor: java.util.LinkedList committedRequests>;
+
+        $i2 = virtualinvoke $r4.<java.util.LinkedList: int size()>();
+
+        if $i2 != 0 goto label08;
+
+        virtualinvoke r0.<java.lang.Object: void wait()>();
+
+        exitmonitor r0;
+
+     label07:
+        goto label02;
+
+     label08:
+        $r5 = r0.<org.apache.zookeeper.server.quorum.CommitProcessor: java.util.LinkedList queuedRequests>;
+
+        $i3 = virtualinvoke $r5.<java.util.LinkedList: int size()>();
+
+        if $i3 == 0 goto label09;
+
+        if r27 == null goto label11;
+
+     label09:
+        $r6 = r0.<org.apache.zookeeper.server.quorum.CommitProcessor: java.util.LinkedList committedRequests>;
+
+        $i4 = virtualinvoke $r6.<java.util.LinkedList: int size()>();
+
+        if $i4 <= 0 goto label11;
+
+        $r12 = r0.<org.apache.zookeeper.server.quorum.CommitProcessor: java.util.LinkedList committedRequests>;
+
+        $r13 = virtualinvoke $r12.<java.util.LinkedList: java.lang.Object remove()>();
+
+        r28 = (org.apache.zookeeper.server.Request) $r13;
+
+        if r27 == null goto label10;
+
+        $l8 = r27.<org.apache.zookeeper.server.Request: long sessionId>;
+
+        $l7 = r28.<org.apache.zookeeper.server.Request: long sessionId>;
+
+        $b9 = $l8 cmp $l7;
+
+        if $b9 != 0 goto label10;
+
+        $i11 = r27.<org.apache.zookeeper.server.Request: int cxid>;
+
+        $i10 = r28.<org.apache.zookeeper.server.Request: int cxid>;
+
+        if $i11 != $i10 goto label10;
+
+        $r14 = r28.<org.apache.zookeeper.server.Request: org.apache.zookeeper.txn.TxnHeader hdr>;
+
+        r27.<org.apache.zookeeper.server.Request: org.apache.zookeeper.txn.TxnHeader hdr> = $r14;
+
+        $r15 = r28.<org.apache.zookeeper.server.Request: org.apache.jute.Record txn>;
+
+        r27.<org.apache.zookeeper.server.Request: org.apache.jute.Record txn> = $r15;
+
+        $l12 = r28.<org.apache.zookeeper.server.Request: long zxid>;
+
+        r27.<org.apache.zookeeper.server.Request: long zxid> = $l12;
+
+        $r16 = r0.<org.apache.zookeeper.server.quorum.CommitProcessor: java.util.ArrayList toProcess>;
+
+        virtualinvoke $r16.<java.util.ArrayList: boolean add(java.lang.Object)>(r27);
+
+        r27 = null;
+
+        goto label11;
+
+     label10:
+        $r29 = r0.<org.apache.zookeeper.server.quorum.CommitProcessor: java.util.ArrayList toProcess>;
+
+        virtualinvoke $r29.<java.util.ArrayList: boolean add(java.lang.Object)>(r28);
+
+     label11:
+        exitmonitor r0;
+
+     label12:
+        goto label15;
+
+     label13:
+        $r26 := @caughtexception;
+
+        exitmonitor r0;
+
+     label14:
+        throw $r26;
+
+     label15:
+        if r27 == null goto label16;
+
+        goto label02;
+
+     label16:
+        entermonitor r0;
+
+     label17:
+        if r27 != null goto label23;
+
+        $r7 = r0.<org.apache.zookeeper.server.quorum.CommitProcessor: java.util.LinkedList queuedRequests>;
+
+        $i5 = virtualinvoke $r7.<java.util.LinkedList: int size()>();
+
+        if $i5 <= 0 goto label23;
+
+        $r8 = r0.<org.apache.zookeeper.server.quorum.CommitProcessor: java.util.LinkedList queuedRequests>;
+
+        $r9 = virtualinvoke $r8.<java.util.LinkedList: java.lang.Object remove()>();
+
+        r30 = (org.apache.zookeeper.server.Request) $r9;
+
+        $i6 = r30.<org.apache.zookeeper.server.Request: int type>;
+
+        tableswitch($i6)
+        {
+            case -11: goto label18;
+            case -10: goto label18;
+            case -9: goto label21;
+            case -8: goto label21;
+            case -7: goto label21;
+            case -6: goto label21;
+            case -5: goto label21;
+            case -4: goto label21;
+            case -3: goto label21;
+            case -2: goto label21;
+            case -1: goto label21;
+            case 0: goto label21;
+            case 1: goto label18;
+            case 2: goto label18;
+            case 3: goto label21;
+            case 4: goto label21;
+            case 5: goto label18;
+            case 6: goto label21;
+            case 7: goto label18;
+            case 8: goto label21;
+            case 9: goto label19;
+            case 10: goto label21;
+            case 11: goto label21;
+            case 12: goto label21;
+            case 13: goto label21;
+            case 14: goto label18;
+            default: goto label21;
+        };
+
+     label18:
+        r27 = r30;
+
+        goto label22;
+
+     label19:
+        $z0 = r0.<org.apache.zookeeper.server.quorum.CommitProcessor: boolean matchSyncs>;
+
+        if $z0 == 0 goto label20;
+
+        r27 = r30;
+
+        goto label22;
+
+     label20:
+        $r10 = r0.<org.apache.zookeeper.server.quorum.CommitProcessor: java.util.ArrayList toProcess>;
+
+        virtualinvoke $r10.<java.util.ArrayList: boolean add(java.lang.Object)>(r30);
+
+        goto label22;
+
+     label21:
+        $r11 = r0.<org.apache.zookeeper.server.quorum.CommitProcessor: java.util.ArrayList toProcess>;
+
+        virtualinvoke $r11.<java.util.ArrayList: boolean add(java.lang.Object)>(r30);
+
+     label22:
+        goto label17;
+
+     label23:
+        exitmonitor r0;
+
+     label24:
+        goto label27;
+
+     label25:
+        $r25 := @caughtexception;
+
+        exitmonitor r0;
+
+     label26:
+        throw $r25;
+
+     label27:
+        goto label02;
+
+     label28:
+        goto label31;
+
+     label29:
+        $r23 := @caughtexception;
+
+        $r24 = <org.apache.zookeeper.server.quorum.CommitProcessor: org.slf4j.Logger LOG>;
+
+        interfaceinvoke $r24.<org.slf4j.Logger: void warn(java.lang.String,java.lang.Throwable)>("Interrupted exception while waiting", $r23);
+
+        goto label31;
+
+     label30:
+        $r21 := @caughtexception;
+
+        $r22 = <org.apache.zookeeper.server.quorum.CommitProcessor: org.slf4j.Logger LOG>;
+
+        interfaceinvoke $r22.<org.slf4j.Logger: void error(java.lang.String,java.lang.Throwable)>("Unexpected exception causing CommitProcessor to exit", $r21);
+
+     label31:
+        $r31 = <org.apache.zookeeper.server.quorum.CommitProcessor: org.slf4j.Logger LOG>;
+
+        interfaceinvoke $r31.<org.slf4j.Logger: void info(java.lang.String)>("CommitProcessor exited loop!");
+
+        return;
+
+        catch java.lang.Throwable from label05 to label07 with label13;
+        catch java.lang.Throwable from label08 to label12 with label13;
+        catch java.lang.Throwable from label13 to label14 with label13;
+        catch java.lang.Throwable from label17 to label24 with label25;
+        catch java.lang.Throwable from label25 to label26 with label25;
+        catch java.lang.InterruptedException from label01 to label28 with label29;
+        catch java.lang.Throwable from label01 to label28 with label30;
+    }
+
+    public synchronized void commit(org.apache.zookeeper.server.Request)
+    {
+        org.slf4j.Logger $r2, $r5, $r10;
+        java.lang.Exception $r9;
+        org.apache.zookeeper.server.Request r1;
+        org.apache.zookeeper.server.quorum.CommitProcessor r0;
+        java.lang.StringBuilder $r4, $r6, $r7;
+        java.lang.String $r8;
+        java.util.LinkedList $r3;
+        boolean $z0, $z1;
+
+        r0 := @this: org.apache.zookeeper.server.quorum.CommitProcessor;
+
+        r1 := @parameter0: org.apache.zookeeper.server.Request;
+
+        $z0 = r0.<org.apache.zookeeper.server.quorum.CommitProcessor: boolean finished>;
+
+        if $z0 != 0 goto label3;
+
+        if r1 != null goto label1;
+
+        $r10 = <org.apache.zookeeper.server.quorum.CommitProcessor: org.slf4j.Logger LOG>;
+
+        $r9 = new java.lang.Exception;
+
+        specialinvoke $r9.<java.lang.Exception: void <init>(java.lang.String)>("committing a null! ");
+
+        interfaceinvoke $r10.<org.slf4j.Logger: void warn(java.lang.String,java.lang.Throwable)>("Committed a null!", $r9);
+
+        return;
+
+     label1:
+        $r2 = <org.apache.zookeeper.server.quorum.CommitProcessor: org.slf4j.Logger LOG>;
+
+        $z1 = interfaceinvoke $r2.<org.slf4j.Logger: boolean isDebugEnabled()>();
+
+        if $z1 == 0 goto label2;
+
+        $r5 = <org.apache.zookeeper.server.quorum.CommitProcessor: org.slf4j.Logger LOG>;
+
+        $r4 = new java.lang.StringBuilder;
+
+        specialinvoke $r4.<java.lang.StringBuilder: void <init>()>();
+
+        $r6 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Committing request:: ");
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r1);
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r5.<org.slf4j.Logger: void debug(java.lang.String)>($r8);
+
+     label2:
+        $r3 = r0.<org.apache.zookeeper.server.quorum.CommitProcessor: java.util.LinkedList committedRequests>;
+
+        virtualinvoke $r3.<java.util.LinkedList: boolean add(java.lang.Object)>(r1);
+
+        virtualinvoke r0.<java.lang.Object: void notifyAll()>();
+
+     label3:
+        return;
+    }
+
+    public synchronized void processRequest(org.apache.zookeeper.server.Request)
+    {
+        org.slf4j.Logger $r0, $r5;
+        org.apache.zookeeper.server.Request r2;
+        org.apache.zookeeper.server.quorum.CommitProcessor r1;
+        java.lang.StringBuilder $r4, $r6, $r7;
+        java.lang.String $r8;
+        java.util.LinkedList $r3;
+        boolean $z0, $z1;
+
+        r1 := @this: org.apache.zookeeper.server.quorum.CommitProcessor;
+
+        r2 := @parameter0: org.apache.zookeeper.server.Request;
+
+        $r0 = <org.apache.zookeeper.server.quorum.CommitProcessor: org.slf4j.Logger LOG>;
+
+        $z0 = interfaceinvoke $r0.<org.slf4j.Logger: boolean isDebugEnabled()>();
+
+        if $z0 == 0 goto label1;
+
+        $r5 = <org.apache.zookeeper.server.quorum.CommitProcessor: org.slf4j.Logger LOG>;
+
+        $r4 = new java.lang.StringBuilder;
+
+        specialinvoke $r4.<java.lang.StringBuilder: void <init>()>();
+
+        $r6 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Processing request:: ");
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r2);
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r5.<org.slf4j.Logger: void debug(java.lang.String)>($r8);
+
+     label1:
+        $z1 = r1.<org.apache.zookeeper.server.quorum.CommitProcessor: boolean finished>;
+
+        if $z1 != 0 goto label2;
+
+        $r3 = r1.<org.apache.zookeeper.server.quorum.CommitProcessor: java.util.LinkedList queuedRequests>;
+
+        virtualinvoke $r3.<java.util.LinkedList: boolean add(java.lang.Object)>(r2);
+
+        virtualinvoke r1.<java.lang.Object: void notifyAll()>();
+
+     label2:
+        return;
+    }
+
+    public void shutdown()
+    {
+        java.lang.Throwable $r5;
+        org.slf4j.Logger $r0;
+        org.apache.zookeeper.server.quorum.CommitProcessor r1;
+        java.util.LinkedList $r2;
+        org.apache.zookeeper.server.RequestProcessor $r3, $r4;
+
+        r1 := @this: org.apache.zookeeper.server.quorum.CommitProcessor;
+
+        $r0 = <org.apache.zookeeper.server.quorum.CommitProcessor: org.slf4j.Logger LOG>;
+
+        interfaceinvoke $r0.<org.slf4j.Logger: void info(java.lang.String)>("Shutting down");
+
+        entermonitor r1;
+
+     label1:
+        r1.<org.apache.zookeeper.server.quorum.CommitProcessor: boolean finished> = 1;
+
+        $r2 = r1.<org.apache.zookeeper.server.quorum.CommitProcessor: java.util.LinkedList queuedRequests>;
+
+        virtualinvoke $r2.<java.util.LinkedList: void clear()>();
+
+        virtualinvoke r1.<java.lang.Object: void notifyAll()>();
+
+        exitmonitor r1;
+
+     label2:
+        goto label5;
+
+     label3:
+        $r5 := @caughtexception;
+
+        exitmonitor r1;
+
+     label4:
+        throw $r5;
+
+     label5:
+        $r3 = r1.<org.apache.zookeeper.server.quorum.CommitProcessor: org.apache.zookeeper.server.RequestProcessor nextProcessor>;
+
+        if $r3 == null goto label6;
+
+        $r4 = r1.<org.apache.zookeeper.server.quorum.CommitProcessor: org.apache.zookeeper.server.RequestProcessor nextProcessor>;
+
+        interfaceinvoke $r4.<org.apache.zookeeper.server.RequestProcessor: void shutdown()>();
+
+     label6:
+        return;
+
+        catch java.lang.Throwable from label1 to label2 with label3;
+        catch java.lang.Throwable from label3 to label4 with label3;
+    }
+
+    static void <clinit>()
+    {
+        org.slf4j.Logger $r0;
+
+        $r0 = staticinvoke <org.slf4j.LoggerFactory: org.slf4j.Logger getLogger(java.lang.Class)>(class "Lorg/apache/zookeeper/server/quorum/CommitProcessor;");
+
+        <org.apache.zookeeper.server.quorum.CommitProcessor: org.slf4j.Logger LOG> = $r0;
+
+        return;
+    }
+}

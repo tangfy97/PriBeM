@@ -1,0 +1,4242 @@
+public class ucar.nc2.dods.DODSNetcdfFile extends ucar.nc2.NetcdfFile
+{
+    public static boolean debugCE;
+    public static boolean debugServerCall;
+    public static boolean debugOpenResult;
+    public static boolean debugDataResult;
+    public static boolean debugCharArray;
+    public static boolean debugConvertData;
+    public static boolean debugConstruct;
+    public static boolean debugPreload;
+    public static boolean debugTime;
+    public static boolean showNCfile;
+    public static boolean debugAttributes;
+    public static boolean debugCached;
+    public static boolean debugOpenTime;
+    private static boolean accept_compress;
+    private static boolean preload;
+    private static boolean useGroups;
+    private static int preloadCoordVarSize;
+    private static org.slf4j.Logger logger;
+    private ucar.nc2.dods.ConvertD2N convertD2N;
+    private opendap.dap.DConnect2 dodsConnection;
+    private opendap.dap.DDS dds;
+    private opendap.dap.DAS das;
+
+    public static void setAllowSessions(boolean)
+    {
+        boolean z0;
+
+        z0 := @parameter0: boolean;
+
+        staticinvoke <opendap.dap.DConnect2: void setAllowSessions(boolean)>(z0);
+
+        return;
+    }
+
+    public static void setAllowDeflate(boolean)
+    {
+        boolean z0;
+
+        z0 := @parameter0: boolean;
+
+        <ucar.nc2.dods.DODSNetcdfFile: boolean accept_compress> = z0;
+
+        return;
+    }
+
+    public static void setAllowCompression(boolean)
+    {
+        boolean z0;
+
+        z0 := @parameter0: boolean;
+
+        <ucar.nc2.dods.DODSNetcdfFile: boolean accept_compress> = z0;
+
+        return;
+    }
+
+    public static void setDebugFlags(ucar.nc2.util.DebugFlags)
+    {
+        ucar.nc2.util.DebugFlags r0;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9, $z10;
+
+        r0 := @parameter0: ucar.nc2.util.DebugFlags;
+
+        $z0 = interfaceinvoke r0.<ucar.nc2.util.DebugFlags: boolean isSet(java.lang.String)>("DODS/constraintExpression");
+
+        <ucar.nc2.dods.DODSNetcdfFile: boolean debugCE> = $z0;
+
+        $z1 = interfaceinvoke r0.<ucar.nc2.util.DebugFlags: boolean isSet(java.lang.String)>("DODS/serverCall");
+
+        <ucar.nc2.dods.DODSNetcdfFile: boolean debugServerCall> = $z1;
+
+        $z2 = interfaceinvoke r0.<ucar.nc2.util.DebugFlags: boolean isSet(java.lang.String)>("DODS/debugOpenResult");
+
+        <ucar.nc2.dods.DODSNetcdfFile: boolean debugOpenResult> = $z2;
+
+        $z3 = interfaceinvoke r0.<ucar.nc2.util.DebugFlags: boolean isSet(java.lang.String)>("DODS/debugDataResult");
+
+        <ucar.nc2.dods.DODSNetcdfFile: boolean debugDataResult> = $z3;
+
+        $z4 = interfaceinvoke r0.<ucar.nc2.util.DebugFlags: boolean isSet(java.lang.String)>("DODS/charArray");
+
+        <ucar.nc2.dods.DODSNetcdfFile: boolean debugCharArray> = $z4;
+
+        $z5 = interfaceinvoke r0.<ucar.nc2.util.DebugFlags: boolean isSet(java.lang.String)>("DODS/constructNetcdf");
+
+        <ucar.nc2.dods.DODSNetcdfFile: boolean debugConstruct> = $z5;
+
+        $z6 = interfaceinvoke r0.<ucar.nc2.util.DebugFlags: boolean isSet(java.lang.String)>("DODS/preload");
+
+        <ucar.nc2.dods.DODSNetcdfFile: boolean debugPreload> = $z6;
+
+        $z7 = interfaceinvoke r0.<ucar.nc2.util.DebugFlags: boolean isSet(java.lang.String)>("DODS/timeCalls");
+
+        <ucar.nc2.dods.DODSNetcdfFile: boolean debugTime> = $z7;
+
+        $z8 = interfaceinvoke r0.<ucar.nc2.util.DebugFlags: boolean isSet(java.lang.String)>("DODS/showNCfile");
+
+        <ucar.nc2.dods.DODSNetcdfFile: boolean showNCfile> = $z8;
+
+        $z9 = interfaceinvoke r0.<ucar.nc2.util.DebugFlags: boolean isSet(java.lang.String)>("DODS/attributes");
+
+        <ucar.nc2.dods.DODSNetcdfFile: boolean debugAttributes> = $z9;
+
+        $z10 = interfaceinvoke r0.<ucar.nc2.util.DebugFlags: boolean isSet(java.lang.String)>("DODS/cache");
+
+        <ucar.nc2.dods.DODSNetcdfFile: boolean debugCached> = $z10;
+
+        return;
+    }
+
+    public static void setPreload(boolean)
+    {
+        boolean z0;
+
+        z0 := @parameter0: boolean;
+
+        <ucar.nc2.dods.DODSNetcdfFile: boolean preload> = z0;
+
+        return;
+    }
+
+    public static void setCoordinateVariablePreloadSize(int)
+    {
+        int i0;
+
+        i0 := @parameter0: int;
+
+        <ucar.nc2.dods.DODSNetcdfFile: int preloadCoordVarSize> = i0;
+
+        return;
+    }
+
+    public static java.lang.String canonicalURL(java.lang.String)
+    {
+        java.lang.StringBuilder $r1, $r2, $r4;
+        java.lang.String r0, $r3, $r5;
+        boolean $z0;
+
+        r0 := @parameter0: java.lang.String;
+
+        $z0 = virtualinvoke r0.<java.lang.String: boolean startsWith(java.lang.String)>("http:");
+
+        if $z0 == 0 goto label1;
+
+        $r1 = new java.lang.StringBuilder;
+
+        specialinvoke $r1.<java.lang.StringBuilder: void <init>()>();
+
+        $r2 = virtualinvoke $r1.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("dods:");
+
+        $r3 = virtualinvoke r0.<java.lang.String: java.lang.String substring(int)>(5);
+
+        $r4 = virtualinvoke $r2.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r3);
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        return $r5;
+
+     label1:
+        return r0;
+    }
+
+    public void <init>(java.lang.String) throws java.io.IOException
+    {
+        ucar.nc2.dods.DODSNetcdfFile r0;
+        java.lang.String r1;
+
+        r0 := @this: ucar.nc2.dods.DODSNetcdfFile;
+
+        r1 := @parameter0: java.lang.String;
+
+        specialinvoke r0.<ucar.nc2.dods.DODSNetcdfFile: void <init>(java.lang.String,ucar.nc2.util.CancelTask)>(r1, null);
+
+        return;
+    }
+
+    public void <init>(java.lang.String, ucar.nc2.util.CancelTask) throws java.io.IOException
+    {
+        byte $b9;
+        java.lang.Long $r25;
+        ucar.nc2.dods.ConvertD2N $r193;
+        java.lang.StringBuilder $r5, $r6, $r9, $r11, $r28, $r29, $r37, $r38, $r52, $r53, $r54, $r55, $r56, $r61, $r62, $r63, $r64, $r68, $r69, $r70, $r74, $r77, $r89, $r90, $r91, $r94, $r96, $r100, $r101, $r107, $r108, $r110, $r114, $r117, $r118, $r120, $r130, $r131, $r137, $r138, $r140, $r144, $r147, $r148, $r150, $r155, $r156, $r162, $r163, $r165, $r169, $r172, $r173, $r175, $r180, $r181, $r187, $r189, $r194, $r195, $r196, $r198, $r200, $r201, $r202, $r204, $r205, $r206, $r208, $r209, $r210, $r214, $r215, $r216, $r218, $r221, $r222, $r224, $r225;
+        java.lang.Object[] $r23;
+        opendap.dap.DASException $r228, $r229;
+        long $l0, $l2, $l3, $l4, $l6, $l8, l13;
+        java.util.StringTokenizer $r220;
+        java.io.IOException $r203, $r207, $r211, $r213, $r217;
+        opendap.dap.parser.ParseException $r226, $r227;
+        ucar.ma2.DataType $r40, $r41;
+        opendap.dap.DAS $r18, $r21, $r22, $r81;
+        int $i1, $i5, $i7, $i10, $i11, $i12, $i14;
+        ucar.nc2.Variable $r49, r192;
+        java.io.PrintStream $r24, $r27, $r36, $r51, $r60, $r67, $r73, $r79, $r80, $r82, $r83, $r84, $r86, $r88, $r113, $r123, $r143, $r168, $r186;
+        org.slf4j.Logger $r99, $r129, $r154, $r179;
+        java.lang.Object $r34;
+        java.lang.Class $r105, $r115, $r135, $r145, $r160, $r170;
+        opendap.dap.DConnect2 $r15, $r17, $r75, $r199, $r219;
+        ucar.nc2.util.CancelTask r14;
+        java.lang.Exception $r97;
+        java.lang.Throwable $r122, $r127, $r152, $r177;
+        java.util.ArrayList $r223;
+        opendap.dap.DDSException $r230, $r231;
+        java.lang.String r2, $r7, $r10, $r12, $r30, $r39, $r42, $r44, $r46, $r47, $r48, $r57, $r65, $r71, $r78, $r92, $r95, $r102, $r106, $r109, $r111, $r116, $r119, $r121, $r126, $r132, $r136, $r139, $r141, $r146, $r149, $r151, $r157, $r161, $r164, $r166, $r171, $r174, $r176, $r182, $r184, $r188, $r190, r191;
+        opendap.dap.DAP2Exception $r232, $r233, $r234;
+        opendap.dap.DDS $r16, $r19, $r85;
+        ucar.nc2.dods.DodsV $r20;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9, $z10, $z11, $z12, $z13, $z14, $z15, $z16, $z17, $z18, $z19, $z20, $z21, $z22, $z23, $z24, $z25, $z26, $z27, $z28, $z29, $z30, $z31, $z32;
+        opendap.dap.ServerVersion $r76;
+        java.io.FileNotFoundException $r212;
+        ucar.nc2.dods.DODSNetcdfFile r0;
+        java.util.List $r32;
+        ucar.nc2.dods.DODSVariable $r58;
+        java.util.Iterator $r33;
+        java.net.MalformedURLException $r197;
+
+        r0 := @this: ucar.nc2.dods.DODSNetcdfFile;
+
+        r2 := @parameter0: java.lang.String;
+
+        r14 := @parameter1: ucar.nc2.util.CancelTask;
+
+        specialinvoke r0.<ucar.nc2.NetcdfFile: void <init>()>();
+
+        $r193 = new ucar.nc2.dods.ConvertD2N;
+
+        specialinvoke $r193.<ucar.nc2.dods.ConvertD2N: void <init>()>();
+
+        r0.<ucar.nc2.dods.DODSNetcdfFile: ucar.nc2.dods.ConvertD2N convertD2N> = $r193;
+
+        r0.<ucar.nc2.dods.DODSNetcdfFile: opendap.dap.DConnect2 dodsConnection> = null;
+
+        $l0 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        r191 = r2;
+
+        r0.<ucar.nc2.dods.DODSNetcdfFile: java.lang.String location> = r2;
+
+        $z0 = virtualinvoke r2.<java.lang.String: boolean startsWith(java.lang.String)>("dods:");
+
+        if $z0 == 0 goto label01;
+
+        $r194 = new java.lang.StringBuilder;
+
+        specialinvoke $r194.<java.lang.StringBuilder: void <init>()>();
+
+        $r94 = virtualinvoke $r194.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("http:");
+
+        $r95 = virtualinvoke r2.<java.lang.String: java.lang.String substring(int)>(5);
+
+        $r96 = virtualinvoke $r94.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r95);
+
+        r191 = virtualinvoke $r96.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        goto label03;
+
+     label01:
+        $z1 = virtualinvoke r2.<java.lang.String: boolean startsWith(java.lang.String)>("http:");
+
+        if $z1 == 0 goto label02;
+
+        $r195 = new java.lang.StringBuilder;
+
+        specialinvoke $r195.<java.lang.StringBuilder: void <init>()>();
+
+        $r9 = virtualinvoke $r195.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("dods:");
+
+        $r10 = virtualinvoke r2.<java.lang.String: java.lang.String substring(int)>(5);
+
+        $r11 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r10);
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        r0.<ucar.nc2.dods.DODSNetcdfFile: java.lang.String location> = $r12;
+
+        goto label03;
+
+     label02:
+        $r197 = new java.net.MalformedURLException;
+
+        $r196 = new java.lang.StringBuilder;
+
+        specialinvoke $r196.<java.lang.StringBuilder: void <init>()>();
+
+        $r5 = virtualinvoke $r196.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r2);
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" must start with dods: or http:");
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r197.<java.net.MalformedURLException: void <init>(java.lang.String)>($r7);
+
+        throw $r197;
+
+     label03:
+        $z2 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugServerCall>;
+
+        if $z2 == 0 goto label04;
+
+        $r88 = <java.lang.System: java.io.PrintStream out>;
+
+        $r198 = new java.lang.StringBuilder;
+
+        specialinvoke $r198.<java.lang.StringBuilder: void <init>()>();
+
+        $r89 = virtualinvoke $r198.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("DConnect to = <");
+
+        $r90 = virtualinvoke $r89.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r191);
+
+        $r91 = virtualinvoke $r90.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(">");
+
+        $r92 = virtualinvoke $r91.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r88.<java.io.PrintStream: void println(java.lang.String)>($r92);
+
+     label04:
+        $r199 = new opendap.dap.DConnect2;
+
+        $z3 = <ucar.nc2.dods.DODSNetcdfFile: boolean accept_compress>;
+
+        specialinvoke $r199.<opendap.dap.DConnect2: void <init>(java.lang.String,boolean)>(r191, $z3);
+
+        r0.<ucar.nc2.dods.DODSNetcdfFile: opendap.dap.DConnect2 dodsConnection> = $r199;
+
+        if r14 == null goto label05;
+
+        $z25 = interfaceinvoke r14.<ucar.nc2.util.CancelTask: boolean isCancel()>();
+
+        if $z25 == 0 goto label05;
+
+        return;
+
+     label05:
+        $r15 = r0.<ucar.nc2.dods.DODSNetcdfFile: opendap.dap.DConnect2 dodsConnection>;
+
+        $r16 = virtualinvoke $r15.<opendap.dap.DConnect2: opendap.dap.DDS getDDS()>();
+
+        r0.<ucar.nc2.dods.DODSNetcdfFile: opendap.dap.DDS dds> = $r16;
+
+        $z4 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugServerCall>;
+
+        if $z4 == 0 goto label06;
+
+        $r86 = <java.lang.System: java.io.PrintStream out>;
+
+        virtualinvoke $r86.<java.io.PrintStream: void println(java.lang.String)>("DODSNetcdfFile readDDS");
+
+     label06:
+        $z5 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugOpenResult>;
+
+        if $z5 == 0 goto label07;
+
+        $r83 = <java.lang.System: java.io.PrintStream out>;
+
+        virtualinvoke $r83.<java.io.PrintStream: void println(java.lang.String)>("DDS = ");
+
+        $r85 = r0.<ucar.nc2.dods.DODSNetcdfFile: opendap.dap.DDS dds>;
+
+        $r84 = <java.lang.System: java.io.PrintStream out>;
+
+        virtualinvoke $r85.<opendap.dap.DDS: void print(java.io.OutputStream)>($r84);
+
+     label07:
+        if r14 == null goto label09;
+
+        $z24 = interfaceinvoke r14.<ucar.nc2.util.CancelTask: boolean isCancel()>();
+
+        if $z24 == 0 goto label09;
+
+     label08:
+        return;
+
+     label09:
+        $r17 = r0.<ucar.nc2.dods.DODSNetcdfFile: opendap.dap.DConnect2 dodsConnection>;
+
+        $r18 = virtualinvoke $r17.<opendap.dap.DConnect2: opendap.dap.DAS getDAS()>();
+
+        r0.<ucar.nc2.dods.DODSNetcdfFile: opendap.dap.DAS das> = $r18;
+
+        $z6 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugServerCall>;
+
+        if $z6 == 0 goto label10;
+
+        $r82 = <java.lang.System: java.io.PrintStream out>;
+
+        virtualinvoke $r82.<java.io.PrintStream: void println(java.lang.String)>("DODSNetcdfFile readDAS");
+
+     label10:
+        $z7 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugOpenResult>;
+
+        if $z7 == 0 goto label11;
+
+        $r79 = <java.lang.System: java.io.PrintStream out>;
+
+        virtualinvoke $r79.<java.io.PrintStream: void println(java.lang.String)>("DAS = ");
+
+        $r81 = r0.<ucar.nc2.dods.DODSNetcdfFile: opendap.dap.DAS das>;
+
+        $r80 = <java.lang.System: java.io.PrintStream out>;
+
+        virtualinvoke $r81.<opendap.dap.DAS: void print(java.io.OutputStream)>($r80);
+
+     label11:
+        if r14 == null goto label13;
+
+        $z23 = interfaceinvoke r14.<ucar.nc2.util.CancelTask: boolean isCancel()>();
+
+        if $z23 == 0 goto label13;
+
+     label12:
+        return;
+
+     label13:
+        $z8 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugOpenResult>;
+
+        if $z8 == 0 goto label14;
+
+        $r73 = <java.lang.System: java.io.PrintStream out>;
+
+        $r200 = new java.lang.StringBuilder;
+
+        specialinvoke $r200.<java.lang.StringBuilder: void <init>()>();
+
+        $r74 = virtualinvoke $r200.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("dodsVersion = ");
+
+        $r75 = r0.<ucar.nc2.dods.DODSNetcdfFile: opendap.dap.DConnect2 dodsConnection>;
+
+        $r76 = virtualinvoke $r75.<opendap.dap.DConnect2: opendap.dap.ServerVersion getServerVersion()>();
+
+        $r77 = virtualinvoke $r74.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r76);
+
+        $r78 = virtualinvoke $r77.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r73.<java.io.PrintStream: void println(java.lang.String)>($r78);
+
+     label14:
+        goto label25;
+
+     label15:
+        $r177 := @caughtexception;
+
+        $r179 = <ucar.nc2.dods.DODSNetcdfFile: org.slf4j.Logger logger>;
+
+        $r201 = new java.lang.StringBuilder;
+
+        specialinvoke $r201.<java.lang.StringBuilder: void <init>()>();
+
+        $r180 = virtualinvoke $r201.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("DODSNetcdfFile ");
+
+        $r181 = virtualinvoke $r180.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r2);
+
+        $r182 = virtualinvoke $r181.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r179.<org.slf4j.Logger: void info(java.lang.String,java.lang.Throwable)>($r182, $r177);
+
+        $z29 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugOpenResult>;
+
+        if $z29 == 0 goto label16;
+
+        $r186 = <java.lang.System: java.io.PrintStream out>;
+
+        $r202 = new java.lang.StringBuilder;
+
+        specialinvoke $r202.<java.lang.StringBuilder: void <init>()>();
+
+        $r187 = virtualinvoke $r202.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("open failure = ");
+
+        $r226 = (opendap.dap.parser.ParseException) $r177;
+
+        $r188 = virtualinvoke $r226.<opendap.dap.parser.ParseException: java.lang.String getMessage()>();
+
+        $r189 = virtualinvoke $r187.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r188);
+
+        $r190 = virtualinvoke $r189.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r186.<java.io.PrintStream: void println(java.lang.String)>($r190);
+
+     label16:
+        $r203 = new java.io.IOException;
+
+        $r227 = (opendap.dap.parser.ParseException) $r177;
+
+        $r184 = virtualinvoke $r227.<opendap.dap.parser.ParseException: java.lang.String getMessage()>();
+
+        specialinvoke $r203.<java.io.IOException: void <init>(java.lang.String)>($r184);
+
+        throw $r203;
+
+     label17:
+        $r152 := @caughtexception;
+
+        $r154 = <ucar.nc2.dods.DODSNetcdfFile: org.slf4j.Logger logger>;
+
+        $r204 = new java.lang.StringBuilder;
+
+        specialinvoke $r204.<java.lang.StringBuilder: void <init>()>();
+
+        $r155 = virtualinvoke $r204.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("DODSNetcdfFile ");
+
+        $r156 = virtualinvoke $r155.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r2);
+
+        $r157 = virtualinvoke $r156.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r154.<org.slf4j.Logger: void info(java.lang.String,java.lang.Throwable)>($r157, $r152);
+
+        $z28 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugOpenResult>;
+
+        if $z28 == 0 goto label18;
+
+        $r168 = <java.lang.System: java.io.PrintStream out>;
+
+        $r205 = new java.lang.StringBuilder;
+
+        specialinvoke $r205.<java.lang.StringBuilder: void <init>()>();
+
+        $r169 = virtualinvoke $r205.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("open failure = ");
+
+        $r170 = virtualinvoke $r152.<java.lang.Object: java.lang.Class getClass()>();
+
+        $r171 = virtualinvoke $r170.<java.lang.Class: java.lang.String getName()>();
+
+        $r172 = virtualinvoke $r169.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r171);
+
+        $r173 = virtualinvoke $r172.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(": ");
+
+        $r228 = (opendap.dap.DASException) $r152;
+
+        $r174 = virtualinvoke $r228.<opendap.dap.DASException: java.lang.String getMessage()>();
+
+        $r175 = virtualinvoke $r173.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r174);
+
+        $r176 = virtualinvoke $r175.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r168.<java.io.PrintStream: void println(java.lang.String)>($r176);
+
+     label18:
+        $r207 = new java.io.IOException;
+
+        $r206 = new java.lang.StringBuilder;
+
+        specialinvoke $r206.<java.lang.StringBuilder: void <init>()>();
+
+        $r160 = virtualinvoke $r152.<java.lang.Object: java.lang.Class getClass()>();
+
+        $r161 = virtualinvoke $r160.<java.lang.Class: java.lang.String getName()>();
+
+        $r162 = virtualinvoke $r206.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r161);
+
+        $r163 = virtualinvoke $r162.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(": ");
+
+        $r229 = (opendap.dap.DASException) $r152;
+
+        $r164 = virtualinvoke $r229.<opendap.dap.DASException: java.lang.String getMessage()>();
+
+        $r165 = virtualinvoke $r163.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r164);
+
+        $r166 = virtualinvoke $r165.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r207.<java.io.IOException: void <init>(java.lang.String)>($r166);
+
+        throw $r207;
+
+     label19:
+        $r127 := @caughtexception;
+
+        $r129 = <ucar.nc2.dods.DODSNetcdfFile: org.slf4j.Logger logger>;
+
+        $r208 = new java.lang.StringBuilder;
+
+        specialinvoke $r208.<java.lang.StringBuilder: void <init>()>();
+
+        $r130 = virtualinvoke $r208.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("DODSNetcdfFile ");
+
+        $r131 = virtualinvoke $r130.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r2);
+
+        $r132 = virtualinvoke $r131.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r129.<org.slf4j.Logger: void info(java.lang.String,java.lang.Throwable)>($r132, $r127);
+
+        $z27 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugOpenResult>;
+
+        if $z27 == 0 goto label20;
+
+        $r143 = <java.lang.System: java.io.PrintStream out>;
+
+        $r209 = new java.lang.StringBuilder;
+
+        specialinvoke $r209.<java.lang.StringBuilder: void <init>()>();
+
+        $r144 = virtualinvoke $r209.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("open failure = ");
+
+        $r145 = virtualinvoke $r127.<java.lang.Object: java.lang.Class getClass()>();
+
+        $r146 = virtualinvoke $r145.<java.lang.Class: java.lang.String getName()>();
+
+        $r147 = virtualinvoke $r144.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r146);
+
+        $r148 = virtualinvoke $r147.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(": ");
+
+        $r230 = (opendap.dap.DDSException) $r127;
+
+        $r149 = virtualinvoke $r230.<opendap.dap.DDSException: java.lang.String getMessage()>();
+
+        $r150 = virtualinvoke $r148.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r149);
+
+        $r151 = virtualinvoke $r150.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r143.<java.io.PrintStream: void println(java.lang.String)>($r151);
+
+     label20:
+        $r211 = new java.io.IOException;
+
+        $r210 = new java.lang.StringBuilder;
+
+        specialinvoke $r210.<java.lang.StringBuilder: void <init>()>();
+
+        $r135 = virtualinvoke $r127.<java.lang.Object: java.lang.Class getClass()>();
+
+        $r136 = virtualinvoke $r135.<java.lang.Class: java.lang.String getName()>();
+
+        $r137 = virtualinvoke $r210.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r136);
+
+        $r138 = virtualinvoke $r137.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(": ");
+
+        $r231 = (opendap.dap.DDSException) $r127;
+
+        $r139 = virtualinvoke $r231.<opendap.dap.DDSException: java.lang.String getMessage()>();
+
+        $r140 = virtualinvoke $r138.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r139);
+
+        $r141 = virtualinvoke $r140.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r211.<java.io.IOException: void <init>(java.lang.String)>($r141);
+
+        throw $r211;
+
+     label21:
+        $r122 := @caughtexception;
+
+        $r232 = (opendap.dap.DAP2Exception) $r122;
+
+        $i12 = virtualinvoke $r232.<opendap.dap.DAP2Exception: int getErrorCode()>();
+
+        if $i12 != 1 goto label22;
+
+        $r212 = new java.io.FileNotFoundException;
+
+        $r233 = (opendap.dap.DAP2Exception) $r122;
+
+        $r126 = virtualinvoke $r233.<opendap.dap.DAP2Exception: java.lang.String getMessage()>();
+
+        specialinvoke $r212.<java.io.FileNotFoundException: void <init>(java.lang.String)>($r126);
+
+        throw $r212;
+
+     label22:
+        $r123 = <java.lang.System: java.io.PrintStream err>;
+
+        $r234 = (opendap.dap.DAP2Exception) $r122;
+
+        virtualinvoke $r234.<opendap.dap.DAP2Exception: void printStackTrace(java.io.PrintStream)>($r123);
+
+        $r213 = new java.io.IOException;
+
+        specialinvoke $r213.<java.io.IOException: void <init>(java.lang.Throwable)>($r122);
+
+        throw $r213;
+
+     label23:
+        $r97 := @caughtexception;
+
+        $r99 = <ucar.nc2.dods.DODSNetcdfFile: org.slf4j.Logger logger>;
+
+        $r214 = new java.lang.StringBuilder;
+
+        specialinvoke $r214.<java.lang.StringBuilder: void <init>()>();
+
+        $r100 = virtualinvoke $r214.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("DODSNetcdfFile ");
+
+        $r101 = virtualinvoke $r100.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r2);
+
+        $r102 = virtualinvoke $r101.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r99.<org.slf4j.Logger: void info(java.lang.String,java.lang.Throwable)>($r102, $r97);
+
+        $z26 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugOpenResult>;
+
+        if $z26 == 0 goto label24;
+
+        $r113 = <java.lang.System: java.io.PrintStream out>;
+
+        $r215 = new java.lang.StringBuilder;
+
+        specialinvoke $r215.<java.lang.StringBuilder: void <init>()>();
+
+        $r114 = virtualinvoke $r215.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("open failure = ");
+
+        $r115 = virtualinvoke $r97.<java.lang.Object: java.lang.Class getClass()>();
+
+        $r116 = virtualinvoke $r115.<java.lang.Class: java.lang.String getName()>();
+
+        $r117 = virtualinvoke $r114.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r116);
+
+        $r118 = virtualinvoke $r117.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(": ");
+
+        $r119 = virtualinvoke $r97.<java.lang.Exception: java.lang.String getMessage()>();
+
+        $r120 = virtualinvoke $r118.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r119);
+
+        $r121 = virtualinvoke $r120.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r113.<java.io.PrintStream: void println(java.lang.String)>($r121);
+
+     label24:
+        $r217 = new java.io.IOException;
+
+        $r216 = new java.lang.StringBuilder;
+
+        specialinvoke $r216.<java.lang.StringBuilder: void <init>()>();
+
+        $r105 = virtualinvoke $r97.<java.lang.Object: java.lang.Class getClass()>();
+
+        $r106 = virtualinvoke $r105.<java.lang.Class: java.lang.String getName()>();
+
+        $r107 = virtualinvoke $r216.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r106);
+
+        $r108 = virtualinvoke $r107.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(": ");
+
+        $r109 = virtualinvoke $r97.<java.lang.Exception: java.lang.String getMessage()>();
+
+        $r110 = virtualinvoke $r108.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r109);
+
+        $r111 = virtualinvoke $r110.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r217.<java.io.IOException: void <init>(java.lang.String)>($r111);
+
+        throw $r217;
+
+     label25:
+        $r19 = r0.<ucar.nc2.dods.DODSNetcdfFile: opendap.dap.DDS dds>;
+
+        $r20 = staticinvoke <ucar.nc2.dods.DodsV: ucar.nc2.dods.DodsV parseDDS(opendap.dap.DDS)>($r19);
+
+        $r21 = r0.<ucar.nc2.dods.DODSNetcdfFile: opendap.dap.DAS das>;
+
+        virtualinvoke $r20.<ucar.nc2.dods.DodsV: void parseDAS(opendap.dap.DAS)>($r21);
+
+        if r14 == null goto label26;
+
+        $z22 = interfaceinvoke r14.<ucar.nc2.util.CancelTask: boolean isCancel()>();
+
+        if $z22 == 0 goto label26;
+
+        return;
+
+     label26:
+        specialinvoke r0.<ucar.nc2.dods.DODSNetcdfFile: void constructTopVariables(ucar.nc2.dods.DodsV,ucar.nc2.util.CancelTask)>($r20, r14);
+
+        if r14 == null goto label27;
+
+        $z21 = interfaceinvoke r14.<ucar.nc2.util.CancelTask: boolean isCancel()>();
+
+        if $z21 == 0 goto label27;
+
+        return;
+
+     label27:
+        specialinvoke r0.<ucar.nc2.dods.DODSNetcdfFile: void constructConstructors(ucar.nc2.dods.DodsV,ucar.nc2.util.CancelTask)>($r20, r14);
+
+        if r14 == null goto label28;
+
+        $z20 = interfaceinvoke r14.<ucar.nc2.util.CancelTask: boolean isCancel()>();
+
+        if $z20 == 0 goto label28;
+
+        return;
+
+     label28:
+        virtualinvoke r0.<ucar.nc2.dods.DODSNetcdfFile: void finish()>();
+
+        $r22 = r0.<ucar.nc2.dods.DODSNetcdfFile: opendap.dap.DAS das>;
+
+        specialinvoke r0.<ucar.nc2.dods.DODSNetcdfFile: void parseGlobalAttributes(opendap.dap.DAS,ucar.nc2.dods.DodsV)>($r22, $r20);
+
+        if r14 == null goto label29;
+
+        $z19 = interfaceinvoke r14.<ucar.nc2.util.CancelTask: boolean isCancel()>();
+
+        if $z19 == 0 goto label29;
+
+        return;
+
+     label29:
+        $i1 = virtualinvoke r191.<java.lang.String: int indexOf(int)>(63);
+
+        if 0 > $i1 goto label35;
+
+        $r42 = virtualinvoke r191.<java.lang.String: java.lang.String substring(int,int)>(0, $i1);
+
+        $z15 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugServerCall>;
+
+        if $z15 == 0 goto label30;
+
+        $r67 = <java.lang.System: java.io.PrintStream out>;
+
+        $r218 = new java.lang.StringBuilder;
+
+        specialinvoke $r218.<java.lang.StringBuilder: void <init>()>();
+
+        $r68 = virtualinvoke $r218.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" reconnect to = <");
+
+        $r69 = virtualinvoke $r68.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r42);
+
+        $r70 = virtualinvoke $r69.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(">");
+
+        $r71 = virtualinvoke $r70.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r67.<java.io.PrintStream: void println(java.lang.String)>($r71);
+
+     label30:
+        $r219 = new opendap.dap.DConnect2;
+
+        $z16 = <ucar.nc2.dods.DODSNetcdfFile: boolean accept_compress>;
+
+        specialinvoke $r219.<opendap.dap.DConnect2: void <init>(java.lang.String,boolean)>($r42, $z16);
+
+        r0.<ucar.nc2.dods.DODSNetcdfFile: opendap.dap.DConnect2 dodsConnection> = $r219;
+
+        $i10 = $i1 + 1;
+
+        $r44 = virtualinvoke r191.<java.lang.String: java.lang.String substring(int)>($i10);
+
+        $r220 = new java.util.StringTokenizer;
+
+        specialinvoke $r220.<java.util.StringTokenizer: void <init>(java.lang.String,java.lang.String)>($r44, " ,");
+
+     label31:
+        $z30 = virtualinvoke $r220.<java.util.StringTokenizer: boolean hasMoreTokens()>();
+
+        if $z30 == 0 goto label35;
+
+        $r46 = virtualinvoke $r220.<java.util.StringTokenizer: java.lang.String nextToken()>();
+
+        $i11 = virtualinvoke $r46.<java.lang.String: int indexOf(int)>(91);
+
+        $z17 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugCE>;
+
+        if $z17 == 0 goto label32;
+
+        $r60 = <java.lang.System: java.io.PrintStream out>;
+
+        $r221 = new java.lang.StringBuilder;
+
+        specialinvoke $r221.<java.lang.StringBuilder: void <init>()>();
+
+        $r61 = virtualinvoke $r221.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" CE = ");
+
+        $r62 = virtualinvoke $r61.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r46);
+
+        $r63 = virtualinvoke $r62.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" ");
+
+        $r64 = virtualinvoke $r63.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i11);
+
+        $r65 = virtualinvoke $r64.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r60.<java.io.PrintStream: void println(java.lang.String)>($r65);
+
+     label32:
+        if $i11 <= 0 goto label34;
+
+        $r47 = virtualinvoke $r46.<java.lang.String: java.lang.String substring(int,int)>(0, $i11);
+
+        $r48 = virtualinvoke $r46.<java.lang.String: java.lang.String substring(int)>($i11);
+
+        $z18 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugCE>;
+
+        if $z18 == 0 goto label33;
+
+        $r51 = <java.lang.System: java.io.PrintStream out>;
+
+        $r222 = new java.lang.StringBuilder;
+
+        specialinvoke $r222.<java.lang.StringBuilder: void <init>()>();
+
+        $r52 = virtualinvoke $r222.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" vCE = <");
+
+        $r53 = virtualinvoke $r52.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r47);
+
+        $r54 = virtualinvoke $r53.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("><");
+
+        $r55 = virtualinvoke $r54.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r48);
+
+        $r56 = virtualinvoke $r55.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(">");
+
+        $r57 = virtualinvoke $r56.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r51.<java.io.PrintStream: void println(java.lang.String)>($r57);
+
+     label33:
+        $r49 = virtualinvoke r0.<ucar.nc2.dods.DODSNetcdfFile: ucar.nc2.Variable findVariable(java.lang.String)>($r47);
+
+        $r58 = (ucar.nc2.dods.DODSVariable) $r49;
+
+        virtualinvoke $r58.<ucar.nc2.dods.DODSVariable: void setCE(java.lang.String)>($r48);
+
+        virtualinvoke $r58.<ucar.nc2.dods.DODSVariable: void setCaching(boolean)>(1);
+
+     label34:
+        goto label31;
+
+     label35:
+        $z9 = <ucar.nc2.dods.DODSNetcdfFile: boolean preload>;
+
+        if $z9 == 0 goto label42;
+
+        $r223 = new java.util.ArrayList;
+
+        specialinvoke $r223.<java.util.ArrayList: void <init>()>();
+
+        $r32 = r0.<ucar.nc2.dods.DODSNetcdfFile: java.util.List variables>;
+
+        $r33 = interfaceinvoke $r32.<java.util.List: java.util.Iterator iterator()>();
+
+     label36:
+        $z11 = interfaceinvoke $r33.<java.util.Iterator: boolean hasNext()>();
+
+        if $z11 == 0 goto label40;
+
+        $r34 = interfaceinvoke $r33.<java.util.Iterator: java.lang.Object next()>();
+
+        r192 = (ucar.nc2.Variable) $r34;
+
+        $l4 = virtualinvoke r192.<ucar.nc2.Variable: long getSize()>();
+
+        $i5 = virtualinvoke r192.<ucar.nc2.Variable: int getElementSize()>();
+
+        $l6 = (long) $i5;
+
+        l13 = $l4 * $l6;
+
+        $z13 = virtualinvoke r192.<ucar.nc2.Variable: boolean isCoordinateVariable()>();
+
+        if $z13 == 0 goto label37;
+
+        $i7 = <ucar.nc2.dods.DODSNetcdfFile: int preloadCoordVarSize>;
+
+        $l8 = (long) $i7;
+
+        $b9 = l13 cmp $l8;
+
+        $i14 = (int) $b9;
+
+        if $i14 < 0 goto label38;
+
+     label37:
+        $z14 = virtualinvoke r192.<ucar.nc2.Variable: boolean isCaching()>();
+
+        if $z14 != 0 goto label38;
+
+        $r40 = virtualinvoke r192.<ucar.nc2.Variable: ucar.ma2.DataType getDataType()>();
+
+        $r41 = <ucar.ma2.DataType: ucar.ma2.DataType STRING>;
+
+        if $r40 != $r41 goto label39;
+
+     label38:
+        virtualinvoke r192.<ucar.nc2.Variable: void setCaching(boolean)>(1);
+
+        interfaceinvoke $r223.<java.util.List: boolean add(java.lang.Object)>(r192);
+
+        $z31 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugPreload>;
+
+        if $z31 == 0 goto label39;
+
+        $r36 = <java.lang.System: java.io.PrintStream out>;
+
+        $r224 = new java.lang.StringBuilder;
+
+        specialinvoke $r224.<java.lang.StringBuilder: void <init>()>();
+
+        $r37 = virtualinvoke $r224.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("  preload");
+
+        $r38 = virtualinvoke $r37.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r192);
+
+        $r39 = virtualinvoke $r38.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r36.<java.io.PrintStream: void println(java.lang.String)>($r39);
+
+     label39:
+        goto label36;
+
+     label40:
+        if r14 == null goto label41;
+
+        $z12 = interfaceinvoke r14.<ucar.nc2.util.CancelTask: boolean isCancel()>();
+
+        if $z12 == 0 goto label41;
+
+        return;
+
+     label41:
+        virtualinvoke r0.<ucar.nc2.dods.DODSNetcdfFile: java.util.List readArrays(java.util.List)>($r223);
+
+     label42:
+        virtualinvoke r0.<ucar.nc2.dods.DODSNetcdfFile: void finish()>();
+
+        $z32 = <ucar.nc2.dods.DODSNetcdfFile: boolean showNCfile>;
+
+        if $z32 == 0 goto label43;
+
+        $r27 = <java.lang.System: java.io.PrintStream out>;
+
+        $r225 = new java.lang.StringBuilder;
+
+        specialinvoke $r225.<java.lang.StringBuilder: void <init>()>();
+
+        $r28 = virtualinvoke $r225.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("DODS nc file = ");
+
+        $r29 = virtualinvoke $r28.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r0);
+
+        $r30 = virtualinvoke $r29.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r27.<java.io.PrintStream: void println(java.lang.String)>($r30);
+
+     label43:
+        $l2 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        $l3 = $l2 - $l0;
+
+        $z10 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugOpenTime>;
+
+        if $z10 == 0 goto label44;
+
+        $r24 = <java.lang.System: java.io.PrintStream out>;
+
+        $r23 = newarray (java.lang.Object)[1];
+
+        $r25 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l3);
+
+        $r23[0] = $r25;
+
+        virtualinvoke $r24.<java.io.PrintStream: java.io.PrintStream printf(java.lang.String,java.lang.Object[])>(" took %d msecs %n", $r23);
+
+     label44:
+        return;
+
+        catch opendap.dap.parser.ParseException from label05 to label08 with label15;
+        catch opendap.dap.parser.ParseException from label09 to label12 with label15;
+        catch opendap.dap.parser.ParseException from label13 to label14 with label15;
+        catch opendap.dap.DASException from label05 to label08 with label17;
+        catch opendap.dap.DASException from label09 to label12 with label17;
+        catch opendap.dap.DASException from label13 to label14 with label17;
+        catch opendap.dap.DDSException from label05 to label08 with label19;
+        catch opendap.dap.DDSException from label09 to label12 with label19;
+        catch opendap.dap.DDSException from label13 to label14 with label19;
+        catch opendap.dap.DAP2Exception from label05 to label08 with label21;
+        catch opendap.dap.DAP2Exception from label09 to label12 with label21;
+        catch opendap.dap.DAP2Exception from label13 to label14 with label21;
+        catch java.lang.Exception from label05 to label08 with label23;
+        catch java.lang.Exception from label09 to label12 with label23;
+        catch java.lang.Exception from label13 to label14 with label23;
+    }
+
+    public synchronized void close() throws java.io.IOException
+    {
+        ucar.nc2.dods.DODSNetcdfFile r0;
+        ucar.nc2.util.cache.FileCache $r2, $r3;
+        opendap.dap.DConnect2 $r1, $r4;
+
+        r0 := @this: ucar.nc2.dods.DODSNetcdfFile;
+
+        $r1 = r0.<ucar.nc2.dods.DODSNetcdfFile: opendap.dap.DConnect2 dodsConnection>;
+
+        if null == $r1 goto label1;
+
+        $r4 = r0.<ucar.nc2.dods.DODSNetcdfFile: opendap.dap.DConnect2 dodsConnection>;
+
+        virtualinvoke $r4.<opendap.dap.DConnect2: void closeSession()>();
+
+     label1:
+        $r2 = r0.<ucar.nc2.dods.DODSNetcdfFile: ucar.nc2.util.cache.FileCache cache>;
+
+        if $r2 == null goto label2;
+
+        r0.<ucar.nc2.dods.DODSNetcdfFile: boolean unlocked> = 1;
+
+        $r3 = r0.<ucar.nc2.dods.DODSNetcdfFile: ucar.nc2.util.cache.FileCache cache>;
+
+        virtualinvoke $r3.<ucar.nc2.util.cache.FileCache: void release(ucar.nc2.util.cache.FileCacheable)>(r0);
+
+        goto label3;
+
+     label2:
+        r0.<ucar.nc2.dods.DODSNetcdfFile: opendap.dap.DConnect2 dodsConnection> = null;
+
+     label3:
+        return;
+    }
+
+    public boolean sync() throws java.io.IOException
+    {
+        ucar.nc2.dods.DODSNetcdfFile r0;
+        ucar.nc2.iosp.IOServiceProvider $r1, $r2;
+        boolean $z0, $z1;
+
+        r0 := @this: ucar.nc2.dods.DODSNetcdfFile;
+
+        r0.<ucar.nc2.dods.DODSNetcdfFile: boolean unlocked> = 0;
+
+        $r1 = r0.<ucar.nc2.dods.DODSNetcdfFile: ucar.nc2.iosp.IOServiceProvider spi>;
+
+        if $r1 == null goto label1;
+
+        $r2 = r0.<ucar.nc2.dods.DODSNetcdfFile: ucar.nc2.iosp.IOServiceProvider spi>;
+
+        $z0 = interfaceinvoke $r2.<ucar.nc2.iosp.IOServiceProvider: boolean sync()>();
+
+        if $z0 == 0 goto label1;
+
+        $z1 = 1;
+
+        goto label2;
+
+     label1:
+        $z1 = 0;
+
+     label2:
+        return $z1;
+    }
+
+    private void parseGlobalAttributes(opendap.dap.DAS, ucar.nc2.dods.DodsV)
+    {
+        java.util.Enumeration $r4, $r7, $r14;
+        ucar.nc2.dods.DODSAttribute $r10, $r25, r29;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6;
+        ucar.nc2.Group $r28;
+        java.util.List r1;
+        ucar.nc2.dods.DODSNetcdfFile r13;
+        java.lang.StringBuilder $r16, $r18, $r19, $r20, $r22;
+        opendap.dap.DAS r3;
+        opendap.dap.Attribute $r9, $r24;
+        opendap.dap.AttributeTable $r6;
+        int $i0;
+        java.lang.String $r21, $r23, $r26, r30, r31, r32;
+        java.lang.Number $r11;
+        org.slf4j.Logger $r17;
+        java.util.Iterator $r2;
+        ucar.nc2.dods.DodsV r0;
+        java.lang.Object $r5, $r8, $r15, $r27;
+        ucar.nc2.Dimension $r12;
+
+        r13 := @this: ucar.nc2.dods.DODSNetcdfFile;
+
+        r3 := @parameter0: opendap.dap.DAS;
+
+        r0 := @parameter1: ucar.nc2.dods.DodsV;
+
+        r1 = r0.<ucar.nc2.dods.DodsV: java.util.List attributes>;
+
+        $r2 = interfaceinvoke r1.<java.util.List: java.util.Iterator iterator()>();
+
+     label01:
+        $z0 = interfaceinvoke $r2.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label02;
+
+        $r27 = interfaceinvoke $r2.<java.util.Iterator: java.lang.Object next()>();
+
+        r29 = (ucar.nc2.dods.DODSAttribute) $r27;
+
+        $r28 = r13.<ucar.nc2.dods.DODSNetcdfFile: ucar.nc2.Group rootGroup>;
+
+        virtualinvoke $r28.<ucar.nc2.Group: void addAttribute(ucar.nc2.Attribute)>(r29);
+
+        goto label01;
+
+     label02:
+        $r4 = virtualinvoke r3.<opendap.dap.DAS: java.util.Enumeration getNames()>();
+
+     label03:
+        $z1 = interfaceinvoke $r4.<java.util.Enumeration: boolean hasMoreElements()>();
+
+        if $z1 == 0 goto label11;
+
+        $r5 = interfaceinvoke $r4.<java.util.Enumeration: java.lang.Object nextElement()>();
+
+        r30 = (java.lang.String) $r5;
+
+        $r6 = virtualinvoke r3.<opendap.dap.DAS: opendap.dap.AttributeTable getAttributeTableN(java.lang.String)>(r30);
+
+        $z2 = virtualinvoke r30.<java.lang.String: boolean equals(java.lang.Object)>("DODS_EXTRA");
+
+        if $z2 == 0 goto label08;
+
+        $r14 = virtualinvoke $r6.<opendap.dap.AttributeTable: java.util.Enumeration getNames()>();
+
+     label04:
+        $z5 = interfaceinvoke $r14.<java.util.Enumeration: boolean hasMoreElements()>();
+
+        if $z5 == 0 goto label07;
+
+        $r15 = interfaceinvoke $r14.<java.util.Enumeration: java.lang.Object nextElement()>();
+
+        r31 = (java.lang.String) $r15;
+
+        $z6 = virtualinvoke r31.<java.lang.String: boolean equals(java.lang.Object)>("Unlimited_Dimension");
+
+        if $z6 == 0 goto label05;
+
+        $r24 = virtualinvoke $r6.<opendap.dap.AttributeTable: opendap.dap.Attribute getAttribute(java.lang.String)>(r31);
+
+        $r25 = new ucar.nc2.dods.DODSAttribute;
+
+        specialinvoke $r25.<ucar.nc2.dods.DODSAttribute: void <init>(java.lang.String,opendap.dap.Attribute)>(r31, $r24);
+
+        $r26 = virtualinvoke $r25.<ucar.nc2.dods.DODSAttribute: java.lang.String getStringValue()>();
+
+        specialinvoke r13.<ucar.nc2.dods.DODSNetcdfFile: void setUnlimited(java.lang.String)>($r26);
+
+        goto label06;
+
+     label05:
+        $r17 = <ucar.nc2.dods.DODSNetcdfFile: org.slf4j.Logger logger>;
+
+        $r16 = new java.lang.StringBuilder;
+
+        specialinvoke $r16.<java.lang.StringBuilder: void <init>()>();
+
+        $r18 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" Unknown DODS_EXTRA attribute = ");
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r31);
+
+        $r20 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" ");
+
+        $r21 = r13.<ucar.nc2.dods.DODSNetcdfFile: java.lang.String location>;
+
+        $r22 = virtualinvoke $r20.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r21);
+
+        $r23 = virtualinvoke $r22.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r17.<org.slf4j.Logger: void warn(java.lang.String)>($r23);
+
+     label06:
+        goto label04;
+
+     label07:
+        goto label10;
+
+     label08:
+        $z3 = virtualinvoke r30.<java.lang.String: boolean equals(java.lang.Object)>("EXTRA_DIMENSION");
+
+        if $z3 == 0 goto label10;
+
+        $r7 = virtualinvoke $r6.<opendap.dap.AttributeTable: java.util.Enumeration getNames()>();
+
+     label09:
+        $z4 = interfaceinvoke $r7.<java.util.Enumeration: boolean hasMoreElements()>();
+
+        if $z4 == 0 goto label10;
+
+        $r8 = interfaceinvoke $r7.<java.util.Enumeration: java.lang.Object nextElement()>();
+
+        r32 = (java.lang.String) $r8;
+
+        $r9 = virtualinvoke $r6.<opendap.dap.AttributeTable: opendap.dap.Attribute getAttribute(java.lang.String)>(r32);
+
+        $r10 = new ucar.nc2.dods.DODSAttribute;
+
+        specialinvoke $r10.<ucar.nc2.dods.DODSAttribute: void <init>(java.lang.String,opendap.dap.Attribute)>(r32, $r9);
+
+        $r11 = virtualinvoke $r10.<ucar.nc2.dods.DODSAttribute: java.lang.Number getNumericValue()>();
+
+        $i0 = virtualinvoke $r11.<java.lang.Number: int intValue()>();
+
+        $r12 = new ucar.nc2.Dimension;
+
+        specialinvoke $r12.<ucar.nc2.Dimension: void <init>(java.lang.String,int)>(r32, $i0);
+
+        virtualinvoke r13.<ucar.nc2.dods.DODSNetcdfFile: ucar.nc2.Dimension addDimension(ucar.nc2.Group,ucar.nc2.Dimension)>(null, $r12);
+
+        goto label09;
+
+     label10:
+        goto label03;
+
+     label11:
+        return;
+    }
+
+    private void constructTopVariables(ucar.nc2.dods.DodsV, ucar.nc2.util.CancelTask) throws java.io.IOException
+    {
+        java.util.Iterator $r2;
+        opendap.dap.BaseType $r5;
+        ucar.nc2.Group $r7;
+        ucar.nc2.dods.DodsV r0, r4;
+        java.util.List r1;
+        ucar.nc2.dods.DODSNetcdfFile r6;
+        ucar.nc2.util.CancelTask r8;
+        java.lang.Object $r3;
+        boolean $z0, $z1, $z2;
+
+        r6 := @this: ucar.nc2.dods.DODSNetcdfFile;
+
+        r0 := @parameter0: ucar.nc2.dods.DodsV;
+
+        r8 := @parameter1: ucar.nc2.util.CancelTask;
+
+        r1 = r0.<ucar.nc2.dods.DodsV: java.util.List children>;
+
+        $r2 = interfaceinvoke r1.<java.util.List: java.util.Iterator iterator()>();
+
+     label1:
+        $z2 = interfaceinvoke $r2.<java.util.Iterator: boolean hasNext()>();
+
+        if $z2 == 0 goto label4;
+
+        $r3 = interfaceinvoke $r2.<java.util.Iterator: java.lang.Object next()>();
+
+        r4 = (ucar.nc2.dods.DodsV) $r3;
+
+        $r5 = r4.<ucar.nc2.dods.DodsV: opendap.dap.BaseType bt>;
+
+        $z0 = $r5 instanceof opendap.dap.DConstructor;
+
+        if $z0 == 0 goto label2;
+
+        goto label1;
+
+     label2:
+        $r7 = r6.<ucar.nc2.dods.DODSNetcdfFile: ucar.nc2.Group rootGroup>;
+
+        virtualinvoke r6.<ucar.nc2.dods.DODSNetcdfFile: ucar.nc2.Variable addVariable(ucar.nc2.Group,ucar.nc2.Structure,ucar.nc2.dods.DodsV)>($r7, null, r4);
+
+        if r8 == null goto label3;
+
+        $z1 = interfaceinvoke r8.<ucar.nc2.util.CancelTask: boolean isCancel()>();
+
+        if $z1 == 0 goto label3;
+
+        return;
+
+     label3:
+        goto label1;
+
+     label4:
+        return;
+    }
+
+    private void constructConstructors(ucar.nc2.dods.DodsV, ucar.nc2.util.CancelTask) throws java.io.IOException
+    {
+        ucar.nc2.util.CancelTask r7;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6;
+        java.util.Iterator $r2, $r3;
+        opendap.dap.BaseType $r9;
+        ucar.nc2.Group $r6, $r10;
+        ucar.nc2.dods.DodsV r0, r11, r12;
+        java.util.List r1;
+        ucar.nc2.dods.DODSNetcdfFile r5;
+        java.lang.Object $r4, $r8;
+
+        r5 := @this: ucar.nc2.dods.DODSNetcdfFile;
+
+        r0 := @parameter0: ucar.nc2.dods.DodsV;
+
+        r7 := @parameter1: ucar.nc2.util.CancelTask;
+
+        r1 = r0.<ucar.nc2.dods.DodsV: java.util.List children>;
+
+        $r2 = interfaceinvoke r1.<java.util.List: java.util.Iterator iterator()>();
+
+     label1:
+        $z5 = interfaceinvoke $r2.<java.util.Iterator: boolean hasNext()>();
+
+        if $z5 == 0 goto label5;
+
+        $r8 = interfaceinvoke $r2.<java.util.Iterator: java.lang.Object next()>();
+
+        r11 = (ucar.nc2.dods.DodsV) $r8;
+
+        $z2 = r11.<ucar.nc2.dods.DodsV: boolean isDone>;
+
+        if $z2 == 0 goto label2;
+
+        goto label1;
+
+     label2:
+        $r9 = r11.<ucar.nc2.dods.DodsV: opendap.dap.BaseType bt>;
+
+        $z3 = $r9 instanceof opendap.dap.DGrid;
+
+        if $z3 == 0 goto label3;
+
+        goto label1;
+
+     label3:
+        $r10 = r5.<ucar.nc2.dods.DODSNetcdfFile: ucar.nc2.Group rootGroup>;
+
+        virtualinvoke r5.<ucar.nc2.dods.DODSNetcdfFile: ucar.nc2.Variable addVariable(ucar.nc2.Group,ucar.nc2.Structure,ucar.nc2.dods.DodsV)>($r10, null, r11);
+
+        if r7 == null goto label4;
+
+        $z4 = interfaceinvoke r7.<ucar.nc2.util.CancelTask: boolean isCancel()>();
+
+        if $z4 == 0 goto label4;
+
+        return;
+
+     label4:
+        goto label1;
+
+     label5:
+        $r3 = interfaceinvoke r1.<java.util.List: java.util.Iterator iterator()>();
+
+     label6:
+        $z6 = interfaceinvoke $r3.<java.util.Iterator: boolean hasNext()>();
+
+        if $z6 == 0 goto label9;
+
+        $r4 = interfaceinvoke $r3.<java.util.Iterator: java.lang.Object next()>();
+
+        r12 = (ucar.nc2.dods.DodsV) $r4;
+
+        $z0 = r12.<ucar.nc2.dods.DodsV: boolean isDone>;
+
+        if $z0 == 0 goto label7;
+
+        goto label6;
+
+     label7:
+        $r6 = r5.<ucar.nc2.dods.DODSNetcdfFile: ucar.nc2.Group rootGroup>;
+
+        virtualinvoke r5.<ucar.nc2.dods.DODSNetcdfFile: ucar.nc2.Variable addVariable(ucar.nc2.Group,ucar.nc2.Structure,ucar.nc2.dods.DodsV)>($r6, null, r12);
+
+        if r7 == null goto label8;
+
+        $z1 = interfaceinvoke r7.<ucar.nc2.util.CancelTask: boolean isCancel()>();
+
+        if $z1 == 0 goto label8;
+
+        return;
+
+     label8:
+        goto label6;
+
+     label9:
+        return;
+    }
+
+    ucar.nc2.Variable addVariable(ucar.nc2.Group, ucar.nc2.Structure, ucar.nc2.dods.DodsV) throws java.io.IOException
+    {
+        ucar.nc2.dods.DODSNetcdfFile r0;
+        ucar.nc2.dods.DodsV r3;
+        ucar.nc2.Variable $r4;
+        ucar.nc2.Group r1;
+        ucar.nc2.Structure r2;
+
+        r0 := @this: ucar.nc2.dods.DODSNetcdfFile;
+
+        r1 := @parameter0: ucar.nc2.Group;
+
+        r2 := @parameter1: ucar.nc2.Structure;
+
+        r3 := @parameter2: ucar.nc2.dods.DodsV;
+
+        $r4 = specialinvoke r0.<ucar.nc2.dods.DODSNetcdfFile: ucar.nc2.Variable makeVariable(ucar.nc2.Group,ucar.nc2.Structure,ucar.nc2.dods.DodsV)>(r1, r2, r3);
+
+        if $r4 == null goto label3;
+
+        specialinvoke r0.<ucar.nc2.dods.DODSNetcdfFile: void addAttributes(ucar.nc2.Variable,ucar.nc2.dods.DodsV)>($r4, r3);
+
+        if r2 != null goto label1;
+
+        virtualinvoke r1.<ucar.nc2.Group: void addVariable(ucar.nc2.Variable)>($r4);
+
+        goto label2;
+
+     label1:
+        virtualinvoke r2.<ucar.nc2.Structure: ucar.nc2.Variable addMemberVariable(ucar.nc2.Variable)>($r4);
+
+     label2:
+        r3.<ucar.nc2.dods.DodsV: boolean isDone> = 1;
+
+     label3:
+        return $r4;
+    }
+
+    private ucar.nc2.Variable makeVariable(ucar.nc2.Group, ucar.nc2.Structure, ucar.nc2.dods.DodsV) throws java.io.IOException
+    {
+        java.lang.StringBuilder $r8, $r10, $r13, $r14, $r15, $r18, $r20, $r22, $r23, $r24, $r26, $r28, $r30, $r31, $r33, $r34, $r35, $r40, $r42, $r43, $r44, $r47, $r49, $r50, $r51, $r58, $r60, $r61, $r62, $r65, $r67, $r68, $r69, $r72, $r74, $r75, $r76, $r79, $r81, $r82, $r83, $r95, $r97, $r98, $r99, $r104, $r106, $r107, $r110, $r112, $r113, $r115, $r117, $r118, $r119;
+        ucar.ma2.Array $r92, $r94;
+        opendap.dap.DStructure r124;
+        int i0, $i1;
+        ucar.nc2.Variable $r91, $r93;
+        java.io.PrintStream $r9, $r19, $r41, $r48, $r59, $r66, $r73, $r80, $r96, $r105, $r111, $r116;
+        ucar.nc2.dods.DODSGrid $r85;
+        org.slf4j.Logger $r27;
+        opendap.dap.DArray $r7, $r37, $r39, $r64, $r78, $r101, $r103, $r121;
+        java.lang.Class $r11;
+        java.lang.Object $r57, $r87;
+        opendap.dap.BaseType r1, $r88;
+        ucar.nc2.Group r5, $r53;
+        ucar.nc2.Structure r6;
+        java.lang.String $r2, $r12, $r16, $r21, $r25, $r29, $r32, $r36, $r45, $r52, $r54, $r63, $r70, $r77, $r84, $r89, $r90, $r100, $r108, $r114, $r120;
+        ucar.nc2.dods.DodsV r0, r123, r125;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9, $z10, $z11, $z12, $z13, $z14, $z15, $z16, $z17, $z18, $z19, $z20, $z21, $z22, $z23, $z24, $z25, $z26;
+        ucar.nc2.dods.DODSNetcdfFile r4;
+        java.util.List $r55, $r86, $r122;
+        ucar.nc2.dods.DODSStructure $r38, $r46, $r71;
+        ucar.nc2.dods.DODSVariable $r3, $r17, $r102, $r109;
+        java.util.Iterator $r56;
+
+        r4 := @this: ucar.nc2.dods.DODSNetcdfFile;
+
+        r5 := @parameter0: ucar.nc2.Group;
+
+        r6 := @parameter1: ucar.nc2.Structure;
+
+        r0 := @parameter2: ucar.nc2.dods.DodsV;
+
+        r1 = r0.<ucar.nc2.dods.DodsV: opendap.dap.BaseType bt>;
+
+        $r2 = virtualinvoke r1.<opendap.dap.BaseType: java.lang.String getName()>();
+
+        $z0 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugConstruct>;
+
+        if $z0 == 0 goto label01;
+
+        $r116 = <java.lang.System: java.io.PrintStream out>;
+
+        $r115 = new java.lang.StringBuilder;
+
+        specialinvoke $r115.<java.lang.StringBuilder: void <init>()>();
+
+        $r117 = virtualinvoke $r115.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("DODSNetcdf makeVariable try to init <");
+
+        $r118 = virtualinvoke $r117.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r2);
+
+        $r119 = virtualinvoke $r118.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("> :");
+
+        $r120 = virtualinvoke $r119.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r116.<java.io.PrintStream: void print(java.lang.String)>($r120);
+
+     label01:
+        $z1 = r1 instanceof opendap.dap.DString;
+
+        if $z1 == 0 goto label05;
+
+        $r101 = r0.<ucar.nc2.dods.DodsV: opendap.dap.DArray darray>;
+
+        if $r101 != null goto label03;
+
+        $z24 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugConstruct>;
+
+        if $z24 == 0 goto label02;
+
+        $r111 = <java.lang.System: java.io.PrintStream out>;
+
+        $r110 = new java.lang.StringBuilder;
+
+        specialinvoke $r110.<java.lang.StringBuilder: void <init>()>();
+
+        $r112 = virtualinvoke $r110.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("  assigned to DString: name = ");
+
+        $r113 = virtualinvoke $r112.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r2);
+
+        $r114 = virtualinvoke $r113.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r111.<java.io.PrintStream: void println(java.lang.String)>($r114);
+
+     label02:
+        $r109 = new ucar.nc2.dods.DODSVariable;
+
+        specialinvoke $r109.<ucar.nc2.dods.DODSVariable: void <init>(ucar.nc2.dods.DODSNetcdfFile,ucar.nc2.Group,ucar.nc2.Structure,java.lang.String,opendap.dap.BaseType,ucar.nc2.dods.DodsV)>(r4, r5, r6, $r2, r1, r0);
+
+        return $r109;
+
+     label03:
+        $z23 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugConstruct>;
+
+        if $z23 == 0 goto label04;
+
+        $r105 = <java.lang.System: java.io.PrintStream out>;
+
+        $r104 = new java.lang.StringBuilder;
+
+        specialinvoke $r104.<java.lang.StringBuilder: void <init>()>();
+
+        $r106 = virtualinvoke $r104.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("  assigned to Array of Strings: name = ");
+
+        $r107 = virtualinvoke $r106.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r2);
+
+        $r108 = virtualinvoke $r107.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r105.<java.io.PrintStream: void println(java.lang.String)>($r108);
+
+     label04:
+        $r102 = new ucar.nc2.dods.DODSVariable;
+
+        $r103 = r0.<ucar.nc2.dods.DodsV: opendap.dap.DArray darray>;
+
+        specialinvoke $r102.<ucar.nc2.dods.DODSVariable: void <init>(ucar.nc2.dods.DODSNetcdfFile,ucar.nc2.Group,ucar.nc2.Structure,java.lang.String,opendap.dap.DArray,opendap.dap.BaseType,ucar.nc2.dods.DodsV)>(r4, r5, r6, $r2, $r103, r1, r0);
+
+        return $r102;
+
+     label05:
+        $z2 = r1 instanceof opendap.dap.DByte;
+
+        if $z2 != 0 goto label06;
+
+        $z5 = r1 instanceof opendap.dap.DFloat32;
+
+        if $z5 != 0 goto label06;
+
+        $z6 = r1 instanceof opendap.dap.DFloat64;
+
+        if $z6 != 0 goto label06;
+
+        $z7 = r1 instanceof opendap.dap.DInt16;
+
+        if $z7 != 0 goto label06;
+
+        $z8 = r1 instanceof opendap.dap.DInt32;
+
+        if $z8 != 0 goto label06;
+
+        $z9 = r1 instanceof opendap.dap.DUInt16;
+
+        if $z9 != 0 goto label06;
+
+        $z10 = r1 instanceof opendap.dap.DUInt32;
+
+        if $z10 == 0 goto label10;
+
+     label06:
+        $r121 = r0.<ucar.nc2.dods.DodsV: opendap.dap.DArray darray>;
+
+        if $r121 != null goto label08;
+
+        $z4 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugConstruct>;
+
+        if $z4 == 0 goto label07;
+
+        $r19 = <java.lang.System: java.io.PrintStream out>;
+
+        $r18 = new java.lang.StringBuilder;
+
+        specialinvoke $r18.<java.lang.StringBuilder: void <init>()>();
+
+        $r20 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("  assigned to scalar ");
+
+        $r21 = virtualinvoke r1.<opendap.dap.BaseType: java.lang.String getTypeName()>();
+
+        $r22 = virtualinvoke $r20.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r21);
+
+        $r23 = virtualinvoke $r22.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(": name = ");
+
+        $r24 = virtualinvoke $r23.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r2);
+
+        $r25 = virtualinvoke $r24.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r19.<java.io.PrintStream: void println(java.lang.String)>($r25);
+
+     label07:
+        $r17 = new ucar.nc2.dods.DODSVariable;
+
+        specialinvoke $r17.<ucar.nc2.dods.DODSVariable: void <init>(ucar.nc2.dods.DODSNetcdfFile,ucar.nc2.Group,ucar.nc2.Structure,java.lang.String,opendap.dap.BaseType,ucar.nc2.dods.DodsV)>(r4, r5, r6, $r2, r1, r0);
+
+        return $r17;
+
+     label08:
+        $z3 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugConstruct>;
+
+        if $z3 == 0 goto label09;
+
+        $r9 = <java.lang.System: java.io.PrintStream out>;
+
+        $r8 = new java.lang.StringBuilder;
+
+        specialinvoke $r8.<java.lang.StringBuilder: void <init>()>();
+
+        $r10 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("  assigned to array of type ");
+
+        $r11 = virtualinvoke r1.<java.lang.Object: java.lang.Class getClass()>();
+
+        $r12 = virtualinvoke $r11.<java.lang.Class: java.lang.String getName()>();
+
+        $r13 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r12);
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(": name = ");
+
+        $r15 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r2);
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r9.<java.io.PrintStream: void println(java.lang.String)>($r16);
+
+     label09:
+        $r3 = new ucar.nc2.dods.DODSVariable;
+
+        $r7 = r0.<ucar.nc2.dods.DodsV: opendap.dap.DArray darray>;
+
+        specialinvoke $r3.<ucar.nc2.dods.DODSVariable: void <init>(ucar.nc2.dods.DODSNetcdfFile,ucar.nc2.Group,ucar.nc2.Structure,java.lang.String,opendap.dap.DArray,opendap.dap.BaseType,ucar.nc2.dods.DodsV)>(r4, r5, r6, $r2, $r7, r1, r0);
+
+        return $r3;
+
+     label10:
+        $z11 = r1 instanceof opendap.dap.DGrid;
+
+        if $z11 == 0 goto label18;
+
+        $r78 = r0.<ucar.nc2.dods.DodsV: opendap.dap.DArray darray>;
+
+        if $r78 != null goto label16;
+
+        $z21 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugConstruct>;
+
+        if $z21 == 0 goto label11;
+
+        $r96 = <java.lang.System: java.io.PrintStream out>;
+
+        $r95 = new java.lang.StringBuilder;
+
+        specialinvoke $r95.<java.lang.StringBuilder: void <init>()>();
+
+        $r97 = virtualinvoke $r95.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" assigned to DGrid <");
+
+        $r98 = virtualinvoke $r97.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r2);
+
+        $r99 = virtualinvoke $r98.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(">");
+
+        $r100 = virtualinvoke $r99.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r96.<java.io.PrintStream: void println(java.lang.String)>($r100);
+
+     label11:
+        i0 = 1;
+
+     label12:
+        $r122 = r0.<ucar.nc2.dods.DodsV: java.util.List children>;
+
+        $i1 = interfaceinvoke $r122.<java.util.List: int size()>();
+
+        if i0 >= $i1 goto label15;
+
+        $r86 = r0.<ucar.nc2.dods.DodsV: java.util.List children>;
+
+        $r87 = interfaceinvoke $r86.<java.util.List: java.lang.Object get(int)>(i0);
+
+        r123 = (ucar.nc2.dods.DodsV) $r87;
+
+        $r88 = r123.<ucar.nc2.dods.DodsV: opendap.dap.BaseType bt>;
+
+        $r89 = virtualinvoke $r88.<opendap.dap.BaseType: java.lang.String getName()>();
+
+        $r90 = staticinvoke <ucar.nc2.dods.DODSNetcdfFile: java.lang.String makeNetcdfName(java.lang.String)>($r89);
+
+        $r91 = virtualinvoke r5.<ucar.nc2.Group: ucar.nc2.Variable findVariable(java.lang.String)>($r90);
+
+        if $r91 != null goto label13;
+
+        $r93 = virtualinvoke r4.<ucar.nc2.dods.DODSNetcdfFile: ucar.nc2.Variable addVariable(ucar.nc2.Group,ucar.nc2.Structure,ucar.nc2.dods.DodsV)>(r5, r6, r123);
+
+        $r94 = r123.<ucar.nc2.dods.DodsV: ucar.ma2.Array data>;
+
+        specialinvoke r4.<ucar.nc2.dods.DODSNetcdfFile: void makeCoordinateVariable(ucar.nc2.Group,ucar.nc2.Variable,ucar.ma2.Array)>(r5, $r93, $r94);
+
+        goto label14;
+
+     label13:
+        $z22 = virtualinvoke $r91.<ucar.nc2.Variable: boolean isCoordinateVariable()>();
+
+        if $z22 != 0 goto label14;
+
+        $r92 = r123.<ucar.nc2.dods.DodsV: ucar.ma2.Array data>;
+
+        specialinvoke r4.<ucar.nc2.dods.DODSNetcdfFile: void makeCoordinateVariable(ucar.nc2.Group,ucar.nc2.Variable,ucar.ma2.Array)>(r5, $r91, $r92);
+
+     label14:
+        i0 = i0 + 1;
+
+        goto label12;
+
+     label15:
+        $r85 = new ucar.nc2.dods.DODSGrid;
+
+        specialinvoke $r85.<ucar.nc2.dods.DODSGrid: void <init>(ucar.nc2.dods.DODSNetcdfFile,ucar.nc2.Group,ucar.nc2.Structure,java.lang.String,ucar.nc2.dods.DodsV)>(r4, r5, r6, $r2, r0);
+
+        return $r85;
+
+     label16:
+        $z20 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugConstruct>;
+
+        if $z20 == 0 goto label17;
+
+        $r80 = <java.lang.System: java.io.PrintStream out>;
+
+        $r79 = new java.lang.StringBuilder;
+
+        specialinvoke $r79.<java.lang.StringBuilder: void <init>()>();
+
+        $r81 = virtualinvoke $r79.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" ERROR! array of DGrid <");
+
+        $r82 = virtualinvoke $r81.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r2);
+
+        $r83 = virtualinvoke $r82.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(">");
+
+        $r84 = virtualinvoke $r83.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r80.<java.io.PrintStream: void println(java.lang.String)>($r84);
+
+     label17:
+        return null;
+
+     label18:
+        $z12 = r1 instanceof opendap.dap.DSequence;
+
+        if $z12 == 0 goto label22;
+
+        $r64 = r0.<ucar.nc2.dods.DodsV: opendap.dap.DArray darray>;
+
+        if $r64 != null goto label20;
+
+        $z19 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugConstruct>;
+
+        if $z19 == 0 goto label19;
+
+        $r73 = <java.lang.System: java.io.PrintStream out>;
+
+        $r72 = new java.lang.StringBuilder;
+
+        specialinvoke $r72.<java.lang.StringBuilder: void <init>()>();
+
+        $r74 = virtualinvoke $r72.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" assigned to DSequence <");
+
+        $r75 = virtualinvoke $r74.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r2);
+
+        $r76 = virtualinvoke $r75.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(">");
+
+        $r77 = virtualinvoke $r76.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r73.<java.io.PrintStream: void println(java.lang.String)>($r77);
+
+     label19:
+        $r71 = new ucar.nc2.dods.DODSStructure;
+
+        specialinvoke $r71.<ucar.nc2.dods.DODSStructure: void <init>(ucar.nc2.dods.DODSNetcdfFile,ucar.nc2.Group,ucar.nc2.Structure,java.lang.String,ucar.nc2.dods.DodsV)>(r4, r5, r6, $r2, r0);
+
+        return $r71;
+
+     label20:
+        $z18 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugConstruct>;
+
+        if $z18 == 0 goto label21;
+
+        $r66 = <java.lang.System: java.io.PrintStream out>;
+
+        $r65 = new java.lang.StringBuilder;
+
+        specialinvoke $r65.<java.lang.StringBuilder: void <init>()>();
+
+        $r67 = virtualinvoke $r65.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" ERROR! array of DSequence <");
+
+        $r68 = virtualinvoke $r67.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r2);
+
+        $r69 = virtualinvoke $r68.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(">");
+
+        $r70 = virtualinvoke $r69.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r66.<java.io.PrintStream: void println(java.lang.String)>($r70);
+
+     label21:
+        return null;
+
+     label22:
+        $z13 = r1 instanceof opendap.dap.DStructure;
+
+        if $z13 == 0 goto label30;
+
+        r124 = (opendap.dap.DStructure) r1;
+
+        $r37 = r0.<ucar.nc2.dods.DodsV: opendap.dap.DArray darray>;
+
+        if $r37 != null goto label28;
+
+        $z15 = <ucar.nc2.dods.DODSNetcdfFile: boolean useGroups>;
+
+        if $z15 == 0 goto label26;
+
+        if r6 != null goto label26;
+
+        $z16 = specialinvoke r4.<ucar.nc2.dods.DODSNetcdfFile: boolean isGroup(opendap.dap.DStructure)>(r124);
+
+        if $z16 == 0 goto label26;
+
+        $z17 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugConstruct>;
+
+        if $z17 == 0 goto label23;
+
+        $r59 = <java.lang.System: java.io.PrintStream out>;
+
+        $r58 = new java.lang.StringBuilder;
+
+        specialinvoke $r58.<java.lang.StringBuilder: void <init>()>();
+
+        $r60 = virtualinvoke $r58.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" assigned to Group <");
+
+        $r61 = virtualinvoke $r60.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r2);
+
+        $r62 = virtualinvoke $r61.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(">");
+
+        $r63 = virtualinvoke $r62.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r59.<java.io.PrintStream: void println(java.lang.String)>($r63);
+
+     label23:
+        $r53 = new ucar.nc2.Group;
+
+        $r54 = staticinvoke <ucar.nc2.dods.DODSNetcdfFile: java.lang.String makeNetcdfName(java.lang.String)>($r2);
+
+        specialinvoke $r53.<ucar.nc2.Group: void <init>(ucar.nc2.NetcdfFile,ucar.nc2.Group,java.lang.String)>(r4, r5, $r54);
+
+        specialinvoke r4.<ucar.nc2.dods.DODSNetcdfFile: void addAttributes(ucar.nc2.Group,ucar.nc2.dods.DodsV)>($r53, r0);
+
+        virtualinvoke r5.<ucar.nc2.Group: void addGroup(ucar.nc2.Group)>($r53);
+
+        $r55 = r0.<ucar.nc2.dods.DodsV: java.util.List children>;
+
+        $r56 = interfaceinvoke $r55.<java.util.List: java.util.Iterator iterator()>();
+
+     label24:
+        $z25 = interfaceinvoke $r56.<java.util.Iterator: boolean hasNext()>();
+
+        if $z25 == 0 goto label25;
+
+        $r57 = interfaceinvoke $r56.<java.util.Iterator: java.lang.Object next()>();
+
+        r125 = (ucar.nc2.dods.DodsV) $r57;
+
+        virtualinvoke r4.<ucar.nc2.dods.DODSNetcdfFile: ucar.nc2.Variable addVariable(ucar.nc2.Group,ucar.nc2.Structure,ucar.nc2.dods.DodsV)>($r53, null, r125);
+
+        goto label24;
+
+     label25:
+        return null;
+
+     label26:
+        $z26 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugConstruct>;
+
+        if $z26 == 0 goto label27;
+
+        $r48 = <java.lang.System: java.io.PrintStream out>;
+
+        $r47 = new java.lang.StringBuilder;
+
+        specialinvoke $r47.<java.lang.StringBuilder: void <init>()>();
+
+        $r49 = virtualinvoke $r47.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" assigned to DStructure <");
+
+        $r50 = virtualinvoke $r49.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r2);
+
+        $r51 = virtualinvoke $r50.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(">");
+
+        $r52 = virtualinvoke $r51.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r48.<java.io.PrintStream: void println(java.lang.String)>($r52);
+
+     label27:
+        $r46 = new ucar.nc2.dods.DODSStructure;
+
+        specialinvoke $r46.<ucar.nc2.dods.DODSStructure: void <init>(ucar.nc2.dods.DODSNetcdfFile,ucar.nc2.Group,ucar.nc2.Structure,java.lang.String,ucar.nc2.dods.DodsV)>(r4, r5, r6, $r2, r0);
+
+        return $r46;
+
+     label28:
+        $z14 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugConstruct>;
+
+        if $z14 == 0 goto label29;
+
+        $r41 = <java.lang.System: java.io.PrintStream out>;
+
+        $r40 = new java.lang.StringBuilder;
+
+        specialinvoke $r40.<java.lang.StringBuilder: void <init>()>();
+
+        $r42 = virtualinvoke $r40.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" assigned to Array of DStructure <");
+
+        $r43 = virtualinvoke $r42.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r2);
+
+        $r44 = virtualinvoke $r43.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("> ");
+
+        $r45 = virtualinvoke $r44.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r41.<java.io.PrintStream: void println(java.lang.String)>($r45);
+
+     label29:
+        $r38 = new ucar.nc2.dods.DODSStructure;
+
+        $r39 = r0.<ucar.nc2.dods.DodsV: opendap.dap.DArray darray>;
+
+        specialinvoke $r38.<ucar.nc2.dods.DODSStructure: void <init>(ucar.nc2.dods.DODSNetcdfFile,ucar.nc2.Group,ucar.nc2.Structure,java.lang.String,opendap.dap.DArray,ucar.nc2.dods.DodsV)>(r4, r5, r6, $r2, $r39, r0);
+
+        return $r38;
+
+     label30:
+        $r27 = <ucar.nc2.dods.DODSNetcdfFile: org.slf4j.Logger logger>;
+
+        $r26 = new java.lang.StringBuilder;
+
+        specialinvoke $r26.<java.lang.StringBuilder: void <init>()>();
+
+        $r28 = virtualinvoke $r26.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("DODSNetcdf ");
+
+        $r29 = r4.<ucar.nc2.dods.DODSNetcdfFile: java.lang.String location>;
+
+        $r30 = virtualinvoke $r28.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r29);
+
+        $r31 = virtualinvoke $r30.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" didnt process basetype <");
+
+        $r32 = virtualinvoke r1.<opendap.dap.BaseType: java.lang.String getTypeName()>();
+
+        $r33 = virtualinvoke $r31.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r32);
+
+        $r34 = virtualinvoke $r33.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("> variable = ");
+
+        $r35 = virtualinvoke $r34.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r2);
+
+        $r36 = virtualinvoke $r35.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r27.<org.slf4j.Logger: void warn(java.lang.String)>($r36);
+
+        return null;
+    }
+
+    private void makeCoordinateVariable(ucar.nc2.Group, ucar.nc2.Variable, ucar.ma2.Array)
+    {
+        long $l1;
+        int $i0;
+        ucar.nc2.Variable r0;
+        java.lang.String $r1, $r13;
+        boolean $z0;
+        java.io.PrintStream $r8;
+        ucar.nc2.Group r4;
+        ucar.ma2.Array r6;
+        ucar.nc2.dods.DODSNetcdfFile r14;
+        ucar.nc2.Dimension $r2, $r3, $r5;
+        java.lang.StringBuilder $r7, $r9, $r10, $r11, $r12;
+
+        r14 := @this: ucar.nc2.dods.DODSNetcdfFile;
+
+        r4 := @parameter0: ucar.nc2.Group;
+
+        r0 := @parameter1: ucar.nc2.Variable;
+
+        r6 := @parameter2: ucar.ma2.Array;
+
+        $r1 = virtualinvoke r0.<ucar.nc2.Variable: java.lang.String getShortName()>();
+
+        $r2 = virtualinvoke r0.<ucar.nc2.Variable: ucar.nc2.Dimension getDimension(int)>(0);
+
+        $r3 = new ucar.nc2.Dimension;
+
+        $i0 = virtualinvoke $r2.<ucar.nc2.Dimension: int getLength()>();
+
+        specialinvoke $r3.<ucar.nc2.Dimension: void <init>(java.lang.String,int)>($r1, $i0);
+
+        virtualinvoke r0.<ucar.nc2.Variable: void setDimension(int,ucar.nc2.Dimension)>(0, $r3);
+
+        $r5 = virtualinvoke r4.<ucar.nc2.Group: ucar.nc2.Dimension findDimension(java.lang.String)>($r1);
+
+        virtualinvoke r4.<ucar.nc2.Group: boolean remove(ucar.nc2.Dimension)>($r5);
+
+        virtualinvoke r4.<ucar.nc2.Group: void addDimension(ucar.nc2.Dimension)>($r3);
+
+        if r6 == null goto label1;
+
+        virtualinvoke r0.<ucar.nc2.Variable: void setCachedData(ucar.ma2.Array)>(r6);
+
+        $z0 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugCached>;
+
+        if $z0 == 0 goto label1;
+
+        $r8 = <java.lang.System: java.io.PrintStream out>;
+
+        $r7 = new java.lang.StringBuilder;
+
+        specialinvoke $r7.<java.lang.StringBuilder: void <init>()>();
+
+        $r9 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" cache for <");
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r1);
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("> length =");
+
+        $l1 = virtualinvoke r6.<ucar.ma2.Array: long getSize()>();
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l1);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r8.<java.io.PrintStream: void println(java.lang.String)>($r13);
+
+     label1:
+        return;
+    }
+
+    private boolean isGroup(opendap.dap.DStructure)
+    {
+        ucar.nc2.dods.DODSNetcdfFile r3;
+        opendap.dap.DStructure r0, $r4;
+        opendap.dap.DAPNode $r1;
+        opendap.dap.BaseType r2;
+        boolean $z0, $z1;
+
+        r3 := @this: ucar.nc2.dods.DODSNetcdfFile;
+
+        r0 := @parameter0: opendap.dap.DStructure;
+
+        $r1 = virtualinvoke r0.<opendap.dap.DStructure: opendap.dap.DAPNode getParent()>();
+
+        r2 = (opendap.dap.BaseType) $r1;
+
+        if r2 != null goto label1;
+
+        return 1;
+
+     label1:
+        $z0 = r2 instanceof opendap.dap.DStructure;
+
+        if $z0 == 0 goto label2;
+
+        $r4 = (opendap.dap.DStructure) r2;
+
+        $z1 = specialinvoke r3.<ucar.nc2.dods.DODSNetcdfFile: boolean isGroup(opendap.dap.DStructure)>($r4);
+
+        return $z1;
+
+     label2:
+        return 1;
+    }
+
+    private void addAttributes(ucar.nc2.Variable, ucar.nc2.dods.DodsV)
+    {
+        ucar.nc2.dods.DODSAttribute r16;
+        ucar.nc2.Variable r3;
+        java.lang.String $r8, $r11, $r13;
+        boolean $z0;
+        java.util.Iterator $r2;
+        ucar.nc2.dods.DodsV r0;
+        java.util.List r1;
+        ucar.nc2.dods.DODSNetcdfFile r15;
+        ucar.nc2.Attribute $r4, $r5, $r6;
+        java.lang.StringBuilder $r7, $r9, $r10, $r12;
+        java.lang.Object $r14;
+
+        r15 := @this: ucar.nc2.dods.DODSNetcdfFile;
+
+        r3 := @parameter0: ucar.nc2.Variable;
+
+        r0 := @parameter1: ucar.nc2.dods.DodsV;
+
+        r1 = r0.<ucar.nc2.dods.DodsV: java.util.List attributes>;
+
+        $r2 = interfaceinvoke r1.<java.util.List: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r2.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label2;
+
+        $r14 = interfaceinvoke $r2.<java.util.Iterator: java.lang.Object next()>();
+
+        r16 = (ucar.nc2.dods.DODSAttribute) $r14;
+
+        virtualinvoke r3.<ucar.nc2.Variable: ucar.nc2.Attribute addAttribute(ucar.nc2.Attribute)>(r16);
+
+        goto label1;
+
+     label2:
+        $r4 = virtualinvoke r3.<ucar.nc2.Variable: ucar.nc2.Attribute findAttribute(java.lang.String)>("coordinates");
+
+        $r5 = virtualinvoke r3.<ucar.nc2.Variable: ucar.nc2.Attribute findAttribute(java.lang.String)>("_CoordinateAxes");
+
+        if null == $r4 goto label3;
+
+        if null == $r5 goto label3;
+
+        $r6 = new ucar.nc2.Attribute;
+
+        $r7 = new java.lang.StringBuilder;
+
+        specialinvoke $r7.<java.lang.StringBuilder: void <init>()>();
+
+        $r8 = virtualinvoke $r4.<ucar.nc2.Attribute: java.lang.String getStringValue()>();
+
+        $r9 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r8);
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" ");
+
+        $r11 = virtualinvoke $r5.<ucar.nc2.Attribute: java.lang.String getStringValue()>();
+
+        $r12 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r11);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r6.<ucar.nc2.Attribute: void <init>(java.lang.String,java.lang.String)>("_CoordinateAxes", $r13);
+
+        virtualinvoke r3.<ucar.nc2.Variable: ucar.nc2.Attribute addAttribute(ucar.nc2.Attribute)>($r6);
+
+     label3:
+        return;
+    }
+
+    private void addAttributes(ucar.nc2.Group, ucar.nc2.dods.DodsV)
+    {
+        java.util.Iterator $r2;
+        ucar.nc2.dods.DODSAttribute r4;
+        ucar.nc2.Group r5;
+        ucar.nc2.dods.DodsV r0;
+        java.util.List r1;
+        ucar.nc2.dods.DODSNetcdfFile r6;
+        java.lang.Object $r3;
+        boolean $z0;
+
+        r6 := @this: ucar.nc2.dods.DODSNetcdfFile;
+
+        r5 := @parameter0: ucar.nc2.Group;
+
+        r0 := @parameter1: ucar.nc2.dods.DodsV;
+
+        r1 = r0.<ucar.nc2.dods.DodsV: java.util.List attributes>;
+
+        $r2 = interfaceinvoke r1.<java.util.List: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r2.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label2;
+
+        $r3 = interfaceinvoke $r2.<java.util.Iterator: java.lang.Object next()>();
+
+        r4 = (ucar.nc2.dods.DODSAttribute) $r3;
+
+        virtualinvoke r5.<ucar.nc2.Group: void addAttribute(ucar.nc2.Attribute)>(r4);
+
+        goto label1;
+
+     label2:
+        return;
+    }
+
+    ucar.nc2.Dimension getNetcdfStrlenDim(ucar.nc2.dods.DODSVariable)
+    {
+        boolean $z0, $z1;
+        ucar.nc2.dods.DODSNetcdfFile r0;
+        java.lang.StringBuilder $r12, $r15, $r16, $r17, $r18, $r19, $r22, $r24, $r26, $r27, $r29, $r30, $r31;
+        opendap.dap.DAS $r2;
+        opendap.dap.Attribute $r5, $r7, $r9;
+        opendap.dap.AttributeTable $r4, $r6;
+        int $i0;
+        ucar.nc2.dods.DODSVariable r1;
+        java.lang.String $r3, $r8, r10, $r14, $r20, $r25, $r28, $r32, $r33;
+        java.io.PrintStream $r13;
+        org.slf4j.Logger $r23;
+        java.lang.NumberFormatException $r21;
+        ucar.nc2.Dimension $r11;
+
+        r0 := @this: ucar.nc2.dods.DODSNetcdfFile;
+
+        r1 := @parameter0: ucar.nc2.dods.DODSVariable;
+
+        $r2 = r0.<ucar.nc2.dods.DODSNetcdfFile: opendap.dap.DAS das>;
+
+        $r3 = virtualinvoke r1.<ucar.nc2.dods.DODSVariable: java.lang.String getName()>();
+
+        $r4 = virtualinvoke $r2.<opendap.dap.DAS: opendap.dap.AttributeTable getAttributeTableN(java.lang.String)>($r3);
+
+        if $r4 != null goto label01;
+
+        return null;
+
+     label01:
+        $r5 = virtualinvoke $r4.<opendap.dap.AttributeTable: opendap.dap.Attribute getAttribute(java.lang.String)>("DODS");
+
+        if $r5 != null goto label02;
+
+        return null;
+
+     label02:
+        $r6 = virtualinvoke $r5.<opendap.dap.Attribute: opendap.dap.AttributeTable getContainerN()>();
+
+        if $r6 != null goto label03;
+
+        return null;
+
+     label03:
+        $r7 = virtualinvoke $r6.<opendap.dap.AttributeTable: opendap.dap.Attribute getAttribute(java.lang.String)>("strlen");
+
+        if $r7 != null goto label04;
+
+        return null;
+
+     label04:
+        $r8 = virtualinvoke $r7.<opendap.dap.Attribute: java.lang.String getValueAtN(int)>(0);
+
+        $r9 = virtualinvoke $r6.<opendap.dap.AttributeTable: opendap.dap.Attribute getAttribute(java.lang.String)>("dimName");
+
+        if $r9 != null goto label05;
+
+        $r33 = null;
+
+        goto label06;
+
+     label05:
+        $r33 = virtualinvoke $r9.<opendap.dap.Attribute: java.lang.String getValueAtN(int)>(0);
+
+     label06:
+        r10 = $r33;
+
+        $z0 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugCharArray>;
+
+        if $z0 == 0 goto label07;
+
+        $r13 = <java.lang.System: java.io.PrintStream out>;
+
+        $r12 = new java.lang.StringBuilder;
+
+        specialinvoke $r12.<java.lang.StringBuilder: void <init>()>();
+
+        $r14 = virtualinvoke r1.<ucar.nc2.dods.DODSVariable: java.lang.String getName()>();
+
+        $r15 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r14);
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" has strlen= ");
+
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r8);
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" dimName= ");
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r33);
+
+        $r20 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r13.<java.io.PrintStream: void println(java.lang.String)>($r20);
+
+     label07:
+        $i0 = staticinvoke <java.lang.Integer: int parseInt(java.lang.String)>($r8);
+
+     label08:
+        goto label10;
+
+     label09:
+        $r21 := @caughtexception;
+
+        $r23 = <ucar.nc2.dods.DODSNetcdfFile: org.slf4j.Logger logger>;
+
+        $r22 = new java.lang.StringBuilder;
+
+        specialinvoke $r22.<java.lang.StringBuilder: void <init>()>();
+
+        $r24 = virtualinvoke $r22.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("DODSNetcdfFile ");
+
+        $r25 = r0.<ucar.nc2.dods.DODSNetcdfFile: java.lang.String location>;
+
+        $r26 = virtualinvoke $r24.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r25);
+
+        $r27 = virtualinvoke $r26.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" var = ");
+
+        $r28 = virtualinvoke r1.<ucar.nc2.dods.DODSVariable: java.lang.String getName()>();
+
+        $r29 = virtualinvoke $r27.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r28);
+
+        $r30 = virtualinvoke $r29.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" error on strlen attribute = ");
+
+        $r31 = virtualinvoke $r30.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r8);
+
+        $r32 = virtualinvoke $r31.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r23.<org.slf4j.Logger: void warn(java.lang.String)>($r32);
+
+        return null;
+
+     label10:
+        if $i0 > 0 goto label11;
+
+        return null;
+
+     label11:
+        $r11 = new ucar.nc2.Dimension;
+
+        if r10 == null goto label12;
+
+        $z1 = 1;
+
+        goto label13;
+
+     label12:
+        $z1 = 0;
+
+     label13:
+        specialinvoke $r11.<ucar.nc2.Dimension: void <init>(java.lang.String,int,boolean)>(r10, $i0, $z1);
+
+        return $r11;
+
+        catch java.lang.NumberFormatException from label07 to label08 with label09;
+    }
+
+    ucar.nc2.Dimension getSharedDimension(ucar.nc2.Group, ucar.nc2.Dimension)
+    {
+        java.util.Iterator $r3;
+        ucar.nc2.Group r9;
+        java.util.List $r2;
+        ucar.nc2.dods.DODSNetcdfFile r8;
+        int $i0, $i1;
+        ucar.nc2.Dimension r0, r5;
+        java.lang.Object $r4;
+        java.lang.String $r1, $r6, $r7;
+        boolean $z0, $z1;
+
+        r8 := @this: ucar.nc2.dods.DODSNetcdfFile;
+
+        r9 := @parameter0: ucar.nc2.Group;
+
+        r0 := @parameter1: ucar.nc2.Dimension;
+
+        $r1 = virtualinvoke r0.<ucar.nc2.Dimension: java.lang.String getName()>();
+
+        if $r1 != null goto label1;
+
+        return r0;
+
+     label1:
+        if r9 != null goto label2;
+
+        r9 = r8.<ucar.nc2.dods.DODSNetcdfFile: ucar.nc2.Group rootGroup>;
+
+     label2:
+        $r2 = virtualinvoke r9.<ucar.nc2.Group: java.util.List getDimensions()>();
+
+        $r3 = interfaceinvoke $r2.<java.util.List: java.util.Iterator iterator()>();
+
+     label3:
+        $z1 = interfaceinvoke $r3.<java.util.Iterator: boolean hasNext()>();
+
+        if $z1 == 0 goto label5;
+
+        $r4 = interfaceinvoke $r3.<java.util.Iterator: java.lang.Object next()>();
+
+        r5 = (ucar.nc2.Dimension) $r4;
+
+        $r6 = virtualinvoke r5.<ucar.nc2.Dimension: java.lang.String getName()>();
+
+        $r7 = virtualinvoke r0.<ucar.nc2.Dimension: java.lang.String getName()>();
+
+        $z0 = virtualinvoke $r6.<java.lang.String: boolean equals(java.lang.Object)>($r7);
+
+        if $z0 == 0 goto label4;
+
+        $i0 = virtualinvoke r5.<ucar.nc2.Dimension: int getLength()>();
+
+        $i1 = virtualinvoke r0.<ucar.nc2.Dimension: int getLength()>();
+
+        if $i0 != $i1 goto label4;
+
+        return r5;
+
+     label4:
+        goto label3;
+
+     label5:
+        virtualinvoke r0.<ucar.nc2.Dimension: void setShared(boolean)>(1);
+
+        virtualinvoke r9.<ucar.nc2.Group: void addDimension(ucar.nc2.Dimension)>(r0);
+
+        return r0;
+    }
+
+    java.util.List constructDimensions(ucar.nc2.Group, opendap.dap.DArray)
+    {
+        java.util.Enumeration $r2;
+        opendap.dap.DArrayDimension r4;
+        java.util.ArrayList $r0;
+        int $i0, $i1, $i2, $i3, $i4;
+        java.lang.String $r5, $r10, r13;
+        boolean $z0;
+        opendap.dap.DArray r1;
+        ucar.nc2.Group r12;
+        ucar.nc2.dods.DODSNetcdfFile r11;
+        java.lang.Object $r3;
+        ucar.nc2.Dimension $r6, $r7, $r8, $r9, r14;
+
+        r11 := @this: ucar.nc2.dods.DODSNetcdfFile;
+
+        r12 := @parameter0: ucar.nc2.Group;
+
+        r1 := @parameter1: opendap.dap.DArray;
+
+        if r12 != null goto label1;
+
+        r12 = r11.<ucar.nc2.dods.DODSNetcdfFile: ucar.nc2.Group rootGroup>;
+
+     label1:
+        $r0 = new java.util.ArrayList;
+
+        specialinvoke $r0.<java.util.ArrayList: void <init>()>();
+
+        $r2 = virtualinvoke r1.<opendap.dap.DArray: java.util.Enumeration getDimensions()>();
+
+     label2:
+        $z0 = interfaceinvoke $r2.<java.util.Enumeration: boolean hasMoreElements()>();
+
+        if $z0 == 0 goto label7;
+
+        $r3 = interfaceinvoke $r2.<java.util.Enumeration: java.lang.Object nextElement()>();
+
+        r4 = (opendap.dap.DArrayDimension) $r3;
+
+        $r5 = virtualinvoke r4.<opendap.dap.DArrayDimension: java.lang.String getName()>();
+
+        r13 = $r5;
+
+        if $r5 == null goto label3;
+
+        $r10 = virtualinvoke r4.<opendap.dap.DArrayDimension: java.lang.String getName()>();
+
+        r13 = staticinvoke <ucar.unidata.util.StringUtil: java.lang.String unescape(java.lang.String)>($r10);
+
+     label3:
+        if r13 != null goto label4;
+
+        $r9 = new ucar.nc2.Dimension;
+
+        $i4 = virtualinvoke r4.<opendap.dap.DArrayDimension: int getSize()>();
+
+        specialinvoke $r9.<ucar.nc2.Dimension: void <init>(java.lang.String,int,boolean)>("", $i4, 0);
+
+        r14 = $r9;
+
+        goto label6;
+
+     label4:
+        $r6 = virtualinvoke r12.<ucar.nc2.Group: ucar.nc2.Dimension findDimension(java.lang.String)>(r13);
+
+        r14 = $r6;
+
+        if $r6 != null goto label5;
+
+        $r8 = new ucar.nc2.Dimension;
+
+        $i3 = virtualinvoke r4.<opendap.dap.DArrayDimension: int getSize()>();
+
+        specialinvoke $r8.<ucar.nc2.Dimension: void <init>(java.lang.String,int)>(r13, $i3);
+
+        r14 = $r8;
+
+        virtualinvoke r12.<ucar.nc2.Group: void addDimension(ucar.nc2.Dimension)>($r8);
+
+        goto label6;
+
+     label5:
+        $i0 = virtualinvoke $r6.<ucar.nc2.Dimension: int getLength()>();
+
+        $i1 = virtualinvoke r4.<opendap.dap.DArrayDimension: int getSize()>();
+
+        if $i0 == $i1 goto label6;
+
+        $r7 = new ucar.nc2.Dimension;
+
+        $i2 = virtualinvoke r4.<opendap.dap.DArrayDimension: int getSize()>();
+
+        specialinvoke $r7.<ucar.nc2.Dimension: void <init>(java.lang.String,int,boolean)>(r13, $i2, 0);
+
+        r14 = $r7;
+
+     label6:
+        interfaceinvoke $r0.<java.util.List: boolean add(java.lang.Object)>(r14);
+
+        goto label2;
+
+     label7:
+        return $r0;
+    }
+
+    private void setUnlimited(java.lang.String)
+    {
+        org.slf4j.Logger $r5;
+        ucar.nc2.Group $r2;
+        ucar.nc2.dods.DODSNetcdfFile r0;
+        ucar.nc2.Dimension $r3;
+        java.lang.StringBuilder $r4, $r6, $r7, $r8, $r10;
+        java.lang.String r1, $r9, $r11;
+
+        r0 := @this: ucar.nc2.dods.DODSNetcdfFile;
+
+        r1 := @parameter0: java.lang.String;
+
+        $r2 = r0.<ucar.nc2.dods.DODSNetcdfFile: ucar.nc2.Group rootGroup>;
+
+        $r3 = virtualinvoke $r2.<ucar.nc2.Group: ucar.nc2.Dimension findDimension(java.lang.String)>(r1);
+
+        if $r3 == null goto label1;
+
+        virtualinvoke $r3.<ucar.nc2.Dimension: void setUnlimited(boolean)>(1);
+
+        goto label2;
+
+     label1:
+        $r5 = <ucar.nc2.dods.DODSNetcdfFile: org.slf4j.Logger logger>;
+
+        $r4 = new java.lang.StringBuilder;
+
+        specialinvoke $r4.<java.lang.StringBuilder: void <init>()>();
+
+        $r6 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" DODS Unlimited_Dimension = ");
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r1);
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" not found on ");
+
+        $r9 = r0.<ucar.nc2.dods.DODSNetcdfFile: java.lang.String location>;
+
+        $r10 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r9);
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r5.<org.slf4j.Logger: void error(java.lang.String)>($r11);
+
+     label2:
+        return;
+    }
+
+    protected int[] makeShape(opendap.dap.DArray)
+    {
+        java.util.Enumeration $r1, $r3;
+        opendap.dap.DArrayDimension r5;
+        opendap.dap.DArray r0;
+        ucar.nc2.dods.DODSNetcdfFile r6;
+        int[] r2;
+        int $i0, $i1, i2, i3;
+        java.lang.Object $r4;
+        boolean $z0, $z1;
+
+        r6 := @this: ucar.nc2.dods.DODSNetcdfFile;
+
+        r0 := @parameter0: opendap.dap.DArray;
+
+        i2 = 0;
+
+        $r1 = virtualinvoke r0.<opendap.dap.DArray: java.util.Enumeration getDimensions()>();
+
+     label1:
+        $z0 = interfaceinvoke $r1.<java.util.Enumeration: boolean hasMoreElements()>();
+
+        if $z0 == 0 goto label2;
+
+        i2 = i2 + 1;
+
+        interfaceinvoke $r1.<java.util.Enumeration: java.lang.Object nextElement()>();
+
+        goto label1;
+
+     label2:
+        r2 = newarray (int)[i2];
+
+        $r3 = virtualinvoke r0.<opendap.dap.DArray: java.util.Enumeration getDimensions()>();
+
+        i3 = 0;
+
+     label3:
+        $z1 = interfaceinvoke $r3.<java.util.Enumeration: boolean hasMoreElements()>();
+
+        if $z1 == 0 goto label4;
+
+        $r4 = interfaceinvoke $r3.<java.util.Enumeration: java.lang.Object nextElement()>();
+
+        r5 = (opendap.dap.DArrayDimension) $r4;
+
+        $i0 = i3;
+
+        i3 = i3 + 1;
+
+        $i1 = virtualinvoke r5.<opendap.dap.DArrayDimension: int getSize()>();
+
+        r2[$i0] = $i1;
+
+        goto label3;
+
+     label4:
+        return r2;
+    }
+
+    public static java.lang.String getDODSshortName(ucar.nc2.Variable)
+    {
+        ucar.nc2.dods.DODSVariable $r3;
+        ucar.nc2.Variable r0;
+        ucar.nc2.dods.DODSStructure $r1;
+        java.lang.String $r2, $r4;
+        boolean $z0, $z1;
+
+        r0 := @parameter0: ucar.nc2.Variable;
+
+        $z0 = r0 instanceof ucar.nc2.dods.DODSVariable;
+
+        if $z0 == 0 goto label1;
+
+        $r3 = (ucar.nc2.dods.DODSVariable) r0;
+
+        $r4 = virtualinvoke $r3.<ucar.nc2.dods.DODSVariable: java.lang.String getDODSshortName()>();
+
+        return $r4;
+
+     label1:
+        $z1 = r0 instanceof ucar.nc2.dods.DODSStructure;
+
+        if $z1 == 0 goto label2;
+
+        $r1 = (ucar.nc2.dods.DODSStructure) r0;
+
+        $r2 = virtualinvoke $r1.<ucar.nc2.dods.DODSStructure: java.lang.String getDODSshortName()>();
+
+        return $r2;
+
+     label2:
+        return null;
+    }
+
+    private java.lang.String makeDODSname(ucar.nc2.dods.DodsV)
+    {
+        opendap.dap.BaseType $r2, $r3, $r10;
+        ucar.nc2.dods.DodsV r0, r1;
+        ucar.nc2.dods.DODSNetcdfFile r6;
+        java.lang.StringBuilder $r5, $r8, $r9, $r12;
+        java.lang.String $r4, $r7, $r11, $r13;
+
+        r6 := @this: ucar.nc2.dods.DODSNetcdfFile;
+
+        r0 := @parameter0: ucar.nc2.dods.DodsV;
+
+        r1 = r0.<ucar.nc2.dods.DodsV: ucar.nc2.dods.DodsV parent>;
+
+        $r2 = r1.<ucar.nc2.dods.DodsV: opendap.dap.BaseType bt>;
+
+        if $r2 == null goto label1;
+
+        $r5 = new java.lang.StringBuilder;
+
+        specialinvoke $r5.<java.lang.StringBuilder: void <init>()>();
+
+        $r7 = specialinvoke r6.<ucar.nc2.dods.DODSNetcdfFile: java.lang.String makeDODSname(ucar.nc2.dods.DodsV)>(r1);
+
+        $r8 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r7);
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(".");
+
+        $r10 = r0.<ucar.nc2.dods.DodsV: opendap.dap.BaseType bt>;
+
+        $r11 = virtualinvoke $r10.<opendap.dap.BaseType: java.lang.String getName()>();
+
+        $r12 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r11);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        return $r13;
+
+     label1:
+        $r3 = r0.<ucar.nc2.dods.DodsV: opendap.dap.BaseType bt>;
+
+        $r4 = virtualinvoke $r3.<opendap.dap.BaseType: java.lang.String getName()>();
+
+        return $r4;
+    }
+
+    static java.lang.String makeNetcdfName(java.lang.String)
+    {
+        java.lang.String r0, $r1;
+
+        r0 := @parameter0: java.lang.String;
+
+        $r1 = staticinvoke <ucar.unidata.util.StringUtil: java.lang.String unescape(java.lang.String)>(r0);
+
+        return $r1;
+    }
+
+    public static int convertToDODSType(ucar.ma2.DataType, boolean)
+    {
+        ucar.ma2.DataType r0, $r1, $r2, $r3, $r4, $r5, $r6, $r7, $r8;
+        byte $b0, $b1;
+        boolean z0;
+
+        r0 := @parameter0: ucar.ma2.DataType;
+
+        z0 := @parameter1: boolean;
+
+        $r1 = <ucar.ma2.DataType: ucar.ma2.DataType STRING>;
+
+        if r0 != $r1 goto label01;
+
+        return 10;
+
+     label01:
+        $r2 = <ucar.ma2.DataType: ucar.ma2.DataType BYTE>;
+
+        if r0 != $r2 goto label02;
+
+        return 3;
+
+     label02:
+        $r3 = <ucar.ma2.DataType: ucar.ma2.DataType FLOAT>;
+
+        if r0 != $r3 goto label03;
+
+        return 8;
+
+     label03:
+        $r4 = <ucar.ma2.DataType: ucar.ma2.DataType DOUBLE>;
+
+        if r0 != $r4 goto label04;
+
+        return 9;
+
+     label04:
+        $r5 = <ucar.ma2.DataType: ucar.ma2.DataType SHORT>;
+
+        if r0 != $r5 goto label07;
+
+        if z0 == 0 goto label05;
+
+        $b0 = 5;
+
+        goto label06;
+
+     label05:
+        $b0 = 4;
+
+     label06:
+        return $b0;
+
+     label07:
+        $r6 = <ucar.ma2.DataType: ucar.ma2.DataType INT>;
+
+        if r0 != $r6 goto label10;
+
+        if z0 == 0 goto label08;
+
+        $b1 = 7;
+
+        goto label09;
+
+     label08:
+        $b1 = 6;
+
+     label09:
+        return $b1;
+
+     label10:
+        $r7 = <ucar.ma2.DataType: ucar.ma2.DataType BOOLEAN>;
+
+        if r0 != $r7 goto label11;
+
+        return 3;
+
+     label11:
+        $r8 = <ucar.ma2.DataType: ucar.ma2.DataType LONG>;
+
+        if r0 != $r8 goto label12;
+
+        return 6;
+
+     label12:
+        return 10;
+    }
+
+    public static ucar.ma2.DataType convertToNCType(int)
+    {
+        ucar.ma2.DataType $r0, $r1, $r2, $r3, $r4, $r5, $r6, $r7;
+        int i0;
+
+        i0 := @parameter0: int;
+
+        tableswitch(i0)
+        {
+            case 3: goto label1;
+            case 4: goto label4;
+            case 5: goto label5;
+            case 6: goto label6;
+            case 7: goto label7;
+            case 8: goto label2;
+            case 9: goto label3;
+            default: goto label8;
+        };
+
+     label1:
+        $r6 = <ucar.ma2.DataType: ucar.ma2.DataType BYTE>;
+
+        return $r6;
+
+     label2:
+        $r1 = <ucar.ma2.DataType: ucar.ma2.DataType FLOAT>;
+
+        return $r1;
+
+     label3:
+        $r0 = <ucar.ma2.DataType: ucar.ma2.DataType DOUBLE>;
+
+        return $r0;
+
+     label4:
+        $r5 = <ucar.ma2.DataType: ucar.ma2.DataType SHORT>;
+
+        return $r5;
+
+     label5:
+        $r4 = <ucar.ma2.DataType: ucar.ma2.DataType SHORT>;
+
+        return $r4;
+
+     label6:
+        $r3 = <ucar.ma2.DataType: ucar.ma2.DataType INT>;
+
+        return $r3;
+
+     label7:
+        $r2 = <ucar.ma2.DataType: ucar.ma2.DataType INT>;
+
+        return $r2;
+
+     label8:
+        $r7 = <ucar.ma2.DataType: ucar.ma2.DataType STRING>;
+
+        return $r7;
+    }
+
+    public static boolean isUnsigned(int)
+    {
+        int i0;
+        boolean $z0;
+
+        i0 := @parameter0: int;
+
+        if i0 == 3 goto label1;
+
+        if i0 == 5 goto label1;
+
+        if i0 != 7 goto label2;
+
+     label1:
+        $z0 = 1;
+
+        goto label3;
+
+     label2:
+        $z0 = 0;
+
+     label3:
+        return $z0;
+    }
+
+    public static ucar.ma2.DataType convertToNCType(opendap.dap.BaseType)
+    {
+        java.lang.String $r4, $r6;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9, $z10;
+        opendap.dap.BaseType r0;
+        ucar.ma2.DataType $r7, $r8, $r9, $r10, $r11, $r12, $r13, $r14, $r15;
+        java.lang.IllegalArgumentException $r1;
+        java.lang.StringBuilder $r2, $r3, $r5;
+
+        r0 := @parameter0: opendap.dap.BaseType;
+
+        $z0 = r0 instanceof opendap.dap.DString;
+
+        if $z0 == 0 goto label01;
+
+        $r14 = <ucar.ma2.DataType: ucar.ma2.DataType STRING>;
+
+        return $r14;
+
+     label01:
+        $z1 = r0 instanceof opendap.dap.DStructure;
+
+        if $z1 != 0 goto label02;
+
+        $z2 = r0 instanceof opendap.dap.DSequence;
+
+        if $z2 != 0 goto label02;
+
+        $z3 = r0 instanceof opendap.dap.DGrid;
+
+        if $z3 == 0 goto label03;
+
+     label02:
+        $r15 = <ucar.ma2.DataType: ucar.ma2.DataType STRUCTURE>;
+
+        return $r15;
+
+     label03:
+        $z4 = r0 instanceof opendap.dap.DFloat32;
+
+        if $z4 == 0 goto label04;
+
+        $r13 = <ucar.ma2.DataType: ucar.ma2.DataType FLOAT>;
+
+        return $r13;
+
+     label04:
+        $z5 = r0 instanceof opendap.dap.DFloat64;
+
+        if $z5 == 0 goto label05;
+
+        $r12 = <ucar.ma2.DataType: ucar.ma2.DataType DOUBLE>;
+
+        return $r12;
+
+     label05:
+        $z6 = r0 instanceof opendap.dap.DUInt32;
+
+        if $z6 == 0 goto label06;
+
+        $r11 = <ucar.ma2.DataType: ucar.ma2.DataType INT>;
+
+        return $r11;
+
+     label06:
+        $z7 = r0 instanceof opendap.dap.DUInt16;
+
+        if $z7 == 0 goto label07;
+
+        $r10 = <ucar.ma2.DataType: ucar.ma2.DataType SHORT>;
+
+        return $r10;
+
+     label07:
+        $z8 = r0 instanceof opendap.dap.DInt32;
+
+        if $z8 == 0 goto label08;
+
+        $r9 = <ucar.ma2.DataType: ucar.ma2.DataType INT>;
+
+        return $r9;
+
+     label08:
+        $z9 = r0 instanceof opendap.dap.DInt16;
+
+        if $z9 == 0 goto label09;
+
+        $r8 = <ucar.ma2.DataType: ucar.ma2.DataType SHORT>;
+
+        return $r8;
+
+     label09:
+        $z10 = r0 instanceof opendap.dap.DByte;
+
+        if $z10 == 0 goto label10;
+
+        $r7 = <ucar.ma2.DataType: ucar.ma2.DataType BYTE>;
+
+        return $r7;
+
+     label10:
+        $r1 = new java.lang.IllegalArgumentException;
+
+        $r2 = new java.lang.StringBuilder;
+
+        specialinvoke $r2.<java.lang.StringBuilder: void <init>()>();
+
+        $r3 = virtualinvoke $r2.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("DODSVariable illegal type = ");
+
+        $r4 = virtualinvoke r0.<opendap.dap.BaseType: java.lang.String getTypeName()>();
+
+        $r5 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r4);
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r1.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>($r6);
+
+        throw $r1;
+    }
+
+    public static boolean isUnsigned(opendap.dap.BaseType)
+    {
+        opendap.dap.BaseType r0;
+        boolean $z0, $z1, $z2, $z3;
+
+        r0 := @parameter0: opendap.dap.BaseType;
+
+        $z0 = r0 instanceof opendap.dap.DByte;
+
+        if $z0 != 0 goto label1;
+
+        $z1 = r0 instanceof opendap.dap.DUInt16;
+
+        if $z1 != 0 goto label1;
+
+        $z2 = r0 instanceof opendap.dap.DUInt32;
+
+        if $z2 == 0 goto label2;
+
+     label1:
+        $z3 = 1;
+
+        goto label3;
+
+     label2:
+        $z3 = 0;
+
+     label3:
+        return $z3;
+    }
+
+    opendap.dap.DataDDS readDataDDSfromServer(java.lang.String) throws java.io.IOException, opendap.dap.parser.ParseException, opendap.dap.DAP2Exception
+    {
+        long $l0, $l1, l2;
+        opendap.dap.DConnect2 $r1;
+        java.lang.String $r9, $r18, r19;
+        boolean $z0, $z1, $z2, $z3, $z4;
+        double $d0, $d1;
+        java.io.PrintStream $r3, $r4, $r6, $r14;
+        ucar.nc2.dods.DODSNetcdfFile r0;
+        opendap.dap.DataDDS $r2;
+        java.lang.StringBuilder $r5, $r7, $r8, $r10, $r11, $r12, $r13, $r15, $r16, $r17;
+
+        r0 := @this: ucar.nc2.dods.DODSNetcdfFile;
+
+        r19 := @parameter0: java.lang.String;
+
+        $z0 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugServerCall>;
+
+        if $z0 == 0 goto label1;
+
+        $r14 = <java.lang.System: java.io.PrintStream out>;
+
+        $r13 = new java.lang.StringBuilder;
+
+        specialinvoke $r13.<java.lang.StringBuilder: void <init>()>();
+
+        $r15 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("DODSNetcdfFile.readDataDDSfromServer = <");
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r19);
+
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(">");
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r14.<java.io.PrintStream: void println(java.lang.String)>($r18);
+
+     label1:
+        l2 = 0L;
+
+        $z1 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugTime>;
+
+        if $z1 == 0 goto label2;
+
+        l2 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+     label2:
+        $z2 = virtualinvoke r19.<java.lang.String: boolean startsWith(java.lang.String)>("?");
+
+        if $z2 != 0 goto label3;
+
+        $r10 = new java.lang.StringBuilder;
+
+        specialinvoke $r10.<java.lang.StringBuilder: void <init>()>();
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("?");
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r19);
+
+        r19 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.String toString()>();
+
+     label3:
+        $r1 = r0.<ucar.nc2.dods.DODSNetcdfFile: opendap.dap.DConnect2 dodsConnection>;
+
+        $r2 = virtualinvoke $r1.<opendap.dap.DConnect2: opendap.dap.DataDDS getData(java.lang.String,opendap.dap.StatusUI)>(r19, null);
+
+        $z3 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugTime>;
+
+        if $z3 == 0 goto label4;
+
+        $r6 = <java.lang.System: java.io.PrintStream out>;
+
+        $r5 = new java.lang.StringBuilder;
+
+        specialinvoke $r5.<java.lang.StringBuilder: void <init>()>();
+
+        $r7 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("DODSNetcdfFile.readDataDDSfromServer took = ");
+
+        $l0 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        $l1 = $l0 - l2;
+
+        $d0 = (double) $l1;
+
+        $d1 = $d0 / 1000.0;
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(double)>($d1);
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r6.<java.io.PrintStream: void println(java.lang.String)>($r9);
+
+     label4:
+        $z4 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugDataResult>;
+
+        if $z4 == 0 goto label5;
+
+        $r3 = <java.lang.System: java.io.PrintStream out>;
+
+        virtualinvoke $r3.<java.io.PrintStream: void println(java.lang.String)>(" dataDDS return:");
+
+        $r4 = <java.lang.System: java.io.PrintStream out>;
+
+        virtualinvoke $r2.<opendap.dap.DataDDS: void print(java.io.OutputStream)>($r4);
+
+     label5:
+        return $r2;
+    }
+
+    public java.util.List readArrays(java.util.List) throws java.io.IOException
+    {
+        ucar.nc2.dods.ConvertD2N $r11, $r21;
+        opendap.dap.BaseType $r23;
+        java.lang.Exception $r77;
+        opendap.dap.DataDDS $r42;
+        java.lang.StringBuilder $r14, $r16, $r17, $r18, $r26, $r28, $r32, $r34, $r35, $r37, $r49, $r51, $r52, $r54, $r58, $r60, $r71, $r73, $r80, $r81, $r95, $r96, $r98, $r99, $r101, $r102, $r103, $r105;
+        java.lang.Throwable $r68;
+        long $l5;
+        java.util.ArrayList $r92, $r93, $r100;
+        java.lang.String $r15, $r19, $r27, $r29, $r33, $r36, $r38, $r41, $r50, $r53, $r55, $r59, $r61, $r63, $r72, $r74, $r76, $r82, $r84, $r87;
+        opendap.dap.DAP2Exception $r106;
+        java.io.IOException $r97, $r104;
+        ucar.ma2.Array $r39, r90;
+        ucar.nc2.dods.DodsV r8, $r20, $r22, $r43, $r46, $r66, r86, r88, r91;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9;
+        java.util.List r0;
+        ucar.nc2.dods.DODSNetcdfFile r10;
+        java.util.HashMap $r94;
+        int $i0, $i1, $i2, $i3, $i4, $i6, i7;
+        ucar.nc2.Variable r85, r89;
+        java.io.PrintStream $r13, $r25, $r57;
+        org.slf4j.Logger $r31, $r48, $r70, $r79;
+        java.util.Iterator $r2, $r5, $r44;
+        java.lang.Object $r6, $r7, $r9, $r45, $r62, $r64, $r65;
+
+        r10 := @this: ucar.nc2.dods.DODSNetcdfFile;
+
+        r0 := @parameter0: java.util.List;
+
+        $i0 = interfaceinvoke r0.<java.util.List: int size()>();
+
+        if $i0 != 0 goto label01;
+
+        $r92 = new java.util.ArrayList;
+
+        specialinvoke $r92.<java.util.ArrayList: void <init>()>();
+
+        return $r92;
+
+     label01:
+        $r93 = new java.util.ArrayList;
+
+        specialinvoke $r93.<java.util.ArrayList: void <init>()>();
+
+        $r2 = interfaceinvoke r0.<java.util.List: java.util.Iterator iterator()>();
+
+     label02:
+        $z8 = interfaceinvoke $r2.<java.util.Iterator: boolean hasNext()>();
+
+        if $z8 == 0 goto label04;
+
+        $r64 = interfaceinvoke $r2.<java.util.Iterator: java.lang.Object next()>();
+
+        r85 = (ucar.nc2.Variable) $r64;
+
+        $z7 = virtualinvoke r85.<ucar.nc2.Variable: boolean hasCachedData()>();
+
+        if $z7 == 0 goto label03;
+
+        goto label02;
+
+     label03:
+        $r65 = virtualinvoke r85.<ucar.nc2.Variable: java.lang.Object getSPobject()>();
+
+        $r66 = (ucar.nc2.dods.DodsV) $r65;
+
+        interfaceinvoke $r93.<java.util.List: boolean add(java.lang.Object)>($r66);
+
+        goto label02;
+
+     label04:
+        staticinvoke <java.util.Collections: void sort(java.util.List)>($r93);
+
+        $r94 = new java.util.HashMap;
+
+        $i1 = interfaceinvoke $r93.<java.util.List: int size()>();
+
+        $i2 = 2 * $i1;
+
+        $i3 = $i2 + 1;
+
+        specialinvoke $r94.<java.util.HashMap: void <init>(int)>($i3);
+
+        $i4 = interfaceinvoke $r93.<java.util.List: int size()>();
+
+        if $i4 <= 0 goto label16;
+
+        $r95 = new java.lang.StringBuilder;
+
+        specialinvoke $r95.<java.lang.StringBuilder: void <init>()>();
+
+        i7 = 0;
+
+     label05:
+        $i6 = interfaceinvoke $r93.<java.util.List: int size()>();
+
+        if i7 >= $i6 goto label08;
+
+        $r62 = interfaceinvoke $r93.<java.util.List: java.lang.Object get(int)>(i7);
+
+        r86 = (ucar.nc2.dods.DodsV) $r62;
+
+        if i7 != 0 goto label06;
+
+        $r87 = "?";
+
+        goto label07;
+
+     label06:
+        $r87 = ",";
+
+     label07:
+        virtualinvoke $r95.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r87);
+
+        $r63 = specialinvoke r10.<ucar.nc2.dods.DODSNetcdfFile: java.lang.String makeDODSname(ucar.nc2.dods.DodsV)>(r86);
+
+        virtualinvoke $r95.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r63);
+
+        i7 = i7 + 1;
+
+        goto label05;
+
+     label08:
+        $r41 = virtualinvoke $r95.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r42 = virtualinvoke r10.<ucar.nc2.dods.DODSNetcdfFile: opendap.dap.DataDDS readDataDDSfromServer(java.lang.String)>($r41);
+
+        $r43 = staticinvoke <ucar.nc2.dods.DodsV: ucar.nc2.dods.DodsV parseDataDDS(opendap.dap.DataDDS)>($r42);
+
+     label09:
+        goto label11;
+
+     label10:
+        $r77 := @caughtexception;
+
+        $r79 = <ucar.nc2.dods.DODSNetcdfFile: org.slf4j.Logger logger>;
+
+        $r96 = new java.lang.StringBuilder;
+
+        specialinvoke $r96.<java.lang.StringBuilder: void <init>()>();
+
+        $r80 = virtualinvoke $r96.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("ERROR readDataDDSfromServer on ");
+
+        $r81 = virtualinvoke $r80.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r95);
+
+        $r82 = virtualinvoke $r81.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r79.<org.slf4j.Logger: void error(java.lang.String,java.lang.Throwable)>($r82, $r77);
+
+        $r97 = new java.io.IOException;
+
+        $r84 = virtualinvoke $r77.<java.lang.Exception: java.lang.String getMessage()>();
+
+        specialinvoke $r97.<java.io.IOException: void <init>(java.lang.String)>($r84);
+
+        throw $r97;
+
+     label11:
+        $r44 = interfaceinvoke $r93.<java.util.List: java.util.Iterator iterator()>();
+
+     label12:
+        $z5 = interfaceinvoke $r44.<java.util.Iterator: boolean hasNext()>();
+
+        if $z5 == 0 goto label16;
+
+        $r45 = interfaceinvoke $r44.<java.util.Iterator: java.lang.Object next()>();
+
+        r88 = (ucar.nc2.dods.DodsV) $r45;
+
+        $r46 = virtualinvoke $r43.<ucar.nc2.dods.DodsV: ucar.nc2.dods.DodsV findDataV(ucar.nc2.dods.DodsV)>(r88);
+
+        if $r46 == null goto label14;
+
+        $z6 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugConvertData>;
+
+        if $z6 == 0 goto label13;
+
+        $r57 = <java.lang.System: java.io.PrintStream out>;
+
+        $r98 = new java.lang.StringBuilder;
+
+        specialinvoke $r98.<java.lang.StringBuilder: void <init>()>();
+
+        $r58 = virtualinvoke $r98.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("readArray found dataV= ");
+
+        $r59 = specialinvoke r10.<ucar.nc2.dods.DODSNetcdfFile: java.lang.String makeDODSname(ucar.nc2.dods.DodsV)>(r88);
+
+        $r60 = virtualinvoke $r58.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r59);
+
+        $r61 = virtualinvoke $r60.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r57.<java.io.PrintStream: void println(java.lang.String)>($r61);
+
+     label13:
+        $r46.<ucar.nc2.dods.DodsV: boolean isDone> = 1;
+
+        interfaceinvoke $r94.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>(r88, $r46);
+
+        goto label15;
+
+     label14:
+        $r48 = <ucar.nc2.dods.DODSNetcdfFile: org.slf4j.Logger logger>;
+
+        $r99 = new java.lang.StringBuilder;
+
+        specialinvoke $r99.<java.lang.StringBuilder: void <init>()>();
+
+        $r49 = virtualinvoke $r99.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("ERROR findDataV cant find ");
+
+        $r50 = specialinvoke r10.<ucar.nc2.dods.DODSNetcdfFile: java.lang.String makeDODSname(ucar.nc2.dods.DodsV)>(r88);
+
+        $r51 = virtualinvoke $r49.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r50);
+
+        $r52 = virtualinvoke $r51.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" on ");
+
+        $r53 = r10.<ucar.nc2.dods.DODSNetcdfFile: java.lang.String location>;
+
+        $r54 = virtualinvoke $r52.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r53);
+
+        $r55 = virtualinvoke $r54.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r48.<org.slf4j.Logger: void error(java.lang.String)>($r55);
+
+     label15:
+        goto label12;
+
+     label16:
+        $r100 = new java.util.ArrayList;
+
+        specialinvoke $r100.<java.util.ArrayList: void <init>()>();
+
+        $r5 = interfaceinvoke r0.<java.util.List: java.util.Iterator iterator()>();
+
+     label17:
+        $z9 = interfaceinvoke $r5.<java.util.Iterator: boolean hasNext()>();
+
+        if $z9 == 0 goto label30;
+
+        $r6 = interfaceinvoke $r5.<java.util.Iterator: java.lang.Object next()>();
+
+        r89 = (ucar.nc2.Variable) $r6;
+
+        $z0 = virtualinvoke r89.<ucar.nc2.Variable: boolean hasCachedData()>();
+
+        if $z0 == 0 goto label18;
+
+        $r39 = virtualinvoke r89.<ucar.nc2.Variable: ucar.ma2.Array read()>();
+
+        interfaceinvoke $r100.<java.util.List: boolean add(java.lang.Object)>($r39);
+
+        goto label29;
+
+     label18:
+        r90 = null;
+
+        $r7 = virtualinvoke r89.<ucar.nc2.Variable: java.lang.Object getSPobject()>();
+
+        r8 = (ucar.nc2.dods.DodsV) $r7;
+
+        $r9 = interfaceinvoke $r94.<java.util.Map: java.lang.Object get(java.lang.Object)>(r8);
+
+        r91 = (ucar.nc2.dods.DodsV) $r9;
+
+        if r91 != null goto label19;
+
+        $r31 = <ucar.nc2.dods.DODSNetcdfFile: org.slf4j.Logger logger>;
+
+        $r101 = new java.lang.StringBuilder;
+
+        specialinvoke $r101.<java.lang.StringBuilder: void <init>()>();
+
+        $r32 = virtualinvoke $r101.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("DODSNetcdfFile.readArrays cant find ");
+
+        $r33 = specialinvoke r10.<ucar.nc2.dods.DODSNetcdfFile: java.lang.String makeDODSname(ucar.nc2.dods.DodsV)>(r8);
+
+        $r34 = virtualinvoke $r32.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r33);
+
+        $r35 = virtualinvoke $r34.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" in dataDDS; ");
+
+        $r36 = r10.<ucar.nc2.dods.DODSNetcdfFile: java.lang.String location>;
+
+        $r37 = virtualinvoke $r35.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r36);
+
+        $r38 = virtualinvoke $r37.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r31.<org.slf4j.Logger: void error(java.lang.String)>($r38);
+
+        goto label28;
+
+     label19:
+        $z1 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugConvertData>;
+
+        if $z1 == 0 goto label20;
+
+        $r25 = <java.lang.System: java.io.PrintStream out>;
+
+        $r102 = new java.lang.StringBuilder;
+
+        specialinvoke $r102.<java.lang.StringBuilder: void <init>()>();
+
+        $r26 = virtualinvoke $r102.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("readArray converting ");
+
+        $r27 = specialinvoke r10.<ucar.nc2.dods.DODSNetcdfFile: java.lang.String makeDODSname(ucar.nc2.dods.DodsV)>(r8);
+
+        $r28 = virtualinvoke $r26.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r27);
+
+        $r29 = virtualinvoke $r28.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r25.<java.io.PrintStream: void println(java.lang.String)>($r29);
+
+     label20:
+        r91.<ucar.nc2.dods.DodsV: boolean isDone> = 1;
+
+     label21:
+        $z2 = virtualinvoke r89.<ucar.nc2.Variable: boolean isMemberOfStructure()>();
+
+        if $z2 == 0 goto label24;
+
+     label22:
+        $r20 = r91.<ucar.nc2.dods.DodsV: ucar.nc2.dods.DodsV parent>;
+
+        if $r20 == null goto label23;
+
+        $r22 = r91.<ucar.nc2.dods.DodsV: ucar.nc2.dods.DodsV parent>;
+
+        $r23 = $r22.<ucar.nc2.dods.DodsV: opendap.dap.BaseType bt>;
+
+        if $r23 == null goto label23;
+
+        r91 = r91.<ucar.nc2.dods.DodsV: ucar.nc2.dods.DodsV parent>;
+
+        goto label22;
+
+     label23:
+        $r21 = r10.<ucar.nc2.dods.DODSNetcdfFile: ucar.nc2.dods.ConvertD2N convertD2N>;
+
+        r90 = virtualinvoke $r21.<ucar.nc2.dods.ConvertD2N: ucar.ma2.Array convertNestedVariable(ucar.nc2.Variable,java.util.List,ucar.nc2.dods.DodsV,boolean)>(r89, null, r91, 1);
+
+        goto label25;
+
+     label24:
+        $r11 = r10.<ucar.nc2.dods.DODSNetcdfFile: ucar.nc2.dods.ConvertD2N convertD2N>;
+
+        r90 = virtualinvoke $r11.<ucar.nc2.dods.ConvertD2N: ucar.ma2.Array convertTopVariable(ucar.nc2.Variable,java.util.List,ucar.nc2.dods.DodsV)>(r89, null, r91);
+
+     label25:
+        goto label27;
+
+     label26:
+        $r68 := @caughtexception;
+
+        $r70 = <ucar.nc2.dods.DODSNetcdfFile: org.slf4j.Logger logger>;
+
+        $r103 = new java.lang.StringBuilder;
+
+        specialinvoke $r103.<java.lang.StringBuilder: void <init>()>();
+
+        $r71 = virtualinvoke $r103.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("ERROR convertVariable on ");
+
+        $r72 = virtualinvoke r89.<ucar.nc2.Variable: java.lang.String getName()>();
+
+        $r73 = virtualinvoke $r71.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r72);
+
+        $r74 = virtualinvoke $r73.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r70.<org.slf4j.Logger: void error(java.lang.String,java.lang.Throwable)>($r74, $r68);
+
+        $r104 = new java.io.IOException;
+
+        $r106 = (opendap.dap.DAP2Exception) $r68;
+
+        $r76 = virtualinvoke $r106.<opendap.dap.DAP2Exception: java.lang.String getMessage()>();
+
+        specialinvoke $r104.<java.io.IOException: void <init>(java.lang.String)>($r76);
+
+        throw $r104;
+
+     label27:
+        $z3 = virtualinvoke r89.<ucar.nc2.Variable: boolean isCaching()>();
+
+        if $z3 == 0 goto label28;
+
+        virtualinvoke r89.<ucar.nc2.Variable: void setCachedData(ucar.ma2.Array)>(r90);
+
+        $z4 = <ucar.nc2.dods.DODSNetcdfFile: boolean debugCached>;
+
+        if $z4 == 0 goto label28;
+
+        $r13 = <java.lang.System: java.io.PrintStream out>;
+
+        $r105 = new java.lang.StringBuilder;
+
+        specialinvoke $r105.<java.lang.StringBuilder: void <init>()>();
+
+        $r14 = virtualinvoke $r105.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" cache for <");
+
+        $r15 = virtualinvoke r89.<ucar.nc2.Variable: java.lang.String getName()>();
+
+        $r16 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r15);
+
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("> length =");
+
+        $l5 = virtualinvoke r90.<ucar.ma2.Array: long getSize()>();
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l5);
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r13.<java.io.PrintStream: void println(java.lang.String)>($r19);
+
+     label28:
+        interfaceinvoke $r100.<java.util.List: boolean add(java.lang.Object)>(r90);
+
+     label29:
+        goto label17;
+
+     label30:
+        return $r100;
+
+        catch java.lang.Exception from label08 to label09 with label10;
+        catch opendap.dap.DAP2Exception from label21 to label25 with label26;
+    }
+
+    public ucar.ma2.Array readSection(java.lang.String) throws java.io.IOException, ucar.ma2.InvalidRangeException
+    {
+        java.lang.IllegalStateException $r6;
+        ucar.ma2.Section $r3;
+        ucar.ma2.Array $r5;
+        ucar.nc2.dods.DODSNetcdfFile r0;
+        ucar.nc2.ParsedSectionSpec $r2;
+        ucar.nc2.Variable $r4;
+        java.lang.String r1;
+        boolean $z0;
+
+        r0 := @this: ucar.nc2.dods.DODSNetcdfFile;
+
+        r1 := @parameter0: java.lang.String;
+
+        $r2 = staticinvoke <ucar.nc2.ParsedSectionSpec: ucar.nc2.ParsedSectionSpec parseVariableSection(ucar.nc2.NetcdfFile,java.lang.String)>(r0, r1);
+
+        $z0 = r0.<ucar.nc2.dods.DODSNetcdfFile: boolean unlocked>;
+
+        if $z0 == 0 goto label1;
+
+        $r6 = new java.lang.IllegalStateException;
+
+        specialinvoke $r6.<java.lang.IllegalStateException: void <init>(java.lang.String)>("File is unlocked - cannot use");
+
+        throw $r6;
+
+     label1:
+        $r4 = $r2.<ucar.nc2.ParsedSectionSpec: ucar.nc2.Variable v>;
+
+        $r3 = $r2.<ucar.nc2.ParsedSectionSpec: ucar.ma2.Section section>;
+
+        $r5 = virtualinvoke r0.<ucar.nc2.dods.DODSNetcdfFile: ucar.ma2.Array readData(ucar.nc2.Variable,ucar.ma2.Section)>($r4, $r3);
+
+        return $r5;
+    }
+
+    protected ucar.ma2.Array readData(ucar.nc2.Variable, ucar.ma2.Section) throws java.io.IOException, ucar.ma2.InvalidRangeException
+    {
+        java.lang.IllegalStateException $r25;
+        opendap.dap.parser.ParseException $r31, $r32;
+        ucar.nc2.dods.ConvertD2N $r22;
+        boolean $z0, $z1;
+        ucar.ma2.DataType $r6, $r7;
+        ucar.nc2.dods.DODSNetcdfFile r0;
+        java.util.List $r5, r15, $r19, $r23;
+        opendap.dap.DataDDS $r17;
+        java.lang.StringBuilder $r26;
+        java.lang.Throwable $r9, $r12;
+        ucar.ma2.Section r4;
+        int $i0, $i1, $i2;
+        ucar.nc2.Variable r2;
+        java.lang.String $r3, $r11, $r14, $r16;
+        opendap.dap.DAP2Exception $r29, $r30;
+        java.io.IOException $r27, $r28;
+        ucar.ma2.Array $r24;
+        ucar.nc2.dods.DodsV $r18, $r21;
+        java.lang.Object $r20;
+
+        r0 := @this: ucar.nc2.dods.DODSNetcdfFile;
+
+        r2 := @parameter0: ucar.nc2.Variable;
+
+        r4 := @parameter1: ucar.ma2.Section;
+
+        $z0 = r0.<ucar.nc2.dods.DODSNetcdfFile: boolean unlocked>;
+
+        if $z0 == 0 goto label1;
+
+        $r25 = new java.lang.IllegalStateException;
+
+        specialinvoke $r25.<java.lang.IllegalStateException: void <init>(java.lang.String)>("File is unlocked - cannot use");
+
+        throw $r25;
+
+     label1:
+        $r26 = new java.lang.StringBuilder;
+
+        specialinvoke $r26.<java.lang.StringBuilder: void <init>(int)>(100);
+
+        virtualinvoke $r26.<java.lang.StringBuilder: void setLength(int)>(0);
+
+        $r3 = staticinvoke <ucar.nc2.dods.DODSNetcdfFile: java.lang.String getDODSshortName(ucar.nc2.Variable)>(r2);
+
+        virtualinvoke $r26.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r3);
+
+        $z1 = virtualinvoke r2.<ucar.nc2.Variable: boolean isVariableLength()>();
+
+        if $z1 != 0 goto label3;
+
+        $r5 = virtualinvoke r4.<ucar.ma2.Section: java.util.List getRanges()>();
+
+        r15 = $r5;
+
+        $r6 = virtualinvoke r2.<ucar.nc2.Variable: ucar.ma2.DataType getDataType()>();
+
+        $r7 = <ucar.ma2.DataType: ucar.ma2.DataType CHAR>;
+
+        if $r6 != $r7 goto label2;
+
+        $i0 = virtualinvoke r4.<ucar.ma2.Section: int getRank()>();
+
+        $i1 = virtualinvoke r2.<ucar.nc2.Variable: int getRank()>();
+
+        if $i0 != $i1 goto label2;
+
+        $i2 = $i0 - 1;
+
+        r15 = interfaceinvoke $r5.<java.util.List: java.util.List subList(int,int)>(0, $i2);
+
+     label2:
+        specialinvoke r0.<ucar.nc2.dods.DODSNetcdfFile: void makeSelector(java.lang.StringBuilder,java.util.List)>($r26, r15);
+
+     label3:
+        $r16 = virtualinvoke $r26.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r17 = virtualinvoke r0.<ucar.nc2.dods.DODSNetcdfFile: opendap.dap.DataDDS readDataDDSfromServer(java.lang.String)>($r16);
+
+        $r18 = staticinvoke <ucar.nc2.dods.DodsV: ucar.nc2.dods.DodsV parseDataDDS(opendap.dap.DataDDS)>($r17);
+
+        $r19 = $r18.<ucar.nc2.dods.DodsV: java.util.List children>;
+
+        $r20 = interfaceinvoke $r19.<java.util.List: java.lang.Object get(int)>(0);
+
+        $r21 = (ucar.nc2.dods.DodsV) $r20;
+
+        $r22 = r0.<ucar.nc2.dods.DODSNetcdfFile: ucar.nc2.dods.ConvertD2N convertD2N>;
+
+        $r23 = virtualinvoke r4.<ucar.ma2.Section: java.util.List getRanges()>();
+
+        $r24 = virtualinvoke $r22.<ucar.nc2.dods.ConvertD2N: ucar.ma2.Array convertTopVariable(ucar.nc2.Variable,java.util.List,ucar.nc2.dods.DodsV)>(r2, $r23, $r21);
+
+     label4:
+        goto label7;
+
+     label5:
+        $r12 := @caughtexception;
+
+        $r29 = (opendap.dap.DAP2Exception) $r12;
+
+        virtualinvoke $r29.<opendap.dap.DAP2Exception: void printStackTrace()>();
+
+        $r27 = new java.io.IOException;
+
+        $r30 = (opendap.dap.DAP2Exception) $r12;
+
+        $r14 = virtualinvoke $r30.<opendap.dap.DAP2Exception: java.lang.String getMessage()>();
+
+        specialinvoke $r27.<java.io.IOException: void <init>(java.lang.String)>($r14);
+
+        throw $r27;
+
+     label6:
+        $r9 := @caughtexception;
+
+        $r31 = (opendap.dap.parser.ParseException) $r9;
+
+        virtualinvoke $r31.<opendap.dap.parser.ParseException: void printStackTrace()>();
+
+        $r28 = new java.io.IOException;
+
+        $r32 = (opendap.dap.parser.ParseException) $r9;
+
+        $r11 = virtualinvoke $r32.<opendap.dap.parser.ParseException: java.lang.String getMessage()>();
+
+        specialinvoke $r28.<java.io.IOException: void <init>(java.lang.String)>($r11);
+
+        throw $r28;
+
+     label7:
+        return $r24;
+
+        catch opendap.dap.DAP2Exception from label3 to label4 with label5;
+        catch opendap.dap.parser.ParseException from label3 to label4 with label6;
+    }
+
+    public long readToByteChannel(ucar.nc2.Variable, ucar.ma2.Section, java.nio.channels.WritableByteChannel) throws java.io.IOException, ucar.ma2.InvalidRangeException
+    {
+        java.lang.IllegalStateException $r5;
+        ucar.ma2.Section r2;
+        long $l0;
+        ucar.ma2.Array $r3;
+        ucar.nc2.dods.DODSNetcdfFile r0;
+        java.nio.channels.WritableByteChannel r4;
+        ucar.nc2.Variable r1;
+        boolean $z0;
+
+        r0 := @this: ucar.nc2.dods.DODSNetcdfFile;
+
+        r1 := @parameter0: ucar.nc2.Variable;
+
+        r2 := @parameter1: ucar.ma2.Section;
+
+        r4 := @parameter2: java.nio.channels.WritableByteChannel;
+
+        $z0 = r0.<ucar.nc2.dods.DODSNetcdfFile: boolean unlocked>;
+
+        if $z0 == 0 goto label1;
+
+        $r5 = new java.lang.IllegalStateException;
+
+        specialinvoke $r5.<java.lang.IllegalStateException: void <init>(java.lang.String)>("File is unlocked - cannot use");
+
+        throw $r5;
+
+     label1:
+        $r3 = virtualinvoke r0.<ucar.nc2.dods.DODSNetcdfFile: ucar.ma2.Array readData(ucar.nc2.Variable,ucar.ma2.Section)>(r1, r2);
+
+        $l0 = staticinvoke <ucar.nc2.iosp.IospHelper: long transferData(ucar.ma2.Array,java.nio.channels.WritableByteChannel)>($r3, r4);
+
+        return $l0;
+    }
+
+    public ucar.ma2.Array readWithCE(ucar.nc2.Variable, java.lang.String) throws java.io.IOException
+    {
+        java.lang.Throwable $r10, $r13;
+        opendap.dap.parser.ParseException $r21, $r22;
+        ucar.nc2.dods.ConvertD2N $r8, $r9;
+        ucar.nc2.Variable r7;
+        java.lang.String r1, $r12, $r15;
+        opendap.dap.DAP2Exception $r19, $r20;
+        boolean $z0;
+        java.io.IOException $r17, $r18;
+        ucar.ma2.Array r16;
+        ucar.nc2.dods.DODSNetcdfFile r0;
+        ucar.nc2.dods.DodsV $r3, r6;
+        java.util.List $r4;
+        opendap.dap.DataDDS $r2;
+        java.lang.Object $r5;
+
+        r0 := @this: ucar.nc2.dods.DODSNetcdfFile;
+
+        r7 := @parameter0: ucar.nc2.Variable;
+
+        r1 := @parameter1: java.lang.String;
+
+     label1:
+        $r2 = virtualinvoke r0.<ucar.nc2.dods.DODSNetcdfFile: opendap.dap.DataDDS readDataDDSfromServer(java.lang.String)>(r1);
+
+        $r3 = staticinvoke <ucar.nc2.dods.DodsV: ucar.nc2.dods.DodsV parseDataDDS(opendap.dap.DataDDS)>($r2);
+
+        $r4 = $r3.<ucar.nc2.dods.DodsV: java.util.List children>;
+
+        $r5 = interfaceinvoke $r4.<java.util.List: java.lang.Object get(int)>(0);
+
+        r6 = (ucar.nc2.dods.DodsV) $r5;
+
+        $z0 = virtualinvoke r7.<ucar.nc2.Variable: boolean isMemberOfStructure()>();
+
+        if $z0 == 0 goto label2;
+
+        $r9 = r0.<ucar.nc2.dods.DODSNetcdfFile: ucar.nc2.dods.ConvertD2N convertD2N>;
+
+        r16 = virtualinvoke $r9.<ucar.nc2.dods.ConvertD2N: ucar.ma2.Array convertNestedVariable(ucar.nc2.Variable,java.util.List,ucar.nc2.dods.DodsV,boolean)>(r7, null, r6, 1);
+
+        goto label3;
+
+     label2:
+        $r8 = r0.<ucar.nc2.dods.DODSNetcdfFile: ucar.nc2.dods.ConvertD2N convertD2N>;
+
+        r16 = virtualinvoke $r8.<ucar.nc2.dods.ConvertD2N: ucar.ma2.Array convertTopVariable(ucar.nc2.Variable,java.util.List,ucar.nc2.dods.DodsV)>(r7, null, r6);
+
+     label3:
+        goto label6;
+
+     label4:
+        $r13 := @caughtexception;
+
+        $r19 = (opendap.dap.DAP2Exception) $r13;
+
+        virtualinvoke $r19.<opendap.dap.DAP2Exception: void printStackTrace()>();
+
+        $r17 = new java.io.IOException;
+
+        $r20 = (opendap.dap.DAP2Exception) $r13;
+
+        $r15 = virtualinvoke $r20.<opendap.dap.DAP2Exception: java.lang.String getMessage()>();
+
+        specialinvoke $r17.<java.io.IOException: void <init>(java.lang.String)>($r15);
+
+        throw $r17;
+
+     label5:
+        $r10 := @caughtexception;
+
+        $r21 = (opendap.dap.parser.ParseException) $r10;
+
+        virtualinvoke $r21.<opendap.dap.parser.ParseException: void printStackTrace()>();
+
+        $r18 = new java.io.IOException;
+
+        $r22 = (opendap.dap.parser.ParseException) $r10;
+
+        $r12 = virtualinvoke $r22.<opendap.dap.parser.ParseException: java.lang.String getMessage()>();
+
+        specialinvoke $r18.<java.io.IOException: void <init>(java.lang.String)>($r12);
+
+        throw $r18;
+
+     label6:
+        return r16;
+
+        catch opendap.dap.DAP2Exception from label1 to label3 with label4;
+        catch opendap.dap.parser.ParseException from label1 to label3 with label5;
+    }
+
+    private int addParents(java.lang.StringBuilder, ucar.nc2.Variable, java.util.List, int)
+    {
+        ucar.nc2.Structure $r1;
+        java.util.List r2, $r3;
+        ucar.nc2.dods.DODSNetcdfFile r6;
+        int $i0, $i1, $i2, $i3, i4;
+        ucar.nc2.Variable r0;
+        java.lang.StringBuilder r4;
+        java.lang.String $r5;
+        boolean $z0;
+
+        r6 := @this: ucar.nc2.dods.DODSNetcdfFile;
+
+        r4 := @parameter0: java.lang.StringBuilder;
+
+        r0 := @parameter1: ucar.nc2.Variable;
+
+        r2 := @parameter2: java.util.List;
+
+        i4 := @parameter3: int;
+
+        $r1 = virtualinvoke r0.<ucar.nc2.Variable: ucar.nc2.Structure getParentStructure()>();
+
+        if $r1 == null goto label1;
+
+        i4 = specialinvoke r6.<ucar.nc2.dods.DODSNetcdfFile: int addParents(java.lang.StringBuilder,ucar.nc2.Variable,java.util.List,int)>(r4, $r1, r2, i4);
+
+        virtualinvoke r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(".");
+
+     label1:
+        $i0 = virtualinvoke r0.<ucar.nc2.Variable: int getRank()>();
+
+        $i1 = i4 + $i0;
+
+        $r3 = interfaceinvoke r2.<java.util.List: java.util.List subList(int,int)>(i4, $i1);
+
+        $r5 = staticinvoke <ucar.nc2.dods.DODSNetcdfFile: java.lang.String getDODSshortName(ucar.nc2.Variable)>(r0);
+
+        virtualinvoke r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r5);
+
+        $z0 = virtualinvoke r0.<ucar.nc2.Variable: boolean isVariableLength()>();
+
+        if $z0 != 0 goto label2;
+
+        specialinvoke r6.<ucar.nc2.dods.DODSNetcdfFile: void makeSelector(java.lang.StringBuilder,java.util.List)>(r4, $r3);
+
+     label2:
+        $i2 = virtualinvoke r0.<ucar.nc2.Variable: int getRank()>();
+
+        $i3 = i4 + $i2;
+
+        return $i3;
+    }
+
+    private void makeSelector(java.lang.StringBuilder, java.util.List)
+    {
+        ucar.ma2.Range r3;
+        java.util.Iterator $r1;
+        java.util.List r0;
+        ucar.nc2.dods.DODSNetcdfFile r5;
+        int $i0, $i1, $i2;
+        java.lang.Object $r2;
+        java.lang.StringBuilder r4;
+        boolean $z0;
+
+        r5 := @this: ucar.nc2.dods.DODSNetcdfFile;
+
+        r4 := @parameter0: java.lang.StringBuilder;
+
+        r0 := @parameter1: java.util.List;
+
+        $r1 = interfaceinvoke r0.<java.util.List: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r1.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label2;
+
+        $r2 = interfaceinvoke $r1.<java.util.Iterator: java.lang.Object next()>();
+
+        r3 = (ucar.ma2.Range) $r2;
+
+        virtualinvoke r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("[");
+
+        $i0 = virtualinvoke r3.<ucar.ma2.Range: int first()>();
+
+        virtualinvoke r4.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i0);
+
+        virtualinvoke r4.<java.lang.StringBuilder: java.lang.StringBuilder append(char)>(58);
+
+        $i1 = virtualinvoke r3.<ucar.ma2.Range: int stride()>();
+
+        virtualinvoke r4.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i1);
+
+        virtualinvoke r4.<java.lang.StringBuilder: java.lang.StringBuilder append(char)>(58);
+
+        $i2 = virtualinvoke r3.<ucar.ma2.Range: int last()>();
+
+        virtualinvoke r4.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i2);
+
+        virtualinvoke r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("]");
+
+        goto label1;
+
+     label2:
+        return;
+    }
+
+    public void getDetailInfo(java.util.Formatter)
+    {
+        opendap.dap.DAS $r9;
+        java.lang.Object[] $r2, $r5, $r7, $r10;
+        java.io.ByteArrayOutputStream $r3, $r8;
+        opendap.dap.DDS $r4;
+        java.util.Formatter r1;
+        ucar.nc2.dods.DODSNetcdfFile r0;
+        java.lang.String $r6, $r11;
+
+        r0 := @this: ucar.nc2.dods.DODSNetcdfFile;
+
+        r1 := @parameter0: java.util.Formatter;
+
+        specialinvoke r0.<ucar.nc2.NetcdfFile: void getDetailInfo(java.util.Formatter)>(r1);
+
+        $r2 = newarray (java.lang.Object)[0];
+
+        virtualinvoke r1.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("DDS = %n", $r2);
+
+        $r3 = new java.io.ByteArrayOutputStream;
+
+        specialinvoke $r3.<java.io.ByteArrayOutputStream: void <init>(int)>(8000);
+
+        $r4 = r0.<ucar.nc2.dods.DODSNetcdfFile: opendap.dap.DDS dds>;
+
+        virtualinvoke $r4.<opendap.dap.DDS: void print(java.io.OutputStream)>($r3);
+
+        $r5 = newarray (java.lang.Object)[1];
+
+        $r6 = virtualinvoke $r3.<java.io.ByteArrayOutputStream: java.lang.String toString()>();
+
+        $r5[0] = $r6;
+
+        virtualinvoke r1.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("%s%n", $r5);
+
+        $r7 = newarray (java.lang.Object)[0];
+
+        virtualinvoke r1.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("%nDAS = %n", $r7);
+
+        $r8 = new java.io.ByteArrayOutputStream;
+
+        specialinvoke $r8.<java.io.ByteArrayOutputStream: void <init>(int)>(8000);
+
+        $r9 = r0.<ucar.nc2.dods.DODSNetcdfFile: opendap.dap.DAS das>;
+
+        virtualinvoke $r9.<opendap.dap.DAS: void print(java.io.OutputStream)>($r8);
+
+        $r10 = newarray (java.lang.Object)[1];
+
+        $r11 = virtualinvoke $r8.<java.io.ByteArrayOutputStream: java.lang.String toString()>();
+
+        $r10[0] = $r11;
+
+        virtualinvoke r1.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("%s%n", $r10);
+
+        return;
+    }
+
+    public java.lang.String getFileTypeId()
+    {
+        ucar.nc2.dods.DODSNetcdfFile r0;
+
+        r0 := @this: ucar.nc2.dods.DODSNetcdfFile;
+
+        return "OPeNDAP";
+    }
+
+    public java.lang.String getFileTypeDescription()
+    {
+        ucar.nc2.dods.DODSNetcdfFile r0;
+
+        r0 := @this: ucar.nc2.dods.DODSNetcdfFile;
+
+        return "Open-source Project for a Network Data Access Protocol";
+    }
+
+    public static void main(java.lang.String[])
+    {
+        java.io.PrintStream $r2, $r10;
+        java.lang.String[] r14;
+        java.lang.Exception $r8;
+        ucar.nc2.dods.DODSNetcdfFile $r0;
+        java.lang.StringBuilder $r1, $r3, $r4, $r5, $r6, $r9, $r11, $r12;
+        java.lang.String $r7, $r13;
+
+        r14 := @parameter0: java.lang.String[];
+
+     label1:
+        $r0 = new ucar.nc2.dods.DODSNetcdfFile;
+
+        specialinvoke $r0.<ucar.nc2.dods.DODSNetcdfFile: void <init>(java.lang.String,ucar.nc2.util.CancelTask)>("http://localhost:8080/thredds/dodsC/testContent/testData.nc.ascii?reftime[0:1:0]", null);
+
+        $r2 = <java.lang.System: java.io.PrintStream out>;
+
+        $r1 = new java.lang.StringBuilder;
+
+        specialinvoke $r1.<java.lang.StringBuilder: void <init>()>();
+
+        $r3 = virtualinvoke $r1.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("dods file = ");
+
+        $r4 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("http://localhost:8080/thredds/dodsC/testContent/testData.nc.ascii?reftime[0:1:0]");
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("\n");
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r0);
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r2.<java.io.PrintStream: void println(java.lang.String)>($r7);
+
+     label2:
+        goto label4;
+
+     label3:
+        $r8 := @caughtexception;
+
+        $r10 = <java.lang.System: java.io.PrintStream out>;
+
+        $r9 = new java.lang.StringBuilder;
+
+        specialinvoke $r9.<java.lang.StringBuilder: void <init>()>();
+
+        $r11 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("error = ");
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("http://localhost:8080/thredds/dodsC/testContent/testData.nc.ascii?reftime[0:1:0]");
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r10.<java.io.PrintStream: void println(java.lang.String)>($r13);
+
+        virtualinvoke $r8.<java.lang.Exception: void printStackTrace()>();
+
+     label4:
+        return;
+
+        catch java.lang.Exception from label1 to label2 with label3;
+    }
+
+    static void <clinit>()
+    {
+        int $i1;
+        org.slf4j.Logger $r0;
+
+        <ucar.nc2.dods.DODSNetcdfFile: boolean debugCE> = 0;
+
+        <ucar.nc2.dods.DODSNetcdfFile: boolean debugServerCall> = 0;
+
+        <ucar.nc2.dods.DODSNetcdfFile: boolean debugOpenResult> = 0;
+
+        <ucar.nc2.dods.DODSNetcdfFile: boolean debugDataResult> = 0;
+
+        <ucar.nc2.dods.DODSNetcdfFile: boolean debugCharArray> = 0;
+
+        <ucar.nc2.dods.DODSNetcdfFile: boolean debugConvertData> = 0;
+
+        <ucar.nc2.dods.DODSNetcdfFile: boolean debugConstruct> = 0;
+
+        <ucar.nc2.dods.DODSNetcdfFile: boolean debugPreload> = 0;
+
+        <ucar.nc2.dods.DODSNetcdfFile: boolean debugTime> = 0;
+
+        <ucar.nc2.dods.DODSNetcdfFile: boolean showNCfile> = 0;
+
+        <ucar.nc2.dods.DODSNetcdfFile: boolean debugAttributes> = 0;
+
+        <ucar.nc2.dods.DODSNetcdfFile: boolean debugCached> = 0;
+
+        <ucar.nc2.dods.DODSNetcdfFile: boolean debugOpenTime> = 0;
+
+        <ucar.nc2.dods.DODSNetcdfFile: boolean accept_compress> = 0;
+
+        <ucar.nc2.dods.DODSNetcdfFile: boolean preload> = 1;
+
+        <ucar.nc2.dods.DODSNetcdfFile: boolean useGroups> = 0;
+
+        $i1 = (int) 50000;
+
+        <ucar.nc2.dods.DODSNetcdfFile: int preloadCoordVarSize> = $i1;
+
+        $r0 = staticinvoke <org.slf4j.LoggerFactory: org.slf4j.Logger getLogger(java.lang.Class)>(class "Lucar/nc2/dods/DODSNetcdfFile;");
+
+        <ucar.nc2.dods.DODSNetcdfFile: org.slf4j.Logger logger> = $r0;
+
+        return;
+    }
+}

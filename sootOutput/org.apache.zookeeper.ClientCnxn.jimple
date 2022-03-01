@@ -1,0 +1,1424 @@
+public class org.apache.zookeeper.ClientCnxn extends java.lang.Object
+{
+    private static final org.slf4j.Logger LOG;
+    private static boolean disableAutoWatchReset;
+    private final java.util.concurrent.CopyOnWriteArraySet authInfo;
+    private final java.util.LinkedList pendingQueue;
+    private final java.util.LinkedList outgoingQueue;
+    private int connectTimeout;
+    private volatile int negotiatedSessionTimeout;
+    private int readTimeout;
+    private final int sessionTimeout;
+    private final org.apache.zookeeper.ZooKeeper zooKeeper;
+    private final org.apache.zookeeper.ClientWatchManager watcher;
+    private long sessionId;
+    private byte[] sessionPasswd;
+    private boolean readOnly;
+    final java.lang.String chrootPath;
+    final org.apache.zookeeper.ClientCnxn$SendThread sendThread;
+    final org.apache.zookeeper.ClientCnxn$EventThread eventThread;
+    private volatile boolean closing;
+    private final org.apache.zookeeper.client.HostProvider hostProvider;
+    volatile boolean seenRwServerBefore;
+    public org.apache.zookeeper.client.ZooKeeperSaslClient zooKeeperSaslClient;
+    private java.lang.Object eventOfDeath;
+    private static final java.lang.Thread$UncaughtExceptionHandler uncaughtExceptionHandler;
+    private volatile long lastZxid;
+    public static final int packetLen;
+    private int xid;
+    private volatile org.apache.zookeeper.ZooKeeper$States state;
+
+    public long getSessionId()
+    {
+        org.apache.zookeeper.ClientCnxn r0;
+        long $l0;
+
+        r0 := @this: org.apache.zookeeper.ClientCnxn;
+
+        $l0 = r0.<org.apache.zookeeper.ClientCnxn: long sessionId>;
+
+        return $l0;
+    }
+
+    public byte[] getSessionPasswd()
+    {
+        org.apache.zookeeper.ClientCnxn r0;
+        byte[] $r1;
+
+        r0 := @this: org.apache.zookeeper.ClientCnxn;
+
+        $r1 = r0.<org.apache.zookeeper.ClientCnxn: byte[] sessionPasswd>;
+
+        return $r1;
+    }
+
+    public int getSessionTimeout()
+    {
+        org.apache.zookeeper.ClientCnxn r0;
+        int $i0;
+
+        r0 := @this: org.apache.zookeeper.ClientCnxn;
+
+        $i0 = r0.<org.apache.zookeeper.ClientCnxn: int negotiatedSessionTimeout>;
+
+        return $i0;
+    }
+
+    public java.lang.String toString()
+    {
+        java.net.SocketAddress $r4, $r7;
+        org.apache.zookeeper.ClientCnxn$SendThread $r2, $r5, $r20, $r24;
+        org.apache.zookeeper.ClientCnxnSocket $r3, $r6, $r21, $r25;
+        java.util.concurrent.LinkedBlockingQueue $r35;
+        java.lang.StringBuilder $r0, $r8, $r10, $r11, $r12, $r13, $r14, $r15, $r16, $r17, $r18, $r19, $r22, $r23, $r26, $r27, $r29, $r30, $r32, $r33;
+        org.apache.zookeeper.ClientCnxn r1;
+        long $l0, $l1, $l3, $l4;
+        int $i2, $i5, $i6, $i7;
+        java.lang.String $r9, $r36;
+        java.util.LinkedList $r28, $r31;
+        org.apache.zookeeper.ClientCnxn$EventThread $r34;
+
+        r1 := @this: org.apache.zookeeper.ClientCnxn;
+
+        $r0 = new java.lang.StringBuilder;
+
+        specialinvoke $r0.<java.lang.StringBuilder: void <init>()>();
+
+        $r2 = r1.<org.apache.zookeeper.ClientCnxn: org.apache.zookeeper.ClientCnxn$SendThread sendThread>;
+
+        $r3 = virtualinvoke $r2.<org.apache.zookeeper.ClientCnxn$SendThread: org.apache.zookeeper.ClientCnxnSocket getClientCnxnSocket()>();
+
+        $r4 = virtualinvoke $r3.<org.apache.zookeeper.ClientCnxnSocket: java.net.SocketAddress getLocalSocketAddress()>();
+
+        $r5 = r1.<org.apache.zookeeper.ClientCnxn: org.apache.zookeeper.ClientCnxn$SendThread sendThread>;
+
+        $r6 = virtualinvoke $r5.<org.apache.zookeeper.ClientCnxn$SendThread: org.apache.zookeeper.ClientCnxnSocket getClientCnxnSocket()>();
+
+        $r7 = virtualinvoke $r6.<org.apache.zookeeper.ClientCnxnSocket: java.net.SocketAddress getRemoteSocketAddress()>();
+
+        $r8 = virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("sessionid:0x");
+
+        $l0 = virtualinvoke r1.<org.apache.zookeeper.ClientCnxn: long getSessionId()>();
+
+        $r9 = staticinvoke <java.lang.Long: java.lang.String toHexString(long)>($l0);
+
+        $r10 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r9);
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" local:");
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r4);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" remoteserver:");
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r7);
+
+        $r15 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" lastZxid:");
+
+        $l1 = r1.<org.apache.zookeeper.ClientCnxn: long lastZxid>;
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l1);
+
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" xid:");
+
+        $i2 = r1.<org.apache.zookeeper.ClientCnxn: int xid>;
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i2);
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" sent:");
+
+        $r20 = r1.<org.apache.zookeeper.ClientCnxn: org.apache.zookeeper.ClientCnxn$SendThread sendThread>;
+
+        $r21 = virtualinvoke $r20.<org.apache.zookeeper.ClientCnxn$SendThread: org.apache.zookeeper.ClientCnxnSocket getClientCnxnSocket()>();
+
+        $l3 = virtualinvoke $r21.<org.apache.zookeeper.ClientCnxnSocket: long getSentCount()>();
+
+        $r22 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l3);
+
+        $r23 = virtualinvoke $r22.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" recv:");
+
+        $r24 = r1.<org.apache.zookeeper.ClientCnxn: org.apache.zookeeper.ClientCnxn$SendThread sendThread>;
+
+        $r25 = virtualinvoke $r24.<org.apache.zookeeper.ClientCnxn$SendThread: org.apache.zookeeper.ClientCnxnSocket getClientCnxnSocket()>();
+
+        $l4 = virtualinvoke $r25.<org.apache.zookeeper.ClientCnxnSocket: long getRecvCount()>();
+
+        $r26 = virtualinvoke $r23.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l4);
+
+        $r27 = virtualinvoke $r26.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" queuedpkts:");
+
+        $r28 = r1.<org.apache.zookeeper.ClientCnxn: java.util.LinkedList outgoingQueue>;
+
+        $i5 = virtualinvoke $r28.<java.util.LinkedList: int size()>();
+
+        $r29 = virtualinvoke $r27.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i5);
+
+        $r30 = virtualinvoke $r29.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" pendingresp:");
+
+        $r31 = r1.<org.apache.zookeeper.ClientCnxn: java.util.LinkedList pendingQueue>;
+
+        $i6 = virtualinvoke $r31.<java.util.LinkedList: int size()>();
+
+        $r32 = virtualinvoke $r30.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i6);
+
+        $r33 = virtualinvoke $r32.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" queuedevents:");
+
+        $r34 = r1.<org.apache.zookeeper.ClientCnxn: org.apache.zookeeper.ClientCnxn$EventThread eventThread>;
+
+        $r35 = staticinvoke <org.apache.zookeeper.ClientCnxn$EventThread: java.util.concurrent.LinkedBlockingQueue access$000(org.apache.zookeeper.ClientCnxn$EventThread)>($r34);
+
+        $i7 = virtualinvoke $r35.<java.util.concurrent.LinkedBlockingQueue: int size()>();
+
+        virtualinvoke $r33.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i7);
+
+        $r36 = virtualinvoke $r0.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        return $r36;
+    }
+
+    public void <init>(java.lang.String, org.apache.zookeeper.client.HostProvider, int, org.apache.zookeeper.ZooKeeper, org.apache.zookeeper.ClientWatchManager, org.apache.zookeeper.ClientCnxnSocket, boolean) throws java.io.IOException
+    {
+        org.apache.zookeeper.ZooKeeper r3;
+        org.apache.zookeeper.ClientWatchManager r4;
+        org.apache.zookeeper.ClientCnxnSocket r5;
+        byte[] $r6;
+        org.apache.zookeeper.client.HostProvider r2;
+        org.apache.zookeeper.ClientCnxn r0;
+        int i0;
+        java.lang.String r1;
+        boolean z0;
+
+        r0 := @this: org.apache.zookeeper.ClientCnxn;
+
+        r1 := @parameter0: java.lang.String;
+
+        r2 := @parameter1: org.apache.zookeeper.client.HostProvider;
+
+        i0 := @parameter2: int;
+
+        r3 := @parameter3: org.apache.zookeeper.ZooKeeper;
+
+        r4 := @parameter4: org.apache.zookeeper.ClientWatchManager;
+
+        r5 := @parameter5: org.apache.zookeeper.ClientCnxnSocket;
+
+        z0 := @parameter6: boolean;
+
+        $r6 = newarray (byte)[16];
+
+        specialinvoke r0.<org.apache.zookeeper.ClientCnxn: void <init>(java.lang.String,org.apache.zookeeper.client.HostProvider,int,org.apache.zookeeper.ZooKeeper,org.apache.zookeeper.ClientWatchManager,org.apache.zookeeper.ClientCnxnSocket,long,byte[],boolean)>(r1, r2, i0, r3, r4, r5, 0L, $r6, z0);
+
+        return;
+    }
+
+    public void <init>(java.lang.String, org.apache.zookeeper.client.HostProvider, int, org.apache.zookeeper.ZooKeeper, org.apache.zookeeper.ClientWatchManager, org.apache.zookeeper.ClientCnxnSocket, long, byte[], boolean)
+    {
+        org.apache.zookeeper.ClientWatchManager r8;
+        byte[] $r4, r9;
+        org.apache.zookeeper.client.HostProvider r10;
+        org.apache.zookeeper.ZooKeeper$States $r6;
+        org.apache.zookeeper.ClientCnxn r0;
+        long l0;
+        org.apache.zookeeper.ClientCnxn$SendThread $r12;
+        int i1, $i2, $i3, $i4, $i5;
+        java.lang.String r11;
+        java.util.LinkedList $r2, $r3;
+        boolean z0;
+        org.apache.zookeeper.ZooKeeper r7;
+        org.apache.zookeeper.ClientCnxnSocket r13;
+        java.util.concurrent.CopyOnWriteArraySet $r1;
+        java.lang.Object $r5;
+        org.apache.zookeeper.ClientCnxn$EventThread $r14;
+
+        r0 := @this: org.apache.zookeeper.ClientCnxn;
+
+        r11 := @parameter0: java.lang.String;
+
+        r10 := @parameter1: org.apache.zookeeper.client.HostProvider;
+
+        i1 := @parameter2: int;
+
+        r7 := @parameter3: org.apache.zookeeper.ZooKeeper;
+
+        r8 := @parameter4: org.apache.zookeeper.ClientWatchManager;
+
+        r13 := @parameter5: org.apache.zookeeper.ClientCnxnSocket;
+
+        l0 := @parameter6: long;
+
+        r9 := @parameter7: byte[];
+
+        z0 := @parameter8: boolean;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        $r1 = new java.util.concurrent.CopyOnWriteArraySet;
+
+        specialinvoke $r1.<java.util.concurrent.CopyOnWriteArraySet: void <init>()>();
+
+        r0.<org.apache.zookeeper.ClientCnxn: java.util.concurrent.CopyOnWriteArraySet authInfo> = $r1;
+
+        $r2 = new java.util.LinkedList;
+
+        specialinvoke $r2.<java.util.LinkedList: void <init>()>();
+
+        r0.<org.apache.zookeeper.ClientCnxn: java.util.LinkedList pendingQueue> = $r2;
+
+        $r3 = new java.util.LinkedList;
+
+        specialinvoke $r3.<java.util.LinkedList: void <init>()>();
+
+        r0.<org.apache.zookeeper.ClientCnxn: java.util.LinkedList outgoingQueue> = $r3;
+
+        $r4 = newarray (byte)[16];
+
+        r0.<org.apache.zookeeper.ClientCnxn: byte[] sessionPasswd> = $r4;
+
+        r0.<org.apache.zookeeper.ClientCnxn: boolean closing> = 0;
+
+        r0.<org.apache.zookeeper.ClientCnxn: boolean seenRwServerBefore> = 0;
+
+        $r5 = new java.lang.Object;
+
+        specialinvoke $r5.<java.lang.Object: void <init>()>();
+
+        r0.<org.apache.zookeeper.ClientCnxn: java.lang.Object eventOfDeath> = $r5;
+
+        r0.<org.apache.zookeeper.ClientCnxn: int xid> = 1;
+
+        $r6 = <org.apache.zookeeper.ZooKeeper$States: org.apache.zookeeper.ZooKeeper$States NOT_CONNECTED>;
+
+        r0.<org.apache.zookeeper.ClientCnxn: org.apache.zookeeper.ZooKeeper$States state> = $r6;
+
+        r0.<org.apache.zookeeper.ClientCnxn: org.apache.zookeeper.ZooKeeper zooKeeper> = r7;
+
+        r0.<org.apache.zookeeper.ClientCnxn: org.apache.zookeeper.ClientWatchManager watcher> = r8;
+
+        r0.<org.apache.zookeeper.ClientCnxn: long sessionId> = l0;
+
+        r0.<org.apache.zookeeper.ClientCnxn: byte[] sessionPasswd> = r9;
+
+        r0.<org.apache.zookeeper.ClientCnxn: int sessionTimeout> = i1;
+
+        r0.<org.apache.zookeeper.ClientCnxn: org.apache.zookeeper.client.HostProvider hostProvider> = r10;
+
+        r0.<org.apache.zookeeper.ClientCnxn: java.lang.String chrootPath> = r11;
+
+        $i2 = interfaceinvoke r10.<org.apache.zookeeper.client.HostProvider: int size()>();
+
+        $i3 = i1 / $i2;
+
+        r0.<org.apache.zookeeper.ClientCnxn: int connectTimeout> = $i3;
+
+        $i4 = i1 * 2;
+
+        $i5 = $i4 / 3;
+
+        r0.<org.apache.zookeeper.ClientCnxn: int readTimeout> = $i5;
+
+        r0.<org.apache.zookeeper.ClientCnxn: boolean readOnly> = z0;
+
+        $r12 = new org.apache.zookeeper.ClientCnxn$SendThread;
+
+        specialinvoke $r12.<org.apache.zookeeper.ClientCnxn$SendThread: void <init>(org.apache.zookeeper.ClientCnxn,org.apache.zookeeper.ClientCnxnSocket)>(r0, r13);
+
+        r0.<org.apache.zookeeper.ClientCnxn: org.apache.zookeeper.ClientCnxn$SendThread sendThread> = $r12;
+
+        $r14 = new org.apache.zookeeper.ClientCnxn$EventThread;
+
+        specialinvoke $r14.<org.apache.zookeeper.ClientCnxn$EventThread: void <init>(org.apache.zookeeper.ClientCnxn)>(r0);
+
+        r0.<org.apache.zookeeper.ClientCnxn: org.apache.zookeeper.ClientCnxn$EventThread eventThread> = $r14;
+
+        return;
+    }
+
+    public static boolean getDisableAutoResetWatch()
+    {
+        boolean $z0;
+
+        $z0 = <org.apache.zookeeper.ClientCnxn: boolean disableAutoWatchReset>;
+
+        return $z0;
+    }
+
+    public static void setDisableAutoResetWatch(boolean)
+    {
+        boolean z0;
+
+        z0 := @parameter0: boolean;
+
+        <org.apache.zookeeper.ClientCnxn: boolean disableAutoWatchReset> = z0;
+
+        return;
+    }
+
+    public void start()
+    {
+        org.apache.zookeeper.ClientCnxn r0;
+        org.apache.zookeeper.ClientCnxn$SendThread $r1;
+        org.apache.zookeeper.ClientCnxn$EventThread $r2;
+
+        r0 := @this: org.apache.zookeeper.ClientCnxn;
+
+        $r1 = r0.<org.apache.zookeeper.ClientCnxn: org.apache.zookeeper.ClientCnxn$SendThread sendThread>;
+
+        virtualinvoke $r1.<org.apache.zookeeper.ClientCnxn$SendThread: void start()>();
+
+        $r2 = r0.<org.apache.zookeeper.ClientCnxn: org.apache.zookeeper.ClientCnxn$EventThread eventThread>;
+
+        virtualinvoke $r2.<org.apache.zookeeper.ClientCnxn$EventThread: void start()>();
+
+        return;
+    }
+
+    private static java.lang.String makeThreadName(java.lang.String)
+    {
+        java.lang.Thread $r0;
+        java.lang.StringBuilder $r3, $r4, $r6;
+        java.lang.String $r1, $r2, r5, $r7;
+
+        r5 := @parameter0: java.lang.String;
+
+        $r0 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        $r1 = virtualinvoke $r0.<java.lang.Thread: java.lang.String getName()>();
+
+        $r2 = virtualinvoke $r1.<java.lang.String: java.lang.String replaceAll(java.lang.String,java.lang.String)>("-EventThread", "");
+
+        $r3 = new java.lang.StringBuilder;
+
+        specialinvoke $r3.<java.lang.StringBuilder: void <init>()>();
+
+        $r4 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r2);
+
+        $r6 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r5);
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        return $r7;
+    }
+
+    private void finishPacket(org.apache.zookeeper.ClientCnxn$Packet)
+    {
+        java.lang.Throwable $r7;
+        org.apache.zookeeper.ZooKeeper$WatchRegistration $r1, $r6;
+        org.apache.zookeeper.ClientCnxn r3;
+        org.apache.zookeeper.ClientCnxn$Packet r0;
+        int $i0;
+        org.apache.zookeeper.AsyncCallback $r2;
+        org.apache.zookeeper.ClientCnxn$EventThread $r4;
+        org.apache.zookeeper.proto.ReplyHeader $r5;
+
+        r3 := @this: org.apache.zookeeper.ClientCnxn;
+
+        r0 := @parameter0: org.apache.zookeeper.ClientCnxn$Packet;
+
+        $r1 = r0.<org.apache.zookeeper.ClientCnxn$Packet: org.apache.zookeeper.ZooKeeper$WatchRegistration watchRegistration>;
+
+        if $r1 == null goto label1;
+
+        $r6 = r0.<org.apache.zookeeper.ClientCnxn$Packet: org.apache.zookeeper.ZooKeeper$WatchRegistration watchRegistration>;
+
+        $r5 = r0.<org.apache.zookeeper.ClientCnxn$Packet: org.apache.zookeeper.proto.ReplyHeader replyHeader>;
+
+        $i0 = virtualinvoke $r5.<org.apache.zookeeper.proto.ReplyHeader: int getErr()>();
+
+        virtualinvoke $r6.<org.apache.zookeeper.ZooKeeper$WatchRegistration: void register(int)>($i0);
+
+     label1:
+        $r2 = r0.<org.apache.zookeeper.ClientCnxn$Packet: org.apache.zookeeper.AsyncCallback cb>;
+
+        if $r2 != null goto label7;
+
+        entermonitor r0;
+
+     label2:
+        r0.<org.apache.zookeeper.ClientCnxn$Packet: boolean finished> = 1;
+
+        virtualinvoke r0.<java.lang.Object: void notifyAll()>();
+
+        exitmonitor r0;
+
+     label3:
+        goto label6;
+
+     label4:
+        $r7 := @caughtexception;
+
+        exitmonitor r0;
+
+     label5:
+        throw $r7;
+
+     label6:
+        goto label8;
+
+     label7:
+        r0.<org.apache.zookeeper.ClientCnxn$Packet: boolean finished> = 1;
+
+        $r4 = r3.<org.apache.zookeeper.ClientCnxn: org.apache.zookeeper.ClientCnxn$EventThread eventThread>;
+
+        virtualinvoke $r4.<org.apache.zookeeper.ClientCnxn$EventThread: void queuePacket(org.apache.zookeeper.ClientCnxn$Packet)>(r0);
+
+     label8:
+        return;
+
+        catch java.lang.Throwable from label2 to label3 with label4;
+        catch java.lang.Throwable from label4 to label5 with label4;
+    }
+
+    private void conLossPacket(org.apache.zookeeper.ClientCnxn$Packet)
+    {
+        org.apache.zookeeper.ZooKeeper$States $r3;
+        org.apache.zookeeper.ClientCnxn r2;
+        org.apache.zookeeper.KeeperException$Code $r5, $r7, $r9;
+        org.apache.zookeeper.ClientCnxn$Packet r0;
+        int[] $r4;
+        int $i0, $i1, $i2, $i3, $i4;
+        org.apache.zookeeper.proto.ReplyHeader $r1, $r6, $r8, $r10;
+
+        r2 := @this: org.apache.zookeeper.ClientCnxn;
+
+        r0 := @parameter0: org.apache.zookeeper.ClientCnxn$Packet;
+
+        $r1 = r0.<org.apache.zookeeper.ClientCnxn$Packet: org.apache.zookeeper.proto.ReplyHeader replyHeader>;
+
+        if $r1 != null goto label1;
+
+        return;
+
+     label1:
+        $r4 = <org.apache.zookeeper.ClientCnxn$2: int[] $SwitchMap$org$apache$zookeeper$ZooKeeper$States>;
+
+        $r3 = r2.<org.apache.zookeeper.ClientCnxn: org.apache.zookeeper.ZooKeeper$States state>;
+
+        $i0 = virtualinvoke $r3.<org.apache.zookeeper.ZooKeeper$States: int ordinal()>();
+
+        $i1 = $r4[$i0];
+
+        lookupswitch($i1)
+        {
+            case 1: goto label2;
+            case 2: goto label3;
+            default: goto label4;
+        };
+
+     label2:
+        $r8 = r0.<org.apache.zookeeper.ClientCnxn$Packet: org.apache.zookeeper.proto.ReplyHeader replyHeader>;
+
+        $r7 = <org.apache.zookeeper.KeeperException$Code: org.apache.zookeeper.KeeperException$Code AUTHFAILED>;
+
+        $i3 = virtualinvoke $r7.<org.apache.zookeeper.KeeperException$Code: int intValue()>();
+
+        virtualinvoke $r8.<org.apache.zookeeper.proto.ReplyHeader: void setErr(int)>($i3);
+
+        goto label5;
+
+     label3:
+        $r6 = r0.<org.apache.zookeeper.ClientCnxn$Packet: org.apache.zookeeper.proto.ReplyHeader replyHeader>;
+
+        $r5 = <org.apache.zookeeper.KeeperException$Code: org.apache.zookeeper.KeeperException$Code SESSIONEXPIRED>;
+
+        $i2 = virtualinvoke $r5.<org.apache.zookeeper.KeeperException$Code: int intValue()>();
+
+        virtualinvoke $r6.<org.apache.zookeeper.proto.ReplyHeader: void setErr(int)>($i2);
+
+        goto label5;
+
+     label4:
+        $r10 = r0.<org.apache.zookeeper.ClientCnxn$Packet: org.apache.zookeeper.proto.ReplyHeader replyHeader>;
+
+        $r9 = <org.apache.zookeeper.KeeperException$Code: org.apache.zookeeper.KeeperException$Code CONNECTIONLOSS>;
+
+        $i4 = virtualinvoke $r9.<org.apache.zookeeper.KeeperException$Code: int intValue()>();
+
+        virtualinvoke $r10.<org.apache.zookeeper.proto.ReplyHeader: void setErr(int)>($i4);
+
+     label5:
+        specialinvoke r2.<org.apache.zookeeper.ClientCnxn: void finishPacket(org.apache.zookeeper.ClientCnxn$Packet)>(r0);
+
+        return;
+    }
+
+    public long getLastZxid()
+    {
+        org.apache.zookeeper.ClientCnxn r0;
+        long $l0;
+
+        r0 := @this: org.apache.zookeeper.ClientCnxn;
+
+        $l0 = r0.<org.apache.zookeeper.ClientCnxn: long lastZxid>;
+
+        return $l0;
+    }
+
+    public void disconnect()
+    {
+        org.slf4j.Logger $r0, $r5;
+        org.apache.zookeeper.ClientCnxn r1;
+        long $l0;
+        org.apache.zookeeper.ClientCnxn$SendThread $r2;
+        java.lang.StringBuilder $r4, $r6, $r8;
+        org.apache.zookeeper.ClientCnxn$EventThread $r3;
+        java.lang.String $r7, $r9;
+        boolean $z0;
+
+        r1 := @this: org.apache.zookeeper.ClientCnxn;
+
+        $r0 = <org.apache.zookeeper.ClientCnxn: org.slf4j.Logger LOG>;
+
+        $z0 = interfaceinvoke $r0.<org.slf4j.Logger: boolean isDebugEnabled()>();
+
+        if $z0 == 0 goto label1;
+
+        $r5 = <org.apache.zookeeper.ClientCnxn: org.slf4j.Logger LOG>;
+
+        $r4 = new java.lang.StringBuilder;
+
+        specialinvoke $r4.<java.lang.StringBuilder: void <init>()>();
+
+        $r6 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Disconnecting client for session: 0x");
+
+        $l0 = virtualinvoke r1.<org.apache.zookeeper.ClientCnxn: long getSessionId()>();
+
+        $r7 = staticinvoke <java.lang.Long: java.lang.String toHexString(long)>($l0);
+
+        $r8 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r7);
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r5.<org.slf4j.Logger: void debug(java.lang.String)>($r9);
+
+     label1:
+        $r2 = r1.<org.apache.zookeeper.ClientCnxn: org.apache.zookeeper.ClientCnxn$SendThread sendThread>;
+
+        virtualinvoke $r2.<org.apache.zookeeper.ClientCnxn$SendThread: void close()>();
+
+        $r3 = r1.<org.apache.zookeeper.ClientCnxn: org.apache.zookeeper.ClientCnxn$EventThread eventThread>;
+
+        virtualinvoke $r3.<org.apache.zookeeper.ClientCnxn$EventThread: void queueEventOfDeath()>();
+
+        return;
+    }
+
+    public void close() throws java.io.IOException
+    {
+        java.lang.Throwable $r9;
+        org.slf4j.Logger $r0, $r4;
+        org.apache.zookeeper.ClientCnxn r2;
+        long $l0;
+        org.apache.zookeeper.proto.RequestHeader $r12;
+        java.lang.InterruptedException $r10;
+        int $i2;
+        java.lang.StringBuilder $r5, $r7, $r11;
+        java.lang.String $r6, $r8;
+        boolean $z0;
+
+        r2 := @this: org.apache.zookeeper.ClientCnxn;
+
+        $r0 = <org.apache.zookeeper.ClientCnxn: org.slf4j.Logger LOG>;
+
+        $z0 = interfaceinvoke $r0.<org.slf4j.Logger: boolean isDebugEnabled()>();
+
+        if $z0 == 0 goto label1;
+
+        $r4 = <org.apache.zookeeper.ClientCnxn: org.slf4j.Logger LOG>;
+
+        $r11 = new java.lang.StringBuilder;
+
+        specialinvoke $r11.<java.lang.StringBuilder: void <init>()>();
+
+        $r5 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Closing client for session: 0x");
+
+        $l0 = virtualinvoke r2.<org.apache.zookeeper.ClientCnxn: long getSessionId()>();
+
+        $r6 = staticinvoke <java.lang.Long: java.lang.String toHexString(long)>($l0);
+
+        $r7 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r6);
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r4.<org.slf4j.Logger: void debug(java.lang.String)>($r8);
+
+     label1:
+        $r12 = new org.apache.zookeeper.proto.RequestHeader;
+
+        specialinvoke $r12.<org.apache.zookeeper.proto.RequestHeader: void <init>()>();
+
+        $i2 = (int) -11;
+
+        virtualinvoke $r12.<org.apache.zookeeper.proto.RequestHeader: void setType(int)>($i2);
+
+        virtualinvoke r2.<org.apache.zookeeper.ClientCnxn: org.apache.zookeeper.proto.ReplyHeader submitRequest(org.apache.zookeeper.proto.RequestHeader,org.apache.jute.Record,org.apache.jute.Record,org.apache.zookeeper.ZooKeeper$WatchRegistration)>($r12, null, null, null);
+
+     label2:
+        virtualinvoke r2.<org.apache.zookeeper.ClientCnxn: void disconnect()>();
+
+        goto label7;
+
+     label3:
+        $r10 := @caughtexception;
+
+     label4:
+        virtualinvoke r2.<org.apache.zookeeper.ClientCnxn: void disconnect()>();
+
+        goto label7;
+
+     label5:
+        $r9 := @caughtexception;
+
+     label6:
+        virtualinvoke r2.<org.apache.zookeeper.ClientCnxn: void disconnect()>();
+
+        throw $r9;
+
+     label7:
+        return;
+
+        catch java.lang.InterruptedException from label1 to label2 with label3;
+        catch java.lang.Throwable from label1 to label2 with label5;
+        catch java.lang.Throwable from label3 to label4 with label5;
+        catch java.lang.Throwable from label5 to label6 with label5;
+    }
+
+    public synchronized int getXid()
+    {
+        org.apache.zookeeper.ClientCnxn r0;
+        int $i0, $i1;
+
+        r0 := @this: org.apache.zookeeper.ClientCnxn;
+
+        $i0 = r0.<org.apache.zookeeper.ClientCnxn: int xid>;
+
+        $i1 = $i0 + 1;
+
+        r0.<org.apache.zookeeper.ClientCnxn: int xid> = $i1;
+
+        return $i0;
+    }
+
+    public org.apache.zookeeper.proto.ReplyHeader submitRequest(org.apache.zookeeper.proto.RequestHeader, org.apache.jute.Record, org.apache.jute.Record, org.apache.zookeeper.ZooKeeper$WatchRegistration) throws java.lang.InterruptedException
+    {
+        java.lang.Throwable $r7;
+        org.apache.zookeeper.ZooKeeper$WatchRegistration r5;
+        org.apache.zookeeper.ClientCnxn r1;
+        org.apache.jute.Record r3, r4;
+        org.apache.zookeeper.proto.RequestHeader r2;
+        org.apache.zookeeper.ClientCnxn$Packet $r6;
+        org.apache.zookeeper.proto.ReplyHeader $r0;
+        boolean $z0;
+
+        r1 := @this: org.apache.zookeeper.ClientCnxn;
+
+        r2 := @parameter0: org.apache.zookeeper.proto.RequestHeader;
+
+        r3 := @parameter1: org.apache.jute.Record;
+
+        r4 := @parameter2: org.apache.jute.Record;
+
+        r5 := @parameter3: org.apache.zookeeper.ZooKeeper$WatchRegistration;
+
+        $r0 = new org.apache.zookeeper.proto.ReplyHeader;
+
+        specialinvoke $r0.<org.apache.zookeeper.proto.ReplyHeader: void <init>()>();
+
+        $r6 = virtualinvoke r1.<org.apache.zookeeper.ClientCnxn: org.apache.zookeeper.ClientCnxn$Packet queuePacket(org.apache.zookeeper.proto.RequestHeader,org.apache.zookeeper.proto.ReplyHeader,org.apache.jute.Record,org.apache.jute.Record,org.apache.zookeeper.AsyncCallback,java.lang.String,java.lang.String,java.lang.Object,org.apache.zookeeper.ZooKeeper$WatchRegistration)>(r2, $r0, r3, r4, null, null, null, null, r5);
+
+        entermonitor $r6;
+
+     label1:
+        $z0 = $r6.<org.apache.zookeeper.ClientCnxn$Packet: boolean finished>;
+
+        if $z0 != 0 goto label2;
+
+        virtualinvoke $r6.<java.lang.Object: void wait()>();
+
+        goto label1;
+
+     label2:
+        exitmonitor $r6;
+
+     label3:
+        goto label6;
+
+     label4:
+        $r7 := @caughtexception;
+
+        exitmonitor $r6;
+
+     label5:
+        throw $r7;
+
+     label6:
+        return $r0;
+
+        catch java.lang.Throwable from label1 to label3 with label4;
+        catch java.lang.Throwable from label4 to label5 with label4;
+    }
+
+    public void enableWrite()
+    {
+        org.apache.zookeeper.ClientCnxn r0;
+        org.apache.zookeeper.ClientCnxnSocket $r2;
+        org.apache.zookeeper.ClientCnxn$SendThread $r1;
+
+        r0 := @this: org.apache.zookeeper.ClientCnxn;
+
+        $r1 = r0.<org.apache.zookeeper.ClientCnxn: org.apache.zookeeper.ClientCnxn$SendThread sendThread>;
+
+        $r2 = virtualinvoke $r1.<org.apache.zookeeper.ClientCnxn$SendThread: org.apache.zookeeper.ClientCnxnSocket getClientCnxnSocket()>();
+
+        virtualinvoke $r2.<org.apache.zookeeper.ClientCnxnSocket: void enableWrite()>();
+
+        return;
+    }
+
+    public void sendPacket(org.apache.jute.Record, org.apache.jute.Record, org.apache.zookeeper.AsyncCallback, int) throws java.io.IOException
+    {
+        org.apache.zookeeper.ClientCnxn r0;
+        org.apache.jute.Record r4, r5;
+        org.apache.zookeeper.proto.RequestHeader $r1;
+        org.apache.zookeeper.ClientCnxn$Packet $r3;
+        org.apache.zookeeper.ClientCnxn$SendThread $r7;
+        int $i0, i1;
+        org.apache.zookeeper.AsyncCallback r6;
+        org.apache.zookeeper.proto.ReplyHeader $r2;
+
+        r0 := @this: org.apache.zookeeper.ClientCnxn;
+
+        r4 := @parameter0: org.apache.jute.Record;
+
+        r5 := @parameter1: org.apache.jute.Record;
+
+        r6 := @parameter2: org.apache.zookeeper.AsyncCallback;
+
+        i1 := @parameter3: int;
+
+        $i0 = virtualinvoke r0.<org.apache.zookeeper.ClientCnxn: int getXid()>();
+
+        $r1 = new org.apache.zookeeper.proto.RequestHeader;
+
+        specialinvoke $r1.<org.apache.zookeeper.proto.RequestHeader: void <init>()>();
+
+        virtualinvoke $r1.<org.apache.zookeeper.proto.RequestHeader: void setXid(int)>($i0);
+
+        virtualinvoke $r1.<org.apache.zookeeper.proto.RequestHeader: void setType(int)>(i1);
+
+        $r2 = new org.apache.zookeeper.proto.ReplyHeader;
+
+        specialinvoke $r2.<org.apache.zookeeper.proto.ReplyHeader: void <init>()>();
+
+        virtualinvoke $r2.<org.apache.zookeeper.proto.ReplyHeader: void setXid(int)>($i0);
+
+        $r3 = new org.apache.zookeeper.ClientCnxn$Packet;
+
+        specialinvoke $r3.<org.apache.zookeeper.ClientCnxn$Packet: void <init>(org.apache.zookeeper.proto.RequestHeader,org.apache.zookeeper.proto.ReplyHeader,org.apache.jute.Record,org.apache.jute.Record,org.apache.zookeeper.ZooKeeper$WatchRegistration,boolean)>($r1, $r2, r4, r5, null, 0);
+
+        $r3.<org.apache.zookeeper.ClientCnxn$Packet: org.apache.zookeeper.AsyncCallback cb> = r6;
+
+        $r7 = r0.<org.apache.zookeeper.ClientCnxn: org.apache.zookeeper.ClientCnxn$SendThread sendThread>;
+
+        virtualinvoke $r7.<org.apache.zookeeper.ClientCnxn$SendThread: void sendPacket(org.apache.zookeeper.ClientCnxn$Packet)>($r3);
+
+        return;
+    }
+
+    org.apache.zookeeper.ClientCnxn$Packet queuePacket(org.apache.zookeeper.proto.RequestHeader, org.apache.zookeeper.proto.ReplyHeader, org.apache.jute.Record, org.apache.jute.Record, org.apache.zookeeper.AsyncCallback, java.lang.String, java.lang.String, java.lang.Object, org.apache.zookeeper.ZooKeeper$WatchRegistration)
+    {
+        java.lang.Throwable $r16;
+        org.apache.zookeeper.ZooKeeper$States $r12;
+        org.apache.zookeeper.ClientCnxn r0;
+        org.apache.zookeeper.ClientCnxn$Packet $r17;
+        org.apache.zookeeper.ClientCnxn$SendThread $r13;
+        int $i0, $i2;
+        java.lang.String r10, r11;
+        java.util.LinkedList $r1, $r15;
+        boolean $z0, $z1;
+        org.apache.zookeeper.ClientCnxnSocket $r14;
+        org.apache.zookeeper.ZooKeeper$WatchRegistration r7;
+        org.apache.jute.Record r5, r6;
+        org.apache.zookeeper.proto.RequestHeader r3;
+        org.apache.zookeeper.AsyncCallback r8;
+        java.lang.Object r9;
+        org.apache.zookeeper.proto.ReplyHeader r4;
+
+        r0 := @this: org.apache.zookeeper.ClientCnxn;
+
+        r3 := @parameter0: org.apache.zookeeper.proto.RequestHeader;
+
+        r4 := @parameter1: org.apache.zookeeper.proto.ReplyHeader;
+
+        r5 := @parameter2: org.apache.jute.Record;
+
+        r6 := @parameter3: org.apache.jute.Record;
+
+        r8 := @parameter4: org.apache.zookeeper.AsyncCallback;
+
+        r10 := @parameter5: java.lang.String;
+
+        r11 := @parameter6: java.lang.String;
+
+        r9 := @parameter7: java.lang.Object;
+
+        r7 := @parameter8: org.apache.zookeeper.ZooKeeper$WatchRegistration;
+
+        $r1 = r0.<org.apache.zookeeper.ClientCnxn: java.util.LinkedList outgoingQueue>;
+
+        entermonitor $r1;
+
+     label1:
+        $r17 = new org.apache.zookeeper.ClientCnxn$Packet;
+
+        specialinvoke $r17.<org.apache.zookeeper.ClientCnxn$Packet: void <init>(org.apache.zookeeper.proto.RequestHeader,org.apache.zookeeper.proto.ReplyHeader,org.apache.jute.Record,org.apache.jute.Record,org.apache.zookeeper.ZooKeeper$WatchRegistration)>(r3, r4, r5, r6, r7);
+
+        $r17.<org.apache.zookeeper.ClientCnxn$Packet: org.apache.zookeeper.AsyncCallback cb> = r8;
+
+        $r17.<org.apache.zookeeper.ClientCnxn$Packet: java.lang.Object ctx> = r9;
+
+        $r17.<org.apache.zookeeper.ClientCnxn$Packet: java.lang.String clientPath> = r10;
+
+        $r17.<org.apache.zookeeper.ClientCnxn$Packet: java.lang.String serverPath> = r11;
+
+        $r12 = r0.<org.apache.zookeeper.ClientCnxn: org.apache.zookeeper.ZooKeeper$States state>;
+
+        $z0 = virtualinvoke $r12.<org.apache.zookeeper.ZooKeeper$States: boolean isAlive()>();
+
+        if $z0 == 0 goto label2;
+
+        $z1 = r0.<org.apache.zookeeper.ClientCnxn: boolean closing>;
+
+        if $z1 == 0 goto label3;
+
+     label2:
+        specialinvoke r0.<org.apache.zookeeper.ClientCnxn: void conLossPacket(org.apache.zookeeper.ClientCnxn$Packet)>($r17);
+
+        goto label5;
+
+     label3:
+        $i0 = virtualinvoke r3.<org.apache.zookeeper.proto.RequestHeader: int getType()>();
+
+        $i2 = (int) -11;
+
+        if $i0 != $i2 goto label4;
+
+        r0.<org.apache.zookeeper.ClientCnxn: boolean closing> = 1;
+
+     label4:
+        $r15 = r0.<org.apache.zookeeper.ClientCnxn: java.util.LinkedList outgoingQueue>;
+
+        virtualinvoke $r15.<java.util.LinkedList: boolean add(java.lang.Object)>($r17);
+
+     label5:
+        exitmonitor $r1;
+
+     label6:
+        goto label9;
+
+     label7:
+        $r16 := @caughtexception;
+
+        exitmonitor $r1;
+
+     label8:
+        throw $r16;
+
+     label9:
+        $r13 = r0.<org.apache.zookeeper.ClientCnxn: org.apache.zookeeper.ClientCnxn$SendThread sendThread>;
+
+        $r14 = virtualinvoke $r13.<org.apache.zookeeper.ClientCnxn$SendThread: org.apache.zookeeper.ClientCnxnSocket getClientCnxnSocket()>();
+
+        virtualinvoke $r14.<org.apache.zookeeper.ClientCnxnSocket: void wakeupCnxn()>();
+
+        return $r17;
+
+        catch java.lang.Throwable from label1 to label6 with label7;
+        catch java.lang.Throwable from label7 to label8 with label7;
+    }
+
+    public void addAuthInfo(java.lang.String, byte[])
+    {
+        byte[] r4;
+        org.apache.zookeeper.ZooKeeper$States $r1;
+        org.apache.zookeeper.ClientCnxn r0;
+        org.apache.zookeeper.proto.AuthPacket $r10;
+        java.util.concurrent.CopyOnWriteArraySet $r5;
+        org.apache.zookeeper.ClientCnxn$AuthData $r8;
+        org.apache.zookeeper.proto.RequestHeader $r9;
+        int $i1;
+        java.lang.String r3;
+        boolean $z0;
+
+        r0 := @this: org.apache.zookeeper.ClientCnxn;
+
+        r3 := @parameter0: java.lang.String;
+
+        r4 := @parameter1: byte[];
+
+        $r1 = r0.<org.apache.zookeeper.ClientCnxn: org.apache.zookeeper.ZooKeeper$States state>;
+
+        $z0 = virtualinvoke $r1.<org.apache.zookeeper.ZooKeeper$States: boolean isAlive()>();
+
+        if $z0 != 0 goto label1;
+
+        return;
+
+     label1:
+        $r5 = r0.<org.apache.zookeeper.ClientCnxn: java.util.concurrent.CopyOnWriteArraySet authInfo>;
+
+        $r8 = new org.apache.zookeeper.ClientCnxn$AuthData;
+
+        specialinvoke $r8.<org.apache.zookeeper.ClientCnxn$AuthData: void <init>(java.lang.String,byte[])>(r3, r4);
+
+        virtualinvoke $r5.<java.util.concurrent.CopyOnWriteArraySet: boolean add(java.lang.Object)>($r8);
+
+        $r9 = new org.apache.zookeeper.proto.RequestHeader;
+
+        $i1 = (int) -4;
+
+        specialinvoke $r9.<org.apache.zookeeper.proto.RequestHeader: void <init>(int,int)>($i1, 100);
+
+        $r10 = new org.apache.zookeeper.proto.AuthPacket;
+
+        specialinvoke $r10.<org.apache.zookeeper.proto.AuthPacket: void <init>(int,java.lang.String,byte[])>(0, r3, r4);
+
+        virtualinvoke r0.<org.apache.zookeeper.ClientCnxn: org.apache.zookeeper.ClientCnxn$Packet queuePacket(org.apache.zookeeper.proto.RequestHeader,org.apache.zookeeper.proto.ReplyHeader,org.apache.jute.Record,org.apache.jute.Record,org.apache.zookeeper.AsyncCallback,java.lang.String,java.lang.String,java.lang.Object,org.apache.zookeeper.ZooKeeper$WatchRegistration)>($r9, null, $r10, null, null, null, null, null, null);
+
+        return;
+    }
+
+    org.apache.zookeeper.ZooKeeper$States getState()
+    {
+        org.apache.zookeeper.ClientCnxn r0;
+        org.apache.zookeeper.ZooKeeper$States $r1;
+
+        r0 := @this: org.apache.zookeeper.ClientCnxn;
+
+        $r1 = r0.<org.apache.zookeeper.ClientCnxn: org.apache.zookeeper.ZooKeeper$States state>;
+
+        return $r1;
+    }
+
+    static org.slf4j.Logger access$100()
+    {
+        org.slf4j.Logger $r0;
+
+        $r0 = <org.apache.zookeeper.ClientCnxn: org.slf4j.Logger LOG>;
+
+        return $r0;
+    }
+
+    static java.lang.String access$200(java.lang.String)
+    {
+        java.lang.String r0, $r1;
+
+        r0 := @parameter0: java.lang.String;
+
+        $r1 = staticinvoke <org.apache.zookeeper.ClientCnxn: java.lang.String makeThreadName(java.lang.String)>(r0);
+
+        return $r1;
+    }
+
+    static java.lang.Thread$UncaughtExceptionHandler access$300()
+    {
+        java.lang.Thread$UncaughtExceptionHandler $r0;
+
+        $r0 = <org.apache.zookeeper.ClientCnxn: java.lang.Thread$UncaughtExceptionHandler uncaughtExceptionHandler>;
+
+        return $r0;
+    }
+
+    static org.apache.zookeeper.ClientWatchManager access$400(org.apache.zookeeper.ClientCnxn)
+    {
+        org.apache.zookeeper.ClientCnxn r0;
+        org.apache.zookeeper.ClientWatchManager $r1;
+
+        r0 := @parameter0: org.apache.zookeeper.ClientCnxn;
+
+        $r1 = r0.<org.apache.zookeeper.ClientCnxn: org.apache.zookeeper.ClientWatchManager watcher>;
+
+        return $r1;
+    }
+
+    static java.lang.Object access$500(org.apache.zookeeper.ClientCnxn)
+    {
+        org.apache.zookeeper.ClientCnxn r0;
+        java.lang.Object $r1;
+
+        r0 := @parameter0: org.apache.zookeeper.ClientCnxn;
+
+        $r1 = r0.<org.apache.zookeeper.ClientCnxn: java.lang.Object eventOfDeath>;
+
+        return $r1;
+    }
+
+    static long access$800(org.apache.zookeeper.ClientCnxn)
+    {
+        org.apache.zookeeper.ClientCnxn r0;
+        long $l0;
+
+        r0 := @parameter0: org.apache.zookeeper.ClientCnxn;
+
+        $l0 = r0.<org.apache.zookeeper.ClientCnxn: long sessionId>;
+
+        return $l0;
+    }
+
+    static org.apache.zookeeper.ZooKeeper$States access$902(org.apache.zookeeper.ClientCnxn, org.apache.zookeeper.ZooKeeper$States)
+    {
+        org.apache.zookeeper.ClientCnxn r0;
+        org.apache.zookeeper.ZooKeeper$States r1;
+
+        r0 := @parameter0: org.apache.zookeeper.ClientCnxn;
+
+        r1 := @parameter1: org.apache.zookeeper.ZooKeeper$States;
+
+        r0.<org.apache.zookeeper.ClientCnxn: org.apache.zookeeper.ZooKeeper$States state> = r1;
+
+        return r1;
+    }
+
+    static java.util.LinkedList access$1000(org.apache.zookeeper.ClientCnxn)
+    {
+        org.apache.zookeeper.ClientCnxn r0;
+        java.util.LinkedList $r1;
+
+        r0 := @parameter0: org.apache.zookeeper.ClientCnxn;
+
+        $r1 = r0.<org.apache.zookeeper.ClientCnxn: java.util.LinkedList pendingQueue>;
+
+        return $r1;
+    }
+
+    static long access$1102(org.apache.zookeeper.ClientCnxn, long)
+    {
+        org.apache.zookeeper.ClientCnxn r0;
+        long l0;
+
+        r0 := @parameter0: org.apache.zookeeper.ClientCnxn;
+
+        l0 := @parameter1: long;
+
+        r0.<org.apache.zookeeper.ClientCnxn: long lastZxid> = l0;
+
+        return l0;
+    }
+
+    static void access$1200(org.apache.zookeeper.ClientCnxn, org.apache.zookeeper.ClientCnxn$Packet)
+    {
+        org.apache.zookeeper.ClientCnxn r0;
+        org.apache.zookeeper.ClientCnxn$Packet r1;
+
+        r0 := @parameter0: org.apache.zookeeper.ClientCnxn;
+
+        r1 := @parameter1: org.apache.zookeeper.ClientCnxn$Packet;
+
+        specialinvoke r0.<org.apache.zookeeper.ClientCnxn: void finishPacket(org.apache.zookeeper.ClientCnxn$Packet)>(r1);
+
+        return;
+    }
+
+    static org.apache.zookeeper.ZooKeeper$States access$900(org.apache.zookeeper.ClientCnxn)
+    {
+        org.apache.zookeeper.ClientCnxn r0;
+        org.apache.zookeeper.ZooKeeper$States $r1;
+
+        r0 := @parameter0: org.apache.zookeeper.ClientCnxn;
+
+        $r1 = r0.<org.apache.zookeeper.ClientCnxn: org.apache.zookeeper.ZooKeeper$States state>;
+
+        return $r1;
+    }
+
+    static long access$1100(org.apache.zookeeper.ClientCnxn)
+    {
+        org.apache.zookeeper.ClientCnxn r0;
+        long $l0;
+
+        r0 := @parameter0: org.apache.zookeeper.ClientCnxn;
+
+        $l0 = r0.<org.apache.zookeeper.ClientCnxn: long lastZxid>;
+
+        return $l0;
+    }
+
+    static int access$1300(org.apache.zookeeper.ClientCnxn)
+    {
+        org.apache.zookeeper.ClientCnxn r0;
+        int $i0;
+
+        r0 := @parameter0: org.apache.zookeeper.ClientCnxn;
+
+        $i0 = r0.<org.apache.zookeeper.ClientCnxn: int sessionTimeout>;
+
+        return $i0;
+    }
+
+    static byte[] access$1400(org.apache.zookeeper.ClientCnxn)
+    {
+        org.apache.zookeeper.ClientCnxn r0;
+        byte[] $r1;
+
+        r0 := @parameter0: org.apache.zookeeper.ClientCnxn;
+
+        $r1 = r0.<org.apache.zookeeper.ClientCnxn: byte[] sessionPasswd>;
+
+        return $r1;
+    }
+
+    static java.util.LinkedList access$1500(org.apache.zookeeper.ClientCnxn)
+    {
+        org.apache.zookeeper.ClientCnxn r0;
+        java.util.LinkedList $r1;
+
+        r0 := @parameter0: org.apache.zookeeper.ClientCnxn;
+
+        $r1 = r0.<org.apache.zookeeper.ClientCnxn: java.util.LinkedList outgoingQueue>;
+
+        return $r1;
+    }
+
+    static boolean access$1600()
+    {
+        boolean $z0;
+
+        $z0 = <org.apache.zookeeper.ClientCnxn: boolean disableAutoWatchReset>;
+
+        return $z0;
+    }
+
+    static org.apache.zookeeper.ZooKeeper access$1700(org.apache.zookeeper.ClientCnxn)
+    {
+        org.apache.zookeeper.ClientCnxn r0;
+        org.apache.zookeeper.ZooKeeper $r1;
+
+        r0 := @parameter0: org.apache.zookeeper.ClientCnxn;
+
+        $r1 = r0.<org.apache.zookeeper.ClientCnxn: org.apache.zookeeper.ZooKeeper zooKeeper>;
+
+        return $r1;
+    }
+
+    static java.util.concurrent.CopyOnWriteArraySet access$1800(org.apache.zookeeper.ClientCnxn)
+    {
+        org.apache.zookeeper.ClientCnxn r0;
+        java.util.concurrent.CopyOnWriteArraySet $r1;
+
+        r0 := @parameter0: org.apache.zookeeper.ClientCnxn;
+
+        $r1 = r0.<org.apache.zookeeper.ClientCnxn: java.util.concurrent.CopyOnWriteArraySet authInfo>;
+
+        return $r1;
+    }
+
+    static boolean access$1900(org.apache.zookeeper.ClientCnxn)
+    {
+        org.apache.zookeeper.ClientCnxn r0;
+        boolean $z0;
+
+        r0 := @parameter0: org.apache.zookeeper.ClientCnxn;
+
+        $z0 = r0.<org.apache.zookeeper.ClientCnxn: boolean readOnly>;
+
+        return $z0;
+    }
+
+    static org.apache.zookeeper.client.HostProvider access$2000(org.apache.zookeeper.ClientCnxn)
+    {
+        org.apache.zookeeper.ClientCnxn r0;
+        org.apache.zookeeper.client.HostProvider $r1;
+
+        r0 := @parameter0: org.apache.zookeeper.ClientCnxn;
+
+        $r1 = r0.<org.apache.zookeeper.ClientCnxn: org.apache.zookeeper.client.HostProvider hostProvider>;
+
+        return $r1;
+    }
+
+    static boolean access$2100(org.apache.zookeeper.ClientCnxn)
+    {
+        org.apache.zookeeper.ClientCnxn r0;
+        boolean $z0;
+
+        r0 := @parameter0: org.apache.zookeeper.ClientCnxn;
+
+        $z0 = r0.<org.apache.zookeeper.ClientCnxn: boolean closing>;
+
+        return $z0;
+    }
+
+    static int access$2200(org.apache.zookeeper.ClientCnxn)
+    {
+        org.apache.zookeeper.ClientCnxn r0;
+        int $i0;
+
+        r0 := @parameter0: org.apache.zookeeper.ClientCnxn;
+
+        $i0 = r0.<org.apache.zookeeper.ClientCnxn: int readTimeout>;
+
+        return $i0;
+    }
+
+    static int access$2300(org.apache.zookeeper.ClientCnxn)
+    {
+        org.apache.zookeeper.ClientCnxn r0;
+        int $i0;
+
+        r0 := @parameter0: org.apache.zookeeper.ClientCnxn;
+
+        $i0 = r0.<org.apache.zookeeper.ClientCnxn: int connectTimeout>;
+
+        return $i0;
+    }
+
+    static void access$2400(org.apache.zookeeper.ClientCnxn, org.apache.zookeeper.ClientCnxn$Packet)
+    {
+        org.apache.zookeeper.ClientCnxn r0;
+        org.apache.zookeeper.ClientCnxn$Packet r1;
+
+        r0 := @parameter0: org.apache.zookeeper.ClientCnxn;
+
+        r1 := @parameter1: org.apache.zookeeper.ClientCnxn$Packet;
+
+        specialinvoke r0.<org.apache.zookeeper.ClientCnxn: void conLossPacket(org.apache.zookeeper.ClientCnxn$Packet)>(r1);
+
+        return;
+    }
+
+    static int access$2502(org.apache.zookeeper.ClientCnxn, int)
+    {
+        org.apache.zookeeper.ClientCnxn r0;
+        int i0;
+
+        r0 := @parameter0: org.apache.zookeeper.ClientCnxn;
+
+        i0 := @parameter1: int;
+
+        r0.<org.apache.zookeeper.ClientCnxn: int negotiatedSessionTimeout> = i0;
+
+        return i0;
+    }
+
+    static int access$2500(org.apache.zookeeper.ClientCnxn)
+    {
+        org.apache.zookeeper.ClientCnxn r0;
+        int $i0;
+
+        r0 := @parameter0: org.apache.zookeeper.ClientCnxn;
+
+        $i0 = r0.<org.apache.zookeeper.ClientCnxn: int negotiatedSessionTimeout>;
+
+        return $i0;
+    }
+
+    static int access$2202(org.apache.zookeeper.ClientCnxn, int)
+    {
+        org.apache.zookeeper.ClientCnxn r0;
+        int i0;
+
+        r0 := @parameter0: org.apache.zookeeper.ClientCnxn;
+
+        i0 := @parameter1: int;
+
+        r0.<org.apache.zookeeper.ClientCnxn: int readTimeout> = i0;
+
+        return i0;
+    }
+
+    static int access$2302(org.apache.zookeeper.ClientCnxn, int)
+    {
+        org.apache.zookeeper.ClientCnxn r0;
+        int i0;
+
+        r0 := @parameter0: org.apache.zookeeper.ClientCnxn;
+
+        i0 := @parameter1: int;
+
+        r0.<org.apache.zookeeper.ClientCnxn: int connectTimeout> = i0;
+
+        return i0;
+    }
+
+    static long access$802(org.apache.zookeeper.ClientCnxn, long)
+    {
+        org.apache.zookeeper.ClientCnxn r0;
+        long l0;
+
+        r0 := @parameter0: org.apache.zookeeper.ClientCnxn;
+
+        l0 := @parameter1: long;
+
+        r0.<org.apache.zookeeper.ClientCnxn: long sessionId> = l0;
+
+        return l0;
+    }
+
+    static byte[] access$1402(org.apache.zookeeper.ClientCnxn, byte[])
+    {
+        org.apache.zookeeper.ClientCnxn r0;
+        byte[] r1;
+
+        r0 := @parameter0: org.apache.zookeeper.ClientCnxn;
+
+        r1 := @parameter1: byte[];
+
+        r0.<org.apache.zookeeper.ClientCnxn: byte[] sessionPasswd> = r1;
+
+        return r1;
+    }
+
+    static void <clinit>()
+    {
+        org.apache.zookeeper.ClientCnxn$1 $r2;
+        org.slf4j.Logger $r0, $r1, $r5;
+        java.lang.Integer $r3;
+        int $i0;
+        java.lang.StringBuilder $r4, $r6, $r7;
+        java.lang.String $r8;
+        boolean $z0, $z1, $z2;
+
+        $r0 = staticinvoke <org.slf4j.LoggerFactory: org.slf4j.Logger getLogger(java.lang.Class)>(class "Lorg/apache/zookeeper/ClientCnxn;");
+
+        <org.apache.zookeeper.ClientCnxn: org.slf4j.Logger LOG> = $r0;
+
+        $z0 = staticinvoke <java.lang.Boolean: boolean getBoolean(java.lang.String)>("zookeeper.disableAutoWatchReset");
+
+        <org.apache.zookeeper.ClientCnxn: boolean disableAutoWatchReset> = $z0;
+
+        $r1 = <org.apache.zookeeper.ClientCnxn: org.slf4j.Logger LOG>;
+
+        $z1 = interfaceinvoke $r1.<org.slf4j.Logger: boolean isDebugEnabled()>();
+
+        if $z1 == 0 goto label1;
+
+        $r5 = <org.apache.zookeeper.ClientCnxn: org.slf4j.Logger LOG>;
+
+        $r4 = new java.lang.StringBuilder;
+
+        specialinvoke $r4.<java.lang.StringBuilder: void <init>()>();
+
+        $r6 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("zookeeper.disableAutoWatchReset is ");
+
+        $z2 = <org.apache.zookeeper.ClientCnxn: boolean disableAutoWatchReset>;
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(boolean)>($z2);
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r5.<org.slf4j.Logger: void debug(java.lang.String)>($r8);
+
+     label1:
+        $r2 = new org.apache.zookeeper.ClientCnxn$1;
+
+        specialinvoke $r2.<org.apache.zookeeper.ClientCnxn$1: void <init>()>();
+
+        <org.apache.zookeeper.ClientCnxn: java.lang.Thread$UncaughtExceptionHandler uncaughtExceptionHandler> = $r2;
+
+        $r3 = staticinvoke <java.lang.Integer: java.lang.Integer getInteger(java.lang.String,int)>("jute.maxbuffer", 4194304);
+
+        $i0 = virtualinvoke $r3.<java.lang.Integer: int intValue()>();
+
+        <org.apache.zookeeper.ClientCnxn: int packetLen> = $i0;
+
+        return;
+    }
+}

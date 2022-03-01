@@ -1,0 +1,1205 @@
+public class org.apache.batik.util.RunnableQueue extends java.lang.Object implements java.lang.Runnable
+{
+    public static final org.apache.batik.util.RunnableQueue$RunnableQueueState RUNNING;
+    public static final org.apache.batik.util.RunnableQueue$RunnableQueueState SUSPENDING;
+    public static final org.apache.batik.util.RunnableQueue$RunnableQueueState SUSPENDED;
+    protected volatile org.apache.batik.util.RunnableQueue$RunnableQueueState state;
+    protected final java.lang.Object stateLock;
+    protected boolean wasResumed;
+    private final org.apache.batik.util.DoublyLinkedList list;
+    protected int preemptCount;
+    protected org.apache.batik.util.RunnableQueue$RunHandler runHandler;
+    protected volatile org.apache.batik.util.HaltingThread runnableQueueThread;
+    private org.apache.batik.util.RunnableQueue$IdleRunnable idleRunnable;
+    private long idleRunnableWaitTime;
+    private static volatile int threadCount;
+
+    public void <init>()
+    {
+        org.apache.batik.util.DoublyLinkedList $r2;
+        java.lang.Object $r1;
+        org.apache.batik.util.RunnableQueue r0;
+
+        r0 := @this: org.apache.batik.util.RunnableQueue;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        $r1 = new java.lang.Object;
+
+        specialinvoke $r1.<java.lang.Object: void <init>()>();
+
+        r0.<org.apache.batik.util.RunnableQueue: java.lang.Object stateLock> = $r1;
+
+        $r2 = new org.apache.batik.util.DoublyLinkedList;
+
+        specialinvoke $r2.<org.apache.batik.util.DoublyLinkedList: void <init>()>();
+
+        r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.DoublyLinkedList list> = $r2;
+
+        return;
+    }
+
+    public static org.apache.batik.util.RunnableQueue createRunnableQueue()
+    {
+        java.lang.Throwable $r6;
+        org.apache.batik.util.RunnableQueue $r0;
+        java.lang.InterruptedException $r7;
+        java.lang.StringBuffer $r2, $r3, $r4;
+        int $i0, $i1;
+        java.lang.String $r5;
+        org.apache.batik.util.HaltingThread $r1, $r8;
+
+        $r0 = new org.apache.batik.util.RunnableQueue;
+
+        specialinvoke $r0.<org.apache.batik.util.RunnableQueue: void <init>()>();
+
+        entermonitor $r0;
+
+     label1:
+        $r1 = new org.apache.batik.util.HaltingThread;
+
+        $r2 = new java.lang.StringBuffer;
+
+        specialinvoke $r2.<java.lang.StringBuffer: void <init>()>();
+
+        $r3 = virtualinvoke $r2.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>("RunnableQueue-");
+
+        $i0 = <org.apache.batik.util.RunnableQueue: int threadCount>;
+
+        $i1 = $i0 + 1;
+
+        <org.apache.batik.util.RunnableQueue: int threadCount> = $i1;
+
+        $r4 = virtualinvoke $r3.<java.lang.StringBuffer: java.lang.StringBuffer append(int)>($i0);
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuffer: java.lang.String toString()>();
+
+        specialinvoke $r1.<org.apache.batik.util.HaltingThread: void <init>(java.lang.Runnable,java.lang.String)>($r0, $r5);
+
+        virtualinvoke $r1.<java.lang.Thread: void setDaemon(boolean)>(1);
+
+        virtualinvoke $r1.<java.lang.Thread: void start()>();
+
+        goto label5;
+
+     label2:
+        virtualinvoke $r0.<java.lang.Object: void wait()>();
+
+     label3:
+        goto label5;
+
+     label4:
+        $r7 := @caughtexception;
+
+     label5:
+        $r8 = virtualinvoke $r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.HaltingThread getThread()>();
+
+        if $r8 == null goto label2;
+
+        exitmonitor $r0;
+
+        goto label7;
+
+     label6:
+        $r6 := @caughtexception;
+
+        exitmonitor $r0;
+
+        throw $r6;
+
+     label7:
+        return $r0;
+
+        catch java.lang.InterruptedException from label2 to label3 with label4;
+        catch java.lang.Throwable from label1 to label6 with label6;
+    }
+
+    public void run()
+    {
+        java.lang.Runnable r35;
+        org.apache.batik.util.DoublyLinkedList $r11, $r15, $r16, $r18;
+        byte $b2, $b5, $b8;
+        java.lang.Thread $r1;
+        org.apache.batik.util.HaltingThread $r2;
+        boolean $z0, z1, z2, $z3;
+        org.apache.batik.util.RunnableQueue r0;
+        java.lang.ThreadDeath $r25;
+        org.apache.batik.util.RunnableQueue$RunnableQueueState $r4, $r5, $r6, $r9, $r10, $r20, $r32, $r33;
+        java.lang.Throwable $r21, $r22, $r23, $r24, $r26, $r28, $r30, $r31;
+        long $l1, $l3, $l4, $l6, $l7, l11;
+        org.apache.batik.util.RunnableQueue$Link r34;
+        int $i0, $i9, $i10, $i12, $i13;
+        org.apache.batik.util.RunnableQueue$IdleRunnable $r13, $r14, $r17;
+        java.lang.InterruptedException $r27, $r29;
+        org.apache.batik.util.DoublyLinkedList$Node $r12;
+        java.lang.Object r3, $r7, $r8, $r19;
+
+        r0 := @this: org.apache.batik.util.RunnableQueue;
+
+        entermonitor r0;
+
+     label01:
+        $r1 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        $r2 = (org.apache.batik.util.HaltingThread) $r1;
+
+        r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.HaltingThread runnableQueueThread> = $r2;
+
+        virtualinvoke r0.<java.lang.Object: void notify()>();
+
+        exitmonitor r0;
+
+        goto label03;
+
+     label02:
+        $r31 := @caughtexception;
+
+        exitmonitor r0;
+
+        throw $r31;
+
+     label03:
+        goto label39;
+
+     label04:
+        z1 = 0;
+
+        z2 = 0;
+
+        r3 = r0.<org.apache.batik.util.RunnableQueue: java.lang.Object stateLock>;
+
+        entermonitor r3;
+
+     label05:
+        $r5 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunnableQueueState state>;
+
+        $r4 = <org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunnableQueueState RUNNING>;
+
+        if $r5 == $r4 goto label06;
+
+        $r20 = <org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunnableQueueState SUSPENDED>;
+
+        r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunnableQueueState state> = $r20;
+
+        z1 = 1;
+
+     label06:
+        exitmonitor r3;
+
+        goto label08;
+
+     label07:
+        $r30 := @caughtexception;
+
+        exitmonitor r3;
+
+        throw $r30;
+
+     label08:
+        if z1 == 0 goto label09;
+
+        virtualinvoke r0.<org.apache.batik.util.RunnableQueue: void executionSuspended()>();
+
+     label09:
+        $r19 = r0.<org.apache.batik.util.RunnableQueue: java.lang.Object stateLock>;
+
+        entermonitor $r19;
+
+     label10:
+        goto label15;
+
+     label11:
+        $r6 = <org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunnableQueueState SUSPENDED>;
+
+        r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunnableQueueState state> = $r6;
+
+        $r7 = r0.<org.apache.batik.util.RunnableQueue: java.lang.Object stateLock>;
+
+        virtualinvoke $r7.<java.lang.Object: void notifyAll()>();
+
+     label12:
+        $r8 = r0.<org.apache.batik.util.RunnableQueue: java.lang.Object stateLock>;
+
+        virtualinvoke $r8.<java.lang.Object: void wait()>();
+
+     label13:
+        goto label15;
+
+     label14:
+        $r29 := @caughtexception;
+
+     label15:
+        $r32 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunnableQueueState state>;
+
+        $r33 = <org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunnableQueueState RUNNING>;
+
+        if $r32 != $r33 goto label11;
+
+        $z0 = r0.<org.apache.batik.util.RunnableQueue: boolean wasResumed>;
+
+        if $z0 == 0 goto label16;
+
+        r0.<org.apache.batik.util.RunnableQueue: boolean wasResumed> = 0;
+
+        z2 = 1;
+
+     label16:
+        exitmonitor $r19;
+
+        goto label18;
+
+     label17:
+        $r28 := @caughtexception;
+
+        exitmonitor $r19;
+
+        throw $r28;
+
+     label18:
+        if z2 == 0 goto label19;
+
+        virtualinvoke r0.<org.apache.batik.util.RunnableQueue: void executionResumed()>();
+
+     label19:
+        $r18 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.DoublyLinkedList list>;
+
+        entermonitor $r18;
+
+     label20:
+        $r10 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunnableQueueState state>;
+
+        $r9 = <org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunnableQueueState SUSPENDING>;
+
+        if $r10 != $r9 goto label21;
+
+        exitmonitor $r18;
+
+        goto label39;
+
+     label21:
+        $r11 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.DoublyLinkedList list>;
+
+        $r12 = virtualinvoke $r11.<org.apache.batik.util.DoublyLinkedList: org.apache.batik.util.DoublyLinkedList$Node pop()>();
+
+        r34 = (org.apache.batik.util.RunnableQueue$Link) $r12;
+
+        $i0 = r0.<org.apache.batik.util.RunnableQueue: int preemptCount>;
+
+        if $i0 == 0 goto label22;
+
+        $i9 = r0.<org.apache.batik.util.RunnableQueue: int preemptCount>;
+
+        $i10 = $i9 - 1;
+
+        r0.<org.apache.batik.util.RunnableQueue: int preemptCount> = $i10;
+
+     label22:
+        if r34 != null goto label29;
+
+        $r13 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$IdleRunnable idleRunnable>;
+
+        if $r13 == null goto label23;
+
+        $r17 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$IdleRunnable idleRunnable>;
+
+        $l6 = interfaceinvoke $r17.<org.apache.batik.util.RunnableQueue$IdleRunnable: long getWaitTime()>();
+
+        r0.<org.apache.batik.util.RunnableQueue: long idleRunnableWaitTime> = $l6;
+
+        $l7 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        $b8 = $l6 cmp $l7;
+
+        $i12 = (int) $b8;
+
+        if $i12 >= 0 goto label23;
+
+        r35 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$IdleRunnable idleRunnable>;
+
+        goto label30;
+
+     label23:
+        $r14 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$IdleRunnable idleRunnable>;
+
+        if $r14 == null goto label25;
+
+        $l1 = r0.<org.apache.batik.util.RunnableQueue: long idleRunnableWaitTime>;
+
+        $b2 = $l1 cmp 9223372036854775807L;
+
+        if $b2 == 0 goto label25;
+
+        $l3 = r0.<org.apache.batik.util.RunnableQueue: long idleRunnableWaitTime>;
+
+        $l4 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        l11 = $l3 - $l4;
+
+        $b5 = l11 cmp 0L;
+
+        $i13 = (int) $b5;
+
+        if $i13 <= 0 goto label24;
+
+        $r16 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.DoublyLinkedList list>;
+
+        virtualinvoke $r16.<java.lang.Object: void wait(long)>(l11);
+
+     label24:
+        goto label26;
+
+     label25:
+        $r15 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.DoublyLinkedList list>;
+
+        virtualinvoke $r15.<java.lang.Object: void wait()>();
+
+     label26:
+        goto label28;
+
+     label27:
+        $r27 := @caughtexception;
+
+     label28:
+        exitmonitor $r18;
+
+        goto label39;
+
+     label29:
+        r35 = staticinvoke <org.apache.batik.util.RunnableQueue$Link: java.lang.Runnable access$100(org.apache.batik.util.RunnableQueue$Link)>(r34);
+
+     label30:
+        exitmonitor $r18;
+
+        goto label32;
+
+     label31:
+        $r26 := @caughtexception;
+
+        exitmonitor $r18;
+
+        throw $r26;
+
+     label32:
+        virtualinvoke r0.<org.apache.batik.util.RunnableQueue: void runnableStart(java.lang.Runnable)>(r35);
+
+     label33:
+        interfaceinvoke r35.<java.lang.Runnable: void run()>();
+
+     label34:
+        goto label37;
+
+     label35:
+        $r25 := @caughtexception;
+
+        throw $r25;
+
+     label36:
+        $r24 := @caughtexception;
+
+        virtualinvoke $r24.<java.lang.Throwable: void printStackTrace()>();
+
+     label37:
+        if r34 == null goto label38;
+
+        virtualinvoke r34.<org.apache.batik.util.RunnableQueue$Link: void unlock()>();
+
+     label38:
+        virtualinvoke r0.<org.apache.batik.util.RunnableQueue: void runnableInvoked(java.lang.Runnable)>(r35);
+
+     label39:
+        $z3 = staticinvoke <org.apache.batik.util.HaltingThread: boolean hasBeenHalted()>();
+
+        if $z3 == 0 goto label04;
+
+        goto label44;
+
+     label40:
+        goto label43;
+
+     label41:
+        $r23 := @caughtexception;
+
+        goto label48;
+
+     label42:
+        throw $r23;
+
+     label43:
+        return;
+
+     label44:
+        entermonitor r0;
+
+     label45:
+        r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.HaltingThread runnableQueueThread> = null;
+
+        exitmonitor r0;
+
+        goto label47;
+
+     label46:
+        $r22 := @caughtexception;
+
+        exitmonitor r0;
+
+        throw $r22;
+
+     label47:
+        goto label40;
+
+     label48:
+        entermonitor r0;
+
+     label49:
+        r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.HaltingThread runnableQueueThread> = null;
+
+        exitmonitor r0;
+
+        goto label51;
+
+     label50:
+        $r21 := @caughtexception;
+
+        exitmonitor r0;
+
+        throw $r21;
+
+     label51:
+        goto label42;
+
+        catch java.lang.Throwable from label01 to label02 with label02;
+        catch java.lang.Throwable from label05 to label07 with label07;
+        catch java.lang.InterruptedException from label12 to label13 with label14;
+        catch java.lang.Throwable from label10 to label17 with label17;
+        catch java.lang.InterruptedException from label23 to label26 with label27;
+        catch java.lang.Throwable from label20 to label31 with label31;
+        catch java.lang.ThreadDeath from label33 to label34 with label35;
+        catch java.lang.Throwable from label33 to label34 with label36;
+        catch java.lang.Throwable from label03 to label41 with label41;
+        catch java.lang.Throwable from label45 to label46 with label46;
+        catch java.lang.Throwable from label49 to label50 with label50;
+    }
+
+    public org.apache.batik.util.HaltingThread getThread()
+    {
+        org.apache.batik.util.RunnableQueue r0;
+        org.apache.batik.util.HaltingThread $r1;
+
+        r0 := @this: org.apache.batik.util.RunnableQueue;
+
+        $r1 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.HaltingThread runnableQueueThread>;
+
+        return $r1;
+    }
+
+    public void invokeLater(java.lang.Runnable)
+    {
+        java.lang.Throwable $r8;
+        java.lang.IllegalStateException $r7;
+        org.apache.batik.util.RunnableQueue r0;
+        java.lang.Runnable r4;
+        org.apache.batik.util.RunnableQueue$Link $r3;
+        org.apache.batik.util.DoublyLinkedList r2, $r5, $r6;
+        org.apache.batik.util.HaltingThread $r1;
+
+        r0 := @this: org.apache.batik.util.RunnableQueue;
+
+        r4 := @parameter0: java.lang.Runnable;
+
+        $r1 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.HaltingThread runnableQueueThread>;
+
+        if $r1 != null goto label1;
+
+        $r7 = new java.lang.IllegalStateException;
+
+        specialinvoke $r7.<java.lang.IllegalStateException: void <init>(java.lang.String)>("RunnableQueue not started or has exited");
+
+        throw $r7;
+
+     label1:
+        r2 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.DoublyLinkedList list>;
+
+        entermonitor r2;
+
+     label2:
+        $r5 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.DoublyLinkedList list>;
+
+        $r3 = new org.apache.batik.util.RunnableQueue$Link;
+
+        specialinvoke $r3.<org.apache.batik.util.RunnableQueue$Link: void <init>(java.lang.Runnable)>(r4);
+
+        virtualinvoke $r5.<org.apache.batik.util.DoublyLinkedList: void push(org.apache.batik.util.DoublyLinkedList$Node)>($r3);
+
+        $r6 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.DoublyLinkedList list>;
+
+        virtualinvoke $r6.<java.lang.Object: void notify()>();
+
+        exitmonitor r2;
+
+        goto label4;
+
+     label3:
+        $r8 := @caughtexception;
+
+        exitmonitor r2;
+
+        throw $r8;
+
+     label4:
+        return;
+
+        catch java.lang.Throwable from label2 to label3 with label3;
+    }
+
+    public void invokeAndWait(java.lang.Runnable) throws java.lang.InterruptedException
+    {
+        java.lang.Throwable $r11;
+        java.lang.IllegalStateException $r9, $r10;
+        org.apache.batik.util.RunnableQueue r0;
+        java.lang.Runnable r5;
+        org.apache.batik.util.DoublyLinkedList r6, $r7, $r8;
+        org.apache.batik.util.RunnableQueue$LockableLink $r4;
+        java.lang.Thread $r3;
+        org.apache.batik.util.HaltingThread $r1, $r2;
+
+        r0 := @this: org.apache.batik.util.RunnableQueue;
+
+        r5 := @parameter0: java.lang.Runnable;
+
+        $r1 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.HaltingThread runnableQueueThread>;
+
+        if $r1 != null goto label1;
+
+        $r10 = new java.lang.IllegalStateException;
+
+        specialinvoke $r10.<java.lang.IllegalStateException: void <init>(java.lang.String)>("RunnableQueue not started or has exited");
+
+        throw $r10;
+
+     label1:
+        $r2 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.HaltingThread runnableQueueThread>;
+
+        $r3 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        if $r2 != $r3 goto label2;
+
+        $r9 = new java.lang.IllegalStateException;
+
+        specialinvoke $r9.<java.lang.IllegalStateException: void <init>(java.lang.String)>("Cannot be called from the RunnableQueue thread");
+
+        throw $r9;
+
+     label2:
+        $r4 = new org.apache.batik.util.RunnableQueue$LockableLink;
+
+        specialinvoke $r4.<org.apache.batik.util.RunnableQueue$LockableLink: void <init>(java.lang.Runnable)>(r5);
+
+        r6 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.DoublyLinkedList list>;
+
+        entermonitor r6;
+
+     label3:
+        $r7 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.DoublyLinkedList list>;
+
+        virtualinvoke $r7.<org.apache.batik.util.DoublyLinkedList: void push(org.apache.batik.util.DoublyLinkedList$Node)>($r4);
+
+        $r8 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.DoublyLinkedList list>;
+
+        virtualinvoke $r8.<java.lang.Object: void notify()>();
+
+        exitmonitor r6;
+
+        goto label5;
+
+     label4:
+        $r11 := @caughtexception;
+
+        exitmonitor r6;
+
+        throw $r11;
+
+     label5:
+        virtualinvoke $r4.<org.apache.batik.util.RunnableQueue$LockableLink: void lock()>();
+
+        return;
+
+        catch java.lang.Throwable from label3 to label4 with label4;
+    }
+
+    public void preemptLater(java.lang.Runnable)
+    {
+        java.lang.Throwable $r8;
+        java.lang.IllegalStateException $r7;
+        org.apache.batik.util.RunnableQueue r0;
+        java.lang.Runnable r4;
+        org.apache.batik.util.RunnableQueue$Link $r3;
+        org.apache.batik.util.DoublyLinkedList r2, $r5, $r6;
+        int $i0, $i1, $i2;
+        org.apache.batik.util.HaltingThread $r1;
+
+        r0 := @this: org.apache.batik.util.RunnableQueue;
+
+        r4 := @parameter0: java.lang.Runnable;
+
+        $r1 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.HaltingThread runnableQueueThread>;
+
+        if $r1 != null goto label1;
+
+        $r7 = new java.lang.IllegalStateException;
+
+        specialinvoke $r7.<java.lang.IllegalStateException: void <init>(java.lang.String)>("RunnableQueue not started or has exited");
+
+        throw $r7;
+
+     label1:
+        r2 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.DoublyLinkedList list>;
+
+        entermonitor r2;
+
+     label2:
+        $r5 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.DoublyLinkedList list>;
+
+        $i0 = r0.<org.apache.batik.util.RunnableQueue: int preemptCount>;
+
+        $r3 = new org.apache.batik.util.RunnableQueue$Link;
+
+        specialinvoke $r3.<org.apache.batik.util.RunnableQueue$Link: void <init>(java.lang.Runnable)>(r4);
+
+        virtualinvoke $r5.<org.apache.batik.util.DoublyLinkedList: void add(int,org.apache.batik.util.DoublyLinkedList$Node)>($i0, $r3);
+
+        $i1 = r0.<org.apache.batik.util.RunnableQueue: int preemptCount>;
+
+        $i2 = $i1 + 1;
+
+        r0.<org.apache.batik.util.RunnableQueue: int preemptCount> = $i2;
+
+        $r6 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.DoublyLinkedList list>;
+
+        virtualinvoke $r6.<java.lang.Object: void notify()>();
+
+        exitmonitor r2;
+
+        goto label4;
+
+     label3:
+        $r8 := @caughtexception;
+
+        exitmonitor r2;
+
+        throw $r8;
+
+     label4:
+        return;
+
+        catch java.lang.Throwable from label2 to label3 with label3;
+    }
+
+    public void preemptAndWait(java.lang.Runnable) throws java.lang.InterruptedException
+    {
+        java.lang.Throwable $r11;
+        java.lang.IllegalStateException $r9, $r10;
+        org.apache.batik.util.RunnableQueue r0;
+        java.lang.Runnable r5;
+        org.apache.batik.util.DoublyLinkedList r6, $r7, $r8;
+        org.apache.batik.util.RunnableQueue$LockableLink $r4;
+        java.lang.Thread $r3;
+        int $i0, $i1, $i2;
+        org.apache.batik.util.HaltingThread $r1, $r2;
+
+        r0 := @this: org.apache.batik.util.RunnableQueue;
+
+        r5 := @parameter0: java.lang.Runnable;
+
+        $r1 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.HaltingThread runnableQueueThread>;
+
+        if $r1 != null goto label1;
+
+        $r10 = new java.lang.IllegalStateException;
+
+        specialinvoke $r10.<java.lang.IllegalStateException: void <init>(java.lang.String)>("RunnableQueue not started or has exited");
+
+        throw $r10;
+
+     label1:
+        $r2 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.HaltingThread runnableQueueThread>;
+
+        $r3 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        if $r2 != $r3 goto label2;
+
+        $r9 = new java.lang.IllegalStateException;
+
+        specialinvoke $r9.<java.lang.IllegalStateException: void <init>(java.lang.String)>("Cannot be called from the RunnableQueue thread");
+
+        throw $r9;
+
+     label2:
+        $r4 = new org.apache.batik.util.RunnableQueue$LockableLink;
+
+        specialinvoke $r4.<org.apache.batik.util.RunnableQueue$LockableLink: void <init>(java.lang.Runnable)>(r5);
+
+        r6 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.DoublyLinkedList list>;
+
+        entermonitor r6;
+
+     label3:
+        $r7 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.DoublyLinkedList list>;
+
+        $i0 = r0.<org.apache.batik.util.RunnableQueue: int preemptCount>;
+
+        virtualinvoke $r7.<org.apache.batik.util.DoublyLinkedList: void add(int,org.apache.batik.util.DoublyLinkedList$Node)>($i0, $r4);
+
+        $i1 = r0.<org.apache.batik.util.RunnableQueue: int preemptCount>;
+
+        $i2 = $i1 + 1;
+
+        r0.<org.apache.batik.util.RunnableQueue: int preemptCount> = $i2;
+
+        $r8 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.DoublyLinkedList list>;
+
+        virtualinvoke $r8.<java.lang.Object: void notify()>();
+
+        exitmonitor r6;
+
+        goto label5;
+
+     label4:
+        $r11 := @caughtexception;
+
+        exitmonitor r6;
+
+        throw $r11;
+
+     label5:
+        virtualinvoke $r4.<org.apache.batik.util.RunnableQueue$LockableLink: void lock()>();
+
+        return;
+
+        catch java.lang.Throwable from label3 to label4 with label4;
+    }
+
+    public org.apache.batik.util.RunnableQueue$RunnableQueueState getQueueState()
+    {
+        java.lang.Throwable $r3;
+        org.apache.batik.util.RunnableQueue r0;
+        java.lang.Object r1;
+        org.apache.batik.util.RunnableQueue$RunnableQueueState r2;
+
+        r0 := @this: org.apache.batik.util.RunnableQueue;
+
+        r1 = r0.<org.apache.batik.util.RunnableQueue: java.lang.Object stateLock>;
+
+        entermonitor r1;
+
+     label1:
+        r2 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunnableQueueState state>;
+
+        exitmonitor r1;
+
+        return r2;
+
+     label2:
+        $r3 := @caughtexception;
+
+        exitmonitor r1;
+
+        throw $r3;
+
+        catch java.lang.Throwable from label1 to label2 with label2;
+    }
+
+    public void suspendExecution(boolean)
+    {
+        java.lang.Throwable $r12, $r14;
+        java.lang.IllegalStateException $r11;
+        org.apache.batik.util.DoublyLinkedList $r9, r15;
+        org.apache.batik.util.HaltingThread $r1;
+        boolean z0;
+        org.apache.batik.util.RunnableQueue r0;
+        java.lang.InterruptedException $r13;
+        java.lang.Object r2, $r7, $r10;
+        org.apache.batik.util.RunnableQueue$RunnableQueueState $r3, $r4, $r5, $r6, $r8, $r16, $r17;
+
+        r0 := @this: org.apache.batik.util.RunnableQueue;
+
+        z0 := @parameter0: boolean;
+
+        $r1 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.HaltingThread runnableQueueThread>;
+
+        if $r1 != null goto label01;
+
+        $r11 = new java.lang.IllegalStateException;
+
+        specialinvoke $r11.<java.lang.IllegalStateException: void <init>(java.lang.String)>("RunnableQueue not started or has exited");
+
+        throw $r11;
+
+     label01:
+        r2 = r0.<org.apache.batik.util.RunnableQueue: java.lang.Object stateLock>;
+
+        entermonitor r2;
+
+     label02:
+        r0.<org.apache.batik.util.RunnableQueue: boolean wasResumed> = 0;
+
+        $r4 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunnableQueueState state>;
+
+        $r3 = <org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunnableQueueState SUSPENDED>;
+
+        if $r4 != $r3 goto label03;
+
+        $r10 = r0.<org.apache.batik.util.RunnableQueue: java.lang.Object stateLock>;
+
+        virtualinvoke $r10.<java.lang.Object: void notifyAll()>();
+
+        exitmonitor r2;
+
+        return;
+
+     label03:
+        $r6 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunnableQueueState state>;
+
+        $r5 = <org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunnableQueueState RUNNING>;
+
+        if $r6 != $r5 goto label06;
+
+        $r8 = <org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunnableQueueState SUSPENDING>;
+
+        r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunnableQueueState state> = $r8;
+
+        r15 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.DoublyLinkedList list>;
+
+        entermonitor r15;
+
+     label04:
+        $r9 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.DoublyLinkedList list>;
+
+        virtualinvoke $r9.<java.lang.Object: void notify()>();
+
+        exitmonitor r15;
+
+        goto label06;
+
+     label05:
+        $r14 := @caughtexception;
+
+        exitmonitor r15;
+
+        throw $r14;
+
+     label06:
+        if z0 == 0 goto label11;
+
+        goto label10;
+
+     label07:
+        $r7 = r0.<org.apache.batik.util.RunnableQueue: java.lang.Object stateLock>;
+
+        virtualinvoke $r7.<java.lang.Object: void wait()>();
+
+     label08:
+        goto label10;
+
+     label09:
+        $r13 := @caughtexception;
+
+     label10:
+        $r16 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunnableQueueState state>;
+
+        $r17 = <org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunnableQueueState SUSPENDING>;
+
+        if $r16 == $r17 goto label07;
+
+     label11:
+        exitmonitor r2;
+
+        goto label13;
+
+     label12:
+        $r12 := @caughtexception;
+
+        exitmonitor r2;
+
+        throw $r12;
+
+     label13:
+        return;
+
+        catch java.lang.Throwable from label04 to label05 with label05;
+        catch java.lang.InterruptedException from label07 to label08 with label09;
+        catch java.lang.Throwable from label02 to label12 with label12;
+    }
+
+    public void resumeExecution()
+    {
+        java.lang.Throwable $r8;
+        java.lang.IllegalStateException $r7;
+        org.apache.batik.util.RunnableQueue r0;
+        java.lang.Object r2, $r6;
+        org.apache.batik.util.RunnableQueue$RunnableQueueState $r3, $r4, $r5;
+        org.apache.batik.util.HaltingThread $r1;
+
+        r0 := @this: org.apache.batik.util.RunnableQueue;
+
+        $r1 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.HaltingThread runnableQueueThread>;
+
+        if $r1 != null goto label1;
+
+        $r7 = new java.lang.IllegalStateException;
+
+        specialinvoke $r7.<java.lang.IllegalStateException: void <init>(java.lang.String)>("RunnableQueue not started or has exited");
+
+        throw $r7;
+
+     label1:
+        r2 = r0.<org.apache.batik.util.RunnableQueue: java.lang.Object stateLock>;
+
+        entermonitor r2;
+
+     label2:
+        r0.<org.apache.batik.util.RunnableQueue: boolean wasResumed> = 1;
+
+        $r4 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunnableQueueState state>;
+
+        $r3 = <org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunnableQueueState RUNNING>;
+
+        if $r4 == $r3 goto label3;
+
+        $r5 = <org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunnableQueueState RUNNING>;
+
+        r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunnableQueueState state> = $r5;
+
+        $r6 = r0.<org.apache.batik.util.RunnableQueue: java.lang.Object stateLock>;
+
+        virtualinvoke $r6.<java.lang.Object: void notifyAll()>();
+
+     label3:
+        exitmonitor r2;
+
+        goto label5;
+
+     label4:
+        $r8 := @caughtexception;
+
+        exitmonitor r2;
+
+        throw $r8;
+
+     label5:
+        return;
+
+        catch java.lang.Throwable from label2 to label4 with label4;
+    }
+
+    public java.lang.Object getIteratorLock()
+    {
+        org.apache.batik.util.DoublyLinkedList $r1;
+        org.apache.batik.util.RunnableQueue r0;
+
+        r0 := @this: org.apache.batik.util.RunnableQueue;
+
+        $r1 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.DoublyLinkedList list>;
+
+        return $r1;
+    }
+
+    public java.util.Iterator iterator()
+    {
+        org.apache.batik.util.RunnableQueue r1;
+        org.apache.batik.util.RunnableQueue$1 $r0;
+
+        r1 := @this: org.apache.batik.util.RunnableQueue;
+
+        $r0 = new org.apache.batik.util.RunnableQueue$1;
+
+        specialinvoke $r0.<org.apache.batik.util.RunnableQueue$1: void <init>(org.apache.batik.util.RunnableQueue)>(r1);
+
+        return $r0;
+    }
+
+    public synchronized void setRunHandler(org.apache.batik.util.RunnableQueue$RunHandler)
+    {
+        org.apache.batik.util.RunnableQueue$RunHandler r1;
+        org.apache.batik.util.RunnableQueue r0;
+
+        r0 := @this: org.apache.batik.util.RunnableQueue;
+
+        r1 := @parameter0: org.apache.batik.util.RunnableQueue$RunHandler;
+
+        r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunHandler runHandler> = r1;
+
+        return;
+    }
+
+    public synchronized org.apache.batik.util.RunnableQueue$RunHandler getRunHandler()
+    {
+        org.apache.batik.util.RunnableQueue$RunHandler $r1;
+        org.apache.batik.util.RunnableQueue r0;
+
+        r0 := @this: org.apache.batik.util.RunnableQueue;
+
+        $r1 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunHandler runHandler>;
+
+        return $r1;
+    }
+
+    public void setIdleRunnable(org.apache.batik.util.RunnableQueue$IdleRunnable)
+    {
+        java.lang.Throwable $r4;
+        org.apache.batik.util.DoublyLinkedList r1, $r3;
+        org.apache.batik.util.RunnableQueue$IdleRunnable r2;
+        org.apache.batik.util.RunnableQueue r0;
+
+        r0 := @this: org.apache.batik.util.RunnableQueue;
+
+        r2 := @parameter0: org.apache.batik.util.RunnableQueue$IdleRunnable;
+
+        r1 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.DoublyLinkedList list>;
+
+        entermonitor r1;
+
+     label1:
+        r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$IdleRunnable idleRunnable> = r2;
+
+        r0.<org.apache.batik.util.RunnableQueue: long idleRunnableWaitTime> = 0L;
+
+        $r3 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.DoublyLinkedList list>;
+
+        virtualinvoke $r3.<java.lang.Object: void notify()>();
+
+        exitmonitor r1;
+
+        goto label3;
+
+     label2:
+        $r4 := @caughtexception;
+
+        exitmonitor r1;
+
+        throw $r4;
+
+     label3:
+        return;
+
+        catch java.lang.Throwable from label1 to label2 with label2;
+    }
+
+    protected synchronized void executionSuspended()
+    {
+        org.apache.batik.util.RunnableQueue$RunHandler $r1, $r2;
+        org.apache.batik.util.RunnableQueue r0;
+
+        r0 := @this: org.apache.batik.util.RunnableQueue;
+
+        $r1 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunHandler runHandler>;
+
+        if $r1 == null goto label1;
+
+        $r2 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunHandler runHandler>;
+
+        interfaceinvoke $r2.<org.apache.batik.util.RunnableQueue$RunHandler: void executionSuspended(org.apache.batik.util.RunnableQueue)>(r0);
+
+     label1:
+        return;
+    }
+
+    protected synchronized void executionResumed()
+    {
+        org.apache.batik.util.RunnableQueue$RunHandler $r1, $r2;
+        org.apache.batik.util.RunnableQueue r0;
+
+        r0 := @this: org.apache.batik.util.RunnableQueue;
+
+        $r1 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunHandler runHandler>;
+
+        if $r1 == null goto label1;
+
+        $r2 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunHandler runHandler>;
+
+        interfaceinvoke $r2.<org.apache.batik.util.RunnableQueue$RunHandler: void executionResumed(org.apache.batik.util.RunnableQueue)>(r0);
+
+     label1:
+        return;
+    }
+
+    protected synchronized void runnableStart(java.lang.Runnable)
+    {
+        org.apache.batik.util.RunnableQueue r0;
+        org.apache.batik.util.RunnableQueue$RunHandler $r1, $r3;
+        java.lang.Runnable r2;
+
+        r0 := @this: org.apache.batik.util.RunnableQueue;
+
+        r2 := @parameter0: java.lang.Runnable;
+
+        $r1 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunHandler runHandler>;
+
+        if $r1 == null goto label1;
+
+        $r3 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunHandler runHandler>;
+
+        interfaceinvoke $r3.<org.apache.batik.util.RunnableQueue$RunHandler: void runnableStart(org.apache.batik.util.RunnableQueue,java.lang.Runnable)>(r0, r2);
+
+     label1:
+        return;
+    }
+
+    protected synchronized void runnableInvoked(java.lang.Runnable)
+    {
+        org.apache.batik.util.RunnableQueue r0;
+        org.apache.batik.util.RunnableQueue$RunHandler $r1, $r3;
+        java.lang.Runnable r2;
+
+        r0 := @this: org.apache.batik.util.RunnableQueue;
+
+        r2 := @parameter0: java.lang.Runnable;
+
+        $r1 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunHandler runHandler>;
+
+        if $r1 == null goto label1;
+
+        $r3 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunHandler runHandler>;
+
+        interfaceinvoke $r3.<org.apache.batik.util.RunnableQueue$RunHandler: void runnableInvoked(org.apache.batik.util.RunnableQueue,java.lang.Runnable)>(r0, r2);
+
+     label1:
+        return;
+    }
+
+    static org.apache.batik.util.DoublyLinkedList access$200(org.apache.batik.util.RunnableQueue)
+    {
+        org.apache.batik.util.DoublyLinkedList $r1;
+        org.apache.batik.util.RunnableQueue r0;
+
+        r0 := @parameter0: org.apache.batik.util.RunnableQueue;
+
+        $r1 = r0.<org.apache.batik.util.RunnableQueue: org.apache.batik.util.DoublyLinkedList list>;
+
+        return $r1;
+    }
+
+    static void <clinit>()
+    {
+        org.apache.batik.util.RunnableQueue$RunnableQueueState $r0, $r1, $r2;
+
+        $r0 = new org.apache.batik.util.RunnableQueue$RunnableQueueState;
+
+        specialinvoke $r0.<org.apache.batik.util.RunnableQueue$RunnableQueueState: void <init>(java.lang.String,org.apache.batik.util.RunnableQueue$1)>("Running", null);
+
+        <org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunnableQueueState RUNNING> = $r0;
+
+        $r1 = new org.apache.batik.util.RunnableQueue$RunnableQueueState;
+
+        specialinvoke $r1.<org.apache.batik.util.RunnableQueue$RunnableQueueState: void <init>(java.lang.String,org.apache.batik.util.RunnableQueue$1)>("Suspending", null);
+
+        <org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunnableQueueState SUSPENDING> = $r1;
+
+        $r2 = new org.apache.batik.util.RunnableQueue$RunnableQueueState;
+
+        specialinvoke $r2.<org.apache.batik.util.RunnableQueue$RunnableQueueState: void <init>(java.lang.String,org.apache.batik.util.RunnableQueue$1)>("Suspended", null);
+
+        <org.apache.batik.util.RunnableQueue: org.apache.batik.util.RunnableQueue$RunnableQueueState SUSPENDED> = $r2;
+
+        return;
+    }
+}

@@ -1,0 +1,750 @@
+public class com.google.gxp.compiler.ant.GxpcTask extends org.apache.tools.ant.Task implements com.google.gxp.compiler.Configuration
+{
+    private static final java.lang.String[] DEFAULT_INCLUDES;
+    private final com.google.gxp.compiler.fs.FileSystem fs;
+    private final com.google.gxp.compiler.fs.FileRef cwd;
+    private final org.apache.tools.ant.FileScanner fileScanner;
+    private com.google.gxp.com.google.common.collect.ImmutableSet sourceFiles;
+    private com.google.gxp.com.google.common.collect.ImmutableSet schemaFiles;
+    private com.google.gxp.com.google.common.collect.ImmutableSet outputLanguages;
+    private com.google.gxp.compiler.codegen.DefaultCodeGeneratorFactory codeGeneratorFactory;
+    private com.google.gxp.compiler.fs.FileRef propertiesFile;
+    private com.google.gxp.compiler.alerts.AlertPolicy alertPolicy;
+    private com.google.gxp.com.google.common.collect.ImmutableSortedSet dotPhases;
+    private com.google.gxp.compiler.parser.SourceEntityResolver sourceEntityResolver;
+    private java.lang.String srcpaths;
+    private java.lang.String schemas;
+    private java.lang.String destdir;
+    private java.lang.String target;
+    private boolean dynamic;
+    private boolean i18nwarn;
+
+    public void <init>(com.google.gxp.compiler.fs.FileSystem, com.google.gxp.compiler.fs.FileRef)
+    {
+        java.lang.String[] $r8;
+        org.apache.tools.ant.FileScanner $r9, $r11;
+        org.apache.tools.ant.DirectoryScanner $r10;
+        com.google.gxp.compiler.fs.FileSystem r2, $r4;
+        java.lang.Object $r3, $r6;
+        com.google.gxp.compiler.fs.FileRef r5, $r7;
+        com.google.gxp.compiler.ant.GxpcTask r0;
+
+        r0 := @this: com.google.gxp.compiler.ant.GxpcTask;
+
+        r2 := @parameter0: com.google.gxp.compiler.fs.FileSystem;
+
+        r5 := @parameter1: com.google.gxp.compiler.fs.FileRef;
+
+        specialinvoke r0.<org.apache.tools.ant.Task: void <init>()>();
+
+        $r10 = new org.apache.tools.ant.DirectoryScanner;
+
+        specialinvoke $r10.<org.apache.tools.ant.DirectoryScanner: void <init>()>();
+
+        $r11 = (org.apache.tools.ant.FileScanner) $r10;
+
+        r0.<com.google.gxp.compiler.ant.GxpcTask: org.apache.tools.ant.FileScanner fileScanner> = $r11;
+
+        r0.<com.google.gxp.compiler.ant.GxpcTask: java.lang.String schemas> = null;
+
+        r0.<com.google.gxp.compiler.ant.GxpcTask: boolean dynamic> = 0;
+
+        r0.<com.google.gxp.compiler.ant.GxpcTask: boolean i18nwarn> = 0;
+
+        $r3 = staticinvoke <com.google.gxp.com.google.common.base.Preconditions: java.lang.Object checkNotNull(java.lang.Object)>(r2);
+
+        $r4 = (com.google.gxp.compiler.fs.FileSystem) $r3;
+
+        r0.<com.google.gxp.compiler.ant.GxpcTask: com.google.gxp.compiler.fs.FileSystem fs> = $r4;
+
+        $r6 = staticinvoke <com.google.gxp.com.google.common.base.Preconditions: java.lang.Object checkNotNull(java.lang.Object)>(r5);
+
+        $r7 = (com.google.gxp.compiler.fs.FileRef) $r6;
+
+        r0.<com.google.gxp.compiler.ant.GxpcTask: com.google.gxp.compiler.fs.FileRef cwd> = $r7;
+
+        $r9 = r0.<com.google.gxp.compiler.ant.GxpcTask: org.apache.tools.ant.FileScanner fileScanner>;
+
+        $r8 = <com.google.gxp.compiler.ant.GxpcTask: java.lang.String[] DEFAULT_INCLUDES>;
+
+        interfaceinvoke $r9.<org.apache.tools.ant.FileScanner: void setIncludes(java.lang.String[])>($r8);
+
+        return;
+    }
+
+    public void <init>()
+    {
+        com.google.gxp.compiler.fs.SystemFileSystem $r1, $r2;
+        java.lang.String $r3;
+        com.google.gxp.compiler.fs.FileRef $r4;
+        com.google.gxp.compiler.ant.GxpcTask r0;
+
+        r0 := @this: com.google.gxp.compiler.ant.GxpcTask;
+
+        $r1 = <com.google.gxp.compiler.fs.SystemFileSystem: com.google.gxp.compiler.fs.SystemFileSystem INSTANCE>;
+
+        $r2 = <com.google.gxp.compiler.fs.SystemFileSystem: com.google.gxp.compiler.fs.SystemFileSystem INSTANCE>;
+
+        $r3 = staticinvoke <java.lang.System: java.lang.String getProperty(java.lang.String)>("user.dir");
+
+        $r4 = virtualinvoke $r2.<com.google.gxp.compiler.fs.SystemFileSystem: com.google.gxp.compiler.fs.FileRef parseFilename(java.lang.String)>($r3);
+
+        specialinvoke r0.<com.google.gxp.compiler.ant.GxpcTask: void <init>(com.google.gxp.compiler.fs.FileSystem,com.google.gxp.compiler.fs.FileRef)>($r1, $r4);
+
+        return;
+    }
+
+    public void execute() throws org.apache.tools.ant.BuildException
+    {
+        java.lang.Throwable $r14, $r15;
+        com.google.gxp.compiler.InvalidConfigException $r7;
+        org.apache.tools.ant.BuildException $r12, $r13;
+        com.google.gxp.compiler.alerts.AlertCounter $r10;
+        com.google.gxp.compiler.Compiler $r11;
+        com.google.gxp.compiler.alerts.AlertPolicy $r2, $r4;
+        com.google.gxp.compiler.ant.LoggingAlertSink $r9;
+        int $i0;
+        com.google.gxp.compiler.ant.GxpcTask r0;
+
+        r0 := @this: com.google.gxp.compiler.ant.GxpcTask;
+
+        virtualinvoke r0.<com.google.gxp.compiler.ant.GxpcTask: void configure()>();
+
+        $r9 = new com.google.gxp.compiler.ant.LoggingAlertSink;
+
+        $r2 = virtualinvoke r0.<com.google.gxp.compiler.ant.GxpcTask: com.google.gxp.compiler.alerts.AlertPolicy getAlertPolicy()>();
+
+        specialinvoke $r9.<com.google.gxp.compiler.ant.LoggingAlertSink: void <init>(com.google.gxp.compiler.alerts.AlertPolicy,org.apache.tools.ant.Task)>($r2, r0);
+
+        $r10 = new com.google.gxp.compiler.alerts.AlertCounter;
+
+        $r4 = virtualinvoke r0.<com.google.gxp.compiler.ant.GxpcTask: com.google.gxp.compiler.alerts.AlertPolicy getAlertPolicy()>();
+
+        specialinvoke $r10.<com.google.gxp.compiler.alerts.AlertCounter: void <init>(com.google.gxp.compiler.alerts.AlertSink,com.google.gxp.compiler.alerts.AlertPolicy)>($r9, $r4);
+
+     label1:
+        $r11 = new com.google.gxp.compiler.Compiler;
+
+        specialinvoke $r11.<com.google.gxp.compiler.Compiler: void <init>(com.google.gxp.compiler.Configuration)>(r0);
+
+        virtualinvoke $r11.<com.google.gxp.compiler.Compiler: void call(com.google.gxp.compiler.alerts.AlertSink)>($r10);
+
+     label2:
+        goto label4;
+
+     label3:
+        $r7 := @caughtexception;
+
+        $r12 = new org.apache.tools.ant.BuildException;
+
+        specialinvoke $r12.<org.apache.tools.ant.BuildException: void <init>(java.lang.Throwable)>($r7);
+
+        $r14 = (java.lang.Throwable) $r12;
+
+        throw $r14;
+
+     label4:
+        $i0 = virtualinvoke $r10.<com.google.gxp.compiler.alerts.AlertCounter: int getErrorCount()>();
+
+        if $i0 <= 0 goto label5;
+
+        $r13 = new org.apache.tools.ant.BuildException;
+
+        specialinvoke $r13.<org.apache.tools.ant.BuildException: void <init>(java.lang.String)>("Compile failed; see the compiler error output for details.");
+
+        $r15 = (java.lang.Throwable) $r13;
+
+        throw $r15;
+
+     label5:
+        return;
+
+        catch com.google.gxp.compiler.InvalidConfigException from label1 to label2 with label3;
+    }
+
+    public void configure() throws org.apache.tools.ant.BuildException
+    {
+        com.google.gxp.compiler.parser.FileSystemEntityResolver $r74;
+        com.google.gxp.compiler.alerts.AlertPolicy $r34, $r47;
+        java.util.Set $r25, $r42, $r44;
+        java.lang.StringBuilder $r8, $r10, $r49, $r52, $r53, $r58, $r59, $r70, $r71, $r73;
+        java.lang.Throwable $r76;
+        java.util.ArrayList $r12;
+        com.google.gxp.compiler.codegen.DefaultCodeGeneratorFactory $r39, $r40, $r41, $r43, $r45, $r46, $r75;
+        com.google.gxp.com.google.common.collect.ImmutableSortedSet $r35;
+        java.lang.String $r7, $r9, $r11, $r15, $r16, $r17, $r19, $r20, $r27, $r28, $r33, $r38, $r50, $r51, $r54, r55, $r60;
+        org.apache.tools.ant.BuildException $r69;
+        java.io.File $r2, $r6;
+        com.google.gxp.compiler.base.OutputLanguage $r31;
+        boolean $z0;
+        org.apache.tools.ant.FileScanner $r1, $r3, $r5, $r13;
+        com.google.gxp.com.google.common.collect.ImmutableSet $r26, $r32, $r65, r66, $r67;
+        java.util.List $r22, $r30;
+        java.lang.String[] $r14;
+        com.google.gxp.compiler.fs.SourcePathFileSystem $r72;
+        int i0, i1;
+        com.google.gxp.compiler.fs.FileRef $r61, $r63, r64, $r68;
+        com.google.gxp.compiler.fs.FileSystem $r18, $r21, $r24, $r29, $r57;
+        com.google.gxp.compiler.ant.GxpcTask r0;
+
+        r0 := @this: com.google.gxp.compiler.ant.GxpcTask;
+
+        $r1 = r0.<com.google.gxp.compiler.ant.GxpcTask: org.apache.tools.ant.FileScanner fileScanner>;
+
+        $r2 = interfaceinvoke $r1.<org.apache.tools.ant.FileScanner: java.io.File getBasedir()>();
+
+        if $r2 != null goto label01;
+
+        $r69 = new org.apache.tools.ant.BuildException;
+
+        specialinvoke $r69.<org.apache.tools.ant.BuildException: void <init>(java.lang.String)>("Attribute \'srcdir\' was not set.");
+
+        $r76 = (java.lang.Throwable) $r69;
+
+        throw $r76;
+
+     label01:
+        $r3 = r0.<com.google.gxp.compiler.ant.GxpcTask: org.apache.tools.ant.FileScanner fileScanner>;
+
+        interfaceinvoke $r3.<org.apache.tools.ant.FileScanner: void scan()>();
+
+        $r70 = new java.lang.StringBuilder;
+
+        specialinvoke $r70.<java.lang.StringBuilder: void <init>()>();
+
+        $r5 = r0.<com.google.gxp.compiler.ant.GxpcTask: org.apache.tools.ant.FileScanner fileScanner>;
+
+        $r6 = interfaceinvoke $r5.<org.apache.tools.ant.FileScanner: java.io.File getBasedir()>();
+
+        $r7 = virtualinvoke $r6.<java.io.File: java.lang.String getPath()>();
+
+        $r8 = virtualinvoke $r70.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r7);
+
+        $r9 = <java.io.File: java.lang.String separator>;
+
+        $r10 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r9);
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r12 = staticinvoke <com.google.gxp.com.google.common.collect.Lists: java.util.ArrayList newArrayList()>();
+
+        $r13 = r0.<com.google.gxp.compiler.ant.GxpcTask: org.apache.tools.ant.FileScanner fileScanner>;
+
+        $r14 = interfaceinvoke $r13.<org.apache.tools.ant.FileScanner: java.lang.String[] getIncludedFiles()>();
+
+        i0 = lengthof $r14;
+
+        i1 = 0;
+
+     label02:
+        if i1 >= i0 goto label03;
+
+        r55 = $r14[i1];
+
+        $r57 = r0.<com.google.gxp.compiler.ant.GxpcTask: com.google.gxp.compiler.fs.FileSystem fs>;
+
+        $r71 = new java.lang.StringBuilder;
+
+        specialinvoke $r71.<java.lang.StringBuilder: void <init>()>();
+
+        $r58 = virtualinvoke $r71.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r11);
+
+        $r59 = virtualinvoke $r58.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r55);
+
+        $r60 = virtualinvoke $r59.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r61 = interfaceinvoke $r57.<com.google.gxp.compiler.fs.FileSystem: com.google.gxp.compiler.fs.FileRef parseFilename(java.lang.String)>($r60);
+
+        interfaceinvoke $r12.<java.util.List: boolean add(java.lang.Object)>($r61);
+
+        i1 = i1 + 1;
+
+        goto label02;
+
+     label03:
+        $r15 = r0.<com.google.gxp.compiler.ant.GxpcTask: java.lang.String destdir>;
+
+        if $r15 != null goto label04;
+
+        virtualinvoke r0.<com.google.gxp.compiler.ant.GxpcTask: void log(java.lang.String,int)>("Attribute \'destdir\' was not set, the current working directory will be used.", 1);
+
+     label04:
+        $r16 = r0.<com.google.gxp.compiler.ant.GxpcTask: java.lang.String destdir>;
+
+        if $r16 != null goto label05;
+
+        $r63 = r0.<com.google.gxp.compiler.ant.GxpcTask: com.google.gxp.compiler.fs.FileRef cwd>;
+
+        goto label06;
+
+     label05:
+        $r18 = r0.<com.google.gxp.compiler.ant.GxpcTask: com.google.gxp.compiler.fs.FileSystem fs>;
+
+        $r17 = r0.<com.google.gxp.compiler.ant.GxpcTask: java.lang.String destdir>;
+
+        $r63 = interfaceinvoke $r18.<com.google.gxp.compiler.fs.FileSystem: com.google.gxp.compiler.fs.FileRef parseFilename(java.lang.String)>($r17);
+
+     label06:
+        r64 = $r63;
+
+        $r19 = r0.<com.google.gxp.compiler.ant.GxpcTask: java.lang.String srcpaths>;
+
+        if $r19 != null goto label07;
+
+        $r65 = staticinvoke <com.google.gxp.com.google.common.collect.ImmutableSet: com.google.gxp.com.google.common.collect.ImmutableSet of()>();
+
+        goto label08;
+
+     label07:
+        $r21 = r0.<com.google.gxp.compiler.ant.GxpcTask: com.google.gxp.compiler.fs.FileSystem fs>;
+
+        $r20 = r0.<com.google.gxp.compiler.ant.GxpcTask: java.lang.String srcpaths>;
+
+        $r22 = interfaceinvoke $r21.<com.google.gxp.compiler.fs.FileSystem: java.util.List parseFilenameList(java.lang.String)>($r20);
+
+        $r65 = staticinvoke <com.google.gxp.com.google.common.collect.ImmutableSet: com.google.gxp.com.google.common.collect.ImmutableSet copyOf(java.lang.Iterable)>($r22);
+
+     label08:
+        r66 = $r65;
+
+        $r72 = new com.google.gxp.compiler.fs.SourcePathFileSystem;
+
+        $r24 = r0.<com.google.gxp.compiler.ant.GxpcTask: com.google.gxp.compiler.fs.FileSystem fs>;
+
+        specialinvoke $r72.<com.google.gxp.compiler.fs.SourcePathFileSystem: void <init>(com.google.gxp.compiler.fs.FileSystem,java.lang.Iterable,java.lang.Iterable,com.google.gxp.compiler.fs.FileRef)>($r24, $r65, $r12, r64);
+
+        $r25 = virtualinvoke $r72.<com.google.gxp.compiler.fs.SourcePathFileSystem: java.util.Set getSourceFileRefs()>();
+
+        $r26 = staticinvoke <com.google.gxp.com.google.common.collect.ImmutableSet: com.google.gxp.com.google.common.collect.ImmutableSet copyOf(java.lang.Iterable)>($r25);
+
+        r0.<com.google.gxp.compiler.ant.GxpcTask: com.google.gxp.com.google.common.collect.ImmutableSet sourceFiles> = $r26;
+
+        $r27 = r0.<com.google.gxp.compiler.ant.GxpcTask: java.lang.String schemas>;
+
+        if $r27 != null goto label09;
+
+        $r67 = staticinvoke <com.google.gxp.com.google.common.collect.ImmutableSet: com.google.gxp.com.google.common.collect.ImmutableSet of()>();
+
+        goto label10;
+
+     label09:
+        $r29 = r0.<com.google.gxp.compiler.ant.GxpcTask: com.google.gxp.compiler.fs.FileSystem fs>;
+
+        $r28 = r0.<com.google.gxp.compiler.ant.GxpcTask: java.lang.String schemas>;
+
+        $r30 = interfaceinvoke $r29.<com.google.gxp.compiler.fs.FileSystem: java.util.List parseFilenameList(java.lang.String)>($r28);
+
+        $r67 = staticinvoke <com.google.gxp.com.google.common.collect.ImmutableSet: com.google.gxp.com.google.common.collect.ImmutableSet copyOf(java.lang.Iterable)>($r30);
+
+     label10:
+        r0.<com.google.gxp.compiler.ant.GxpcTask: com.google.gxp.com.google.common.collect.ImmutableSet schemaFiles> = $r67;
+
+        $r31 = <com.google.gxp.compiler.base.OutputLanguage: com.google.gxp.compiler.base.OutputLanguage JAVA>;
+
+        $r32 = staticinvoke <com.google.gxp.com.google.common.collect.ImmutableSet: com.google.gxp.com.google.common.collect.ImmutableSet of(java.lang.Object)>($r31);
+
+        r0.<com.google.gxp.compiler.ant.GxpcTask: com.google.gxp.com.google.common.collect.ImmutableSet outputLanguages> = $r32;
+
+        $r33 = r0.<com.google.gxp.compiler.ant.GxpcTask: java.lang.String target>;
+
+        if $r33 == null goto label11;
+
+        $r73 = new java.lang.StringBuilder;
+
+        specialinvoke $r73.<java.lang.StringBuilder: void <init>()>();
+
+        $r49 = virtualinvoke $r73.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("/");
+
+        $r50 = r0.<com.google.gxp.compiler.ant.GxpcTask: java.lang.String target>;
+
+        $r51 = virtualinvoke $r50.<java.lang.String: java.lang.String replace(java.lang.CharSequence,java.lang.CharSequence)>(".", "/");
+
+        $r52 = virtualinvoke $r49.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r51);
+
+        $r53 = virtualinvoke $r52.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("_en.properties");
+
+        $r54 = virtualinvoke $r53.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r68 = virtualinvoke r64.<com.google.gxp.compiler.fs.FileRef: com.google.gxp.compiler.fs.FileRef join(java.lang.String)>($r54);
+
+        goto label12;
+
+     label11:
+        $r68 = null;
+
+     label12:
+        r0.<com.google.gxp.compiler.ant.GxpcTask: com.google.gxp.compiler.fs.FileRef propertiesFile> = $r68;
+
+        $r34 = specialinvoke r0.<com.google.gxp.compiler.ant.GxpcTask: com.google.gxp.compiler.alerts.AlertPolicy computeAlertPolicy()>();
+
+        r0.<com.google.gxp.compiler.ant.GxpcTask: com.google.gxp.compiler.alerts.AlertPolicy alertPolicy> = $r34;
+
+        $r35 = staticinvoke <com.google.gxp.compiler.ant.GxpcTask: com.google.gxp.com.google.common.collect.ImmutableSortedSet computeDotPhases()>();
+
+        r0.<com.google.gxp.compiler.ant.GxpcTask: com.google.gxp.com.google.common.collect.ImmutableSortedSet dotPhases> = $r35;
+
+        $r74 = new com.google.gxp.compiler.parser.FileSystemEntityResolver;
+
+        specialinvoke $r74.<com.google.gxp.compiler.parser.FileSystemEntityResolver: void <init>(com.google.gxp.compiler.fs.FileSystem)>($r72);
+
+        r0.<com.google.gxp.compiler.ant.GxpcTask: com.google.gxp.compiler.parser.SourceEntityResolver sourceEntityResolver> = $r74;
+
+        $r75 = new com.google.gxp.compiler.codegen.DefaultCodeGeneratorFactory;
+
+        specialinvoke $r75.<com.google.gxp.compiler.codegen.DefaultCodeGeneratorFactory: void <init>()>();
+
+        r0.<com.google.gxp.compiler.ant.GxpcTask: com.google.gxp.compiler.codegen.DefaultCodeGeneratorFactory codeGeneratorFactory> = $r75;
+
+        $r39 = r0.<com.google.gxp.compiler.ant.GxpcTask: com.google.gxp.compiler.codegen.DefaultCodeGeneratorFactory codeGeneratorFactory>;
+
+        $r38 = r0.<com.google.gxp.compiler.ant.GxpcTask: java.lang.String target>;
+
+        virtualinvoke $r39.<com.google.gxp.compiler.codegen.DefaultCodeGeneratorFactory: void setRuntimeMessageSource(java.lang.String)>($r38);
+
+        $r40 = r0.<com.google.gxp.compiler.ant.GxpcTask: com.google.gxp.compiler.codegen.DefaultCodeGeneratorFactory codeGeneratorFactory>;
+
+        $z0 = r0.<com.google.gxp.compiler.ant.GxpcTask: boolean dynamic>;
+
+        virtualinvoke $r40.<com.google.gxp.compiler.codegen.DefaultCodeGeneratorFactory: void setDynamicModeEnabled(boolean)>($z0);
+
+        $r41 = r0.<com.google.gxp.compiler.ant.GxpcTask: com.google.gxp.compiler.codegen.DefaultCodeGeneratorFactory codeGeneratorFactory>;
+
+        $r42 = virtualinvoke r0.<com.google.gxp.compiler.ant.GxpcTask: java.util.Set getSourceFiles()>();
+
+        virtualinvoke $r41.<com.google.gxp.compiler.codegen.DefaultCodeGeneratorFactory: void setSourceFiles(java.util.Collection)>($r42);
+
+        $r43 = r0.<com.google.gxp.compiler.ant.GxpcTask: com.google.gxp.compiler.codegen.DefaultCodeGeneratorFactory codeGeneratorFactory>;
+
+        $r44 = virtualinvoke r0.<com.google.gxp.compiler.ant.GxpcTask: java.util.Set getSchemaFiles()>();
+
+        virtualinvoke $r43.<com.google.gxp.compiler.codegen.DefaultCodeGeneratorFactory: void setSchemaFiles(java.util.Collection)>($r44);
+
+        $r45 = r0.<com.google.gxp.compiler.ant.GxpcTask: com.google.gxp.compiler.codegen.DefaultCodeGeneratorFactory codeGeneratorFactory>;
+
+        virtualinvoke $r45.<com.google.gxp.compiler.codegen.DefaultCodeGeneratorFactory: void setSourcePaths(java.util.Collection)>(r66);
+
+        $r46 = r0.<com.google.gxp.compiler.ant.GxpcTask: com.google.gxp.compiler.codegen.DefaultCodeGeneratorFactory codeGeneratorFactory>;
+
+        $r47 = virtualinvoke r0.<com.google.gxp.compiler.ant.GxpcTask: com.google.gxp.compiler.alerts.AlertPolicy getAlertPolicy()>();
+
+        virtualinvoke $r46.<com.google.gxp.compiler.codegen.DefaultCodeGeneratorFactory: void setAlertPolicy(com.google.gxp.compiler.alerts.AlertPolicy)>($r47);
+
+        return;
+    }
+
+    public void setSrcpaths(java.lang.String)
+    {
+        java.lang.String r1;
+        com.google.gxp.compiler.ant.GxpcTask r0;
+
+        r0 := @this: com.google.gxp.compiler.ant.GxpcTask;
+
+        r1 := @parameter0: java.lang.String;
+
+        r0.<com.google.gxp.compiler.ant.GxpcTask: java.lang.String srcpaths> = r1;
+
+        return;
+    }
+
+    public void setSrcdir(java.lang.String)
+    {
+        org.apache.tools.ant.FileScanner $r2;
+        java.lang.String r1;
+        com.google.gxp.compiler.ant.GxpcTask r0;
+
+        r0 := @this: com.google.gxp.compiler.ant.GxpcTask;
+
+        r1 := @parameter0: java.lang.String;
+
+        $r2 = r0.<com.google.gxp.compiler.ant.GxpcTask: org.apache.tools.ant.FileScanner fileScanner>;
+
+        interfaceinvoke $r2.<org.apache.tools.ant.FileScanner: void setBasedir(java.lang.String)>(r1);
+
+        return;
+    }
+
+    public void setIncludes(java.lang.String)
+    {
+        org.apache.tools.ant.FileScanner $r2;
+        java.lang.String[] $r3;
+        java.lang.String r1;
+        com.google.gxp.compiler.ant.GxpcTask r0;
+
+        r0 := @this: com.google.gxp.compiler.ant.GxpcTask;
+
+        r1 := @parameter0: java.lang.String;
+
+        $r2 = r0.<com.google.gxp.compiler.ant.GxpcTask: org.apache.tools.ant.FileScanner fileScanner>;
+
+        $r3 = virtualinvoke r1.<java.lang.String: java.lang.String[] split(java.lang.String)>(",");
+
+        interfaceinvoke $r2.<org.apache.tools.ant.FileScanner: void setIncludes(java.lang.String[])>($r3);
+
+        return;
+    }
+
+    public void setExcludes(java.lang.String)
+    {
+        org.apache.tools.ant.FileScanner $r2;
+        java.lang.String[] $r3;
+        java.lang.String r1;
+        com.google.gxp.compiler.ant.GxpcTask r0;
+
+        r0 := @this: com.google.gxp.compiler.ant.GxpcTask;
+
+        r1 := @parameter0: java.lang.String;
+
+        $r2 = r0.<com.google.gxp.compiler.ant.GxpcTask: org.apache.tools.ant.FileScanner fileScanner>;
+
+        $r3 = virtualinvoke r1.<java.lang.String: java.lang.String[] split(java.lang.String)>(",");
+
+        interfaceinvoke $r2.<org.apache.tools.ant.FileScanner: void setExcludes(java.lang.String[])>($r3);
+
+        return;
+    }
+
+    public void setDestdir(java.lang.String)
+    {
+        java.lang.String r1;
+        com.google.gxp.compiler.ant.GxpcTask r0;
+
+        r0 := @this: com.google.gxp.compiler.ant.GxpcTask;
+
+        r1 := @parameter0: java.lang.String;
+
+        r0.<com.google.gxp.compiler.ant.GxpcTask: java.lang.String destdir> = r1;
+
+        return;
+    }
+
+    public void setSchemas(java.lang.String)
+    {
+        java.lang.String r1;
+        com.google.gxp.compiler.ant.GxpcTask r0;
+
+        r0 := @this: com.google.gxp.compiler.ant.GxpcTask;
+
+        r1 := @parameter0: java.lang.String;
+
+        r0.<com.google.gxp.compiler.ant.GxpcTask: java.lang.String schemas> = r1;
+
+        return;
+    }
+
+    public void setTarget(java.lang.String)
+    {
+        java.lang.String r1;
+        com.google.gxp.compiler.ant.GxpcTask r0;
+
+        r0 := @this: com.google.gxp.compiler.ant.GxpcTask;
+
+        r1 := @parameter0: java.lang.String;
+
+        r0.<com.google.gxp.compiler.ant.GxpcTask: java.lang.String target> = r1;
+
+        return;
+    }
+
+    public void setDynamic(boolean)
+    {
+        com.google.gxp.compiler.ant.GxpcTask r0;
+        boolean z0;
+
+        r0 := @this: com.google.gxp.compiler.ant.GxpcTask;
+
+        z0 := @parameter0: boolean;
+
+        r0.<com.google.gxp.compiler.ant.GxpcTask: boolean dynamic> = z0;
+
+        return;
+    }
+
+    public void setI18nwarn(boolean)
+    {
+        com.google.gxp.compiler.ant.GxpcTask r0;
+        boolean z0;
+
+        r0 := @this: com.google.gxp.compiler.ant.GxpcTask;
+
+        z0 := @parameter0: boolean;
+
+        r0.<com.google.gxp.compiler.ant.GxpcTask: boolean i18nwarn> = z0;
+
+        return;
+    }
+
+    public java.util.Set getSourceFiles()
+    {
+        com.google.gxp.com.google.common.collect.ImmutableSet $r1;
+        com.google.gxp.compiler.ant.GxpcTask r0;
+
+        r0 := @this: com.google.gxp.compiler.ant.GxpcTask;
+
+        $r1 = r0.<com.google.gxp.compiler.ant.GxpcTask: com.google.gxp.com.google.common.collect.ImmutableSet sourceFiles>;
+
+        return $r1;
+    }
+
+    public java.util.Set getSchemaFiles()
+    {
+        com.google.gxp.com.google.common.collect.ImmutableSet $r1;
+        com.google.gxp.compiler.ant.GxpcTask r0;
+
+        r0 := @this: com.google.gxp.compiler.ant.GxpcTask;
+
+        $r1 = r0.<com.google.gxp.compiler.ant.GxpcTask: com.google.gxp.com.google.common.collect.ImmutableSet schemaFiles>;
+
+        return $r1;
+    }
+
+    public java.util.Set getOutputLanguages()
+    {
+        com.google.gxp.com.google.common.collect.ImmutableSet $r1;
+        com.google.gxp.compiler.ant.GxpcTask r0;
+
+        r0 := @this: com.google.gxp.compiler.ant.GxpcTask;
+
+        $r1 = r0.<com.google.gxp.compiler.ant.GxpcTask: com.google.gxp.com.google.common.collect.ImmutableSet outputLanguages>;
+
+        return $r1;
+    }
+
+    public com.google.gxp.compiler.codegen.CodeGeneratorFactory getCodeGeneratorFactory()
+    {
+        com.google.gxp.compiler.codegen.DefaultCodeGeneratorFactory $r1;
+        com.google.gxp.compiler.ant.GxpcTask r0;
+
+        r0 := @this: com.google.gxp.compiler.ant.GxpcTask;
+
+        $r1 = r0.<com.google.gxp.compiler.ant.GxpcTask: com.google.gxp.compiler.codegen.DefaultCodeGeneratorFactory codeGeneratorFactory>;
+
+        return $r1;
+    }
+
+    public java.util.Set getAllowedOutputFileRefs()
+    {
+        com.google.gxp.com.google.common.collect.ImmutableSet $r0;
+        com.google.gxp.compiler.ant.GxpcTask r1;
+
+        r1 := @this: com.google.gxp.compiler.ant.GxpcTask;
+
+        $r0 = staticinvoke <com.google.gxp.com.google.common.collect.ImmutableSet: com.google.gxp.com.google.common.collect.ImmutableSet of()>();
+
+        return $r0;
+    }
+
+    public com.google.gxp.compiler.fs.FileRef getDependencyFile()
+    {
+        com.google.gxp.compiler.ant.GxpcTask r0;
+
+        r0 := @this: com.google.gxp.compiler.ant.GxpcTask;
+
+        return null;
+    }
+
+    public com.google.gxp.compiler.fs.FileRef getPropertiesFile()
+    {
+        com.google.gxp.compiler.fs.FileRef $r1;
+        com.google.gxp.compiler.ant.GxpcTask r0;
+
+        r0 := @this: com.google.gxp.compiler.ant.GxpcTask;
+
+        $r1 = r0.<com.google.gxp.compiler.ant.GxpcTask: com.google.gxp.compiler.fs.FileRef propertiesFile>;
+
+        return $r1;
+    }
+
+    public boolean isDebugEnabled()
+    {
+        com.google.gxp.compiler.ant.GxpcTask r0;
+
+        r0 := @this: com.google.gxp.compiler.ant.GxpcTask;
+
+        return 0;
+    }
+
+    public com.google.gxp.compiler.alerts.AlertPolicy getAlertPolicy()
+    {
+        com.google.gxp.compiler.alerts.AlertPolicy $r1;
+        com.google.gxp.compiler.ant.GxpcTask r0;
+
+        r0 := @this: com.google.gxp.compiler.ant.GxpcTask;
+
+        $r1 = r0.<com.google.gxp.compiler.ant.GxpcTask: com.google.gxp.compiler.alerts.AlertPolicy alertPolicy>;
+
+        return $r1;
+    }
+
+    public java.util.SortedSet getDotPhases()
+    {
+        com.google.gxp.compiler.ant.GxpcTask r0;
+        com.google.gxp.com.google.common.collect.ImmutableSortedSet $r1;
+
+        r0 := @this: com.google.gxp.compiler.ant.GxpcTask;
+
+        $r1 = r0.<com.google.gxp.compiler.ant.GxpcTask: com.google.gxp.com.google.common.collect.ImmutableSortedSet dotPhases>;
+
+        return $r1;
+    }
+
+    public com.google.gxp.compiler.parser.SourceEntityResolver getEntityResolver()
+    {
+        com.google.gxp.compiler.ant.GxpcTask r0;
+        com.google.gxp.compiler.parser.SourceEntityResolver $r1;
+
+        r0 := @this: com.google.gxp.compiler.ant.GxpcTask;
+
+        $r1 = r0.<com.google.gxp.compiler.ant.GxpcTask: com.google.gxp.compiler.parser.SourceEntityResolver sourceEntityResolver>;
+
+        return $r1;
+    }
+
+    private com.google.gxp.compiler.alerts.AlertPolicy computeAlertPolicy()
+    {
+        com.google.gxp.compiler.alerts.ConfigurableAlertPolicy $r0;
+        com.google.gxp.compiler.alerts.Alert$Severity $r2;
+        com.google.gxp.compiler.ant.GxpcTask r1;
+        boolean $z0;
+
+        r1 := @this: com.google.gxp.compiler.ant.GxpcTask;
+
+        $r0 = new com.google.gxp.compiler.alerts.ConfigurableAlertPolicy;
+
+        specialinvoke $r0.<com.google.gxp.compiler.alerts.ConfigurableAlertPolicy: void <init>()>();
+
+        $z0 = r1.<com.google.gxp.compiler.ant.GxpcTask: boolean i18nwarn>;
+
+        if $z0 == 0 goto label1;
+
+        $r2 = <com.google.gxp.compiler.alerts.Alert$Severity: com.google.gxp.compiler.alerts.Alert$Severity WARNING>;
+
+        virtualinvoke $r0.<com.google.gxp.compiler.alerts.ConfigurableAlertPolicy: void setSeverity(java.lang.Class,com.google.gxp.compiler.alerts.Alert$Severity)>(class "Lcom/google/gxp/compiler/i18ncheck/UnextractableContentAlert;", $r2);
+
+     label1:
+        virtualinvoke $r0.<com.google.gxp.compiler.alerts.ConfigurableAlertPolicy: void setTreatWarningsAsErrors(boolean)>(1);
+
+        return $r0;
+    }
+
+    private static com.google.gxp.com.google.common.collect.ImmutableSortedSet computeDotPhases()
+    {
+        com.google.gxp.com.google.common.collect.ImmutableSortedSet $r0;
+
+        $r0 = staticinvoke <com.google.gxp.com.google.common.collect.ImmutableSortedSet: com.google.gxp.com.google.common.collect.ImmutableSortedSet of()>();
+
+        return $r0;
+    }
+
+    static void <clinit>()
+    {
+        java.lang.String[] $r0;
+
+        $r0 = newarray (java.lang.String)[1];
+
+        $r0[0] = "**/*.gxp";
+
+        <com.google.gxp.compiler.ant.GxpcTask: java.lang.String[] DEFAULT_INCLUDES> = $r0;
+
+        return;
+    }
+}

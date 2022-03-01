@@ -1,0 +1,1473 @@
+class org.fife.ui.rsyntaxtextarea.ParserManager extends java.lang.Object implements javax.swing.event.DocumentListener, java.awt.event.ActionListener, javax.swing.event.HyperlinkListener
+{
+    private org.fife.ui.rsyntaxtextarea.RSyntaxTextArea textArea;
+    private java.util.List parsers;
+    private javax.swing.Timer timer;
+    private boolean running;
+    private org.fife.ui.rsyntaxtextarea.parser.Parser parserForTip;
+    private javax.swing.text.Position firstOffsetModded;
+    private javax.swing.text.Position lastOffsetModded;
+    private java.util.List noticeHighlightPairs;
+    private org.fife.ui.rsyntaxtextarea.SquiggleUnderlineHighlightPainter parserErrorHighlightPainter;
+    private static final java.lang.String PROPERTY_DEBUG_PARSING;
+    private static final boolean DEBUG_PARSING;
+    private static final int DEFAULT_DELAY_MS;
+
+    public void <init>(org.fife.ui.rsyntaxtextarea.RSyntaxTextArea)
+    {
+        org.fife.ui.rsyntaxtextarea.RSyntaxTextArea r1;
+        org.fife.ui.rsyntaxtextarea.ParserManager r0;
+
+        r0 := @this: org.fife.ui.rsyntaxtextarea.ParserManager;
+
+        r1 := @parameter0: org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+
+        specialinvoke r0.<org.fife.ui.rsyntaxtextarea.ParserManager: void <init>(int,org.fife.ui.rsyntaxtextarea.RSyntaxTextArea)>(1250, r1);
+
+        return;
+    }
+
+    public void <init>(int, org.fife.ui.rsyntaxtextarea.RSyntaxTextArea)
+    {
+        java.awt.Color $r2;
+        org.fife.ui.rsyntaxtextarea.RSyntaxTextArea r3;
+        java.util.ArrayList $r5;
+        org.fife.ui.rsyntaxtextarea.ParserManager r0;
+        org.fife.ui.rsyntaxtextarea.SquiggleUnderlineHighlightPainter $r1;
+        int i0;
+        javax.swing.text.Document $r4;
+        javax.swing.Timer $r6, $r7;
+
+        r0 := @this: org.fife.ui.rsyntaxtextarea.ParserManager;
+
+        i0 := @parameter0: int;
+
+        r3 := @parameter1: org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        $r1 = new org.fife.ui.rsyntaxtextarea.SquiggleUnderlineHighlightPainter;
+
+        $r2 = <java.awt.Color: java.awt.Color RED>;
+
+        specialinvoke $r1.<org.fife.ui.rsyntaxtextarea.SquiggleUnderlineHighlightPainter: void <init>(java.awt.Color)>($r2);
+
+        r0.<org.fife.ui.rsyntaxtextarea.ParserManager: org.fife.ui.rsyntaxtextarea.SquiggleUnderlineHighlightPainter parserErrorHighlightPainter> = $r1;
+
+        r0.<org.fife.ui.rsyntaxtextarea.ParserManager: org.fife.ui.rsyntaxtextarea.RSyntaxTextArea textArea> = r3;
+
+        $r4 = virtualinvoke r3.<org.fife.ui.rsyntaxtextarea.RSyntaxTextArea: javax.swing.text.Document getDocument()>();
+
+        interfaceinvoke $r4.<javax.swing.text.Document: void addDocumentListener(javax.swing.event.DocumentListener)>(r0);
+
+        $r5 = new java.util.ArrayList;
+
+        specialinvoke $r5.<java.util.ArrayList: void <init>(int)>(1);
+
+        r0.<org.fife.ui.rsyntaxtextarea.ParserManager: java.util.List parsers> = $r5;
+
+        $r6 = new javax.swing.Timer;
+
+        specialinvoke $r6.<javax.swing.Timer: void <init>(int,java.awt.event.ActionListener)>(i0, r0);
+
+        r0.<org.fife.ui.rsyntaxtextarea.ParserManager: javax.swing.Timer timer> = $r6;
+
+        $r7 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: javax.swing.Timer timer>;
+
+        virtualinvoke $r7.<javax.swing.Timer: void setRepeats(boolean)>(0);
+
+        r0.<org.fife.ui.rsyntaxtextarea.ParserManager: boolean running> = 1;
+
+        return;
+    }
+
+    public void actionPerformed(java.awt.event.ActionEvent)
+    {
+        org.fife.ui.rsyntaxtextarea.parser.Parser $r17;
+        boolean $z0, $z1, $z2, $z3;
+        org.fife.ui.rsyntaxtextarea.RSyntaxTextArea $r1, $r8, $r10;
+        org.fife.ui.rsyntaxtextarea.RSyntaxDocument $r26;
+        float $f0, f1;
+        javax.swing.text.Document $r2;
+        java.lang.Throwable $r27;
+        javax.swing.text.Position $r4, $r5, $r6, $r7;
+        long $l4, $l5, l7;
+        org.fife.ui.rsyntaxtextarea.ParserManager r0;
+        java.lang.StringBuffer $r11, $r13, $r14, $r15, $r19, $r21, $r22, $r23, $r24;
+        int $i0, $i1, i2, $i3, $i6, $i8, $i9, i10;
+        java.lang.String $r9, $r16, $r25;
+        java.io.PrintStream $r12, $r20;
+        org.fife.ui.rsyntaxtextarea.parser.ParseResult $r18;
+        java.awt.event.ActionEvent r28;
+        javax.swing.text.Element $r3;
+
+        r0 := @this: org.fife.ui.rsyntaxtextarea.ParserManager;
+
+        r28 := @parameter0: java.awt.event.ActionEvent;
+
+        $i0 = virtualinvoke r0.<org.fife.ui.rsyntaxtextarea.ParserManager: int getParserCount()>();
+
+        if $i0 != 0 goto label01;
+
+        return;
+
+     label01:
+        l7 = 0L;
+
+        $z0 = <org.fife.ui.rsyntaxtextarea.ParserManager: boolean DEBUG_PARSING>;
+
+        if $z0 == 0 goto label02;
+
+        l7 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+     label02:
+        $r1 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: org.fife.ui.rsyntaxtextarea.RSyntaxTextArea textArea>;
+
+        $r2 = virtualinvoke $r1.<org.fife.ui.rsyntaxtextarea.RSyntaxTextArea: javax.swing.text.Document getDocument()>();
+
+        $r26 = (org.fife.ui.rsyntaxtextarea.RSyntaxDocument) $r2;
+
+        $r3 = virtualinvoke $r26.<org.fife.ui.rsyntaxtextarea.RSyntaxDocument: javax.swing.text.Element getDefaultRootElement()>();
+
+        $r4 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: javax.swing.text.Position firstOffsetModded>;
+
+        if $r4 != null goto label03;
+
+        $i8 = 0;
+
+        goto label04;
+
+     label03:
+        $r5 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: javax.swing.text.Position firstOffsetModded>;
+
+        $i1 = interfaceinvoke $r5.<javax.swing.text.Position: int getOffset()>();
+
+        $i8 = interfaceinvoke $r3.<javax.swing.text.Element: int getElementIndex(int)>($i1);
+
+     label04:
+        i2 = $i8;
+
+        $r6 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: javax.swing.text.Position lastOffsetModded>;
+
+        if $r6 != null goto label05;
+
+        $i6 = interfaceinvoke $r3.<javax.swing.text.Element: int getElementCount()>();
+
+        $i9 = $i6 - 1;
+
+        goto label06;
+
+     label05:
+        $r7 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: javax.swing.text.Position lastOffsetModded>;
+
+        $i3 = interfaceinvoke $r7.<javax.swing.text.Position: int getOffset()>();
+
+        $i9 = interfaceinvoke $r3.<javax.swing.text.Element: int getElementIndex(int)>($i3);
+
+     label06:
+        r0.<org.fife.ui.rsyntaxtextarea.ParserManager: javax.swing.text.Position lastOffsetModded> = null;
+
+        r0.<org.fife.ui.rsyntaxtextarea.ParserManager: javax.swing.text.Position firstOffsetModded> = null;
+
+        $z1 = <org.fife.ui.rsyntaxtextarea.ParserManager: boolean DEBUG_PARSING>;
+
+        if $z1 == 0 goto label07;
+
+        $r20 = <java.lang.System: java.io.PrintStream out>;
+
+        $r19 = new java.lang.StringBuffer;
+
+        specialinvoke $r19.<java.lang.StringBuffer: void <init>()>();
+
+        $r21 = virtualinvoke $r19.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>("[DEBUG]: Minimum lines to parse: ");
+
+        $r22 = virtualinvoke $r21.<java.lang.StringBuffer: java.lang.StringBuffer append(int)>(i2);
+
+        $r23 = virtualinvoke $r22.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>("-");
+
+        $r24 = virtualinvoke $r23.<java.lang.StringBuffer: java.lang.StringBuffer append(int)>($i9);
+
+        $r25 = virtualinvoke $r24.<java.lang.StringBuffer: java.lang.String toString()>();
+
+        virtualinvoke $r20.<java.io.PrintStream: void println(java.lang.String)>($r25);
+
+     label07:
+        $r8 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: org.fife.ui.rsyntaxtextarea.RSyntaxTextArea textArea>;
+
+        $r9 = virtualinvoke $r8.<org.fife.ui.rsyntaxtextarea.RSyntaxTextArea: java.lang.String getSyntaxEditingStyle()>();
+
+        virtualinvoke $r26.<org.fife.ui.rsyntaxtextarea.RSyntaxDocument: void readLock()>();
+
+     label08:
+        i10 = 0;
+
+     label09:
+        if i10 >= $i0 goto label12;
+
+        $r17 = virtualinvoke r0.<org.fife.ui.rsyntaxtextarea.ParserManager: org.fife.ui.rsyntaxtextarea.parser.Parser getParser(int)>(i10);
+
+        $z3 = interfaceinvoke $r17.<org.fife.ui.rsyntaxtextarea.parser.Parser: boolean isEnabled()>();
+
+        if $z3 == 0 goto label10;
+
+        $r18 = interfaceinvoke $r17.<org.fife.ui.rsyntaxtextarea.parser.Parser: org.fife.ui.rsyntaxtextarea.parser.ParseResult parse(org.fife.ui.rsyntaxtextarea.RSyntaxDocument,java.lang.String)>($r26, $r9);
+
+        specialinvoke r0.<org.fife.ui.rsyntaxtextarea.ParserManager: void addParserNoticeHighlights(org.fife.ui.rsyntaxtextarea.parser.ParseResult)>($r18);
+
+        goto label11;
+
+     label10:
+        specialinvoke r0.<org.fife.ui.rsyntaxtextarea.ParserManager: void clearParserNoticeHighlights(org.fife.ui.rsyntaxtextarea.parser.Parser)>($r17);
+
+     label11:
+        i10 = i10 + 1;
+
+        goto label09;
+
+     label12:
+        $r10 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: org.fife.ui.rsyntaxtextarea.RSyntaxTextArea textArea>;
+
+        virtualinvoke $r10.<org.fife.ui.rsyntaxtextarea.RSyntaxTextArea: void fireParserNoticesChange()>();
+
+     label13:
+        virtualinvoke $r26.<org.fife.ui.rsyntaxtextarea.RSyntaxDocument: void readUnlock()>();
+
+        goto label16;
+
+     label14:
+        $r27 := @caughtexception;
+
+     label15:
+        virtualinvoke $r26.<org.fife.ui.rsyntaxtextarea.RSyntaxDocument: void readUnlock()>();
+
+        throw $r27;
+
+     label16:
+        $z2 = <org.fife.ui.rsyntaxtextarea.ParserManager: boolean DEBUG_PARSING>;
+
+        if $z2 == 0 goto label17;
+
+        $l4 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        $l5 = $l4 - l7;
+
+        $f0 = (float) $l5;
+
+        f1 = $f0 / 1000.0F;
+
+        $r12 = <java.lang.System: java.io.PrintStream out>;
+
+        $r11 = new java.lang.StringBuffer;
+
+        specialinvoke $r11.<java.lang.StringBuffer: void <init>()>();
+
+        $r13 = virtualinvoke $r11.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>("Total parsing time: ");
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuffer: java.lang.StringBuffer append(float)>(f1);
+
+        $r15 = virtualinvoke $r14.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>(" seconds");
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuffer: java.lang.String toString()>();
+
+        virtualinvoke $r12.<java.io.PrintStream: void println(java.lang.String)>($r16);
+
+     label17:
+        return;
+
+        catch java.lang.Throwable from label08 to label13 with label14;
+        catch java.lang.Throwable from label14 to label15 with label14;
+    }
+
+    public void addParser(org.fife.ui.rsyntaxtextarea.parser.Parser)
+    {
+        javax.swing.ToolTipManager $r6;
+        org.fife.ui.rsyntaxtextarea.parser.Parser r0;
+        org.fife.ui.rsyntaxtextarea.RSyntaxTextArea $r7;
+        java.util.List $r2, $r3, $r4;
+        org.fife.ui.rsyntaxtextarea.ParserManager r1;
+        int $i0;
+        boolean $z0, $z1, $z2;
+        javax.swing.Timer $r5, $r8;
+
+        r1 := @this: org.fife.ui.rsyntaxtextarea.ParserManager;
+
+        r0 := @parameter0: org.fife.ui.rsyntaxtextarea.parser.Parser;
+
+        if r0 == null goto label3;
+
+        $r2 = r1.<org.fife.ui.rsyntaxtextarea.ParserManager: java.util.List parsers>;
+
+        $z0 = interfaceinvoke $r2.<java.util.List: boolean contains(java.lang.Object)>(r0);
+
+        if $z0 != 0 goto label3;
+
+        $z1 = r1.<org.fife.ui.rsyntaxtextarea.ParserManager: boolean running>;
+
+        if $z1 == 0 goto label1;
+
+        $r8 = r1.<org.fife.ui.rsyntaxtextarea.ParserManager: javax.swing.Timer timer>;
+
+        virtualinvoke $r8.<javax.swing.Timer: void stop()>();
+
+     label1:
+        $r3 = r1.<org.fife.ui.rsyntaxtextarea.ParserManager: java.util.List parsers>;
+
+        interfaceinvoke $r3.<java.util.List: boolean add(java.lang.Object)>(r0);
+
+        $r4 = r1.<org.fife.ui.rsyntaxtextarea.ParserManager: java.util.List parsers>;
+
+        $i0 = interfaceinvoke $r4.<java.util.List: int size()>();
+
+        if $i0 != 1 goto label2;
+
+        $r6 = staticinvoke <javax.swing.ToolTipManager: javax.swing.ToolTipManager sharedInstance()>();
+
+        $r7 = r1.<org.fife.ui.rsyntaxtextarea.ParserManager: org.fife.ui.rsyntaxtextarea.RSyntaxTextArea textArea>;
+
+        virtualinvoke $r6.<javax.swing.ToolTipManager: void registerComponent(javax.swing.JComponent)>($r7);
+
+     label2:
+        $z2 = r1.<org.fife.ui.rsyntaxtextarea.ParserManager: boolean running>;
+
+        if $z2 == 0 goto label3;
+
+        $r5 = r1.<org.fife.ui.rsyntaxtextarea.ParserManager: javax.swing.Timer timer>;
+
+        virtualinvoke $r5.<javax.swing.Timer: void restart()>();
+
+     label3:
+        return;
+    }
+
+    private void addParserNoticeHighlights(org.fife.ui.rsyntaxtextarea.parser.ParseResult)
+    {
+        org.fife.ui.rsyntaxtextarea.parser.Parser $r7, $r28;
+        org.fife.ui.rsyntaxtextarea.ParserManager$NoticeHighlightPair $r16;
+        boolean $z0, $z1, $z2, $z3, $z4;
+        org.fife.ui.rsyntaxtextarea.RSyntaxTextArea $r10;
+        javax.swing.text.BadLocationException $r31;
+        javax.swing.text.Highlighter $r11;
+        org.fife.ui.rsyntaxtextarea.RSyntaxTextAreaHighlighter r12;
+        java.util.List $r2, $r3, $r17;
+        org.fife.ui.rsyntaxtextarea.SquiggleUnderlineHighlightPainter $r18;
+        java.util.ArrayList $r24;
+        org.fife.ui.rsyntaxtextarea.ParserManager r1;
+        java.lang.StringBuffer $r4, $r6, $r8, $r19, $r21, $r22, $r25, $r27, $r29;
+        int $i0;
+        java.lang.String $r9, $r23, $r30;
+        java.io.PrintStream $r5, $r20, $r26;
+        java.util.Iterator $r13;
+        org.fife.ui.rsyntaxtextarea.parser.ParseResult r0;
+        org.fife.ui.rsyntaxtextarea.parser.ParserNotice r15;
+        java.lang.Object $r14, r32;
+
+        r1 := @this: org.fife.ui.rsyntaxtextarea.ParserManager;
+
+        r0 := @parameter0: org.fife.ui.rsyntaxtextarea.parser.ParseResult;
+
+        if r0 != null goto label01;
+
+        return;
+
+     label01:
+        $z0 = <org.fife.ui.rsyntaxtextarea.ParserManager: boolean DEBUG_PARSING>;
+
+        if $z0 == 0 goto label02;
+
+        $r26 = <java.lang.System: java.io.PrintStream out>;
+
+        $r25 = new java.lang.StringBuffer;
+
+        specialinvoke $r25.<java.lang.StringBuffer: void <init>()>();
+
+        $r27 = virtualinvoke $r25.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>("[DEBUG]: Adding parser notices from ");
+
+        $r28 = interfaceinvoke r0.<org.fife.ui.rsyntaxtextarea.parser.ParseResult: org.fife.ui.rsyntaxtextarea.parser.Parser getParser()>();
+
+        $r29 = virtualinvoke $r27.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.Object)>($r28);
+
+        $r30 = virtualinvoke $r29.<java.lang.StringBuffer: java.lang.String toString()>();
+
+        virtualinvoke $r26.<java.io.PrintStream: void println(java.lang.String)>($r30);
+
+     label02:
+        $r2 = r1.<org.fife.ui.rsyntaxtextarea.ParserManager: java.util.List noticeHighlightPairs>;
+
+        if $r2 != null goto label03;
+
+        $r24 = new java.util.ArrayList;
+
+        specialinvoke $r24.<java.util.ArrayList: void <init>()>();
+
+        r1.<org.fife.ui.rsyntaxtextarea.ParserManager: java.util.List noticeHighlightPairs> = $r24;
+
+     label03:
+        specialinvoke r1.<org.fife.ui.rsyntaxtextarea.ParserManager: void removeParserNotices(org.fife.ui.rsyntaxtextarea.parser.ParseResult)>(r0);
+
+        $r3 = interfaceinvoke r0.<org.fife.ui.rsyntaxtextarea.parser.ParseResult: java.util.List getNotices()>();
+
+        $i0 = interfaceinvoke $r3.<java.util.List: int size()>();
+
+        if $i0 <= 0 goto label10;
+
+        $r10 = r1.<org.fife.ui.rsyntaxtextarea.ParserManager: org.fife.ui.rsyntaxtextarea.RSyntaxTextArea textArea>;
+
+        $r11 = virtualinvoke $r10.<org.fife.ui.rsyntaxtextarea.RSyntaxTextArea: javax.swing.text.Highlighter getHighlighter()>();
+
+        r12 = (org.fife.ui.rsyntaxtextarea.RSyntaxTextAreaHighlighter) $r11;
+
+        $r13 = interfaceinvoke $r3.<java.util.List: java.util.Iterator iterator()>();
+
+     label04:
+        $z2 = interfaceinvoke $r13.<java.util.Iterator: boolean hasNext()>();
+
+        if $z2 == 0 goto label10;
+
+        $r14 = interfaceinvoke $r13.<java.util.Iterator: java.lang.Object next()>();
+
+        r15 = (org.fife.ui.rsyntaxtextarea.parser.ParserNotice) $r14;
+
+        $z3 = <org.fife.ui.rsyntaxtextarea.ParserManager: boolean DEBUG_PARSING>;
+
+        if $z3 == 0 goto label05;
+
+        $r20 = <java.lang.System: java.io.PrintStream out>;
+
+        $r19 = new java.lang.StringBuffer;
+
+        specialinvoke $r19.<java.lang.StringBuffer: void <init>()>();
+
+        $r21 = virtualinvoke $r19.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>("[DEBUG]: ... adding: ");
+
+        $r22 = virtualinvoke $r21.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.Object)>(r15);
+
+        $r23 = virtualinvoke $r22.<java.lang.StringBuffer: java.lang.String toString()>();
+
+        virtualinvoke $r20.<java.io.PrintStream: void println(java.lang.String)>($r23);
+
+     label05:
+        r32 = null;
+
+        $z4 = interfaceinvoke r15.<org.fife.ui.rsyntaxtextarea.parser.ParserNotice: boolean getShowInEditor()>();
+
+        if $z4 == 0 goto label06;
+
+        $r18 = r1.<org.fife.ui.rsyntaxtextarea.ParserManager: org.fife.ui.rsyntaxtextarea.SquiggleUnderlineHighlightPainter parserErrorHighlightPainter>;
+
+        r32 = virtualinvoke r12.<org.fife.ui.rsyntaxtextarea.RSyntaxTextAreaHighlighter: java.lang.Object addParserHighlight(org.fife.ui.rsyntaxtextarea.parser.ParserNotice,javax.swing.text.Highlighter$HighlightPainter)>(r15, $r18);
+
+     label06:
+        $r17 = r1.<org.fife.ui.rsyntaxtextarea.ParserManager: java.util.List noticeHighlightPairs>;
+
+        $r16 = new org.fife.ui.rsyntaxtextarea.ParserManager$NoticeHighlightPair;
+
+        specialinvoke $r16.<org.fife.ui.rsyntaxtextarea.ParserManager$NoticeHighlightPair: void <init>(org.fife.ui.rsyntaxtextarea.parser.ParserNotice,java.lang.Object)>(r15, r32);
+
+        interfaceinvoke $r17.<java.util.List: boolean add(java.lang.Object)>($r16);
+
+     label07:
+        goto label09;
+
+     label08:
+        $r31 := @caughtexception;
+
+        virtualinvoke $r31.<javax.swing.text.BadLocationException: void printStackTrace()>();
+
+     label09:
+        goto label04;
+
+     label10:
+        $z1 = <org.fife.ui.rsyntaxtextarea.ParserManager: boolean DEBUG_PARSING>;
+
+        if $z1 == 0 goto label11;
+
+        $r5 = <java.lang.System: java.io.PrintStream out>;
+
+        $r4 = new java.lang.StringBuffer;
+
+        specialinvoke $r4.<java.lang.StringBuffer: void <init>()>();
+
+        $r6 = virtualinvoke $r4.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>("[DEBUG]: Done adding parser notices from ");
+
+        $r7 = interfaceinvoke r0.<org.fife.ui.rsyntaxtextarea.parser.ParseResult: org.fife.ui.rsyntaxtextarea.parser.Parser getParser()>();
+
+        $r8 = virtualinvoke $r6.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.Object)>($r7);
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuffer: java.lang.String toString()>();
+
+        virtualinvoke $r5.<java.io.PrintStream: void println(java.lang.String)>($r9);
+
+     label11:
+        return;
+
+        catch javax.swing.text.BadLocationException from label05 to label07 with label08;
+    }
+
+    public void changedUpdate(javax.swing.event.DocumentEvent)
+    {
+        org.fife.ui.rsyntaxtextarea.ParserManager r0;
+        javax.swing.event.DocumentEvent r1;
+
+        r0 := @this: org.fife.ui.rsyntaxtextarea.ParserManager;
+
+        r1 := @parameter0: javax.swing.event.DocumentEvent;
+
+        return;
+    }
+
+    private void clearParserNoticeHighlights()
+    {
+        org.fife.ui.rsyntaxtextarea.RSyntaxTextAreaHighlighter r3;
+        java.util.List $r4, $r5;
+        org.fife.ui.rsyntaxtextarea.ParserManager r0;
+        org.fife.ui.rsyntaxtextarea.RSyntaxTextArea $r1;
+        javax.swing.text.Highlighter $r2;
+
+        r0 := @this: org.fife.ui.rsyntaxtextarea.ParserManager;
+
+        $r1 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: org.fife.ui.rsyntaxtextarea.RSyntaxTextArea textArea>;
+
+        $r2 = virtualinvoke $r1.<org.fife.ui.rsyntaxtextarea.RSyntaxTextArea: javax.swing.text.Highlighter getHighlighter()>();
+
+        r3 = (org.fife.ui.rsyntaxtextarea.RSyntaxTextAreaHighlighter) $r2;
+
+        if r3 == null goto label1;
+
+        virtualinvoke r3.<org.fife.ui.rsyntaxtextarea.RSyntaxTextAreaHighlighter: void clearParserHighlights()>();
+
+     label1:
+        $r4 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: java.util.List noticeHighlightPairs>;
+
+        if $r4 == null goto label2;
+
+        $r5 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: java.util.List noticeHighlightPairs>;
+
+        interfaceinvoke $r5.<java.util.List: void clear()>();
+
+     label2:
+        return;
+    }
+
+    private void clearParserNoticeHighlights(org.fife.ui.rsyntaxtextarea.parser.Parser)
+    {
+        java.util.Iterator $r6;
+        org.fife.ui.rsyntaxtextarea.parser.Parser $r10, r11;
+        org.fife.ui.rsyntaxtextarea.RSyntaxTextArea $r1;
+        org.fife.ui.rsyntaxtextarea.ParserManager$NoticeHighlightPair r8;
+        javax.swing.text.Highlighter $r2;
+        org.fife.ui.rsyntaxtextarea.RSyntaxTextAreaHighlighter r3;
+        java.util.List $r4, $r5;
+        org.fife.ui.rsyntaxtextarea.parser.ParserNotice $r9;
+        org.fife.ui.rsyntaxtextarea.ParserManager r0;
+        java.lang.Object $r7;
+        boolean $z0;
+
+        r0 := @this: org.fife.ui.rsyntaxtextarea.ParserManager;
+
+        r11 := @parameter0: org.fife.ui.rsyntaxtextarea.parser.Parser;
+
+        $r1 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: org.fife.ui.rsyntaxtextarea.RSyntaxTextArea textArea>;
+
+        $r2 = virtualinvoke $r1.<org.fife.ui.rsyntaxtextarea.RSyntaxTextArea: javax.swing.text.Highlighter getHighlighter()>();
+
+        r3 = (org.fife.ui.rsyntaxtextarea.RSyntaxTextAreaHighlighter) $r2;
+
+        if r3 == null goto label1;
+
+        virtualinvoke r3.<org.fife.ui.rsyntaxtextarea.RSyntaxTextAreaHighlighter: void clearParserHighlights(org.fife.ui.rsyntaxtextarea.parser.Parser)>(r11);
+
+     label1:
+        $r4 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: java.util.List noticeHighlightPairs>;
+
+        if $r4 == null goto label4;
+
+        $r5 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: java.util.List noticeHighlightPairs>;
+
+        $r6 = interfaceinvoke $r5.<java.util.List: java.util.Iterator iterator()>();
+
+     label2:
+        $z0 = interfaceinvoke $r6.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label4;
+
+        $r7 = interfaceinvoke $r6.<java.util.Iterator: java.lang.Object next()>();
+
+        r8 = (org.fife.ui.rsyntaxtextarea.ParserManager$NoticeHighlightPair) $r7;
+
+        $r9 = r8.<org.fife.ui.rsyntaxtextarea.ParserManager$NoticeHighlightPair: org.fife.ui.rsyntaxtextarea.parser.ParserNotice notice>;
+
+        $r10 = interfaceinvoke $r9.<org.fife.ui.rsyntaxtextarea.parser.ParserNotice: org.fife.ui.rsyntaxtextarea.parser.Parser getParser()>();
+
+        if $r10 != r11 goto label3;
+
+        interfaceinvoke $r6.<java.util.Iterator: void remove()>();
+
+     label3:
+        goto label2;
+
+     label4:
+        return;
+    }
+
+    public void clearParsers()
+    {
+        java.util.List $r2;
+        org.fife.ui.rsyntaxtextarea.ParserManager r0;
+        org.fife.ui.rsyntaxtextarea.RSyntaxTextArea $r3;
+        javax.swing.Timer $r1;
+
+        r0 := @this: org.fife.ui.rsyntaxtextarea.ParserManager;
+
+        $r1 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: javax.swing.Timer timer>;
+
+        virtualinvoke $r1.<javax.swing.Timer: void stop()>();
+
+        specialinvoke r0.<org.fife.ui.rsyntaxtextarea.ParserManager: void clearParserNoticeHighlights()>();
+
+        $r2 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: java.util.List parsers>;
+
+        interfaceinvoke $r2.<java.util.List: void clear()>();
+
+        $r3 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: org.fife.ui.rsyntaxtextarea.RSyntaxTextArea textArea>;
+
+        virtualinvoke $r3.<org.fife.ui.rsyntaxtextarea.RSyntaxTextArea: void fireParserNoticesChange()>();
+
+        return;
+    }
+
+    public void forceReparsing(int)
+    {
+        java.lang.Throwable $r9;
+        org.fife.ui.rsyntaxtextarea.parser.Parser $r1;
+        org.fife.ui.rsyntaxtextarea.RSyntaxTextArea $r2, $r5, $r7;
+        org.fife.ui.rsyntaxtextarea.parser.ParseResult $r8;
+        org.fife.ui.rsyntaxtextarea.RSyntaxDocument r4;
+        org.fife.ui.rsyntaxtextarea.ParserManager r0;
+        int i0;
+        javax.swing.text.Document $r3;
+        java.lang.String $r6;
+        boolean $z0;
+
+        r0 := @this: org.fife.ui.rsyntaxtextarea.ParserManager;
+
+        i0 := @parameter0: int;
+
+        $r1 = virtualinvoke r0.<org.fife.ui.rsyntaxtextarea.ParserManager: org.fife.ui.rsyntaxtextarea.parser.Parser getParser(int)>(i0);
+
+        $r2 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: org.fife.ui.rsyntaxtextarea.RSyntaxTextArea textArea>;
+
+        $r3 = virtualinvoke $r2.<org.fife.ui.rsyntaxtextarea.RSyntaxTextArea: javax.swing.text.Document getDocument()>();
+
+        r4 = (org.fife.ui.rsyntaxtextarea.RSyntaxDocument) $r3;
+
+        $r5 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: org.fife.ui.rsyntaxtextarea.RSyntaxTextArea textArea>;
+
+        $r6 = virtualinvoke $r5.<org.fife.ui.rsyntaxtextarea.RSyntaxTextArea: java.lang.String getSyntaxEditingStyle()>();
+
+        virtualinvoke r4.<org.fife.ui.rsyntaxtextarea.RSyntaxDocument: void readLock()>();
+
+     label1:
+        $z0 = interfaceinvoke $r1.<org.fife.ui.rsyntaxtextarea.parser.Parser: boolean isEnabled()>();
+
+        if $z0 == 0 goto label2;
+
+        $r8 = interfaceinvoke $r1.<org.fife.ui.rsyntaxtextarea.parser.Parser: org.fife.ui.rsyntaxtextarea.parser.ParseResult parse(org.fife.ui.rsyntaxtextarea.RSyntaxDocument,java.lang.String)>(r4, $r6);
+
+        specialinvoke r0.<org.fife.ui.rsyntaxtextarea.ParserManager: void addParserNoticeHighlights(org.fife.ui.rsyntaxtextarea.parser.ParseResult)>($r8);
+
+        goto label3;
+
+     label2:
+        specialinvoke r0.<org.fife.ui.rsyntaxtextarea.ParserManager: void clearParserNoticeHighlights(org.fife.ui.rsyntaxtextarea.parser.Parser)>($r1);
+
+     label3:
+        $r7 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: org.fife.ui.rsyntaxtextarea.RSyntaxTextArea textArea>;
+
+        virtualinvoke $r7.<org.fife.ui.rsyntaxtextarea.RSyntaxTextArea: void fireParserNoticesChange()>();
+
+     label4:
+        virtualinvoke r4.<org.fife.ui.rsyntaxtextarea.RSyntaxDocument: void readUnlock()>();
+
+        goto label7;
+
+     label5:
+        $r9 := @caughtexception;
+
+     label6:
+        virtualinvoke r4.<org.fife.ui.rsyntaxtextarea.RSyntaxDocument: void readUnlock()>();
+
+        throw $r9;
+
+     label7:
+        return;
+
+        catch java.lang.Throwable from label1 to label4 with label5;
+        catch java.lang.Throwable from label5 to label6 with label5;
+    }
+
+    public int getDelay()
+    {
+        int $i0;
+        org.fife.ui.rsyntaxtextarea.ParserManager r0;
+        javax.swing.Timer $r1;
+
+        r0 := @this: org.fife.ui.rsyntaxtextarea.ParserManager;
+
+        $r1 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: javax.swing.Timer timer>;
+
+        $i0 = virtualinvoke $r1.<javax.swing.Timer: int getDelay()>();
+
+        return $i0;
+    }
+
+    public org.fife.ui.rsyntaxtextarea.parser.Parser getParser(int)
+    {
+        java.util.List $r1;
+        org.fife.ui.rsyntaxtextarea.ParserManager r0;
+        org.fife.ui.rsyntaxtextarea.parser.Parser $r3;
+        int i0;
+        java.lang.Object $r2;
+
+        r0 := @this: org.fife.ui.rsyntaxtextarea.ParserManager;
+
+        i0 := @parameter0: int;
+
+        $r1 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: java.util.List parsers>;
+
+        $r2 = interfaceinvoke $r1.<java.util.List: java.lang.Object get(int)>(i0);
+
+        $r3 = (org.fife.ui.rsyntaxtextarea.parser.Parser) $r2;
+
+        return $r3;
+    }
+
+    public int getParserCount()
+    {
+        int $i0;
+        java.util.List $r1;
+        org.fife.ui.rsyntaxtextarea.ParserManager r0;
+
+        r0 := @this: org.fife.ui.rsyntaxtextarea.ParserManager;
+
+        $r1 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: java.util.List parsers>;
+
+        $i0 = interfaceinvoke $r1.<java.util.List: int size()>();
+
+        return $i0;
+    }
+
+    public java.util.List getParserNotices()
+    {
+        java.util.Iterator $r4;
+        org.fife.ui.rsyntaxtextarea.ParserManager$NoticeHighlightPair r6;
+        java.util.ArrayList $r0;
+        java.util.List $r2, $r3;
+        org.fife.ui.rsyntaxtextarea.parser.ParserNotice $r7;
+        org.fife.ui.rsyntaxtextarea.ParserManager r1;
+        java.lang.Object $r5;
+        boolean $z0;
+
+        r1 := @this: org.fife.ui.rsyntaxtextarea.ParserManager;
+
+        $r0 = new java.util.ArrayList;
+
+        specialinvoke $r0.<java.util.ArrayList: void <init>()>();
+
+        $r2 = r1.<org.fife.ui.rsyntaxtextarea.ParserManager: java.util.List noticeHighlightPairs>;
+
+        if $r2 == null goto label2;
+
+        $r3 = r1.<org.fife.ui.rsyntaxtextarea.ParserManager: java.util.List noticeHighlightPairs>;
+
+        $r4 = interfaceinvoke $r3.<java.util.List: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r4.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label2;
+
+        $r5 = interfaceinvoke $r4.<java.util.Iterator: java.lang.Object next()>();
+
+        r6 = (org.fife.ui.rsyntaxtextarea.ParserManager$NoticeHighlightPair) $r5;
+
+        $r7 = r6.<org.fife.ui.rsyntaxtextarea.ParserManager$NoticeHighlightPair: org.fife.ui.rsyntaxtextarea.parser.ParserNotice notice>;
+
+        interfaceinvoke $r0.<java.util.List: boolean add(java.lang.Object)>($r7);
+
+        goto label1;
+
+     label2:
+        return $r0;
+    }
+
+    public org.fife.ui.rsyntaxtextarea.parser.ToolTipInfo getToolTipText(java.awt.event.MouseEvent)
+    {
+        org.fife.ui.rsyntaxtextarea.parser.Parser $r5, $r12, $r13, $r14, $r17;
+        java.net.URL $r18;
+        org.fife.ui.rsyntaxtextarea.parser.ToolTipInfo $r6;
+        java.awt.Point $r3;
+        org.fife.ui.rsyntaxtextarea.ParserManager$NoticeHighlightPair r10;
+        org.fife.ui.rsyntaxtextarea.ParserManager r0;
+        int $i0, $i1, i2;
+        java.lang.String r15;
+        boolean $z0, $z1;
+        javax.swing.event.HyperlinkListener r16;
+        org.fife.ui.rsyntaxtextarea.RSyntaxTextArea $r2;
+        java.awt.event.MouseEvent r1;
+        java.util.List $r4, $r7, $r8;
+        org.fife.ui.rsyntaxtextarea.parser.ParserNotice r11;
+        java.lang.Object $r9;
+
+        r0 := @this: org.fife.ui.rsyntaxtextarea.ParserManager;
+
+        r1 := @parameter0: java.awt.event.MouseEvent;
+
+        r15 = null;
+
+        r16 = null;
+
+        r0.<org.fife.ui.rsyntaxtextarea.ParserManager: org.fife.ui.rsyntaxtextarea.parser.Parser parserForTip> = null;
+
+        $r2 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: org.fife.ui.rsyntaxtextarea.RSyntaxTextArea textArea>;
+
+        $r3 = virtualinvoke r1.<java.awt.event.MouseEvent: java.awt.Point getPoint()>();
+
+        $i0 = virtualinvoke $r2.<org.fife.ui.rsyntaxtextarea.RSyntaxTextArea: int viewToModel(java.awt.Point)>($r3);
+
+        $r4 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: java.util.List noticeHighlightPairs>;
+
+        if $r4 == null goto label3;
+
+        i2 = 0;
+
+     label1:
+        $r7 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: java.util.List noticeHighlightPairs>;
+
+        $i1 = interfaceinvoke $r7.<java.util.List: int size()>();
+
+        if i2 >= $i1 goto label3;
+
+        $r8 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: java.util.List noticeHighlightPairs>;
+
+        $r9 = interfaceinvoke $r8.<java.util.List: java.lang.Object get(int)>(i2);
+
+        r10 = (org.fife.ui.rsyntaxtextarea.ParserManager$NoticeHighlightPair) $r9;
+
+        r11 = r10.<org.fife.ui.rsyntaxtextarea.ParserManager$NoticeHighlightPair: org.fife.ui.rsyntaxtextarea.parser.ParserNotice notice>;
+
+        $z0 = interfaceinvoke r11.<org.fife.ui.rsyntaxtextarea.parser.ParserNotice: boolean containsPosition(int)>($i0);
+
+        if $z0 == 0 goto label2;
+
+        r15 = interfaceinvoke r11.<org.fife.ui.rsyntaxtextarea.parser.ParserNotice: java.lang.String getToolTipText()>();
+
+        $r12 = interfaceinvoke r11.<org.fife.ui.rsyntaxtextarea.parser.ParserNotice: org.fife.ui.rsyntaxtextarea.parser.Parser getParser()>();
+
+        r0.<org.fife.ui.rsyntaxtextarea.ParserManager: org.fife.ui.rsyntaxtextarea.parser.Parser parserForTip> = $r12;
+
+        $r13 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: org.fife.ui.rsyntaxtextarea.parser.Parser parserForTip>;
+
+        $z1 = $r13 instanceof javax.swing.event.HyperlinkListener;
+
+        if $z1 == 0 goto label3;
+
+        $r14 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: org.fife.ui.rsyntaxtextarea.parser.Parser parserForTip>;
+
+        r16 = (javax.swing.event.HyperlinkListener) $r14;
+
+        goto label3;
+
+     label2:
+        i2 = i2 + 1;
+
+        goto label1;
+
+     label3:
+        $r17 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: org.fife.ui.rsyntaxtextarea.parser.Parser parserForTip>;
+
+        if $r17 != null goto label4;
+
+        $r18 = null;
+
+        goto label5;
+
+     label4:
+        $r5 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: org.fife.ui.rsyntaxtextarea.parser.Parser parserForTip>;
+
+        $r18 = interfaceinvoke $r5.<org.fife.ui.rsyntaxtextarea.parser.Parser: java.net.URL getImageBase()>();
+
+     label5:
+        $r6 = new org.fife.ui.rsyntaxtextarea.parser.ToolTipInfo;
+
+        specialinvoke $r6.<org.fife.ui.rsyntaxtextarea.parser.ToolTipInfo: void <init>(java.lang.String,javax.swing.event.HyperlinkListener,java.net.URL)>(r15, r16, $r18);
+
+        return $r6;
+    }
+
+    public void handleDocumentEvent(javax.swing.event.DocumentEvent)
+    {
+        java.util.List $r1;
+        org.fife.ui.rsyntaxtextarea.ParserManager r0;
+        int $i0;
+        javax.swing.event.DocumentEvent r3;
+        boolean $z0;
+        javax.swing.Timer $r2;
+
+        r0 := @this: org.fife.ui.rsyntaxtextarea.ParserManager;
+
+        r3 := @parameter0: javax.swing.event.DocumentEvent;
+
+        $z0 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: boolean running>;
+
+        if $z0 == 0 goto label1;
+
+        $r1 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: java.util.List parsers>;
+
+        $i0 = interfaceinvoke $r1.<java.util.List: int size()>();
+
+        if $i0 <= 0 goto label1;
+
+        $r2 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: javax.swing.Timer timer>;
+
+        virtualinvoke $r2.<javax.swing.Timer: void restart()>();
+
+     label1:
+        return;
+    }
+
+    public void hyperlinkUpdate(javax.swing.event.HyperlinkEvent)
+    {
+        org.fife.ui.rsyntaxtextarea.parser.ExtendedHyperlinkListener $r3, $r5;
+        javax.swing.event.HyperlinkEvent r6;
+        org.fife.ui.rsyntaxtextarea.parser.Parser $r1, $r2, $r4;
+        org.fife.ui.rsyntaxtextarea.RSyntaxTextArea $r7;
+        org.fife.ui.rsyntaxtextarea.ParserManager r0;
+
+        r0 := @this: org.fife.ui.rsyntaxtextarea.ParserManager;
+
+        r6 := @parameter0: javax.swing.event.HyperlinkEvent;
+
+        $r1 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: org.fife.ui.rsyntaxtextarea.parser.Parser parserForTip>;
+
+        if $r1 == null goto label1;
+
+        $r2 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: org.fife.ui.rsyntaxtextarea.parser.Parser parserForTip>;
+
+        $r3 = interfaceinvoke $r2.<org.fife.ui.rsyntaxtextarea.parser.Parser: org.fife.ui.rsyntaxtextarea.parser.ExtendedHyperlinkListener getHyperlinkListener()>();
+
+        if $r3 == null goto label1;
+
+        $r4 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: org.fife.ui.rsyntaxtextarea.parser.Parser parserForTip>;
+
+        $r5 = interfaceinvoke $r4.<org.fife.ui.rsyntaxtextarea.parser.Parser: org.fife.ui.rsyntaxtextarea.parser.ExtendedHyperlinkListener getHyperlinkListener()>();
+
+        $r7 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: org.fife.ui.rsyntaxtextarea.RSyntaxTextArea textArea>;
+
+        interfaceinvoke $r5.<org.fife.ui.rsyntaxtextarea.parser.ExtendedHyperlinkListener: void linkClicked(org.fife.ui.rsyntaxtextarea.RSyntaxTextArea,javax.swing.event.HyperlinkEvent)>($r7, r6);
+
+     label1:
+        return;
+    }
+
+    public void insertUpdate(javax.swing.event.DocumentEvent)
+    {
+        javax.swing.text.Position $r2, $r4, $r6, $r7, $r8, $r10;
+        org.fife.ui.rsyntaxtextarea.ParserManager r1;
+        int $i0, $i1, $i2, $i3, $i4, $i5;
+        javax.swing.event.DocumentEvent r0;
+        javax.swing.text.BadLocationException $r9;
+        javax.swing.text.Document $r3, $r5;
+
+        r1 := @this: org.fife.ui.rsyntaxtextarea.ParserManager;
+
+        r0 := @parameter0: javax.swing.event.DocumentEvent;
+
+     label1:
+        $i0 = interfaceinvoke r0.<javax.swing.event.DocumentEvent: int getOffset()>();
+
+        $r2 = r1.<org.fife.ui.rsyntaxtextarea.ParserManager: javax.swing.text.Position firstOffsetModded>;
+
+        if $r2 == null goto label2;
+
+        $r8 = r1.<org.fife.ui.rsyntaxtextarea.ParserManager: javax.swing.text.Position firstOffsetModded>;
+
+        $i2 = interfaceinvoke $r8.<javax.swing.text.Position: int getOffset()>();
+
+        if $i0 >= $i2 goto label3;
+
+     label2:
+        $r3 = interfaceinvoke r0.<javax.swing.event.DocumentEvent: javax.swing.text.Document getDocument()>();
+
+        $r4 = interfaceinvoke $r3.<javax.swing.text.Document: javax.swing.text.Position createPosition(int)>($i0);
+
+        r1.<org.fife.ui.rsyntaxtextarea.ParserManager: javax.swing.text.Position firstOffsetModded> = $r4;
+
+     label3:
+        $i3 = interfaceinvoke r0.<javax.swing.event.DocumentEvent: int getOffset()>();
+
+        $i4 = interfaceinvoke r0.<javax.swing.event.DocumentEvent: int getLength()>();
+
+        $i5 = $i3 + $i4;
+
+        $r10 = r1.<org.fife.ui.rsyntaxtextarea.ParserManager: javax.swing.text.Position lastOffsetModded>;
+
+        if $r10 == null goto label4;
+
+        $r7 = r1.<org.fife.ui.rsyntaxtextarea.ParserManager: javax.swing.text.Position lastOffsetModded>;
+
+        $i1 = interfaceinvoke $r7.<javax.swing.text.Position: int getOffset()>();
+
+        if $i5 <= $i1 goto label5;
+
+     label4:
+        $r5 = interfaceinvoke r0.<javax.swing.event.DocumentEvent: javax.swing.text.Document getDocument()>();
+
+        $r6 = interfaceinvoke $r5.<javax.swing.text.Document: javax.swing.text.Position createPosition(int)>($i5);
+
+        r1.<org.fife.ui.rsyntaxtextarea.ParserManager: javax.swing.text.Position lastOffsetModded> = $r6;
+
+     label5:
+        goto label7;
+
+     label6:
+        $r9 := @caughtexception;
+
+        virtualinvoke $r9.<javax.swing.text.BadLocationException: void printStackTrace()>();
+
+     label7:
+        virtualinvoke r1.<org.fife.ui.rsyntaxtextarea.ParserManager: void handleDocumentEvent(javax.swing.event.DocumentEvent)>(r0);
+
+        return;
+
+        catch javax.swing.text.BadLocationException from label1 to label5 with label6;
+    }
+
+    public boolean removeParser(org.fife.ui.rsyntaxtextarea.parser.Parser)
+    {
+        java.util.List $r2;
+        org.fife.ui.rsyntaxtextarea.ParserManager r0;
+        org.fife.ui.rsyntaxtextarea.parser.Parser r1;
+        org.fife.ui.rsyntaxtextarea.RSyntaxTextArea $r3;
+        boolean $z0;
+
+        r0 := @this: org.fife.ui.rsyntaxtextarea.ParserManager;
+
+        r1 := @parameter0: org.fife.ui.rsyntaxtextarea.parser.Parser;
+
+        specialinvoke r0.<org.fife.ui.rsyntaxtextarea.ParserManager: void removeParserNotices(org.fife.ui.rsyntaxtextarea.parser.Parser)>(r1);
+
+        $r2 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: java.util.List parsers>;
+
+        $z0 = interfaceinvoke $r2.<java.util.List: boolean remove(java.lang.Object)>(r1);
+
+        if $z0 == 0 goto label1;
+
+        $r3 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: org.fife.ui.rsyntaxtextarea.RSyntaxTextArea textArea>;
+
+        virtualinvoke $r3.<org.fife.ui.rsyntaxtextarea.RSyntaxTextArea: void fireParserNoticesChange()>();
+
+     label1:
+        return $z0;
+    }
+
+    private void removeParserNotices(org.fife.ui.rsyntaxtextarea.parser.Parser)
+    {
+        java.util.Iterator $r6;
+        org.fife.ui.rsyntaxtextarea.parser.Parser $r10, r11;
+        org.fife.ui.rsyntaxtextarea.RSyntaxTextArea $r2;
+        org.fife.ui.rsyntaxtextarea.ParserManager$NoticeHighlightPair r8;
+        javax.swing.text.Highlighter $r3;
+        org.fife.ui.rsyntaxtextarea.RSyntaxTextAreaHighlighter r4;
+        java.util.List $r1, $r5;
+        org.fife.ui.rsyntaxtextarea.parser.ParserNotice $r9;
+        org.fife.ui.rsyntaxtextarea.ParserManager r0;
+        java.lang.Object $r7, $r12, $r13;
+        boolean $z0;
+
+        r0 := @this: org.fife.ui.rsyntaxtextarea.ParserManager;
+
+        r11 := @parameter0: org.fife.ui.rsyntaxtextarea.parser.Parser;
+
+        $r1 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: java.util.List noticeHighlightPairs>;
+
+        if $r1 == null goto label3;
+
+        $r2 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: org.fife.ui.rsyntaxtextarea.RSyntaxTextArea textArea>;
+
+        $r3 = virtualinvoke $r2.<org.fife.ui.rsyntaxtextarea.RSyntaxTextArea: javax.swing.text.Highlighter getHighlighter()>();
+
+        r4 = (org.fife.ui.rsyntaxtextarea.RSyntaxTextAreaHighlighter) $r3;
+
+        $r5 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: java.util.List noticeHighlightPairs>;
+
+        $r6 = interfaceinvoke $r5.<java.util.List: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r6.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label3;
+
+        $r7 = interfaceinvoke $r6.<java.util.Iterator: java.lang.Object next()>();
+
+        r8 = (org.fife.ui.rsyntaxtextarea.ParserManager$NoticeHighlightPair) $r7;
+
+        $r9 = r8.<org.fife.ui.rsyntaxtextarea.ParserManager$NoticeHighlightPair: org.fife.ui.rsyntaxtextarea.parser.ParserNotice notice>;
+
+        $r10 = interfaceinvoke $r9.<org.fife.ui.rsyntaxtextarea.parser.ParserNotice: org.fife.ui.rsyntaxtextarea.parser.Parser getParser()>();
+
+        if $r10 != r11 goto label2;
+
+        $r12 = r8.<org.fife.ui.rsyntaxtextarea.ParserManager$NoticeHighlightPair: java.lang.Object highlight>;
+
+        if $r12 == null goto label2;
+
+        $r13 = r8.<org.fife.ui.rsyntaxtextarea.ParserManager$NoticeHighlightPair: java.lang.Object highlight>;
+
+        virtualinvoke r4.<org.fife.ui.rsyntaxtextarea.RSyntaxTextAreaHighlighter: void removeParserHighlight(java.lang.Object)>($r13);
+
+        interfaceinvoke $r6.<java.util.Iterator: void remove()>();
+
+     label2:
+        goto label1;
+
+     label3:
+        return;
+    }
+
+    private void removeParserNotices(org.fife.ui.rsyntaxtextarea.parser.ParseResult)
+    {
+        org.fife.ui.rsyntaxtextarea.ParserManager$NoticeHighlightPair r8;
+        org.fife.ui.rsyntaxtextarea.ParserManager r0;
+        java.lang.StringBuffer $r11, $r13, $r15;
+        java.lang.String $r16, $r19;
+        boolean $z0, $z1, z2, $z3;
+        java.io.PrintStream $r12;
+        java.util.Iterator $r6;
+        org.fife.ui.rsyntaxtextarea.RSyntaxTextArea $r2;
+        org.fife.ui.rsyntaxtextarea.parser.ParseResult r9;
+        javax.swing.text.Highlighter $r3;
+        org.fife.ui.rsyntaxtextarea.RSyntaxTextAreaHighlighter r4;
+        java.util.List $r1, $r5;
+        org.fife.ui.rsyntaxtextarea.parser.ParserNotice $r10, $r14;
+        java.lang.Object $r7, $r17, $r18;
+
+        r0 := @this: org.fife.ui.rsyntaxtextarea.ParserManager;
+
+        r9 := @parameter0: org.fife.ui.rsyntaxtextarea.parser.ParseResult;
+
+        $r1 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: java.util.List noticeHighlightPairs>;
+
+        if $r1 == null goto label7;
+
+        $r2 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: org.fife.ui.rsyntaxtextarea.RSyntaxTextArea textArea>;
+
+        $r3 = virtualinvoke $r2.<org.fife.ui.rsyntaxtextarea.RSyntaxTextArea: javax.swing.text.Highlighter getHighlighter()>();
+
+        r4 = (org.fife.ui.rsyntaxtextarea.RSyntaxTextAreaHighlighter) $r3;
+
+        $r5 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: java.util.List noticeHighlightPairs>;
+
+        $r6 = interfaceinvoke $r5.<java.util.List: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r6.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label7;
+
+        $r7 = interfaceinvoke $r6.<java.util.Iterator: java.lang.Object next()>();
+
+        r8 = (org.fife.ui.rsyntaxtextarea.ParserManager$NoticeHighlightPair) $r7;
+
+        z2 = 0;
+
+        $r10 = r8.<org.fife.ui.rsyntaxtextarea.ParserManager$NoticeHighlightPair: org.fife.ui.rsyntaxtextarea.parser.ParserNotice notice>;
+
+        $z1 = specialinvoke r0.<org.fife.ui.rsyntaxtextarea.ParserManager: boolean shouldRemoveNotice(org.fife.ui.rsyntaxtextarea.parser.ParserNotice,org.fife.ui.rsyntaxtextarea.parser.ParseResult)>($r10, r9);
+
+        if $z1 == 0 goto label3;
+
+        $r17 = r8.<org.fife.ui.rsyntaxtextarea.ParserManager$NoticeHighlightPair: java.lang.Object highlight>;
+
+        if $r17 == null goto label2;
+
+        $r18 = r8.<org.fife.ui.rsyntaxtextarea.ParserManager$NoticeHighlightPair: java.lang.Object highlight>;
+
+        virtualinvoke r4.<org.fife.ui.rsyntaxtextarea.RSyntaxTextAreaHighlighter: void removeParserHighlight(java.lang.Object)>($r18);
+
+     label2:
+        interfaceinvoke $r6.<java.util.Iterator: void remove()>();
+
+        z2 = 1;
+
+     label3:
+        $z3 = <org.fife.ui.rsyntaxtextarea.ParserManager: boolean DEBUG_PARSING>;
+
+        if $z3 == 0 goto label6;
+
+        if z2 == 0 goto label4;
+
+        $r19 = "[DEBUG]: ... notice removed: ";
+
+        goto label5;
+
+     label4:
+        $r19 = "[DEBUG]: ... notice not removed: ";
+
+     label5:
+        $r12 = <java.lang.System: java.io.PrintStream out>;
+
+        $r11 = new java.lang.StringBuffer;
+
+        specialinvoke $r11.<java.lang.StringBuffer: void <init>()>();
+
+        $r13 = virtualinvoke $r11.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>($r19);
+
+        $r14 = r8.<org.fife.ui.rsyntaxtextarea.ParserManager$NoticeHighlightPair: org.fife.ui.rsyntaxtextarea.parser.ParserNotice notice>;
+
+        $r15 = virtualinvoke $r13.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.Object)>($r14);
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuffer: java.lang.String toString()>();
+
+        virtualinvoke $r12.<java.io.PrintStream: void println(java.lang.String)>($r16);
+
+     label6:
+        goto label1;
+
+     label7:
+        return;
+    }
+
+    public void removeUpdate(javax.swing.event.DocumentEvent)
+    {
+        javax.swing.text.Position $r2, $r4, $r6, $r7, $r8, $r10;
+        javax.swing.text.BadLocationException $r9;
+        org.fife.ui.rsyntaxtextarea.ParserManager r1;
+        int $i0, $i1, $i2;
+        javax.swing.text.Document $r3, $r5;
+        javax.swing.event.DocumentEvent r0;
+
+        r1 := @this: org.fife.ui.rsyntaxtextarea.ParserManager;
+
+        r0 := @parameter0: javax.swing.event.DocumentEvent;
+
+     label1:
+        $i0 = interfaceinvoke r0.<javax.swing.event.DocumentEvent: int getOffset()>();
+
+        $r2 = r1.<org.fife.ui.rsyntaxtextarea.ParserManager: javax.swing.text.Position firstOffsetModded>;
+
+        if $r2 == null goto label2;
+
+        $r8 = r1.<org.fife.ui.rsyntaxtextarea.ParserManager: javax.swing.text.Position firstOffsetModded>;
+
+        $i2 = interfaceinvoke $r8.<javax.swing.text.Position: int getOffset()>();
+
+        if $i0 >= $i2 goto label3;
+
+     label2:
+        $r3 = interfaceinvoke r0.<javax.swing.event.DocumentEvent: javax.swing.text.Document getDocument()>();
+
+        $r4 = interfaceinvoke $r3.<javax.swing.text.Document: javax.swing.text.Position createPosition(int)>($i0);
+
+        r1.<org.fife.ui.rsyntaxtextarea.ParserManager: javax.swing.text.Position firstOffsetModded> = $r4;
+
+     label3:
+        $r10 = r1.<org.fife.ui.rsyntaxtextarea.ParserManager: javax.swing.text.Position lastOffsetModded>;
+
+        if $r10 == null goto label4;
+
+        $r7 = r1.<org.fife.ui.rsyntaxtextarea.ParserManager: javax.swing.text.Position lastOffsetModded>;
+
+        $i1 = interfaceinvoke $r7.<javax.swing.text.Position: int getOffset()>();
+
+        if $i0 <= $i1 goto label5;
+
+     label4:
+        $r5 = interfaceinvoke r0.<javax.swing.event.DocumentEvent: javax.swing.text.Document getDocument()>();
+
+        $r6 = interfaceinvoke $r5.<javax.swing.text.Document: javax.swing.text.Position createPosition(int)>($i0);
+
+        r1.<org.fife.ui.rsyntaxtextarea.ParserManager: javax.swing.text.Position lastOffsetModded> = $r6;
+
+     label5:
+        goto label7;
+
+     label6:
+        $r9 := @caughtexception;
+
+        virtualinvoke $r9.<javax.swing.text.BadLocationException: void printStackTrace()>();
+
+     label7:
+        virtualinvoke r1.<org.fife.ui.rsyntaxtextarea.ParserManager: void handleDocumentEvent(javax.swing.event.DocumentEvent)>(r0);
+
+        return;
+
+        catch javax.swing.text.BadLocationException from label1 to label5 with label6;
+    }
+
+    public void restartParsing()
+    {
+        org.fife.ui.rsyntaxtextarea.ParserManager r0;
+        javax.swing.Timer $r1;
+
+        r0 := @this: org.fife.ui.rsyntaxtextarea.ParserManager;
+
+        $r1 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: javax.swing.Timer timer>;
+
+        virtualinvoke $r1.<javax.swing.Timer: void restart()>();
+
+        r0.<org.fife.ui.rsyntaxtextarea.ParserManager: boolean running> = 1;
+
+        return;
+    }
+
+    public void setDelay(int)
+    {
+        org.fife.ui.rsyntaxtextarea.ParserManager r0;
+        int i0;
+        boolean $z0, $z1;
+        javax.swing.Timer $r1, $r2, $r3;
+
+        r0 := @this: org.fife.ui.rsyntaxtextarea.ParserManager;
+
+        i0 := @parameter0: int;
+
+        $z0 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: boolean running>;
+
+        if $z0 == 0 goto label1;
+
+        $r3 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: javax.swing.Timer timer>;
+
+        virtualinvoke $r3.<javax.swing.Timer: void stop()>();
+
+     label1:
+        $r1 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: javax.swing.Timer timer>;
+
+        virtualinvoke $r1.<javax.swing.Timer: void setDelay(int)>(i0);
+
+        $z1 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: boolean running>;
+
+        if $z1 == 0 goto label2;
+
+        $r2 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: javax.swing.Timer timer>;
+
+        virtualinvoke $r2.<javax.swing.Timer: void start()>();
+
+     label2:
+        return;
+    }
+
+    private final boolean shouldRemoveNotice(org.fife.ui.rsyntaxtextarea.parser.ParserNotice, org.fife.ui.rsyntaxtextarea.parser.ParseResult)
+    {
+        org.fife.ui.rsyntaxtextarea.parser.Parser $r7, $r8, $r12, $r13;
+        org.fife.ui.rsyntaxtextarea.ParserManager r11;
+        java.lang.StringBuffer $r2, $r4, $r5, $r6, $r9;
+        java.lang.String $r10;
+        boolean $z0, $z1, $z2;
+        java.io.PrintStream $r3;
+        org.fife.ui.rsyntaxtextarea.parser.ParseResult r1;
+        org.fife.ui.rsyntaxtextarea.parser.ParserNotice r0;
+
+        r11 := @this: org.fife.ui.rsyntaxtextarea.ParserManager;
+
+        r0 := @parameter0: org.fife.ui.rsyntaxtextarea.parser.ParserNotice;
+
+        r1 := @parameter1: org.fife.ui.rsyntaxtextarea.parser.ParseResult;
+
+        $z0 = <org.fife.ui.rsyntaxtextarea.ParserManager: boolean DEBUG_PARSING>;
+
+        if $z0 == 0 goto label3;
+
+        $r3 = <java.lang.System: java.io.PrintStream out>;
+
+        $r2 = new java.lang.StringBuffer;
+
+        specialinvoke $r2.<java.lang.StringBuffer: void <init>()>();
+
+        $r4 = virtualinvoke $r2.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>("[DEBUG]: ... ... shouldRemoveNotice ");
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.Object)>(r0);
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>(": ");
+
+        $r7 = interfaceinvoke r0.<org.fife.ui.rsyntaxtextarea.parser.ParserNotice: org.fife.ui.rsyntaxtextarea.parser.Parser getParser()>();
+
+        $r8 = interfaceinvoke r1.<org.fife.ui.rsyntaxtextarea.parser.ParseResult: org.fife.ui.rsyntaxtextarea.parser.Parser getParser()>();
+
+        if $r7 != $r8 goto label1;
+
+        $z1 = 1;
+
+        goto label2;
+
+     label1:
+        $z1 = 0;
+
+     label2:
+        $r9 = virtualinvoke $r6.<java.lang.StringBuffer: java.lang.StringBuffer append(boolean)>($z1);
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuffer: java.lang.String toString()>();
+
+        virtualinvoke $r3.<java.io.PrintStream: void println(java.lang.String)>($r10);
+
+     label3:
+        $r12 = interfaceinvoke r0.<org.fife.ui.rsyntaxtextarea.parser.ParserNotice: org.fife.ui.rsyntaxtextarea.parser.Parser getParser()>();
+
+        $r13 = interfaceinvoke r1.<org.fife.ui.rsyntaxtextarea.parser.ParseResult: org.fife.ui.rsyntaxtextarea.parser.Parser getParser()>();
+
+        if $r12 != $r13 goto label4;
+
+        $z2 = 1;
+
+        goto label5;
+
+     label4:
+        $z2 = 0;
+
+     label5:
+        return $z2;
+    }
+
+    public void stopParsing()
+    {
+        org.fife.ui.rsyntaxtextarea.ParserManager r0;
+        javax.swing.Timer $r1;
+
+        r0 := @this: org.fife.ui.rsyntaxtextarea.ParserManager;
+
+        $r1 = r0.<org.fife.ui.rsyntaxtextarea.ParserManager: javax.swing.Timer timer>;
+
+        virtualinvoke $r1.<javax.swing.Timer: void stop()>();
+
+        r0.<org.fife.ui.rsyntaxtextarea.ParserManager: boolean running> = 0;
+
+        return;
+    }
+
+    static void <clinit>()
+    {
+        java.security.AccessControlException $r0;
+        boolean z0;
+
+        <org.fife.ui.rsyntaxtextarea.ParserManager: int DEFAULT_DELAY_MS> = 1250;
+
+        <org.fife.ui.rsyntaxtextarea.ParserManager: java.lang.String PROPERTY_DEBUG_PARSING> = "rsta.debugParsing";
+
+     label1:
+        z0 = staticinvoke <java.lang.Boolean: boolean getBoolean(java.lang.String)>("rsta.debugParsing");
+
+     label2:
+        goto label4;
+
+     label3:
+        $r0 := @caughtexception;
+
+        z0 = 0;
+
+     label4:
+        <org.fife.ui.rsyntaxtextarea.ParserManager: boolean DEBUG_PARSING> = z0;
+
+        return;
+
+        catch java.security.AccessControlException from label1 to label2 with label3;
+    }
+}

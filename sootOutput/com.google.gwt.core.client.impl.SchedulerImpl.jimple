@@ -1,0 +1,820 @@
+public class com.google.gwt.core.client.impl.SchedulerImpl extends com.google.gwt.core.client.Scheduler
+{
+    public static final com.google.gwt.core.client.impl.SchedulerImpl INSTANCE;
+    private static final int FLUSHER_DELAY;
+    private static final int RESCUE_DELAY;
+    private static final double TIME_SLICE;
+    com.google.gwt.core.client.impl.SchedulerImpl$Flusher flusher;
+    com.google.gwt.core.client.impl.SchedulerImpl$Rescuer rescue;
+    com.google.gwt.core.client.JsArray deferredCommands;
+    com.google.gwt.core.client.JsArray entryCommands;
+    com.google.gwt.core.client.JsArray finallyCommands;
+    com.google.gwt.core.client.JsArray incrementalCommands;
+    private boolean flushRunning;
+    private boolean shouldBeRunning;
+    static final boolean $assertionsDisabled;
+
+    public void <init>()
+    {
+        com.google.gwt.core.client.impl.SchedulerImpl r0;
+
+        r0 := @this: com.google.gwt.core.client.impl.SchedulerImpl;
+
+        specialinvoke r0.<com.google.gwt.core.client.Scheduler: void <init>()>();
+
+        r0.<com.google.gwt.core.client.impl.SchedulerImpl: boolean flushRunning> = 0;
+
+        r0.<com.google.gwt.core.client.impl.SchedulerImpl: boolean shouldBeRunning> = 0;
+
+        return;
+    }
+
+    private static com.google.gwt.core.client.JsArray createQueue()
+    {
+        com.google.gwt.core.client.JavaScriptObject $r0, $r1;
+        com.google.gwt.core.client.JsArray $r2;
+
+        $r0 = staticinvoke <com.google.gwt.core.client.JavaScriptObject: com.google.gwt.core.client.JavaScriptObject createArray()>();
+
+        $r1 = virtualinvoke $r0.<com.google.gwt.core.client.JavaScriptObject: com.google.gwt.core.client.JavaScriptObject cast()>();
+
+        $r2 = (com.google.gwt.core.client.JsArray) $r1;
+
+        return $r2;
+    }
+
+    private static boolean execute(com.google.gwt.core.client.Scheduler$RepeatingCommand)
+    {
+        com.google.gwt.core.client.Scheduler$RepeatingCommand r0;
+        boolean $z0;
+
+        r0 := @parameter0: com.google.gwt.core.client.Scheduler$RepeatingCommand;
+
+        $z0 = interfaceinvoke r0.<com.google.gwt.core.client.Scheduler$RepeatingCommand: boolean execute()>();
+
+        return $z0;
+    }
+
+    private static com.google.gwt.core.client.JsArray push(com.google.gwt.core.client.JsArray, com.google.gwt.core.client.impl.SchedulerImpl$Task)
+    {
+        com.google.gwt.core.client.JsArray r1;
+        com.google.gwt.core.client.impl.SchedulerImpl$Task r0;
+
+        r1 := @parameter0: com.google.gwt.core.client.JsArray;
+
+        r0 := @parameter1: com.google.gwt.core.client.impl.SchedulerImpl$Task;
+
+        if r1 != null goto label1;
+
+        r1 = staticinvoke <com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray createQueue()>();
+
+     label1:
+        virtualinvoke r1.<com.google.gwt.core.client.JsArray: void push(com.google.gwt.core.client.JavaScriptObject)>(r0);
+
+        return r1;
+    }
+
+    private static com.google.gwt.core.client.JsArray runRepeatingTasks(com.google.gwt.core.client.JsArray)
+    {
+        byte $b1;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, z6;
+        java.lang.StringBuilder $r10, $r11, $r12, $r13, $r18;
+        java.lang.AssertionError $r17, $r19, $r20, $r21;
+        int $i0, $i2, $i3, $i4, $i5, i6, i7, $i8;
+        java.lang.String $r14;
+        double $d0, $d1, $d2;
+        com.google.gwt.core.client.JavaScriptObject $r3, $r4, $r5;
+        com.google.gwt.core.client.impl.SchedulerImpl$Task $r7;
+        com.google.gwt.core.client.JsArray r0, $r1, $r16;
+
+        r0 := @parameter0: com.google.gwt.core.client.JsArray;
+
+        $z0 = <com.google.gwt.core.client.impl.SchedulerImpl: boolean $assertionsDisabled>;
+
+        if $z0 != 0 goto label01;
+
+        if r0 != null goto label01;
+
+        $r17 = new java.lang.AssertionError;
+
+        specialinvoke $r17.<java.lang.AssertionError: void <init>(java.lang.Object)>("tasks");
+
+        throw $r17;
+
+     label01:
+        $i0 = virtualinvoke r0.<com.google.gwt.core.client.JsArray: int length()>();
+
+        if $i0 != 0 goto label02;
+
+        return null;
+
+     label02:
+        z6 = 0;
+
+        $d0 = staticinvoke <com.google.gwt.core.client.Duration: double currentTimeMillis()>();
+
+     label03:
+        $d1 = staticinvoke <com.google.gwt.core.client.Duration: double currentTimeMillis()>();
+
+        $d2 = $d1 - $d0;
+
+        $b1 = $d2 cmpg 100.0;
+
+        $i8 = (int) $b1;
+
+        if $i8 >= 0 goto label10;
+
+        i6 = 0;
+
+     label04:
+        if i6 >= $i0 goto label09;
+
+        $z2 = <com.google.gwt.core.client.impl.SchedulerImpl: boolean $assertionsDisabled>;
+
+        if $z2 != 0 goto label05;
+
+        $i4 = virtualinvoke r0.<com.google.gwt.core.client.JsArray: int length()>();
+
+        if $i4 == $i0 goto label05;
+
+        $r19 = new java.lang.AssertionError;
+
+        $r18 = new java.lang.StringBuilder;
+
+        specialinvoke $r18.<java.lang.StringBuilder: void <init>()>();
+
+        $r10 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Working array length changed ");
+
+        $i5 = virtualinvoke r0.<com.google.gwt.core.client.JsArray: int length()>();
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i5);
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" != ");
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i0);
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r19.<java.lang.AssertionError: void <init>(java.lang.Object)>($r14);
+
+        throw $r19;
+
+     label05:
+        $r5 = virtualinvoke r0.<com.google.gwt.core.client.JsArray: com.google.gwt.core.client.JavaScriptObject get(int)>(i6);
+
+        $r7 = (com.google.gwt.core.client.impl.SchedulerImpl$Task) $r5;
+
+        if $r7 != null goto label06;
+
+        goto label08;
+
+     label06:
+        $z3 = <com.google.gwt.core.client.impl.SchedulerImpl: boolean $assertionsDisabled>;
+
+        if $z3 != 0 goto label07;
+
+        $z5 = virtualinvoke $r7.<com.google.gwt.core.client.impl.SchedulerImpl$Task: boolean isRepeating()>();
+
+        if $z5 != 0 goto label07;
+
+        $r20 = new java.lang.AssertionError;
+
+        specialinvoke $r20.<java.lang.AssertionError: void <init>(java.lang.Object)>("Found a non-repeating Task");
+
+        throw $r20;
+
+     label07:
+        $z4 = virtualinvoke $r7.<com.google.gwt.core.client.impl.SchedulerImpl$Task: boolean executeRepeating()>();
+
+        if $z4 != 0 goto label08;
+
+        virtualinvoke r0.<com.google.gwt.core.client.JsArray: void set(int,com.google.gwt.core.client.JavaScriptObject)>(i6, null);
+
+        z6 = 1;
+
+     label08:
+        i6 = i6 + 1;
+
+        goto label04;
+
+     label09:
+        goto label03;
+
+     label10:
+        if z6 == 0 goto label17;
+
+        $r1 = staticinvoke <com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray createQueue()>();
+
+        i7 = 0;
+
+     label11:
+        if i7 >= $i0 goto label13;
+
+        $r3 = virtualinvoke r0.<com.google.gwt.core.client.JsArray: com.google.gwt.core.client.JavaScriptObject get(int)>(i7);
+
+        if $r3 == null goto label12;
+
+        $r4 = virtualinvoke r0.<com.google.gwt.core.client.JsArray: com.google.gwt.core.client.JavaScriptObject get(int)>(i7);
+
+        virtualinvoke $r1.<com.google.gwt.core.client.JsArray: void push(com.google.gwt.core.client.JavaScriptObject)>($r4);
+
+     label12:
+        i7 = i7 + 1;
+
+        goto label11;
+
+     label13:
+        $z1 = <com.google.gwt.core.client.impl.SchedulerImpl: boolean $assertionsDisabled>;
+
+        if $z1 != 0 goto label14;
+
+        $i3 = virtualinvoke $r1.<com.google.gwt.core.client.JsArray: int length()>();
+
+        if $i3 < $i0 goto label14;
+
+        $r21 = new java.lang.AssertionError;
+
+        specialinvoke $r21.<java.lang.AssertionError: void <init>()>();
+
+        throw $r21;
+
+     label14:
+        $i2 = virtualinvoke $r1.<com.google.gwt.core.client.JsArray: int length()>();
+
+        if $i2 != 0 goto label15;
+
+        $r16 = null;
+
+        goto label16;
+
+     label15:
+        $r16 = $r1;
+
+     label16:
+        return $r16;
+
+     label17:
+        return r0;
+    }
+
+    private static com.google.gwt.core.client.JsArray runScheduledTasks(com.google.gwt.core.client.JsArray, com.google.gwt.core.client.JsArray)
+    {
+        com.google.gwt.core.client.GWT$UncaughtExceptionHandler $r12, $r13;
+        java.lang.AssertionError $r3, $r10;
+        int $i0, $i1, $i2, i3;
+        java.lang.String $r9;
+        boolean $z0, $z1, $z2, $z3;
+        com.google.gwt.core.client.JavaScriptObject $r1;
+        java.lang.RuntimeException $r11;
+        com.google.gwt.core.client.impl.SchedulerImpl$Task $r2;
+        com.google.gwt.core.client.JsArray r0, r14;
+        java.lang.StringBuilder $r4, $r5, $r6, $r7, $r8;
+
+        r0 := @parameter0: com.google.gwt.core.client.JsArray;
+
+        r14 := @parameter1: com.google.gwt.core.client.JsArray;
+
+        $z0 = <com.google.gwt.core.client.impl.SchedulerImpl: boolean $assertionsDisabled>;
+
+        if $z0 != 0 goto label1;
+
+        if r0 != null goto label1;
+
+        $r10 = new java.lang.AssertionError;
+
+        specialinvoke $r10.<java.lang.AssertionError: void <init>(java.lang.Object)>("tasks");
+
+        throw $r10;
+
+     label1:
+        i3 = 0;
+
+        $i0 = virtualinvoke r0.<com.google.gwt.core.client.JsArray: int length()>();
+
+     label2:
+        if i3 >= $i0 goto label9;
+
+        $z1 = <com.google.gwt.core.client.impl.SchedulerImpl: boolean $assertionsDisabled>;
+
+        if $z1 != 0 goto label3;
+
+        $i1 = virtualinvoke r0.<com.google.gwt.core.client.JsArray: int length()>();
+
+        if $i1 == $i0 goto label3;
+
+        $r3 = new java.lang.AssertionError;
+
+        $r4 = new java.lang.StringBuilder;
+
+        specialinvoke $r4.<java.lang.StringBuilder: void <init>()>();
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Working array length changed ");
+
+        $i2 = virtualinvoke r0.<com.google.gwt.core.client.JsArray: int length()>();
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i2);
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" != ");
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i0);
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r3.<java.lang.AssertionError: void <init>(java.lang.Object)>($r9);
+
+        throw $r3;
+
+     label3:
+        $r1 = virtualinvoke r0.<com.google.gwt.core.client.JsArray: com.google.gwt.core.client.JavaScriptObject get(int)>(i3);
+
+        $r2 = (com.google.gwt.core.client.impl.SchedulerImpl$Task) $r1;
+
+     label4:
+        $z2 = virtualinvoke $r2.<com.google.gwt.core.client.impl.SchedulerImpl$Task: boolean isRepeating()>();
+
+        if $z2 == 0 goto label5;
+
+        $z3 = virtualinvoke $r2.<com.google.gwt.core.client.impl.SchedulerImpl$Task: boolean executeRepeating()>();
+
+        if $z3 == 0 goto label6;
+
+        r14 = staticinvoke <com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray push(com.google.gwt.core.client.JsArray,com.google.gwt.core.client.impl.SchedulerImpl$Task)>(r14, $r2);
+
+        goto label6;
+
+     label5:
+        virtualinvoke $r2.<com.google.gwt.core.client.impl.SchedulerImpl$Task: void executeScheduled()>();
+
+     label6:
+        goto label8;
+
+     label7:
+        $r11 := @caughtexception;
+
+        $r12 = staticinvoke <com.google.gwt.core.client.GWT: com.google.gwt.core.client.GWT$UncaughtExceptionHandler getUncaughtExceptionHandler()>();
+
+        if $r12 == null goto label8;
+
+        $r13 = staticinvoke <com.google.gwt.core.client.GWT: com.google.gwt.core.client.GWT$UncaughtExceptionHandler getUncaughtExceptionHandler()>();
+
+        interfaceinvoke $r13.<com.google.gwt.core.client.GWT$UncaughtExceptionHandler: void onUncaughtException(java.lang.Throwable)>($r11);
+
+     label8:
+        i3 = i3 + 1;
+
+        goto label2;
+
+     label9:
+        return r14;
+
+        catch java.lang.RuntimeException from label4 to label6 with label7;
+    }
+
+    private static native void scheduleFixedDelayImpl(com.google.gwt.core.client.Scheduler$RepeatingCommand, int);
+
+    private static native void scheduleFixedPeriodImpl(com.google.gwt.core.client.Scheduler$RepeatingCommand, int);
+
+    public void flushEntryCommands()
+    {
+        com.google.gwt.core.client.impl.SchedulerImpl r0;
+        com.google.gwt.core.client.JsArray $r1, $r2, $r3, $r4, r5;
+
+        r0 := @this: com.google.gwt.core.client.impl.SchedulerImpl;
+
+        $r1 = r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray entryCommands>;
+
+        if $r1 == null goto label2;
+
+        r5 = null;
+
+     label1:
+        $r4 = r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray entryCommands>;
+
+        r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray entryCommands> = null;
+
+        $r2 = staticinvoke <com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray runScheduledTasks(com.google.gwt.core.client.JsArray,com.google.gwt.core.client.JsArray)>($r4, r5);
+
+        r5 = $r2;
+
+        $r3 = r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray entryCommands>;
+
+        if $r3 != null goto label1;
+
+        r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray entryCommands> = $r2;
+
+     label2:
+        return;
+    }
+
+    public void flushFinallyCommands()
+    {
+        com.google.gwt.core.client.impl.SchedulerImpl r0;
+        com.google.gwt.core.client.JsArray $r1, $r2, $r3, $r4, r5;
+
+        r0 := @this: com.google.gwt.core.client.impl.SchedulerImpl;
+
+        $r1 = r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray finallyCommands>;
+
+        if $r1 == null goto label2;
+
+        r5 = null;
+
+     label1:
+        $r4 = r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray finallyCommands>;
+
+        r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray finallyCommands> = null;
+
+        $r2 = staticinvoke <com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray runScheduledTasks(com.google.gwt.core.client.JsArray,com.google.gwt.core.client.JsArray)>($r4, r5);
+
+        r5 = $r2;
+
+        $r3 = r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray finallyCommands>;
+
+        if $r3 != null goto label1;
+
+        r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray finallyCommands> = $r2;
+
+     label2:
+        return;
+    }
+
+    public void scheduleDeferred(com.google.gwt.core.client.Scheduler$ScheduledCommand)
+    {
+        com.google.gwt.core.client.impl.SchedulerImpl r0;
+        com.google.gwt.core.client.JsArray $r2, $r4;
+        com.google.gwt.core.client.Scheduler$ScheduledCommand r1;
+        com.google.gwt.core.client.impl.SchedulerImpl$Task $r3;
+
+        r0 := @this: com.google.gwt.core.client.impl.SchedulerImpl;
+
+        r1 := @parameter0: com.google.gwt.core.client.Scheduler$ScheduledCommand;
+
+        $r2 = r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray deferredCommands>;
+
+        $r3 = staticinvoke <com.google.gwt.core.client.impl.SchedulerImpl$Task: com.google.gwt.core.client.impl.SchedulerImpl$Task create(com.google.gwt.core.client.Scheduler$ScheduledCommand)>(r1);
+
+        $r4 = staticinvoke <com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray push(com.google.gwt.core.client.JsArray,com.google.gwt.core.client.impl.SchedulerImpl$Task)>($r2, $r3);
+
+        r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray deferredCommands> = $r4;
+
+        specialinvoke r0.<com.google.gwt.core.client.impl.SchedulerImpl: void maybeSchedulePostEventPumpCommands()>();
+
+        return;
+    }
+
+    public void scheduleEntry(com.google.gwt.core.client.Scheduler$RepeatingCommand)
+    {
+        com.google.gwt.core.client.impl.SchedulerImpl r0;
+        com.google.gwt.core.client.JsArray $r2, $r4;
+        com.google.gwt.core.client.Scheduler$RepeatingCommand r1;
+        com.google.gwt.core.client.impl.SchedulerImpl$Task $r3;
+
+        r0 := @this: com.google.gwt.core.client.impl.SchedulerImpl;
+
+        r1 := @parameter0: com.google.gwt.core.client.Scheduler$RepeatingCommand;
+
+        $r2 = r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray entryCommands>;
+
+        $r3 = staticinvoke <com.google.gwt.core.client.impl.SchedulerImpl$Task: com.google.gwt.core.client.impl.SchedulerImpl$Task create(com.google.gwt.core.client.Scheduler$RepeatingCommand)>(r1);
+
+        $r4 = staticinvoke <com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray push(com.google.gwt.core.client.JsArray,com.google.gwt.core.client.impl.SchedulerImpl$Task)>($r2, $r3);
+
+        r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray entryCommands> = $r4;
+
+        return;
+    }
+
+    public void scheduleEntry(com.google.gwt.core.client.Scheduler$ScheduledCommand)
+    {
+        com.google.gwt.core.client.impl.SchedulerImpl r0;
+        com.google.gwt.core.client.JsArray $r2, $r4;
+        com.google.gwt.core.client.Scheduler$ScheduledCommand r1;
+        com.google.gwt.core.client.impl.SchedulerImpl$Task $r3;
+
+        r0 := @this: com.google.gwt.core.client.impl.SchedulerImpl;
+
+        r1 := @parameter0: com.google.gwt.core.client.Scheduler$ScheduledCommand;
+
+        $r2 = r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray entryCommands>;
+
+        $r3 = staticinvoke <com.google.gwt.core.client.impl.SchedulerImpl$Task: com.google.gwt.core.client.impl.SchedulerImpl$Task create(com.google.gwt.core.client.Scheduler$ScheduledCommand)>(r1);
+
+        $r4 = staticinvoke <com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray push(com.google.gwt.core.client.JsArray,com.google.gwt.core.client.impl.SchedulerImpl$Task)>($r2, $r3);
+
+        r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray entryCommands> = $r4;
+
+        return;
+    }
+
+    public void scheduleFinally(com.google.gwt.core.client.Scheduler$RepeatingCommand)
+    {
+        com.google.gwt.core.client.impl.SchedulerImpl r0;
+        com.google.gwt.core.client.JsArray $r2, $r4;
+        com.google.gwt.core.client.Scheduler$RepeatingCommand r1;
+        com.google.gwt.core.client.impl.SchedulerImpl$Task $r3;
+
+        r0 := @this: com.google.gwt.core.client.impl.SchedulerImpl;
+
+        r1 := @parameter0: com.google.gwt.core.client.Scheduler$RepeatingCommand;
+
+        $r2 = r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray finallyCommands>;
+
+        $r3 = staticinvoke <com.google.gwt.core.client.impl.SchedulerImpl$Task: com.google.gwt.core.client.impl.SchedulerImpl$Task create(com.google.gwt.core.client.Scheduler$RepeatingCommand)>(r1);
+
+        $r4 = staticinvoke <com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray push(com.google.gwt.core.client.JsArray,com.google.gwt.core.client.impl.SchedulerImpl$Task)>($r2, $r3);
+
+        r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray finallyCommands> = $r4;
+
+        return;
+    }
+
+    public void scheduleFinally(com.google.gwt.core.client.Scheduler$ScheduledCommand)
+    {
+        com.google.gwt.core.client.impl.SchedulerImpl r0;
+        com.google.gwt.core.client.JsArray $r2, $r4;
+        com.google.gwt.core.client.Scheduler$ScheduledCommand r1;
+        com.google.gwt.core.client.impl.SchedulerImpl$Task $r3;
+
+        r0 := @this: com.google.gwt.core.client.impl.SchedulerImpl;
+
+        r1 := @parameter0: com.google.gwt.core.client.Scheduler$ScheduledCommand;
+
+        $r2 = r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray finallyCommands>;
+
+        $r3 = staticinvoke <com.google.gwt.core.client.impl.SchedulerImpl$Task: com.google.gwt.core.client.impl.SchedulerImpl$Task create(com.google.gwt.core.client.Scheduler$ScheduledCommand)>(r1);
+
+        $r4 = staticinvoke <com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray push(com.google.gwt.core.client.JsArray,com.google.gwt.core.client.impl.SchedulerImpl$Task)>($r2, $r3);
+
+        r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray finallyCommands> = $r4;
+
+        return;
+    }
+
+    public void scheduleFixedDelay(com.google.gwt.core.client.Scheduler$RepeatingCommand, int)
+    {
+        int i0;
+        com.google.gwt.core.client.impl.SchedulerImpl r1;
+        com.google.gwt.core.client.Scheduler$RepeatingCommand r0;
+
+        r1 := @this: com.google.gwt.core.client.impl.SchedulerImpl;
+
+        r0 := @parameter0: com.google.gwt.core.client.Scheduler$RepeatingCommand;
+
+        i0 := @parameter1: int;
+
+        staticinvoke <com.google.gwt.core.client.impl.SchedulerImpl: void scheduleFixedDelayImpl(com.google.gwt.core.client.Scheduler$RepeatingCommand,int)>(r0, i0);
+
+        return;
+    }
+
+    public void scheduleFixedPeriod(com.google.gwt.core.client.Scheduler$RepeatingCommand, int)
+    {
+        int i0;
+        com.google.gwt.core.client.impl.SchedulerImpl r1;
+        com.google.gwt.core.client.Scheduler$RepeatingCommand r0;
+
+        r1 := @this: com.google.gwt.core.client.impl.SchedulerImpl;
+
+        r0 := @parameter0: com.google.gwt.core.client.Scheduler$RepeatingCommand;
+
+        i0 := @parameter1: int;
+
+        staticinvoke <com.google.gwt.core.client.impl.SchedulerImpl: void scheduleFixedPeriodImpl(com.google.gwt.core.client.Scheduler$RepeatingCommand,int)>(r0, i0);
+
+        return;
+    }
+
+    public void scheduleIncremental(com.google.gwt.core.client.Scheduler$RepeatingCommand)
+    {
+        com.google.gwt.core.client.impl.SchedulerImpl r0;
+        com.google.gwt.core.client.JsArray $r2, $r4;
+        com.google.gwt.core.client.Scheduler$RepeatingCommand r1;
+        com.google.gwt.core.client.impl.SchedulerImpl$Task $r3;
+
+        r0 := @this: com.google.gwt.core.client.impl.SchedulerImpl;
+
+        r1 := @parameter0: com.google.gwt.core.client.Scheduler$RepeatingCommand;
+
+        $r2 = r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray deferredCommands>;
+
+        $r3 = staticinvoke <com.google.gwt.core.client.impl.SchedulerImpl$Task: com.google.gwt.core.client.impl.SchedulerImpl$Task create(com.google.gwt.core.client.Scheduler$RepeatingCommand)>(r1);
+
+        $r4 = staticinvoke <com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray push(com.google.gwt.core.client.JsArray,com.google.gwt.core.client.impl.SchedulerImpl$Task)>($r2, $r3);
+
+        r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray deferredCommands> = $r4;
+
+        specialinvoke r0.<com.google.gwt.core.client.impl.SchedulerImpl: void maybeSchedulePostEventPumpCommands()>();
+
+        return;
+    }
+
+    void flushPostEventPumpCommands()
+    {
+        com.google.gwt.core.client.impl.SchedulerImpl r0;
+        com.google.gwt.core.client.JsArray $r1, $r2, $r3, r4, $r5, $r6, $r7, $r8;
+
+        r0 := @this: com.google.gwt.core.client.impl.SchedulerImpl;
+
+        $r1 = r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray deferredCommands>;
+
+        if $r1 == null goto label2;
+
+        r4 = r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray deferredCommands>;
+
+        r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray deferredCommands> = null;
+
+        $r5 = r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray incrementalCommands>;
+
+        if $r5 != null goto label1;
+
+        $r7 = staticinvoke <com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray createQueue()>();
+
+        r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray incrementalCommands> = $r7;
+
+     label1:
+        $r6 = r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray incrementalCommands>;
+
+        staticinvoke <com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray runScheduledTasks(com.google.gwt.core.client.JsArray,com.google.gwt.core.client.JsArray)>(r4, $r6);
+
+     label2:
+        $r8 = r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray incrementalCommands>;
+
+        if $r8 == null goto label3;
+
+        $r2 = r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray incrementalCommands>;
+
+        $r3 = staticinvoke <com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray runRepeatingTasks(com.google.gwt.core.client.JsArray)>($r2);
+
+        r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray incrementalCommands> = $r3;
+
+     label3:
+        return;
+    }
+
+    boolean isWorkQueued()
+    {
+        com.google.gwt.core.client.impl.SchedulerImpl r0;
+        com.google.gwt.core.client.JsArray $r1, $r2;
+        boolean $z0;
+
+        r0 := @this: com.google.gwt.core.client.impl.SchedulerImpl;
+
+        $r1 = r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray deferredCommands>;
+
+        if $r1 != null goto label1;
+
+        $r2 = r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.JsArray incrementalCommands>;
+
+        if $r2 == null goto label2;
+
+     label1:
+        $z0 = 1;
+
+        goto label3;
+
+     label2:
+        $z0 = 0;
+
+     label3:
+        return $z0;
+    }
+
+    private void maybeSchedulePostEventPumpCommands()
+    {
+        com.google.gwt.core.client.impl.SchedulerImpl$Flusher $r1, $r2, $r6;
+        com.google.gwt.core.client.impl.SchedulerImpl$Rescuer $r3, $r4, $r5;
+        com.google.gwt.core.client.impl.SchedulerImpl r0;
+        boolean $z0;
+
+        r0 := @this: com.google.gwt.core.client.impl.SchedulerImpl;
+
+        $z0 = r0.<com.google.gwt.core.client.impl.SchedulerImpl: boolean shouldBeRunning>;
+
+        if $z0 != 0 goto label3;
+
+        r0.<com.google.gwt.core.client.impl.SchedulerImpl: boolean shouldBeRunning> = 1;
+
+        $r1 = r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.impl.SchedulerImpl$Flusher flusher>;
+
+        if $r1 != null goto label1;
+
+        $r6 = new com.google.gwt.core.client.impl.SchedulerImpl$Flusher;
+
+        specialinvoke $r6.<com.google.gwt.core.client.impl.SchedulerImpl$Flusher: void <init>(com.google.gwt.core.client.impl.SchedulerImpl,com.google.gwt.core.client.impl.SchedulerImpl$1)>(r0, null);
+
+        r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.impl.SchedulerImpl$Flusher flusher> = $r6;
+
+     label1:
+        $r2 = r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.impl.SchedulerImpl$Flusher flusher>;
+
+        staticinvoke <com.google.gwt.core.client.impl.SchedulerImpl: void scheduleFixedDelayImpl(com.google.gwt.core.client.Scheduler$RepeatingCommand,int)>($r2, 1);
+
+        $r3 = r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.impl.SchedulerImpl$Rescuer rescue>;
+
+        if $r3 != null goto label2;
+
+        $r5 = new com.google.gwt.core.client.impl.SchedulerImpl$Rescuer;
+
+        specialinvoke $r5.<com.google.gwt.core.client.impl.SchedulerImpl$Rescuer: void <init>(com.google.gwt.core.client.impl.SchedulerImpl,com.google.gwt.core.client.impl.SchedulerImpl$1)>(r0, null);
+
+        r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.impl.SchedulerImpl$Rescuer rescue> = $r5;
+
+     label2:
+        $r4 = r0.<com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.impl.SchedulerImpl$Rescuer rescue>;
+
+        staticinvoke <com.google.gwt.core.client.impl.SchedulerImpl: void scheduleFixedDelayImpl(com.google.gwt.core.client.Scheduler$RepeatingCommand,int)>($r4, 50);
+
+     label3:
+        return;
+    }
+
+    static boolean access$002(com.google.gwt.core.client.impl.SchedulerImpl, boolean)
+    {
+        com.google.gwt.core.client.impl.SchedulerImpl r0;
+        boolean z0;
+
+        r0 := @parameter0: com.google.gwt.core.client.impl.SchedulerImpl;
+
+        z0 := @parameter1: boolean;
+
+        r0.<com.google.gwt.core.client.impl.SchedulerImpl: boolean flushRunning> = z0;
+
+        return z0;
+    }
+
+    static boolean access$102(com.google.gwt.core.client.impl.SchedulerImpl, boolean)
+    {
+        com.google.gwt.core.client.impl.SchedulerImpl r0;
+        boolean z0;
+
+        r0 := @parameter0: com.google.gwt.core.client.impl.SchedulerImpl;
+
+        z0 := @parameter1: boolean;
+
+        r0.<com.google.gwt.core.client.impl.SchedulerImpl: boolean shouldBeRunning> = z0;
+
+        return z0;
+    }
+
+    static boolean access$000(com.google.gwt.core.client.impl.SchedulerImpl)
+    {
+        com.google.gwt.core.client.impl.SchedulerImpl r0;
+        boolean $z0;
+
+        r0 := @parameter0: com.google.gwt.core.client.impl.SchedulerImpl;
+
+        $z0 = r0.<com.google.gwt.core.client.impl.SchedulerImpl: boolean flushRunning>;
+
+        return $z0;
+    }
+
+    static boolean access$100(com.google.gwt.core.client.impl.SchedulerImpl)
+    {
+        com.google.gwt.core.client.impl.SchedulerImpl r0;
+        boolean $z0;
+
+        r0 := @parameter0: com.google.gwt.core.client.impl.SchedulerImpl;
+
+        $z0 = r0.<com.google.gwt.core.client.impl.SchedulerImpl: boolean shouldBeRunning>;
+
+        return $z0;
+    }
+
+    static void <clinit>()
+    {
+        com.google.gwt.core.client.impl.SchedulerImpl $r2;
+        java.lang.Class $r0;
+        java.lang.Object $r1;
+        boolean $z0, $z1;
+
+        <com.google.gwt.core.client.impl.SchedulerImpl: double TIME_SLICE> = 100.0;
+
+        <com.google.gwt.core.client.impl.SchedulerImpl: int RESCUE_DELAY> = 50;
+
+        <com.google.gwt.core.client.impl.SchedulerImpl: int FLUSHER_DELAY> = 1;
+
+        $r0 = class "Lcom/google/gwt/core/client/impl/SchedulerImpl;";
+
+        $z0 = virtualinvoke $r0.<java.lang.Class: boolean desiredAssertionStatus()>();
+
+        if $z0 != 0 goto label1;
+
+        $z1 = 1;
+
+        goto label2;
+
+     label1:
+        $z1 = 0;
+
+     label2:
+        <com.google.gwt.core.client.impl.SchedulerImpl: boolean $assertionsDisabled> = $z1;
+
+        $r1 = staticinvoke <com.google.gwt.core.client.GWT: java.lang.Object create(java.lang.Class)>(class "Lcom/google/gwt/core/client/impl/SchedulerImpl;");
+
+        $r2 = (com.google.gwt.core.client.impl.SchedulerImpl) $r1;
+
+        <com.google.gwt.core.client.impl.SchedulerImpl: com.google.gwt.core.client.impl.SchedulerImpl INSTANCE> = $r2;
+
+        return;
+    }
+}

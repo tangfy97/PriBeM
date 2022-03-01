@@ -1,0 +1,827 @@
+public class org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream extends org.apache.commons.compress.compressors.CompressorInputStream
+{
+    static final long MASK_OFFSET;
+    private static final int STREAM_IDENTIFIER_TYPE;
+    private static final int COMPRESSED_CHUNK_TYPE;
+    private static final int UNCOMPRESSED_CHUNK_TYPE;
+    private static final int PADDING_CHUNK_TYPE;
+    private static final int MIN_UNSKIPPABLE_TYPE;
+    private static final int MAX_UNSKIPPABLE_TYPE;
+    private static final int MAX_SKIPPABLE_TYPE;
+    private static final byte[] SZ_SIGNATURE;
+    private final java.io.PushbackInputStream in;
+    private org.apache.commons.compress.compressors.snappy.SnappyCompressorInputStream currentCompressedChunk;
+    private final byte[] oneByte;
+    private boolean endReached;
+    private boolean inUncompressedChunk;
+    private int uncompressedBytesRemaining;
+    private long expectedChecksum;
+    private final org.apache.commons.compress.compressors.snappy.PureJavaCrc32C checksum;
+
+    public void <init>(java.io.InputStream) throws java.io.IOException
+    {
+        org.apache.commons.compress.compressors.snappy.PureJavaCrc32C $r2;
+        byte[] $r1;
+        org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream r0;
+        java.io.PushbackInputStream $r3;
+        java.io.InputStream r4;
+
+        r0 := @this: org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream;
+
+        r4 := @parameter0: java.io.InputStream;
+
+        specialinvoke r0.<org.apache.commons.compress.compressors.CompressorInputStream: void <init>()>();
+
+        $r1 = newarray (byte)[1];
+
+        r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: byte[] oneByte> = $r1;
+
+        r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: long expectedChecksum> = -1L;
+
+        $r2 = new org.apache.commons.compress.compressors.snappy.PureJavaCrc32C;
+
+        specialinvoke $r2.<org.apache.commons.compress.compressors.snappy.PureJavaCrc32C: void <init>()>();
+
+        r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: org.apache.commons.compress.compressors.snappy.PureJavaCrc32C checksum> = $r2;
+
+        $r3 = new java.io.PushbackInputStream;
+
+        specialinvoke $r3.<java.io.PushbackInputStream: void <init>(java.io.InputStream,int)>(r4, 1);
+
+        r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: java.io.PushbackInputStream in> = $r3;
+
+        specialinvoke r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: void readStreamIdentifier()>();
+
+        return;
+    }
+
+    public int read() throws java.io.IOException
+    {
+        byte[] $r1, $r2;
+        short $s2;
+        byte $b1;
+        org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream r0;
+        int $i0, $i4;
+
+        r0 := @this: org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream;
+
+        $r1 = r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: byte[] oneByte>;
+
+        $i0 = virtualinvoke r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: int read(byte[],int,int)>($r1, 0, 1);
+
+        $i4 = (int) -1;
+
+        if $i0 != $i4 goto label1;
+
+        $s2 = -1;
+
+        goto label2;
+
+     label1:
+        $r2 = r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: byte[] oneByte>;
+
+        $b1 = $r2[0];
+
+        $s2 = $b1 & 255;
+
+     label2:
+        return $s2;
+    }
+
+    public void close() throws java.io.IOException
+    {
+        org.apache.commons.compress.compressors.snappy.SnappyCompressorInputStream $r1, $r3;
+        org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream r0;
+        java.io.PushbackInputStream $r2;
+
+        r0 := @this: org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream;
+
+        $r1 = r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: org.apache.commons.compress.compressors.snappy.SnappyCompressorInputStream currentCompressedChunk>;
+
+        if $r1 == null goto label1;
+
+        $r3 = r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: org.apache.commons.compress.compressors.snappy.SnappyCompressorInputStream currentCompressedChunk>;
+
+        virtualinvoke $r3.<org.apache.commons.compress.compressors.snappy.SnappyCompressorInputStream: void close()>();
+
+        r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: org.apache.commons.compress.compressors.snappy.SnappyCompressorInputStream currentCompressedChunk> = null;
+
+     label1:
+        $r2 = r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: java.io.PushbackInputStream in>;
+
+        virtualinvoke $r2.<java.io.PushbackInputStream: void close()>();
+
+        return;
+    }
+
+    public int read(byte[], int, int) throws java.io.IOException
+    {
+        byte[] r1;
+        org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream r0;
+        int i0, i1, $i2, i3, $i5, $i7;
+        boolean $z0;
+
+        r0 := @this: org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream;
+
+        r1 := @parameter0: byte[];
+
+        i0 := @parameter1: int;
+
+        i1 := @parameter2: int;
+
+        $i2 = specialinvoke r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: int readOnce(byte[],int,int)>(r1, i0, i1);
+
+        i3 = $i2;
+
+        $i5 = (int) -1;
+
+        if $i2 != $i5 goto label2;
+
+        specialinvoke r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: void readNextBlock()>();
+
+        $z0 = r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: boolean endReached>;
+
+        if $z0 == 0 goto label1;
+
+        $i7 = (int) -1;
+
+        return $i7;
+
+     label1:
+        i3 = specialinvoke r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: int readOnce(byte[],int,int)>(r1, i0, i1);
+
+     label2:
+        return i3;
+    }
+
+    public int available() throws java.io.IOException
+    {
+        org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream r0;
+        java.io.PushbackInputStream $r3;
+        org.apache.commons.compress.compressors.snappy.SnappyCompressorInputStream $r1, $r2;
+        int $i0, $i1, $i2, $i3;
+        boolean $z0;
+
+        r0 := @this: org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream;
+
+        $z0 = r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: boolean inUncompressedChunk>;
+
+        if $z0 == 0 goto label1;
+
+        $i1 = r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: int uncompressedBytesRemaining>;
+
+        $r3 = r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: java.io.PushbackInputStream in>;
+
+        $i2 = virtualinvoke $r3.<java.io.PushbackInputStream: int available()>();
+
+        $i3 = staticinvoke <java.lang.Math: int min(int,int)>($i1, $i2);
+
+        return $i3;
+
+     label1:
+        $r1 = r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: org.apache.commons.compress.compressors.snappy.SnappyCompressorInputStream currentCompressedChunk>;
+
+        if $r1 == null goto label2;
+
+        $r2 = r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: org.apache.commons.compress.compressors.snappy.SnappyCompressorInputStream currentCompressedChunk>;
+
+        $i0 = virtualinvoke $r2.<org.apache.commons.compress.compressors.snappy.SnappyCompressorInputStream: int available()>();
+
+        return $i0;
+
+     label2:
+        return 0;
+    }
+
+    private int readOnce(byte[], int, int) throws java.io.IOException
+    {
+        byte[] r2;
+        java.io.PushbackInputStream $r8;
+        long $l1, $l4, $l5;
+        org.apache.commons.compress.compressors.snappy.SnappyCompressorInputStream $r1, $r4, $r5, $r6, $r7;
+        int i0, i2, $i3, $i6, $i7, $i8, $i9, $i10, i11, $i13, $i15, $i17, $i19;
+        boolean $z0;
+        org.apache.commons.compress.compressors.snappy.PureJavaCrc32C $r3;
+        org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream r0;
+
+        r0 := @this: org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream;
+
+        r2 := @parameter0: byte[];
+
+        i0 := @parameter1: int;
+
+        i2 := @parameter2: int;
+
+        $i13 = (int) -1;
+
+        i11 = $i13;
+
+        $z0 = r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: boolean inUncompressedChunk>;
+
+        if $z0 == 0 goto label3;
+
+        $i6 = r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: int uncompressedBytesRemaining>;
+
+        $i7 = staticinvoke <java.lang.Math: int min(int,int)>($i6, i2);
+
+        if $i7 != 0 goto label1;
+
+        $i15 = (int) -1;
+
+        return $i15;
+
+     label1:
+        $r8 = r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: java.io.PushbackInputStream in>;
+
+        $i8 = virtualinvoke $r8.<java.io.PushbackInputStream: int read(byte[],int,int)>(r2, i0, $i7);
+
+        i11 = $i8;
+
+        $i17 = (int) -1;
+
+        if $i8 == $i17 goto label2;
+
+        $i9 = r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: int uncompressedBytesRemaining>;
+
+        $i10 = $i9 - $i8;
+
+        r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: int uncompressedBytesRemaining> = $i10;
+
+        virtualinvoke r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: void count(int)>($i8);
+
+     label2:
+        goto label5;
+
+     label3:
+        $r1 = r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: org.apache.commons.compress.compressors.snappy.SnappyCompressorInputStream currentCompressedChunk>;
+
+        if $r1 == null goto label5;
+
+        $r4 = r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: org.apache.commons.compress.compressors.snappy.SnappyCompressorInputStream currentCompressedChunk>;
+
+        $l1 = virtualinvoke $r4.<org.apache.commons.compress.compressors.snappy.SnappyCompressorInputStream: long getBytesRead()>();
+
+        $r5 = r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: org.apache.commons.compress.compressors.snappy.SnappyCompressorInputStream currentCompressedChunk>;
+
+        $i3 = virtualinvoke $r5.<org.apache.commons.compress.compressors.snappy.SnappyCompressorInputStream: int read(byte[],int,int)>(r2, i0, i2);
+
+        i11 = $i3;
+
+        $i19 = (int) -1;
+
+        if $i3 != $i19 goto label4;
+
+        $r7 = r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: org.apache.commons.compress.compressors.snappy.SnappyCompressorInputStream currentCompressedChunk>;
+
+        virtualinvoke $r7.<org.apache.commons.compress.compressors.snappy.SnappyCompressorInputStream: void close()>();
+
+        r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: org.apache.commons.compress.compressors.snappy.SnappyCompressorInputStream currentCompressedChunk> = null;
+
+        goto label5;
+
+     label4:
+        $r6 = r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: org.apache.commons.compress.compressors.snappy.SnappyCompressorInputStream currentCompressedChunk>;
+
+        $l4 = virtualinvoke $r6.<org.apache.commons.compress.compressors.snappy.SnappyCompressorInputStream: long getBytesRead()>();
+
+        $l5 = $l4 - $l1;
+
+        virtualinvoke r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: void count(long)>($l5);
+
+     label5:
+        if i11 <= 0 goto label6;
+
+        $r3 = r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: org.apache.commons.compress.compressors.snappy.PureJavaCrc32C checksum>;
+
+        virtualinvoke $r3.<org.apache.commons.compress.compressors.snappy.PureJavaCrc32C: void update(byte[],int,int)>(r2, i0, i11);
+
+     label6:
+        return i11;
+    }
+
+    private void readNextBlock() throws java.io.IOException
+    {
+        java.io.PushbackInputStream $r9, $r21;
+        java.lang.StringBuilder $r3, $r4, $r5, $r13, $r14, $r15, $r17, $r18, $r19, $r22, $r26;
+        long l3, $l4, $l5, $l6, $l9, $l10;
+        org.apache.commons.compress.compressors.snappy.SnappyCompressorInputStream $r10, $r25;
+        int $i0, $i1, $i2, $i7, $i8, $i12;
+        java.lang.String $r6, $r16, $r20;
+        org.apache.commons.compress.utils.BoundedInputStream $r24;
+        org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream r0;
+        java.io.IOException $r23, $r27;
+
+        r0 := @this: org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream;
+
+        specialinvoke r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: void verifyLastChecksumAndReset()>();
+
+        r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: boolean inUncompressedChunk> = 0;
+
+        $i0 = specialinvoke r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: int readOneByte()>();
+
+        $i12 = (int) -1;
+
+        if $i0 != $i12 goto label1;
+
+        r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: boolean endReached> = 1;
+
+        goto label8;
+
+     label1:
+        if $i0 != 255 goto label2;
+
+        $r21 = r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: java.io.PushbackInputStream in>;
+
+        virtualinvoke $r21.<java.io.PushbackInputStream: void unread(int)>($i0);
+
+        virtualinvoke r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: void pushedBackBytes(long)>(1L);
+
+        specialinvoke r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: void readStreamIdentifier()>();
+
+        specialinvoke r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: void readNextBlock()>();
+
+        goto label8;
+
+     label2:
+        if $i0 == 254 goto label3;
+
+        if $i0 <= 127 goto label4;
+
+        if $i0 > 253 goto label4;
+
+     label3:
+        specialinvoke r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: void skipBlock()>();
+
+        specialinvoke r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: void readNextBlock()>();
+
+        goto label8;
+
+     label4:
+        if $i0 < 2 goto label5;
+
+        if $i0 > 127 goto label5;
+
+        $r23 = new java.io.IOException;
+
+        $r22 = new java.lang.StringBuilder;
+
+        specialinvoke $r22.<java.lang.StringBuilder: void <init>()>();
+
+        $r13 = virtualinvoke $r22.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("unskippable chunk with type ");
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i0);
+
+        $r15 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" (hex ");
+
+        $r16 = staticinvoke <java.lang.Integer: java.lang.String toHexString(int)>($i0);
+
+        $r17 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r16);
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(")");
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" detected.");
+
+        $r20 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r23.<java.io.IOException: void <init>(java.lang.String)>($r20);
+
+        throw $r23;
+
+     label5:
+        if $i0 != 1 goto label6;
+
+        r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: boolean inUncompressedChunk> = 1;
+
+        $i7 = specialinvoke r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: int readSize()>();
+
+        $i8 = $i7 - 4;
+
+        r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: int uncompressedBytesRemaining> = $i8;
+
+        $l9 = specialinvoke r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: long readCrc()>();
+
+        $l10 = staticinvoke <org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: long unmask(long)>($l9);
+
+        r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: long expectedChecksum> = $l10;
+
+        goto label8;
+
+     label6:
+        if $i0 != 0 goto label7;
+
+        $i1 = specialinvoke r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: int readSize()>();
+
+        $i2 = $i1 - 4;
+
+        l3 = (long) $i2;
+
+        $l4 = specialinvoke r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: long readCrc()>();
+
+        $l5 = staticinvoke <org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: long unmask(long)>($l4);
+
+        r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: long expectedChecksum> = $l5;
+
+        $r25 = new org.apache.commons.compress.compressors.snappy.SnappyCompressorInputStream;
+
+        $r24 = new org.apache.commons.compress.utils.BoundedInputStream;
+
+        $r9 = r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: java.io.PushbackInputStream in>;
+
+        specialinvoke $r24.<org.apache.commons.compress.utils.BoundedInputStream: void <init>(java.io.InputStream,long)>($r9, l3);
+
+        specialinvoke $r25.<org.apache.commons.compress.compressors.snappy.SnappyCompressorInputStream: void <init>(java.io.InputStream)>($r24);
+
+        r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: org.apache.commons.compress.compressors.snappy.SnappyCompressorInputStream currentCompressedChunk> = $r25;
+
+        $r10 = r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: org.apache.commons.compress.compressors.snappy.SnappyCompressorInputStream currentCompressedChunk>;
+
+        $l6 = virtualinvoke $r10.<org.apache.commons.compress.compressors.snappy.SnappyCompressorInputStream: long getBytesRead()>();
+
+        virtualinvoke r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: void count(long)>($l6);
+
+        goto label8;
+
+     label7:
+        $r27 = new java.io.IOException;
+
+        $r26 = new java.lang.StringBuilder;
+
+        specialinvoke $r26.<java.lang.StringBuilder: void <init>()>();
+
+        $r3 = virtualinvoke $r26.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("unknown chunk type ");
+
+        $r4 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i0);
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" detected.");
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r27.<java.io.IOException: void <init>(java.lang.String)>($r6);
+
+        throw $r27;
+
+     label8:
+        return;
+    }
+
+    private long readCrc() throws java.io.IOException
+    {
+        byte[] r0;
+        org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream r1;
+        java.io.PushbackInputStream $r2;
+        long $l2, $l4, $l5, l6;
+        java.io.IOException $r3;
+        byte $b1;
+        int $i0, $i3, i7;
+
+        r1 := @this: org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream;
+
+        r0 = newarray (byte)[4];
+
+        $r2 = r1.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: java.io.PushbackInputStream in>;
+
+        $i0 = staticinvoke <org.apache.commons.compress.utils.IOUtils: int readFully(java.io.InputStream,byte[])>($r2, r0);
+
+        virtualinvoke r1.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: void count(int)>($i0);
+
+        if $i0 == 4 goto label1;
+
+        $r3 = new java.io.IOException;
+
+        specialinvoke $r3.<java.io.IOException: void <init>(java.lang.String)>("premature end of stream");
+
+        throw $r3;
+
+     label1:
+        l6 = 0L;
+
+        i7 = 0;
+
+     label2:
+        if i7 >= 4 goto label3;
+
+        $b1 = r0[i7];
+
+        $l2 = (long) $b1;
+
+        $l4 = $l2 & 255L;
+
+        $i3 = 8 * i7;
+
+        $l5 = $l4 << $i3;
+
+        l6 = l6 | $l5;
+
+        i7 = i7 + 1;
+
+        goto label2;
+
+     label3:
+        return l6;
+    }
+
+    static long unmask(long)
+    {
+        long $l0, $l1, $l2, $l3, l4, l5, l6;
+
+        l4 := @parameter0: long;
+
+        l5 = l4 - 2726488792L;
+
+        l6 = l5 & 4294967295L;
+
+        $l1 = l6 >> 17;
+
+        $l0 = l6 << 15;
+
+        $l2 = $l1 | $l0;
+
+        $l3 = $l2 & 4294967295L;
+
+        return $l3;
+    }
+
+    private int readSize() throws java.io.IOException
+    {
+        org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream r0;
+        java.io.IOException $r2;
+        int $i0, $i1, $i2, i3, i4, $i6;
+
+        r0 := @this: org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream;
+
+        i3 = 0;
+
+        i4 = 0;
+
+     label1:
+        if i4 >= 3 goto label3;
+
+        $i0 = specialinvoke r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: int readOneByte()>();
+
+        $i6 = (int) -1;
+
+        if $i0 != $i6 goto label2;
+
+        $r2 = new java.io.IOException;
+
+        specialinvoke $r2.<java.io.IOException: void <init>(java.lang.String)>("premature end of stream");
+
+        throw $r2;
+
+     label2:
+        $i1 = i4 * 8;
+
+        $i2 = $i0 << $i1;
+
+        i3 = i3 | $i2;
+
+        i4 = i4 + 1;
+
+        goto label1;
+
+     label3:
+        return i3;
+    }
+
+    private void skipBlock() throws java.io.IOException
+    {
+        org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream r0;
+        java.io.PushbackInputStream $r1;
+        long $l1, $l2, $l3;
+        java.io.IOException $r2;
+        byte $b4;
+        int $i0;
+
+        r0 := @this: org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream;
+
+        $i0 = specialinvoke r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: int readSize()>();
+
+        $r1 = r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: java.io.PushbackInputStream in>;
+
+        $l1 = (long) $i0;
+
+        $l2 = staticinvoke <org.apache.commons.compress.utils.IOUtils: long skip(java.io.InputStream,long)>($r1, $l1);
+
+        virtualinvoke r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: void count(long)>($l2);
+
+        $l3 = (long) $i0;
+
+        $b4 = $l2 cmp $l3;
+
+        if $b4 == 0 goto label1;
+
+        $r2 = new java.io.IOException;
+
+        specialinvoke $r2.<java.io.IOException: void <init>(java.lang.String)>("premature end of stream");
+
+        throw $r2;
+
+     label1:
+        return;
+    }
+
+    private void readStreamIdentifier() throws java.io.IOException
+    {
+        byte[] r0;
+        org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream r1;
+        java.io.PushbackInputStream $r2;
+        int $i0;
+        java.io.IOException $r3;
+        boolean $z0;
+
+        r1 := @this: org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream;
+
+        r0 = newarray (byte)[10];
+
+        $r2 = r1.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: java.io.PushbackInputStream in>;
+
+        $i0 = staticinvoke <org.apache.commons.compress.utils.IOUtils: int readFully(java.io.InputStream,byte[])>($r2, r0);
+
+        virtualinvoke r1.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: void count(int)>($i0);
+
+        if 10 != $i0 goto label1;
+
+        $z0 = staticinvoke <org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: boolean matches(byte[],int)>(r0, 10);
+
+        if $z0 != 0 goto label2;
+
+     label1:
+        $r3 = new java.io.IOException;
+
+        specialinvoke $r3.<java.io.IOException: void <init>(java.lang.String)>("Not a framed Snappy stream");
+
+        throw $r3;
+
+     label2:
+        return;
+    }
+
+    private int readOneByte() throws java.io.IOException
+    {
+        org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream r0;
+        java.io.PushbackInputStream $r1;
+        int $i0, $i1, $i3, $i5;
+
+        r0 := @this: org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream;
+
+        $r1 = r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: java.io.PushbackInputStream in>;
+
+        $i0 = virtualinvoke $r1.<java.io.PushbackInputStream: int read()>();
+
+        $i3 = (int) -1;
+
+        if $i0 == $i3 goto label1;
+
+        virtualinvoke r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: void count(int)>(1);
+
+        $i1 = $i0 & 255;
+
+        return $i1;
+
+     label1:
+        $i5 = (int) -1;
+
+        return $i5;
+    }
+
+    private void verifyLastChecksumAndReset() throws java.io.IOException
+    {
+        org.apache.commons.compress.compressors.snappy.PureJavaCrc32C $r1, $r2;
+        org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream r0;
+        long $l0, $l2, $l3;
+        java.io.IOException $r4;
+        byte $b1, $b4;
+        int $i5;
+
+        r0 := @this: org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream;
+
+        $l0 = r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: long expectedChecksum>;
+
+        $b1 = $l0 cmp 0L;
+
+        $i5 = (int) $b1;
+
+        if $i5 < 0 goto label1;
+
+        $l2 = r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: long expectedChecksum>;
+
+        $r2 = r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: org.apache.commons.compress.compressors.snappy.PureJavaCrc32C checksum>;
+
+        $l3 = virtualinvoke $r2.<org.apache.commons.compress.compressors.snappy.PureJavaCrc32C: long getValue()>();
+
+        $b4 = $l2 cmp $l3;
+
+        if $b4 == 0 goto label1;
+
+        $r4 = new java.io.IOException;
+
+        specialinvoke $r4.<java.io.IOException: void <init>(java.lang.String)>("Checksum verification failed");
+
+        throw $r4;
+
+     label1:
+        r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: long expectedChecksum> = -1L;
+
+        $r1 = r0.<org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: org.apache.commons.compress.compressors.snappy.PureJavaCrc32C checksum>;
+
+        virtualinvoke $r1.<org.apache.commons.compress.compressors.snappy.PureJavaCrc32C: void reset()>();
+
+        return;
+    }
+
+    public static boolean matches(byte[], int)
+    {
+        byte[] $r0, r1, $r2, $r3, $r4, $r5, r6;
+        int i0, $i1, $i2, $i3, $i4, $i5;
+        boolean $z0;
+
+        r1 := @parameter0: byte[];
+
+        i0 := @parameter1: int;
+
+        $r0 = <org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: byte[] SZ_SIGNATURE>;
+
+        $i1 = lengthof $r0;
+
+        if i0 >= $i1 goto label1;
+
+        return 0;
+
+     label1:
+        r6 = r1;
+
+        $i3 = lengthof r1;
+
+        $r2 = <org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: byte[] SZ_SIGNATURE>;
+
+        $i2 = lengthof $r2;
+
+        if $i3 <= $i2 goto label2;
+
+        $r4 = <org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: byte[] SZ_SIGNATURE>;
+
+        $i4 = lengthof $r4;
+
+        r6 = newarray (byte)[$i4];
+
+        $r5 = <org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: byte[] SZ_SIGNATURE>;
+
+        $i5 = lengthof $r5;
+
+        staticinvoke <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)>(r1, 0, r6, 0, $i5);
+
+     label2:
+        $r3 = <org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: byte[] SZ_SIGNATURE>;
+
+        $z0 = staticinvoke <java.util.Arrays: boolean equals(byte[],byte[])>(r6, $r3);
+
+        return $z0;
+    }
+
+    static void <clinit>()
+    {
+        byte[] $r0;
+
+        <org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: int MAX_SKIPPABLE_TYPE> = 253;
+
+        <org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: int MAX_UNSKIPPABLE_TYPE> = 127;
+
+        <org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: int MIN_UNSKIPPABLE_TYPE> = 2;
+
+        <org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: int PADDING_CHUNK_TYPE> = 254;
+
+        <org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: int UNCOMPRESSED_CHUNK_TYPE> = 1;
+
+        <org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: int COMPRESSED_CHUNK_TYPE> = 0;
+
+        <org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: int STREAM_IDENTIFIER_TYPE> = 255;
+
+        <org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: long MASK_OFFSET> = 2726488792L;
+
+        $r0 = newarray (byte)[10];
+
+        $r0[0] = -1;
+
+        $r0[1] = 6;
+
+        $r0[2] = 0;
+
+        $r0[3] = 0;
+
+        $r0[4] = 115;
+
+        $r0[5] = 78;
+
+        $r0[6] = 97;
+
+        $r0[7] = 80;
+
+        $r0[8] = 112;
+
+        $r0[9] = 89;
+
+        <org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream: byte[] SZ_SIGNATURE> = $r0;
+
+        return;
+    }
+}

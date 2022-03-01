@@ -1,0 +1,344 @@
+public final class org.waveprotocol.box.server.rpc.FetchServlet extends javax.servlet.http.HttpServlet
+{
+    private static final org.waveprotocol.wave.util.logging.Log LOG;
+    private final org.waveprotocol.box.server.rpc.ProtoSerializer serializer;
+    private final org.waveprotocol.box.server.waveserver.WaveletProvider waveletProvider;
+    private final org.waveprotocol.box.server.authentication.SessionManager sessionManager;
+
+    public void <init>(org.waveprotocol.box.server.waveserver.WaveletProvider, org.waveprotocol.box.server.rpc.ProtoSerializer, org.waveprotocol.box.server.authentication.SessionManager)
+    {
+        org.waveprotocol.box.server.authentication.SessionManager r3;
+        org.waveprotocol.box.server.rpc.FetchServlet r0;
+        org.waveprotocol.box.server.waveserver.WaveletProvider r1;
+        org.waveprotocol.box.server.rpc.ProtoSerializer r2;
+
+        r0 := @this: org.waveprotocol.box.server.rpc.FetchServlet;
+
+        r1 := @parameter0: org.waveprotocol.box.server.waveserver.WaveletProvider;
+
+        r2 := @parameter1: org.waveprotocol.box.server.rpc.ProtoSerializer;
+
+        r3 := @parameter2: org.waveprotocol.box.server.authentication.SessionManager;
+
+        specialinvoke r0.<javax.servlet.http.HttpServlet: void <init>()>();
+
+        r0.<org.waveprotocol.box.server.rpc.FetchServlet: org.waveprotocol.box.server.waveserver.WaveletProvider waveletProvider> = r1;
+
+        r0.<org.waveprotocol.box.server.rpc.FetchServlet: org.waveprotocol.box.server.rpc.ProtoSerializer serializer> = r2;
+
+        r0.<org.waveprotocol.box.server.rpc.FetchServlet: org.waveprotocol.box.server.authentication.SessionManager sessionManager> = r3;
+
+        return;
+    }
+
+    protected void doGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse) throws java.io.IOException
+    {
+        javax.servlet.http.HttpSession $r3;
+        org.waveprotocol.box.server.rpc.FetchServlet r0;
+        org.waveprotocol.wave.model.waveref.WaveRef $r7;
+        javax.servlet.http.HttpServletResponse r8;
+        org.waveprotocol.wave.model.waveref.InvalidWaveRefException $r9;
+        org.waveprotocol.wave.model.wave.ParticipantId $r4;
+        org.waveprotocol.box.server.authentication.SessionManager $r2;
+        javax.servlet.http.HttpServletRequest r1;
+        java.lang.String $r5, $r6;
+
+        r0 := @this: org.waveprotocol.box.server.rpc.FetchServlet;
+
+        r1 := @parameter0: javax.servlet.http.HttpServletRequest;
+
+        r8 := @parameter1: javax.servlet.http.HttpServletResponse;
+
+        $r2 = r0.<org.waveprotocol.box.server.rpc.FetchServlet: org.waveprotocol.box.server.authentication.SessionManager sessionManager>;
+
+        $r3 = interfaceinvoke r1.<javax.servlet.http.HttpServletRequest: javax.servlet.http.HttpSession getSession(boolean)>(0);
+
+        $r4 = interfaceinvoke $r2.<org.waveprotocol.box.server.authentication.SessionManager: org.waveprotocol.wave.model.wave.ParticipantId getLoggedInUser(javax.servlet.http.HttpSession)>($r3);
+
+        $r5 = interfaceinvoke r1.<javax.servlet.http.HttpServletRequest: java.lang.String getPathInfo()>();
+
+        $r6 = virtualinvoke $r5.<java.lang.String: java.lang.String substring(int)>(1);
+
+     label1:
+        $r7 = staticinvoke <org.waveprotocol.wave.util.escapers.jvm.JavaWaverefEncoder: org.waveprotocol.wave.model.waveref.WaveRef decodeWaveRefFromPath(java.lang.String)>($r6);
+
+     label2:
+        goto label4;
+
+     label3:
+        $r9 := @caughtexception;
+
+        interfaceinvoke r8.<javax.servlet.http.HttpServletResponse: void sendError(int)>(404);
+
+        return;
+
+     label4:
+        specialinvoke r0.<org.waveprotocol.box.server.rpc.FetchServlet: void renderSnapshot(org.waveprotocol.wave.model.waveref.WaveRef,org.waveprotocol.wave.model.wave.ParticipantId,javax.servlet.http.HttpServletResponse)>($r7, $r4, r8);
+
+        return;
+
+        catch org.waveprotocol.wave.model.waveref.InvalidWaveRefException from label1 to label2 with label3;
+    }
+
+    private void serializeObjectToServlet(com.google.protobuf.MessageLite, javax.servlet.http.HttpServletResponse) throws java.io.IOException
+    {
+        java.io.PrintWriter $r2;
+        org.waveprotocol.box.server.rpc.FetchServlet r3;
+        javax.servlet.http.HttpServletResponse r1;
+        java.io.IOException $r8;
+        org.waveprotocol.box.server.rpc.ProtoSerializer$SerializationException $r7;
+        org.waveprotocol.box.server.rpc.ProtoSerializer $r4;
+        com.google.gson.JsonElement $r5;
+        com.google.protobuf.MessageLite r0;
+        java.lang.String $r6;
+
+        r3 := @this: org.waveprotocol.box.server.rpc.FetchServlet;
+
+        r0 := @parameter0: com.google.protobuf.MessageLite;
+
+        r1 := @parameter1: javax.servlet.http.HttpServletResponse;
+
+        if r0 != null goto label1;
+
+        interfaceinvoke r1.<javax.servlet.http.HttpServletResponse: void sendError(int)>(403);
+
+        goto label5;
+
+     label1:
+        interfaceinvoke r1.<javax.servlet.http.HttpServletResponse: void setStatus(int)>(200);
+
+        interfaceinvoke r1.<javax.servlet.http.HttpServletResponse: void setContentType(java.lang.String)>("application/json");
+
+        interfaceinvoke r1.<javax.servlet.http.HttpServletResponse: void setHeader(java.lang.String,java.lang.String)>("Cache-Control", "no-store");
+
+     label2:
+        $r2 = interfaceinvoke r1.<javax.servlet.http.HttpServletResponse: java.io.PrintWriter getWriter()>();
+
+        $r4 = r3.<org.waveprotocol.box.server.rpc.FetchServlet: org.waveprotocol.box.server.rpc.ProtoSerializer serializer>;
+
+        $r5 = virtualinvoke $r4.<org.waveprotocol.box.server.rpc.ProtoSerializer: com.google.gson.JsonElement toJson(com.google.protobuf.MessageLite)>(r0);
+
+        $r6 = virtualinvoke $r5.<com.google.gson.JsonElement: java.lang.String toString()>();
+
+        virtualinvoke $r2.<java.io.PrintWriter: java.io.PrintWriter append(java.lang.CharSequence)>($r6);
+
+     label3:
+        goto label5;
+
+     label4:
+        $r7 := @caughtexception;
+
+        $r8 = new java.io.IOException;
+
+        specialinvoke $r8.<java.io.IOException: void <init>(java.lang.Throwable)>($r7);
+
+        throw $r8;
+
+     label5:
+        return;
+
+        catch org.waveprotocol.box.server.rpc.ProtoSerializer$SerializationException from label2 to label3 with label4;
+    }
+
+    private void renderSnapshot(org.waveprotocol.wave.model.waveref.WaveRef, org.waveprotocol.wave.model.wave.ParticipantId, javax.servlet.http.HttpServletResponse) throws java.io.IOException
+    {
+        org.waveprotocol.box.server.waveserver.WaveletProvider $r7, $r13;
+        org.waveprotocol.wave.model.waveref.WaveRef r0;
+        org.waveprotocol.wave.model.wave.ParticipantId r6;
+        org.waveprotocol.wave.util.logging.Log $r9;
+        org.waveprotocol.wave.model.wave.data.ReadableBlipData $r32;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5;
+        org.waveprotocol.wave.model.id.WaveletName $r4;
+        org.waveprotocol.box.server.rpc.FetchServlet r5;
+        org.waveprotocol.wave.model.id.WaveId $r1, $r3, $r18;
+        java.util.Set $r27;
+        org.waveprotocol.box.common.comms.WaveClientRpc$WaveletSnapshot $r22, $r26;
+        org.waveprotocol.box.common.comms.WaveClientRpc$DocumentSnapshot r37;
+        java.lang.StringBuilder $r8, $r10, $r11;
+        org.waveprotocol.wave.model.id.WaveletId $r35;
+        org.waveprotocol.wave.model.wave.data.ReadableWaveletData r36;
+        org.waveprotocol.wave.model.version.HashedVersion $r21, $r25;
+        java.lang.String $r2, $r12, $r19, r30, $r31;
+        org.waveprotocol.box.common.comms.WaveClientRpc$WaveViewSnapshot $r24;
+        java.util.Iterator $r28;
+        javax.servlet.http.HttpServletResponse r15;
+        java.io.IOException $r34;
+        org.waveprotocol.box.server.frontend.CommittedWaveletSnapshot $r14;
+        org.waveprotocol.wave.model.id.ModernIdSerialiser $r17;
+        java.lang.Object $r29;
+        org.waveprotocol.box.common.comms.WaveClientRpc$WaveViewSnapshot$Builder $r16, $r20, $r23;
+        org.waveprotocol.box.server.waveserver.WaveServerException $r33;
+
+        r5 := @this: org.waveprotocol.box.server.rpc.FetchServlet;
+
+        r0 := @parameter0: org.waveprotocol.wave.model.waveref.WaveRef;
+
+        r6 := @parameter1: org.waveprotocol.wave.model.wave.ParticipantId;
+
+        r15 := @parameter2: javax.servlet.http.HttpServletResponse;
+
+        $z0 = virtualinvoke r0.<org.waveprotocol.wave.model.waveref.WaveRef: boolean hasWaveletId()>();
+
+        if $z0 == 0 goto label01;
+
+        $r35 = virtualinvoke r0.<org.waveprotocol.wave.model.waveref.WaveRef: org.waveprotocol.wave.model.id.WaveletId getWaveletId()>();
+
+        goto label02;
+
+     label01:
+        $r1 = virtualinvoke r0.<org.waveprotocol.wave.model.waveref.WaveRef: org.waveprotocol.wave.model.id.WaveId getWaveId()>();
+
+        $r2 = virtualinvoke $r1.<org.waveprotocol.wave.model.id.WaveId: java.lang.String getDomain()>();
+
+        $r35 = staticinvoke <org.waveprotocol.wave.model.id.WaveletId: org.waveprotocol.wave.model.id.WaveletId of(java.lang.String,java.lang.String)>($r2, "conv+root");
+
+     label02:
+        $r3 = virtualinvoke r0.<org.waveprotocol.wave.model.waveref.WaveRef: org.waveprotocol.wave.model.id.WaveId getWaveId()>();
+
+        $r4 = staticinvoke <org.waveprotocol.wave.model.id.WaveletName: org.waveprotocol.wave.model.id.WaveletName of(org.waveprotocol.wave.model.id.WaveId,org.waveprotocol.wave.model.id.WaveletId)>($r3, $r35);
+
+     label03:
+        $r7 = r5.<org.waveprotocol.box.server.rpc.FetchServlet: org.waveprotocol.box.server.waveserver.WaveletProvider waveletProvider>;
+
+        $z1 = interfaceinvoke $r7.<org.waveprotocol.box.server.waveserver.WaveletProvider: boolean checkAccessPermission(org.waveprotocol.wave.model.id.WaveletName,org.waveprotocol.wave.model.wave.ParticipantId)>($r4, r6);
+
+        if $z1 != 0 goto label05;
+
+        interfaceinvoke r15.<javax.servlet.http.HttpServletResponse: void sendError(int)>(403);
+
+     label04:
+        return;
+
+     label05:
+        $r9 = <org.waveprotocol.box.server.rpc.FetchServlet: org.waveprotocol.wave.util.logging.Log LOG>;
+
+        $r8 = new java.lang.StringBuilder;
+
+        specialinvoke $r8.<java.lang.StringBuilder: void <init>()>();
+
+        $r10 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Fetching snapshot of wavelet ");
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r4);
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r9.<org.waveprotocol.wave.util.logging.Log: void info(java.lang.String)>($r12);
+
+        $r13 = r5.<org.waveprotocol.box.server.rpc.FetchServlet: org.waveprotocol.box.server.waveserver.WaveletProvider waveletProvider>;
+
+        $r14 = interfaceinvoke $r13.<org.waveprotocol.box.server.waveserver.WaveletProvider: org.waveprotocol.box.server.frontend.CommittedWaveletSnapshot getSnapshot(org.waveprotocol.wave.model.id.WaveletName)>($r4);
+
+     label06:
+        goto label08;
+
+     label07:
+        $r33 := @caughtexception;
+
+        $r34 = new java.io.IOException;
+
+        specialinvoke $r34.<java.io.IOException: void <init>(java.lang.Throwable)>($r33);
+
+        throw $r34;
+
+     label08:
+        if $r14 == null goto label15;
+
+        r36 = $r14.<org.waveprotocol.box.server.frontend.CommittedWaveletSnapshot: org.waveprotocol.wave.model.wave.data.ReadableWaveletData snapshot>;
+
+        $z2 = virtualinvoke r0.<org.waveprotocol.wave.model.waveref.WaveRef: boolean hasDocumentId()>();
+
+        if $z2 == 0 goto label12;
+
+        r37 = null;
+
+        $r27 = interfaceinvoke r36.<org.waveprotocol.wave.model.wave.data.ReadableWaveletData: java.util.Set getDocumentIds()>();
+
+        $r28 = interfaceinvoke $r27.<java.util.Set: java.util.Iterator iterator()>();
+
+     label09:
+        $z4 = interfaceinvoke $r28.<java.util.Iterator: boolean hasNext()>();
+
+        if $z4 == 0 goto label11;
+
+        $r29 = interfaceinvoke $r28.<java.util.Iterator: java.lang.Object next()>();
+
+        r30 = (java.lang.String) $r29;
+
+        $r31 = virtualinvoke r0.<org.waveprotocol.wave.model.waveref.WaveRef: java.lang.String getDocumentId()>();
+
+        $z5 = virtualinvoke r30.<java.lang.String: boolean equals(java.lang.Object)>($r31);
+
+        if $z5 == 0 goto label10;
+
+        $r32 = interfaceinvoke r36.<org.waveprotocol.wave.model.wave.data.ReadableWaveletData: org.waveprotocol.wave.model.wave.data.ReadableBlipData getDocument(java.lang.String)>(r30);
+
+        r37 = staticinvoke <org.waveprotocol.box.server.common.SnapshotSerializer: org.waveprotocol.box.common.comms.WaveClientRpc$DocumentSnapshot serializeDocument(org.waveprotocol.wave.model.wave.data.ReadableBlipData)>($r32);
+
+        goto label11;
+
+     label10:
+        goto label09;
+
+     label11:
+        specialinvoke r5.<org.waveprotocol.box.server.rpc.FetchServlet: void serializeObjectToServlet(com.google.protobuf.MessageLite,javax.servlet.http.HttpServletResponse)>(r37, r15);
+
+        goto label14;
+
+     label12:
+        $z3 = virtualinvoke r0.<org.waveprotocol.wave.model.waveref.WaveRef: boolean hasWaveletId()>();
+
+        if $z3 == 0 goto label13;
+
+        $r25 = interfaceinvoke r36.<org.waveprotocol.wave.model.wave.data.ReadableWaveletData: org.waveprotocol.wave.model.version.HashedVersion getHashedVersion()>();
+
+        $r26 = staticinvoke <org.waveprotocol.box.server.common.SnapshotSerializer: org.waveprotocol.box.common.comms.WaveClientRpc$WaveletSnapshot serializeWavelet(org.waveprotocol.wave.model.wave.data.ReadableWaveletData,org.waveprotocol.wave.model.version.HashedVersion)>(r36, $r25);
+
+        specialinvoke r5.<org.waveprotocol.box.server.rpc.FetchServlet: void serializeObjectToServlet(com.google.protobuf.MessageLite,javax.servlet.http.HttpServletResponse)>($r26, r15);
+
+        goto label14;
+
+     label13:
+        $r16 = staticinvoke <org.waveprotocol.box.common.comms.WaveClientRpc$WaveViewSnapshot: org.waveprotocol.box.common.comms.WaveClientRpc$WaveViewSnapshot$Builder newBuilder()>();
+
+        $r17 = <org.waveprotocol.wave.model.id.ModernIdSerialiser: org.waveprotocol.wave.model.id.ModernIdSerialiser INSTANCE>;
+
+        $r18 = virtualinvoke r0.<org.waveprotocol.wave.model.waveref.WaveRef: org.waveprotocol.wave.model.id.WaveId getWaveId()>();
+
+        $r19 = virtualinvoke $r17.<org.waveprotocol.wave.model.id.ModernIdSerialiser: java.lang.String serialiseWaveId(org.waveprotocol.wave.model.id.WaveId)>($r18);
+
+        $r20 = virtualinvoke $r16.<org.waveprotocol.box.common.comms.WaveClientRpc$WaveViewSnapshot$Builder: org.waveprotocol.box.common.comms.WaveClientRpc$WaveViewSnapshot$Builder setWaveId(java.lang.String)>($r19);
+
+        $r21 = interfaceinvoke r36.<org.waveprotocol.wave.model.wave.data.ReadableWaveletData: org.waveprotocol.wave.model.version.HashedVersion getHashedVersion()>();
+
+        $r22 = staticinvoke <org.waveprotocol.box.server.common.SnapshotSerializer: org.waveprotocol.box.common.comms.WaveClientRpc$WaveletSnapshot serializeWavelet(org.waveprotocol.wave.model.wave.data.ReadableWaveletData,org.waveprotocol.wave.model.version.HashedVersion)>(r36, $r21);
+
+        $r23 = virtualinvoke $r20.<org.waveprotocol.box.common.comms.WaveClientRpc$WaveViewSnapshot$Builder: org.waveprotocol.box.common.comms.WaveClientRpc$WaveViewSnapshot$Builder addWavelet(org.waveprotocol.box.common.comms.WaveClientRpc$WaveletSnapshot)>($r22);
+
+        $r24 = virtualinvoke $r23.<org.waveprotocol.box.common.comms.WaveClientRpc$WaveViewSnapshot$Builder: org.waveprotocol.box.common.comms.WaveClientRpc$WaveViewSnapshot build()>();
+
+        specialinvoke r5.<org.waveprotocol.box.server.rpc.FetchServlet: void serializeObjectToServlet(com.google.protobuf.MessageLite,javax.servlet.http.HttpServletResponse)>($r24, r15);
+
+     label14:
+        goto label16;
+
+     label15:
+        interfaceinvoke r15.<javax.servlet.http.HttpServletResponse: void sendError(int)>(403);
+
+     label16:
+        return;
+
+        catch org.waveprotocol.box.server.waveserver.WaveServerException from label03 to label04 with label07;
+        catch org.waveprotocol.box.server.waveserver.WaveServerException from label05 to label06 with label07;
+    }
+
+    static void <clinit>()
+    {
+        org.waveprotocol.wave.util.logging.Log $r0;
+
+        $r0 = staticinvoke <org.waveprotocol.wave.util.logging.Log: org.waveprotocol.wave.util.logging.Log get(java.lang.Class)>(class "Lorg/waveprotocol/box/server/rpc/FetchServlet;");
+
+        <org.waveprotocol.box.server.rpc.FetchServlet: org.waveprotocol.wave.util.logging.Log LOG> = $r0;
+
+        return;
+    }
+}

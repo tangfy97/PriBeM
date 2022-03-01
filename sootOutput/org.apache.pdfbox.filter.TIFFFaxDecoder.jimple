@@ -1,0 +1,6199 @@
+class org.apache.pdfbox.filter.TIFFFaxDecoder extends java.lang.Object
+{
+    private int bitPointer;
+    private int bytePointer;
+    private byte[] data;
+    private int w;
+    private int h;
+    private int fillOrder;
+    private int changingElemSize;
+    private int[] prevChangingElems;
+    private int[] currChangingElems;
+    private int lastChangingElement;
+    private int compression;
+    private int uncompressedMode;
+    private int fillBits;
+    private int oneD;
+    static int[] table1;
+    static int[] table2;
+    static byte[] flipTable;
+    static short[] white;
+    static short[] additionalMakeup;
+    static short[] initBlack;
+    static short[] twoBitBlack;
+    static short[] black;
+    static byte[] twoDCodes;
+
+    public void <init>(int, int, int)
+    {
+        org.apache.pdfbox.filter.TIFFFaxDecoder r0;
+        int[] $r1, $r2;
+        int i0, i1, i2;
+
+        r0 := @this: org.apache.pdfbox.filter.TIFFFaxDecoder;
+
+        i0 := @parameter0: int;
+
+        i1 := @parameter1: int;
+
+        i2 := @parameter2: int;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int changingElemSize> = 0;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int lastChangingElement> = 0;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int compression> = 2;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int uncompressedMode> = 0;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int fillBits> = 0;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int fillOrder> = i0;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int w> = i1;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int h> = i2;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bitPointer> = 0;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bytePointer> = 0;
+
+        $r1 = newarray (int)[i1];
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int[] prevChangingElems> = $r1;
+
+        $r2 = newarray (int)[i1];
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int[] currChangingElems> = $r2;
+
+        return;
+    }
+
+    public void decode1D(byte[], byte[], int, int)
+    {
+        byte[] r1, r2;
+        org.apache.pdfbox.filter.TIFFFaxDecoder r0;
+        int $i0, $i1, i2, i3, i4, i5, i6;
+
+        r0 := @this: org.apache.pdfbox.filter.TIFFFaxDecoder;
+
+        r2 := @parameter0: byte[];
+
+        r1 := @parameter1: byte[];
+
+        i4 := @parameter2: int;
+
+        i3 := @parameter3: int;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: byte[] data> = r1;
+
+        i5 = 0;
+
+        $i0 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int w>;
+
+        $i1 = $i0 + 7;
+
+        i2 = $i1 / 8;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bitPointer> = 0;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bytePointer> = 0;
+
+        i6 = 0;
+
+     label1:
+        if i6 >= i3 goto label2;
+
+        virtualinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void decodeNextScanline(byte[],int,int)>(r2, i5, i4);
+
+        i5 = i5 + i2;
+
+        i6 = i6 + 1;
+
+        goto label1;
+
+     label2:
+        return;
+    }
+
+    public void decodeNextScanline(byte[], int, int)
+    {
+        byte[] r2;
+        org.apache.pdfbox.filter.TIFFFaxDecoder r0;
+        short s41, s42, s45, s49, s52, s53, s56, s59;
+        java.lang.RuntimeException $r16, $r17, $r18;
+        int[] $r3, $r5, $r7, $r11, $r15;
+        boolean z0, z1, z2;
+        short[] $r1, $r4, $r6, $r9, $r10, $r14;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, i7, $i8, $i9, $i10, $i11, $i12, $i13, $i14, $i15, $i16, $i17, $i18, $i19, $i20, $i21, $i22, $i23, $i24, $i25, $i26, $i27, $i28, $i29, $i30, $i31, $i32, $i33, $i34, $i35, $i36, $i37, $i38, $i39, i40, i43, i44, i46, i47, i48, i50, i51, i54, i55, i57, i58, i60, i61, $i62, $i63, $i64, $i65, $i66, $i67, $i68, $i69, $i70, $i71, $i72, $i73, $i74, $i75;
+
+        r0 := @this: org.apache.pdfbox.filter.TIFFFaxDecoder;
+
+        r2 := @parameter0: byte[];
+
+        i7 := @parameter1: int;
+
+        i40 := @parameter2: int;
+
+        z0 = 1;
+
+        z2 = 1;
+
+        z1 = 1;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int changingElemSize> = 0;
+
+     label01:
+        $i0 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int w>;
+
+        if i40 >= $i0 goto label13;
+
+     label02:
+        if z1 == 0 goto label06;
+
+        $i28 = specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int nextNBits(int)>(10);
+
+        $r10 = <org.apache.pdfbox.filter.TIFFFaxDecoder: short[] white>;
+
+        s41 = $r10[$i28];
+
+        s42 = s41 & 1;
+
+        $i64 = (int) s41;
+
+        $i29 = $i64 >>> 1;
+
+        i43 = $i29 & 15;
+
+        if i43 != 12 goto label03;
+
+        $i34 = specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int nextLesserThan8Bits(int)>(2);
+
+        $i35 = $i28 << 2;
+
+        $i36 = $i35 & 12;
+
+        i44 = $i36 | $i34;
+
+        $r14 = <org.apache.pdfbox.filter.TIFFFaxDecoder: short[] additionalMakeup>;
+
+        s45 = $r14[i44];
+
+        $i65 = (int) s45;
+
+        $i37 = $i65 >>> 1;
+
+        i46 = $i37 & 7;
+
+        $i66 = (int) s45;
+
+        $i38 = $i66 >>> 4;
+
+        i47 = $i38 & 4095;
+
+        i40 = i40 + i47;
+
+        $i39 = 4 - i46;
+
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void updatePointer(int)>($i39);
+
+        goto label02;
+
+     label03:
+        if i43 != 0 goto label04;
+
+        $r16 = new java.lang.RuntimeException;
+
+        specialinvoke $r16.<java.lang.RuntimeException: void <init>(java.lang.String)>("Invalid code encountered.");
+
+        throw $r16;
+
+     label04:
+        if i43 != 15 goto label05;
+
+        $r17 = new java.lang.RuntimeException;
+
+        specialinvoke $r17.<java.lang.RuntimeException: void <init>(java.lang.String)>("EOL encountered in white run.");
+
+        throw $r17;
+
+     label05:
+        $i67 = (int) s41;
+
+        $i30 = $i67 >>> 5;
+
+        i48 = $i30 & 2047;
+
+        i40 = i40 + i48;
+
+        $i31 = 10 - i43;
+
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void updatePointer(int)>($i31);
+
+        if s42 != 0 goto label02;
+
+        z0 = 0;
+
+        z2 = 0;
+
+        z1 = 0;
+
+        $r11 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int[] currChangingElems>;
+
+        $i32 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int changingElemSize>;
+
+        $i33 = $i32 + 1;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int changingElemSize> = $i33;
+
+        $r11[$i32] = i40;
+
+        goto label02;
+
+     label06:
+        $i1 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int w>;
+
+        if i40 != $i1 goto label07;
+
+        $i27 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int compression>;
+
+        if $i27 != 2 goto label13;
+
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: boolean advancePointer()>();
+
+        goto label13;
+
+     label07:
+        if z2 != 0 goto label12;
+
+        $i4 = specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int nextLesserThan8Bits(int)>(4);
+
+        $r1 = <org.apache.pdfbox.filter.TIFFFaxDecoder: short[] initBlack>;
+
+        s49 = $r1[$i4];
+
+        $i68 = (int) s49;
+
+        $i5 = $i68 >>> 1;
+
+        i50 = $i5 & 15;
+
+        $i69 = (int) s49;
+
+        $i6 = $i69 >>> 5;
+
+        i51 = $i6 & 2047;
+
+        if i51 != 100 goto label10;
+
+        $i17 = specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int nextNBits(int)>(9);
+
+        $r6 = <org.apache.pdfbox.filter.TIFFFaxDecoder: short[] black>;
+
+        s52 = $r6[$i17];
+
+        s53 = s52 & 1;
+
+        $i70 = (int) s52;
+
+        $i18 = $i70 >>> 1;
+
+        i54 = $i18 & 15;
+
+        $i71 = (int) s52;
+
+        $i19 = $i71 >>> 5;
+
+        i55 = $i19 & 2047;
+
+        if i54 != 12 goto label08;
+
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void updatePointer(int)>(5);
+
+        $i23 = specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int nextLesserThan8Bits(int)>(4);
+
+        $r9 = <org.apache.pdfbox.filter.TIFFFaxDecoder: short[] additionalMakeup>;
+
+        s56 = $r9[$i23];
+
+        $i72 = (int) s56;
+
+        $i24 = $i72 >>> 1;
+
+        i57 = $i24 & 7;
+
+        $i73 = (int) s56;
+
+        $i25 = $i73 >>> 4;
+
+        i58 = $i25 & 4095;
+
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void setToBlack(byte[],int,int,int)>(r2, i7, i40, i58);
+
+        i40 = i40 + i58;
+
+        $i26 = 4 - i57;
+
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void updatePointer(int)>($i26);
+
+        goto label07;
+
+     label08:
+        if i54 != 15 goto label09;
+
+        $r18 = new java.lang.RuntimeException;
+
+        specialinvoke $r18.<java.lang.RuntimeException: void <init>(java.lang.String)>("EOL encountered in black run.");
+
+        throw $r18;
+
+     label09:
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void setToBlack(byte[],int,int,int)>(r2, i7, i40, i55);
+
+        i40 = i40 + i55;
+
+        $i20 = 9 - i54;
+
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void updatePointer(int)>($i20);
+
+        if s53 != 0 goto label07;
+
+        z0 = 1;
+
+        z2 = 1;
+
+        z1 = 1;
+
+        $r7 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int[] currChangingElems>;
+
+        $i21 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int changingElemSize>;
+
+        $i22 = $i21 + 1;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int changingElemSize> = $i22;
+
+        $r7[$i21] = i40;
+
+        goto label07;
+
+     label10:
+        if i51 != 200 goto label11;
+
+        $i11 = specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int nextLesserThan8Bits(int)>(2);
+
+        $r4 = <org.apache.pdfbox.filter.TIFFFaxDecoder: short[] twoBitBlack>;
+
+        s59 = $r4[$i11];
+
+        $i74 = (int) s59;
+
+        $i12 = $i74 >>> 5;
+
+        i60 = $i12 & 2047;
+
+        $i75 = (int) s59;
+
+        $i13 = $i75 >>> 1;
+
+        i61 = $i13 & 15;
+
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void setToBlack(byte[],int,int,int)>(r2, i7, i40, i60);
+
+        i40 = i40 + i60;
+
+        $i14 = 2 - i61;
+
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void updatePointer(int)>($i14);
+
+        z0 = 1;
+
+        z2 = 1;
+
+        z1 = 1;
+
+        $r5 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int[] currChangingElems>;
+
+        $i15 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int changingElemSize>;
+
+        $i16 = $i15 + 1;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int changingElemSize> = $i16;
+
+        $r5[$i15] = i40;
+
+        goto label07;
+
+     label11:
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void setToBlack(byte[],int,int,int)>(r2, i7, i40, i51);
+
+        i40 = i40 + i51;
+
+        $i8 = 4 - i50;
+
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void updatePointer(int)>($i8);
+
+        z0 = 1;
+
+        z2 = 1;
+
+        z1 = 1;
+
+        $r3 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int[] currChangingElems>;
+
+        $i9 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int changingElemSize>;
+
+        $i10 = $i9 + 1;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int changingElemSize> = $i10;
+
+        $r3[$i9] = i40;
+
+        goto label07;
+
+     label12:
+        $i2 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int w>;
+
+        if i40 != $i2 goto label01;
+
+        $i3 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int compression>;
+
+        if $i3 != 2 goto label13;
+
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: boolean advancePointer()>();
+
+        goto label13;
+
+     label13:
+        $r15 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int[] currChangingElems>;
+
+        $i62 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int changingElemSize>;
+
+        $i63 = $i62 + 1;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int changingElemSize> = $i63;
+
+        $r15[$i62] = i40;
+
+        return;
+    }
+
+    public void decode2D(byte[], byte[], int, int, long)
+    {
+        byte[] r1, r3, $r7;
+        org.apache.pdfbox.filter.TIFFFaxDecoder r0;
+        byte $b19;
+        long l3, $l4, $l6, $l7, $l9, $l10;
+        short $s20, s22, s41, $s49;
+        java.lang.RuntimeException $r15, $r16;
+        int[] r2, r4, $r5, $r6, $r9, $r10, $r11, $r12, $r13;
+        boolean z0, $z1;
+        int $i0, $i1, i2, $i5, $i8, $i11, $i12, i13, i14, $i15, i16, i17, $i18, i21, $i23, i24, $i25, $i26, $i27, $i28, $i29, $i30, $i31, $i32, $i33, $i34, i35, i36, i37, i38, i39, $i40, i42, i43, i44, i45, i46, $i48, $i50, $i51, $i52, $i53;
+
+        r0 := @this: org.apache.pdfbox.filter.TIFFFaxDecoder;
+
+        r3 := @parameter0: byte[];
+
+        r1 := @parameter1: byte[];
+
+        i13 := @parameter2: int;
+
+        i14 := @parameter3: int;
+
+        l3 := @parameter4: long;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: byte[] data> = r1;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int compression> = 3;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bitPointer> = 0;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bytePointer> = 0;
+
+        $i0 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int w>;
+
+        $i1 = $i0 + 7;
+
+        i2 = $i1 / 8;
+
+        r2 = newarray (int)[2];
+
+        $l4 = l3 & 1L;
+
+        $i5 = (int) $l4;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int oneD> = $i5;
+
+        $l6 = l3 & 2L;
+
+        $l7 = $l6 >> 1;
+
+        $i8 = (int) $l7;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int uncompressedMode> = $i8;
+
+        $l9 = l3 & 4L;
+
+        $l10 = $l9 >> 2;
+
+        $i11 = (int) $l10;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int fillBits> = $i11;
+
+        $i12 = specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int readEOL()>();
+
+        if $i12 == 1 goto label01;
+
+        $r15 = new java.lang.RuntimeException;
+
+        specialinvoke $r15.<java.lang.RuntimeException: void <init>(java.lang.String)>("First scanline must be 1D encoded.");
+
+        throw $r15;
+
+     label01:
+        virtualinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void decodeNextScanline(byte[],int,int)>(r3, 0, i13);
+
+        i35 = 0 + i2;
+
+        i36 = 1;
+
+     label02:
+        if i36 >= i14 goto label16;
+
+        $i15 = specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int readEOL()>();
+
+        if $i15 != 0 goto label14;
+
+        r4 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int[] prevChangingElems>;
+
+        $r5 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int[] currChangingElems>;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int[] prevChangingElems> = $r5;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int[] currChangingElems> = r4;
+
+        i37 = 0;
+
+        $i48 = (int) -1;
+
+        i38 = $i48;
+
+        z0 = 1;
+
+        i39 = i13;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int lastChangingElement> = 0;
+
+     label03:
+        $i40 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int w>;
+
+        if i39 >= $i40 goto label13;
+
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void getNextChangingElement(int,boolean,int[])>(i38, z0, r2);
+
+        i16 = r2[0];
+
+        i17 = r2[1];
+
+        $i18 = specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int nextLesserThan8Bits(int)>(7);
+
+        $r7 = <org.apache.pdfbox.filter.TIFFFaxDecoder: byte[] twoDCodes>;
+
+        $b19 = $r7[$i18];
+
+        $s49 = (short) $b19;
+
+        s41 = $s49 & 255;
+
+        $s20 = s41 & 120;
+
+        $i50 = (int) $s20;
+
+        i21 = $i50 >>> 3;
+
+        s22 = s41 & 7;
+
+        if i21 != 0 goto label05;
+
+        if z0 != 0 goto label04;
+
+        $i34 = i17 - i39;
+
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void setToBlack(byte[],int,int,int)>(r3, i35, i39, $i34);
+
+     label04:
+        i38 = i17;
+
+        i39 = i17;
+
+        $i51 = (int) s22;
+
+        $i33 = 7 - $i51;
+
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void updatePointer(int)>($i33);
+
+        goto label03;
+
+     label05:
+        if i21 != 1 goto label08;
+
+        $i52 = (int) s22;
+
+        $i28 = 7 - $i52;
+
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void updatePointer(int)>($i28);
+
+        if z0 == 0 goto label06;
+
+        $i31 = specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int decodeWhiteCodeWord()>();
+
+        i42 = i39 + $i31;
+
+        $r12 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int[] currChangingElems>;
+
+        i43 = i37 + 1;
+
+        $r12[i37] = i42;
+
+        $i32 = specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int decodeBlackCodeWord()>();
+
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void setToBlack(byte[],int,int,int)>(r3, i35, i42, $i32);
+
+        i39 = i42 + $i32;
+
+        $r13 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int[] currChangingElems>;
+
+        i37 = i43 + 1;
+
+        $r13[i43] = i39;
+
+        goto label07;
+
+     label06:
+        $i29 = specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int decodeBlackCodeWord()>();
+
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void setToBlack(byte[],int,int,int)>(r3, i35, i39, $i29);
+
+        i44 = i39 + $i29;
+
+        $r10 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int[] currChangingElems>;
+
+        i45 = i37 + 1;
+
+        $r10[i37] = i44;
+
+        $i30 = specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int decodeWhiteCodeWord()>();
+
+        i39 = i44 + $i30;
+
+        $r11 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int[] currChangingElems>;
+
+        i37 = i45 + 1;
+
+        $r11[i45] = i39;
+
+     label07:
+        i38 = i39;
+
+        goto label03;
+
+     label08:
+        if i21 > 8 goto label12;
+
+        $i23 = i21 - 5;
+
+        i24 = i16 + $i23;
+
+        $r9 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int[] currChangingElems>;
+
+        $i25 = i37;
+
+        i37 = i37 + 1;
+
+        $r9[$i25] = i24;
+
+        if z0 != 0 goto label09;
+
+        $i27 = i24 - i39;
+
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void setToBlack(byte[],int,int,int)>(r3, i35, i39, $i27);
+
+     label09:
+        i38 = i24;
+
+        i39 = i24;
+
+        if z0 != 0 goto label10;
+
+        $z1 = 1;
+
+        goto label11;
+
+     label10:
+        $z1 = 0;
+
+     label11:
+        z0 = $z1;
+
+        $i53 = (int) s22;
+
+        $i26 = 7 - $i53;
+
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void updatePointer(int)>($i26);
+
+        goto label03;
+
+     label12:
+        $r16 = new java.lang.RuntimeException;
+
+        specialinvoke $r16.<java.lang.RuntimeException: void <init>(java.lang.String)>("Invalid code encountered while decoding 2D group 3 compressed data.");
+
+        throw $r16;
+
+     label13:
+        $r6 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int[] currChangingElems>;
+
+        i46 = i37 + 1;
+
+        $r6[i37] = i39;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int changingElemSize> = i46;
+
+        goto label15;
+
+     label14:
+        virtualinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void decodeNextScanline(byte[],int,int)>(r3, i35, i13);
+
+     label15:
+        i35 = i35 + i2;
+
+        i36 = i36 + 1;
+
+        goto label02;
+
+     label16:
+        return;
+    }
+
+    public synchronized void decodeT6(byte[], byte[], int, int, long, boolean)
+    {
+        byte[] r1, $r3, r5;
+        org.apache.pdfbox.filter.TIFFFaxDecoder r0;
+        byte $b18;
+        long l3, $l4, $l5;
+        short $s19, s21, s51, $s62;
+        java.lang.RuntimeException $r10, $r11;
+        int[] r2, r7, $r8, $r9;
+        boolean z0, z1, $z2, z3;
+        int $i0, $i1, i2, $i6, $i7, $i8, $i9, $i10, $i11, $i12, i13, i14, i15, i16, $i17, i20, $i22, $i23, $i24, $i25, $i26, $i27, $i28, $i29, $i30, i31, $i32, $i33, $i34, $i35, $i36, $i37, $i38, $i39, $i40, $i41, $i42, $i43, $i44, i45, i46, i47, i48, i49, $i50, i52, i53, i54, i55, i56, $i57, i58, i59, $i61, $i63, $i64, $i65, $i66;
+
+        r0 := @this: org.apache.pdfbox.filter.TIFFFaxDecoder;
+
+        r5 := @parameter0: byte[];
+
+        r1 := @parameter1: byte[];
+
+        i14 := @parameter2: int;
+
+        i13 := @parameter3: int;
+
+        l3 := @parameter4: long;
+
+        z0 := @parameter5: boolean;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: byte[] data> = r1;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int compression> = 4;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bitPointer> = 0;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bytePointer> = 0;
+
+        $i0 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int w>;
+
+        $i1 = $i0 + 7;
+
+        i2 = $i1 / 8;
+
+        r2 = newarray (int)[2];
+
+        $l4 = l3 & 2L;
+
+        $l5 = $l4 >> 1;
+
+        $i6 = (int) $l5;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int uncompressedMode> = $i6;
+
+        r7 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int[] currChangingElems>;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int changingElemSize> = 0;
+
+        $i7 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int changingElemSize>;
+
+        $i8 = $i7 + 1;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int changingElemSize> = $i8;
+
+        $i9 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int w>;
+
+        r7[$i7] = $i9;
+
+        $i10 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int changingElemSize>;
+
+        $i11 = $i10 + 1;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int changingElemSize> = $i11;
+
+        $i12 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int w>;
+
+        r7[$i10] = $i12;
+
+        i45 = 0;
+
+        i46 = 0;
+
+     label01:
+        if i46 >= i13 goto label29;
+
+        if z0 == 0 goto label02;
+
+        $i42 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bitPointer>;
+
+        if $i42 == 0 goto label02;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bitPointer> = 0;
+
+        $i43 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bytePointer>;
+
+        $i44 = $i43 + 1;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bytePointer> = $i44;
+
+     label02:
+        $i61 = (int) -1;
+
+        i47 = $i61;
+
+        z1 = 1;
+
+        $r8 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int[] prevChangingElems>;
+
+        $r9 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int[] currChangingElems>;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int[] prevChangingElems> = $r9;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int[] currChangingElems> = $r8;
+
+        i48 = 0;
+
+        i49 = i14;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int lastChangingElement> = 0;
+
+     label03:
+        $i50 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int w>;
+
+        if i49 >= $i50 goto label28;
+
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void getNextChangingElement(int,boolean,int[])>(i47, z1, r2);
+
+        i15 = r2[0];
+
+        i16 = r2[1];
+
+        $i17 = specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int nextLesserThan8Bits(int)>(7);
+
+        $r3 = <org.apache.pdfbox.filter.TIFFFaxDecoder: byte[] twoDCodes>;
+
+        $b18 = $r3[$i17];
+
+        $s62 = (short) $b18;
+
+        s51 = $s62 & 255;
+
+        $s19 = s51 & 120;
+
+        $i63 = (int) $s19;
+
+        i20 = $i63 >>> 3;
+
+        s21 = s51 & 7;
+
+        if i20 != 0 goto label05;
+
+        if z1 != 0 goto label04;
+
+        $i41 = i16 - i49;
+
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void setToBlack(byte[],int,int,int)>(r5, i45, i49, $i41);
+
+     label04:
+        i47 = i16;
+
+        i49 = i16;
+
+        $i64 = (int) s21;
+
+        $i40 = 7 - $i64;
+
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void updatePointer(int)>($i40);
+
+        goto label03;
+
+     label05:
+        if i20 != 1 goto label08;
+
+        $i65 = (int) s21;
+
+        $i35 = 7 - $i65;
+
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void updatePointer(int)>($i35);
+
+        if z1 == 0 goto label06;
+
+        $i38 = specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int decodeWhiteCodeWord()>();
+
+        i52 = i49 + $i38;
+
+        i53 = i48 + 1;
+
+        $r8[i48] = i52;
+
+        $i39 = specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int decodeBlackCodeWord()>();
+
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void setToBlack(byte[],int,int,int)>(r5, i45, i52, $i39);
+
+        i49 = i52 + $i39;
+
+        i48 = i53 + 1;
+
+        $r8[i53] = i49;
+
+        goto label07;
+
+     label06:
+        $i36 = specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int decodeBlackCodeWord()>();
+
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void setToBlack(byte[],int,int,int)>(r5, i45, i49, $i36);
+
+        i54 = i49 + $i36;
+
+        i55 = i48 + 1;
+
+        $r8[i48] = i54;
+
+        $i37 = specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int decodeWhiteCodeWord()>();
+
+        i49 = i54 + $i37;
+
+        i48 = i55 + 1;
+
+        $r8[i55] = i49;
+
+     label07:
+        i47 = i49;
+
+        goto label03;
+
+     label08:
+        if i20 > 8 goto label12;
+
+        $i30 = i20 - 5;
+
+        i31 = i15 + $i30;
+
+        $i32 = i48;
+
+        i48 = i48 + 1;
+
+        $r8[$i32] = i31;
+
+        if z1 != 0 goto label09;
+
+        $i34 = i31 - i49;
+
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void setToBlack(byte[],int,int,int)>(r5, i45, i49, $i34);
+
+     label09:
+        i47 = i31;
+
+        i49 = i31;
+
+        if z1 != 0 goto label10;
+
+        $z2 = 1;
+
+        goto label11;
+
+     label10:
+        $z2 = 0;
+
+     label11:
+        z1 = $z2;
+
+        $i66 = (int) s21;
+
+        $i33 = 7 - $i66;
+
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void updatePointer(int)>($i33);
+
+        goto label03;
+
+     label12:
+        if i20 != 11 goto label27;
+
+        $i22 = specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int nextLesserThan8Bits(int)>(3);
+
+        if $i22 == 7 goto label13;
+
+        $r10 = new java.lang.RuntimeException;
+
+        specialinvoke $r10.<java.lang.RuntimeException: void <init>(java.lang.String)>("Invalid code encountered while decoding 2D group 4 compressed data.");
+
+        throw $r10;
+
+     label13:
+        i56 = 0;
+
+        z3 = 0;
+
+     label14:
+        if z3 != 0 goto label26;
+
+     label15:
+        $i23 = specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int nextLesserThan8Bits(int)>(1);
+
+        if $i23 == 1 goto label16;
+
+        i56 = i56 + 1;
+
+        goto label15;
+
+     label16:
+        if i56 <= 5 goto label23;
+
+        i56 = i56 - 6;
+
+        if z1 != 0 goto label17;
+
+        if i56 <= 0 goto label17;
+
+        $i29 = i48;
+
+        i48 = i48 + 1;
+
+        $r8[$i29] = i49;
+
+     label17:
+        $i57 = i49 + i56;
+
+        i49 = $i57;
+
+        if i56 <= 0 goto label18;
+
+        z1 = 1;
+
+     label18:
+        $i26 = specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int nextLesserThan8Bits(int)>(1);
+
+        if $i26 != 0 goto label20;
+
+        if z1 != 0 goto label19;
+
+        $i28 = i48;
+
+        i48 = i48 + 1;
+
+        $r8[$i28] = $i57;
+
+     label19:
+        z1 = 1;
+
+        goto label22;
+
+     label20:
+        if z1 == 0 goto label21;
+
+        $i27 = i48;
+
+        i48 = i48 + 1;
+
+        $r8[$i27] = $i57;
+
+     label21:
+        z1 = 0;
+
+     label22:
+        z3 = 1;
+
+     label23:
+        if i56 != 5 goto label25;
+
+        if z1 != 0 goto label24;
+
+        $i25 = i48;
+
+        i48 = i48 + 1;
+
+        $r8[$i25] = i49;
+
+     label24:
+        i49 = i49 + i56;
+
+        z1 = 1;
+
+        goto label14;
+
+     label25:
+        i58 = i49 + i56;
+
+        $i24 = i48;
+
+        i48 = i48 + 1;
+
+        $r8[$i24] = i58;
+
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void setToBlack(byte[],int,int,int)>(r5, i45, i58, 1);
+
+        i49 = i58 + 1;
+
+        z1 = 0;
+
+        goto label14;
+
+     label26:
+        goto label03;
+
+     label27:
+        $r11 = new java.lang.RuntimeException;
+
+        specialinvoke $r11.<java.lang.RuntimeException: void <init>(java.lang.String)>("Invalid code encountered while decoding 2D group 4 compressed data.");
+
+        throw $r11;
+
+     label28:
+        i59 = i48 + 1;
+
+        $r8[i48] = i49;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int changingElemSize> = i59;
+
+        i45 = i45 + i2;
+
+        i46 = i46 + 1;
+
+        goto label01;
+
+     label29:
+        return;
+    }
+
+    private void setToBlack(byte[], int, int, int)
+    {
+        byte[] r0;
+        org.apache.pdfbox.filter.TIFFFaxDecoder r1;
+        byte $b9, $b11, b18;
+        int i0, i1, $i2, i3, i4, i5, $i6, $i7, $i8, $i10, $i12, $i13, $i14, i15, i16, i17, i19, $i20, i21, $i22, $i23;
+
+        r1 := @this: org.apache.pdfbox.filter.TIFFFaxDecoder;
+
+        r0 := @parameter0: byte[];
+
+        i0 := @parameter1: int;
+
+        i1 := @parameter2: int;
+
+        i3 := @parameter3: int;
+
+        $i2 = 8 * i0;
+
+        i15 = $i2 + i1;
+
+        i4 = i15 + i3;
+
+        i16 = i15 >> 3;
+
+        i5 = i15 & 7;
+
+        if i5 <= 0 goto label3;
+
+        $i13 = 7 - i5;
+
+        i17 = 1 << $i13;
+
+        b18 = r0[i16];
+
+     label1:
+        if i17 <= 0 goto label2;
+
+        if i15 >= i4 goto label2;
+
+        $i22 = (int) b18;
+
+        $i14 = $i22 | i17;
+
+        b18 = (byte) $i14;
+
+        i17 = i17 >> 1;
+
+        i15 = i15 + 1;
+
+        goto label1;
+
+     label2:
+        r0[i16] = b18;
+
+     label3:
+        i19 = i15 >> 3;
+
+     label4:
+        $i20 = i4 - 7;
+
+        if i15 >= $i20 goto label5;
+
+        $i12 = i19;
+
+        i19 = i19 + 1;
+
+        r0[$i12] = -1;
+
+        i15 = i15 + 8;
+
+        goto label4;
+
+     label5:
+        if i15 >= i4 goto label6;
+
+        i21 = i15 >> 3;
+
+        $b9 = r0[i21];
+
+        $i6 = i15 & 7;
+
+        $i7 = 7 - $i6;
+
+        $i8 = 1 << $i7;
+
+        $i23 = (int) $b9;
+
+        $i10 = $i23 | $i8;
+
+        $b11 = (byte) $i10;
+
+        r0[i21] = $b11;
+
+        i15 = i15 + 1;
+
+        goto label5;
+
+     label6:
+        return;
+    }
+
+    private int decodeWhiteCodeWord()
+    {
+        org.apache.pdfbox.filter.TIFFFaxDecoder r0;
+        short s1, s12, s15;
+        int $i0, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i10, i11, i13, i14, i16, i17, i18, $i19, $i20, $i21, $i22;
+        boolean z0;
+        java.lang.RuntimeException $r5, $r6;
+        short[] $r1, $r4;
+
+        r0 := @this: org.apache.pdfbox.filter.TIFFFaxDecoder;
+
+        i11 = 0;
+
+        z0 = 1;
+
+     label1:
+        if z0 == 0 goto label5;
+
+        $i0 = specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int nextNBits(int)>(10);
+
+        $r1 = <org.apache.pdfbox.filter.TIFFFaxDecoder: short[] white>;
+
+        s12 = $r1[$i0];
+
+        s1 = s12 & 1;
+
+        $i19 = (int) s12;
+
+        $i2 = $i19 >>> 1;
+
+        i13 = $i2 & 15;
+
+        if i13 != 12 goto label2;
+
+        $i5 = specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int nextLesserThan8Bits(int)>(2);
+
+        $i6 = $i0 << 2;
+
+        $i7 = $i6 & 12;
+
+        i14 = $i7 | $i5;
+
+        $r4 = <org.apache.pdfbox.filter.TIFFFaxDecoder: short[] additionalMakeup>;
+
+        s15 = $r4[i14];
+
+        $i20 = (int) s15;
+
+        $i8 = $i20 >>> 1;
+
+        i16 = $i8 & 7;
+
+        $i21 = (int) s15;
+
+        $i9 = $i21 >>> 4;
+
+        i17 = $i9 & 4095;
+
+        i11 = i11 + i17;
+
+        $i10 = 4 - i16;
+
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void updatePointer(int)>($i10);
+
+        goto label1;
+
+     label2:
+        if i13 != 0 goto label3;
+
+        $r5 = new java.lang.RuntimeException;
+
+        specialinvoke $r5.<java.lang.RuntimeException: void <init>(java.lang.String)>("Invalid code encountered.");
+
+        throw $r5;
+
+     label3:
+        if i13 != 15 goto label4;
+
+        $r6 = new java.lang.RuntimeException;
+
+        specialinvoke $r6.<java.lang.RuntimeException: void <init>(java.lang.String)>("EOL encountered in white run.");
+
+        throw $r6;
+
+     label4:
+        $i22 = (int) s12;
+
+        $i3 = $i22 >>> 5;
+
+        i18 = $i3 & 2047;
+
+        i11 = i11 + i18;
+
+        $i4 = 10 - i13;
+
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void updatePointer(int)>($i4);
+
+        if s1 != 0 goto label1;
+
+        z0 = 0;
+
+        goto label1;
+
+     label5:
+        return i11;
+    }
+
+    private int decodeBlackCodeWord()
+    {
+        org.apache.pdfbox.filter.TIFFFaxDecoder r0;
+        boolean z0;
+        short[] $r1, $r2, $r3, $r5;
+        short s17, s20, s21, s24, s27;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i10, $i11, $i12, $i13, $i14, $i15, i16, i18, i19, i22, i23, i25, i26, i28, i29, $i30, $i31, $i32, $i33, $i34, $i35, $i36, $i37;
+        java.lang.RuntimeException $r6;
+
+        r0 := @this: org.apache.pdfbox.filter.TIFFFaxDecoder;
+
+        i16 = 0;
+
+        z0 = 0;
+
+     label1:
+        if z0 != 0 goto label6;
+
+        $i0 = specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int nextLesserThan8Bits(int)>(4);
+
+        $r1 = <org.apache.pdfbox.filter.TIFFFaxDecoder: short[] initBlack>;
+
+        s17 = $r1[$i0];
+
+        $i30 = (int) s17;
+
+        $i1 = $i30 >>> 1;
+
+        i18 = $i1 & 15;
+
+        $i31 = (int) s17;
+
+        $i2 = $i31 >>> 5;
+
+        i19 = $i2 & 2047;
+
+        if i19 != 100 goto label4;
+
+        $i8 = specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int nextNBits(int)>(9);
+
+        $r3 = <org.apache.pdfbox.filter.TIFFFaxDecoder: short[] black>;
+
+        s20 = $r3[$i8];
+
+        s21 = s20 & 1;
+
+        $i32 = (int) s20;
+
+        $i9 = $i32 >>> 1;
+
+        i22 = $i9 & 15;
+
+        $i33 = (int) s20;
+
+        $i10 = $i33 >>> 5;
+
+        i23 = $i10 & 2047;
+
+        if i22 != 12 goto label2;
+
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void updatePointer(int)>(5);
+
+        $i12 = specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int nextLesserThan8Bits(int)>(4);
+
+        $r5 = <org.apache.pdfbox.filter.TIFFFaxDecoder: short[] additionalMakeup>;
+
+        s24 = $r5[$i12];
+
+        $i34 = (int) s24;
+
+        $i13 = $i34 >>> 1;
+
+        i25 = $i13 & 7;
+
+        $i35 = (int) s24;
+
+        $i14 = $i35 >>> 4;
+
+        i26 = $i14 & 4095;
+
+        i16 = i16 + i26;
+
+        $i15 = 4 - i25;
+
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void updatePointer(int)>($i15);
+
+        goto label1;
+
+     label2:
+        if i22 != 15 goto label3;
+
+        $r6 = new java.lang.RuntimeException;
+
+        specialinvoke $r6.<java.lang.RuntimeException: void <init>(java.lang.String)>("EOL encountered in black run.");
+
+        throw $r6;
+
+     label3:
+        i16 = i16 + i23;
+
+        $i11 = 9 - i22;
+
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void updatePointer(int)>($i11);
+
+        if s21 != 0 goto label1;
+
+        z0 = 1;
+
+        goto label1;
+
+     label4:
+        if i19 != 200 goto label5;
+
+        $i4 = specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int nextLesserThan8Bits(int)>(2);
+
+        $r2 = <org.apache.pdfbox.filter.TIFFFaxDecoder: short[] twoBitBlack>;
+
+        s27 = $r2[$i4];
+
+        $i36 = (int) s27;
+
+        $i5 = $i36 >>> 5;
+
+        i28 = $i5 & 2047;
+
+        i16 = i16 + i28;
+
+        $i37 = (int) s27;
+
+        $i6 = $i37 >>> 1;
+
+        i29 = $i6 & 15;
+
+        $i7 = 2 - i29;
+
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void updatePointer(int)>($i7);
+
+        z0 = 1;
+
+        goto label1;
+
+     label5:
+        i16 = i16 + i19;
+
+        $i3 = 4 - i18;
+
+        specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: void updatePointer(int)>($i3);
+
+        z0 = 1;
+
+        goto label1;
+
+     label6:
+        return i16;
+    }
+
+    private int readEOL()
+    {
+        java.lang.RuntimeException $r1, $r2, $r3, $r4;
+        org.apache.pdfbox.filter.TIFFFaxDecoder r0;
+        int $i0, $i1, $i2, $i3, i4, $i5, $i6, $i7, $i8, $i9;
+
+        r0 := @this: org.apache.pdfbox.filter.TIFFFaxDecoder;
+
+        $i0 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int fillBits>;
+
+        if $i0 != 0 goto label1;
+
+        $i7 = specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int nextNBits(int)>(12);
+
+        if $i7 == 1 goto label4;
+
+        $r4 = new java.lang.RuntimeException;
+
+        specialinvoke $r4.<java.lang.RuntimeException: void <init>(java.lang.String)>("Scanline must begin with EOL.");
+
+        throw $r4;
+
+     label1:
+        $i1 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int fillBits>;
+
+        if $i1 != 1 goto label4;
+
+        $i3 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bitPointer>;
+
+        i4 = 8 - $i3;
+
+        $i5 = specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int nextNBits(int)>(i4);
+
+        if $i5 == 0 goto label2;
+
+        $r3 = new java.lang.RuntimeException;
+
+        specialinvoke $r3.<java.lang.RuntimeException: void <init>(java.lang.String)>("All fill bits preceding EOL code must be 0.");
+
+        throw $r3;
+
+     label2:
+        if i4 >= 4 goto label3;
+
+        $i6 = specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int nextNBits(int)>(8);
+
+        if $i6 == 0 goto label3;
+
+        $r2 = new java.lang.RuntimeException;
+
+        specialinvoke $r2.<java.lang.RuntimeException: void <init>(java.lang.String)>("All fill bits preceding EOL code must be 0.");
+
+        throw $r2;
+
+     label3:
+        $i8 = specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int nextNBits(int)>(8);
+
+        if $i8 == 1 goto label4;
+
+        if $i8 == 0 goto label3;
+
+        $r1 = new java.lang.RuntimeException;
+
+        specialinvoke $r1.<java.lang.RuntimeException: void <init>(java.lang.String)>("All fill bits preceding EOL code must be 0.");
+
+        throw $r1;
+
+     label4:
+        $i9 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int oneD>;
+
+        if $i9 != 0 goto label5;
+
+        return 1;
+
+     label5:
+        $i2 = specialinvoke r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int nextLesserThan8Bits(int)>(1);
+
+        return $i2;
+    }
+
+    private void getNextChangingElement(int, boolean, int[])
+    {
+        org.apache.pdfbox.filter.TIFFFaxDecoder r0;
+        int[] r1, r2;
+        int i0, $i1, $i2, $i3, $i4, i5, i6, $i7, $i8, i9, i10, $i12;
+        boolean z0;
+
+        r0 := @this: org.apache.pdfbox.filter.TIFFFaxDecoder;
+
+        i6 := @parameter0: int;
+
+        z0 := @parameter1: boolean;
+
+        r2 := @parameter2: int[];
+
+        r1 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int[] prevChangingElems>;
+
+        i0 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int changingElemSize>;
+
+        $i1 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int lastChangingElement>;
+
+        if $i1 <= 0 goto label1;
+
+        $i7 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int lastChangingElement>;
+
+        $i8 = $i7 - 1;
+
+        goto label2;
+
+     label1:
+        $i8 = 0;
+
+     label2:
+        if z0 == 0 goto label3;
+
+        $i12 = (int) -2;
+
+        i9 = $i8 & $i12;
+
+        goto label4;
+
+     label3:
+        i9 = $i8 | 1;
+
+     label4:
+        i10 = i9;
+
+     label5:
+        if i10 >= i0 goto label7;
+
+        i5 = r1[i10];
+
+        if i5 <= i6 goto label6;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int lastChangingElement> = i10;
+
+        r2[0] = i5;
+
+        goto label7;
+
+     label6:
+        i10 = i10 + 2;
+
+        goto label5;
+
+     label7:
+        $i2 = i10 + 1;
+
+        if $i2 >= i0 goto label8;
+
+        $i3 = i10 + 1;
+
+        $i4 = r1[$i3];
+
+        r2[1] = $i4;
+
+     label8:
+        return;
+    }
+
+    private int nextNBits(int)
+    {
+        byte[] $r1, $r3, $r4, $r5, $r6, $r7, $r8, $r12, $r13, $r14, $r15, $r16, $r17;
+        org.apache.pdfbox.filter.TIFFFaxDecoder r0;
+        byte $b5, $b9, $b12, $b33, b39, b40, b41;
+        short $s6, $s10, $s13, $s34, $s51, $s53, $s55, $s57;
+        java.lang.RuntimeException $r18;
+        int[] $r9, $r10, $r11;
+        int $i0, i1, i2, $i3, $i4, $i7, $i8, $i11, i14, $i15, $i16, $i17, $i18, $i19, $i20, $i21, $i22, $i23, $i24, $i25, $i26, $i27, $i28, $i29, $i30, $i31, $i32, $i35, $i36, $i37, $i38, $i42, $i43, $i44, i45, i46, i47, i48, i49, $i50, $i52, $i54, $i56, $i58, $i59;
+
+        r0 := @this: org.apache.pdfbox.filter.TIFFFaxDecoder;
+
+        i14 := @parameter0: int;
+
+        $r1 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: byte[] data>;
+
+        $i0 = lengthof $r1;
+
+        i1 = $i0 - 1;
+
+        i2 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bytePointer>;
+
+        $i3 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int fillOrder>;
+
+        if $i3 != 1 goto label03;
+
+        $r14 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: byte[] data>;
+
+        b39 = $r14[i2];
+
+        if i2 != i1 goto label01;
+
+        b40 = 0;
+
+        b41 = 0;
+
+        goto label07;
+
+     label01:
+        $i35 = i2 + 1;
+
+        if $i35 != i1 goto label02;
+
+        $r17 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: byte[] data>;
+
+        $i38 = i2 + 1;
+
+        b40 = $r17[$i38];
+
+        b41 = 0;
+
+        goto label07;
+
+     label02:
+        $r15 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: byte[] data>;
+
+        $i36 = i2 + 1;
+
+        b40 = $r15[$i36];
+
+        $r16 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: byte[] data>;
+
+        $i37 = i2 + 2;
+
+        b41 = $r16[$i37];
+
+        goto label07;
+
+     label03:
+        $i4 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int fillOrder>;
+
+        if $i4 != 2 goto label06;
+
+        $r4 = <org.apache.pdfbox.filter.TIFFFaxDecoder: byte[] flipTable>;
+
+        $r3 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: byte[] data>;
+
+        $b5 = $r3[i2];
+
+        $s51 = (short) $b5;
+
+        $s6 = $s51 & 255;
+
+        $i52 = (int) $s6;
+
+        b39 = $r4[$i52];
+
+        if i2 != i1 goto label04;
+
+        b40 = 0;
+
+        b41 = 0;
+
+        goto label07;
+
+     label04:
+        $i7 = i2 + 1;
+
+        if $i7 != i1 goto label05;
+
+        $r13 = <org.apache.pdfbox.filter.TIFFFaxDecoder: byte[] flipTable>;
+
+        $r12 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: byte[] data>;
+
+        $i32 = i2 + 1;
+
+        $b33 = $r12[$i32];
+
+        $s53 = (short) $b33;
+
+        $s34 = $s53 & 255;
+
+        $i54 = (int) $s34;
+
+        b40 = $r13[$i54];
+
+        b41 = 0;
+
+        goto label07;
+
+     label05:
+        $r6 = <org.apache.pdfbox.filter.TIFFFaxDecoder: byte[] flipTable>;
+
+        $r5 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: byte[] data>;
+
+        $i8 = i2 + 1;
+
+        $b9 = $r5[$i8];
+
+        $s55 = (short) $b9;
+
+        $s10 = $s55 & 255;
+
+        $i56 = (int) $s10;
+
+        b40 = $r6[$i56];
+
+        $r8 = <org.apache.pdfbox.filter.TIFFFaxDecoder: byte[] flipTable>;
+
+        $r7 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: byte[] data>;
+
+        $i11 = i2 + 2;
+
+        $b12 = $r7[$i11];
+
+        $s57 = (short) $b12;
+
+        $s13 = $s57 & 255;
+
+        $i58 = (int) $s13;
+
+        b41 = $r8[$i58];
+
+        goto label07;
+
+     label06:
+        $r18 = new java.lang.RuntimeException;
+
+        specialinvoke $r18.<java.lang.RuntimeException: void <init>(java.lang.String)>("TIFF_FILL_ORDER tag must be either 1 or 2.");
+
+        throw $r18;
+
+     label07:
+        $i42 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bitPointer>;
+
+        $i43 = 8 - $i42;
+
+        $i44 = i14 - $i43;
+
+        i45 = $i44;
+
+        i46 = 0;
+
+        if $i44 <= 8 goto label08;
+
+        i46 = $i44 - 8;
+
+        i45 = 8;
+
+     label08:
+        $i15 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bytePointer>;
+
+        $i16 = $i15 + 1;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bytePointer> = $i16;
+
+        $r9 = <org.apache.pdfbox.filter.TIFFFaxDecoder: int[] table1>;
+
+        $i17 = $r9[$i43];
+
+        $i59 = (int) b39;
+
+        $i19 = $i59 & $i17;
+
+        $i18 = i14 - $i43;
+
+        $i30 = $i19 << $i18;
+
+        $r10 = <org.apache.pdfbox.filter.TIFFFaxDecoder: int[] table2>;
+
+        $i20 = $r10[i45];
+
+        $i22 = b40 & $i20;
+
+        $i21 = 8 - i45;
+
+        $i31 = $i22 >>> $i21;
+
+        i47 = $i31;
+
+        if i46 == 0 goto label09;
+
+        i48 = $i31 << i46;
+
+        $r11 = <org.apache.pdfbox.filter.TIFFFaxDecoder: int[] table2>;
+
+        $i25 = $r11[i46];
+
+        $i27 = b41 & $i25;
+
+        $i26 = 8 - i46;
+
+        i49 = $i27 >>> $i26;
+
+        i47 = i48 | i49;
+
+        $i28 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bytePointer>;
+
+        $i29 = $i28 + 1;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bytePointer> = $i29;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bitPointer> = i46;
+
+        goto label11;
+
+     label09:
+        if i45 != 8 goto label10;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bitPointer> = 0;
+
+        $i23 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bytePointer>;
+
+        $i24 = $i23 + 1;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bytePointer> = $i24;
+
+        goto label11;
+
+     label10:
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bitPointer> = i45;
+
+     label11:
+        $i50 = $i30 | i47;
+
+        return $i50;
+    }
+
+    private int nextLesserThan8Bits(int)
+    {
+        byte[] $r1, $r3, $r4, $r5, $r6, $r10, $r11;
+        org.apache.pdfbox.filter.TIFFFaxDecoder r0;
+        byte $b5, $b8, b28, b29;
+        int[] $r7, $r8, $r9;
+        short $s6, $s9, $s36, $s38;
+        int $i0, i1, i2, $i3, $i4, $i7, i10, $i11, $i12, $i13, $i14, $i15, $i16, i17, $i18, $i19, $i20, $i21, $i22, $i23, $i24, $i25, $i26, $i27, $i30, $i31, $i32, $i33, i34, i35, $i37, $i39, $i40, $i41;
+        java.lang.RuntimeException $r12;
+
+        r0 := @this: org.apache.pdfbox.filter.TIFFFaxDecoder;
+
+        i10 := @parameter0: int;
+
+        $r1 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: byte[] data>;
+
+        $i0 = lengthof $r1;
+
+        i1 = $i0 - 1;
+
+        i2 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bytePointer>;
+
+        $i3 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int fillOrder>;
+
+        if $i3 != 1 goto label2;
+
+        $r10 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: byte[] data>;
+
+        b28 = $r10[i2];
+
+        if i2 != i1 goto label1;
+
+        b29 = 0;
+
+        goto label5;
+
+     label1:
+        $r11 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: byte[] data>;
+
+        $i27 = i2 + 1;
+
+        b29 = $r11[$i27];
+
+        goto label5;
+
+     label2:
+        $i4 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int fillOrder>;
+
+        if $i4 != 2 goto label4;
+
+        $r4 = <org.apache.pdfbox.filter.TIFFFaxDecoder: byte[] flipTable>;
+
+        $r3 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: byte[] data>;
+
+        $b5 = $r3[i2];
+
+        $s36 = (short) $b5;
+
+        $s6 = $s36 & 255;
+
+        $i37 = (int) $s6;
+
+        b28 = $r4[$i37];
+
+        if i2 != i1 goto label3;
+
+        b29 = 0;
+
+        goto label5;
+
+     label3:
+        $r6 = <org.apache.pdfbox.filter.TIFFFaxDecoder: byte[] flipTable>;
+
+        $r5 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: byte[] data>;
+
+        $i7 = i2 + 1;
+
+        $b8 = $r5[$i7];
+
+        $s38 = (short) $b8;
+
+        $s9 = $s38 & 255;
+
+        $i39 = (int) $s9;
+
+        b29 = $r6[$i39];
+
+        goto label5;
+
+     label4:
+        $r12 = new java.lang.RuntimeException;
+
+        specialinvoke $r12.<java.lang.RuntimeException: void <init>(java.lang.String)>("TIFF_FILL_ORDER tag must be either 1 or 2.");
+
+        throw $r12;
+
+     label5:
+        $i30 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bitPointer>;
+
+        $i31 = 8 - $i30;
+
+        $i32 = i10 - $i31;
+
+        $i33 = $i31 - i10;
+
+        if $i33 < 0 goto label6;
+
+        $r9 = <org.apache.pdfbox.filter.TIFFFaxDecoder: int[] table1>;
+
+        $i20 = $r9[$i31];
+
+        $i40 = (int) b28;
+
+        $i21 = $i40 & $i20;
+
+        i34 = $i21 >>> $i33;
+
+        $i22 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bitPointer>;
+
+        $i23 = $i22 + i10;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bitPointer> = $i23;
+
+        $i24 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bitPointer>;
+
+        if $i24 != 8 goto label7;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bitPointer> = 0;
+
+        $i25 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bytePointer>;
+
+        $i26 = $i25 + 1;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bytePointer> = $i26;
+
+        goto label7;
+
+     label6:
+        $r7 = <org.apache.pdfbox.filter.TIFFFaxDecoder: int[] table1>;
+
+        $i11 = $r7[$i31];
+
+        $i41 = (int) b28;
+
+        $i13 = $i41 & $i11;
+
+        $i12 = neg $i33;
+
+        i35 = $i13 << $i12;
+
+        $r8 = <org.apache.pdfbox.filter.TIFFFaxDecoder: int[] table2>;
+
+        $i14 = $r8[$i32];
+
+        $i16 = b29 & $i14;
+
+        $i15 = 8 - $i32;
+
+        i17 = $i16 >>> $i15;
+
+        i34 = i35 | i17;
+
+        $i18 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bytePointer>;
+
+        $i19 = $i18 + 1;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bytePointer> = $i19;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bitPointer> = $i32;
+
+     label7:
+        return i34;
+    }
+
+    private void updatePointer(int)
+    {
+        org.apache.pdfbox.filter.TIFFFaxDecoder r0;
+        int i0, $i1, i2, $i3, $i4, $i5;
+
+        r0 := @this: org.apache.pdfbox.filter.TIFFFaxDecoder;
+
+        i0 := @parameter0: int;
+
+        $i1 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bitPointer>;
+
+        i2 = $i1 - i0;
+
+        if i2 >= 0 goto label1;
+
+        $i3 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bytePointer>;
+
+        $i4 = $i3 - 1;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bytePointer> = $i4;
+
+        $i5 = 8 + i2;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bitPointer> = $i5;
+
+        goto label2;
+
+     label1:
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bitPointer> = i2;
+
+     label2:
+        return;
+    }
+
+    private boolean advancePointer()
+    {
+        org.apache.pdfbox.filter.TIFFFaxDecoder r0;
+        int $i0, $i1, $i2;
+
+        r0 := @this: org.apache.pdfbox.filter.TIFFFaxDecoder;
+
+        $i0 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bitPointer>;
+
+        if $i0 == 0 goto label1;
+
+        $i1 = r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bytePointer>;
+
+        $i2 = $i1 + 1;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bytePointer> = $i2;
+
+        r0.<org.apache.pdfbox.filter.TIFFFaxDecoder: int bitPointer> = 0;
+
+     label1:
+        return 1;
+    }
+
+    static void <clinit>()
+    {
+        byte[] $r2, $r8;
+        int[] $r0, $r1;
+        short[] $r3, $r4, $r5, $r6, $r7;
+
+        $r0 = newarray (int)[9];
+
+        $r0[0] = 0;
+
+        $r0[1] = 1;
+
+        $r0[2] = 3;
+
+        $r0[3] = 7;
+
+        $r0[4] = 15;
+
+        $r0[5] = 31;
+
+        $r0[6] = 63;
+
+        $r0[7] = 127;
+
+        $r0[8] = 255;
+
+        <org.apache.pdfbox.filter.TIFFFaxDecoder: int[] table1> = $r0;
+
+        $r1 = newarray (int)[9];
+
+        $r1[0] = 0;
+
+        $r1[1] = 128;
+
+        $r1[2] = 192;
+
+        $r1[3] = 224;
+
+        $r1[4] = 240;
+
+        $r1[5] = 248;
+
+        $r1[6] = 252;
+
+        $r1[7] = 254;
+
+        $r1[8] = 255;
+
+        <org.apache.pdfbox.filter.TIFFFaxDecoder: int[] table2> = $r1;
+
+        $r2 = newarray (byte)[256];
+
+        $r2[0] = 0;
+
+        $r2[1] = -128;
+
+        $r2[2] = 64;
+
+        $r2[3] = -64;
+
+        $r2[4] = 32;
+
+        $r2[5] = -96;
+
+        $r2[6] = 96;
+
+        $r2[7] = -32;
+
+        $r2[8] = 16;
+
+        $r2[9] = -112;
+
+        $r2[10] = 80;
+
+        $r2[11] = -48;
+
+        $r2[12] = 48;
+
+        $r2[13] = -80;
+
+        $r2[14] = 112;
+
+        $r2[15] = -16;
+
+        $r2[16] = 8;
+
+        $r2[17] = -120;
+
+        $r2[18] = 72;
+
+        $r2[19] = -56;
+
+        $r2[20] = 40;
+
+        $r2[21] = -88;
+
+        $r2[22] = 104;
+
+        $r2[23] = -24;
+
+        $r2[24] = 24;
+
+        $r2[25] = -104;
+
+        $r2[26] = 88;
+
+        $r2[27] = -40;
+
+        $r2[28] = 56;
+
+        $r2[29] = -72;
+
+        $r2[30] = 120;
+
+        $r2[31] = -8;
+
+        $r2[32] = 4;
+
+        $r2[33] = -124;
+
+        $r2[34] = 68;
+
+        $r2[35] = -60;
+
+        $r2[36] = 36;
+
+        $r2[37] = -92;
+
+        $r2[38] = 100;
+
+        $r2[39] = -28;
+
+        $r2[40] = 20;
+
+        $r2[41] = -108;
+
+        $r2[42] = 84;
+
+        $r2[43] = -44;
+
+        $r2[44] = 52;
+
+        $r2[45] = -76;
+
+        $r2[46] = 116;
+
+        $r2[47] = -12;
+
+        $r2[48] = 12;
+
+        $r2[49] = -116;
+
+        $r2[50] = 76;
+
+        $r2[51] = -52;
+
+        $r2[52] = 44;
+
+        $r2[53] = -84;
+
+        $r2[54] = 108;
+
+        $r2[55] = -20;
+
+        $r2[56] = 28;
+
+        $r2[57] = -100;
+
+        $r2[58] = 92;
+
+        $r2[59] = -36;
+
+        $r2[60] = 60;
+
+        $r2[61] = -68;
+
+        $r2[62] = 124;
+
+        $r2[63] = -4;
+
+        $r2[64] = 2;
+
+        $r2[65] = -126;
+
+        $r2[66] = 66;
+
+        $r2[67] = -62;
+
+        $r2[68] = 34;
+
+        $r2[69] = -94;
+
+        $r2[70] = 98;
+
+        $r2[71] = -30;
+
+        $r2[72] = 18;
+
+        $r2[73] = -110;
+
+        $r2[74] = 82;
+
+        $r2[75] = -46;
+
+        $r2[76] = 50;
+
+        $r2[77] = -78;
+
+        $r2[78] = 114;
+
+        $r2[79] = -14;
+
+        $r2[80] = 10;
+
+        $r2[81] = -118;
+
+        $r2[82] = 74;
+
+        $r2[83] = -54;
+
+        $r2[84] = 42;
+
+        $r2[85] = -86;
+
+        $r2[86] = 106;
+
+        $r2[87] = -22;
+
+        $r2[88] = 26;
+
+        $r2[89] = -102;
+
+        $r2[90] = 90;
+
+        $r2[91] = -38;
+
+        $r2[92] = 58;
+
+        $r2[93] = -70;
+
+        $r2[94] = 122;
+
+        $r2[95] = -6;
+
+        $r2[96] = 6;
+
+        $r2[97] = -122;
+
+        $r2[98] = 70;
+
+        $r2[99] = -58;
+
+        $r2[100] = 38;
+
+        $r2[101] = -90;
+
+        $r2[102] = 102;
+
+        $r2[103] = -26;
+
+        $r2[104] = 22;
+
+        $r2[105] = -106;
+
+        $r2[106] = 86;
+
+        $r2[107] = -42;
+
+        $r2[108] = 54;
+
+        $r2[109] = -74;
+
+        $r2[110] = 118;
+
+        $r2[111] = -10;
+
+        $r2[112] = 14;
+
+        $r2[113] = -114;
+
+        $r2[114] = 78;
+
+        $r2[115] = -50;
+
+        $r2[116] = 46;
+
+        $r2[117] = -82;
+
+        $r2[118] = 110;
+
+        $r2[119] = -18;
+
+        $r2[120] = 30;
+
+        $r2[121] = -98;
+
+        $r2[122] = 94;
+
+        $r2[123] = -34;
+
+        $r2[124] = 62;
+
+        $r2[125] = -66;
+
+        $r2[126] = 126;
+
+        $r2[127] = -2;
+
+        $r2[128] = 1;
+
+        $r2[129] = -127;
+
+        $r2[130] = 65;
+
+        $r2[131] = -63;
+
+        $r2[132] = 33;
+
+        $r2[133] = -95;
+
+        $r2[134] = 97;
+
+        $r2[135] = -31;
+
+        $r2[136] = 17;
+
+        $r2[137] = -111;
+
+        $r2[138] = 81;
+
+        $r2[139] = -47;
+
+        $r2[140] = 49;
+
+        $r2[141] = -79;
+
+        $r2[142] = 113;
+
+        $r2[143] = -15;
+
+        $r2[144] = 9;
+
+        $r2[145] = -119;
+
+        $r2[146] = 73;
+
+        $r2[147] = -55;
+
+        $r2[148] = 41;
+
+        $r2[149] = -87;
+
+        $r2[150] = 105;
+
+        $r2[151] = -23;
+
+        $r2[152] = 25;
+
+        $r2[153] = -103;
+
+        $r2[154] = 89;
+
+        $r2[155] = -39;
+
+        $r2[156] = 57;
+
+        $r2[157] = -71;
+
+        $r2[158] = 121;
+
+        $r2[159] = -7;
+
+        $r2[160] = 5;
+
+        $r2[161] = -123;
+
+        $r2[162] = 69;
+
+        $r2[163] = -59;
+
+        $r2[164] = 37;
+
+        $r2[165] = -91;
+
+        $r2[166] = 101;
+
+        $r2[167] = -27;
+
+        $r2[168] = 21;
+
+        $r2[169] = -107;
+
+        $r2[170] = 85;
+
+        $r2[171] = -43;
+
+        $r2[172] = 53;
+
+        $r2[173] = -75;
+
+        $r2[174] = 117;
+
+        $r2[175] = -11;
+
+        $r2[176] = 13;
+
+        $r2[177] = -115;
+
+        $r2[178] = 77;
+
+        $r2[179] = -51;
+
+        $r2[180] = 45;
+
+        $r2[181] = -83;
+
+        $r2[182] = 109;
+
+        $r2[183] = -19;
+
+        $r2[184] = 29;
+
+        $r2[185] = -99;
+
+        $r2[186] = 93;
+
+        $r2[187] = -35;
+
+        $r2[188] = 61;
+
+        $r2[189] = -67;
+
+        $r2[190] = 125;
+
+        $r2[191] = -3;
+
+        $r2[192] = 3;
+
+        $r2[193] = -125;
+
+        $r2[194] = 67;
+
+        $r2[195] = -61;
+
+        $r2[196] = 35;
+
+        $r2[197] = -93;
+
+        $r2[198] = 99;
+
+        $r2[199] = -29;
+
+        $r2[200] = 19;
+
+        $r2[201] = -109;
+
+        $r2[202] = 83;
+
+        $r2[203] = -45;
+
+        $r2[204] = 51;
+
+        $r2[205] = -77;
+
+        $r2[206] = 115;
+
+        $r2[207] = -13;
+
+        $r2[208] = 11;
+
+        $r2[209] = -117;
+
+        $r2[210] = 75;
+
+        $r2[211] = -53;
+
+        $r2[212] = 43;
+
+        $r2[213] = -85;
+
+        $r2[214] = 107;
+
+        $r2[215] = -21;
+
+        $r2[216] = 27;
+
+        $r2[217] = -101;
+
+        $r2[218] = 91;
+
+        $r2[219] = -37;
+
+        $r2[220] = 59;
+
+        $r2[221] = -69;
+
+        $r2[222] = 123;
+
+        $r2[223] = -5;
+
+        $r2[224] = 7;
+
+        $r2[225] = -121;
+
+        $r2[226] = 71;
+
+        $r2[227] = -57;
+
+        $r2[228] = 39;
+
+        $r2[229] = -89;
+
+        $r2[230] = 103;
+
+        $r2[231] = -25;
+
+        $r2[232] = 23;
+
+        $r2[233] = -105;
+
+        $r2[234] = 87;
+
+        $r2[235] = -41;
+
+        $r2[236] = 55;
+
+        $r2[237] = -73;
+
+        $r2[238] = 119;
+
+        $r2[239] = -9;
+
+        $r2[240] = 15;
+
+        $r2[241] = -113;
+
+        $r2[242] = 79;
+
+        $r2[243] = -49;
+
+        $r2[244] = 47;
+
+        $r2[245] = -81;
+
+        $r2[246] = 111;
+
+        $r2[247] = -17;
+
+        $r2[248] = 31;
+
+        $r2[249] = -97;
+
+        $r2[250] = 95;
+
+        $r2[251] = -33;
+
+        $r2[252] = 63;
+
+        $r2[253] = -65;
+
+        $r2[254] = 127;
+
+        $r2[255] = -1;
+
+        <org.apache.pdfbox.filter.TIFFFaxDecoder: byte[] flipTable> = $r2;
+
+        $r3 = newarray (short)[1024];
+
+        $r3[0] = 6430;
+
+        $r3[1] = 6400;
+
+        $r3[2] = 6400;
+
+        $r3[3] = 6400;
+
+        $r3[4] = 3225;
+
+        $r3[5] = 3225;
+
+        $r3[6] = 3225;
+
+        $r3[7] = 3225;
+
+        $r3[8] = 944;
+
+        $r3[9] = 944;
+
+        $r3[10] = 944;
+
+        $r3[11] = 944;
+
+        $r3[12] = 976;
+
+        $r3[13] = 976;
+
+        $r3[14] = 976;
+
+        $r3[15] = 976;
+
+        $r3[16] = 1456;
+
+        $r3[17] = 1456;
+
+        $r3[18] = 1456;
+
+        $r3[19] = 1456;
+
+        $r3[20] = 1488;
+
+        $r3[21] = 1488;
+
+        $r3[22] = 1488;
+
+        $r3[23] = 1488;
+
+        $r3[24] = 718;
+
+        $r3[25] = 718;
+
+        $r3[26] = 718;
+
+        $r3[27] = 718;
+
+        $r3[28] = 718;
+
+        $r3[29] = 718;
+
+        $r3[30] = 718;
+
+        $r3[31] = 718;
+
+        $r3[32] = 750;
+
+        $r3[33] = 750;
+
+        $r3[34] = 750;
+
+        $r3[35] = 750;
+
+        $r3[36] = 750;
+
+        $r3[37] = 750;
+
+        $r3[38] = 750;
+
+        $r3[39] = 750;
+
+        $r3[40] = 1520;
+
+        $r3[41] = 1520;
+
+        $r3[42] = 1520;
+
+        $r3[43] = 1520;
+
+        $r3[44] = 1552;
+
+        $r3[45] = 1552;
+
+        $r3[46] = 1552;
+
+        $r3[47] = 1552;
+
+        $r3[48] = 428;
+
+        $r3[49] = 428;
+
+        $r3[50] = 428;
+
+        $r3[51] = 428;
+
+        $r3[52] = 428;
+
+        $r3[53] = 428;
+
+        $r3[54] = 428;
+
+        $r3[55] = 428;
+
+        $r3[56] = 428;
+
+        $r3[57] = 428;
+
+        $r3[58] = 428;
+
+        $r3[59] = 428;
+
+        $r3[60] = 428;
+
+        $r3[61] = 428;
+
+        $r3[62] = 428;
+
+        $r3[63] = 428;
+
+        $r3[64] = 654;
+
+        $r3[65] = 654;
+
+        $r3[66] = 654;
+
+        $r3[67] = 654;
+
+        $r3[68] = 654;
+
+        $r3[69] = 654;
+
+        $r3[70] = 654;
+
+        $r3[71] = 654;
+
+        $r3[72] = 1072;
+
+        $r3[73] = 1072;
+
+        $r3[74] = 1072;
+
+        $r3[75] = 1072;
+
+        $r3[76] = 1104;
+
+        $r3[77] = 1104;
+
+        $r3[78] = 1104;
+
+        $r3[79] = 1104;
+
+        $r3[80] = 1136;
+
+        $r3[81] = 1136;
+
+        $r3[82] = 1136;
+
+        $r3[83] = 1136;
+
+        $r3[84] = 1168;
+
+        $r3[85] = 1168;
+
+        $r3[86] = 1168;
+
+        $r3[87] = 1168;
+
+        $r3[88] = 1200;
+
+        $r3[89] = 1200;
+
+        $r3[90] = 1200;
+
+        $r3[91] = 1200;
+
+        $r3[92] = 1232;
+
+        $r3[93] = 1232;
+
+        $r3[94] = 1232;
+
+        $r3[95] = 1232;
+
+        $r3[96] = 622;
+
+        $r3[97] = 622;
+
+        $r3[98] = 622;
+
+        $r3[99] = 622;
+
+        $r3[100] = 622;
+
+        $r3[101] = 622;
+
+        $r3[102] = 622;
+
+        $r3[103] = 622;
+
+        $r3[104] = 1008;
+
+        $r3[105] = 1008;
+
+        $r3[106] = 1008;
+
+        $r3[107] = 1008;
+
+        $r3[108] = 1040;
+
+        $r3[109] = 1040;
+
+        $r3[110] = 1040;
+
+        $r3[111] = 1040;
+
+        $r3[112] = 44;
+
+        $r3[113] = 44;
+
+        $r3[114] = 44;
+
+        $r3[115] = 44;
+
+        $r3[116] = 44;
+
+        $r3[117] = 44;
+
+        $r3[118] = 44;
+
+        $r3[119] = 44;
+
+        $r3[120] = 44;
+
+        $r3[121] = 44;
+
+        $r3[122] = 44;
+
+        $r3[123] = 44;
+
+        $r3[124] = 44;
+
+        $r3[125] = 44;
+
+        $r3[126] = 44;
+
+        $r3[127] = 44;
+
+        $r3[128] = 396;
+
+        $r3[129] = 396;
+
+        $r3[130] = 396;
+
+        $r3[131] = 396;
+
+        $r3[132] = 396;
+
+        $r3[133] = 396;
+
+        $r3[134] = 396;
+
+        $r3[135] = 396;
+
+        $r3[136] = 396;
+
+        $r3[137] = 396;
+
+        $r3[138] = 396;
+
+        $r3[139] = 396;
+
+        $r3[140] = 396;
+
+        $r3[141] = 396;
+
+        $r3[142] = 396;
+
+        $r3[143] = 396;
+
+        $r3[144] = 1712;
+
+        $r3[145] = 1712;
+
+        $r3[146] = 1712;
+
+        $r3[147] = 1712;
+
+        $r3[148] = 1744;
+
+        $r3[149] = 1744;
+
+        $r3[150] = 1744;
+
+        $r3[151] = 1744;
+
+        $r3[152] = 846;
+
+        $r3[153] = 846;
+
+        $r3[154] = 846;
+
+        $r3[155] = 846;
+
+        $r3[156] = 846;
+
+        $r3[157] = 846;
+
+        $r3[158] = 846;
+
+        $r3[159] = 846;
+
+        $r3[160] = 1264;
+
+        $r3[161] = 1264;
+
+        $r3[162] = 1264;
+
+        $r3[163] = 1264;
+
+        $r3[164] = 1296;
+
+        $r3[165] = 1296;
+
+        $r3[166] = 1296;
+
+        $r3[167] = 1296;
+
+        $r3[168] = 1328;
+
+        $r3[169] = 1328;
+
+        $r3[170] = 1328;
+
+        $r3[171] = 1328;
+
+        $r3[172] = 1360;
+
+        $r3[173] = 1360;
+
+        $r3[174] = 1360;
+
+        $r3[175] = 1360;
+
+        $r3[176] = 1392;
+
+        $r3[177] = 1392;
+
+        $r3[178] = 1392;
+
+        $r3[179] = 1392;
+
+        $r3[180] = 1424;
+
+        $r3[181] = 1424;
+
+        $r3[182] = 1424;
+
+        $r3[183] = 1424;
+
+        $r3[184] = 686;
+
+        $r3[185] = 686;
+
+        $r3[186] = 686;
+
+        $r3[187] = 686;
+
+        $r3[188] = 686;
+
+        $r3[189] = 686;
+
+        $r3[190] = 686;
+
+        $r3[191] = 686;
+
+        $r3[192] = 910;
+
+        $r3[193] = 910;
+
+        $r3[194] = 910;
+
+        $r3[195] = 910;
+
+        $r3[196] = 910;
+
+        $r3[197] = 910;
+
+        $r3[198] = 910;
+
+        $r3[199] = 910;
+
+        $r3[200] = 1968;
+
+        $r3[201] = 1968;
+
+        $r3[202] = 1968;
+
+        $r3[203] = 1968;
+
+        $r3[204] = 2000;
+
+        $r3[205] = 2000;
+
+        $r3[206] = 2000;
+
+        $r3[207] = 2000;
+
+        $r3[208] = 2032;
+
+        $r3[209] = 2032;
+
+        $r3[210] = 2032;
+
+        $r3[211] = 2032;
+
+        $r3[212] = 16;
+
+        $r3[213] = 16;
+
+        $r3[214] = 16;
+
+        $r3[215] = 16;
+
+        $r3[216] = 10257;
+
+        $r3[217] = 10257;
+
+        $r3[218] = 10257;
+
+        $r3[219] = 10257;
+
+        $r3[220] = 12305;
+
+        $r3[221] = 12305;
+
+        $r3[222] = 12305;
+
+        $r3[223] = 12305;
+
+        $r3[224] = 330;
+
+        $r3[225] = 330;
+
+        $r3[226] = 330;
+
+        $r3[227] = 330;
+
+        $r3[228] = 330;
+
+        $r3[229] = 330;
+
+        $r3[230] = 330;
+
+        $r3[231] = 330;
+
+        $r3[232] = 330;
+
+        $r3[233] = 330;
+
+        $r3[234] = 330;
+
+        $r3[235] = 330;
+
+        $r3[236] = 330;
+
+        $r3[237] = 330;
+
+        $r3[238] = 330;
+
+        $r3[239] = 330;
+
+        $r3[240] = 330;
+
+        $r3[241] = 330;
+
+        $r3[242] = 330;
+
+        $r3[243] = 330;
+
+        $r3[244] = 330;
+
+        $r3[245] = 330;
+
+        $r3[246] = 330;
+
+        $r3[247] = 330;
+
+        $r3[248] = 330;
+
+        $r3[249] = 330;
+
+        $r3[250] = 330;
+
+        $r3[251] = 330;
+
+        $r3[252] = 330;
+
+        $r3[253] = 330;
+
+        $r3[254] = 330;
+
+        $r3[255] = 330;
+
+        $r3[256] = 362;
+
+        $r3[257] = 362;
+
+        $r3[258] = 362;
+
+        $r3[259] = 362;
+
+        $r3[260] = 362;
+
+        $r3[261] = 362;
+
+        $r3[262] = 362;
+
+        $r3[263] = 362;
+
+        $r3[264] = 362;
+
+        $r3[265] = 362;
+
+        $r3[266] = 362;
+
+        $r3[267] = 362;
+
+        $r3[268] = 362;
+
+        $r3[269] = 362;
+
+        $r3[270] = 362;
+
+        $r3[271] = 362;
+
+        $r3[272] = 362;
+
+        $r3[273] = 362;
+
+        $r3[274] = 362;
+
+        $r3[275] = 362;
+
+        $r3[276] = 362;
+
+        $r3[277] = 362;
+
+        $r3[278] = 362;
+
+        $r3[279] = 362;
+
+        $r3[280] = 362;
+
+        $r3[281] = 362;
+
+        $r3[282] = 362;
+
+        $r3[283] = 362;
+
+        $r3[284] = 362;
+
+        $r3[285] = 362;
+
+        $r3[286] = 362;
+
+        $r3[287] = 362;
+
+        $r3[288] = 878;
+
+        $r3[289] = 878;
+
+        $r3[290] = 878;
+
+        $r3[291] = 878;
+
+        $r3[292] = 878;
+
+        $r3[293] = 878;
+
+        $r3[294] = 878;
+
+        $r3[295] = 878;
+
+        $r3[296] = 1904;
+
+        $r3[297] = 1904;
+
+        $r3[298] = 1904;
+
+        $r3[299] = 1904;
+
+        $r3[300] = 1936;
+
+        $r3[301] = 1936;
+
+        $r3[302] = 1936;
+
+        $r3[303] = 1936;
+
+        $r3[304] = -18413;
+
+        $r3[305] = -18413;
+
+        $r3[306] = -16365;
+
+        $r3[307] = -16365;
+
+        $r3[308] = -14317;
+
+        $r3[309] = -14317;
+
+        $r3[310] = -10221;
+
+        $r3[311] = -10221;
+
+        $r3[312] = 590;
+
+        $r3[313] = 590;
+
+        $r3[314] = 590;
+
+        $r3[315] = 590;
+
+        $r3[316] = 590;
+
+        $r3[317] = 590;
+
+        $r3[318] = 590;
+
+        $r3[319] = 590;
+
+        $r3[320] = 782;
+
+        $r3[321] = 782;
+
+        $r3[322] = 782;
+
+        $r3[323] = 782;
+
+        $r3[324] = 782;
+
+        $r3[325] = 782;
+
+        $r3[326] = 782;
+
+        $r3[327] = 782;
+
+        $r3[328] = 1584;
+
+        $r3[329] = 1584;
+
+        $r3[330] = 1584;
+
+        $r3[331] = 1584;
+
+        $r3[332] = 1616;
+
+        $r3[333] = 1616;
+
+        $r3[334] = 1616;
+
+        $r3[335] = 1616;
+
+        $r3[336] = 1648;
+
+        $r3[337] = 1648;
+
+        $r3[338] = 1648;
+
+        $r3[339] = 1648;
+
+        $r3[340] = 1680;
+
+        $r3[341] = 1680;
+
+        $r3[342] = 1680;
+
+        $r3[343] = 1680;
+
+        $r3[344] = 814;
+
+        $r3[345] = 814;
+
+        $r3[346] = 814;
+
+        $r3[347] = 814;
+
+        $r3[348] = 814;
+
+        $r3[349] = 814;
+
+        $r3[350] = 814;
+
+        $r3[351] = 814;
+
+        $r3[352] = 1776;
+
+        $r3[353] = 1776;
+
+        $r3[354] = 1776;
+
+        $r3[355] = 1776;
+
+        $r3[356] = 1808;
+
+        $r3[357] = 1808;
+
+        $r3[358] = 1808;
+
+        $r3[359] = 1808;
+
+        $r3[360] = 1840;
+
+        $r3[361] = 1840;
+
+        $r3[362] = 1840;
+
+        $r3[363] = 1840;
+
+        $r3[364] = 1872;
+
+        $r3[365] = 1872;
+
+        $r3[366] = 1872;
+
+        $r3[367] = 1872;
+
+        $r3[368] = 6157;
+
+        $r3[369] = 6157;
+
+        $r3[370] = 6157;
+
+        $r3[371] = 6157;
+
+        $r3[372] = 6157;
+
+        $r3[373] = 6157;
+
+        $r3[374] = 6157;
+
+        $r3[375] = 6157;
+
+        $r3[376] = 6157;
+
+        $r3[377] = 6157;
+
+        $r3[378] = 6157;
+
+        $r3[379] = 6157;
+
+        $r3[380] = 6157;
+
+        $r3[381] = 6157;
+
+        $r3[382] = 6157;
+
+        $r3[383] = 6157;
+
+        $r3[384] = -12275;
+
+        $r3[385] = -12275;
+
+        $r3[386] = -12275;
+
+        $r3[387] = -12275;
+
+        $r3[388] = -12275;
+
+        $r3[389] = -12275;
+
+        $r3[390] = -12275;
+
+        $r3[391] = -12275;
+
+        $r3[392] = -12275;
+
+        $r3[393] = -12275;
+
+        $r3[394] = -12275;
+
+        $r3[395] = -12275;
+
+        $r3[396] = -12275;
+
+        $r3[397] = -12275;
+
+        $r3[398] = -12275;
+
+        $r3[399] = -12275;
+
+        $r3[400] = 14353;
+
+        $r3[401] = 14353;
+
+        $r3[402] = 14353;
+
+        $r3[403] = 14353;
+
+        $r3[404] = 16401;
+
+        $r3[405] = 16401;
+
+        $r3[406] = 16401;
+
+        $r3[407] = 16401;
+
+        $r3[408] = 22547;
+
+        $r3[409] = 22547;
+
+        $r3[410] = 24595;
+
+        $r3[411] = 24595;
+
+        $r3[412] = 20497;
+
+        $r3[413] = 20497;
+
+        $r3[414] = 20497;
+
+        $r3[415] = 20497;
+
+        $r3[416] = 18449;
+
+        $r3[417] = 18449;
+
+        $r3[418] = 18449;
+
+        $r3[419] = 18449;
+
+        $r3[420] = 26643;
+
+        $r3[421] = 26643;
+
+        $r3[422] = 28691;
+
+        $r3[423] = 28691;
+
+        $r3[424] = 30739;
+
+        $r3[425] = 30739;
+
+        $r3[426] = -32749;
+
+        $r3[427] = -32749;
+
+        $r3[428] = -30701;
+
+        $r3[429] = -30701;
+
+        $r3[430] = -28653;
+
+        $r3[431] = -28653;
+
+        $r3[432] = -26605;
+
+        $r3[433] = -26605;
+
+        $r3[434] = -24557;
+
+        $r3[435] = -24557;
+
+        $r3[436] = -22509;
+
+        $r3[437] = -22509;
+
+        $r3[438] = -20461;
+
+        $r3[439] = -20461;
+
+        $r3[440] = 8207;
+
+        $r3[441] = 8207;
+
+        $r3[442] = 8207;
+
+        $r3[443] = 8207;
+
+        $r3[444] = 8207;
+
+        $r3[445] = 8207;
+
+        $r3[446] = 8207;
+
+        $r3[447] = 8207;
+
+        $r3[448] = 72;
+
+        $r3[449] = 72;
+
+        $r3[450] = 72;
+
+        $r3[451] = 72;
+
+        $r3[452] = 72;
+
+        $r3[453] = 72;
+
+        $r3[454] = 72;
+
+        $r3[455] = 72;
+
+        $r3[456] = 72;
+
+        $r3[457] = 72;
+
+        $r3[458] = 72;
+
+        $r3[459] = 72;
+
+        $r3[460] = 72;
+
+        $r3[461] = 72;
+
+        $r3[462] = 72;
+
+        $r3[463] = 72;
+
+        $r3[464] = 72;
+
+        $r3[465] = 72;
+
+        $r3[466] = 72;
+
+        $r3[467] = 72;
+
+        $r3[468] = 72;
+
+        $r3[469] = 72;
+
+        $r3[470] = 72;
+
+        $r3[471] = 72;
+
+        $r3[472] = 72;
+
+        $r3[473] = 72;
+
+        $r3[474] = 72;
+
+        $r3[475] = 72;
+
+        $r3[476] = 72;
+
+        $r3[477] = 72;
+
+        $r3[478] = 72;
+
+        $r3[479] = 72;
+
+        $r3[480] = 72;
+
+        $r3[481] = 72;
+
+        $r3[482] = 72;
+
+        $r3[483] = 72;
+
+        $r3[484] = 72;
+
+        $r3[485] = 72;
+
+        $r3[486] = 72;
+
+        $r3[487] = 72;
+
+        $r3[488] = 72;
+
+        $r3[489] = 72;
+
+        $r3[490] = 72;
+
+        $r3[491] = 72;
+
+        $r3[492] = 72;
+
+        $r3[493] = 72;
+
+        $r3[494] = 72;
+
+        $r3[495] = 72;
+
+        $r3[496] = 72;
+
+        $r3[497] = 72;
+
+        $r3[498] = 72;
+
+        $r3[499] = 72;
+
+        $r3[500] = 72;
+
+        $r3[501] = 72;
+
+        $r3[502] = 72;
+
+        $r3[503] = 72;
+
+        $r3[504] = 72;
+
+        $r3[505] = 72;
+
+        $r3[506] = 72;
+
+        $r3[507] = 72;
+
+        $r3[508] = 72;
+
+        $r3[509] = 72;
+
+        $r3[510] = 72;
+
+        $r3[511] = 72;
+
+        $r3[512] = 104;
+
+        $r3[513] = 104;
+
+        $r3[514] = 104;
+
+        $r3[515] = 104;
+
+        $r3[516] = 104;
+
+        $r3[517] = 104;
+
+        $r3[518] = 104;
+
+        $r3[519] = 104;
+
+        $r3[520] = 104;
+
+        $r3[521] = 104;
+
+        $r3[522] = 104;
+
+        $r3[523] = 104;
+
+        $r3[524] = 104;
+
+        $r3[525] = 104;
+
+        $r3[526] = 104;
+
+        $r3[527] = 104;
+
+        $r3[528] = 104;
+
+        $r3[529] = 104;
+
+        $r3[530] = 104;
+
+        $r3[531] = 104;
+
+        $r3[532] = 104;
+
+        $r3[533] = 104;
+
+        $r3[534] = 104;
+
+        $r3[535] = 104;
+
+        $r3[536] = 104;
+
+        $r3[537] = 104;
+
+        $r3[538] = 104;
+
+        $r3[539] = 104;
+
+        $r3[540] = 104;
+
+        $r3[541] = 104;
+
+        $r3[542] = 104;
+
+        $r3[543] = 104;
+
+        $r3[544] = 104;
+
+        $r3[545] = 104;
+
+        $r3[546] = 104;
+
+        $r3[547] = 104;
+
+        $r3[548] = 104;
+
+        $r3[549] = 104;
+
+        $r3[550] = 104;
+
+        $r3[551] = 104;
+
+        $r3[552] = 104;
+
+        $r3[553] = 104;
+
+        $r3[554] = 104;
+
+        $r3[555] = 104;
+
+        $r3[556] = 104;
+
+        $r3[557] = 104;
+
+        $r3[558] = 104;
+
+        $r3[559] = 104;
+
+        $r3[560] = 104;
+
+        $r3[561] = 104;
+
+        $r3[562] = 104;
+
+        $r3[563] = 104;
+
+        $r3[564] = 104;
+
+        $r3[565] = 104;
+
+        $r3[566] = 104;
+
+        $r3[567] = 104;
+
+        $r3[568] = 104;
+
+        $r3[569] = 104;
+
+        $r3[570] = 104;
+
+        $r3[571] = 104;
+
+        $r3[572] = 104;
+
+        $r3[573] = 104;
+
+        $r3[574] = 104;
+
+        $r3[575] = 104;
+
+        $r3[576] = 4107;
+
+        $r3[577] = 4107;
+
+        $r3[578] = 4107;
+
+        $r3[579] = 4107;
+
+        $r3[580] = 4107;
+
+        $r3[581] = 4107;
+
+        $r3[582] = 4107;
+
+        $r3[583] = 4107;
+
+        $r3[584] = 4107;
+
+        $r3[585] = 4107;
+
+        $r3[586] = 4107;
+
+        $r3[587] = 4107;
+
+        $r3[588] = 4107;
+
+        $r3[589] = 4107;
+
+        $r3[590] = 4107;
+
+        $r3[591] = 4107;
+
+        $r3[592] = 4107;
+
+        $r3[593] = 4107;
+
+        $r3[594] = 4107;
+
+        $r3[595] = 4107;
+
+        $r3[596] = 4107;
+
+        $r3[597] = 4107;
+
+        $r3[598] = 4107;
+
+        $r3[599] = 4107;
+
+        $r3[600] = 4107;
+
+        $r3[601] = 4107;
+
+        $r3[602] = 4107;
+
+        $r3[603] = 4107;
+
+        $r3[604] = 4107;
+
+        $r3[605] = 4107;
+
+        $r3[606] = 4107;
+
+        $r3[607] = 4107;
+
+        $r3[608] = 266;
+
+        $r3[609] = 266;
+
+        $r3[610] = 266;
+
+        $r3[611] = 266;
+
+        $r3[612] = 266;
+
+        $r3[613] = 266;
+
+        $r3[614] = 266;
+
+        $r3[615] = 266;
+
+        $r3[616] = 266;
+
+        $r3[617] = 266;
+
+        $r3[618] = 266;
+
+        $r3[619] = 266;
+
+        $r3[620] = 266;
+
+        $r3[621] = 266;
+
+        $r3[622] = 266;
+
+        $r3[623] = 266;
+
+        $r3[624] = 266;
+
+        $r3[625] = 266;
+
+        $r3[626] = 266;
+
+        $r3[627] = 266;
+
+        $r3[628] = 266;
+
+        $r3[629] = 266;
+
+        $r3[630] = 266;
+
+        $r3[631] = 266;
+
+        $r3[632] = 266;
+
+        $r3[633] = 266;
+
+        $r3[634] = 266;
+
+        $r3[635] = 266;
+
+        $r3[636] = 266;
+
+        $r3[637] = 266;
+
+        $r3[638] = 266;
+
+        $r3[639] = 266;
+
+        $r3[640] = 298;
+
+        $r3[641] = 298;
+
+        $r3[642] = 298;
+
+        $r3[643] = 298;
+
+        $r3[644] = 298;
+
+        $r3[645] = 298;
+
+        $r3[646] = 298;
+
+        $r3[647] = 298;
+
+        $r3[648] = 298;
+
+        $r3[649] = 298;
+
+        $r3[650] = 298;
+
+        $r3[651] = 298;
+
+        $r3[652] = 298;
+
+        $r3[653] = 298;
+
+        $r3[654] = 298;
+
+        $r3[655] = 298;
+
+        $r3[656] = 298;
+
+        $r3[657] = 298;
+
+        $r3[658] = 298;
+
+        $r3[659] = 298;
+
+        $r3[660] = 298;
+
+        $r3[661] = 298;
+
+        $r3[662] = 298;
+
+        $r3[663] = 298;
+
+        $r3[664] = 298;
+
+        $r3[665] = 298;
+
+        $r3[666] = 298;
+
+        $r3[667] = 298;
+
+        $r3[668] = 298;
+
+        $r3[669] = 298;
+
+        $r3[670] = 298;
+
+        $r3[671] = 298;
+
+        $r3[672] = 524;
+
+        $r3[673] = 524;
+
+        $r3[674] = 524;
+
+        $r3[675] = 524;
+
+        $r3[676] = 524;
+
+        $r3[677] = 524;
+
+        $r3[678] = 524;
+
+        $r3[679] = 524;
+
+        $r3[680] = 524;
+
+        $r3[681] = 524;
+
+        $r3[682] = 524;
+
+        $r3[683] = 524;
+
+        $r3[684] = 524;
+
+        $r3[685] = 524;
+
+        $r3[686] = 524;
+
+        $r3[687] = 524;
+
+        $r3[688] = 556;
+
+        $r3[689] = 556;
+
+        $r3[690] = 556;
+
+        $r3[691] = 556;
+
+        $r3[692] = 556;
+
+        $r3[693] = 556;
+
+        $r3[694] = 556;
+
+        $r3[695] = 556;
+
+        $r3[696] = 556;
+
+        $r3[697] = 556;
+
+        $r3[698] = 556;
+
+        $r3[699] = 556;
+
+        $r3[700] = 556;
+
+        $r3[701] = 556;
+
+        $r3[702] = 556;
+
+        $r3[703] = 556;
+
+        $r3[704] = 136;
+
+        $r3[705] = 136;
+
+        $r3[706] = 136;
+
+        $r3[707] = 136;
+
+        $r3[708] = 136;
+
+        $r3[709] = 136;
+
+        $r3[710] = 136;
+
+        $r3[711] = 136;
+
+        $r3[712] = 136;
+
+        $r3[713] = 136;
+
+        $r3[714] = 136;
+
+        $r3[715] = 136;
+
+        $r3[716] = 136;
+
+        $r3[717] = 136;
+
+        $r3[718] = 136;
+
+        $r3[719] = 136;
+
+        $r3[720] = 136;
+
+        $r3[721] = 136;
+
+        $r3[722] = 136;
+
+        $r3[723] = 136;
+
+        $r3[724] = 136;
+
+        $r3[725] = 136;
+
+        $r3[726] = 136;
+
+        $r3[727] = 136;
+
+        $r3[728] = 136;
+
+        $r3[729] = 136;
+
+        $r3[730] = 136;
+
+        $r3[731] = 136;
+
+        $r3[732] = 136;
+
+        $r3[733] = 136;
+
+        $r3[734] = 136;
+
+        $r3[735] = 136;
+
+        $r3[736] = 136;
+
+        $r3[737] = 136;
+
+        $r3[738] = 136;
+
+        $r3[739] = 136;
+
+        $r3[740] = 136;
+
+        $r3[741] = 136;
+
+        $r3[742] = 136;
+
+        $r3[743] = 136;
+
+        $r3[744] = 136;
+
+        $r3[745] = 136;
+
+        $r3[746] = 136;
+
+        $r3[747] = 136;
+
+        $r3[748] = 136;
+
+        $r3[749] = 136;
+
+        $r3[750] = 136;
+
+        $r3[751] = 136;
+
+        $r3[752] = 136;
+
+        $r3[753] = 136;
+
+        $r3[754] = 136;
+
+        $r3[755] = 136;
+
+        $r3[756] = 136;
+
+        $r3[757] = 136;
+
+        $r3[758] = 136;
+
+        $r3[759] = 136;
+
+        $r3[760] = 136;
+
+        $r3[761] = 136;
+
+        $r3[762] = 136;
+
+        $r3[763] = 136;
+
+        $r3[764] = 136;
+
+        $r3[765] = 136;
+
+        $r3[766] = 136;
+
+        $r3[767] = 136;
+
+        $r3[768] = 168;
+
+        $r3[769] = 168;
+
+        $r3[770] = 168;
+
+        $r3[771] = 168;
+
+        $r3[772] = 168;
+
+        $r3[773] = 168;
+
+        $r3[774] = 168;
+
+        $r3[775] = 168;
+
+        $r3[776] = 168;
+
+        $r3[777] = 168;
+
+        $r3[778] = 168;
+
+        $r3[779] = 168;
+
+        $r3[780] = 168;
+
+        $r3[781] = 168;
+
+        $r3[782] = 168;
+
+        $r3[783] = 168;
+
+        $r3[784] = 168;
+
+        $r3[785] = 168;
+
+        $r3[786] = 168;
+
+        $r3[787] = 168;
+
+        $r3[788] = 168;
+
+        $r3[789] = 168;
+
+        $r3[790] = 168;
+
+        $r3[791] = 168;
+
+        $r3[792] = 168;
+
+        $r3[793] = 168;
+
+        $r3[794] = 168;
+
+        $r3[795] = 168;
+
+        $r3[796] = 168;
+
+        $r3[797] = 168;
+
+        $r3[798] = 168;
+
+        $r3[799] = 168;
+
+        $r3[800] = 168;
+
+        $r3[801] = 168;
+
+        $r3[802] = 168;
+
+        $r3[803] = 168;
+
+        $r3[804] = 168;
+
+        $r3[805] = 168;
+
+        $r3[806] = 168;
+
+        $r3[807] = 168;
+
+        $r3[808] = 168;
+
+        $r3[809] = 168;
+
+        $r3[810] = 168;
+
+        $r3[811] = 168;
+
+        $r3[812] = 168;
+
+        $r3[813] = 168;
+
+        $r3[814] = 168;
+
+        $r3[815] = 168;
+
+        $r3[816] = 168;
+
+        $r3[817] = 168;
+
+        $r3[818] = 168;
+
+        $r3[819] = 168;
+
+        $r3[820] = 168;
+
+        $r3[821] = 168;
+
+        $r3[822] = 168;
+
+        $r3[823] = 168;
+
+        $r3[824] = 168;
+
+        $r3[825] = 168;
+
+        $r3[826] = 168;
+
+        $r3[827] = 168;
+
+        $r3[828] = 168;
+
+        $r3[829] = 168;
+
+        $r3[830] = 168;
+
+        $r3[831] = 168;
+
+        $r3[832] = 460;
+
+        $r3[833] = 460;
+
+        $r3[834] = 460;
+
+        $r3[835] = 460;
+
+        $r3[836] = 460;
+
+        $r3[837] = 460;
+
+        $r3[838] = 460;
+
+        $r3[839] = 460;
+
+        $r3[840] = 460;
+
+        $r3[841] = 460;
+
+        $r3[842] = 460;
+
+        $r3[843] = 460;
+
+        $r3[844] = 460;
+
+        $r3[845] = 460;
+
+        $r3[846] = 460;
+
+        $r3[847] = 460;
+
+        $r3[848] = 492;
+
+        $r3[849] = 492;
+
+        $r3[850] = 492;
+
+        $r3[851] = 492;
+
+        $r3[852] = 492;
+
+        $r3[853] = 492;
+
+        $r3[854] = 492;
+
+        $r3[855] = 492;
+
+        $r3[856] = 492;
+
+        $r3[857] = 492;
+
+        $r3[858] = 492;
+
+        $r3[859] = 492;
+
+        $r3[860] = 492;
+
+        $r3[861] = 492;
+
+        $r3[862] = 492;
+
+        $r3[863] = 492;
+
+        $r3[864] = 2059;
+
+        $r3[865] = 2059;
+
+        $r3[866] = 2059;
+
+        $r3[867] = 2059;
+
+        $r3[868] = 2059;
+
+        $r3[869] = 2059;
+
+        $r3[870] = 2059;
+
+        $r3[871] = 2059;
+
+        $r3[872] = 2059;
+
+        $r3[873] = 2059;
+
+        $r3[874] = 2059;
+
+        $r3[875] = 2059;
+
+        $r3[876] = 2059;
+
+        $r3[877] = 2059;
+
+        $r3[878] = 2059;
+
+        $r3[879] = 2059;
+
+        $r3[880] = 2059;
+
+        $r3[881] = 2059;
+
+        $r3[882] = 2059;
+
+        $r3[883] = 2059;
+
+        $r3[884] = 2059;
+
+        $r3[885] = 2059;
+
+        $r3[886] = 2059;
+
+        $r3[887] = 2059;
+
+        $r3[888] = 2059;
+
+        $r3[889] = 2059;
+
+        $r3[890] = 2059;
+
+        $r3[891] = 2059;
+
+        $r3[892] = 2059;
+
+        $r3[893] = 2059;
+
+        $r3[894] = 2059;
+
+        $r3[895] = 2059;
+
+        $r3[896] = 200;
+
+        $r3[897] = 200;
+
+        $r3[898] = 200;
+
+        $r3[899] = 200;
+
+        $r3[900] = 200;
+
+        $r3[901] = 200;
+
+        $r3[902] = 200;
+
+        $r3[903] = 200;
+
+        $r3[904] = 200;
+
+        $r3[905] = 200;
+
+        $r3[906] = 200;
+
+        $r3[907] = 200;
+
+        $r3[908] = 200;
+
+        $r3[909] = 200;
+
+        $r3[910] = 200;
+
+        $r3[911] = 200;
+
+        $r3[912] = 200;
+
+        $r3[913] = 200;
+
+        $r3[914] = 200;
+
+        $r3[915] = 200;
+
+        $r3[916] = 200;
+
+        $r3[917] = 200;
+
+        $r3[918] = 200;
+
+        $r3[919] = 200;
+
+        $r3[920] = 200;
+
+        $r3[921] = 200;
+
+        $r3[922] = 200;
+
+        $r3[923] = 200;
+
+        $r3[924] = 200;
+
+        $r3[925] = 200;
+
+        $r3[926] = 200;
+
+        $r3[927] = 200;
+
+        $r3[928] = 200;
+
+        $r3[929] = 200;
+
+        $r3[930] = 200;
+
+        $r3[931] = 200;
+
+        $r3[932] = 200;
+
+        $r3[933] = 200;
+
+        $r3[934] = 200;
+
+        $r3[935] = 200;
+
+        $r3[936] = 200;
+
+        $r3[937] = 200;
+
+        $r3[938] = 200;
+
+        $r3[939] = 200;
+
+        $r3[940] = 200;
+
+        $r3[941] = 200;
+
+        $r3[942] = 200;
+
+        $r3[943] = 200;
+
+        $r3[944] = 200;
+
+        $r3[945] = 200;
+
+        $r3[946] = 200;
+
+        $r3[947] = 200;
+
+        $r3[948] = 200;
+
+        $r3[949] = 200;
+
+        $r3[950] = 200;
+
+        $r3[951] = 200;
+
+        $r3[952] = 200;
+
+        $r3[953] = 200;
+
+        $r3[954] = 200;
+
+        $r3[955] = 200;
+
+        $r3[956] = 200;
+
+        $r3[957] = 200;
+
+        $r3[958] = 200;
+
+        $r3[959] = 200;
+
+        $r3[960] = 232;
+
+        $r3[961] = 232;
+
+        $r3[962] = 232;
+
+        $r3[963] = 232;
+
+        $r3[964] = 232;
+
+        $r3[965] = 232;
+
+        $r3[966] = 232;
+
+        $r3[967] = 232;
+
+        $r3[968] = 232;
+
+        $r3[969] = 232;
+
+        $r3[970] = 232;
+
+        $r3[971] = 232;
+
+        $r3[972] = 232;
+
+        $r3[973] = 232;
+
+        $r3[974] = 232;
+
+        $r3[975] = 232;
+
+        $r3[976] = 232;
+
+        $r3[977] = 232;
+
+        $r3[978] = 232;
+
+        $r3[979] = 232;
+
+        $r3[980] = 232;
+
+        $r3[981] = 232;
+
+        $r3[982] = 232;
+
+        $r3[983] = 232;
+
+        $r3[984] = 232;
+
+        $r3[985] = 232;
+
+        $r3[986] = 232;
+
+        $r3[987] = 232;
+
+        $r3[988] = 232;
+
+        $r3[989] = 232;
+
+        $r3[990] = 232;
+
+        $r3[991] = 232;
+
+        $r3[992] = 232;
+
+        $r3[993] = 232;
+
+        $r3[994] = 232;
+
+        $r3[995] = 232;
+
+        $r3[996] = 232;
+
+        $r3[997] = 232;
+
+        $r3[998] = 232;
+
+        $r3[999] = 232;
+
+        $r3[1000] = 232;
+
+        $r3[1001] = 232;
+
+        $r3[1002] = 232;
+
+        $r3[1003] = 232;
+
+        $r3[1004] = 232;
+
+        $r3[1005] = 232;
+
+        $r3[1006] = 232;
+
+        $r3[1007] = 232;
+
+        $r3[1008] = 232;
+
+        $r3[1009] = 232;
+
+        $r3[1010] = 232;
+
+        $r3[1011] = 232;
+
+        $r3[1012] = 232;
+
+        $r3[1013] = 232;
+
+        $r3[1014] = 232;
+
+        $r3[1015] = 232;
+
+        $r3[1016] = 232;
+
+        $r3[1017] = 232;
+
+        $r3[1018] = 232;
+
+        $r3[1019] = 232;
+
+        $r3[1020] = 232;
+
+        $r3[1021] = 232;
+
+        $r3[1022] = 232;
+
+        $r3[1023] = 232;
+
+        <org.apache.pdfbox.filter.TIFFFaxDecoder: short[] white> = $r3;
+
+        $r4 = newarray (short)[16];
+
+        $r4[0] = 28679;
+
+        $r4[1] = 28679;
+
+        $r4[2] = 31752;
+
+        $r4[3] = -32759;
+
+        $r4[4] = -31735;
+
+        $r4[5] = -30711;
+
+        $r4[6] = -29687;
+
+        $r4[7] = -28663;
+
+        $r4[8] = 29703;
+
+        $r4[9] = 29703;
+
+        $r4[10] = 30727;
+
+        $r4[11] = 30727;
+
+        $r4[12] = -27639;
+
+        $r4[13] = -26615;
+
+        $r4[14] = -25591;
+
+        $r4[15] = -24567;
+
+        <org.apache.pdfbox.filter.TIFFFaxDecoder: short[] additionalMakeup> = $r4;
+
+        $r5 = newarray (short)[16];
+
+        $r5[0] = 3226;
+
+        $r5[1] = 6412;
+
+        $r5[2] = 200;
+
+        $r5[3] = 168;
+
+        $r5[4] = 38;
+
+        $r5[5] = 38;
+
+        $r5[6] = 134;
+
+        $r5[7] = 134;
+
+        $r5[8] = 100;
+
+        $r5[9] = 100;
+
+        $r5[10] = 100;
+
+        $r5[11] = 100;
+
+        $r5[12] = 68;
+
+        $r5[13] = 68;
+
+        $r5[14] = 68;
+
+        $r5[15] = 68;
+
+        <org.apache.pdfbox.filter.TIFFFaxDecoder: short[] initBlack> = $r5;
+
+        $r6 = newarray (short)[4];
+
+        $r6[0] = 292;
+
+        $r6[1] = 260;
+
+        $r6[2] = 226;
+
+        $r6[3] = 226;
+
+        <org.apache.pdfbox.filter.TIFFFaxDecoder: short[] twoBitBlack> = $r6;
+
+        $r7 = newarray (short)[512];
+
+        $r7[0] = 62;
+
+        $r7[1] = 62;
+
+        $r7[2] = 30;
+
+        $r7[3] = 30;
+
+        $r7[4] = 0;
+
+        $r7[5] = 0;
+
+        $r7[6] = 0;
+
+        $r7[7] = 0;
+
+        $r7[8] = 0;
+
+        $r7[9] = 0;
+
+        $r7[10] = 0;
+
+        $r7[11] = 0;
+
+        $r7[12] = 0;
+
+        $r7[13] = 0;
+
+        $r7[14] = 0;
+
+        $r7[15] = 0;
+
+        $r7[16] = 0;
+
+        $r7[17] = 0;
+
+        $r7[18] = 0;
+
+        $r7[19] = 0;
+
+        $r7[20] = 0;
+
+        $r7[21] = 0;
+
+        $r7[22] = 0;
+
+        $r7[23] = 0;
+
+        $r7[24] = 0;
+
+        $r7[25] = 0;
+
+        $r7[26] = 0;
+
+        $r7[27] = 0;
+
+        $r7[28] = 0;
+
+        $r7[29] = 0;
+
+        $r7[30] = 0;
+
+        $r7[31] = 0;
+
+        $r7[32] = 3225;
+
+        $r7[33] = 3225;
+
+        $r7[34] = 3225;
+
+        $r7[35] = 3225;
+
+        $r7[36] = 3225;
+
+        $r7[37] = 3225;
+
+        $r7[38] = 3225;
+
+        $r7[39] = 3225;
+
+        $r7[40] = 3225;
+
+        $r7[41] = 3225;
+
+        $r7[42] = 3225;
+
+        $r7[43] = 3225;
+
+        $r7[44] = 3225;
+
+        $r7[45] = 3225;
+
+        $r7[46] = 3225;
+
+        $r7[47] = 3225;
+
+        $r7[48] = 3225;
+
+        $r7[49] = 3225;
+
+        $r7[50] = 3225;
+
+        $r7[51] = 3225;
+
+        $r7[52] = 3225;
+
+        $r7[53] = 3225;
+
+        $r7[54] = 3225;
+
+        $r7[55] = 3225;
+
+        $r7[56] = 3225;
+
+        $r7[57] = 3225;
+
+        $r7[58] = 3225;
+
+        $r7[59] = 3225;
+
+        $r7[60] = 3225;
+
+        $r7[61] = 3225;
+
+        $r7[62] = 3225;
+
+        $r7[63] = 3225;
+
+        $r7[64] = 588;
+
+        $r7[65] = 588;
+
+        $r7[66] = 588;
+
+        $r7[67] = 588;
+
+        $r7[68] = 588;
+
+        $r7[69] = 588;
+
+        $r7[70] = 588;
+
+        $r7[71] = 588;
+
+        $r7[72] = 1680;
+
+        $r7[73] = 1680;
+
+        $r7[74] = 20499;
+
+        $r7[75] = 22547;
+
+        $r7[76] = 24595;
+
+        $r7[77] = 26643;
+
+        $r7[78] = 1776;
+
+        $r7[79] = 1776;
+
+        $r7[80] = 1808;
+
+        $r7[81] = 1808;
+
+        $r7[82] = -24557;
+
+        $r7[83] = -22509;
+
+        $r7[84] = -20461;
+
+        $r7[85] = -18413;
+
+        $r7[86] = 1904;
+
+        $r7[87] = 1904;
+
+        $r7[88] = 1936;
+
+        $r7[89] = 1936;
+
+        $r7[90] = -16365;
+
+        $r7[91] = -14317;
+
+        $r7[92] = 782;
+
+        $r7[93] = 782;
+
+        $r7[94] = 782;
+
+        $r7[95] = 782;
+
+        $r7[96] = 814;
+
+        $r7[97] = 814;
+
+        $r7[98] = 814;
+
+        $r7[99] = 814;
+
+        $r7[100] = -12269;
+
+        $r7[101] = -10221;
+
+        $r7[102] = 10257;
+
+        $r7[103] = 10257;
+
+        $r7[104] = 12305;
+
+        $r7[105] = 12305;
+
+        $r7[106] = 14353;
+
+        $r7[107] = 14353;
+
+        $r7[108] = 16403;
+
+        $r7[109] = 18451;
+
+        $r7[110] = 1712;
+
+        $r7[111] = 1712;
+
+        $r7[112] = 1744;
+
+        $r7[113] = 1744;
+
+        $r7[114] = 28691;
+
+        $r7[115] = 30739;
+
+        $r7[116] = -32749;
+
+        $r7[117] = -30701;
+
+        $r7[118] = -28653;
+
+        $r7[119] = -26605;
+
+        $r7[120] = 2061;
+
+        $r7[121] = 2061;
+
+        $r7[122] = 2061;
+
+        $r7[123] = 2061;
+
+        $r7[124] = 2061;
+
+        $r7[125] = 2061;
+
+        $r7[126] = 2061;
+
+        $r7[127] = 2061;
+
+        $r7[128] = 424;
+
+        $r7[129] = 424;
+
+        $r7[130] = 424;
+
+        $r7[131] = 424;
+
+        $r7[132] = 424;
+
+        $r7[133] = 424;
+
+        $r7[134] = 424;
+
+        $r7[135] = 424;
+
+        $r7[136] = 424;
+
+        $r7[137] = 424;
+
+        $r7[138] = 424;
+
+        $r7[139] = 424;
+
+        $r7[140] = 424;
+
+        $r7[141] = 424;
+
+        $r7[142] = 424;
+
+        $r7[143] = 424;
+
+        $r7[144] = 424;
+
+        $r7[145] = 424;
+
+        $r7[146] = 424;
+
+        $r7[147] = 424;
+
+        $r7[148] = 424;
+
+        $r7[149] = 424;
+
+        $r7[150] = 424;
+
+        $r7[151] = 424;
+
+        $r7[152] = 424;
+
+        $r7[153] = 424;
+
+        $r7[154] = 424;
+
+        $r7[155] = 424;
+
+        $r7[156] = 424;
+
+        $r7[157] = 424;
+
+        $r7[158] = 424;
+
+        $r7[159] = 424;
+
+        $r7[160] = 750;
+
+        $r7[161] = 750;
+
+        $r7[162] = 750;
+
+        $r7[163] = 750;
+
+        $r7[164] = 1616;
+
+        $r7[165] = 1616;
+
+        $r7[166] = 1648;
+
+        $r7[167] = 1648;
+
+        $r7[168] = 1424;
+
+        $r7[169] = 1424;
+
+        $r7[170] = 1456;
+
+        $r7[171] = 1456;
+
+        $r7[172] = 1488;
+
+        $r7[173] = 1488;
+
+        $r7[174] = 1520;
+
+        $r7[175] = 1520;
+
+        $r7[176] = 1840;
+
+        $r7[177] = 1840;
+
+        $r7[178] = 1872;
+
+        $r7[179] = 1872;
+
+        $r7[180] = 1968;
+
+        $r7[181] = 1968;
+
+        $r7[182] = 8209;
+
+        $r7[183] = 8209;
+
+        $r7[184] = 524;
+
+        $r7[185] = 524;
+
+        $r7[186] = 524;
+
+        $r7[187] = 524;
+
+        $r7[188] = 524;
+
+        $r7[189] = 524;
+
+        $r7[190] = 524;
+
+        $r7[191] = 524;
+
+        $r7[192] = 556;
+
+        $r7[193] = 556;
+
+        $r7[194] = 556;
+
+        $r7[195] = 556;
+
+        $r7[196] = 556;
+
+        $r7[197] = 556;
+
+        $r7[198] = 556;
+
+        $r7[199] = 556;
+
+        $r7[200] = 1552;
+
+        $r7[201] = 1552;
+
+        $r7[202] = 1584;
+
+        $r7[203] = 1584;
+
+        $r7[204] = 2000;
+
+        $r7[205] = 2000;
+
+        $r7[206] = 2032;
+
+        $r7[207] = 2032;
+
+        $r7[208] = 976;
+
+        $r7[209] = 976;
+
+        $r7[210] = 1008;
+
+        $r7[211] = 1008;
+
+        $r7[212] = 1040;
+
+        $r7[213] = 1040;
+
+        $r7[214] = 1072;
+
+        $r7[215] = 1072;
+
+        $r7[216] = 1296;
+
+        $r7[217] = 1296;
+
+        $r7[218] = 1328;
+
+        $r7[219] = 1328;
+
+        $r7[220] = 718;
+
+        $r7[221] = 718;
+
+        $r7[222] = 718;
+
+        $r7[223] = 718;
+
+        $r7[224] = 456;
+
+        $r7[225] = 456;
+
+        $r7[226] = 456;
+
+        $r7[227] = 456;
+
+        $r7[228] = 456;
+
+        $r7[229] = 456;
+
+        $r7[230] = 456;
+
+        $r7[231] = 456;
+
+        $r7[232] = 456;
+
+        $r7[233] = 456;
+
+        $r7[234] = 456;
+
+        $r7[235] = 456;
+
+        $r7[236] = 456;
+
+        $r7[237] = 456;
+
+        $r7[238] = 456;
+
+        $r7[239] = 456;
+
+        $r7[240] = 456;
+
+        $r7[241] = 456;
+
+        $r7[242] = 456;
+
+        $r7[243] = 456;
+
+        $r7[244] = 456;
+
+        $r7[245] = 456;
+
+        $r7[246] = 456;
+
+        $r7[247] = 456;
+
+        $r7[248] = 456;
+
+        $r7[249] = 456;
+
+        $r7[250] = 456;
+
+        $r7[251] = 456;
+
+        $r7[252] = 456;
+
+        $r7[253] = 456;
+
+        $r7[254] = 456;
+
+        $r7[255] = 456;
+
+        $r7[256] = 326;
+
+        $r7[257] = 326;
+
+        $r7[258] = 326;
+
+        $r7[259] = 326;
+
+        $r7[260] = 326;
+
+        $r7[261] = 326;
+
+        $r7[262] = 326;
+
+        $r7[263] = 326;
+
+        $r7[264] = 326;
+
+        $r7[265] = 326;
+
+        $r7[266] = 326;
+
+        $r7[267] = 326;
+
+        $r7[268] = 326;
+
+        $r7[269] = 326;
+
+        $r7[270] = 326;
+
+        $r7[271] = 326;
+
+        $r7[272] = 326;
+
+        $r7[273] = 326;
+
+        $r7[274] = 326;
+
+        $r7[275] = 326;
+
+        $r7[276] = 326;
+
+        $r7[277] = 326;
+
+        $r7[278] = 326;
+
+        $r7[279] = 326;
+
+        $r7[280] = 326;
+
+        $r7[281] = 326;
+
+        $r7[282] = 326;
+
+        $r7[283] = 326;
+
+        $r7[284] = 326;
+
+        $r7[285] = 326;
+
+        $r7[286] = 326;
+
+        $r7[287] = 326;
+
+        $r7[288] = 326;
+
+        $r7[289] = 326;
+
+        $r7[290] = 326;
+
+        $r7[291] = 326;
+
+        $r7[292] = 326;
+
+        $r7[293] = 326;
+
+        $r7[294] = 326;
+
+        $r7[295] = 326;
+
+        $r7[296] = 326;
+
+        $r7[297] = 326;
+
+        $r7[298] = 326;
+
+        $r7[299] = 326;
+
+        $r7[300] = 326;
+
+        $r7[301] = 326;
+
+        $r7[302] = 326;
+
+        $r7[303] = 326;
+
+        $r7[304] = 326;
+
+        $r7[305] = 326;
+
+        $r7[306] = 326;
+
+        $r7[307] = 326;
+
+        $r7[308] = 326;
+
+        $r7[309] = 326;
+
+        $r7[310] = 326;
+
+        $r7[311] = 326;
+
+        $r7[312] = 326;
+
+        $r7[313] = 326;
+
+        $r7[314] = 326;
+
+        $r7[315] = 326;
+
+        $r7[316] = 326;
+
+        $r7[317] = 326;
+
+        $r7[318] = 326;
+
+        $r7[319] = 326;
+
+        $r7[320] = 358;
+
+        $r7[321] = 358;
+
+        $r7[322] = 358;
+
+        $r7[323] = 358;
+
+        $r7[324] = 358;
+
+        $r7[325] = 358;
+
+        $r7[326] = 358;
+
+        $r7[327] = 358;
+
+        $r7[328] = 358;
+
+        $r7[329] = 358;
+
+        $r7[330] = 358;
+
+        $r7[331] = 358;
+
+        $r7[332] = 358;
+
+        $r7[333] = 358;
+
+        $r7[334] = 358;
+
+        $r7[335] = 358;
+
+        $r7[336] = 358;
+
+        $r7[337] = 358;
+
+        $r7[338] = 358;
+
+        $r7[339] = 358;
+
+        $r7[340] = 358;
+
+        $r7[341] = 358;
+
+        $r7[342] = 358;
+
+        $r7[343] = 358;
+
+        $r7[344] = 358;
+
+        $r7[345] = 358;
+
+        $r7[346] = 358;
+
+        $r7[347] = 358;
+
+        $r7[348] = 358;
+
+        $r7[349] = 358;
+
+        $r7[350] = 358;
+
+        $r7[351] = 358;
+
+        $r7[352] = 358;
+
+        $r7[353] = 358;
+
+        $r7[354] = 358;
+
+        $r7[355] = 358;
+
+        $r7[356] = 358;
+
+        $r7[357] = 358;
+
+        $r7[358] = 358;
+
+        $r7[359] = 358;
+
+        $r7[360] = 358;
+
+        $r7[361] = 358;
+
+        $r7[362] = 358;
+
+        $r7[363] = 358;
+
+        $r7[364] = 358;
+
+        $r7[365] = 358;
+
+        $r7[366] = 358;
+
+        $r7[367] = 358;
+
+        $r7[368] = 358;
+
+        $r7[369] = 358;
+
+        $r7[370] = 358;
+
+        $r7[371] = 358;
+
+        $r7[372] = 358;
+
+        $r7[373] = 358;
+
+        $r7[374] = 358;
+
+        $r7[375] = 358;
+
+        $r7[376] = 358;
+
+        $r7[377] = 358;
+
+        $r7[378] = 358;
+
+        $r7[379] = 358;
+
+        $r7[380] = 358;
+
+        $r7[381] = 358;
+
+        $r7[382] = 358;
+
+        $r7[383] = 358;
+
+        $r7[384] = 490;
+
+        $r7[385] = 490;
+
+        $r7[386] = 490;
+
+        $r7[387] = 490;
+
+        $r7[388] = 490;
+
+        $r7[389] = 490;
+
+        $r7[390] = 490;
+
+        $r7[391] = 490;
+
+        $r7[392] = 490;
+
+        $r7[393] = 490;
+
+        $r7[394] = 490;
+
+        $r7[395] = 490;
+
+        $r7[396] = 490;
+
+        $r7[397] = 490;
+
+        $r7[398] = 490;
+
+        $r7[399] = 490;
+
+        $r7[400] = 4113;
+
+        $r7[401] = 4113;
+
+        $r7[402] = 6161;
+
+        $r7[403] = 6161;
+
+        $r7[404] = 848;
+
+        $r7[405] = 848;
+
+        $r7[406] = 880;
+
+        $r7[407] = 880;
+
+        $r7[408] = 912;
+
+        $r7[409] = 912;
+
+        $r7[410] = 944;
+
+        $r7[411] = 944;
+
+        $r7[412] = 622;
+
+        $r7[413] = 622;
+
+        $r7[414] = 622;
+
+        $r7[415] = 622;
+
+        $r7[416] = 654;
+
+        $r7[417] = 654;
+
+        $r7[418] = 654;
+
+        $r7[419] = 654;
+
+        $r7[420] = 1104;
+
+        $r7[421] = 1104;
+
+        $r7[422] = 1136;
+
+        $r7[423] = 1136;
+
+        $r7[424] = 1168;
+
+        $r7[425] = 1168;
+
+        $r7[426] = 1200;
+
+        $r7[427] = 1200;
+
+        $r7[428] = 1232;
+
+        $r7[429] = 1232;
+
+        $r7[430] = 1264;
+
+        $r7[431] = 1264;
+
+        $r7[432] = 686;
+
+        $r7[433] = 686;
+
+        $r7[434] = 686;
+
+        $r7[435] = 686;
+
+        $r7[436] = 1360;
+
+        $r7[437] = 1360;
+
+        $r7[438] = 1392;
+
+        $r7[439] = 1392;
+
+        $r7[440] = 12;
+
+        $r7[441] = 12;
+
+        $r7[442] = 12;
+
+        $r7[443] = 12;
+
+        $r7[444] = 12;
+
+        $r7[445] = 12;
+
+        $r7[446] = 12;
+
+        $r7[447] = 12;
+
+        $r7[448] = 390;
+
+        $r7[449] = 390;
+
+        $r7[450] = 390;
+
+        $r7[451] = 390;
+
+        $r7[452] = 390;
+
+        $r7[453] = 390;
+
+        $r7[454] = 390;
+
+        $r7[455] = 390;
+
+        $r7[456] = 390;
+
+        $r7[457] = 390;
+
+        $r7[458] = 390;
+
+        $r7[459] = 390;
+
+        $r7[460] = 390;
+
+        $r7[461] = 390;
+
+        $r7[462] = 390;
+
+        $r7[463] = 390;
+
+        $r7[464] = 390;
+
+        $r7[465] = 390;
+
+        $r7[466] = 390;
+
+        $r7[467] = 390;
+
+        $r7[468] = 390;
+
+        $r7[469] = 390;
+
+        $r7[470] = 390;
+
+        $r7[471] = 390;
+
+        $r7[472] = 390;
+
+        $r7[473] = 390;
+
+        $r7[474] = 390;
+
+        $r7[475] = 390;
+
+        $r7[476] = 390;
+
+        $r7[477] = 390;
+
+        $r7[478] = 390;
+
+        $r7[479] = 390;
+
+        $r7[480] = 390;
+
+        $r7[481] = 390;
+
+        $r7[482] = 390;
+
+        $r7[483] = 390;
+
+        $r7[484] = 390;
+
+        $r7[485] = 390;
+
+        $r7[486] = 390;
+
+        $r7[487] = 390;
+
+        $r7[488] = 390;
+
+        $r7[489] = 390;
+
+        $r7[490] = 390;
+
+        $r7[491] = 390;
+
+        $r7[492] = 390;
+
+        $r7[493] = 390;
+
+        $r7[494] = 390;
+
+        $r7[495] = 390;
+
+        $r7[496] = 390;
+
+        $r7[497] = 390;
+
+        $r7[498] = 390;
+
+        $r7[499] = 390;
+
+        $r7[500] = 390;
+
+        $r7[501] = 390;
+
+        $r7[502] = 390;
+
+        $r7[503] = 390;
+
+        $r7[504] = 390;
+
+        $r7[505] = 390;
+
+        $r7[506] = 390;
+
+        $r7[507] = 390;
+
+        $r7[508] = 390;
+
+        $r7[509] = 390;
+
+        $r7[510] = 390;
+
+        $r7[511] = 390;
+
+        <org.apache.pdfbox.filter.TIFFFaxDecoder: short[] black> = $r7;
+
+        $r8 = newarray (byte)[128];
+
+        $r8[0] = 80;
+
+        $r8[1] = 88;
+
+        $r8[2] = 23;
+
+        $r8[3] = 71;
+
+        $r8[4] = 30;
+
+        $r8[5] = 30;
+
+        $r8[6] = 62;
+
+        $r8[7] = 62;
+
+        $r8[8] = 4;
+
+        $r8[9] = 4;
+
+        $r8[10] = 4;
+
+        $r8[11] = 4;
+
+        $r8[12] = 4;
+
+        $r8[13] = 4;
+
+        $r8[14] = 4;
+
+        $r8[15] = 4;
+
+        $r8[16] = 11;
+
+        $r8[17] = 11;
+
+        $r8[18] = 11;
+
+        $r8[19] = 11;
+
+        $r8[20] = 11;
+
+        $r8[21] = 11;
+
+        $r8[22] = 11;
+
+        $r8[23] = 11;
+
+        $r8[24] = 11;
+
+        $r8[25] = 11;
+
+        $r8[26] = 11;
+
+        $r8[27] = 11;
+
+        $r8[28] = 11;
+
+        $r8[29] = 11;
+
+        $r8[30] = 11;
+
+        $r8[31] = 11;
+
+        $r8[32] = 35;
+
+        $r8[33] = 35;
+
+        $r8[34] = 35;
+
+        $r8[35] = 35;
+
+        $r8[36] = 35;
+
+        $r8[37] = 35;
+
+        $r8[38] = 35;
+
+        $r8[39] = 35;
+
+        $r8[40] = 35;
+
+        $r8[41] = 35;
+
+        $r8[42] = 35;
+
+        $r8[43] = 35;
+
+        $r8[44] = 35;
+
+        $r8[45] = 35;
+
+        $r8[46] = 35;
+
+        $r8[47] = 35;
+
+        $r8[48] = 51;
+
+        $r8[49] = 51;
+
+        $r8[50] = 51;
+
+        $r8[51] = 51;
+
+        $r8[52] = 51;
+
+        $r8[53] = 51;
+
+        $r8[54] = 51;
+
+        $r8[55] = 51;
+
+        $r8[56] = 51;
+
+        $r8[57] = 51;
+
+        $r8[58] = 51;
+
+        $r8[59] = 51;
+
+        $r8[60] = 51;
+
+        $r8[61] = 51;
+
+        $r8[62] = 51;
+
+        $r8[63] = 51;
+
+        $r8[64] = 41;
+
+        $r8[65] = 41;
+
+        $r8[66] = 41;
+
+        $r8[67] = 41;
+
+        $r8[68] = 41;
+
+        $r8[69] = 41;
+
+        $r8[70] = 41;
+
+        $r8[71] = 41;
+
+        $r8[72] = 41;
+
+        $r8[73] = 41;
+
+        $r8[74] = 41;
+
+        $r8[75] = 41;
+
+        $r8[76] = 41;
+
+        $r8[77] = 41;
+
+        $r8[78] = 41;
+
+        $r8[79] = 41;
+
+        $r8[80] = 41;
+
+        $r8[81] = 41;
+
+        $r8[82] = 41;
+
+        $r8[83] = 41;
+
+        $r8[84] = 41;
+
+        $r8[85] = 41;
+
+        $r8[86] = 41;
+
+        $r8[87] = 41;
+
+        $r8[88] = 41;
+
+        $r8[89] = 41;
+
+        $r8[90] = 41;
+
+        $r8[91] = 41;
+
+        $r8[92] = 41;
+
+        $r8[93] = 41;
+
+        $r8[94] = 41;
+
+        $r8[95] = 41;
+
+        $r8[96] = 41;
+
+        $r8[97] = 41;
+
+        $r8[98] = 41;
+
+        $r8[99] = 41;
+
+        $r8[100] = 41;
+
+        $r8[101] = 41;
+
+        $r8[102] = 41;
+
+        $r8[103] = 41;
+
+        $r8[104] = 41;
+
+        $r8[105] = 41;
+
+        $r8[106] = 41;
+
+        $r8[107] = 41;
+
+        $r8[108] = 41;
+
+        $r8[109] = 41;
+
+        $r8[110] = 41;
+
+        $r8[111] = 41;
+
+        $r8[112] = 41;
+
+        $r8[113] = 41;
+
+        $r8[114] = 41;
+
+        $r8[115] = 41;
+
+        $r8[116] = 41;
+
+        $r8[117] = 41;
+
+        $r8[118] = 41;
+
+        $r8[119] = 41;
+
+        $r8[120] = 41;
+
+        $r8[121] = 41;
+
+        $r8[122] = 41;
+
+        $r8[123] = 41;
+
+        $r8[124] = 41;
+
+        $r8[125] = 41;
+
+        $r8[126] = 41;
+
+        $r8[127] = 41;
+
+        <org.apache.pdfbox.filter.TIFFFaxDecoder: byte[] twoDCodes> = $r8;
+
+        return;
+    }
+}

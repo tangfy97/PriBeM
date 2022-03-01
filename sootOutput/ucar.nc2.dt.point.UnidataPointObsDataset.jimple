@@ -1,0 +1,625 @@
+public class ucar.nc2.dt.point.UnidataPointObsDataset extends ucar.nc2.dt.point.PointObsDatasetImpl implements ucar.nc2.dt.TypedDatasetFactoryIF
+{
+    private ucar.nc2.Variable latVar;
+    private ucar.nc2.Variable lonVar;
+    private ucar.nc2.Variable altVar;
+    private ucar.nc2.Variable timeVar;
+    private ucar.nc2.Variable timeNominalVar;
+    private ucar.nc2.dt.point.RecordDatasetHelper recordHelper;
+    private java.util.ArrayList allData;
+
+    public static boolean isValidFile(ucar.nc2.NetcdfFile)
+    {
+        java.util.StringTokenizer $r5;
+        ucar.nc2.NetcdfFile r0;
+        java.lang.String $r1, $r3, $r4, $r6, $r7, $r8, $r10;
+        ucar.nc2.constants.FeatureType $r2, $r9;
+        boolean $z0, $z1, $z2, $z3;
+
+        r0 := @parameter0: ucar.nc2.NetcdfFile;
+
+        $r1 = virtualinvoke r0.<ucar.nc2.NetcdfFile: java.lang.String findAttValueIgnoreCase(ucar.nc2.Variable,java.lang.String,java.lang.String)>(null, "cdm_data_type", "");
+
+        $r2 = <ucar.nc2.constants.FeatureType: ucar.nc2.constants.FeatureType POINT>;
+
+        $r3 = virtualinvoke $r2.<ucar.nc2.constants.FeatureType: java.lang.String toString()>();
+
+        $z0 = virtualinvoke $r1.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>($r3);
+
+        if $z0 != 0 goto label1;
+
+        $r8 = virtualinvoke r0.<ucar.nc2.NetcdfFile: java.lang.String findAttValueIgnoreCase(ucar.nc2.Variable,java.lang.String,java.lang.String)>(null, "cdm_datatype", "");
+
+        $r9 = <ucar.nc2.constants.FeatureType: ucar.nc2.constants.FeatureType POINT>;
+
+        $r10 = virtualinvoke $r9.<ucar.nc2.constants.FeatureType: java.lang.String toString()>();
+
+        $z3 = virtualinvoke $r8.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>($r10);
+
+        if $z3 != 0 goto label1;
+
+        return 0;
+
+     label1:
+        $r4 = virtualinvoke r0.<ucar.nc2.NetcdfFile: java.lang.String findAttValueIgnoreCase(ucar.nc2.Variable,java.lang.String,java.lang.String)>(null, "Conventions", null);
+
+        if $r4 != null goto label2;
+
+        return 0;
+
+     label2:
+        $r5 = new java.util.StringTokenizer;
+
+        specialinvoke $r5.<java.util.StringTokenizer: void <init>(java.lang.String,java.lang.String)>($r4, ",");
+
+     label3:
+        $z1 = virtualinvoke $r5.<java.util.StringTokenizer: boolean hasMoreTokens()>();
+
+        if $z1 == 0 goto label5;
+
+        $r6 = virtualinvoke $r5.<java.util.StringTokenizer: java.lang.String nextToken()>();
+
+        $r7 = virtualinvoke $r6.<java.lang.String: java.lang.String trim()>();
+
+        $z2 = virtualinvoke $r7.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("Unidata Observation Dataset v1.0");
+
+        if $z2 == 0 goto label4;
+
+        return 1;
+
+     label4:
+        goto label3;
+
+     label5:
+        return 0;
+    }
+
+    public boolean isMine(ucar.nc2.dataset.NetcdfDataset)
+    {
+        ucar.nc2.dataset.NetcdfDataset r0;
+        boolean $z0;
+        ucar.nc2.dt.point.UnidataPointObsDataset r1;
+
+        r1 := @this: ucar.nc2.dt.point.UnidataPointObsDataset;
+
+        r0 := @parameter0: ucar.nc2.dataset.NetcdfDataset;
+
+        $z0 = staticinvoke <ucar.nc2.dt.point.UnidataPointObsDataset: boolean isValidFile(ucar.nc2.NetcdfFile)>(r0);
+
+        return $z0;
+    }
+
+    public ucar.nc2.dt.TypedDataset open(ucar.nc2.dataset.NetcdfDataset, ucar.nc2.util.CancelTask, java.lang.StringBuilder) throws java.io.IOException
+    {
+        ucar.nc2.util.CancelTask r3;
+        java.lang.StringBuilder r4;
+        ucar.nc2.dataset.NetcdfDataset r1;
+        ucar.nc2.dt.point.UnidataPointObsDataset $r0, r2;
+
+        r2 := @this: ucar.nc2.dt.point.UnidataPointObsDataset;
+
+        r1 := @parameter0: ucar.nc2.dataset.NetcdfDataset;
+
+        r3 := @parameter1: ucar.nc2.util.CancelTask;
+
+        r4 := @parameter2: java.lang.StringBuilder;
+
+        $r0 = new ucar.nc2.dt.point.UnidataPointObsDataset;
+
+        specialinvoke $r0.<ucar.nc2.dt.point.UnidataPointObsDataset: void <init>(ucar.nc2.dataset.NetcdfDataset)>(r1);
+
+        return $r0;
+    }
+
+    public void <init>()
+    {
+        ucar.nc2.dt.point.UnidataPointObsDataset r0;
+
+        r0 := @this: ucar.nc2.dt.point.UnidataPointObsDataset;
+
+        specialinvoke r0.<ucar.nc2.dt.point.PointObsDatasetImpl: void <init>()>();
+
+        return;
+    }
+
+    public void <init>(ucar.nc2.dataset.NetcdfDataset) throws java.io.IOException
+    {
+        ucar.nc2.constants.AxisType $r2, $r4, $r6, $r11;
+        java.util.ArrayList $r68;
+        java.lang.StringBuffer $r20, $r56, $r58;
+        java.lang.String $r14, $r17, $r24, $r26, $r37, $r39, $r46, $r47, $r49, $r51, $r59, $r60, $r62, $r63, $r64, $r65, $r66, $r70;
+        ucar.nc2.units.DateUnit $r42;
+        ucar.unidata.geoloc.LatLonRect $r45;
+        ucar.nc2.dataset.NetcdfDataset r1;
+        ucar.nc2.dt.point.UnidataPointObsDataset r0;
+        java.lang.IllegalStateException $r52, $r53, $r54;
+        java.util.Date $r43, $r44;
+        java.util.List $r21;
+        ucar.nc2.Variable $r3, $r5, $r7, $r8, $r9, $r10, $r12, $r13, $r16, $r18, $r19, $r22, $r25, $r27, $r28, $r29, $r30, $r31, $r32, $r33, $r34, $r35, $r36, $r38, $r40, $r48, $r50, $r69, $r71;
+        java.lang.IllegalArgumentException $r55, $r57;
+        ucar.nc2.dt.point.RecordDatasetHelper $r15, $r23, $r41, $r61, $r67;
+
+        r0 := @this: ucar.nc2.dt.point.UnidataPointObsDataset;
+
+        r1 := @parameter0: ucar.nc2.dataset.NetcdfDataset;
+
+        specialinvoke r0.<ucar.nc2.dt.point.PointObsDatasetImpl: void <init>(ucar.nc2.dataset.NetcdfDataset)>(r1);
+
+        $r2 = <ucar.nc2.constants.AxisType: ucar.nc2.constants.AxisType Lat>;
+
+        $r3 = staticinvoke <ucar.nc2.dt.point.UnidataObsDatasetHelper: ucar.nc2.Variable getCoordinate(ucar.nc2.dataset.NetcdfDataset,ucar.nc2.constants.AxisType)>(r1, $r2);
+
+        r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.Variable latVar> = $r3;
+
+        $r4 = <ucar.nc2.constants.AxisType: ucar.nc2.constants.AxisType Lon>;
+
+        $r5 = staticinvoke <ucar.nc2.dt.point.UnidataObsDatasetHelper: ucar.nc2.Variable getCoordinate(ucar.nc2.dataset.NetcdfDataset,ucar.nc2.constants.AxisType)>(r1, $r4);
+
+        r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.Variable lonVar> = $r5;
+
+        $r6 = <ucar.nc2.constants.AxisType: ucar.nc2.constants.AxisType Time>;
+
+        $r7 = staticinvoke <ucar.nc2.dt.point.UnidataObsDatasetHelper: ucar.nc2.Variable getCoordinate(ucar.nc2.dataset.NetcdfDataset,ucar.nc2.constants.AxisType)>(r1, $r6);
+
+        r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.Variable timeVar> = $r7;
+
+        $r8 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.Variable latVar>;
+
+        if $r8 != null goto label01;
+
+        $r54 = new java.lang.IllegalStateException;
+
+        specialinvoke $r54.<java.lang.IllegalStateException: void <init>(java.lang.String)>("Missing latitude variable");
+
+        throw $r54;
+
+     label01:
+        $r9 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.Variable lonVar>;
+
+        if $r9 != null goto label02;
+
+        $r53 = new java.lang.IllegalStateException;
+
+        specialinvoke $r53.<java.lang.IllegalStateException: void <init>(java.lang.String)>("Missing longitude coordinate variable");
+
+        throw $r53;
+
+     label02:
+        $r10 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.Variable timeVar>;
+
+        if $r10 != null goto label03;
+
+        $r52 = new java.lang.IllegalStateException;
+
+        specialinvoke $r52.<java.lang.IllegalStateException: void <init>(java.lang.String)>("Missing time coordinate variable");
+
+        throw $r52;
+
+     label03:
+        $r11 = <ucar.nc2.constants.AxisType: ucar.nc2.constants.AxisType Height>;
+
+        $r12 = staticinvoke <ucar.nc2.dt.point.UnidataObsDatasetHelper: ucar.nc2.Variable getCoordinate(ucar.nc2.dataset.NetcdfDataset,ucar.nc2.constants.AxisType)>(r1, $r11);
+
+        r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.Variable altVar> = $r12;
+
+        $r13 = staticinvoke <ucar.nc2.dt.point.UnidataObsDatasetHelper: ucar.nc2.Variable findVariable(ucar.nc2.NetcdfFile,java.lang.String)>(r1, "record.time_nominal");
+
+        r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.Variable timeNominalVar> = $r13;
+
+        $r14 = virtualinvoke r1.<ucar.nc2.dataset.NetcdfDataset: java.lang.String findAttValueIgnoreCase(ucar.nc2.Variable,java.lang.String,java.lang.String)>(null, "observationDimension", null);
+
+        $r15 = new ucar.nc2.dt.point.RecordDatasetHelper;
+
+        $r16 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.Variable timeVar>;
+
+        $r17 = virtualinvoke $r16.<ucar.nc2.Variable: java.lang.String getName()>();
+
+        $r18 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.Variable timeNominalVar>;
+
+        if $r18 != null goto label04;
+
+        $r59 = null;
+
+        goto label05;
+
+     label04:
+        $r19 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.Variable timeNominalVar>;
+
+        $r59 = virtualinvoke $r19.<ucar.nc2.Variable: java.lang.String getName()>();
+
+     label05:
+        $r21 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: java.util.List dataVariables>;
+
+        $r20 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: java.lang.StringBuffer parseInfo>;
+
+        specialinvoke $r15.<ucar.nc2.dt.point.RecordDatasetHelper: void <init>(ucar.nc2.dataset.NetcdfDataset,java.lang.String,java.lang.String,java.util.List,java.lang.String,java.lang.StringBuffer)>(r1, $r17, $r59, $r21, $r14, $r20);
+
+        r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.dt.point.RecordDatasetHelper recordHelper> = $r15;
+
+        $r23 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.dt.point.RecordDatasetHelper recordHelper>;
+
+        $r22 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.Variable latVar>;
+
+        $r24 = virtualinvoke $r22.<ucar.nc2.Variable: java.lang.String getName()>();
+
+        $r25 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.Variable lonVar>;
+
+        $r26 = virtualinvoke $r25.<ucar.nc2.Variable: java.lang.String getName()>();
+
+        $r27 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.Variable altVar>;
+
+        if $r27 != null goto label06;
+
+        $r60 = null;
+
+        goto label07;
+
+     label06:
+        $r28 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.Variable altVar>;
+
+        $r60 = virtualinvoke $r28.<ucar.nc2.Variable: java.lang.String getName()>();
+
+     label07:
+        virtualinvoke $r23.<ucar.nc2.dt.point.RecordDatasetHelper: void setLocationInfo(java.lang.String,java.lang.String,java.lang.String)>($r24, $r26, $r60);
+
+        $r61 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.dt.point.RecordDatasetHelper recordHelper>;
+
+        $r29 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.Variable latVar>;
+
+        $r62 = virtualinvoke $r29.<ucar.nc2.Variable: java.lang.String getShortName()>();
+
+        $r30 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.Variable lonVar>;
+
+        $r63 = virtualinvoke $r30.<ucar.nc2.Variable: java.lang.String getShortName()>();
+
+        $r31 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.Variable altVar>;
+
+        if $r31 != null goto label08;
+
+        $r64 = null;
+
+        goto label09;
+
+     label08:
+        $r32 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.Variable altVar>;
+
+        $r64 = virtualinvoke $r32.<ucar.nc2.Variable: java.lang.String getShortName()>();
+
+     label09:
+        $r33 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.Variable timeVar>;
+
+        $r65 = virtualinvoke $r33.<ucar.nc2.Variable: java.lang.String getShortName()>();
+
+        $r34 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.Variable timeNominalVar>;
+
+        if $r34 != null goto label10;
+
+        $r66 = null;
+
+        goto label11;
+
+     label10:
+        $r35 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.Variable timeNominalVar>;
+
+        $r66 = virtualinvoke $r35.<ucar.nc2.Variable: java.lang.String getShortName()>();
+
+     label11:
+        virtualinvoke $r61.<ucar.nc2.dt.point.RecordDatasetHelper: void setShortNames(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String)>($r62, $r63, $r64, $r65, $r66);
+
+        $r67 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.dt.point.RecordDatasetHelper recordHelper>;
+
+        $r68 = virtualinvoke $r67.<ucar.nc2.dt.point.RecordDatasetHelper: java.util.ArrayList readAllCreateObs(ucar.nc2.util.CancelTask)>(null);
+
+        r0.<ucar.nc2.dt.point.UnidataPointObsDataset: java.util.ArrayList allData> = $r68;
+
+        $r69 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.Variable timeVar>;
+
+        $r70 = virtualinvoke $r69.<ucar.nc2.Variable: java.lang.String getName()>();
+
+        virtualinvoke r0.<ucar.nc2.dt.point.UnidataPointObsDataset: void removeDataVariable(java.lang.String)>($r70);
+
+        $r71 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.Variable timeNominalVar>;
+
+        if $r71 == null goto label12;
+
+        $r50 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.Variable timeNominalVar>;
+
+        $r51 = virtualinvoke $r50.<ucar.nc2.Variable: java.lang.String getName()>();
+
+        virtualinvoke r0.<ucar.nc2.dt.point.UnidataPointObsDataset: void removeDataVariable(java.lang.String)>($r51);
+
+     label12:
+        $r36 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.Variable latVar>;
+
+        $r37 = virtualinvoke $r36.<ucar.nc2.Variable: java.lang.String getName()>();
+
+        virtualinvoke r0.<ucar.nc2.dt.point.UnidataPointObsDataset: void removeDataVariable(java.lang.String)>($r37);
+
+        $r38 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.Variable lonVar>;
+
+        $r39 = virtualinvoke $r38.<ucar.nc2.Variable: java.lang.String getName()>();
+
+        virtualinvoke r0.<ucar.nc2.dt.point.UnidataPointObsDataset: void removeDataVariable(java.lang.String)>($r39);
+
+        $r40 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.Variable altVar>;
+
+        if $r40 == null goto label13;
+
+        $r48 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.Variable altVar>;
+
+        $r49 = virtualinvoke $r48.<ucar.nc2.Variable: java.lang.String getName()>();
+
+        virtualinvoke r0.<ucar.nc2.dt.point.UnidataPointObsDataset: void removeDataVariable(java.lang.String)>($r49);
+
+     label13:
+        $r41 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.dt.point.RecordDatasetHelper recordHelper>;
+
+        $r42 = $r41.<ucar.nc2.dt.point.RecordDatasetHelper: ucar.nc2.units.DateUnit timeUnit>;
+
+        r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.units.DateUnit timeUnit> = $r42;
+
+     label14:
+        $r43 = staticinvoke <ucar.nc2.dt.point.UnidataObsDatasetHelper: java.util.Date getStartDate(ucar.nc2.dataset.NetcdfDataset)>(r1);
+
+        r0.<ucar.nc2.dt.point.UnidataPointObsDataset: java.util.Date startDate> = $r43;
+
+        $r44 = staticinvoke <ucar.nc2.dt.point.UnidataObsDatasetHelper: java.util.Date getEndDate(ucar.nc2.dataset.NetcdfDataset)>(r1);
+
+        r0.<ucar.nc2.dt.point.UnidataPointObsDataset: java.util.Date endDate> = $r44;
+
+     label15:
+        goto label17;
+
+     label16:
+        $r57 := @caughtexception;
+
+        $r58 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: java.lang.StringBuffer parseInfo>;
+
+        virtualinvoke $r58.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>("Missing time_coverage_start or end attributes");
+
+     label17:
+        $r45 = staticinvoke <ucar.nc2.dt.point.UnidataObsDatasetHelper: ucar.unidata.geoloc.LatLonRect getBoundingBox(ucar.nc2.dataset.NetcdfDataset)>(r1);
+
+        r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.unidata.geoloc.LatLonRect boundingBox> = $r45;
+
+     label18:
+        goto label20;
+
+     label19:
+        $r55 := @caughtexception;
+
+        $r56 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: java.lang.StringBuffer parseInfo>;
+
+        virtualinvoke $r56.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>("Missing geospatial_lat(lon)_min(max) attributes");
+
+     label20:
+        virtualinvoke r0.<ucar.nc2.dt.point.UnidataPointObsDataset: void setTimeUnits()>();
+
+        $r46 = virtualinvoke r1.<ucar.nc2.dataset.NetcdfDataset: java.lang.String findAttValueIgnoreCase(ucar.nc2.Variable,java.lang.String,java.lang.String)>(null, "title", null);
+
+        r0.<ucar.nc2.dt.point.UnidataPointObsDataset: java.lang.String title> = $r46;
+
+        $r47 = virtualinvoke r1.<ucar.nc2.dataset.NetcdfDataset: java.lang.String findAttValueIgnoreCase(ucar.nc2.Variable,java.lang.String,java.lang.String)>(null, "description", null);
+
+        r0.<ucar.nc2.dt.point.UnidataPointObsDataset: java.lang.String desc> = $r47;
+
+        return;
+
+        catch java.lang.IllegalArgumentException from label14 to label15 with label16;
+        catch java.lang.IllegalArgumentException from label17 to label18 with label19;
+    }
+
+    protected void setTimeUnits()
+    {
+        ucar.nc2.units.DateUnit $r2;
+        ucar.nc2.dt.point.RecordDatasetHelper $r1;
+        ucar.nc2.dt.point.UnidataPointObsDataset r0;
+
+        r0 := @this: ucar.nc2.dt.point.UnidataPointObsDataset;
+
+        $r1 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.dt.point.RecordDatasetHelper recordHelper>;
+
+        $r2 = $r1.<ucar.nc2.dt.point.RecordDatasetHelper: ucar.nc2.units.DateUnit timeUnit>;
+
+        r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.units.DateUnit timeUnit> = $r2;
+
+        return;
+    }
+
+    protected void setStartDate()
+    {
+        java.util.Date $r3;
+        ucar.nc2.units.DateUnit $r2;
+        ucar.nc2.dt.point.RecordDatasetHelper $r1;
+        ucar.nc2.dt.point.UnidataPointObsDataset r0;
+        double $d0;
+
+        r0 := @this: ucar.nc2.dt.point.UnidataPointObsDataset;
+
+        $r2 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.units.DateUnit timeUnit>;
+
+        $r1 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.dt.point.RecordDatasetHelper recordHelper>;
+
+        $d0 = $r1.<ucar.nc2.dt.point.RecordDatasetHelper: double minDate>;
+
+        $r3 = virtualinvoke $r2.<ucar.nc2.units.DateUnit: java.util.Date makeDate(double)>($d0);
+
+        r0.<ucar.nc2.dt.point.UnidataPointObsDataset: java.util.Date startDate> = $r3;
+
+        return;
+    }
+
+    protected void setEndDate()
+    {
+        java.util.Date $r3;
+        ucar.nc2.units.DateUnit $r2;
+        ucar.nc2.dt.point.RecordDatasetHelper $r1;
+        ucar.nc2.dt.point.UnidataPointObsDataset r0;
+        double $d0;
+
+        r0 := @this: ucar.nc2.dt.point.UnidataPointObsDataset;
+
+        $r2 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.units.DateUnit timeUnit>;
+
+        $r1 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.dt.point.RecordDatasetHelper recordHelper>;
+
+        $d0 = $r1.<ucar.nc2.dt.point.RecordDatasetHelper: double maxDate>;
+
+        $r3 = virtualinvoke $r2.<ucar.nc2.units.DateUnit: java.util.Date makeDate(double)>($d0);
+
+        r0.<ucar.nc2.dt.point.UnidataPointObsDataset: java.util.Date endDate> = $r3;
+
+        return;
+    }
+
+    protected void setBoundingBox()
+    {
+        ucar.unidata.geoloc.LatLonRect $r2;
+        ucar.nc2.dt.point.RecordDatasetHelper $r1;
+        ucar.nc2.dt.point.UnidataPointObsDataset r0;
+
+        r0 := @this: ucar.nc2.dt.point.UnidataPointObsDataset;
+
+        $r1 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.dt.point.RecordDatasetHelper recordHelper>;
+
+        $r2 = $r1.<ucar.nc2.dt.point.RecordDatasetHelper: ucar.unidata.geoloc.LatLonRect boundingBox>;
+
+        r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.unidata.geoloc.LatLonRect boundingBox> = $r2;
+
+        return;
+    }
+
+    public java.util.List getData(ucar.nc2.util.CancelTask) throws java.io.IOException
+    {
+        ucar.nc2.util.CancelTask r2;
+        ucar.nc2.dt.point.UnidataPointObsDataset r0;
+        java.util.ArrayList $r1;
+
+        r0 := @this: ucar.nc2.dt.point.UnidataPointObsDataset;
+
+        r2 := @parameter0: ucar.nc2.util.CancelTask;
+
+        $r1 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: java.util.ArrayList allData>;
+
+        return $r1;
+    }
+
+    public int getDataCount()
+    {
+        int $i1;
+        long $l0;
+        ucar.nc2.Structure $r2;
+        ucar.nc2.dt.point.RecordDatasetHelper $r1;
+        ucar.nc2.dt.point.UnidataPointObsDataset r0;
+
+        r0 := @this: ucar.nc2.dt.point.UnidataPointObsDataset;
+
+        $r1 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.dt.point.RecordDatasetHelper recordHelper>;
+
+        $r2 = virtualinvoke $r1.<ucar.nc2.dt.point.RecordDatasetHelper: ucar.nc2.Structure getRecordVar()>();
+
+        $l0 = virtualinvoke $r2.<ucar.nc2.Structure: long getSize()>();
+
+        $i1 = (int) $l0;
+
+        return $i1;
+    }
+
+    public java.util.List getData(ucar.unidata.geoloc.LatLonRect, ucar.nc2.util.CancelTask) throws java.io.IOException
+    {
+        ucar.unidata.geoloc.LatLonRect r1;
+        java.util.List $r5;
+        ucar.nc2.util.CancelTask r2;
+        ucar.nc2.dt.point.RecordDatasetHelper $r4;
+        ucar.nc2.dt.point.UnidataPointObsDataset r0;
+        java.util.ArrayList $r3;
+
+        r0 := @this: ucar.nc2.dt.point.UnidataPointObsDataset;
+
+        r1 := @parameter0: ucar.unidata.geoloc.LatLonRect;
+
+        r2 := @parameter1: ucar.nc2.util.CancelTask;
+
+        $r4 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.dt.point.RecordDatasetHelper recordHelper>;
+
+        $r3 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: java.util.ArrayList allData>;
+
+        $r5 = virtualinvoke $r4.<ucar.nc2.dt.point.RecordDatasetHelper: java.util.List getData(java.util.ArrayList,ucar.unidata.geoloc.LatLonRect,ucar.nc2.util.CancelTask)>($r3, r1, r2);
+
+        return $r5;
+    }
+
+    public java.util.List getData(ucar.unidata.geoloc.LatLonRect, java.util.Date, java.util.Date, ucar.nc2.util.CancelTask) throws java.io.IOException
+    {
+        java.util.Date r1, r3;
+        ucar.nc2.units.DateUnit $r2, $r4;
+        ucar.nc2.dt.point.RecordDatasetHelper $r8;
+        java.util.ArrayList $r7;
+        ucar.unidata.geoloc.LatLonRect r5;
+        java.util.List $r9;
+        ucar.nc2.util.CancelTask r6;
+        ucar.nc2.dt.point.UnidataPointObsDataset r0;
+        double $d0, $d1;
+
+        r0 := @this: ucar.nc2.dt.point.UnidataPointObsDataset;
+
+        r5 := @parameter0: ucar.unidata.geoloc.LatLonRect;
+
+        r1 := @parameter1: java.util.Date;
+
+        r3 := @parameter2: java.util.Date;
+
+        r6 := @parameter3: ucar.nc2.util.CancelTask;
+
+        $r2 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.units.DateUnit timeUnit>;
+
+        $d0 = virtualinvoke $r2.<ucar.nc2.units.DateUnit: double makeValue(java.util.Date)>(r1);
+
+        $r4 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.units.DateUnit timeUnit>;
+
+        $d1 = virtualinvoke $r4.<ucar.nc2.units.DateUnit: double makeValue(java.util.Date)>(r3);
+
+        $r8 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.dt.point.RecordDatasetHelper recordHelper>;
+
+        $r7 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: java.util.ArrayList allData>;
+
+        $r9 = virtualinvoke $r8.<ucar.nc2.dt.point.RecordDatasetHelper: java.util.List getData(java.util.ArrayList,ucar.unidata.geoloc.LatLonRect,double,double,ucar.nc2.util.CancelTask)>($r7, r5, $d0, $d1, r6);
+
+        return $r9;
+    }
+
+    public ucar.nc2.dt.DataIterator getDataIterator(int) throws java.io.IOException
+    {
+        ucar.nc2.dt.point.UnidataPointObsDataset$PointDatatypeIterator $r0;
+        ucar.nc2.dataset.StructureDS $r3;
+        int i0;
+        ucar.nc2.dt.point.RecordDatasetHelper $r2;
+        ucar.nc2.dt.point.UnidataPointObsDataset r1;
+
+        r1 := @this: ucar.nc2.dt.point.UnidataPointObsDataset;
+
+        i0 := @parameter0: int;
+
+        $r0 = new ucar.nc2.dt.point.UnidataPointObsDataset$PointDatatypeIterator;
+
+        $r2 = r1.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.dt.point.RecordDatasetHelper recordHelper>;
+
+        $r3 = $r2.<ucar.nc2.dt.point.RecordDatasetHelper: ucar.nc2.dataset.StructureDS recordVar>;
+
+        specialinvoke $r0.<ucar.nc2.dt.point.UnidataPointObsDataset$PointDatatypeIterator: void <init>(ucar.nc2.dt.point.UnidataPointObsDataset,ucar.nc2.Structure,int)>(r1, $r3, i0);
+
+        return $r0;
+    }
+
+    static ucar.nc2.dt.point.RecordDatasetHelper access$000(ucar.nc2.dt.point.UnidataPointObsDataset)
+    {
+        ucar.nc2.dt.point.RecordDatasetHelper $r1;
+        ucar.nc2.dt.point.UnidataPointObsDataset r0;
+
+        r0 := @parameter0: ucar.nc2.dt.point.UnidataPointObsDataset;
+
+        $r1 = r0.<ucar.nc2.dt.point.UnidataPointObsDataset: ucar.nc2.dt.point.RecordDatasetHelper recordHelper>;
+
+        return $r1;
+    }
+}

@@ -1,0 +1,531 @@
+public final class org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader extends java.lang.Object implements java.io.Closeable, java.lang.Cloneable
+{
+    final org.apache.lucene.store.IndexInput fieldsIndexIn;
+    final int maxDoc;
+    final int[] docBases;
+    final long[] startPointers;
+    final int[] avgChunkDocs;
+    final long[] avgChunkSizes;
+    final org.apache.lucene.util.packed.PackedInts$Reader[] docBasesDeltas;
+    final org.apache.lucene.util.packed.PackedInts$Reader[] startPointersDeltas;
+
+    static long moveLowOrderBitToSign(long)
+    {
+        long l0, $l1, $l2, $l3, $l4;
+
+        l0 := @parameter0: long;
+
+        $l3 = l0 >>> 1;
+
+        $l1 = l0 & 1L;
+
+        $l2 = neg $l1;
+
+        $l4 = $l3 ^ $l2;
+
+        return $l4;
+    }
+
+    void <init>(org.apache.lucene.store.IndexInput, org.apache.lucene.index.SegmentInfo) throws java.io.IOException
+    {
+        org.apache.lucene.index.CorruptIndexException $r7, $r8;
+        int[] $r11, $r13, r19, r21;
+        org.apache.lucene.util.packed.PackedInts$Reader[] $r16, $r18, r23, r24;
+        org.apache.lucene.index.SegmentInfo r2;
+        org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader r0;
+        org.apache.lucene.util.packed.PackedInts$Reader $r4, $r6;
+        java.lang.Object[] $r9, $r10, $r15, $r17;
+        long $l7, $l8;
+        long[] $r12, $r14, r20, r22;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i9, $i10, $i11, i12;
+        org.apache.lucene.store.IndexInput r1;
+        org.apache.lucene.util.packed.PackedInts$Format $r3, $r5;
+
+        r0 := @this: org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader;
+
+        r1 := @parameter0: org.apache.lucene.store.IndexInput;
+
+        r2 := @parameter1: org.apache.lucene.index.SegmentInfo;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: org.apache.lucene.store.IndexInput fieldsIndexIn> = r1;
+
+        $i0 = virtualinvoke r2.<org.apache.lucene.index.SegmentInfo: int getDocCount()>();
+
+        r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: int maxDoc> = $i0;
+
+        r19 = newarray (int)[16];
+
+        r20 = newarray (long)[16];
+
+        r21 = newarray (int)[16];
+
+        r22 = newarray (long)[16];
+
+        r23 = newarray (org.apache.lucene.util.packed.PackedInts$Reader)[16];
+
+        r24 = newarray (org.apache.lucene.util.packed.PackedInts$Reader)[16];
+
+        $i1 = virtualinvoke r1.<org.apache.lucene.store.IndexInput: int readVInt()>();
+
+        i12 = 0;
+
+     label1:
+        $i2 = virtualinvoke r1.<org.apache.lucene.store.IndexInput: int readVInt()>();
+
+        if $i2 != 0 goto label2;
+
+        goto label6;
+
+     label2:
+        $i3 = lengthof r19;
+
+        if i12 != $i3 goto label3;
+
+        $i10 = i12 + 1;
+
+        $i11 = staticinvoke <org.apache.lucene.util.ArrayUtil: int oversize(int,int)>($i10, 8);
+
+        r19 = staticinvoke <java.util.Arrays: int[] copyOf(int[],int)>(r19, $i11);
+
+        r20 = staticinvoke <java.util.Arrays: long[] copyOf(long[],int)>(r20, $i11);
+
+        r21 = staticinvoke <java.util.Arrays: int[] copyOf(int[],int)>(r21, $i11);
+
+        r22 = staticinvoke <java.util.Arrays: long[] copyOf(long[],int)>(r22, $i11);
+
+        $r9 = staticinvoke <java.util.Arrays: java.lang.Object[] copyOf(java.lang.Object[],int)>(r23, $i11);
+
+        r23 = (org.apache.lucene.util.packed.PackedInts$Reader[]) $r9;
+
+        $r10 = staticinvoke <java.util.Arrays: java.lang.Object[] copyOf(java.lang.Object[],int)>(r24, $i11);
+
+        r24 = (org.apache.lucene.util.packed.PackedInts$Reader[]) $r10;
+
+     label3:
+        $i4 = virtualinvoke r1.<org.apache.lucene.store.IndexInput: int readVInt()>();
+
+        r19[i12] = $i4;
+
+        $i5 = virtualinvoke r1.<org.apache.lucene.store.IndexInput: int readVInt()>();
+
+        r21[i12] = $i5;
+
+        $i6 = virtualinvoke r1.<org.apache.lucene.store.IndexInput: int readVInt()>();
+
+        if $i6 <= 32 goto label4;
+
+        $r8 = new org.apache.lucene.index.CorruptIndexException;
+
+        specialinvoke $r8.<org.apache.lucene.index.CorruptIndexException: void <init>(java.lang.String)>("Corrupted");
+
+        throw $r8;
+
+     label4:
+        $r3 = <org.apache.lucene.util.packed.PackedInts$Format: org.apache.lucene.util.packed.PackedInts$Format PACKED>;
+
+        $r4 = staticinvoke <org.apache.lucene.util.packed.PackedInts: org.apache.lucene.util.packed.PackedInts$Reader getReaderNoHeader(org.apache.lucene.store.DataInput,org.apache.lucene.util.packed.PackedInts$Format,int,int,int)>(r1, $r3, $i1, $i2, $i6);
+
+        r23[i12] = $r4;
+
+        $l7 = virtualinvoke r1.<org.apache.lucene.store.IndexInput: long readVLong()>();
+
+        r20[i12] = $l7;
+
+        $l8 = virtualinvoke r1.<org.apache.lucene.store.IndexInput: long readVLong()>();
+
+        r22[i12] = $l8;
+
+        $i9 = virtualinvoke r1.<org.apache.lucene.store.IndexInput: int readVInt()>();
+
+        if $i9 <= 64 goto label5;
+
+        $r7 = new org.apache.lucene.index.CorruptIndexException;
+
+        specialinvoke $r7.<org.apache.lucene.index.CorruptIndexException: void <init>(java.lang.String)>("Corrupted");
+
+        throw $r7;
+
+     label5:
+        $r5 = <org.apache.lucene.util.packed.PackedInts$Format: org.apache.lucene.util.packed.PackedInts$Format PACKED>;
+
+        $r6 = staticinvoke <org.apache.lucene.util.packed.PackedInts: org.apache.lucene.util.packed.PackedInts$Reader getReaderNoHeader(org.apache.lucene.store.DataInput,org.apache.lucene.util.packed.PackedInts$Format,int,int,int)>(r1, $r5, $i1, $i2, $i9);
+
+        r24[i12] = $r6;
+
+        i12 = i12 + 1;
+
+        goto label1;
+
+     label6:
+        $r11 = staticinvoke <java.util.Arrays: int[] copyOf(int[],int)>(r19, i12);
+
+        r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: int[] docBases> = $r11;
+
+        $r12 = staticinvoke <java.util.Arrays: long[] copyOf(long[],int)>(r20, i12);
+
+        r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: long[] startPointers> = $r12;
+
+        $r13 = staticinvoke <java.util.Arrays: int[] copyOf(int[],int)>(r21, i12);
+
+        r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: int[] avgChunkDocs> = $r13;
+
+        $r14 = staticinvoke <java.util.Arrays: long[] copyOf(long[],int)>(r22, i12);
+
+        r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: long[] avgChunkSizes> = $r14;
+
+        $r15 = staticinvoke <java.util.Arrays: java.lang.Object[] copyOf(java.lang.Object[],int)>(r23, i12);
+
+        $r16 = (org.apache.lucene.util.packed.PackedInts$Reader[]) $r15;
+
+        r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: org.apache.lucene.util.packed.PackedInts$Reader[] docBasesDeltas> = $r16;
+
+        $r17 = staticinvoke <java.util.Arrays: java.lang.Object[] copyOf(java.lang.Object[],int)>(r24, i12);
+
+        $r18 = (org.apache.lucene.util.packed.PackedInts$Reader[]) $r17;
+
+        r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: org.apache.lucene.util.packed.PackedInts$Reader[] startPointersDeltas> = $r18;
+
+        return;
+    }
+
+    private void <init>(org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader)
+    {
+        org.apache.lucene.util.packed.PackedInts$Reader[] $r6, $r7;
+        org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader r0, r1;
+        long[] $r3, $r5;
+        int[] $r2, $r4;
+        int $i0;
+
+        r0 := @this: org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader;
+
+        r1 := @parameter0: org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: org.apache.lucene.store.IndexInput fieldsIndexIn> = null;
+
+        $i0 = r1.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: int maxDoc>;
+
+        r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: int maxDoc> = $i0;
+
+        $r2 = r1.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: int[] docBases>;
+
+        r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: int[] docBases> = $r2;
+
+        $r3 = r1.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: long[] startPointers>;
+
+        r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: long[] startPointers> = $r3;
+
+        $r4 = r1.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: int[] avgChunkDocs>;
+
+        r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: int[] avgChunkDocs> = $r4;
+
+        $r5 = r1.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: long[] avgChunkSizes>;
+
+        r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: long[] avgChunkSizes> = $r5;
+
+        $r6 = r1.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: org.apache.lucene.util.packed.PackedInts$Reader[] docBasesDeltas>;
+
+        r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: org.apache.lucene.util.packed.PackedInts$Reader[] docBasesDeltas> = $r6;
+
+        $r7 = r1.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: org.apache.lucene.util.packed.PackedInts$Reader[] startPointersDeltas>;
+
+        r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: org.apache.lucene.util.packed.PackedInts$Reader[] startPointersDeltas> = $r7;
+
+        return;
+    }
+
+    private int block(int)
+    {
+        org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader r0;
+        int[] $r1, $r2;
+        int $i0, $i1, i2, i3, i4, i5, i6;
+
+        r0 := @this: org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader;
+
+        i4 := @parameter0: int;
+
+        i5 = 0;
+
+        $r1 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: int[] docBases>;
+
+        $i0 = lengthof $r1;
+
+        i6 = $i0 - 1;
+
+     label1:
+        if i5 > i6 goto label5;
+
+        $i1 = i5 + i6;
+
+        i2 = $i1 >>> 1;
+
+        $r2 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: int[] docBases>;
+
+        i3 = $r2[i2];
+
+        if i3 != i4 goto label2;
+
+        return i2;
+
+     label2:
+        if i3 >= i4 goto label3;
+
+        i5 = i2 + 1;
+
+        goto label4;
+
+     label3:
+        i6 = i2 - 1;
+
+     label4:
+        goto label1;
+
+     label5:
+        return i6;
+    }
+
+    private int relativeDocBase(int, int)
+    {
+        org.apache.lucene.util.packed.PackedInts$Reader[] $r2;
+        long $l4, $l5;
+        org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader r0;
+        org.apache.lucene.util.packed.PackedInts$Reader $r3;
+        int[] $r1;
+        int i0, i1, $i2, i3, $i6, $i7;
+
+        r0 := @this: org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader;
+
+        i0 := @parameter0: int;
+
+        i1 := @parameter1: int;
+
+        $r1 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: int[] avgChunkDocs>;
+
+        $i2 = $r1[i0];
+
+        i3 = $i2 * i1;
+
+        $r2 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: org.apache.lucene.util.packed.PackedInts$Reader[] docBasesDeltas>;
+
+        $r3 = $r2[i0];
+
+        $l4 = interfaceinvoke $r3.<org.apache.lucene.util.packed.PackedInts$Reader: long get(int)>(i1);
+
+        $l5 = staticinvoke <org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: long moveLowOrderBitToSign(long)>($l4);
+
+        $i6 = (int) $l5;
+
+        $i7 = i3 + $i6;
+
+        return $i7;
+    }
+
+    private long relativeStartPointer(int, int)
+    {
+        org.apache.lucene.util.packed.PackedInts$Reader[] $r2;
+        long $l2, $l3, l4, $l5, $l6, $l7;
+        org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader r0;
+        long[] $r1;
+        org.apache.lucene.util.packed.PackedInts$Reader $r3;
+        int i0, i1;
+
+        r0 := @this: org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader;
+
+        i0 := @parameter0: int;
+
+        i1 := @parameter1: int;
+
+        $r1 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: long[] avgChunkSizes>;
+
+        $l3 = $r1[i0];
+
+        $l2 = (long) i1;
+
+        l4 = $l3 * $l2;
+
+        $r2 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: org.apache.lucene.util.packed.PackedInts$Reader[] startPointersDeltas>;
+
+        $r3 = $r2[i0];
+
+        $l5 = interfaceinvoke $r3.<org.apache.lucene.util.packed.PackedInts$Reader: long get(int)>(i1);
+
+        $l6 = staticinvoke <org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: long moveLowOrderBitToSign(long)>($l5);
+
+        $l7 = l4 + $l6;
+
+        return $l7;
+    }
+
+    private int relativeChunk(int, int)
+    {
+        org.apache.lucene.util.packed.PackedInts$Reader[] $r1;
+        org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader r0;
+        org.apache.lucene.util.packed.PackedInts$Reader $r2;
+        int i0, $i1, $i2, i3, $i4, i5, i6, i7;
+
+        r0 := @this: org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader;
+
+        i0 := @parameter0: int;
+
+        i5 := @parameter1: int;
+
+        i6 = 0;
+
+        $r1 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: org.apache.lucene.util.packed.PackedInts$Reader[] docBasesDeltas>;
+
+        $r2 = $r1[i0];
+
+        $i1 = interfaceinvoke $r2.<org.apache.lucene.util.packed.PackedInts$Reader: int size()>();
+
+        i7 = $i1 - 1;
+
+     label1:
+        if i6 > i7 goto label5;
+
+        $i2 = i6 + i7;
+
+        i3 = $i2 >>> 1;
+
+        $i4 = specialinvoke r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: int relativeDocBase(int,int)>(i0, i3);
+
+        if $i4 != i5 goto label2;
+
+        return i3;
+
+     label2:
+        if $i4 >= i5 goto label3;
+
+        i6 = i3 + 1;
+
+        goto label4;
+
+     label3:
+        i7 = i3 - 1;
+
+     label4:
+        goto label1;
+
+     label5:
+        return i7;
+    }
+
+    long getStartPointer(int)
+    {
+        long $l7, $l8, $l9;
+        long[] $r9;
+        int[] $r8;
+        int i0, $i1, $i2, $i3, $i4, $i5, $i6;
+        java.lang.String $r7;
+        java.lang.IllegalArgumentException $r0;
+        org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader r3;
+        java.lang.StringBuilder $r1, $r2, $r4, $r5, $r6;
+
+        r3 := @this: org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader;
+
+        i0 := @parameter0: int;
+
+        if i0 < 0 goto label1;
+
+        $i2 = r3.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: int maxDoc>;
+
+        if i0 < $i2 goto label2;
+
+     label1:
+        $r0 = new java.lang.IllegalArgumentException;
+
+        $r1 = new java.lang.StringBuilder;
+
+        specialinvoke $r1.<java.lang.StringBuilder: void <init>()>();
+
+        $r2 = virtualinvoke $r1.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("docID out of range [0-");
+
+        $i1 = r3.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: int maxDoc>;
+
+        $r4 = virtualinvoke $r2.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i1);
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("]: ");
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>(i0);
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r0.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>($r7);
+
+        throw $r0;
+
+     label2:
+        $i3 = specialinvoke r3.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: int block(int)>(i0);
+
+        $r8 = r3.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: int[] docBases>;
+
+        $i4 = $r8[$i3];
+
+        $i5 = i0 - $i4;
+
+        $i6 = specialinvoke r3.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: int relativeChunk(int,int)>($i3, $i5);
+
+        $r9 = r3.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: long[] startPointers>;
+
+        $l7 = $r9[$i3];
+
+        $l8 = specialinvoke r3.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: long relativeStartPointer(int,int)>($i3, $i6);
+
+        $l9 = $l7 + $l8;
+
+        return $l9;
+    }
+
+    public org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader clone()
+    {
+        org.apache.lucene.store.IndexInput $r1;
+        org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader r0, $r2;
+
+        r0 := @this: org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader;
+
+        $r1 = r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: org.apache.lucene.store.IndexInput fieldsIndexIn>;
+
+        if $r1 != null goto label1;
+
+        return r0;
+
+     label1:
+        $r2 = new org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader;
+
+        specialinvoke $r2.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: void <init>(org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader)>(r0);
+
+        return $r2;
+    }
+
+    public void close() throws java.io.IOException
+    {
+        java.io.Closeable[] $r0;
+        org.apache.lucene.store.IndexInput $r2;
+        org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader r1;
+
+        r1 := @this: org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader;
+
+        $r0 = newarray (java.io.Closeable)[1];
+
+        $r2 = r1.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: org.apache.lucene.store.IndexInput fieldsIndexIn>;
+
+        $r0[0] = $r2;
+
+        staticinvoke <org.apache.lucene.util.IOUtils: void close(java.io.Closeable[])>($r0);
+
+        return;
+    }
+
+    public volatile java.lang.Object clone() throws java.lang.CloneNotSupportedException
+    {
+        org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader r0, $r1;
+
+        r0 := @this: org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader;
+
+        $r1 = virtualinvoke r0.<org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader: org.apache.lucene.codecs.compressing.CompressingStoredFieldsIndexReader clone()>();
+
+        return $r1;
+    }
+}

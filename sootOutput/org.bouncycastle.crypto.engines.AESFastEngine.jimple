@@ -1,0 +1,8150 @@
+public class org.bouncycastle.crypto.engines.AESFastEngine extends java.lang.Object implements org.bouncycastle.crypto.BlockCipher
+{
+    private static final byte[] S;
+    private static final byte[] Si;
+    private static final int[] rcon;
+    private static final int[] T0;
+    private static final int[] T1;
+    private static final int[] T2;
+    private static final int[] T3;
+    private static final int[] Tinv0;
+    private static final int[] Tinv1;
+    private static final int[] Tinv2;
+    private static final int[] Tinv3;
+    private static final int m1;
+    private static final int m2;
+    private static final int m3;
+    private int ROUNDS;
+    private int[][] WorkingKey;
+    private int C0;
+    private int C1;
+    private int C2;
+    private int C3;
+    private boolean forEncryption;
+    private static final int BLOCK_SIZE;
+
+    private int shift(int, int)
+    {
+        int i0, i1, $i2, $i3, $i4, $i5;
+        org.bouncycastle.crypto.engines.AESFastEngine r0;
+
+        r0 := @this: org.bouncycastle.crypto.engines.AESFastEngine;
+
+        i0 := @parameter0: int;
+
+        i1 := @parameter1: int;
+
+        $i4 = i0 >>> i1;
+
+        $i2 = neg i1;
+
+        $i3 = i0 << $i2;
+
+        $i5 = $i4 | $i3;
+
+        return $i5;
+    }
+
+    private int FFmulX(int)
+    {
+        org.bouncycastle.crypto.engines.AESFastEngine r0;
+        int i0, $i1, $i2, $i3, $i4, $i5, $i6;
+
+        r0 := @this: org.bouncycastle.crypto.engines.AESFastEngine;
+
+        i0 := @parameter0: int;
+
+        $i1 = i0 & 2139062143;
+
+        $i5 = $i1 << 1;
+
+        $i2 = i0 & -2139062144;
+
+        $i3 = $i2 >>> 7;
+
+        $i4 = $i3 * 27;
+
+        $i6 = $i5 ^ $i4;
+
+        return $i6;
+    }
+
+    private int inv_mcol(int)
+    {
+        int i0, $i1, $i2, $i3, i4, $i5, $i6, $i7, $i8, $i9, $i10, $i11, $i12, $i13, $i14;
+        org.bouncycastle.crypto.engines.AESFastEngine r0;
+
+        r0 := @this: org.bouncycastle.crypto.engines.AESFastEngine;
+
+        i0 := @parameter0: int;
+
+        $i1 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESFastEngine: int FFmulX(int)>(i0);
+
+        $i2 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESFastEngine: int FFmulX(int)>($i1);
+
+        $i3 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESFastEngine: int FFmulX(int)>($i2);
+
+        i4 = i0 ^ $i3;
+
+        $i5 = $i1 ^ $i2;
+
+        $i7 = $i5 ^ $i3;
+
+        $i6 = $i1 ^ i4;
+
+        $i8 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESFastEngine: int shift(int,int)>($i6, 8);
+
+        $i10 = $i7 ^ $i8;
+
+        $i9 = $i2 ^ i4;
+
+        $i11 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESFastEngine: int shift(int,int)>($i9, 16);
+
+        $i12 = $i10 ^ $i11;
+
+        $i13 = specialinvoke r0.<org.bouncycastle.crypto.engines.AESFastEngine: int shift(int,int)>(i4, 24);
+
+        $i14 = $i12 ^ $i13;
+
+        return $i14;
+    }
+
+    private int subWord(int)
+    {
+        byte[] $r0, $r1, $r2, $r3;
+        byte $b2, $b5, $b11, $b17;
+        short $s6, $s8, $s12, $s21, $s22, $s25;
+        int i0, $i1, $i3, $i4, $i7, $i9, $i10, $i13, $i14, $i15, $i16, $i18, $i19, $i20, $i23, $i24, $i26, $i27;
+        org.bouncycastle.crypto.engines.AESFastEngine r4;
+
+        r4 := @this: org.bouncycastle.crypto.engines.AESFastEngine;
+
+        i0 := @parameter0: int;
+
+        $r0 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] S>;
+
+        $i1 = i0 & 255;
+
+        $b2 = $r0[$i1];
+
+        $s21 = (short) $b2;
+
+        $s8 = $s21 & 255;
+
+        $r1 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] S>;
+
+        $i3 = i0 >> 8;
+
+        $i4 = $i3 & 255;
+
+        $b5 = $r1[$i4];
+
+        $s22 = (short) $b5;
+
+        $s6 = $s22 & 255;
+
+        $i23 = (int) $s6;
+
+        $i7 = $i23 << 8;
+
+        $i24 = (int) $s8;
+
+        $i14 = $i24 | $i7;
+
+        $r2 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] S>;
+
+        $i9 = i0 >> 16;
+
+        $i10 = $i9 & 255;
+
+        $b11 = $r2[$i10];
+
+        $s25 = (short) $b11;
+
+        $s12 = $s25 & 255;
+
+        $i26 = (int) $s12;
+
+        $i13 = $i26 << 16;
+
+        $i19 = $i14 | $i13;
+
+        $r3 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] S>;
+
+        $i15 = i0 >> 24;
+
+        $i16 = $i15 & 255;
+
+        $b17 = $r3[$i16];
+
+        $i27 = (int) $b17;
+
+        $i18 = $i27 << 24;
+
+        $i20 = $i19 | $i18;
+
+        return $i20;
+    }
+
+    private int[][] generateWorkingKey(byte[], boolean)
+    {
+        byte[] r0;
+        byte $b24, $b26, $b31, $b36;
+        short $s27, $s29, $s32, $s57, $s58, $s61;
+        int[][] r2;
+        int[] $r3, $r4, $r5, $r6, $r7, $r9, $r10;
+        boolean z0;
+        int $i0, i1, $i2, $i3, $i4, $i5, $i6, $i7, i8, $i9, $i10, $i11, $i12, $i13, $i14, $i15, $i16, $i17, $i18, $i19, $i20, $i21, $i22, $i23, $i25, $i28, $i30, $i33, $i34, $i35, $i37, $i38, $i39, $i40, $i41, $i42, i43, i44, i45, i46, $i47, $i48, $i49, $i50, $i51, $i52, $i53, $i54, i55, i56, $i59, $i60, $i62, $i63;
+        java.lang.IllegalArgumentException $r11;
+        org.bouncycastle.crypto.engines.AESFastEngine r1;
+
+        r1 := @this: org.bouncycastle.crypto.engines.AESFastEngine;
+
+        r0 := @parameter0: byte[];
+
+        z0 := @parameter1: boolean;
+
+        $i0 = lengthof r0;
+
+        i1 = $i0 / 4;
+
+        if i1 == 4 goto label01;
+
+        if i1 == 6 goto label01;
+
+        if i1 != 8 goto label02;
+
+     label01:
+        $i41 = i1 * 4;
+
+        $i42 = lengthof r0;
+
+        if $i41 == $i42 goto label03;
+
+     label02:
+        $r11 = new java.lang.IllegalArgumentException;
+
+        specialinvoke $r11.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>("Key length not 128/192/256 bits.");
+
+        throw $r11;
+
+     label03:
+        $i2 = i1 + 6;
+
+        r1.<org.bouncycastle.crypto.engines.AESFastEngine: int ROUNDS> = $i2;
+
+        $i3 = r1.<org.bouncycastle.crypto.engines.AESFastEngine: int ROUNDS>;
+
+        $i4 = $i3 + 1;
+
+        r2 = newmultiarray (int)[$i4][4];
+
+        i43 = 0;
+
+        i44 = 0;
+
+     label04:
+        $i5 = lengthof r0;
+
+        if i44 >= $i5 goto label05;
+
+        $i23 = i43 >> 2;
+
+        $r7 = r2[$i23];
+
+        $i40 = i43 & 3;
+
+        $b24 = r0[i44];
+
+        $s57 = (short) $b24;
+
+        $s29 = $s57 & 255;
+
+        $i25 = i44 + 1;
+
+        $b26 = r0[$i25];
+
+        $s58 = (short) $b26;
+
+        $s27 = $s58 & 255;
+
+        $i59 = (int) $s27;
+
+        $i28 = $i59 << 8;
+
+        $i60 = (int) $s29;
+
+        $i34 = $i60 | $i28;
+
+        $i30 = i44 + 2;
+
+        $b31 = r0[$i30];
+
+        $s61 = (short) $b31;
+
+        $s32 = $s61 & 255;
+
+        $i62 = (int) $s32;
+
+        $i33 = $i62 << 16;
+
+        $i38 = $i34 | $i33;
+
+        $i35 = i44 + 3;
+
+        $b36 = r0[$i35];
+
+        $i63 = (int) $b36;
+
+        $i37 = $i63 << 24;
+
+        $i39 = $i38 | $i37;
+
+        $r7[$i40] = $i39;
+
+        i44 = i44 + 4;
+
+        i43 = i43 + 1;
+
+        goto label04;
+
+     label05:
+        $i6 = r1.<org.bouncycastle.crypto.engines.AESFastEngine: int ROUNDS>;
+
+        $i7 = $i6 + 1;
+
+        i8 = $i7 << 2;
+
+        i45 = i1;
+
+     label06:
+        if i45 >= i8 goto label09;
+
+        $i12 = i45 - 1;
+
+        $i13 = $i12 >> 2;
+
+        $r5 = r2[$i13];
+
+        $i14 = i45 - 1;
+
+        $i15 = $i14 & 3;
+
+        i46 = $r5[$i15];
+
+        $i16 = i45 % i1;
+
+        if $i16 != 0 goto label07;
+
+        $i18 = specialinvoke r1.<org.bouncycastle.crypto.engines.AESFastEngine: int shift(int,int)>(i46, 8);
+
+        $i19 = specialinvoke r1.<org.bouncycastle.crypto.engines.AESFastEngine: int subWord(int)>($i18);
+
+        $r6 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] rcon>;
+
+        $i20 = i45 / i1;
+
+        $i21 = $i20 - 1;
+
+        $i22 = $r6[$i21];
+
+        i46 = $i19 ^ $i22;
+
+        goto label08;
+
+     label07:
+        if i1 <= 6 goto label08;
+
+        $i17 = i45 % i1;
+
+        if $i17 != 4 goto label08;
+
+        i46 = specialinvoke r1.<org.bouncycastle.crypto.engines.AESFastEngine: int subWord(int)>(i46);
+
+     label08:
+        $i47 = i45 >> 2;
+
+        $r9 = r2[$i47];
+
+        $i48 = i45 & 3;
+
+        $i49 = i45 - i1;
+
+        $i50 = $i49 >> 2;
+
+        $r10 = r2[$i50];
+
+        $i51 = i45 - i1;
+
+        $i52 = $i51 & 3;
+
+        $i53 = $r10[$i52];
+
+        $i54 = $i53 ^ i46;
+
+        $r9[$i48] = $i54;
+
+        i45 = i45 + 1;
+
+        goto label06;
+
+     label09:
+        if z0 != 0 goto label13;
+
+        i55 = 1;
+
+     label10:
+        $i9 = r1.<org.bouncycastle.crypto.engines.AESFastEngine: int ROUNDS>;
+
+        if i55 >= $i9 goto label13;
+
+        i56 = 0;
+
+     label11:
+        if i56 >= 4 goto label12;
+
+        $r4 = r2[i55];
+
+        $r3 = r2[i55];
+
+        $i10 = $r3[i56];
+
+        $i11 = specialinvoke r1.<org.bouncycastle.crypto.engines.AESFastEngine: int inv_mcol(int)>($i10);
+
+        $r4[i56] = $i11;
+
+        i56 = i56 + 1;
+
+        goto label11;
+
+     label12:
+        i55 = i55 + 1;
+
+        goto label10;
+
+     label13:
+        return r2;
+    }
+
+    public void <init>()
+    {
+        int[][] $r1;
+        org.bouncycastle.crypto.engines.AESFastEngine r0;
+
+        r0 := @this: org.bouncycastle.crypto.engines.AESFastEngine;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        $r1 = (int[][]) null;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int[][] WorkingKey> = $r1;
+
+        return;
+    }
+
+    public void init(boolean, org.bouncycastle.crypto.CipherParameters)
+    {
+        byte[] $r10;
+        int[][] $r11;
+        java.lang.IllegalArgumentException $r1;
+        org.bouncycastle.crypto.engines.AESFastEngine r8;
+        java.lang.StringBuilder $r2, $r3, $r6;
+        java.lang.Class $r4;
+        java.lang.String $r5, $r7;
+        org.bouncycastle.crypto.params.KeyParameter $r9;
+        org.bouncycastle.crypto.CipherParameters r0;
+        boolean $z0, z1;
+
+        r8 := @this: org.bouncycastle.crypto.engines.AESFastEngine;
+
+        z1 := @parameter0: boolean;
+
+        r0 := @parameter1: org.bouncycastle.crypto.CipherParameters;
+
+        $z0 = r0 instanceof org.bouncycastle.crypto.params.KeyParameter;
+
+        if $z0 == 0 goto label1;
+
+        $r9 = (org.bouncycastle.crypto.params.KeyParameter) r0;
+
+        $r10 = virtualinvoke $r9.<org.bouncycastle.crypto.params.KeyParameter: byte[] getKey()>();
+
+        $r11 = specialinvoke r8.<org.bouncycastle.crypto.engines.AESFastEngine: int[][] generateWorkingKey(byte[],boolean)>($r10, z1);
+
+        r8.<org.bouncycastle.crypto.engines.AESFastEngine: int[][] WorkingKey> = $r11;
+
+        r8.<org.bouncycastle.crypto.engines.AESFastEngine: boolean forEncryption> = z1;
+
+        return;
+
+     label1:
+        $r1 = new java.lang.IllegalArgumentException;
+
+        $r2 = new java.lang.StringBuilder;
+
+        specialinvoke $r2.<java.lang.StringBuilder: void <init>()>();
+
+        $r3 = virtualinvoke $r2.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("invalid parameter passed to AES init - ");
+
+        $r4 = virtualinvoke r0.<java.lang.Object: java.lang.Class getClass()>();
+
+        $r5 = virtualinvoke $r4.<java.lang.Class: java.lang.String getName()>();
+
+        $r6 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r5);
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r1.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>($r7);
+
+        throw $r1;
+    }
+
+    public java.lang.String getAlgorithmName()
+    {
+        org.bouncycastle.crypto.engines.AESFastEngine r0;
+
+        r0 := @this: org.bouncycastle.crypto.engines.AESFastEngine;
+
+        return "AES";
+    }
+
+    public int getBlockSize()
+    {
+        org.bouncycastle.crypto.engines.AESFastEngine r0;
+
+        r0 := @this: org.bouncycastle.crypto.engines.AESFastEngine;
+
+        return 16;
+    }
+
+    public int processBlock(byte[], int, byte[], int)
+    {
+        byte[] r2, r3;
+        java.lang.IllegalStateException $r8;
+        int[][] $r1, $r4, $r5;
+        org.bouncycastle.crypto.DataLengthException $r6, $r7;
+        int i0, $i1, $i2, i3, $i4, $i5;
+        boolean $z0;
+        org.bouncycastle.crypto.engines.AESFastEngine r0;
+
+        r0 := @this: org.bouncycastle.crypto.engines.AESFastEngine;
+
+        r2 := @parameter0: byte[];
+
+        i0 := @parameter1: int;
+
+        r3 := @parameter2: byte[];
+
+        i3 := @parameter3: int;
+
+        $r1 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int[][] WorkingKey>;
+
+        if $r1 != null goto label1;
+
+        $r8 = new java.lang.IllegalStateException;
+
+        specialinvoke $r8.<java.lang.IllegalStateException: void <init>(java.lang.String)>("AES engine not initialised");
+
+        throw $r8;
+
+     label1:
+        $i2 = i0 + 16;
+
+        $i1 = lengthof r2;
+
+        if $i2 <= $i1 goto label2;
+
+        $r7 = new org.bouncycastle.crypto.DataLengthException;
+
+        specialinvoke $r7.<org.bouncycastle.crypto.DataLengthException: void <init>(java.lang.String)>("input buffer too short");
+
+        throw $r7;
+
+     label2:
+        $i5 = i3 + 16;
+
+        $i4 = lengthof r3;
+
+        if $i5 <= $i4 goto label3;
+
+        $r6 = new org.bouncycastle.crypto.DataLengthException;
+
+        specialinvoke $r6.<org.bouncycastle.crypto.DataLengthException: void <init>(java.lang.String)>("output buffer too short");
+
+        throw $r6;
+
+     label3:
+        $z0 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: boolean forEncryption>;
+
+        if $z0 == 0 goto label4;
+
+        specialinvoke r0.<org.bouncycastle.crypto.engines.AESFastEngine: void unpackBlock(byte[],int)>(r2, i0);
+
+        $r5 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int[][] WorkingKey>;
+
+        specialinvoke r0.<org.bouncycastle.crypto.engines.AESFastEngine: void encryptBlock(int[][])>($r5);
+
+        specialinvoke r0.<org.bouncycastle.crypto.engines.AESFastEngine: void packBlock(byte[],int)>(r3, i3);
+
+        goto label5;
+
+     label4:
+        specialinvoke r0.<org.bouncycastle.crypto.engines.AESFastEngine: void unpackBlock(byte[],int)>(r2, i0);
+
+        $r4 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int[][] WorkingKey>;
+
+        specialinvoke r0.<org.bouncycastle.crypto.engines.AESFastEngine: void decryptBlock(int[][])>($r4);
+
+        specialinvoke r0.<org.bouncycastle.crypto.engines.AESFastEngine: void packBlock(byte[],int)>(r3, i3);
+
+     label5:
+        return 16;
+    }
+
+    public void reset()
+    {
+        org.bouncycastle.crypto.engines.AESFastEngine r0;
+
+        r0 := @this: org.bouncycastle.crypto.engines.AESFastEngine;
+
+        return;
+    }
+
+    private void unpackBlock(byte[], int)
+    {
+        byte[] r1;
+        byte $b1, $b3, $b8, $b13, $b17, $b19, $b24, $b29, $b33, $b35, $b40, $b45, $b49, $b51, $b56, $b61;
+        short $s2, $s4, $s9, $s18, $s20, $s25, $s34, $s36, $s41, $s50, $s52, $s57, $s80, $s82, $s84, $s87, $s89, $s91, $s94, $s96, $s98, $s101, $s103, $s105;
+        int i0, $i5, $i6, $i7, $i10, $i11, $i12, $i14, $i15, $i16, $i21, $i22, $i23, $i26, $i27, $i28, $i30, $i31, $i32, $i37, $i38, $i39, $i42, $i43, $i44, $i46, $i47, $i48, $i53, $i54, $i55, $i58, $i59, $i60, $i62, $i63, $i64, i65, i66, i67, i68, i69, i70, i71, i72, i73, i74, i75, i76, i77, i78, i79, $i81, $i83, $i85, $i86, $i88, $i90, $i92, $i93, $i95, $i97, $i99, $i100, $i102, $i104, $i106, $i107;
+        org.bouncycastle.crypto.engines.AESFastEngine r0;
+
+        r0 := @this: org.bouncycastle.crypto.engines.AESFastEngine;
+
+        r1 := @parameter0: byte[];
+
+        i0 := @parameter1: int;
+
+        i65 = i0 + 1;
+
+        $b1 = r1[i0];
+
+        $s80 = (short) $b1;
+
+        $s2 = $s80 & 255;
+
+        $i81 = (int) $s2;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C0> = $i81;
+
+        $i6 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C0>;
+
+        i66 = i65 + 1;
+
+        $b3 = r1[i65];
+
+        $s82 = (short) $b3;
+
+        $s4 = $s82 & 255;
+
+        $i83 = (int) $s4;
+
+        $i5 = $i83 << 8;
+
+        $i7 = $i6 | $i5;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C0> = $i7;
+
+        $i11 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C0>;
+
+        i67 = i66 + 1;
+
+        $b8 = r1[i66];
+
+        $s84 = (short) $b8;
+
+        $s9 = $s84 & 255;
+
+        $i85 = (int) $s9;
+
+        $i10 = $i85 << 16;
+
+        $i12 = $i11 | $i10;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C0> = $i12;
+
+        $i15 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C0>;
+
+        i68 = i67 + 1;
+
+        $b13 = r1[i67];
+
+        $i86 = (int) $b13;
+
+        $i14 = $i86 << 24;
+
+        $i16 = $i15 | $i14;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C0> = $i16;
+
+        i69 = i68 + 1;
+
+        $b17 = r1[i68];
+
+        $s87 = (short) $b17;
+
+        $s18 = $s87 & 255;
+
+        $i88 = (int) $s18;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C1> = $i88;
+
+        $i22 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C1>;
+
+        i70 = i69 + 1;
+
+        $b19 = r1[i69];
+
+        $s89 = (short) $b19;
+
+        $s20 = $s89 & 255;
+
+        $i90 = (int) $s20;
+
+        $i21 = $i90 << 8;
+
+        $i23 = $i22 | $i21;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C1> = $i23;
+
+        $i27 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C1>;
+
+        i71 = i70 + 1;
+
+        $b24 = r1[i70];
+
+        $s91 = (short) $b24;
+
+        $s25 = $s91 & 255;
+
+        $i92 = (int) $s25;
+
+        $i26 = $i92 << 16;
+
+        $i28 = $i27 | $i26;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C1> = $i28;
+
+        $i31 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C1>;
+
+        i72 = i71 + 1;
+
+        $b29 = r1[i71];
+
+        $i93 = (int) $b29;
+
+        $i30 = $i93 << 24;
+
+        $i32 = $i31 | $i30;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C1> = $i32;
+
+        i73 = i72 + 1;
+
+        $b33 = r1[i72];
+
+        $s94 = (short) $b33;
+
+        $s34 = $s94 & 255;
+
+        $i95 = (int) $s34;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C2> = $i95;
+
+        $i38 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C2>;
+
+        i74 = i73 + 1;
+
+        $b35 = r1[i73];
+
+        $s96 = (short) $b35;
+
+        $s36 = $s96 & 255;
+
+        $i97 = (int) $s36;
+
+        $i37 = $i97 << 8;
+
+        $i39 = $i38 | $i37;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C2> = $i39;
+
+        $i43 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C2>;
+
+        i75 = i74 + 1;
+
+        $b40 = r1[i74];
+
+        $s98 = (short) $b40;
+
+        $s41 = $s98 & 255;
+
+        $i99 = (int) $s41;
+
+        $i42 = $i99 << 16;
+
+        $i44 = $i43 | $i42;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C2> = $i44;
+
+        $i47 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C2>;
+
+        i76 = i75 + 1;
+
+        $b45 = r1[i75];
+
+        $i100 = (int) $b45;
+
+        $i46 = $i100 << 24;
+
+        $i48 = $i47 | $i46;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C2> = $i48;
+
+        i77 = i76 + 1;
+
+        $b49 = r1[i76];
+
+        $s101 = (short) $b49;
+
+        $s50 = $s101 & 255;
+
+        $i102 = (int) $s50;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C3> = $i102;
+
+        $i54 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C3>;
+
+        i78 = i77 + 1;
+
+        $b51 = r1[i77];
+
+        $s103 = (short) $b51;
+
+        $s52 = $s103 & 255;
+
+        $i104 = (int) $s52;
+
+        $i53 = $i104 << 8;
+
+        $i55 = $i54 | $i53;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C3> = $i55;
+
+        $i59 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C3>;
+
+        i79 = i78 + 1;
+
+        $b56 = r1[i78];
+
+        $s105 = (short) $b56;
+
+        $s57 = $s105 & 255;
+
+        $i106 = (int) $s57;
+
+        $i58 = $i106 << 16;
+
+        $i60 = $i59 | $i58;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C3> = $i60;
+
+        $i63 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C3>;
+
+        $b61 = r1[i79];
+
+        $i107 = (int) $b61;
+
+        $i62 = $i107 << 24;
+
+        $i64 = $i63 | $i62;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C3> = $i64;
+
+        return;
+    }
+
+    private void packBlock(byte[], int)
+    {
+        byte[] r0;
+        byte $b2, $b5, $b8, $b11, $b13, $b16, $b19, $b22, $b24, $b27, $b30, $b33, $b35, $b38, $b41, $b44;
+        int i0, $i1, $i3, $i4, $i6, $i7, $i9, $i10, $i12, $i14, $i15, $i17, $i18, $i20, $i21, $i23, $i25, $i26, $i28, $i29, $i31, $i32, $i34, $i36, $i37, $i39, $i40, $i42, $i43, i45, i46, i47, i48, i49, i50, i51, i52, i53, i54, i55, i56, i57, i58, i59;
+        org.bouncycastle.crypto.engines.AESFastEngine r1;
+
+        r1 := @this: org.bouncycastle.crypto.engines.AESFastEngine;
+
+        r0 := @parameter0: byte[];
+
+        i0 := @parameter1: int;
+
+        i45 = i0 + 1;
+
+        $i1 = r1.<org.bouncycastle.crypto.engines.AESFastEngine: int C0>;
+
+        $b2 = (byte) $i1;
+
+        r0[i0] = $b2;
+
+        i46 = i45 + 1;
+
+        $i3 = r1.<org.bouncycastle.crypto.engines.AESFastEngine: int C0>;
+
+        $i4 = $i3 >> 8;
+
+        $b5 = (byte) $i4;
+
+        r0[i45] = $b5;
+
+        i47 = i46 + 1;
+
+        $i6 = r1.<org.bouncycastle.crypto.engines.AESFastEngine: int C0>;
+
+        $i7 = $i6 >> 16;
+
+        $b8 = (byte) $i7;
+
+        r0[i46] = $b8;
+
+        i48 = i47 + 1;
+
+        $i9 = r1.<org.bouncycastle.crypto.engines.AESFastEngine: int C0>;
+
+        $i10 = $i9 >> 24;
+
+        $b11 = (byte) $i10;
+
+        r0[i47] = $b11;
+
+        i49 = i48 + 1;
+
+        $i12 = r1.<org.bouncycastle.crypto.engines.AESFastEngine: int C1>;
+
+        $b13 = (byte) $i12;
+
+        r0[i48] = $b13;
+
+        i50 = i49 + 1;
+
+        $i14 = r1.<org.bouncycastle.crypto.engines.AESFastEngine: int C1>;
+
+        $i15 = $i14 >> 8;
+
+        $b16 = (byte) $i15;
+
+        r0[i49] = $b16;
+
+        i51 = i50 + 1;
+
+        $i17 = r1.<org.bouncycastle.crypto.engines.AESFastEngine: int C1>;
+
+        $i18 = $i17 >> 16;
+
+        $b19 = (byte) $i18;
+
+        r0[i50] = $b19;
+
+        i52 = i51 + 1;
+
+        $i20 = r1.<org.bouncycastle.crypto.engines.AESFastEngine: int C1>;
+
+        $i21 = $i20 >> 24;
+
+        $b22 = (byte) $i21;
+
+        r0[i51] = $b22;
+
+        i53 = i52 + 1;
+
+        $i23 = r1.<org.bouncycastle.crypto.engines.AESFastEngine: int C2>;
+
+        $b24 = (byte) $i23;
+
+        r0[i52] = $b24;
+
+        i54 = i53 + 1;
+
+        $i25 = r1.<org.bouncycastle.crypto.engines.AESFastEngine: int C2>;
+
+        $i26 = $i25 >> 8;
+
+        $b27 = (byte) $i26;
+
+        r0[i53] = $b27;
+
+        i55 = i54 + 1;
+
+        $i28 = r1.<org.bouncycastle.crypto.engines.AESFastEngine: int C2>;
+
+        $i29 = $i28 >> 16;
+
+        $b30 = (byte) $i29;
+
+        r0[i54] = $b30;
+
+        i56 = i55 + 1;
+
+        $i31 = r1.<org.bouncycastle.crypto.engines.AESFastEngine: int C2>;
+
+        $i32 = $i31 >> 24;
+
+        $b33 = (byte) $i32;
+
+        r0[i55] = $b33;
+
+        i57 = i56 + 1;
+
+        $i34 = r1.<org.bouncycastle.crypto.engines.AESFastEngine: int C3>;
+
+        $b35 = (byte) $i34;
+
+        r0[i56] = $b35;
+
+        i58 = i57 + 1;
+
+        $i36 = r1.<org.bouncycastle.crypto.engines.AESFastEngine: int C3>;
+
+        $i37 = $i36 >> 8;
+
+        $b38 = (byte) $i37;
+
+        r0[i57] = $b38;
+
+        i59 = i58 + 1;
+
+        $i39 = r1.<org.bouncycastle.crypto.engines.AESFastEngine: int C3>;
+
+        $i40 = $i39 >> 16;
+
+        $b41 = (byte) $i40;
+
+        r0[i58] = $b41;
+
+        $i42 = r1.<org.bouncycastle.crypto.engines.AESFastEngine: int C3>;
+
+        $i43 = $i42 >> 24;
+
+        $b44 = (byte) $i43;
+
+        r0[i59] = $b44;
+
+        return;
+    }
+
+    private void encryptBlock(int[][])
+    {
+        int[] $r2, $r3, $r4, $r5, $r6, $r7, $r8, $r9, $r10, $r11, $r12, $r13, $r14, $r15, $r16, $r17, $r18, $r19, $r20, $r21, $r22, $r23, $r24, $r25, $r30, $r35, $r40, $r45, $r46, $r47, $r48, $r49, $r50, $r51, $r52, $r53, $r54, $r55, $r56, $r57, $r58, $r59, $r60, $r61, $r62, $r63, $r64, $r65, $r66, $r67, $r68, $r69, $r70, $r71, $r72, $r73, $r74, $r75, $r76, $r77, $r78, $r79, $r80, $r81, $r82, $r83, $r84, $r85;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i10, $i11, $i12, $i13, $i14, $i15, $i16, $i17, $i18, $i19, $i20, $i21, $i22, $i23, $i24, $i25, $i26, $i27, $i28, $i29, $i30, $i31, $i32, $i33, $i34, $i35, $i36, $i37, $i38, $i39, $i40, $i41, $i42, $i43, $i44, $i45, $i46, $i47, $i48, $i49, $i50, $i51, $i52, $i53, $i54, $i55, $i56, $i57, $i58, $i59, $i60, $i61, $i62, $i63, $i64, $i65, $i66, $i67, $i68, $i69, $i70, $i71, $i72, $i73, $i74, $i75, $i76, $i77, $i78, $i79, $i80, $i81, $i82, $i83, $i84, $i85, $i86, $i87, $i88, $i89, $i90, $i92, $i93, $i96, $i98, $i99, $i102, $i103, $i104, $i105, $i107, $i108, $i109, $i110, $i111, $i112, $i114, $i115, $i118, $i120, $i121, $i124, $i125, $i126, $i127, $i129, $i130, $i131, $i132, $i133, $i134, $i136, $i137, $i140, $i142, $i143, $i146, $i147, $i148, $i149, $i151, $i152, $i153, $i154, $i155, $i156, $i158, $i159, $i162, $i164, $i165, $i168, $i169, $i170, $i171, $i173, $i174, $i175, $i176, $i177, $i178, $i179, $i180, $i181, $i182, $i183, $i184, $i185, $i186, $i187, $i188, $i189, $i190, $i191, $i192, $i193, $i194, $i195, $i196, $i197, $i198, $i199, $i200, $i201, $i202, $i203, $i204, $i205, $i206, $i207, $i208, $i209, $i210, $i211, $i212, $i213, $i214, $i215, $i216, $i217, $i218, $i219, $i220, $i221, $i222, $i223, $i224, $i225, $i226, $i227, $i228, $i229, $i230, $i231, $i232, $i233, $i234, $i235, $i236, $i237, $i238, $i239, $i240, $i241, $i242, $i243, $i244, $i245, $i246, $i247, $i248, $i249, $i250, $i251, $i252, $i253, $i254, $i255, $i256, $i257, $i258, $i259, $i260, $i261, $i262, $i263, $i264, $i265, $i266, $i267, $i268, $i269, $i270, $i271, $i272, $i273, $i274, $i275, $i276, $i277, $i278, $i279, $i280, $i281, $i282, $i283, $i284, $i285, $i286, $i287, $i288, $i289, $i290, $i291, $i292, $i293, $i294, $i295, $i296, $i297, $i298, $i299, $i300, $i301, $i302, $i303, $i304, $i305, $i306, $i307, $i308, $i309, $i310, $i311, $i312, $i313, $i314, $i315, $i316, $i317, i318, i319, i320, i321, i322, i323, i324, i325, i326, i327, i328, $i331, $i332, $i334, $i335, $i338, $i339, $i341, $i342, $i345, $i346, $i348, $i349, $i352, $i353, $i355, $i356;
+        byte[] $r26, $r27, $r28, $r29, $r31, $r32, $r33, $r34, $r36, $r37, $r38, $r39, $r41, $r42, $r43, $r44;
+        byte $b91, $b94, $b100, $b106, $b113, $b116, $b122, $b128, $b135, $b138, $b144, $b150, $b157, $b160, $b166, $b172;
+        short $s95, $s97, $s101, $s117, $s119, $s123, $s139, $s141, $s145, $s161, $s163, $s167, $s329, $s330, $s333, $s336, $s337, $s340, $s343, $s344, $s347, $s350, $s351, $s354;
+        org.bouncycastle.crypto.engines.AESFastEngine r0;
+        int[][] r1;
+
+        r0 := @this: org.bouncycastle.crypto.engines.AESFastEngine;
+
+        r1 := @parameter0: int[][];
+
+        $i1 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C0>;
+
+        $r2 = r1[0];
+
+        $i0 = $r2[0];
+
+        $i2 = $i1 ^ $i0;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C0> = $i2;
+
+        $i4 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C1>;
+
+        $r3 = r1[0];
+
+        $i3 = $r3[1];
+
+        $i5 = $i4 ^ $i3;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C1> = $i5;
+
+        $i7 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C2>;
+
+        $r4 = r1[0];
+
+        $i6 = $r4[2];
+
+        $i8 = $i7 ^ $i6;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C2> = $i8;
+
+        $i10 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C3>;
+
+        $r5 = r1[0];
+
+        $i9 = $r5[3];
+
+        $i11 = $i10 ^ $i9;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C3> = $i11;
+
+        i318 = 1;
+
+     label1:
+        $i12 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int ROUNDS>;
+
+        $i13 = $i12 - 1;
+
+        if i318 >= $i13 goto label2;
+
+        $r46 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T0>;
+
+        $i178 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C0>;
+
+        $i179 = $i178 & 255;
+
+        $i184 = $r46[$i179];
+
+        $r47 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T1>;
+
+        $i180 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C1>;
+
+        $i181 = $i180 >> 8;
+
+        $i182 = $i181 & 255;
+
+        $i183 = $r47[$i182];
+
+        $i189 = $i184 ^ $i183;
+
+        $r48 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T2>;
+
+        $i185 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C2>;
+
+        $i186 = $i185 >> 16;
+
+        $i187 = $i186 & 255;
+
+        $i188 = $r48[$i187];
+
+        $i194 = $i189 ^ $i188;
+
+        $r49 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T3>;
+
+        $i190 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C3>;
+
+        $i191 = $i190 >> 24;
+
+        $i192 = $i191 & 255;
+
+        $i193 = $r49[$i192];
+
+        $i196 = $i194 ^ $i193;
+
+        $r50 = r1[i318];
+
+        $i195 = $r50[0];
+
+        i319 = $i196 ^ $i195;
+
+        $r51 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T0>;
+
+        $i197 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C1>;
+
+        $i198 = $i197 & 255;
+
+        $i203 = $r51[$i198];
+
+        $r52 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T1>;
+
+        $i199 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C2>;
+
+        $i200 = $i199 >> 8;
+
+        $i201 = $i200 & 255;
+
+        $i202 = $r52[$i201];
+
+        $i208 = $i203 ^ $i202;
+
+        $r53 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T2>;
+
+        $i204 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C3>;
+
+        $i205 = $i204 >> 16;
+
+        $i206 = $i205 & 255;
+
+        $i207 = $r53[$i206];
+
+        $i213 = $i208 ^ $i207;
+
+        $r54 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T3>;
+
+        $i209 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C0>;
+
+        $i210 = $i209 >> 24;
+
+        $i211 = $i210 & 255;
+
+        $i212 = $r54[$i211];
+
+        $i215 = $i213 ^ $i212;
+
+        $r55 = r1[i318];
+
+        $i214 = $r55[1];
+
+        i320 = $i215 ^ $i214;
+
+        $r56 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T0>;
+
+        $i216 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C2>;
+
+        $i217 = $i216 & 255;
+
+        $i222 = $r56[$i217];
+
+        $r57 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T1>;
+
+        $i218 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C3>;
+
+        $i219 = $i218 >> 8;
+
+        $i220 = $i219 & 255;
+
+        $i221 = $r57[$i220];
+
+        $i227 = $i222 ^ $i221;
+
+        $r58 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T2>;
+
+        $i223 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C0>;
+
+        $i224 = $i223 >> 16;
+
+        $i225 = $i224 & 255;
+
+        $i226 = $r58[$i225];
+
+        $i232 = $i227 ^ $i226;
+
+        $r59 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T3>;
+
+        $i228 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C1>;
+
+        $i229 = $i228 >> 24;
+
+        $i230 = $i229 & 255;
+
+        $i231 = $r59[$i230];
+
+        $i234 = $i232 ^ $i231;
+
+        $r60 = r1[i318];
+
+        $i233 = $r60[2];
+
+        i321 = $i234 ^ $i233;
+
+        $r61 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T0>;
+
+        $i235 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C3>;
+
+        $i236 = $i235 & 255;
+
+        $i241 = $r61[$i236];
+
+        $r62 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T1>;
+
+        $i237 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C0>;
+
+        $i238 = $i237 >> 8;
+
+        $i239 = $i238 & 255;
+
+        $i240 = $r62[$i239];
+
+        $i246 = $i241 ^ $i240;
+
+        $r63 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T2>;
+
+        $i242 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C1>;
+
+        $i243 = $i242 >> 16;
+
+        $i244 = $i243 & 255;
+
+        $i245 = $r63[$i244];
+
+        $i251 = $i246 ^ $i245;
+
+        $r64 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T3>;
+
+        $i247 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C2>;
+
+        $i248 = $i247 >> 24;
+
+        $i249 = $i248 & 255;
+
+        $i250 = $r64[$i249];
+
+        $i253 = $i251 ^ $i250;
+
+        i322 = i318 + 1;
+
+        $r65 = r1[i318];
+
+        $i252 = $r65[3];
+
+        i323 = $i253 ^ $i252;
+
+        $r66 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T0>;
+
+        $i254 = i319 & 255;
+
+        $i258 = $r66[$i254];
+
+        $r67 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T1>;
+
+        $i255 = i320 >> 8;
+
+        $i256 = $i255 & 255;
+
+        $i257 = $r67[$i256];
+
+        $i262 = $i258 ^ $i257;
+
+        $r68 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T2>;
+
+        $i259 = i321 >> 16;
+
+        $i260 = $i259 & 255;
+
+        $i261 = $r68[$i260];
+
+        $i266 = $i262 ^ $i261;
+
+        $r69 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T3>;
+
+        $i263 = i323 >> 24;
+
+        $i264 = $i263 & 255;
+
+        $i265 = $r69[$i264];
+
+        $i268 = $i266 ^ $i265;
+
+        $r70 = r1[i322];
+
+        $i267 = $r70[0];
+
+        $i269 = $i268 ^ $i267;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C0> = $i269;
+
+        $r71 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T0>;
+
+        $i270 = i320 & 255;
+
+        $i274 = $r71[$i270];
+
+        $r72 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T1>;
+
+        $i271 = i321 >> 8;
+
+        $i272 = $i271 & 255;
+
+        $i273 = $r72[$i272];
+
+        $i278 = $i274 ^ $i273;
+
+        $r73 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T2>;
+
+        $i275 = i323 >> 16;
+
+        $i276 = $i275 & 255;
+
+        $i277 = $r73[$i276];
+
+        $i282 = $i278 ^ $i277;
+
+        $r74 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T3>;
+
+        $i279 = i319 >> 24;
+
+        $i280 = $i279 & 255;
+
+        $i281 = $r74[$i280];
+
+        $i284 = $i282 ^ $i281;
+
+        $r75 = r1[i322];
+
+        $i283 = $r75[1];
+
+        $i285 = $i284 ^ $i283;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C1> = $i285;
+
+        $r76 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T0>;
+
+        $i286 = i321 & 255;
+
+        $i290 = $r76[$i286];
+
+        $r77 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T1>;
+
+        $i287 = i323 >> 8;
+
+        $i288 = $i287 & 255;
+
+        $i289 = $r77[$i288];
+
+        $i294 = $i290 ^ $i289;
+
+        $r78 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T2>;
+
+        $i291 = i319 >> 16;
+
+        $i292 = $i291 & 255;
+
+        $i293 = $r78[$i292];
+
+        $i298 = $i294 ^ $i293;
+
+        $r79 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T3>;
+
+        $i295 = i320 >> 24;
+
+        $i296 = $i295 & 255;
+
+        $i297 = $r79[$i296];
+
+        $i300 = $i298 ^ $i297;
+
+        $r80 = r1[i322];
+
+        $i299 = $r80[2];
+
+        $i301 = $i300 ^ $i299;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C2> = $i301;
+
+        $r81 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T0>;
+
+        $i302 = i323 & 255;
+
+        $i306 = $r81[$i302];
+
+        $r82 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T1>;
+
+        $i303 = i319 >> 8;
+
+        $i304 = $i303 & 255;
+
+        $i305 = $r82[$i304];
+
+        $i310 = $i306 ^ $i305;
+
+        $r83 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T2>;
+
+        $i307 = i320 >> 16;
+
+        $i308 = $i307 & 255;
+
+        $i309 = $r83[$i308];
+
+        $i314 = $i310 ^ $i309;
+
+        $r84 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T3>;
+
+        $i311 = i321 >> 24;
+
+        $i312 = $i311 & 255;
+
+        $i313 = $r84[$i312];
+
+        $i316 = $i314 ^ $i313;
+
+        i318 = i322 + 1;
+
+        $r85 = r1[i322];
+
+        $i315 = $r85[3];
+
+        $i317 = $i316 ^ $i315;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C3> = $i317;
+
+        goto label1;
+
+     label2:
+        $r6 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T0>;
+
+        $i14 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C0>;
+
+        $i15 = $i14 & 255;
+
+        $i20 = $r6[$i15];
+
+        $r7 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T1>;
+
+        $i16 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C1>;
+
+        $i17 = $i16 >> 8;
+
+        $i18 = $i17 & 255;
+
+        $i19 = $r7[$i18];
+
+        $i25 = $i20 ^ $i19;
+
+        $r8 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T2>;
+
+        $i21 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C2>;
+
+        $i22 = $i21 >> 16;
+
+        $i23 = $i22 & 255;
+
+        $i24 = $r8[$i23];
+
+        $i30 = $i25 ^ $i24;
+
+        $r9 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T3>;
+
+        $i26 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C3>;
+
+        $i27 = $i26 >> 24;
+
+        $i28 = $i27 & 255;
+
+        $i29 = $r9[$i28];
+
+        $i32 = $i30 ^ $i29;
+
+        $r10 = r1[i318];
+
+        $i31 = $r10[0];
+
+        i324 = $i32 ^ $i31;
+
+        $r11 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T0>;
+
+        $i33 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C1>;
+
+        $i34 = $i33 & 255;
+
+        $i39 = $r11[$i34];
+
+        $r12 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T1>;
+
+        $i35 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C2>;
+
+        $i36 = $i35 >> 8;
+
+        $i37 = $i36 & 255;
+
+        $i38 = $r12[$i37];
+
+        $i44 = $i39 ^ $i38;
+
+        $r13 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T2>;
+
+        $i40 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C3>;
+
+        $i41 = $i40 >> 16;
+
+        $i42 = $i41 & 255;
+
+        $i43 = $r13[$i42];
+
+        $i49 = $i44 ^ $i43;
+
+        $r14 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T3>;
+
+        $i45 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C0>;
+
+        $i46 = $i45 >> 24;
+
+        $i47 = $i46 & 255;
+
+        $i48 = $r14[$i47];
+
+        $i51 = $i49 ^ $i48;
+
+        $r15 = r1[i318];
+
+        $i50 = $r15[1];
+
+        i325 = $i51 ^ $i50;
+
+        $r16 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T0>;
+
+        $i52 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C2>;
+
+        $i53 = $i52 & 255;
+
+        $i58 = $r16[$i53];
+
+        $r17 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T1>;
+
+        $i54 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C3>;
+
+        $i55 = $i54 >> 8;
+
+        $i56 = $i55 & 255;
+
+        $i57 = $r17[$i56];
+
+        $i63 = $i58 ^ $i57;
+
+        $r18 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T2>;
+
+        $i59 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C0>;
+
+        $i60 = $i59 >> 16;
+
+        $i61 = $i60 & 255;
+
+        $i62 = $r18[$i61];
+
+        $i68 = $i63 ^ $i62;
+
+        $r19 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T3>;
+
+        $i64 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C1>;
+
+        $i65 = $i64 >> 24;
+
+        $i66 = $i65 & 255;
+
+        $i67 = $r19[$i66];
+
+        $i70 = $i68 ^ $i67;
+
+        $r20 = r1[i318];
+
+        $i69 = $r20[2];
+
+        i326 = $i70 ^ $i69;
+
+        $r21 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T0>;
+
+        $i71 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C3>;
+
+        $i72 = $i71 & 255;
+
+        $i77 = $r21[$i72];
+
+        $r22 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T1>;
+
+        $i73 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C0>;
+
+        $i74 = $i73 >> 8;
+
+        $i75 = $i74 & 255;
+
+        $i76 = $r22[$i75];
+
+        $i82 = $i77 ^ $i76;
+
+        $r23 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T2>;
+
+        $i78 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C1>;
+
+        $i79 = $i78 >> 16;
+
+        $i80 = $i79 & 255;
+
+        $i81 = $r23[$i80];
+
+        $i87 = $i82 ^ $i81;
+
+        $r24 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] T3>;
+
+        $i83 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C2>;
+
+        $i84 = $i83 >> 24;
+
+        $i85 = $i84 & 255;
+
+        $i86 = $r24[$i85];
+
+        $i89 = $i87 ^ $i86;
+
+        i327 = i318 + 1;
+
+        $r25 = r1[i318];
+
+        $i88 = $r25[3];
+
+        i328 = $i89 ^ $i88;
+
+        $r26 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] S>;
+
+        $i90 = i324 & 255;
+
+        $b91 = $r26[$i90];
+
+        $s329 = (short) $b91;
+
+        $s97 = $s329 & 255;
+
+        $r27 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] S>;
+
+        $i92 = i325 >> 8;
+
+        $i93 = $i92 & 255;
+
+        $b94 = $r27[$i93];
+
+        $s330 = (short) $b94;
+
+        $s95 = $s330 & 255;
+
+        $i331 = (int) $s95;
+
+        $i96 = $i331 << 8;
+
+        $i332 = (int) $s97;
+
+        $i103 = $i332 ^ $i96;
+
+        $r28 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] S>;
+
+        $i98 = i326 >> 16;
+
+        $i99 = $i98 & 255;
+
+        $b100 = $r28[$i99];
+
+        $s333 = (short) $b100;
+
+        $s101 = $s333 & 255;
+
+        $i334 = (int) $s101;
+
+        $i102 = $i334 << 16;
+
+        $i108 = $i103 ^ $i102;
+
+        $r29 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] S>;
+
+        $i104 = i328 >> 24;
+
+        $i105 = $i104 & 255;
+
+        $b106 = $r29[$i105];
+
+        $i335 = (int) $b106;
+
+        $i107 = $i335 << 24;
+
+        $i110 = $i108 ^ $i107;
+
+        $r30 = r1[i327];
+
+        $i109 = $r30[0];
+
+        $i111 = $i110 ^ $i109;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C0> = $i111;
+
+        $r31 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] S>;
+
+        $i112 = i325 & 255;
+
+        $b113 = $r31[$i112];
+
+        $s336 = (short) $b113;
+
+        $s119 = $s336 & 255;
+
+        $r32 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] S>;
+
+        $i114 = i326 >> 8;
+
+        $i115 = $i114 & 255;
+
+        $b116 = $r32[$i115];
+
+        $s337 = (short) $b116;
+
+        $s117 = $s337 & 255;
+
+        $i338 = (int) $s117;
+
+        $i118 = $i338 << 8;
+
+        $i339 = (int) $s119;
+
+        $i125 = $i339 ^ $i118;
+
+        $r33 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] S>;
+
+        $i120 = i328 >> 16;
+
+        $i121 = $i120 & 255;
+
+        $b122 = $r33[$i121];
+
+        $s340 = (short) $b122;
+
+        $s123 = $s340 & 255;
+
+        $i341 = (int) $s123;
+
+        $i124 = $i341 << 16;
+
+        $i130 = $i125 ^ $i124;
+
+        $r34 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] S>;
+
+        $i126 = i324 >> 24;
+
+        $i127 = $i126 & 255;
+
+        $b128 = $r34[$i127];
+
+        $i342 = (int) $b128;
+
+        $i129 = $i342 << 24;
+
+        $i132 = $i130 ^ $i129;
+
+        $r35 = r1[i327];
+
+        $i131 = $r35[1];
+
+        $i133 = $i132 ^ $i131;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C1> = $i133;
+
+        $r36 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] S>;
+
+        $i134 = i326 & 255;
+
+        $b135 = $r36[$i134];
+
+        $s343 = (short) $b135;
+
+        $s141 = $s343 & 255;
+
+        $r37 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] S>;
+
+        $i136 = i328 >> 8;
+
+        $i137 = $i136 & 255;
+
+        $b138 = $r37[$i137];
+
+        $s344 = (short) $b138;
+
+        $s139 = $s344 & 255;
+
+        $i345 = (int) $s139;
+
+        $i140 = $i345 << 8;
+
+        $i346 = (int) $s141;
+
+        $i147 = $i346 ^ $i140;
+
+        $r38 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] S>;
+
+        $i142 = i324 >> 16;
+
+        $i143 = $i142 & 255;
+
+        $b144 = $r38[$i143];
+
+        $s347 = (short) $b144;
+
+        $s145 = $s347 & 255;
+
+        $i348 = (int) $s145;
+
+        $i146 = $i348 << 16;
+
+        $i152 = $i147 ^ $i146;
+
+        $r39 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] S>;
+
+        $i148 = i325 >> 24;
+
+        $i149 = $i148 & 255;
+
+        $b150 = $r39[$i149];
+
+        $i349 = (int) $b150;
+
+        $i151 = $i349 << 24;
+
+        $i154 = $i152 ^ $i151;
+
+        $r40 = r1[i327];
+
+        $i153 = $r40[2];
+
+        $i155 = $i154 ^ $i153;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C2> = $i155;
+
+        $r41 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] S>;
+
+        $i156 = i328 & 255;
+
+        $b157 = $r41[$i156];
+
+        $s350 = (short) $b157;
+
+        $s163 = $s350 & 255;
+
+        $r42 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] S>;
+
+        $i158 = i324 >> 8;
+
+        $i159 = $i158 & 255;
+
+        $b160 = $r42[$i159];
+
+        $s351 = (short) $b160;
+
+        $s161 = $s351 & 255;
+
+        $i352 = (int) $s161;
+
+        $i162 = $i352 << 8;
+
+        $i353 = (int) $s163;
+
+        $i169 = $i353 ^ $i162;
+
+        $r43 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] S>;
+
+        $i164 = i325 >> 16;
+
+        $i165 = $i164 & 255;
+
+        $b166 = $r43[$i165];
+
+        $s354 = (short) $b166;
+
+        $s167 = $s354 & 255;
+
+        $i355 = (int) $s167;
+
+        $i168 = $i355 << 16;
+
+        $i174 = $i169 ^ $i168;
+
+        $r44 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] S>;
+
+        $i170 = i326 >> 24;
+
+        $i171 = $i170 & 255;
+
+        $b172 = $r44[$i171];
+
+        $i356 = (int) $b172;
+
+        $i173 = $i356 << 24;
+
+        $i176 = $i174 ^ $i173;
+
+        $r45 = r1[i327];
+
+        $i175 = $r45[3];
+
+        $i177 = $i176 ^ $i175;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C3> = $i177;
+
+        return;
+    }
+
+    private void decryptBlock(int[][])
+    {
+        int[] $r2, $r3, $r4, $r5, $r6, $r7, $r8, $r9, $r10, $r11, $r12, $r13, $r14, $r15, $r16, $r17, $r18, $r19, $r20, $r21, $r22, $r23, $r24, $r25, $r30, $r35, $r40, $r45, $r46, $r47, $r48, $r49, $r50, $r51, $r52, $r53, $r54, $r55, $r56, $r57, $r58, $r59, $r60, $r61, $r62, $r63, $r64, $r65, $r66, $r67, $r68, $r69, $r70, $r71, $r72, $r73, $r74, $r75, $r76, $r77, $r78, $r79, $r80, $r81, $r82, $r83, $r84, $r85;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i10, $i11, $i12, $i13, $i14, $i15, $i16, $i17, $i18, $i19, $i20, $i21, $i22, $i23, $i24, $i25, $i26, $i27, $i28, $i29, $i30, $i31, $i32, $i33, $i34, $i35, $i36, $i37, $i38, $i39, $i40, $i41, $i42, $i43, $i44, $i45, $i46, $i47, $i48, $i49, $i50, $i51, $i52, $i53, $i54, $i55, $i56, $i57, $i58, $i59, $i60, $i61, $i62, $i63, $i64, $i65, $i66, $i67, $i68, $i69, $i70, $i71, $i72, $i73, $i74, $i75, $i76, $i77, $i78, $i79, $i80, $i81, $i82, $i83, $i84, $i85, $i86, $i87, $i88, $i89, $i90, $i91, $i92, $i93, $i95, $i96, $i99, $i101, $i102, $i105, $i106, $i107, $i108, $i110, $i111, $i112, $i113, $i114, $i115, $i117, $i118, $i121, $i123, $i124, $i127, $i128, $i129, $i130, $i132, $i133, $i134, $i135, $i136, $i137, $i139, $i140, $i143, $i145, $i146, $i149, $i150, $i151, $i152, $i154, $i155, $i156, $i157, $i158, $i159, $i161, $i162, $i165, $i167, $i168, $i171, $i172, $i173, $i174, $i176, $i177, $i178, $i179, $i180, $i181, $i182, $i183, $i184, $i185, $i186, $i187, $i188, $i189, $i190, $i191, $i192, $i193, $i194, $i195, $i196, $i197, $i198, $i199, $i200, $i201, $i202, $i203, $i204, $i205, $i206, $i207, $i208, $i209, $i210, $i211, $i212, $i213, $i214, $i215, $i216, $i217, $i218, $i219, $i220, $i221, $i222, $i223, $i224, $i225, $i226, $i227, $i228, $i229, $i230, $i231, $i232, $i233, $i234, $i235, $i236, $i237, $i238, $i239, $i240, $i241, $i242, $i243, $i244, $i245, $i246, $i247, $i248, $i249, $i250, $i251, $i252, $i253, $i254, $i255, $i256, $i257, $i258, $i259, $i260, $i261, $i262, $i263, $i264, $i265, $i266, $i267, $i268, $i269, $i270, $i271, $i272, $i273, $i274, $i275, $i276, $i277, $i278, $i279, $i280, $i281, $i282, $i283, $i284, $i285, $i286, $i287, $i288, $i289, $i290, $i291, $i292, $i293, $i294, $i295, $i296, $i297, $i298, $i299, $i300, $i301, $i302, $i303, $i304, $i305, $i306, $i307, $i308, $i309, $i310, $i311, $i312, $i313, $i314, $i315, $i316, $i317, $i318, $i319, $i320, i321, i322, i323, i324, i325, i326, i327, i328, i329, i330, $i333, $i334, $i336, $i337, $i340, $i341, $i343, $i344, $i347, $i348, $i350, $i351, $i354, $i355, $i357, $i358;
+        byte[] $r26, $r27, $r28, $r29, $r31, $r32, $r33, $r34, $r36, $r37, $r38, $r39, $r41, $r42, $r43, $r44;
+        byte $b94, $b97, $b103, $b109, $b116, $b119, $b125, $b131, $b138, $b141, $b147, $b153, $b160, $b163, $b169, $b175;
+        short $s98, $s100, $s104, $s120, $s122, $s126, $s142, $s144, $s148, $s164, $s166, $s170, $s331, $s332, $s335, $s338, $s339, $s342, $s345, $s346, $s349, $s352, $s353, $s356;
+        org.bouncycastle.crypto.engines.AESFastEngine r0;
+        int[][] r1;
+
+        r0 := @this: org.bouncycastle.crypto.engines.AESFastEngine;
+
+        r1 := @parameter0: int[][];
+
+        $i2 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C0>;
+
+        $i0 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int ROUNDS>;
+
+        $r2 = r1[$i0];
+
+        $i1 = $r2[0];
+
+        $i3 = $i2 ^ $i1;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C0> = $i3;
+
+        $i6 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C1>;
+
+        $i4 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int ROUNDS>;
+
+        $r3 = r1[$i4];
+
+        $i5 = $r3[1];
+
+        $i7 = $i6 ^ $i5;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C1> = $i7;
+
+        $i10 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C2>;
+
+        $i8 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int ROUNDS>;
+
+        $r4 = r1[$i8];
+
+        $i9 = $r4[2];
+
+        $i11 = $i10 ^ $i9;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C2> = $i11;
+
+        $i14 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C3>;
+
+        $i12 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int ROUNDS>;
+
+        $r5 = r1[$i12];
+
+        $i13 = $r5[3];
+
+        $i15 = $i14 ^ $i13;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C3> = $i15;
+
+        $i16 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int ROUNDS>;
+
+        i321 = $i16 - 1;
+
+     label1:
+        if i321 <= 1 goto label2;
+
+        $r46 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv0>;
+
+        $i181 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C0>;
+
+        $i182 = $i181 & 255;
+
+        $i187 = $r46[$i182];
+
+        $r47 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv1>;
+
+        $i183 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C3>;
+
+        $i184 = $i183 >> 8;
+
+        $i185 = $i184 & 255;
+
+        $i186 = $r47[$i185];
+
+        $i192 = $i187 ^ $i186;
+
+        $r48 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv2>;
+
+        $i188 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C2>;
+
+        $i189 = $i188 >> 16;
+
+        $i190 = $i189 & 255;
+
+        $i191 = $r48[$i190];
+
+        $i197 = $i192 ^ $i191;
+
+        $r49 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv3>;
+
+        $i193 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C1>;
+
+        $i194 = $i193 >> 24;
+
+        $i195 = $i194 & 255;
+
+        $i196 = $r49[$i195];
+
+        $i199 = $i197 ^ $i196;
+
+        $r50 = r1[i321];
+
+        $i198 = $r50[0];
+
+        i322 = $i199 ^ $i198;
+
+        $r51 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv0>;
+
+        $i200 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C1>;
+
+        $i201 = $i200 & 255;
+
+        $i206 = $r51[$i201];
+
+        $r52 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv1>;
+
+        $i202 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C0>;
+
+        $i203 = $i202 >> 8;
+
+        $i204 = $i203 & 255;
+
+        $i205 = $r52[$i204];
+
+        $i211 = $i206 ^ $i205;
+
+        $r53 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv2>;
+
+        $i207 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C3>;
+
+        $i208 = $i207 >> 16;
+
+        $i209 = $i208 & 255;
+
+        $i210 = $r53[$i209];
+
+        $i216 = $i211 ^ $i210;
+
+        $r54 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv3>;
+
+        $i212 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C2>;
+
+        $i213 = $i212 >> 24;
+
+        $i214 = $i213 & 255;
+
+        $i215 = $r54[$i214];
+
+        $i218 = $i216 ^ $i215;
+
+        $r55 = r1[i321];
+
+        $i217 = $r55[1];
+
+        i323 = $i218 ^ $i217;
+
+        $r56 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv0>;
+
+        $i219 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C2>;
+
+        $i220 = $i219 & 255;
+
+        $i225 = $r56[$i220];
+
+        $r57 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv1>;
+
+        $i221 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C1>;
+
+        $i222 = $i221 >> 8;
+
+        $i223 = $i222 & 255;
+
+        $i224 = $r57[$i223];
+
+        $i230 = $i225 ^ $i224;
+
+        $r58 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv2>;
+
+        $i226 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C0>;
+
+        $i227 = $i226 >> 16;
+
+        $i228 = $i227 & 255;
+
+        $i229 = $r58[$i228];
+
+        $i235 = $i230 ^ $i229;
+
+        $r59 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv3>;
+
+        $i231 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C3>;
+
+        $i232 = $i231 >> 24;
+
+        $i233 = $i232 & 255;
+
+        $i234 = $r59[$i233];
+
+        $i237 = $i235 ^ $i234;
+
+        $r60 = r1[i321];
+
+        $i236 = $r60[2];
+
+        i324 = $i237 ^ $i236;
+
+        $r61 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv0>;
+
+        $i238 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C3>;
+
+        $i239 = $i238 & 255;
+
+        $i244 = $r61[$i239];
+
+        $r62 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv1>;
+
+        $i240 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C2>;
+
+        $i241 = $i240 >> 8;
+
+        $i242 = $i241 & 255;
+
+        $i243 = $r62[$i242];
+
+        $i249 = $i244 ^ $i243;
+
+        $r63 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv2>;
+
+        $i245 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C1>;
+
+        $i246 = $i245 >> 16;
+
+        $i247 = $i246 & 255;
+
+        $i248 = $r63[$i247];
+
+        $i254 = $i249 ^ $i248;
+
+        $r64 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv3>;
+
+        $i250 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C0>;
+
+        $i251 = $i250 >> 24;
+
+        $i252 = $i251 & 255;
+
+        $i253 = $r64[$i252];
+
+        $i256 = $i254 ^ $i253;
+
+        i325 = i321 - 1;
+
+        $r65 = r1[i321];
+
+        $i255 = $r65[3];
+
+        i326 = $i256 ^ $i255;
+
+        $r66 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv0>;
+
+        $i257 = i322 & 255;
+
+        $i261 = $r66[$i257];
+
+        $r67 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv1>;
+
+        $i258 = i326 >> 8;
+
+        $i259 = $i258 & 255;
+
+        $i260 = $r67[$i259];
+
+        $i265 = $i261 ^ $i260;
+
+        $r68 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv2>;
+
+        $i262 = i324 >> 16;
+
+        $i263 = $i262 & 255;
+
+        $i264 = $r68[$i263];
+
+        $i269 = $i265 ^ $i264;
+
+        $r69 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv3>;
+
+        $i266 = i323 >> 24;
+
+        $i267 = $i266 & 255;
+
+        $i268 = $r69[$i267];
+
+        $i271 = $i269 ^ $i268;
+
+        $r70 = r1[i325];
+
+        $i270 = $r70[0];
+
+        $i272 = $i271 ^ $i270;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C0> = $i272;
+
+        $r71 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv0>;
+
+        $i273 = i323 & 255;
+
+        $i277 = $r71[$i273];
+
+        $r72 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv1>;
+
+        $i274 = i322 >> 8;
+
+        $i275 = $i274 & 255;
+
+        $i276 = $r72[$i275];
+
+        $i281 = $i277 ^ $i276;
+
+        $r73 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv2>;
+
+        $i278 = i326 >> 16;
+
+        $i279 = $i278 & 255;
+
+        $i280 = $r73[$i279];
+
+        $i285 = $i281 ^ $i280;
+
+        $r74 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv3>;
+
+        $i282 = i324 >> 24;
+
+        $i283 = $i282 & 255;
+
+        $i284 = $r74[$i283];
+
+        $i287 = $i285 ^ $i284;
+
+        $r75 = r1[i325];
+
+        $i286 = $r75[1];
+
+        $i288 = $i287 ^ $i286;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C1> = $i288;
+
+        $r76 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv0>;
+
+        $i289 = i324 & 255;
+
+        $i293 = $r76[$i289];
+
+        $r77 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv1>;
+
+        $i290 = i323 >> 8;
+
+        $i291 = $i290 & 255;
+
+        $i292 = $r77[$i291];
+
+        $i297 = $i293 ^ $i292;
+
+        $r78 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv2>;
+
+        $i294 = i322 >> 16;
+
+        $i295 = $i294 & 255;
+
+        $i296 = $r78[$i295];
+
+        $i301 = $i297 ^ $i296;
+
+        $r79 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv3>;
+
+        $i298 = i326 >> 24;
+
+        $i299 = $i298 & 255;
+
+        $i300 = $r79[$i299];
+
+        $i303 = $i301 ^ $i300;
+
+        $r80 = r1[i325];
+
+        $i302 = $r80[2];
+
+        $i304 = $i303 ^ $i302;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C2> = $i304;
+
+        $r81 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv0>;
+
+        $i305 = i326 & 255;
+
+        $i309 = $r81[$i305];
+
+        $r82 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv1>;
+
+        $i306 = i324 >> 8;
+
+        $i307 = $i306 & 255;
+
+        $i308 = $r82[$i307];
+
+        $i313 = $i309 ^ $i308;
+
+        $r83 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv2>;
+
+        $i310 = i323 >> 16;
+
+        $i311 = $i310 & 255;
+
+        $i312 = $r83[$i311];
+
+        $i317 = $i313 ^ $i312;
+
+        $r84 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv3>;
+
+        $i314 = i322 >> 24;
+
+        $i315 = $i314 & 255;
+
+        $i316 = $r84[$i315];
+
+        $i319 = $i317 ^ $i316;
+
+        i321 = i325 - 1;
+
+        $r85 = r1[i325];
+
+        $i318 = $r85[3];
+
+        $i320 = $i319 ^ $i318;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C3> = $i320;
+
+        goto label1;
+
+     label2:
+        $r6 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv0>;
+
+        $i17 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C0>;
+
+        $i18 = $i17 & 255;
+
+        $i23 = $r6[$i18];
+
+        $r7 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv1>;
+
+        $i19 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C3>;
+
+        $i20 = $i19 >> 8;
+
+        $i21 = $i20 & 255;
+
+        $i22 = $r7[$i21];
+
+        $i28 = $i23 ^ $i22;
+
+        $r8 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv2>;
+
+        $i24 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C2>;
+
+        $i25 = $i24 >> 16;
+
+        $i26 = $i25 & 255;
+
+        $i27 = $r8[$i26];
+
+        $i33 = $i28 ^ $i27;
+
+        $r9 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv3>;
+
+        $i29 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C1>;
+
+        $i30 = $i29 >> 24;
+
+        $i31 = $i30 & 255;
+
+        $i32 = $r9[$i31];
+
+        $i35 = $i33 ^ $i32;
+
+        $r10 = r1[i321];
+
+        $i34 = $r10[0];
+
+        i327 = $i35 ^ $i34;
+
+        $r11 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv0>;
+
+        $i36 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C1>;
+
+        $i37 = $i36 & 255;
+
+        $i42 = $r11[$i37];
+
+        $r12 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv1>;
+
+        $i38 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C0>;
+
+        $i39 = $i38 >> 8;
+
+        $i40 = $i39 & 255;
+
+        $i41 = $r12[$i40];
+
+        $i47 = $i42 ^ $i41;
+
+        $r13 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv2>;
+
+        $i43 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C3>;
+
+        $i44 = $i43 >> 16;
+
+        $i45 = $i44 & 255;
+
+        $i46 = $r13[$i45];
+
+        $i52 = $i47 ^ $i46;
+
+        $r14 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv3>;
+
+        $i48 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C2>;
+
+        $i49 = $i48 >> 24;
+
+        $i50 = $i49 & 255;
+
+        $i51 = $r14[$i50];
+
+        $i54 = $i52 ^ $i51;
+
+        $r15 = r1[i321];
+
+        $i53 = $r15[1];
+
+        i328 = $i54 ^ $i53;
+
+        $r16 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv0>;
+
+        $i55 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C2>;
+
+        $i56 = $i55 & 255;
+
+        $i61 = $r16[$i56];
+
+        $r17 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv1>;
+
+        $i57 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C1>;
+
+        $i58 = $i57 >> 8;
+
+        $i59 = $i58 & 255;
+
+        $i60 = $r17[$i59];
+
+        $i66 = $i61 ^ $i60;
+
+        $r18 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv2>;
+
+        $i62 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C0>;
+
+        $i63 = $i62 >> 16;
+
+        $i64 = $i63 & 255;
+
+        $i65 = $r18[$i64];
+
+        $i71 = $i66 ^ $i65;
+
+        $r19 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv3>;
+
+        $i67 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C3>;
+
+        $i68 = $i67 >> 24;
+
+        $i69 = $i68 & 255;
+
+        $i70 = $r19[$i69];
+
+        $i73 = $i71 ^ $i70;
+
+        $r20 = r1[i321];
+
+        $i72 = $r20[2];
+
+        i329 = $i73 ^ $i72;
+
+        $r21 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv0>;
+
+        $i74 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C3>;
+
+        $i75 = $i74 & 255;
+
+        $i80 = $r21[$i75];
+
+        $r22 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv1>;
+
+        $i76 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C2>;
+
+        $i77 = $i76 >> 8;
+
+        $i78 = $i77 & 255;
+
+        $i79 = $r22[$i78];
+
+        $i85 = $i80 ^ $i79;
+
+        $r23 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv2>;
+
+        $i81 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C1>;
+
+        $i82 = $i81 >> 16;
+
+        $i83 = $i82 & 255;
+
+        $i84 = $r23[$i83];
+
+        $i90 = $i85 ^ $i84;
+
+        $r24 = <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv3>;
+
+        $i86 = r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C0>;
+
+        $i87 = $i86 >> 24;
+
+        $i88 = $i87 & 255;
+
+        $i89 = $r24[$i88];
+
+        $i92 = $i90 ^ $i89;
+
+        $r25 = r1[i321];
+
+        $i91 = $r25[3];
+
+        i330 = $i92 ^ $i91;
+
+        $r26 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] Si>;
+
+        $i93 = i327 & 255;
+
+        $b94 = $r26[$i93];
+
+        $s331 = (short) $b94;
+
+        $s100 = $s331 & 255;
+
+        $r27 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] Si>;
+
+        $i95 = i330 >> 8;
+
+        $i96 = $i95 & 255;
+
+        $b97 = $r27[$i96];
+
+        $s332 = (short) $b97;
+
+        $s98 = $s332 & 255;
+
+        $i333 = (int) $s98;
+
+        $i99 = $i333 << 8;
+
+        $i334 = (int) $s100;
+
+        $i106 = $i334 ^ $i99;
+
+        $r28 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] Si>;
+
+        $i101 = i329 >> 16;
+
+        $i102 = $i101 & 255;
+
+        $b103 = $r28[$i102];
+
+        $s335 = (short) $b103;
+
+        $s104 = $s335 & 255;
+
+        $i336 = (int) $s104;
+
+        $i105 = $i336 << 16;
+
+        $i111 = $i106 ^ $i105;
+
+        $r29 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] Si>;
+
+        $i107 = i328 >> 24;
+
+        $i108 = $i107 & 255;
+
+        $b109 = $r29[$i108];
+
+        $i337 = (int) $b109;
+
+        $i110 = $i337 << 24;
+
+        $i113 = $i111 ^ $i110;
+
+        $r30 = r1[0];
+
+        $i112 = $r30[0];
+
+        $i114 = $i113 ^ $i112;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C0> = $i114;
+
+        $r31 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] Si>;
+
+        $i115 = i328 & 255;
+
+        $b116 = $r31[$i115];
+
+        $s338 = (short) $b116;
+
+        $s122 = $s338 & 255;
+
+        $r32 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] Si>;
+
+        $i117 = i327 >> 8;
+
+        $i118 = $i117 & 255;
+
+        $b119 = $r32[$i118];
+
+        $s339 = (short) $b119;
+
+        $s120 = $s339 & 255;
+
+        $i340 = (int) $s120;
+
+        $i121 = $i340 << 8;
+
+        $i341 = (int) $s122;
+
+        $i128 = $i341 ^ $i121;
+
+        $r33 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] Si>;
+
+        $i123 = i330 >> 16;
+
+        $i124 = $i123 & 255;
+
+        $b125 = $r33[$i124];
+
+        $s342 = (short) $b125;
+
+        $s126 = $s342 & 255;
+
+        $i343 = (int) $s126;
+
+        $i127 = $i343 << 16;
+
+        $i133 = $i128 ^ $i127;
+
+        $r34 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] Si>;
+
+        $i129 = i329 >> 24;
+
+        $i130 = $i129 & 255;
+
+        $b131 = $r34[$i130];
+
+        $i344 = (int) $b131;
+
+        $i132 = $i344 << 24;
+
+        $i135 = $i133 ^ $i132;
+
+        $r35 = r1[0];
+
+        $i134 = $r35[1];
+
+        $i136 = $i135 ^ $i134;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C1> = $i136;
+
+        $r36 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] Si>;
+
+        $i137 = i329 & 255;
+
+        $b138 = $r36[$i137];
+
+        $s345 = (short) $b138;
+
+        $s144 = $s345 & 255;
+
+        $r37 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] Si>;
+
+        $i139 = i328 >> 8;
+
+        $i140 = $i139 & 255;
+
+        $b141 = $r37[$i140];
+
+        $s346 = (short) $b141;
+
+        $s142 = $s346 & 255;
+
+        $i347 = (int) $s142;
+
+        $i143 = $i347 << 8;
+
+        $i348 = (int) $s144;
+
+        $i150 = $i348 ^ $i143;
+
+        $r38 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] Si>;
+
+        $i145 = i327 >> 16;
+
+        $i146 = $i145 & 255;
+
+        $b147 = $r38[$i146];
+
+        $s349 = (short) $b147;
+
+        $s148 = $s349 & 255;
+
+        $i350 = (int) $s148;
+
+        $i149 = $i350 << 16;
+
+        $i155 = $i150 ^ $i149;
+
+        $r39 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] Si>;
+
+        $i151 = i330 >> 24;
+
+        $i152 = $i151 & 255;
+
+        $b153 = $r39[$i152];
+
+        $i351 = (int) $b153;
+
+        $i154 = $i351 << 24;
+
+        $i157 = $i155 ^ $i154;
+
+        $r40 = r1[0];
+
+        $i156 = $r40[2];
+
+        $i158 = $i157 ^ $i156;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C2> = $i158;
+
+        $r41 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] Si>;
+
+        $i159 = i330 & 255;
+
+        $b160 = $r41[$i159];
+
+        $s352 = (short) $b160;
+
+        $s166 = $s352 & 255;
+
+        $r42 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] Si>;
+
+        $i161 = i329 >> 8;
+
+        $i162 = $i161 & 255;
+
+        $b163 = $r42[$i162];
+
+        $s353 = (short) $b163;
+
+        $s164 = $s353 & 255;
+
+        $i354 = (int) $s164;
+
+        $i165 = $i354 << 8;
+
+        $i355 = (int) $s166;
+
+        $i172 = $i355 ^ $i165;
+
+        $r43 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] Si>;
+
+        $i167 = i328 >> 16;
+
+        $i168 = $i167 & 255;
+
+        $b169 = $r43[$i168];
+
+        $s356 = (short) $b169;
+
+        $s170 = $s356 & 255;
+
+        $i357 = (int) $s170;
+
+        $i171 = $i357 << 16;
+
+        $i177 = $i172 ^ $i171;
+
+        $r44 = <org.bouncycastle.crypto.engines.AESFastEngine: byte[] Si>;
+
+        $i173 = i327 >> 24;
+
+        $i174 = $i173 & 255;
+
+        $b175 = $r44[$i174];
+
+        $i358 = (int) $b175;
+
+        $i176 = $i358 << 24;
+
+        $i179 = $i177 ^ $i176;
+
+        $r45 = r1[0];
+
+        $i178 = $r45[3];
+
+        $i180 = $i179 ^ $i178;
+
+        r0.<org.bouncycastle.crypto.engines.AESFastEngine: int C3> = $i180;
+
+        return;
+    }
+
+    static void <clinit>()
+    {
+        byte[] $r0, $r1;
+        int[] $r2, $r3, $r4, $r5, $r6, $r7, $r8, $r9, $r10;
+        int $i1;
+
+        <org.bouncycastle.crypto.engines.AESFastEngine: int BLOCK_SIZE> = 16;
+
+        <org.bouncycastle.crypto.engines.AESFastEngine: int m3> = 27;
+
+        <org.bouncycastle.crypto.engines.AESFastEngine: int m2> = 2139062143;
+
+        <org.bouncycastle.crypto.engines.AESFastEngine: int m1> = -2139062144;
+
+        $r0 = newarray (byte)[256];
+
+        $r0[0] = 99;
+
+        $r0[1] = 124;
+
+        $r0[2] = 119;
+
+        $r0[3] = 123;
+
+        $r0[4] = -14;
+
+        $r0[5] = 107;
+
+        $r0[6] = 111;
+
+        $r0[7] = -59;
+
+        $r0[8] = 48;
+
+        $r0[9] = 1;
+
+        $r0[10] = 103;
+
+        $r0[11] = 43;
+
+        $r0[12] = -2;
+
+        $r0[13] = -41;
+
+        $r0[14] = -85;
+
+        $r0[15] = 118;
+
+        $r0[16] = -54;
+
+        $r0[17] = -126;
+
+        $r0[18] = -55;
+
+        $r0[19] = 125;
+
+        $r0[20] = -6;
+
+        $r0[21] = 89;
+
+        $r0[22] = 71;
+
+        $r0[23] = -16;
+
+        $r0[24] = -83;
+
+        $r0[25] = -44;
+
+        $r0[26] = -94;
+
+        $r0[27] = -81;
+
+        $r0[28] = -100;
+
+        $r0[29] = -92;
+
+        $r0[30] = 114;
+
+        $r0[31] = -64;
+
+        $r0[32] = -73;
+
+        $r0[33] = -3;
+
+        $r0[34] = -109;
+
+        $r0[35] = 38;
+
+        $r0[36] = 54;
+
+        $r0[37] = 63;
+
+        $r0[38] = -9;
+
+        $r0[39] = -52;
+
+        $r0[40] = 52;
+
+        $r0[41] = -91;
+
+        $r0[42] = -27;
+
+        $r0[43] = -15;
+
+        $r0[44] = 113;
+
+        $r0[45] = -40;
+
+        $r0[46] = 49;
+
+        $r0[47] = 21;
+
+        $r0[48] = 4;
+
+        $r0[49] = -57;
+
+        $r0[50] = 35;
+
+        $r0[51] = -61;
+
+        $r0[52] = 24;
+
+        $r0[53] = -106;
+
+        $r0[54] = 5;
+
+        $r0[55] = -102;
+
+        $r0[56] = 7;
+
+        $r0[57] = 18;
+
+        $r0[58] = -128;
+
+        $r0[59] = -30;
+
+        $r0[60] = -21;
+
+        $r0[61] = 39;
+
+        $r0[62] = -78;
+
+        $r0[63] = 117;
+
+        $r0[64] = 9;
+
+        $r0[65] = -125;
+
+        $r0[66] = 44;
+
+        $r0[67] = 26;
+
+        $r0[68] = 27;
+
+        $r0[69] = 110;
+
+        $r0[70] = 90;
+
+        $r0[71] = -96;
+
+        $r0[72] = 82;
+
+        $r0[73] = 59;
+
+        $r0[74] = -42;
+
+        $r0[75] = -77;
+
+        $r0[76] = 41;
+
+        $r0[77] = -29;
+
+        $r0[78] = 47;
+
+        $r0[79] = -124;
+
+        $r0[80] = 83;
+
+        $r0[81] = -47;
+
+        $r0[82] = 0;
+
+        $r0[83] = -19;
+
+        $r0[84] = 32;
+
+        $r0[85] = -4;
+
+        $r0[86] = -79;
+
+        $r0[87] = 91;
+
+        $r0[88] = 106;
+
+        $r0[89] = -53;
+
+        $r0[90] = -66;
+
+        $r0[91] = 57;
+
+        $r0[92] = 74;
+
+        $r0[93] = 76;
+
+        $r0[94] = 88;
+
+        $r0[95] = -49;
+
+        $r0[96] = -48;
+
+        $r0[97] = -17;
+
+        $r0[98] = -86;
+
+        $r0[99] = -5;
+
+        $r0[100] = 67;
+
+        $r0[101] = 77;
+
+        $r0[102] = 51;
+
+        $r0[103] = -123;
+
+        $r0[104] = 69;
+
+        $r0[105] = -7;
+
+        $r0[106] = 2;
+
+        $r0[107] = 127;
+
+        $r0[108] = 80;
+
+        $r0[109] = 60;
+
+        $r0[110] = -97;
+
+        $r0[111] = -88;
+
+        $r0[112] = 81;
+
+        $r0[113] = -93;
+
+        $r0[114] = 64;
+
+        $r0[115] = -113;
+
+        $r0[116] = -110;
+
+        $r0[117] = -99;
+
+        $r0[118] = 56;
+
+        $r0[119] = -11;
+
+        $r0[120] = -68;
+
+        $r0[121] = -74;
+
+        $r0[122] = -38;
+
+        $r0[123] = 33;
+
+        $r0[124] = 16;
+
+        $r0[125] = -1;
+
+        $r0[126] = -13;
+
+        $r0[127] = -46;
+
+        $r0[128] = -51;
+
+        $r0[129] = 12;
+
+        $r0[130] = 19;
+
+        $r0[131] = -20;
+
+        $r0[132] = 95;
+
+        $r0[133] = -105;
+
+        $r0[134] = 68;
+
+        $r0[135] = 23;
+
+        $r0[136] = -60;
+
+        $r0[137] = -89;
+
+        $r0[138] = 126;
+
+        $r0[139] = 61;
+
+        $r0[140] = 100;
+
+        $r0[141] = 93;
+
+        $r0[142] = 25;
+
+        $r0[143] = 115;
+
+        $r0[144] = 96;
+
+        $r0[145] = -127;
+
+        $r0[146] = 79;
+
+        $r0[147] = -36;
+
+        $r0[148] = 34;
+
+        $r0[149] = 42;
+
+        $r0[150] = -112;
+
+        $r0[151] = -120;
+
+        $r0[152] = 70;
+
+        $r0[153] = -18;
+
+        $r0[154] = -72;
+
+        $r0[155] = 20;
+
+        $r0[156] = -34;
+
+        $r0[157] = 94;
+
+        $r0[158] = 11;
+
+        $r0[159] = -37;
+
+        $r0[160] = -32;
+
+        $r0[161] = 50;
+
+        $r0[162] = 58;
+
+        $r0[163] = 10;
+
+        $r0[164] = 73;
+
+        $r0[165] = 6;
+
+        $r0[166] = 36;
+
+        $r0[167] = 92;
+
+        $r0[168] = -62;
+
+        $r0[169] = -45;
+
+        $r0[170] = -84;
+
+        $r0[171] = 98;
+
+        $r0[172] = -111;
+
+        $r0[173] = -107;
+
+        $r0[174] = -28;
+
+        $r0[175] = 121;
+
+        $r0[176] = -25;
+
+        $r0[177] = -56;
+
+        $r0[178] = 55;
+
+        $r0[179] = 109;
+
+        $r0[180] = -115;
+
+        $r0[181] = -43;
+
+        $r0[182] = 78;
+
+        $r0[183] = -87;
+
+        $r0[184] = 108;
+
+        $r0[185] = 86;
+
+        $r0[186] = -12;
+
+        $r0[187] = -22;
+
+        $r0[188] = 101;
+
+        $r0[189] = 122;
+
+        $r0[190] = -82;
+
+        $r0[191] = 8;
+
+        $r0[192] = -70;
+
+        $r0[193] = 120;
+
+        $r0[194] = 37;
+
+        $r0[195] = 46;
+
+        $r0[196] = 28;
+
+        $r0[197] = -90;
+
+        $r0[198] = -76;
+
+        $r0[199] = -58;
+
+        $r0[200] = -24;
+
+        $r0[201] = -35;
+
+        $r0[202] = 116;
+
+        $r0[203] = 31;
+
+        $r0[204] = 75;
+
+        $r0[205] = -67;
+
+        $r0[206] = -117;
+
+        $r0[207] = -118;
+
+        $r0[208] = 112;
+
+        $r0[209] = 62;
+
+        $r0[210] = -75;
+
+        $r0[211] = 102;
+
+        $r0[212] = 72;
+
+        $r0[213] = 3;
+
+        $r0[214] = -10;
+
+        $r0[215] = 14;
+
+        $r0[216] = 97;
+
+        $r0[217] = 53;
+
+        $r0[218] = 87;
+
+        $r0[219] = -71;
+
+        $r0[220] = -122;
+
+        $r0[221] = -63;
+
+        $r0[222] = 29;
+
+        $r0[223] = -98;
+
+        $r0[224] = -31;
+
+        $r0[225] = -8;
+
+        $r0[226] = -104;
+
+        $r0[227] = 17;
+
+        $r0[228] = 105;
+
+        $r0[229] = -39;
+
+        $r0[230] = -114;
+
+        $r0[231] = -108;
+
+        $r0[232] = -101;
+
+        $r0[233] = 30;
+
+        $r0[234] = -121;
+
+        $r0[235] = -23;
+
+        $r0[236] = -50;
+
+        $r0[237] = 85;
+
+        $r0[238] = 40;
+
+        $r0[239] = -33;
+
+        $r0[240] = -116;
+
+        $r0[241] = -95;
+
+        $r0[242] = -119;
+
+        $r0[243] = 13;
+
+        $r0[244] = -65;
+
+        $r0[245] = -26;
+
+        $r0[246] = 66;
+
+        $r0[247] = 104;
+
+        $r0[248] = 65;
+
+        $r0[249] = -103;
+
+        $r0[250] = 45;
+
+        $r0[251] = 15;
+
+        $r0[252] = -80;
+
+        $r0[253] = 84;
+
+        $r0[254] = -69;
+
+        $r0[255] = 22;
+
+        <org.bouncycastle.crypto.engines.AESFastEngine: byte[] S> = $r0;
+
+        $r1 = newarray (byte)[256];
+
+        $r1[0] = 82;
+
+        $r1[1] = 9;
+
+        $r1[2] = 106;
+
+        $r1[3] = -43;
+
+        $r1[4] = 48;
+
+        $r1[5] = 54;
+
+        $r1[6] = -91;
+
+        $r1[7] = 56;
+
+        $r1[8] = -65;
+
+        $r1[9] = 64;
+
+        $r1[10] = -93;
+
+        $r1[11] = -98;
+
+        $r1[12] = -127;
+
+        $r1[13] = -13;
+
+        $r1[14] = -41;
+
+        $r1[15] = -5;
+
+        $r1[16] = 124;
+
+        $r1[17] = -29;
+
+        $r1[18] = 57;
+
+        $r1[19] = -126;
+
+        $r1[20] = -101;
+
+        $r1[21] = 47;
+
+        $r1[22] = -1;
+
+        $r1[23] = -121;
+
+        $r1[24] = 52;
+
+        $r1[25] = -114;
+
+        $r1[26] = 67;
+
+        $r1[27] = 68;
+
+        $r1[28] = -60;
+
+        $r1[29] = -34;
+
+        $r1[30] = -23;
+
+        $r1[31] = -53;
+
+        $r1[32] = 84;
+
+        $r1[33] = 123;
+
+        $r1[34] = -108;
+
+        $r1[35] = 50;
+
+        $r1[36] = -90;
+
+        $r1[37] = -62;
+
+        $r1[38] = 35;
+
+        $r1[39] = 61;
+
+        $r1[40] = -18;
+
+        $r1[41] = 76;
+
+        $r1[42] = -107;
+
+        $r1[43] = 11;
+
+        $r1[44] = 66;
+
+        $r1[45] = -6;
+
+        $r1[46] = -61;
+
+        $r1[47] = 78;
+
+        $r1[48] = 8;
+
+        $r1[49] = 46;
+
+        $r1[50] = -95;
+
+        $r1[51] = 102;
+
+        $r1[52] = 40;
+
+        $r1[53] = -39;
+
+        $r1[54] = 36;
+
+        $r1[55] = -78;
+
+        $r1[56] = 118;
+
+        $r1[57] = 91;
+
+        $r1[58] = -94;
+
+        $r1[59] = 73;
+
+        $r1[60] = 109;
+
+        $r1[61] = -117;
+
+        $r1[62] = -47;
+
+        $r1[63] = 37;
+
+        $r1[64] = 114;
+
+        $r1[65] = -8;
+
+        $r1[66] = -10;
+
+        $r1[67] = 100;
+
+        $r1[68] = -122;
+
+        $r1[69] = 104;
+
+        $r1[70] = -104;
+
+        $r1[71] = 22;
+
+        $r1[72] = -44;
+
+        $r1[73] = -92;
+
+        $r1[74] = 92;
+
+        $r1[75] = -52;
+
+        $r1[76] = 93;
+
+        $r1[77] = 101;
+
+        $r1[78] = -74;
+
+        $r1[79] = -110;
+
+        $r1[80] = 108;
+
+        $r1[81] = 112;
+
+        $r1[82] = 72;
+
+        $r1[83] = 80;
+
+        $r1[84] = -3;
+
+        $r1[85] = -19;
+
+        $r1[86] = -71;
+
+        $r1[87] = -38;
+
+        $r1[88] = 94;
+
+        $r1[89] = 21;
+
+        $r1[90] = 70;
+
+        $r1[91] = 87;
+
+        $r1[92] = -89;
+
+        $r1[93] = -115;
+
+        $r1[94] = -99;
+
+        $r1[95] = -124;
+
+        $r1[96] = -112;
+
+        $r1[97] = -40;
+
+        $r1[98] = -85;
+
+        $r1[99] = 0;
+
+        $r1[100] = -116;
+
+        $r1[101] = -68;
+
+        $r1[102] = -45;
+
+        $r1[103] = 10;
+
+        $r1[104] = -9;
+
+        $r1[105] = -28;
+
+        $r1[106] = 88;
+
+        $r1[107] = 5;
+
+        $r1[108] = -72;
+
+        $r1[109] = -77;
+
+        $r1[110] = 69;
+
+        $r1[111] = 6;
+
+        $r1[112] = -48;
+
+        $r1[113] = 44;
+
+        $r1[114] = 30;
+
+        $r1[115] = -113;
+
+        $r1[116] = -54;
+
+        $r1[117] = 63;
+
+        $r1[118] = 15;
+
+        $r1[119] = 2;
+
+        $r1[120] = -63;
+
+        $r1[121] = -81;
+
+        $r1[122] = -67;
+
+        $r1[123] = 3;
+
+        $r1[124] = 1;
+
+        $r1[125] = 19;
+
+        $r1[126] = -118;
+
+        $r1[127] = 107;
+
+        $r1[128] = 58;
+
+        $r1[129] = -111;
+
+        $r1[130] = 17;
+
+        $r1[131] = 65;
+
+        $r1[132] = 79;
+
+        $r1[133] = 103;
+
+        $r1[134] = -36;
+
+        $r1[135] = -22;
+
+        $r1[136] = -105;
+
+        $r1[137] = -14;
+
+        $r1[138] = -49;
+
+        $r1[139] = -50;
+
+        $r1[140] = -16;
+
+        $r1[141] = -76;
+
+        $r1[142] = -26;
+
+        $r1[143] = 115;
+
+        $r1[144] = -106;
+
+        $r1[145] = -84;
+
+        $r1[146] = 116;
+
+        $r1[147] = 34;
+
+        $r1[148] = -25;
+
+        $r1[149] = -83;
+
+        $r1[150] = 53;
+
+        $r1[151] = -123;
+
+        $r1[152] = -30;
+
+        $r1[153] = -7;
+
+        $r1[154] = 55;
+
+        $r1[155] = -24;
+
+        $r1[156] = 28;
+
+        $r1[157] = 117;
+
+        $r1[158] = -33;
+
+        $r1[159] = 110;
+
+        $r1[160] = 71;
+
+        $r1[161] = -15;
+
+        $r1[162] = 26;
+
+        $r1[163] = 113;
+
+        $r1[164] = 29;
+
+        $r1[165] = 41;
+
+        $r1[166] = -59;
+
+        $r1[167] = -119;
+
+        $r1[168] = 111;
+
+        $r1[169] = -73;
+
+        $r1[170] = 98;
+
+        $r1[171] = 14;
+
+        $r1[172] = -86;
+
+        $r1[173] = 24;
+
+        $r1[174] = -66;
+
+        $r1[175] = 27;
+
+        $r1[176] = -4;
+
+        $r1[177] = 86;
+
+        $r1[178] = 62;
+
+        $r1[179] = 75;
+
+        $r1[180] = -58;
+
+        $r1[181] = -46;
+
+        $r1[182] = 121;
+
+        $r1[183] = 32;
+
+        $r1[184] = -102;
+
+        $r1[185] = -37;
+
+        $r1[186] = -64;
+
+        $r1[187] = -2;
+
+        $r1[188] = 120;
+
+        $r1[189] = -51;
+
+        $r1[190] = 90;
+
+        $r1[191] = -12;
+
+        $r1[192] = 31;
+
+        $r1[193] = -35;
+
+        $r1[194] = -88;
+
+        $r1[195] = 51;
+
+        $r1[196] = -120;
+
+        $r1[197] = 7;
+
+        $r1[198] = -57;
+
+        $r1[199] = 49;
+
+        $r1[200] = -79;
+
+        $r1[201] = 18;
+
+        $r1[202] = 16;
+
+        $r1[203] = 89;
+
+        $r1[204] = 39;
+
+        $r1[205] = -128;
+
+        $r1[206] = -20;
+
+        $r1[207] = 95;
+
+        $r1[208] = 96;
+
+        $r1[209] = 81;
+
+        $r1[210] = 127;
+
+        $r1[211] = -87;
+
+        $r1[212] = 25;
+
+        $r1[213] = -75;
+
+        $r1[214] = 74;
+
+        $r1[215] = 13;
+
+        $r1[216] = 45;
+
+        $r1[217] = -27;
+
+        $r1[218] = 122;
+
+        $r1[219] = -97;
+
+        $r1[220] = -109;
+
+        $r1[221] = -55;
+
+        $r1[222] = -100;
+
+        $r1[223] = -17;
+
+        $r1[224] = -96;
+
+        $r1[225] = -32;
+
+        $r1[226] = 59;
+
+        $r1[227] = 77;
+
+        $r1[228] = -82;
+
+        $r1[229] = 42;
+
+        $r1[230] = -11;
+
+        $r1[231] = -80;
+
+        $r1[232] = -56;
+
+        $r1[233] = -21;
+
+        $r1[234] = -69;
+
+        $r1[235] = 60;
+
+        $r1[236] = -125;
+
+        $r1[237] = 83;
+
+        $r1[238] = -103;
+
+        $r1[239] = 97;
+
+        $r1[240] = 23;
+
+        $r1[241] = 43;
+
+        $r1[242] = 4;
+
+        $r1[243] = 126;
+
+        $r1[244] = -70;
+
+        $r1[245] = 119;
+
+        $r1[246] = -42;
+
+        $r1[247] = 38;
+
+        $r1[248] = -31;
+
+        $r1[249] = 105;
+
+        $r1[250] = 20;
+
+        $r1[251] = 99;
+
+        $r1[252] = 85;
+
+        $r1[253] = 33;
+
+        $r1[254] = 12;
+
+        $r1[255] = 125;
+
+        <org.bouncycastle.crypto.engines.AESFastEngine: byte[] Si> = $r1;
+
+        $r2 = newarray (int)[30];
+
+        $r2[0] = 1;
+
+        $r2[1] = 2;
+
+        $r2[2] = 4;
+
+        $r2[3] = 8;
+
+        $r2[4] = 16;
+
+        $r2[5] = 32;
+
+        $r2[6] = 64;
+
+        $r2[7] = 128;
+
+        $r2[8] = 27;
+
+        $r2[9] = 54;
+
+        $r2[10] = 108;
+
+        $r2[11] = 216;
+
+        $r2[12] = 171;
+
+        $r2[13] = 77;
+
+        $r2[14] = 154;
+
+        $r2[15] = 47;
+
+        $r2[16] = 94;
+
+        $r2[17] = 188;
+
+        $r2[18] = 99;
+
+        $r2[19] = 198;
+
+        $r2[20] = 151;
+
+        $r2[21] = 53;
+
+        $r2[22] = 106;
+
+        $r2[23] = 212;
+
+        $r2[24] = 179;
+
+        $r2[25] = 125;
+
+        $r2[26] = 250;
+
+        $r2[27] = 239;
+
+        $r2[28] = 197;
+
+        $r2[29] = 145;
+
+        <org.bouncycastle.crypto.engines.AESFastEngine: int[] rcon> = $r2;
+
+        $r3 = newarray (int)[256];
+
+        $r3[0] = -1520213050;
+
+        $r3[1] = -2072216328;
+
+        $r3[2] = -1720223762;
+
+        $r3[3] = -1921287178;
+
+        $r3[4] = 234025727;
+
+        $r3[5] = -1117033514;
+
+        $r3[6] = -1318096930;
+
+        $r3[7] = 1422247313;
+
+        $r3[8] = 1345335392;
+
+        $r3[9] = 50397442;
+
+        $r3[10] = -1452841010;
+
+        $r3[11] = 2099981142;
+
+        $r3[12] = 436141799;
+
+        $r3[13] = 1658312629;
+
+        $r3[14] = -424957107;
+
+        $r3[15] = -1703512340;
+
+        $r3[16] = 1170918031;
+
+        $r3[17] = -1652391393;
+
+        $r3[18] = 1086966153;
+
+        $r3[19] = -2021818886;
+
+        $r3[20] = 368769775;
+
+        $r3[21] = -346465870;
+
+        $r3[22] = -918075506;
+
+        $r3[23] = 200339707;
+
+        $r3[24] = -324162239;
+
+        $r3[25] = 1742001331;
+
+        $r3[26] = -39673249;
+
+        $r3[27] = -357585083;
+
+        $r3[28] = -1080255453;
+
+        $r3[29] = -140204973;
+
+        $r3[30] = -1770884380;
+
+        $r3[31] = 1539358875;
+
+        $r3[32] = -1028147339;
+
+        $r3[33] = 486407649;
+
+        $r3[34] = -1366060227;
+
+        $r3[35] = 1780885068;
+
+        $r3[36] = 1513502316;
+
+        $r3[37] = 1094664062;
+
+        $r3[38] = 49805301;
+
+        $r3[39] = 1338821763;
+
+        $r3[40] = 1546925160;
+
+        $r3[41] = -190470831;
+
+        $r3[42] = 887481809;
+
+        $r3[43] = 150073849;
+
+        $r3[44] = -1821281822;
+
+        $r3[45] = 1943591083;
+
+        $r3[46] = 1395732834;
+
+        $r3[47] = 1058346282;
+
+        $r3[48] = 201589768;
+
+        $r3[49] = 1388824469;
+
+        $r3[50] = 1696801606;
+
+        $r3[51] = 1589887901;
+
+        $r3[52] = 672667696;
+
+        $r3[53] = -1583966665;
+
+        $r3[54] = 251987210;
+
+        $r3[55] = -1248159185;
+
+        $r3[56] = 151455502;
+
+        $r3[57] = 907153956;
+
+        $r3[58] = -1686077413;
+
+        $r3[59] = 1038279391;
+
+        $r3[60] = 652995533;
+
+        $r3[61] = 1764173646;
+
+        $r3[62] = -843926913;
+
+        $r3[63] = -1619692054;
+
+        $r3[64] = 453576978;
+
+        $r3[65] = -1635548387;
+
+        $r3[66] = 1949051992;
+
+        $r3[67] = 773462580;
+
+        $r3[68] = 756751158;
+
+        $r3[69] = -1301385508;
+
+        $r3[70] = -296068428;
+
+        $r3[71] = -73359269;
+
+        $r3[72] = -162377052;
+
+        $r3[73] = 1295727478;
+
+        $r3[74] = 1641469623;
+
+        $r3[75] = -827083907;
+
+        $r3[76] = 2066295122;
+
+        $r3[77] = 1055122397;
+
+        $r3[78] = 1898917726;
+
+        $r3[79] = -1752923117;
+
+        $r3[80] = -179088474;
+
+        $r3[81] = 1758581177;
+
+        $r3[82] = 0;
+
+        $r3[83] = 753790401;
+
+        $r3[84] = 1612718144;
+
+        $r3[85] = 536673507;
+
+        $r3[86] = -927878791;
+
+        $r3[87] = -312779850;
+
+        $r3[88] = -1100322092;
+
+        $r3[89] = 1187761037;
+
+        $r3[90] = -641810841;
+
+        $r3[91] = 1262041458;
+
+        $r3[92] = -565556588;
+
+        $r3[93] = -733197160;
+
+        $r3[94] = -396863312;
+
+        $r3[95] = 1255133061;
+
+        $r3[96] = 1808847035;
+
+        $r3[97] = 720367557;
+
+        $r3[98] = -441800113;
+
+        $r3[99] = 385612781;
+
+        $r3[100] = -985447546;
+
+        $r3[101] = -682799718;
+
+        $r3[102] = 1429418854;
+
+        $r3[103] = -1803188975;
+
+        $r3[104] = -817543798;
+
+        $r3[105] = 284817897;
+
+        $r3[106] = 100794884;
+
+        $r3[107] = -2122350594;
+
+        $r3[108] = -263171936;
+
+        $r3[109] = 1144798328;
+
+        $r3[110] = -1163944155;
+
+        $r3[111] = -475486133;
+
+        $r3[112] = -212774494;
+
+        $r3[113] = -22830243;
+
+        $r3[114] = -1069531008;
+
+        $r3[115] = -1970303227;
+
+        $r3[116] = -1382903233;
+
+        $r3[117] = -1130521311;
+
+        $r3[118] = 1211644016;
+
+        $r3[119] = 83228145;
+
+        $r3[120] = -541279133;
+
+        $r3[121] = -1044990345;
+
+        $r3[122] = 1977277103;
+
+        $r3[123] = 1663115586;
+
+        $r3[124] = 806359072;
+
+        $r3[125] = 452984805;
+
+        $r3[126] = 250868733;
+
+        $r3[127] = 1842533055;
+
+        $r3[128] = 1288555905;
+
+        $r3[129] = 336333848;
+
+        $r3[130] = 890442534;
+
+        $r3[131] = 804056259;
+
+        $r3[132] = -513843266;
+
+        $r3[133] = -1567123659;
+
+        $r3[134] = -867941240;
+
+        $r3[135] = 957814574;
+
+        $r3[136] = 1472513171;
+
+        $r3[137] = -223893675;
+
+        $r3[138] = -2105639172;
+
+        $r3[139] = 1195195770;
+
+        $r3[140] = -1402706744;
+
+        $r3[141] = -413311558;
+
+        $r3[142] = 723065138;
+
+        $r3[143] = -1787595802;
+
+        $r3[144] = -1604296512;
+
+        $r3[145] = -1736343271;
+
+        $r3[146] = -783331426;
+
+        $r3[147] = 2145180835;
+
+        $r3[148] = 1713513028;
+
+        $r3[149] = 2116692564;
+
+        $r3[150] = -1416589253;
+
+        $r3[151] = -2088204277;
+
+        $r3[152] = -901364084;
+
+        $r3[153] = 703524551;
+
+        $r3[154] = -742868885;
+
+        $r3[155] = 1007948840;
+
+        $r3[156] = 2044649127;
+
+        $r3[157] = -497131844;
+
+        $r3[158] = 487262998;
+
+        $r3[159] = 1994120109;
+
+        $r3[160] = 1004593371;
+
+        $r3[161] = 1446130276;
+
+        $r3[162] = 1312438900;
+
+        $r3[163] = 503974420;
+
+        $r3[164] = -615954030;
+
+        $r3[165] = 168166924;
+
+        $r3[166] = 1814307912;
+
+        $r3[167] = -463709000;
+
+        $r3[168] = 1573044895;
+
+        $r3[169] = 1859376061;
+
+        $r3[170] = -273896381;
+
+        $r3[171] = -1503501628;
+
+        $r3[172] = -1466855111;
+
+        $r3[173] = -1533700815;
+
+        $r3[174] = 937747667;
+
+        $r3[175] = -1954973198;
+
+        $r3[176] = 854058965;
+
+        $r3[177] = 1137232011;
+
+        $r3[178] = 1496790894;
+
+        $r3[179] = -1217565222;
+
+        $r3[180] = -1936880383;
+
+        $r3[181] = 1691735473;
+
+        $r3[182] = -766620004;
+
+        $r3[183] = -525751991;
+
+        $r3[184] = -1267962664;
+
+        $r3[185] = -95005012;
+
+        $r3[186] = 133494003;
+
+        $r3[187] = 636152527;
+
+        $r3[188] = -1352309302;
+
+        $r3[189] = -1904575756;
+
+        $r3[190] = -374428089;
+
+        $r3[191] = 403179536;
+
+        $r3[192] = -709182865;
+
+        $r3[193] = -2005370640;
+
+        $r3[194] = 1864705354;
+
+        $r3[195] = 1915629148;
+
+        $r3[196] = 605822008;
+
+        $r3[197] = -240736681;
+
+        $r3[198] = -944458637;
+
+        $r3[199] = 1371981463;
+
+        $r3[200] = 602466507;
+
+        $r3[201] = 2094914977;
+
+        $r3[202] = -1670089496;
+
+        $r3[203] = 555687742;
+
+        $r3[204] = -582268010;
+
+        $r3[205] = -591544991;
+
+        $r3[206] = -2037675251;
+
+        $r3[207] = -2054518257;
+
+        $r3[208] = -1871679264;
+
+        $r3[209] = 1111375484;
+
+        $r3[210] = -994724495;
+
+        $r3[211] = -1436129588;
+
+        $r3[212] = -666351472;
+
+        $r3[213] = 84083462;
+
+        $r3[214] = 32962295;
+
+        $r3[215] = 302911004;
+
+        $r3[216] = -1553899070;
+
+        $r3[217] = 1597322602;
+
+        $r3[218] = -111716434;
+
+        $r3[219] = -793134743;
+
+        $r3[220] = -1853454825;
+
+        $r3[221] = 1489093017;
+
+        $r3[222] = 656219450;
+
+        $r3[223] = -1180787161;
+
+        $r3[224] = 954327513;
+
+        $r3[225] = 335083755;
+
+        $r3[226] = -1281845205;
+
+        $r3[227] = 856756514;
+
+        $r3[228] = -1150719534;
+
+        $r3[229] = 1893325225;
+
+        $r3[230] = -1987146233;
+
+        $r3[231] = -1483434957;
+
+        $r3[232] = -1231316179;
+
+        $r3[233] = 572399164;
+
+        $r3[234] = -1836611819;
+
+        $r3[235] = 552200649;
+
+        $r3[236] = 1238290055;
+
+        $r3[237] = -11184726;
+
+        $r3[238] = 2015897680;
+
+        $r3[239] = 2061492133;
+
+        $r3[240] = -1886614525;
+
+        $r3[241] = -123625127;
+
+        $r3[242] = -2138470135;
+
+        $r3[243] = 386731290;
+
+        $r3[244] = -624967835;
+
+        $r3[245] = 837215959;
+
+        $r3[246] = -968736124;
+
+        $r3[247] = -1201116976;
+
+        $r3[248] = -1019133566;
+
+        $r3[249] = -1332111063;
+
+        $r3[250] = 1999449434;
+
+        $r3[251] = 286199582;
+
+        $r3[252] = -877612933;
+
+        $r3[253] = -61582168;
+
+        $r3[254] = -692339859;
+
+        $r3[255] = 974525996;
+
+        <org.bouncycastle.crypto.engines.AESFastEngine: int[] T0> = $r3;
+
+        $r4 = newarray (int)[256];
+
+        $r4[0] = 1667483301;
+
+        $r4[1] = 2088564868;
+
+        $r4[2] = 2004348569;
+
+        $r4[3] = 2071721613;
+
+        $r4[4] = -218956019;
+
+        $r4[5] = 1802229437;
+
+        $r4[6] = 1869602481;
+
+        $r4[7] = -976907948;
+
+        $r4[8] = 808476752;
+
+        $r4[9] = 16843267;
+
+        $r4[10] = 1734856361;
+
+        $r4[11] = 724260477;
+
+        $r4[12] = -16849127;
+
+        $r4[13] = -673729182;
+
+        $r4[14] = -1414836762;
+
+        $r4[15] = 1987505306;
+
+        $r4[16] = -892694715;
+
+        $r4[17] = -2105401443;
+
+        $r4[18] = -909539008;
+
+        $r4[19] = 2105408135;
+
+        $r4[20] = -84218091;
+
+        $r4[21] = 1499050731;
+
+        $r4[22] = 1195871945;
+
+        $r4[23] = -252642549;
+
+        $r4[24] = -1381154324;
+
+        $r4[25] = -724257945;
+
+        $r4[26] = -1566416899;
+
+        $r4[27] = -1347467798;
+
+        $r4[28] = -1667488833;
+
+        $r4[29] = -1532734473;
+
+        $r4[30] = 1920132246;
+
+        $r4[31] = -1061119141;
+
+        $r4[32] = -1212713534;
+
+        $r4[33] = -33693412;
+
+        $r4[34] = -1819066962;
+
+        $r4[35] = 640044138;
+
+        $r4[36] = 909536346;
+
+        $r4[37] = 1061125697;
+
+        $r4[38] = -134744830;
+
+        $r4[39] = -859012273;
+
+        $r4[40] = 875849820;
+
+        $r4[41] = -1515892236;
+
+        $r4[42] = -437923532;
+
+        $r4[43] = -235800312;
+
+        $r4[44] = 1903288979;
+
+        $r4[45] = -656888973;
+
+        $r4[46] = 825320019;
+
+        $r4[47] = 353708607;
+
+        $r4[48] = 67373068;
+
+        $r4[49] = -943221422;
+
+        $r4[50] = 589514341;
+
+        $r4[51] = -1010590370;
+
+        $r4[52] = 404238376;
+
+        $r4[53] = -1768540255;
+
+        $r4[54] = 84216335;
+
+        $r4[55] = -1701171275;
+
+        $r4[56] = 117902857;
+
+        $r4[57] = 303178806;
+
+        $r4[58] = -2139087973;
+
+        $r4[59] = -488448195;
+
+        $r4[60] = -336868058;
+
+        $r4[61] = 656887401;
+
+        $r4[62] = -1296924723;
+
+        $r4[63] = 1970662047;
+
+        $r4[64] = 151589403;
+
+        $r4[65] = -2088559202;
+
+        $r4[66] = 741103732;
+
+        $r4[67] = 437924910;
+
+        $r4[68] = 454768173;
+
+        $r4[69] = 1852759218;
+
+        $r4[70] = 1515893998;
+
+        $r4[71] = -1600103429;
+
+        $r4[72] = 1381147894;
+
+        $r4[73] = 993752653;
+
+        $r4[74] = -690571423;
+
+        $r4[75] = -1280082482;
+
+        $r4[76] = 690573947;
+
+        $r4[77] = -471605954;
+
+        $r4[78] = 791633521;
+
+        $r4[79] = -2071719017;
+
+        $r4[80] = 1397991157;
+
+        $r4[81] = -774784664;
+
+        $r4[82] = 0;
+
+        $r4[83] = -303185620;
+
+        $r4[84] = 538984544;
+
+        $r4[85] = -50535649;
+
+        $r4[86] = -1313769016;
+
+        $r4[87] = 1532737261;
+
+        $r4[88] = 1785386174;
+
+        $r4[89] = -875852474;
+
+        $r4[90] = -1094817831;
+
+        $r4[91] = 960066123;
+
+        $r4[92] = 1246401758;
+
+        $r4[93] = 1280088276;
+
+        $r4[94] = 1482207464;
+
+        $r4[95] = -808483510;
+
+        $r4[96] = -791626901;
+
+        $r4[97] = -269499094;
+
+        $r4[98] = -1431679003;
+
+        $r4[99] = -67375850;
+
+        $r4[100] = 1128498885;
+
+        $r4[101] = 1296931543;
+
+        $r4[102] = 859006549;
+
+        $r4[103] = -2054876780;
+
+        $r4[104] = 1162185423;
+
+        $r4[105] = -101062384;
+
+        $r4[106] = 33686534;
+
+        $r4[107] = 2139094657;
+
+        $r4[108] = 1347461360;
+
+        $r4[109] = 1010595908;
+
+        $r4[110] = -1616960070;
+
+        $r4[111] = -1465365533;
+
+        $r4[112] = 1364304627;
+
+        $r4[113] = -1549574658;
+
+        $r4[114] = 1077969088;
+
+        $r4[115] = -1886452342;
+
+        $r4[116] = -1835909203;
+
+        $r4[117] = -1650646596;
+
+        $r4[118] = 943222856;
+
+        $r4[119] = -168431356;
+
+        $r4[120] = -1128504353;
+
+        $r4[121] = -1229555775;
+
+        $r4[122] = -623202443;
+
+        $r4[123] = 555827811;
+
+        $r4[124] = 269492272;
+
+        $i1 = (int) -6886;
+
+        $r4[125] = $i1;
+
+        $r4[126] = -202113778;
+
+        $r4[127] = -757940371;
+
+        $r4[128] = -842170036;
+
+        $r4[129] = 202119188;
+
+        $r4[130] = 320022069;
+
+        $r4[131] = -320027857;
+
+        $r4[132] = 1600110305;
+
+        $r4[133] = -1751698014;
+
+        $r4[134] = 1145342156;
+
+        $r4[135] = 387395129;
+
+        $r4[136] = -993750185;
+
+        $r4[137] = -1482205710;
+
+        $r4[138] = 2122251394;
+
+        $r4[139] = 1027439175;
+
+        $r4[140] = 1684326572;
+
+        $r4[141] = 1566423783;
+
+        $r4[142] = 421081643;
+
+        $r4[143] = 1936975509;
+
+        $r4[144] = 1616953504;
+
+        $r4[145] = -2122245736;
+
+        $r4[146] = 1330618065;
+
+        $r4[147] = -589520001;
+
+        $r4[148] = 572671078;
+
+        $r4[149] = 707417214;
+
+        $r4[150] = -1869595733;
+
+        $r4[151] = -2004350077;
+
+        $r4[152] = 1179028682;
+
+        $r4[153] = -286341335;
+
+        $r4[154] = -1195873325;
+
+        $r4[155] = 336865340;
+
+        $r4[156] = -555833479;
+
+        $r4[157] = 1583267042;
+
+        $r4[158] = 185275933;
+
+        $r4[159] = -606360202;
+
+        $r4[160] = -522134725;
+
+        $r4[161] = 842163286;
+
+        $r4[162] = 976909390;
+
+        $r4[163] = 168432670;
+
+        $r4[164] = 1229558491;
+
+        $r4[165] = 101059594;
+
+        $r4[166] = 606357612;
+
+        $r4[167] = 1549580516;
+
+        $r4[168] = -1027432611;
+
+        $r4[169] = -741098130;
+
+        $r4[170] = -1397996561;
+
+        $r4[171] = 1650640038;
+
+        $r4[172] = -1852753496;
+
+        $r4[173] = -1785384540;
+
+        $r4[174] = -454765769;
+
+        $r4[175] = 2038035083;
+
+        $r4[176] = -404237006;
+
+        $r4[177] = -926381245;
+
+        $r4[178] = 926379609;
+
+        $r4[179] = 1835915959;
+
+        $r4[180] = -1920138868;
+
+        $r4[181] = -707415708;
+
+        $r4[182] = 1313774802;
+
+        $r4[183] = -1448523296;
+
+        $r4[184] = 1819072692;
+
+        $r4[185] = 1448520954;
+
+        $r4[186] = -185273593;
+
+        $r4[187] = -353710299;
+
+        $r4[188] = 1701169839;
+
+        $r4[189] = 2054878350;
+
+        $r4[190] = -1364310039;
+
+        $r4[191] = 134746136;
+
+        $r4[192] = -1162186795;
+
+        $r4[193] = 2021191816;
+
+        $r4[194] = 623200879;
+
+        $r4[195] = 774790258;
+
+        $r4[196] = 471611428;
+
+        $r4[197] = -1499047951;
+
+        $r4[198] = -1263242297;
+
+        $r4[199] = -960063663;
+
+        $r4[200] = -387396829;
+
+        $r4[201] = -572677764;
+
+        $r4[202] = 1953818780;
+
+        $r4[203] = 522141217;
+
+        $r4[204] = 1263245021;
+
+        $r4[205] = -1111662116;
+
+        $r4[206] = -1953821306;
+
+        $r4[207] = -1970663547;
+
+        $r4[208] = 1886445712;
+
+        $r4[209] = 1044282434;
+
+        $r4[210] = -1246400060;
+
+        $r4[211] = 1718013098;
+
+        $r4[212] = 1212715224;
+
+        $r4[213] = 50529797;
+
+        $r4[214] = -151587071;
+
+        $r4[215] = 235805714;
+
+        $r4[216] = 1633796771;
+
+        $r4[217] = 892693087;
+
+        $r4[218] = 1465364217;
+
+        $r4[219] = -1179031088;
+
+        $r4[220] = -2038032495;
+
+        $r4[221] = -1044276904;
+
+        $r4[222] = 488454695;
+
+        $r4[223] = -1633802311;
+
+        $r4[224] = -505292488;
+
+        $r4[225] = -117904621;
+
+        $r4[226] = -1734857805;
+
+        $r4[227] = 286335539;
+
+        $r4[228] = 1768542907;
+
+        $r4[229] = -640046736;
+
+        $r4[230] = -1903294583;
+
+        $r4[231] = -1802226777;
+
+        $r4[232] = -1684329034;
+
+        $r4[233] = 505297954;
+
+        $r4[234] = -2021190254;
+
+        $r4[235] = -370554592;
+
+        $r4[236] = -825325751;
+
+        $r4[237] = 1431677695;
+
+        $r4[238] = 673730680;
+
+        $r4[239] = -538991238;
+
+        $r4[240] = -1936981105;
+
+        $r4[241] = -1583261192;
+
+        $r4[242] = -1987507840;
+
+        $r4[243] = 218962455;
+
+        $r4[244] = -1077975590;
+
+        $r4[245] = -421079247;
+
+        $r4[246] = 1111655622;
+
+        $r4[247] = 1751699640;
+
+        $r4[248] = 1094812355;
+
+        $r4[249] = -1718015568;
+
+        $r4[250] = 757946999;
+
+        $r4[251] = 252648977;
+
+        $r4[252] = -1330611253;
+
+        $r4[253] = 1414834428;
+
+        $r4[254] = -1145344554;
+
+        $r4[255] = 370551866;
+
+        <org.bouncycastle.crypto.engines.AESFastEngine: int[] T1> = $r4;
+
+        $r5 = newarray (int)[256];
+
+        $r5[0] = 1673962851;
+
+        $r5[1] = 2096661628;
+
+        $r5[2] = 2012125559;
+
+        $r5[3] = 2079755643;
+
+        $r5[4] = -218165774;
+
+        $r5[5] = 1809235307;
+
+        $r5[6] = 1876865391;
+
+        $r5[7] = -980331323;
+
+        $r5[8] = 811618352;
+
+        $r5[9] = 16909057;
+
+        $r5[10] = 1741597031;
+
+        $r5[11] = 727088427;
+
+        $r5[12] = -18408962;
+
+        $r5[13] = -675978537;
+
+        $r5[14] = -1420958037;
+
+        $r5[15] = 1995217526;
+
+        $r5[16] = -896580150;
+
+        $r5[17] = -2111857278;
+
+        $r5[18] = -913751863;
+
+        $r5[19] = 2113570685;
+
+        $r5[20] = -84994566;
+
+        $r5[21] = 1504897881;
+
+        $r5[22] = 1200539975;
+
+        $r5[23] = -251982864;
+
+        $r5[24] = -1388188499;
+
+        $r5[25] = -726439980;
+
+        $r5[26] = -1570767454;
+
+        $r5[27] = -1354372433;
+
+        $r5[28] = -1675378788;
+
+        $r5[29] = -1538000988;
+
+        $r5[30] = 1927583346;
+
+        $r5[31] = -1063560256;
+
+        $r5[32] = -1217019209;
+
+        $r5[33] = -35578627;
+
+        $r5[34] = -1824674157;
+
+        $r5[35] = 642542118;
+
+        $r5[36] = 913070646;
+
+        $r5[37] = 1065238847;
+
+        $r5[38] = -134937865;
+
+        $r5[39] = -863809588;
+
+        $r5[40] = 879254580;
+
+        $r5[41] = -1521355611;
+
+        $r5[42] = -439274267;
+
+        $r5[43] = -235337487;
+
+        $r5[44] = 1910674289;
+
+        $r5[45] = -659852328;
+
+        $r5[46] = 828527409;
+
+        $r5[47] = 355090197;
+
+        $r5[48] = 67636228;
+
+        $r5[49] = -946515257;
+
+        $r5[50] = 591815971;
+
+        $r5[51] = -1013096765;
+
+        $r5[52] = 405809176;
+
+        $r5[53] = -1774739050;
+
+        $r5[54] = 84545285;
+
+        $r5[55] = -1708149350;
+
+        $r5[56] = 118360327;
+
+        $r5[57] = 304363026;
+
+        $r5[58] = -2145674368;
+
+        $r5[59] = -488686110;
+
+        $r5[60] = -338876693;
+
+        $r5[61] = 659450151;
+
+        $r5[62] = -1300247118;
+
+        $r5[63] = 1978310517;
+
+        $r5[64] = 152181513;
+
+        $r5[65] = -2095210877;
+
+        $r5[66] = 743994412;
+
+        $r5[67] = 439627290;
+
+        $r5[68] = 456535323;
+
+        $r5[69] = 1859957358;
+
+        $r5[70] = 1521806938;
+
+        $r5[71] = -1604584544;
+
+        $r5[72] = 1386542674;
+
+        $r5[73] = 997608763;
+
+        $r5[74] = -692624938;
+
+        $r5[75] = -1283600717;
+
+        $r5[76] = 693271337;
+
+        $r5[77] = -472039709;
+
+        $r5[78] = 794718511;
+
+        $r5[79] = -2079090812;
+
+        $r5[80] = 1403450707;
+
+        $r5[81] = -776378159;
+
+        $r5[82] = 0;
+
+        $r5[83] = -306107155;
+
+        $r5[84] = 541089824;
+
+        $r5[85] = -52224004;
+
+        $r5[86] = -1317418831;
+
+        $r5[87] = 1538714971;
+
+        $r5[88] = 1792327274;
+
+        $r5[89] = -879933749;
+
+        $r5[90] = -1100490306;
+
+        $r5[91] = 963791673;
+
+        $r5[92] = 1251270218;
+
+        $r5[93] = 1285084236;
+
+        $r5[94] = 1487988824;
+
+        $r5[95] = -813348145;
+
+        $r5[96] = -793023536;
+
+        $r5[97] = -272291089;
+
+        $r5[98] = -1437604438;
+
+        $r5[99] = -68348165;
+
+        $r5[100] = 1132905795;
+
+        $r5[101] = 1301993293;
+
+        $r5[102] = 862344499;
+
+        $r5[103] = -2062445435;
+
+        $r5[104] = 1166724933;
+
+        $r5[105] = -102166279;
+
+        $r5[106] = 33818114;
+
+        $r5[107] = 2147385727;
+
+        $r5[108] = 1352724560;
+
+        $r5[109] = 1014514748;
+
+        $r5[110] = -1624917345;
+
+        $r5[111] = -1471421528;
+
+        $r5[112] = 1369633617;
+
+        $r5[113] = -1554121053;
+
+        $r5[114] = 1082179648;
+
+        $r5[115] = -1895462257;
+
+        $r5[116] = -1841320558;
+
+        $r5[117] = -1658733411;
+
+        $r5[118] = 946882616;
+
+        $r5[119] = -168753931;
+
+        $r5[120] = -1134305348;
+
+        $r5[121] = -1233665610;
+
+        $r5[122] = -626035238;
+
+        $r5[123] = 557998881;
+
+        $r5[124] = 270544912;
+
+        $r5[125] = -1762561;
+
+        $r5[126] = -201519373;
+
+        $r5[127] = -759206446;
+
+        $r5[128] = -847164211;
+
+        $r5[129] = 202904588;
+
+        $r5[130] = 321271059;
+
+        $r5[131] = -322752532;
+
+        $r5[132] = 1606345055;
+
+        $r5[133] = -1758092649;
+
+        $r5[134] = 1149815876;
+
+        $r5[135] = 388905239;
+
+        $r5[136] = -996976700;
+
+        $r5[137] = -1487539545;
+
+        $r5[138] = 2130477694;
+
+        $r5[139] = 1031423805;
+
+        $r5[140] = 1690872932;
+
+        $r5[141] = 1572530013;
+
+        $r5[142] = 422718233;
+
+        $r5[143] = 1944491379;
+
+        $r5[144] = 1623236704;
+
+        $r5[145] = -2129028991;
+
+        $r5[146] = 1335808335;
+
+        $r5[147] = -593264676;
+
+        $r5[148] = 574907938;
+
+        $r5[149] = 710180394;
+
+        $r5[150] = -1875137648;
+
+        $r5[151] = -2012511352;
+
+        $r5[152] = 1183631942;
+
+        $r5[153] = -288937490;
+
+        $r5[154] = -1200893000;
+
+        $r5[155] = 338181140;
+
+        $r5[156] = -559449634;
+
+        $r5[157] = 1589437022;
+
+        $r5[158] = 185998603;
+
+        $r5[159] = -609388837;
+
+        $r5[160] = -522503200;
+
+        $r5[161] = 845436466;
+
+        $r5[162] = 980700730;
+
+        $r5[163] = 169090570;
+
+        $r5[164] = 1234361161;
+
+        $r5[165] = 101452294;
+
+        $r5[166] = 608726052;
+
+        $r5[167] = 1555620956;
+
+        $r5[168] = -1029743166;
+
+        $r5[169] = -742560045;
+
+        $r5[170] = -1404833876;
+
+        $r5[171] = 1657054818;
+
+        $r5[172] = -1858492271;
+
+        $r5[173] = -1791908715;
+
+        $r5[174] = -455919644;
+
+        $r5[175] = 2045938553;
+
+        $r5[176] = -405458201;
+
+        $r5[177] = -930397240;
+
+        $r5[178] = 929978679;
+
+        $r5[179] = 1843050349;
+
+        $r5[180] = -1929278323;
+
+        $r5[181] = -709794603;
+
+        $r5[182] = 1318900302;
+
+        $r5[183] = -1454776151;
+
+        $r5[184] = 1826141292;
+
+        $r5[185] = 1454176854;
+
+        $r5[186] = -185399308;
+
+        $r5[187] = -355523094;
+
+        $r5[188] = 1707781989;
+
+        $r5[189] = 2062847610;
+
+        $r5[190] = -1371018834;
+
+        $r5[191] = 135272456;
+
+        $r5[192] = -1167075910;
+
+        $r5[193] = 2029029496;
+
+        $r5[194] = 625635109;
+
+        $r5[195] = 777810478;
+
+        $r5[196] = 473441308;
+
+        $r5[197] = -1504185946;
+
+        $r5[198] = -1267480652;
+
+        $r5[199] = -963161658;
+
+        $r5[200] = -389340184;
+
+        $r5[201] = -576619299;
+
+        $r5[202] = 1961401460;
+
+        $r5[203] = 524165407;
+
+        $r5[204] = 1268178251;
+
+        $r5[205] = -1117659971;
+
+        $r5[206] = -1962047861;
+
+        $r5[207] = -1978694262;
+
+        $r5[208] = 1893765232;
+
+        $r5[209] = 1048330814;
+
+        $r5[210] = -1250835275;
+
+        $r5[211] = 1724688998;
+
+        $r5[212] = 1217452104;
+
+        $r5[213] = 50726147;
+
+        $r5[214] = -151584266;
+
+        $r5[215] = 236720654;
+
+        $r5[216] = 1640145761;
+
+        $r5[217] = 896163637;
+
+        $r5[218] = 1471084887;
+
+        $r5[219] = -1184247623;
+
+        $r5[220] = -2045275770;
+
+        $r5[221] = -1046914879;
+
+        $r5[222] = 490350365;
+
+        $r5[223] = -1641563746;
+
+        $r5[224] = -505857823;
+
+        $r5[225] = -118811656;
+
+        $r5[226] = -1741966440;
+
+        $r5[227] = 287453969;
+
+        $r5[228] = 1775418217;
+
+        $r5[229] = -643206951;
+
+        $r5[230] = -1912108658;
+
+        $r5[231] = -1808554092;
+
+        $r5[232] = -1691502949;
+
+        $r5[233] = 507257374;
+
+        $r5[234] = -2028629369;
+
+        $r5[235] = -372694807;
+
+        $r5[236] = -829994546;
+
+        $r5[237] = 1437269845;
+
+        $r5[238] = 676362280;
+
+        $r5[239] = -542803233;
+
+        $r5[240] = -1945923700;
+
+        $r5[241] = -1587939167;
+
+        $r5[242] = -1995865975;
+
+        $r5[243] = 219813645;
+
+        $r5[244] = -1083843905;
+
+        $r5[245] = -422104602;
+
+        $r5[246] = 1115997762;
+
+        $r5[247] = 1758509160;
+
+        $r5[248] = 1099088705;
+
+        $r5[249] = -1725321063;
+
+        $r5[250] = 760903469;
+
+        $r5[251] = 253628687;
+
+        $r5[252] = -1334064208;
+
+        $r5[253] = 1420360788;
+
+        $r5[254] = -1150429509;
+
+        $r5[255] = 371997206;
+
+        <org.bouncycastle.crypto.engines.AESFastEngine: int[] T2> = $r5;
+
+        $r6 = newarray (int)[256];
+
+        $r6[0] = -962239645;
+
+        $r6[1] = -125535108;
+
+        $r6[2] = -291932297;
+
+        $r6[3] = -158499973;
+
+        $r6[4] = -15863054;
+
+        $r6[5] = -692229269;
+
+        $r6[6] = -558796945;
+
+        $r6[7] = -1856715323;
+
+        $r6[8] = 1615867952;
+
+        $r6[9] = 33751297;
+
+        $r6[10] = -827758745;
+
+        $r6[11] = 1451043627;
+
+        $r6[12] = -417726722;
+
+        $r6[13] = -1251813417;
+
+        $r6[14] = 1306962859;
+
+        $r6[15] = -325421450;
+
+        $r6[16] = -1891251510;
+
+        $r6[17] = 530416258;
+
+        $r6[18] = -1992242743;
+
+        $r6[19] = -91783811;
+
+        $r6[20] = -283772166;
+
+        $r6[21] = -1293199015;
+
+        $r6[22] = -1899411641;
+
+        $r6[23] = -83103504;
+
+        $r6[24] = 1106029997;
+
+        $r6[25] = -1285040940;
+
+        $r6[26] = 1610457762;
+
+        $r6[27] = 1173008303;
+
+        $r6[28] = 599760028;
+
+        $r6[29] = 1408738468;
+
+        $r6[30] = -459902350;
+
+        $r6[31] = -1688485696;
+
+        $r6[32] = 1975695287;
+
+        $r6[33] = -518193667;
+
+        $r6[34] = 1034851219;
+
+        $r6[35] = 1282024998;
+
+        $r6[36] = 1817851446;
+
+        $r6[37] = 2118205247;
+
+        $r6[38] = -184354825;
+
+        $r6[39] = -2091922228;
+
+        $r6[40] = 1750873140;
+
+        $r6[41] = 1374987685;
+
+        $r6[42] = -785062427;
+
+        $r6[43] = -116854287;
+
+        $r6[44] = -493653647;
+
+        $r6[45] = -1418471208;
+
+        $r6[46] = 1649619249;
+
+        $r6[47] = 708777237;
+
+        $r6[48] = 135005188;
+
+        $r6[49] = -1789737017;
+
+        $r6[50] = 1181033251;
+
+        $r6[51] = -1654733885;
+
+        $r6[52] = 807933976;
+
+        $r6[53] = 933336726;
+
+        $r6[54] = 168756485;
+
+        $r6[55] = 800430746;
+
+        $r6[56] = 235472647;
+
+        $r6[57] = 607523346;
+
+        $r6[58] = 463175808;
+
+        $r6[59] = -549592350;
+
+        $r6[60] = -853087253;
+
+        $r6[61] = 1315514151;
+
+        $r6[62] = 2144187058;
+
+        $r6[63] = -358648459;
+
+        $r6[64] = 303761673;
+
+        $r6[65] = 496927619;
+
+        $r6[66] = 1484008492;
+
+        $r6[67] = 875436570;
+
+        $r6[68] = 908925723;
+
+        $r6[69] = -592286098;
+
+        $r6[70] = -1259447718;
+
+        $r6[71] = 1543217312;
+
+        $r6[72] = -1527360942;
+
+        $r6[73] = 1984772923;
+
+        $r6[74] = -1218324778;
+
+        $r6[75] = 2110698419;
+
+        $r6[76] = 1383803177;
+
+        $r6[77] = -583080989;
+
+        $r6[78] = 1584475951;
+
+        $r6[79] = 328696964;
+
+        $r6[80] = -1493871789;
+
+        $r6[81] = -1184312879;
+
+        $r6[82] = 0;
+
+        $r6[83] = -1054020115;
+
+        $r6[84] = 1080041504;
+
+        $r6[85] = -484442884;
+
+        $r6[86] = 2043195825;
+
+        $r6[87] = -1225958565;
+
+        $r6[88] = -725718422;
+
+        $r6[89] = -1924740149;
+
+        $r6[90] = 1742323390;
+
+        $r6[91] = 1917532473;
+
+        $r6[92] = -1797371318;
+
+        $r6[93] = -1730917300;
+
+        $r6[94] = -1326950312;
+
+        $r6[95] = -2058694705;
+
+        $r6[96] = -1150562096;
+
+        $r6[97] = -987041809;
+
+        $r6[98] = 1340451498;
+
+        $r6[99] = -317260805;
+
+        $r6[100] = -2033892541;
+
+        $r6[101] = -1697166003;
+
+        $r6[102] = 1716859699;
+
+        $r6[103] = 294946181;
+
+        $r6[104] = -1966127803;
+
+        $r6[105] = -384763399;
+
+        $r6[106] = 67502594;
+
+        $r6[107] = -25067649;
+
+        $r6[108] = -1594863536;
+
+        $r6[109] = 2017737788;
+
+        $r6[110] = 632987551;
+
+        $r6[111] = 1273211048;
+
+        $r6[112] = -1561112239;
+
+        $r6[113] = 1576969123;
+
+        $r6[114] = -2134884288;
+
+        $r6[115] = 92966799;
+
+        $r6[116] = 1068339858;
+
+        $r6[117] = 566009245;
+
+        $r6[118] = 1883781176;
+
+        $r6[119] = -251333131;
+
+        $r6[120] = 1675607228;
+
+        $r6[121] = 2009183926;
+
+        $r6[122] = -1351230758;
+
+        $r6[123] = 1113792801;
+
+        $r6[124] = 540020752;
+
+        $r6[125] = -451215361;
+
+        $r6[126] = -49351693;
+
+        $r6[127] = -1083321646;
+
+        $r6[128] = -2125673011;
+
+        $r6[129] = 403966988;
+
+        $r6[130] = 641012499;
+
+        $r6[131] = -1020269332;
+
+        $r6[132] = -1092526241;
+
+        $r6[133] = 899848087;
+
+        $r6[134] = -1999879100;
+
+        $r6[135] = 775493399;
+
+        $r6[136] = -1822964540;
+
+        $r6[137] = 1441965991;
+
+        $r6[138] = -58556802;
+
+        $r6[139] = 2051489085;
+
+        $r6[140] = -928226204;
+
+        $r6[141] = -1159242403;
+
+        $r6[142] = 841685273;
+
+        $r6[143] = -426413197;
+
+        $r6[144] = -1063231392;
+
+        $r6[145] = 429425025;
+
+        $r6[146] = -1630449841;
+
+        $r6[147] = -1551901476;
+
+        $r6[148] = 1147544098;
+
+        $r6[149] = 1417554474;
+
+        $r6[150] = 1001099408;
+
+        $r6[151] = 193169544;
+
+        $r6[152] = -1932900794;
+
+        $r6[153] = -953553170;
+
+        $r6[154] = 1809037496;
+
+        $r6[155] = 675025940;
+
+        $r6[156] = -1485185314;
+
+        $r6[157] = -1126015394;
+
+        $r6[158] = 371002123;
+
+        $r6[159] = -1384719397;
+
+        $r6[160] = -616832800;
+
+        $r6[161] = 1683370546;
+
+        $r6[162] = 1951283770;
+
+        $r6[163] = 337512970;
+
+        $r6[164] = -1831122615;
+
+        $r6[165] = 201983494;
+
+        $r6[166] = 1215046692;
+
+        $r6[167] = -1192993700;
+
+        $r6[168] = -1621245246;
+
+        $r6[169] = -1116810285;
+
+        $r6[170] = 1139780780;
+
+        $r6[171] = -995728798;
+
+        $r6[172] = 967348625;
+
+        $r6[173] = 832869781;
+
+        $r6[174] = -751311644;
+
+        $r6[175] = -225740423;
+
+        $r6[176] = -718084121;
+
+        $r6[177] = -1958491960;
+
+        $r6[178] = 1851340599;
+
+        $r6[179] = -625513107;
+
+        $r6[180] = 25988493;
+
+        $r6[181] = -1318791723;
+
+        $r6[182] = -1663938994;
+
+        $r6[183] = 1239460265;
+
+        $r6[184] = -659264404;
+
+        $r6[185] = -1392880042;
+
+        $r6[186] = -217582348;
+
+        $r6[187] = -819598614;
+
+        $r6[188] = -894474907;
+
+        $r6[189] = -191989126;
+
+        $r6[190] = 1206496942;
+
+        $r6[191] = 270010376;
+
+        $r6[192] = 1876277946;
+
+        $r6[193] = -259491720;
+
+        $r6[194] = 1248797989;
+
+        $r6[195] = 1550986798;
+
+        $r6[196] = 941890588;
+
+        $r6[197] = 1475454630;
+
+        $r6[198] = 1942467764;
+
+        $r6[199] = -1756248378;
+
+        $r6[200] = -886839064;
+
+        $r6[201] = -1585652259;
+
+        $r6[202] = -392399756;
+
+        $r6[203] = 1042358047;
+
+        $r6[204] = -1763882165;
+
+        $r6[205] = 1641856445;
+
+        $r6[206] = 226921355;
+
+        $r6[207] = 260409994;
+
+        $r6[208] = -527404944;
+
+        $r6[209] = 2084716094;
+
+        $r6[210] = 1908716981;
+
+        $r6[211] = -861247898;
+
+        $r6[212] = -1864873912;
+
+        $r6[213] = 100991747;
+
+        $r6[214] = -150866186;
+
+        $r6[215] = 470945294;
+
+        $r6[216] = -1029480095;
+
+        $r6[217] = 1784624437;
+
+        $r6[218] = -1359390889;
+
+        $r6[219] = 1775286713;
+
+        $r6[220] = 395413126;
+
+        $r6[221] = -1722236479;
+
+        $r6[222] = 975641885;
+
+        $r6[223] = 666476190;
+
+        $r6[224] = -650583583;
+
+        $r6[225] = -351012616;
+
+        $r6[226] = 733190296;
+
+        $r6[227] = 573772049;
+
+        $r6[228] = -759469719;
+
+        $r6[229] = -1452221991;
+
+        $r6[230] = 126455438;
+
+        $r6[231] = 866620564;
+
+        $r6[232] = 766942107;
+
+        $r6[233] = 1008868894;
+
+        $r6[234] = 361924487;
+
+        $r6[235] = -920589847;
+
+        $r6[236] = -2025206066;
+
+        $r6[237] = -1426107051;
+
+        $r6[238] = 1350051880;
+
+        $r6[239] = -1518673953;
+
+        $r6[240] = 59739276;
+
+        $r6[241] = 1509466529;
+
+        $r6[242] = 159418761;
+
+        $r6[243] = 437718285;
+
+        $r6[244] = 1708834751;
+
+        $r6[245] = -684595482;
+
+        $r6[246] = -2067381694;
+
+        $r6[247] = -793221016;
+
+        $r6[248] = -2101132991;
+
+        $r6[249] = 699439513;
+
+        $r6[250] = 1517759789;
+
+        $r6[251] = 504434447;
+
+        $r6[252] = 2076946608;
+
+        $r6[253] = -1459858348;
+
+        $r6[254] = 1842789307;
+
+        $r6[255] = 742004246;
+
+        <org.bouncycastle.crypto.engines.AESFastEngine: int[] T3> = $r6;
+
+        $r7 = newarray (int)[256];
+
+        $r7[0] = 1353184337;
+
+        $r7[1] = 1399144830;
+
+        $r7[2] = -1012656358;
+
+        $r7[3] = -1772214470;
+
+        $r7[4] = -882136261;
+
+        $r7[5] = -247096033;
+
+        $r7[6] = -1420232020;
+
+        $r7[7] = -1828461749;
+
+        $r7[8] = 1442459680;
+
+        $r7[9] = -160598355;
+
+        $r7[10] = -1854485368;
+
+        $r7[11] = 625738485;
+
+        $r7[12] = -52959921;
+
+        $r7[13] = -674551099;
+
+        $r7[14] = -2143013594;
+
+        $r7[15] = -1885117771;
+
+        $r7[16] = 1230680542;
+
+        $r7[17] = 1729870373;
+
+        $r7[18] = -1743852987;
+
+        $r7[19] = -507445667;
+
+        $r7[20] = 41234371;
+
+        $r7[21] = 317738113;
+
+        $r7[22] = -1550367091;
+
+        $r7[23] = -956705941;
+
+        $r7[24] = -413167869;
+
+        $r7[25] = -1784901099;
+
+        $r7[26] = -344298049;
+
+        $r7[27] = -631680363;
+
+        $r7[28] = 763608788;
+
+        $r7[29] = -752782248;
+
+        $r7[30] = 694804553;
+
+        $r7[31] = 1154009486;
+
+        $r7[32] = 1787413109;
+
+        $r7[33] = 2021232372;
+
+        $r7[34] = 1799248025;
+
+        $r7[35] = -579749593;
+
+        $r7[36] = -1236278850;
+
+        $r7[37] = 397248752;
+
+        $r7[38] = 1722556617;
+
+        $r7[39] = -1271214467;
+
+        $r7[40] = 407560035;
+
+        $r7[41] = -2110711067;
+
+        $r7[42] = 1613975959;
+
+        $r7[43] = 1165972322;
+
+        $r7[44] = -529046351;
+
+        $r7[45] = -2068943941;
+
+        $r7[46] = 480281086;
+
+        $r7[47] = -1809118983;
+
+        $r7[48] = 1483229296;
+
+        $r7[49] = 436028815;
+
+        $r7[50] = -2022908268;
+
+        $r7[51] = -1208452270;
+
+        $r7[52] = 601060267;
+
+        $r7[53] = -503166094;
+
+        $r7[54] = 1468997603;
+
+        $r7[55] = 715871590;
+
+        $r7[56] = 120122290;
+
+        $r7[57] = 63092015;
+
+        $r7[58] = -1703164538;
+
+        $r7[59] = -1526188077;
+
+        $r7[60] = -226023376;
+
+        $r7[61] = -1297760477;
+
+        $r7[62] = -1167457534;
+
+        $r7[63] = 1552029421;
+
+        $r7[64] = 723308426;
+
+        $r7[65] = -1833666137;
+
+        $r7[66] = -252573709;
+
+        $r7[67] = -1578997426;
+
+        $r7[68] = -839591323;
+
+        $r7[69] = -708967162;
+
+        $r7[70] = 526529745;
+
+        $r7[71] = -1963022652;
+
+        $r7[72] = -1655493068;
+
+        $r7[73] = -1604979806;
+
+        $r7[74] = 853641733;
+
+        $r7[75] = 1978398372;
+
+        $r7[76] = 971801355;
+
+        $r7[77] = -1427152832;
+
+        $r7[78] = 111112542;
+
+        $r7[79] = 1360031421;
+
+        $r7[80] = -108388034;
+
+        $r7[81] = 1023860118;
+
+        $r7[82] = -1375387939;
+
+        $r7[83] = 1186850381;
+
+        $r7[84] = -1249028975;
+
+        $r7[85] = 90031217;
+
+        $r7[86] = 1876166148;
+
+        $r7[87] = -15380384;
+
+        $r7[88] = 620468249;
+
+        $r7[89] = -1746289194;
+
+        $r7[90] = -868007799;
+
+        $r7[91] = 2006899047;
+
+        $r7[92] = -1119688528;
+
+        $r7[93] = -2004121337;
+
+        $r7[94] = 945494503;
+
+        $r7[95] = -605108103;
+
+        $r7[96] = 1191869601;
+
+        $r7[97] = -384875908;
+
+        $r7[98] = -920746760;
+
+        $r7[99] = 0;
+
+        $r7[100] = -2088337399;
+
+        $r7[101] = 1223502642;
+
+        $r7[102] = -1401941730;
+
+        $r7[103] = 1316117100;
+
+        $r7[104] = -67170563;
+
+        $r7[105] = 1446544655;
+
+        $r7[106] = 517320253;
+
+        $r7[107] = 658058550;
+
+        $r7[108] = 1691946762;
+
+        $r7[109] = 564550760;
+
+        $r7[110] = -783000677;
+
+        $r7[111] = 976107044;
+
+        $r7[112] = -1318647284;
+
+        $r7[113] = 266819475;
+
+        $r7[114] = -761860428;
+
+        $r7[115] = -1634624741;
+
+        $r7[116] = 1338359936;
+
+        $r7[117] = -1574904735;
+
+        $r7[118] = 1766553434;
+
+        $r7[119] = 370807324;
+
+        $r7[120] = 179999714;
+
+        $r7[121] = -450191168;
+
+        $r7[122] = 1138762300;
+
+        $r7[123] = 488053522;
+
+        $r7[124] = 185403662;
+
+        $r7[125] = -1379431438;
+
+        $r7[126] = -1180125651;
+
+        $r7[127] = -928440812;
+
+        $r7[128] = -2061897385;
+
+        $r7[129] = 1275557295;
+
+        $r7[130] = -1143105042;
+
+        $r7[131] = -44007517;
+
+        $r7[132] = -1624899081;
+
+        $r7[133] = -1124765092;
+
+        $r7[134] = -985962940;
+
+        $r7[135] = 880737115;
+
+        $r7[136] = 1982415755;
+
+        $r7[137] = -590994485;
+
+        $r7[138] = 1761406390;
+
+        $r7[139] = 1676797112;
+
+        $r7[140] = -891538985;
+
+        $r7[141] = 277177154;
+
+        $r7[142] = 1076008723;
+
+        $r7[143] = 538035844;
+
+        $r7[144] = 2099530373;
+
+        $r7[145] = -130171950;
+
+        $r7[146] = 288553390;
+
+        $r7[147] = 1839278535;
+
+        $r7[148] = 1261411869;
+
+        $r7[149] = -214912292;
+
+        $r7[150] = -330136051;
+
+        $r7[151] = -790380169;
+
+        $r7[152] = 1813426987;
+
+        $r7[153] = -1715900247;
+
+        $r7[154] = -95906799;
+
+        $r7[155] = 577038663;
+
+        $r7[156] = -997393240;
+
+        $r7[157] = 440397984;
+
+        $r7[158] = -668172970;
+
+        $r7[159] = -275762398;
+
+        $r7[160] = -951170681;
+
+        $r7[161] = -1043253031;
+
+        $r7[162] = -22885748;
+
+        $r7[163] = 906744984;
+
+        $r7[164] = -813566554;
+
+        $r7[165] = 685669029;
+
+        $r7[166] = 646887386;
+
+        $r7[167] = -1530942145;
+
+        $r7[168] = -459458004;
+
+        $r7[169] = 227702864;
+
+        $r7[170] = -1681105046;
+
+        $r7[171] = 1648787028;
+
+        $r7[172] = -1038905866;
+
+        $r7[173] = -390539120;
+
+        $r7[174] = 1593260334;
+
+        $r7[175] = -173030526;
+
+        $r7[176] = -1098883681;
+
+        $r7[177] = 2090061929;
+
+        $r7[178] = -1456614033;
+
+        $r7[179] = -1290656305;
+
+        $r7[180] = 999926984;
+
+        $r7[181] = -1484974064;
+
+        $r7[182] = 1852021992;
+
+        $r7[183] = 2075868123;
+
+        $r7[184] = 158869197;
+
+        $r7[185] = -199730834;
+
+        $r7[186] = 28809964;
+
+        $r7[187] = -1466282109;
+
+        $r7[188] = 1701746150;
+
+        $r7[189] = 2129067946;
+
+        $r7[190] = 147831841;
+
+        $r7[191] = -420997649;
+
+        $r7[192] = -644094022;
+
+        $r7[193] = -835293366;
+
+        $r7[194] = -737566742;
+
+        $r7[195] = -696471511;
+
+        $r7[196] = -1347247055;
+
+        $r7[197] = 824393514;
+
+        $r7[198] = 815048134;
+
+        $r7[199] = -1067015627;
+
+        $r7[200] = 935087732;
+
+        $r7[201] = -1496677636;
+
+        $r7[202] = -1328508704;
+
+        $r7[203] = 366520115;
+
+        $r7[204] = 1251476721;
+
+        $r7[205] = -136647615;
+
+        $r7[206] = 240176511;
+
+        $r7[207] = 804688151;
+
+        $r7[208] = -1915335306;
+
+        $r7[209] = 1303441219;
+
+        $r7[210] = 1414376140;
+
+        $r7[211] = -553347356;
+
+        $r7[212] = -474623586;
+
+        $r7[213] = 461924940;
+
+        $r7[214] = -1205916479;
+
+        $r7[215] = 2136040774;
+
+        $r7[216] = 82468509;
+
+        $r7[217] = 1563790337;
+
+        $r7[218] = 1937016826;
+
+        $r7[219] = 776014843;
+
+        $r7[220] = 1511876531;
+
+        $r7[221] = 1389550482;
+
+        $r7[222] = 861278441;
+
+        $r7[223] = 323475053;
+
+        $r7[224] = -1939744870;
+
+        $r7[225] = 2047648055;
+
+        $r7[226] = -1911228327;
+
+        $r7[227] = -1992551445;
+
+        $r7[228] = -299390514;
+
+        $r7[229] = 902390199;
+
+        $r7[230] = -303751967;
+
+        $r7[231] = 1018251130;
+
+        $r7[232] = 1507840668;
+
+        $r7[233] = 1064563285;
+
+        $r7[234] = 2043548696;
+
+        $r7[235] = -1086863501;
+
+        $r7[236] = -355600557;
+
+        $r7[237] = 1537932639;
+
+        $r7[238] = 342834655;
+
+        $r7[239] = -2032450440;
+
+        $r7[240] = -2114736182;
+
+        $r7[241] = 1053059257;
+
+        $r7[242] = 741614648;
+
+        $r7[243] = 1598071746;
+
+        $r7[244] = 1925389590;
+
+        $r7[245] = 203809468;
+
+        $r7[246] = -1958134744;
+
+        $r7[247] = 1100287487;
+
+        $r7[248] = 1895934009;
+
+        $r7[249] = -558691320;
+
+        $r7[250] = -1662733096;
+
+        $r7[251] = -1866377628;
+
+        $r7[252] = 1636092795;
+
+        $r7[253] = 1890988757;
+
+        $r7[254] = 1952214088;
+
+        $r7[255] = 1113045200;
+
+        <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv0> = $r7;
+
+        $r8 = newarray (int)[256];
+
+        $r8[0] = -1477160624;
+
+        $r8[1] = 1698790995;
+
+        $r8[2] = -1541989693;
+
+        $r8[3] = 1579629206;
+
+        $r8[4] = 1806384075;
+
+        $r8[5] = 1167925233;
+
+        $r8[6] = 1492823211;
+
+        $r8[7] = 65227667;
+
+        $r8[8] = -97509291;
+
+        $r8[9] = 1836494326;
+
+        $r8[10] = 1993115793;
+
+        $r8[11] = 1275262245;
+
+        $r8[12] = -672837636;
+
+        $r8[13] = -886389289;
+
+        $r8[14] = 1144333952;
+
+        $r8[15] = -1553812081;
+
+        $r8[16] = 1521606217;
+
+        $r8[17] = 465184103;
+
+        $r8[18] = 250234264;
+
+        $r8[19] = -1057071647;
+
+        $r8[20] = 1966064386;
+
+        $r8[21] = -263421678;
+
+        $r8[22] = -1756983901;
+
+        $r8[23] = -103584826;
+
+        $r8[24] = 1603208167;
+
+        $r8[25] = -1668147819;
+
+        $r8[26] = 2054012907;
+
+        $r8[27] = 1498584538;
+
+        $r8[28] = -2084645843;
+
+        $r8[29] = 561273043;
+
+        $r8[30] = 1776306473;
+
+        $r8[31] = -926314940;
+
+        $r8[32] = -1983744662;
+
+        $r8[33] = 2039411832;
+
+        $r8[34] = 1045993835;
+
+        $r8[35] = 1907959773;
+
+        $r8[36] = 1340194486;
+
+        $r8[37] = -1383534569;
+
+        $r8[38] = -1407137434;
+
+        $r8[39] = 986611124;
+
+        $r8[40] = 1256153880;
+
+        $r8[41] = 823846274;
+
+        $r8[42] = 860985184;
+
+        $r8[43] = 2136171077;
+
+        $r8[44] = 2003087840;
+
+        $r8[45] = -1368671356;
+
+        $r8[46] = -1602093540;
+
+        $r8[47] = 722008468;
+
+        $r8[48] = 1749577816;
+
+        $r8[49] = -45773031;
+
+        $r8[50] = 1826526343;
+
+        $r8[51] = -126135625;
+
+        $r8[52] = -747394269;
+
+        $r8[53] = 38499042;
+
+        $r8[54] = -1893735593;
+
+        $r8[55] = -1420466646;
+
+        $r8[56] = 686535175;
+
+        $r8[57] = -1028313341;
+
+        $r8[58] = 2076542618;
+
+        $r8[59] = 137876389;
+
+        $r8[60] = -2027409166;
+
+        $r8[61] = -1514200142;
+
+        $r8[62] = 1778582202;
+
+        $r8[63] = -2112426660;
+
+        $r8[64] = 483363371;
+
+        $r8[65] = -1267095662;
+
+        $r8[66] = -234359824;
+
+        $r8[67] = -496415071;
+
+        $r8[68] = -187013683;
+
+        $r8[69] = -1106966827;
+
+        $r8[70] = 1647628575;
+
+        $r8[71] = -22625142;
+
+        $r8[72] = 1395537053;
+
+        $r8[73] = 1442030240;
+
+        $r8[74] = -511048398;
+
+        $r8[75] = -336157579;
+
+        $r8[76] = -326956231;
+
+        $r8[77] = -278904662;
+
+        $r8[78] = -1619960314;
+
+        $r8[79] = 275692881;
+
+        $r8[80] = -1977532679;
+
+        $r8[81] = 115185213;
+
+        $r8[82] = 88006062;
+
+        $r8[83] = -1108980410;
+
+        $r8[84] = -1923837515;
+
+        $r8[85] = 1573155077;
+
+        $r8[86] = -737803153;
+
+        $r8[87] = 357589247;
+
+        $r8[88] = -73918172;
+
+        $r8[89] = -373434729;
+
+        $r8[90] = 1128303052;
+
+        $r8[91] = -1629919369;
+
+        $r8[92] = 1122545853;
+
+        $r8[93] = -1953953912;
+
+        $r8[94] = 1528424248;
+
+        $r8[95] = -288851493;
+
+        $r8[96] = 175939911;
+
+        $r8[97] = 256015593;
+
+        $r8[98] = 512030921;
+
+        $r8[99] = 0;
+
+        $r8[100] = -2038429309;
+
+        $r8[101] = -315936184;
+
+        $r8[102] = 1880170156;
+
+        $r8[103] = 1918528590;
+
+        $r8[104] = -15794693;
+
+        $r8[105] = 948244310;
+
+        $r8[106] = -710001378;
+
+        $r8[107] = 959264295;
+
+        $r8[108] = -653325724;
+
+        $r8[109] = -1503893471;
+
+        $r8[110] = 1415289809;
+
+        $r8[111] = 775300154;
+
+        $r8[112] = 1728711857;
+
+        $r8[113] = -413691121;
+
+        $r8[114] = -1762741038;
+
+        $r8[115] = -1852105826;
+
+        $r8[116] = -977239985;
+
+        $r8[117] = 551313826;
+
+        $r8[118] = 1266113129;
+
+        $r8[119] = 437394454;
+
+        $r8[120] = -1164713462;
+
+        $r8[121] = 715178213;
+
+        $r8[122] = -534627261;
+
+        $r8[123] = 387650077;
+
+        $r8[124] = 218697227;
+
+        $r8[125] = -947129683;
+
+        $r8[126] = -1464455751;
+
+        $r8[127] = -1457646392;
+
+        $r8[128] = 435246981;
+
+        $r8[129] = 125153100;
+
+        $r8[130] = -577114437;
+
+        $r8[131] = 1618977789;
+
+        $r8[132] = 637663135;
+
+        $r8[133] = -177054532;
+
+        $r8[134] = 996558021;
+
+        $r8[135] = 2130402100;
+
+        $r8[136] = 692292470;
+
+        $r8[137] = -970732580;
+
+        $r8[138] = -51530136;
+
+        $r8[139] = -236668829;
+
+        $r8[140] = -600713270;
+
+        $r8[141] = -2057092592;
+
+        $r8[142] = 580326208;
+
+        $r8[143] = 298222624;
+
+        $r8[144] = 608863613;
+
+        $r8[145] = 1035719416;
+
+        $r8[146] = 855223825;
+
+        $r8[147] = -1591097491;
+
+        $r8[148] = 798891339;
+
+        $r8[149] = 817028339;
+
+        $r8[150] = 1384517100;
+
+        $r8[151] = -473860144;
+
+        $r8[152] = 380840812;
+
+        $r8[153] = -1183798887;
+
+        $r8[154] = 1217663482;
+
+        $r8[155] = 1693009698;
+
+        $r8[156] = -1929598780;
+
+        $r8[157] = 1072734234;
+
+        $r8[158] = 746411736;
+
+        $r8[159] = -1875696913;
+
+        $r8[160] = 1313441735;
+
+        $r8[161] = -784803391;
+
+        $r8[162] = -1563783938;
+
+        $r8[163] = 198481974;
+
+        $r8[164] = -2114607409;
+
+        $r8[165] = -562387672;
+
+        $r8[166] = -1900553690;
+
+        $r8[167] = -1079165020;
+
+        $r8[168] = -1657131804;
+
+        $r8[169] = -1837608947;
+
+        $r8[170] = -866162021;
+
+        $r8[171] = 1182684258;
+
+        $r8[172] = 328070850;
+
+        $r8[173] = -1193766680;
+
+        $r8[174] = -147247522;
+
+        $r8[175] = -1346141451;
+
+        $r8[176] = -2141347906;
+
+        $r8[177] = -1815058052;
+
+        $r8[178] = 768962473;
+
+        $r8[179] = 304467891;
+
+        $r8[180] = -1716729797;
+
+        $r8[181] = 2098729127;
+
+        $r8[182] = 1671227502;
+
+        $r8[183] = -1153705093;
+
+        $r8[184] = 2015808777;
+
+        $r8[185] = 408514292;
+
+        $r8[186] = -1214583807;
+
+        $r8[187] = -1706064984;
+
+        $r8[188] = 1855317605;
+
+        $r8[189] = -419452290;
+
+        $r8[190] = -809754360;
+
+        $r8[191] = -401215514;
+
+        $r8[192] = -1679312167;
+
+        $r8[193] = 913263310;
+
+        $r8[194] = 161475284;
+
+        $r8[195] = 2091919830;
+
+        $r8[196] = -1297862225;
+
+        $r8[197] = 591342129;
+
+        $r8[198] = -1801075152;
+
+        $r8[199] = 1721906624;
+
+        $r8[200] = -1135709129;
+
+        $r8[201] = -897385306;
+
+        $r8[202] = -795811664;
+
+        $r8[203] = -660131051;
+
+        $r8[204] = -1744506550;
+
+        $r8[205] = -622050825;
+
+        $r8[206] = 1355644686;
+
+        $r8[207] = -158263505;
+
+        $r8[208] = -699566451;
+
+        $r8[209] = -1326496947;
+
+        $r8[210] = 1303039060;
+
+        $r8[211] = 76997855;
+
+        $r8[212] = -1244553501;
+
+        $r8[213] = -2006299621;
+
+        $r8[214] = 523026872;
+
+        $r8[215] = 1365591679;
+
+        $r8[216] = -362898172;
+
+        $r8[217] = 898367837;
+
+        $r8[218] = 1955068531;
+
+        $r8[219] = 1091304238;
+
+        $r8[220] = 493335386;
+
+        $r8[221] = -757362094;
+
+        $r8[222] = 1443948851;
+
+        $r8[223] = 1205234963;
+
+        $r8[224] = 1641519756;
+
+        $r8[225] = 211892090;
+
+        $r8[226] = 351820174;
+
+        $r8[227] = 1007938441;
+
+        $r8[228] = 665439982;
+
+        $r8[229] = -916342987;
+
+        $r8[230] = -451091987;
+
+        $r8[231] = -1320715716;
+
+        $r8[232] = -539845543;
+
+        $r8[233] = 1945261375;
+
+        $r8[234] = -837543815;
+
+        $r8[235] = 935818175;
+
+        $r8[236] = -839429142;
+
+        $r8[237] = -1426235557;
+
+        $r8[238] = 1866325780;
+
+        $r8[239] = -616269690;
+
+        $r8[240] = -206583167;
+
+        $r8[241] = -999769794;
+
+        $r8[242] = 874788908;
+
+        $r8[243] = 1084473951;
+
+        $r8[244] = -1021503886;
+
+        $r8[245] = 635616268;
+
+        $r8[246] = 1228679307;
+
+        $r8[247] = -1794244799;
+
+        $r8[248] = 27801969;
+
+        $r8[249] = -1291056930;
+
+        $r8[250] = -457910116;
+
+        $r8[251] = -1051302768;
+
+        $r8[252] = -2067039391;
+
+        $r8[253] = -1238182544;
+
+        $r8[254] = 1550600308;
+
+        $r8[255] = 1471729730;
+
+        <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv1> = $r8;
+
+        $r9 = newarray (int)[256];
+
+        $r9[0] = -195997529;
+
+        $r9[1] = 1098797925;
+
+        $r9[2] = 387629988;
+
+        $r9[3] = 658151006;
+
+        $r9[4] = -1422144661;
+
+        $r9[5] = -1658851003;
+
+        $r9[6] = -89347240;
+
+        $r9[7] = -481586429;
+
+        $r9[8] = 807425530;
+
+        $r9[9] = 1991112301;
+
+        $r9[10] = -863465098;
+
+        $r9[11] = 49620300;
+
+        $r9[12] = -447742761;
+
+        $r9[13] = 717608907;
+
+        $r9[14] = 891715652;
+
+        $r9[15] = 1656065955;
+
+        $r9[16] = -1310832294;
+
+        $r9[17] = -1171953893;
+
+        $r9[18] = -364537842;
+
+        $r9[19] = -27401792;
+
+        $r9[20] = 801309301;
+
+        $r9[21] = 1283527408;
+
+        $r9[22] = 1183687575;
+
+        $r9[23] = -747911431;
+
+        $r9[24] = -1895569569;
+
+        $r9[25] = -1844079204;
+
+        $r9[26] = 1841294202;
+
+        $r9[27] = 1385552473;
+
+        $r9[28] = -1093390973;
+
+        $r9[29] = 1951978273;
+
+        $r9[30] = -532076183;
+
+        $r9[31] = -913423160;
+
+        $r9[32] = -1032492407;
+
+        $r9[33] = -1896580999;
+
+        $r9[34] = 1486449470;
+
+        $r9[35] = -1188569743;
+
+        $r9[36] = -507595185;
+
+        $r9[37] = -1997531219;
+
+        $r9[38] = 550069932;
+
+        $r9[39] = -830622662;
+
+        $r9[40] = -547153846;
+
+        $r9[41] = 451248689;
+
+        $r9[42] = 1368875059;
+
+        $r9[43] = 1398949247;
+
+        $r9[44] = 1689378935;
+
+        $r9[45] = 1807451310;
+
+        $r9[46] = -2114052960;
+
+        $r9[47] = 150574123;
+
+        $r9[48] = 1215322216;
+
+        $r9[49] = 1167006205;
+
+        $r9[50] = -560691348;
+
+        $r9[51] = 2069018616;
+
+        $r9[52] = 1940595667;
+
+        $r9[53] = 1265820162;
+
+        $r9[54] = 534992783;
+
+        $r9[55] = 1432758955;
+
+        $r9[56] = -340654296;
+
+        $r9[57] = -1255210046;
+
+        $r9[58] = -981034373;
+
+        $r9[59] = 936617224;
+
+        $r9[60] = 674296455;
+
+        $r9[61] = -1088179547;
+
+        $r9[62] = 50510442;
+
+        $r9[63] = 384654466;
+
+        $r9[64] = -813028580;
+
+        $r9[65] = 2041025204;
+
+        $r9[66] = 133427442;
+
+        $r9[67] = 1766760930;
+
+        $r9[68] = -630862348;
+
+        $r9[69] = 84334014;
+
+        $r9[70] = 886120290;
+
+        $r9[71] = -1497068802;
+
+        $r9[72] = 775200083;
+
+        $r9[73] = -207445931;
+
+        $r9[74] = -1979370783;
+
+        $r9[75] = -156994069;
+
+        $r9[76] = -2096416276;
+
+        $r9[77] = 1614850799;
+
+        $r9[78] = 1901987487;
+
+        $r9[79] = 1857900816;
+
+        $r9[80] = 557775242;
+
+        $r9[81] = -577356538;
+
+        $r9[82] = 1054715397;
+
+        $r9[83] = -431143235;
+
+        $r9[84] = 1418835341;
+
+        $r9[85] = -999226019;
+
+        $r9[86] = 100954068;
+
+        $r9[87] = 1348534037;
+
+        $r9[88] = -1743182597;
+
+        $r9[89] = -1110009879;
+
+        $r9[90] = 1082772547;
+
+        $r9[91] = -647530594;
+
+        $r9[92] = -391070398;
+
+        $r9[93] = -1995994997;
+
+        $r9[94] = 434583643;
+
+        $r9[95] = -931537938;
+
+        $r9[96] = 2090944266;
+
+        $r9[97] = 1115482383;
+
+        $r9[98] = -2064070370;
+
+        $r9[99] = 0;
+
+        $r9[100] = -2146860154;
+
+        $r9[101] = 724715757;
+
+        $r9[102] = 287222896;
+
+        $r9[103] = 1517047410;
+
+        $r9[104] = 251526143;
+
+        $r9[105] = -2062592456;
+
+        $r9[106] = -1371726123;
+
+        $r9[107] = 758523705;
+
+        $r9[108] = 252339417;
+
+        $r9[109] = 1550328230;
+
+        $r9[110] = 1536938324;
+
+        $r9[111] = 908343854;
+
+        $r9[112] = 168604007;
+
+        $r9[113] = 1469255655;
+
+        $r9[114] = -290139498;
+
+        $r9[115] = -1692688751;
+
+        $r9[116] = -1065332795;
+
+        $r9[117] = -597581280;
+
+        $r9[118] = 2002413899;
+
+        $r9[119] = 303830554;
+
+        $r9[120] = -1813902662;
+
+        $r9[121] = -1597971158;
+
+        $r9[122] = 574374880;
+
+        $r9[123] = 454171927;
+
+        $r9[124] = 151915277;
+
+        $r9[125] = -1947030073;
+
+        $r9[126] = -1238517336;
+
+        $r9[127] = 504678569;
+
+        $r9[128] = -245922535;
+
+        $r9[129] = 1974422535;
+
+        $r9[130] = -1712407587;
+
+        $r9[131] = 2141453664;
+
+        $r9[132] = 33005350;
+
+        $r9[133] = 1918680309;
+
+        $r9[134] = 1715782971;
+
+        $r9[135] = -77908866;
+
+        $r9[136] = 1133213225;
+
+        $r9[137] = 600562886;
+
+        $r9[138] = -306812676;
+
+        $r9[139] = -457677839;
+
+        $r9[140] = 836225756;
+
+        $r9[141] = 1665273989;
+
+        $r9[142] = -1760346078;
+
+        $r9[143] = -964419567;
+
+        $r9[144] = 1250262308;
+
+        $r9[145] = -1143801795;
+
+        $r9[146] = -106032846;
+
+        $r9[147] = 700935585;
+
+        $r9[148] = -1642247377;
+
+        $r9[149] = -1294142672;
+
+        $r9[150] = -2045907886;
+
+        $r9[151] = -1049112349;
+
+        $r9[152] = -1288999914;
+
+        $r9[153] = 1890163129;
+
+        $r9[154] = -1810761144;
+
+        $r9[155] = -381214108;
+
+        $r9[156] = -56048500;
+
+        $r9[157] = -257942977;
+
+        $r9[158] = 2102843436;
+
+        $r9[159] = 857927568;
+
+        $r9[160] = 1233635150;
+
+        $r9[161] = 953795025;
+
+        $r9[162] = -896729438;
+
+        $r9[163] = -728222197;
+
+        $r9[164] = -173617279;
+
+        $r9[165] = 2057644254;
+
+        $r9[166] = -1210440050;
+
+        $r9[167] = -1388337985;
+
+        $r9[168] = 976020637;
+
+        $r9[169] = 2018512274;
+
+        $r9[170] = 1600822220;
+
+        $r9[171] = 2119459398;
+
+        $r9[172] = -1913208301;
+
+        $r9[173] = -661591880;
+
+        $r9[174] = 959340279;
+
+        $r9[175] = -1014827601;
+
+        $r9[176] = 1570750080;
+
+        $r9[177] = -798393197;
+
+        $r9[178] = -714102483;
+
+        $r9[179] = 634368786;
+
+        $r9[180] = -1396163687;
+
+        $r9[181] = 403744637;
+
+        $r9[182] = -1662488989;
+
+        $r9[183] = 1004239803;
+
+        $r9[184] = 650971512;
+
+        $r9[185] = 1500443672;
+
+        $r9[186] = -1695809097;
+
+        $r9[187] = 1334028442;
+
+        $r9[188] = -1780062866;
+
+        $r9[189] = -5603610;
+
+        $r9[190] = -1138685745;
+
+        $r9[191] = 368043752;
+
+        $r9[192] = -407184997;
+
+        $r9[193] = 1867173430;
+
+        $r9[194] = -1612000247;
+
+        $r9[195] = -1339435396;
+
+        $r9[196] = -1540247630;
+
+        $r9[197] = 1059729699;
+
+        $r9[198] = -1513738092;
+
+        $r9[199] = -1573535642;
+
+        $r9[200] = 1316239292;
+
+        $r9[201] = -2097371446;
+
+        $r9[202] = -1864322864;
+
+        $r9[203] = -1489824296;
+
+        $r9[204] = 82922136;
+
+        $r9[205] = -331221030;
+
+        $r9[206] = -847311280;
+
+        $r9[207] = -1860751370;
+
+        $r9[208] = 1299615190;
+
+        $r9[209] = -280801872;
+
+        $r9[210] = -1429449651;
+
+        $r9[211] = -1763385596;
+
+        $r9[212] = -778116171;
+
+        $r9[213] = 1783372680;
+
+        $r9[214] = 750893087;
+
+        $r9[215] = 1699118929;
+
+        $r9[216] = 1587348714;
+
+        $r9[217] = -1946067659;
+
+        $r9[218] = -2013629580;
+
+        $r9[219] = 201010753;
+
+        $r9[220] = 1739807261;
+
+        $r9[221] = -611167534;
+
+        $r9[222] = 283718486;
+
+        $r9[223] = -697494713;
+
+        $r9[224] = -677737375;
+
+        $r9[225] = -1590199796;
+
+        $r9[226] = -128348652;
+
+        $r9[227] = 334203196;
+
+        $r9[228] = -1446056409;
+
+        $r9[229] = 1639396809;
+
+        $r9[230] = 484568549;
+
+        $r9[231] = 1199193265;
+
+        $r9[232] = -761505313;
+
+        $r9[233] = -229294221;
+
+        $r9[234] = 337148366;
+
+        $r9[235] = -948715721;
+
+        $r9[236] = -145495347;
+
+        $r9[237] = -44082262;
+
+        $r9[238] = 1038029935;
+
+        $r9[239] = 1148749531;
+
+        $r9[240] = -1345682957;
+
+        $r9[241] = 1756970692;
+
+        $r9[242] = 607661108;
+
+        $r9[243] = -1547542720;
+
+        $r9[244] = 488010435;
+
+        $r9[245] = -490992603;
+
+        $r9[246] = 1009290057;
+
+        $r9[247] = 234832277;
+
+        $r9[248] = -1472630527;
+
+        $r9[249] = 201907891;
+
+        $r9[250] = -1260872476;
+
+        $r9[251] = 1449431233;
+
+        $r9[252] = -881106556;
+
+        $r9[253] = 852848822;
+
+        $r9[254] = 1816687708;
+
+        $r9[255] = -1194311081;
+
+        <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv2> = $r9;
+
+        $r10 = newarray (int)[256];
+
+        $r10[0] = 1364240372;
+
+        $r10[1] = 2119394625;
+
+        $r10[2] = 449029143;
+
+        $r10[3] = 982933031;
+
+        $r10[4] = 1003187115;
+
+        $r10[5] = 535905693;
+
+        $r10[6] = -1398056710;
+
+        $r10[7] = 1267925987;
+
+        $r10[8] = 542505520;
+
+        $r10[9] = -1376359050;
+
+        $r10[10] = -2003732788;
+
+        $r10[11] = -182105086;
+
+        $r10[12] = 1341970405;
+
+        $r10[13] = -975713494;
+
+        $r10[14] = 645940277;
+
+        $r10[15] = -1248877726;
+
+        $r10[16] = -565617999;
+
+        $r10[17] = 627514298;
+
+        $r10[18] = 1167593194;
+
+        $r10[19] = 1575076094;
+
+        $r10[20] = -1023249105;
+
+        $r10[21] = -2129465268;
+
+        $r10[22] = -1918658746;
+
+        $r10[23] = 1808202195;
+
+        $r10[24] = 65494927;
+
+        $r10[25] = 362126482;
+
+        $r10[26] = -1075086739;
+
+        $r10[27] = -1780852398;
+
+        $r10[28] = -735214658;
+
+        $r10[29] = 1490231668;
+
+        $r10[30] = 1227450848;
+
+        $r10[31] = -1908094775;
+
+        $r10[32] = 1969916354;
+
+        $r10[33] = -193431154;
+
+        $r10[34] = -1721024936;
+
+        $r10[35] = 668823993;
+
+        $r10[36] = -1095348255;
+
+        $r10[37] = -266883704;
+
+        $r10[38] = -916018144;
+
+        $r10[39] = 2108963534;
+
+        $r10[40] = 1662536415;
+
+        $r10[41] = -444452582;
+
+        $r10[42] = -1755303087;
+
+        $r10[43] = 1648721747;
+
+        $r10[44] = -1310689436;
+
+        $r10[45] = -1148932501;
+
+        $r10[46] = -31678335;
+
+        $r10[47] = -107730168;
+
+        $r10[48] = 1884842056;
+
+        $r10[49] = -1894122171;
+
+        $r10[50] = -1803064098;
+
+        $r10[51] = 1387788411;
+
+        $r10[52] = -1423715469;
+
+        $r10[53] = 1927414347;
+
+        $r10[54] = -480800993;
+
+        $r10[55] = 1714072405;
+
+        $r10[56] = -1308153621;
+
+        $r10[57] = 788775605;
+
+        $r10[58] = -2036696123;
+
+        $r10[59] = -744159177;
+
+        $r10[60] = 821200680;
+
+        $r10[61] = 598910399;
+
+        $r10[62] = 45771267;
+
+        $r10[63] = -312704490;
+
+        $r10[64] = -1976886065;
+
+        $r10[65] = -1483557767;
+
+        $r10[66] = -202313209;
+
+        $r10[67] = 1319232105;
+
+        $r10[68] = 1707996378;
+
+        $r10[69] = 114671109;
+
+        $r10[70] = -786472396;
+
+        $r10[71] = -997523802;
+
+        $r10[72] = 882725678;
+
+        $r10[73] = -1566550541;
+
+        $r10[74] = 87220618;
+
+        $r10[75] = -1535775754;
+
+        $r10[76] = 188345475;
+
+        $r10[77] = 1084944224;
+
+        $r10[78] = 1577492337;
+
+        $r10[79] = -1118760850;
+
+        $r10[80] = 1056541217;
+
+        $r10[81] = -1774385443;
+
+        $r10[82] = -575797954;
+
+        $r10[83] = 1296481766;
+
+        $r10[84] = -1850372780;
+
+        $r10[85] = 1896177092;
+
+        $r10[86] = 74437638;
+
+        $r10[87] = 1627329872;
+
+        $r10[88] = 421854104;
+
+        $r10[89] = -694687299;
+
+        $r10[90] = -1983102144;
+
+        $r10[91] = 1735892697;
+
+        $r10[92] = -1329773848;
+
+        $r10[93] = 126389129;
+
+        $r10[94] = -415737063;
+
+        $r10[95] = 2044456648;
+
+        $r10[96] = -1589179780;
+
+        $r10[97] = 2095648578;
+
+        $r10[98] = -121037180;
+
+        $r10[99] = 0;
+
+        $r10[100] = 159614592;
+
+        $r10[101] = 843640107;
+
+        $r10[102] = 514617361;
+
+        $r10[103] = 1817080410;
+
+        $r10[104] = -33816818;
+
+        $r10[105] = 257308805;
+
+        $r10[106] = 1025430958;
+
+        $r10[107] = 908540205;
+
+        $r10[108] = 174381327;
+
+        $r10[109] = 1747035740;
+
+        $r10[110] = -1680780197;
+
+        $r10[111] = 607792694;
+
+        $r10[112] = 212952842;
+
+        $r10[113] = -1827674281;
+
+        $r10[114] = -1261267218;
+
+        $r10[115] = 463376795;
+
+        $r10[116] = -2142255680;
+
+        $r10[117] = 1638015196;
+
+        $r10[118] = 1516850039;
+
+        $r10[119] = 471210514;
+
+        $r10[120] = -502613357;
+
+        $r10[121] = -1058723168;
+
+        $r10[122] = 1011081250;
+
+        $r10[123] = 303896347;
+
+        $r10[124] = 235605257;
+
+        $r10[125] = -223492213;
+
+        $r10[126] = 767142070;
+
+        $r10[127] = 348694814;
+
+        $r10[128] = 1468340721;
+
+        $r10[129] = -1353971851;
+
+        $r10[130] = -289677927;
+
+        $r10[131] = -1543675777;
+
+        $r10[132] = -140564991;
+
+        $r10[133] = 1555887474;
+
+        $r10[134] = 1153776486;
+
+        $r10[135] = 1530167035;
+
+        $r10[136] = -1955190461;
+
+        $r10[137] = -874723805;
+
+        $r10[138] = -1234633491;
+
+        $r10[139] = -1201409564;
+
+        $r10[140] = -674571215;
+
+        $r10[141] = 1108378979;
+
+        $r10[142] = 322970263;
+
+        $r10[143] = -2078273082;
+
+        $r10[144] = -2055396278;
+
+        $r10[145] = -755483205;
+
+        $r10[146] = -1374604551;
+
+        $r10[147] = -949116631;
+
+        $r10[148] = 491466654;
+
+        $r10[149] = -588042062;
+
+        $r10[150] = 233591430;
+
+        $r10[151] = 2010178497;
+
+        $r10[152] = 728503987;
+
+        $r10[153] = -1449543312;
+
+        $r10[154] = 301615252;
+
+        $r10[155] = 1193436393;
+
+        $r10[156] = -1463513860;
+
+        $r10[157] = -1608892432;
+
+        $r10[158] = 1457007741;
+
+        $r10[159] = 586125363;
+
+        $r10[160] = -2016981431;
+
+        $r10[161] = -641609416;
+
+        $r10[162] = -1929469238;
+
+        $r10[163] = -1741288492;
+
+        $r10[164] = -1496350219;
+
+        $r10[165] = -1524048262;
+
+        $r10[166] = -635007305;
+
+        $r10[167] = 1067761581;
+
+        $r10[168] = 753179962;
+
+        $r10[169] = 1343066744;
+
+        $r10[170] = 1788595295;
+
+        $r10[171] = 1415726718;
+
+        $r10[172] = -155053171;
+
+        $r10[173] = -1863796520;
+
+        $r10[174] = 777975609;
+
+        $r10[175] = -2097827901;
+
+        $r10[176] = -1614905251;
+
+        $r10[177] = 1769771984;
+
+        $r10[178] = 1873358293;
+
+        $r10[179] = -810347995;
+
+        $r10[180] = -935618132;
+
+        $r10[181] = 279411992;
+
+        $r10[182] = -395418724;
+
+        $r10[183] = -612648133;
+
+        $r10[184] = -855017434;
+
+        $r10[185] = 1861490777;
+
+        $r10[186] = -335431782;
+
+        $r10[187] = -2086102449;
+
+        $r10[188] = -429560171;
+
+        $r10[189] = -1434523905;
+
+        $r10[190] = 554225596;
+
+        $r10[191] = -270079979;
+
+        $r10[192] = -1160143897;
+
+        $r10[193] = 1255028335;
+
+        $r10[194] = -355202657;
+
+        $r10[195] = 701922480;
+
+        $r10[196] = 833598116;
+
+        $r10[197] = 707863359;
+
+        $r10[198] = -969894747;
+
+        $r10[199] = 901801634;
+
+        $r10[200] = 1949809742;
+
+        $r10[201] = -56178046;
+
+        $r10[202] = -525283184;
+
+        $r10[203] = 857069735;
+
+        $r10[204] = -246769660;
+
+        $r10[205] = 1106762476;
+
+        $r10[206] = 2131644621;
+
+        $r10[207] = 389019281;
+
+        $r10[208] = 1989006925;
+
+        $r10[209] = 1129165039;
+
+        $r10[210] = -866890326;
+
+        $r10[211] = -455146346;
+
+        $r10[212] = -1629243951;
+
+        $r10[213] = 1276872810;
+
+        $r10[214] = -1044898004;
+
+        $r10[215] = 1182749029;
+
+        $r10[216] = -1660622242;
+
+        $r10[217] = 22885772;
+
+        $r10[218] = -93096825;
+
+        $r10[219] = -80854773;
+
+        $r10[220] = -1285939865;
+
+        $r10[221] = -1840065829;
+
+        $r10[222] = -382511600;
+
+        $r10[223] = 1829980118;
+
+        $r10[224] = -1702075945;
+
+        $r10[225] = 930745505;
+
+        $r10[226] = 1502483704;
+
+        $r10[227] = -343327725;
+
+        $r10[228] = -823253079;
+
+        $r10[229] = -1221211807;
+
+        $r10[230] = -504503012;
+
+        $r10[231] = 2050797895;
+
+        $r10[232] = -1671831598;
+
+        $r10[233] = 1430221810;
+
+        $r10[234] = 410635796;
+
+        $r10[235] = 1941911495;
+
+        $r10[236] = 1407897079;
+
+        $r10[237] = 1599843069;
+
+        $r10[238] = -552308931;
+
+        $r10[239] = 2022103876;
+
+        $r10[240] = -897453137;
+
+        $r10[241] = -1187068824;
+
+        $r10[242] = 942421028;
+
+        $r10[243] = -1033944925;
+
+        $r10[244] = 376619805;
+
+        $r10[245] = -1140054558;
+
+        $r10[246] = 680216892;
+
+        $r10[247] = -12479219;
+
+        $r10[248] = 963707304;
+
+        $r10[249] = 148812556;
+
+        $r10[250] = -660806476;
+
+        $r10[251] = 1687208278;
+
+        $r10[252] = 2069988555;
+
+        $r10[253] = -714033614;
+
+        $r10[254] = 1215585388;
+
+        $r10[255] = -800958536;
+
+        <org.bouncycastle.crypto.engines.AESFastEngine: int[] Tinv3> = $r10;
+
+        return;
+    }
+}

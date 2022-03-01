@@ -1,0 +1,2090 @@
+class org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum extends org.apache.lucene.index.TermsEnum
+{
+    private org.apache.lucene.codecs.lucene3x.SegmentTermEnum termEnum;
+    private org.apache.lucene.index.FieldInfo fieldInfo;
+    private java.lang.String internedFieldName;
+    private boolean skipNext;
+    private org.apache.lucene.util.BytesRef current;
+    private org.apache.lucene.codecs.lucene3x.SegmentTermEnum seekTermEnum;
+    private static final byte UTF8_NON_BMP_LEAD;
+    private static final byte UTF8_HIGH_BMP_LEAD;
+    private final byte[] scratch;
+    private final org.apache.lucene.util.BytesRef prevTerm;
+    private final org.apache.lucene.util.BytesRef scratchTerm;
+    private int newSuffixStart;
+    private boolean unicodeSortOrder;
+    static final boolean $assertionsDisabled;
+    final org.apache.lucene.codecs.lucene3x.Lucene3xFields this$0;
+
+    private void <init>(org.apache.lucene.codecs.lucene3x.Lucene3xFields)
+    {
+        byte[] $r2;
+        org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum r0;
+        org.apache.lucene.codecs.lucene3x.Lucene3xFields r1;
+        org.apache.lucene.util.BytesRef $r3, $r4;
+
+        r0 := @this: org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum;
+
+        r1 := @parameter0: org.apache.lucene.codecs.lucene3x.Lucene3xFields;
+
+        r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.Lucene3xFields this$0> = r1;
+
+        specialinvoke r0.<org.apache.lucene.index.TermsEnum: void <init>()>();
+
+        $r2 = newarray (byte)[4];
+
+        r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: byte[] scratch> = $r2;
+
+        $r3 = new org.apache.lucene.util.BytesRef;
+
+        specialinvoke $r3.<org.apache.lucene.util.BytesRef: void <init>()>();
+
+        r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef prevTerm> = $r3;
+
+        $r4 = new org.apache.lucene.util.BytesRef;
+
+        specialinvoke $r4.<org.apache.lucene.util.BytesRef: void <init>()>();
+
+        r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm> = $r4;
+
+        return;
+    }
+
+    private final boolean isHighBMPChar(byte[], int)
+    {
+        byte[] r0;
+        org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum r1;
+        byte $b1, $b2;
+        int i0, $i3, $i5;
+        boolean $z0;
+
+        r1 := @this: org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum;
+
+        r0 := @parameter0: byte[];
+
+        i0 := @parameter1: int;
+
+        $b1 = r0[i0];
+
+        $b2 = $b1 & -18;
+
+        $i3 = (int) $b2;
+
+        $i5 = (int) -18;
+
+        if $i3 != $i5 goto label1;
+
+        $z0 = 1;
+
+        goto label2;
+
+     label1:
+        $z0 = 0;
+
+     label2:
+        return $z0;
+    }
+
+    private final boolean isNonBMPChar(byte[], int)
+    {
+        byte[] r0;
+        org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum r1;
+        byte $b1, $b2;
+        int i0, $i3, $i5;
+        boolean $z0;
+
+        r1 := @this: org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum;
+
+        r0 := @parameter0: byte[];
+
+        i0 := @parameter1: int;
+
+        $b1 = r0[i0];
+
+        $b2 = $b1 & -16;
+
+        $i3 = (int) $b2;
+
+        $i5 = (int) -16;
+
+        if $i3 != $i5 goto label1;
+
+        $z0 = 1;
+
+        goto label2;
+
+     label1:
+        $z0 = 0;
+
+     label2:
+        return $z0;
+    }
+
+    private boolean seekToNonBMP(org.apache.lucene.codecs.lucene3x.SegmentTermEnum, org.apache.lucene.util.BytesRef, int) throws java.io.IOException
+    {
+        byte[] $r1, $r3, $r4, $r5, $r6, $r7, $r8, $r9, $r10, $r11, $r12, $r23, $r24, $r25, $r27, $r30, $r31, $r32, $r33, $r34, $r35;
+        org.apache.lucene.codecs.lucene3x.Lucene3xFields $r13;
+        org.apache.lucene.index.Term $r19, $r38;
+        byte $b4, $b6, $b8, $b15, $b16, $b21, $b23, $b25;
+        org.apache.lucene.codecs.lucene3x.SegmentTermEnum r15;
+        java.lang.AssertionError $r36, $r37, $r39;
+        java.lang.String $r18, $r20, $r21;
+        org.apache.lucene.index.FieldInfo $r17;
+        org.apache.lucene.codecs.lucene3x.TermInfosReader $r14;
+        boolean $z0, $z1, $z2, $z3, $z4, z5;
+        org.apache.lucene.util.BytesRef r0, $r22;
+        int i0, i1, $i2, $i3, $i5, $i7, $i9, $i10, $i11, $i12, $i13, $i14, $i17, $i18, $i19, i20, $i22, $i24, $i26, $i27;
+        org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum r2;
+
+        r2 := @this: org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum;
+
+        r15 := @parameter0: org.apache.lucene.codecs.lucene3x.SegmentTermEnum;
+
+        r0 := @parameter1: org.apache.lucene.util.BytesRef;
+
+        i1 := @parameter2: int;
+
+        i0 = r0.<org.apache.lucene.util.BytesRef: int length>;
+
+        $z0 = <org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean $assertionsDisabled>;
+
+        if $z0 != 0 goto label01;
+
+        $i19 = r0.<org.apache.lucene.util.BytesRef: int offset>;
+
+        if $i19 == 0 goto label01;
+
+        $r36 = new java.lang.AssertionError;
+
+        specialinvoke $r36.<java.lang.AssertionError: void <init>()>();
+
+        throw $r36;
+
+     label01:
+        $z1 = <org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean $assertionsDisabled>;
+
+        if $z1 != 0 goto label02;
+
+        $r27 = r0.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $z4 = specialinvoke r2.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean isHighBMPChar(byte[],int)>($r27, i1);
+
+        if $z4 != 0 goto label02;
+
+        $r37 = new java.lang.AssertionError;
+
+        specialinvoke $r37.<java.lang.AssertionError: void <init>()>();
+
+        throw $r37;
+
+     label02:
+        $r1 = r0.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $i3 = lengthof $r1;
+
+        $i2 = 4 + i1;
+
+        if $i3 >= $i2 goto label03;
+
+        $i18 = 4 + i1;
+
+        virtualinvoke r0.<org.apache.lucene.util.BytesRef: void grow(int)>($i18);
+
+     label03:
+        $r4 = r2.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: byte[] scratch>;
+
+        $r3 = r0.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $b4 = $r3[i1];
+
+        $r4[0] = $b4;
+
+        $r6 = r2.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: byte[] scratch>;
+
+        $r5 = r0.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $i5 = i1 + 1;
+
+        $b6 = $r5[$i5];
+
+        $r6[1] = $b6;
+
+        $r8 = r2.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: byte[] scratch>;
+
+        $r7 = r0.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $i7 = i1 + 2;
+
+        $b8 = $r7[$i7];
+
+        $r8[2] = $b8;
+
+        $r9 = r0.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $r9[i1] = -16;
+
+        $r10 = r0.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $i9 = i1 + 1;
+
+        $r10[$i9] = -112;
+
+        $r11 = r0.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $i10 = i1 + 2;
+
+        $r11[$i10] = -128;
+
+        $r12 = r0.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $i11 = i1 + 3;
+
+        $r12[$i11] = -128;
+
+        $i12 = 4 + i1;
+
+        r0.<org.apache.lucene.util.BytesRef: int length> = $i12;
+
+        $r13 = r2.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.Lucene3xFields this$0>;
+
+        $r14 = staticinvoke <org.apache.lucene.codecs.lucene3x.Lucene3xFields: org.apache.lucene.codecs.lucene3x.TermInfosReader access$100(org.apache.lucene.codecs.lucene3x.Lucene3xFields)>($r13);
+
+        $r38 = new org.apache.lucene.index.Term;
+
+        $r17 = r2.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.index.FieldInfo fieldInfo>;
+
+        $r18 = $r17.<org.apache.lucene.index.FieldInfo: java.lang.String name>;
+
+        specialinvoke $r38.<org.apache.lucene.index.Term: void <init>(java.lang.String,org.apache.lucene.util.BytesRef)>($r18, r0);
+
+        virtualinvoke $r14.<org.apache.lucene.codecs.lucene3x.TermInfosReader: org.apache.lucene.codecs.lucene3x.TermInfo seekEnum(org.apache.lucene.codecs.lucene3x.SegmentTermEnum,org.apache.lucene.index.Term,boolean)>(r15, $r38, 1);
+
+        $r19 = virtualinvoke r15.<org.apache.lucene.codecs.lucene3x.SegmentTermEnum: org.apache.lucene.index.Term term()>();
+
+        if $r19 == null goto label04;
+
+        $r20 = virtualinvoke $r19.<org.apache.lucene.index.Term: java.lang.String field()>();
+
+        $r21 = r2.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: java.lang.String internedFieldName>;
+
+        if $r20 == $r21 goto label05;
+
+     label04:
+        return 0;
+
+     label05:
+        $r22 = virtualinvoke $r19.<org.apache.lucene.index.Term: org.apache.lucene.util.BytesRef bytes()>();
+
+        $z2 = <org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean $assertionsDisabled>;
+
+        if $z2 != 0 goto label06;
+
+        $i17 = $r22.<org.apache.lucene.util.BytesRef: int offset>;
+
+        if $i17 == 0 goto label06;
+
+        $r39 = new java.lang.AssertionError;
+
+        specialinvoke $r39.<java.lang.AssertionError: void <init>()>();
+
+        throw $r39;
+
+     label06:
+        $i14 = $r22.<org.apache.lucene.util.BytesRef: int length>;
+
+        $i13 = r0.<org.apache.lucene.util.BytesRef: int length>;
+
+        if $i14 < $i13 goto label10;
+
+        $r23 = $r22.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $z3 = specialinvoke r2.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean isNonBMPChar(byte[],int)>($r23, i1);
+
+        if $z3 == 0 goto label10;
+
+        z5 = 1;
+
+        i20 = 0;
+
+     label07:
+        if i20 >= i1 goto label09;
+
+        $r24 = r0.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $b16 = $r24[i20];
+
+        $r25 = $r22.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $b15 = $r25[i20];
+
+        $i26 = (int) $b16;
+
+        $i27 = (int) $b15;
+
+        if $i26 == $i27 goto label08;
+
+        z5 = 0;
+
+        goto label09;
+
+     label08:
+        i20 = i20 + 1;
+
+        goto label07;
+
+     label09:
+        goto label11;
+
+     label10:
+        z5 = 0;
+
+     label11:
+        r0.<org.apache.lucene.util.BytesRef: int length> = i0;
+
+        $r30 = r0.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $r31 = r2.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: byte[] scratch>;
+
+        $b21 = $r31[0];
+
+        $r30[i1] = $b21;
+
+        $r32 = r0.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $i22 = i1 + 1;
+
+        $r33 = r2.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: byte[] scratch>;
+
+        $b23 = $r33[1];
+
+        $r32[$i22] = $b23;
+
+        $r34 = r0.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $i24 = i1 + 2;
+
+        $r35 = r2.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: byte[] scratch>;
+
+        $b25 = $r35[2];
+
+        $r34[$i24] = $b25;
+
+        return z5;
+    }
+
+    private boolean doContinue() throws java.io.IOException
+    {
+        byte[] $r4, $r6, $r9;
+        org.apache.lucene.codecs.lucene3x.TermInfosReader $r13;
+        org.apache.lucene.codecs.lucene3x.Lucene3xFields $r12;
+        org.apache.lucene.index.Term $r16, $r19;
+        byte $b5, $b7;
+        boolean $z0, $z1, z2;
+        org.apache.lucene.util.BytesRef $r1, $r2, $r3, $r5, $r7, $r8, $r10, $r18, $r20;
+        org.apache.lucene.codecs.lucene3x.SegmentTermEnum $r11, $r14, $r15, $r17;
+        short $s6, $s8, $s10, $s12;
+        int $i0, $i1, $i2, $i3, $i4, i9, $i11, $i14;
+        org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum r0;
+
+        r0 := @this: org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum;
+
+        $r1 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef prevTerm>;
+
+        $i0 = $r1.<org.apache.lucene.util.BytesRef: int length>;
+
+        i9 = $i0 - 1;
+
+        z2 = 0;
+
+        $i3 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: int newSuffixStart>;
+
+        $r2 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        $i1 = $r2.<org.apache.lucene.util.BytesRef: int length>;
+
+        $i2 = $i1 - 1;
+
+        $i4 = staticinvoke <java.lang.Math: int min(int,int)>($i3, $i2);
+
+     label1:
+        if i9 <= $i4 goto label5;
+
+        $r3 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef prevTerm>;
+
+        $r4 = $r3.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $z0 = specialinvoke r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean isHighBMPChar(byte[],int)>($r4, i9);
+
+        if $z0 == 0 goto label2;
+
+        $r11 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum seekTermEnum>;
+
+        $r10 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef prevTerm>;
+
+        $z1 = specialinvoke r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean seekToNonBMP(org.apache.lucene.codecs.lucene3x.SegmentTermEnum,org.apache.lucene.util.BytesRef,int)>($r11, $r10, i9);
+
+        if $z1 == 0 goto label2;
+
+        $r12 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.Lucene3xFields this$0>;
+
+        $r13 = staticinvoke <org.apache.lucene.codecs.lucene3x.Lucene3xFields: org.apache.lucene.codecs.lucene3x.TermInfosReader access$100(org.apache.lucene.codecs.lucene3x.Lucene3xFields)>($r12);
+
+        $r15 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum termEnum>;
+
+        $r14 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum seekTermEnum>;
+
+        $r16 = virtualinvoke $r14.<org.apache.lucene.codecs.lucene3x.SegmentTermEnum: org.apache.lucene.index.Term term()>();
+
+        virtualinvoke $r13.<org.apache.lucene.codecs.lucene3x.TermInfosReader: org.apache.lucene.codecs.lucene3x.TermInfo seekEnum(org.apache.lucene.codecs.lucene3x.SegmentTermEnum,org.apache.lucene.index.Term,boolean)>($r15, $r16, 1);
+
+        r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: int newSuffixStart> = i9;
+
+        $r18 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        $r17 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum termEnum>;
+
+        $r19 = virtualinvoke $r17.<org.apache.lucene.codecs.lucene3x.SegmentTermEnum: org.apache.lucene.index.Term term()>();
+
+        $r20 = virtualinvoke $r19.<org.apache.lucene.index.Term: org.apache.lucene.util.BytesRef bytes()>();
+
+        virtualinvoke $r18.<org.apache.lucene.util.BytesRef: void copyBytes(org.apache.lucene.util.BytesRef)>($r20);
+
+        z2 = 1;
+
+        goto label5;
+
+     label2:
+        $r5 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef prevTerm>;
+
+        $r6 = $r5.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $b5 = $r6[i9];
+
+        $s10 = (short) $b5;
+
+        $s6 = $s10 & 192;
+
+        $i11 = (int) $s6;
+
+        if $i11 == 192 goto label3;
+
+        $r8 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef prevTerm>;
+
+        $r9 = $r8.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $b7 = $r9[i9];
+
+        $s12 = (short) $b7;
+
+        $s8 = $s12 & 128;
+
+        if $s8 != 0 goto label4;
+
+     label3:
+        $r7 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef prevTerm>;
+
+        $r7.<org.apache.lucene.util.BytesRef: int length> = i9;
+
+     label4:
+        $i14 = (int) -1;
+
+        i9 = i9 + $i14;
+
+        goto label1;
+
+     label5:
+        return z2;
+    }
+
+    private boolean doPop() throws java.io.IOException
+    {
+        byte[] $r2, $r4, $r6;
+        org.apache.lucene.codecs.lucene3x.TermInfosReader $r9;
+        org.apache.lucene.codecs.lucene3x.Lucene3xFields $r8;
+        org.apache.lucene.index.Term $r10, $r16;
+        boolean $z0, $z1, $z2, $z3, $z4;
+        org.apache.lucene.util.BytesRef $r1, $r3, $r5, $r7, $r12, $r17, $r18, $r21, $r22, $r23, $r24, $r26, $r28, $r30;
+        org.apache.lucene.codecs.lucene3x.SegmentTermEnum $r14, $r15;
+        java.lang.AssertionError $r25, $r27, $r29;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i10, $i11, $i12, $i13, $i14;
+        java.lang.String $r13, $r19, $r20;
+        org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum r0;
+        org.apache.lucene.index.FieldInfo $r11;
+
+        r0 := @this: org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum;
+
+        $z0 = <org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean $assertionsDisabled>;
+
+        if $z0 != 0 goto label1;
+
+        $i12 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: int newSuffixStart>;
+
+        $r28 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef prevTerm>;
+
+        $i11 = $r28.<org.apache.lucene.util.BytesRef: int length>;
+
+        if $i12 <= $i11 goto label1;
+
+        $r29 = new java.lang.AssertionError;
+
+        specialinvoke $r29.<java.lang.AssertionError: void <init>()>();
+
+        throw $r29;
+
+     label1:
+        $z1 = <org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean $assertionsDisabled>;
+
+        if $z1 != 0 goto label2;
+
+        $i9 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: int newSuffixStart>;
+
+        $r26 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        $i8 = $r26.<org.apache.lucene.util.BytesRef: int length>;
+
+        if $i9 < $i8 goto label2;
+
+        $i10 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: int newSuffixStart>;
+
+        if $i10 == 0 goto label2;
+
+        $r27 = new java.lang.AssertionError;
+
+        specialinvoke $r27.<java.lang.AssertionError: void <init>()>();
+
+        throw $r27;
+
+     label2:
+        $r30 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef prevTerm>;
+
+        $i13 = $r30.<org.apache.lucene.util.BytesRef: int length>;
+
+        $i14 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: int newSuffixStart>;
+
+        if $i13 <= $i14 goto label6;
+
+        $r1 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef prevTerm>;
+
+        $r2 = $r1.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $i0 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: int newSuffixStart>;
+
+        $z2 = specialinvoke r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean isNonBMPChar(byte[],int)>($r2, $i0);
+
+        if $z2 == 0 goto label6;
+
+        $r3 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        $r4 = $r3.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $i1 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: int newSuffixStart>;
+
+        $z3 = specialinvoke r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean isHighBMPChar(byte[],int)>($r4, $i1);
+
+        if $z3 == 0 goto label6;
+
+        $r5 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        $r6 = $r5.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $i2 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: int newSuffixStart>;
+
+        $r6[$i2] = -1;
+
+        $r7 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        $i3 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: int newSuffixStart>;
+
+        $i4 = $i3 + 1;
+
+        $r7.<org.apache.lucene.util.BytesRef: int length> = $i4;
+
+        $r8 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.Lucene3xFields this$0>;
+
+        $r9 = staticinvoke <org.apache.lucene.codecs.lucene3x.Lucene3xFields: org.apache.lucene.codecs.lucene3x.TermInfosReader access$100(org.apache.lucene.codecs.lucene3x.Lucene3xFields)>($r8);
+
+        $r14 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum termEnum>;
+
+        $r10 = new org.apache.lucene.index.Term;
+
+        $r11 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.index.FieldInfo fieldInfo>;
+
+        $r13 = $r11.<org.apache.lucene.index.FieldInfo: java.lang.String name>;
+
+        $r12 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        specialinvoke $r10.<org.apache.lucene.index.Term: void <init>(java.lang.String,org.apache.lucene.util.BytesRef)>($r13, $r12);
+
+        virtualinvoke $r9.<org.apache.lucene.codecs.lucene3x.TermInfosReader: org.apache.lucene.codecs.lucene3x.TermInfo seekEnum(org.apache.lucene.codecs.lucene3x.SegmentTermEnum,org.apache.lucene.index.Term,boolean)>($r14, $r10, 1);
+
+        $r15 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum termEnum>;
+
+        $r16 = virtualinvoke $r15.<org.apache.lucene.codecs.lucene3x.SegmentTermEnum: org.apache.lucene.index.Term term()>();
+
+        if $r16 == null goto label4;
+
+        $r19 = virtualinvoke $r16.<org.apache.lucene.index.Term: java.lang.String field()>();
+
+        $r20 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: java.lang.String internedFieldName>;
+
+        if $r19 != $r20 goto label4;
+
+        $r21 = virtualinvoke $r16.<org.apache.lucene.index.Term: org.apache.lucene.util.BytesRef bytes()>();
+
+        $z4 = <org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean $assertionsDisabled>;
+
+        if $z4 != 0 goto label3;
+
+        $i7 = $r21.<org.apache.lucene.util.BytesRef: int offset>;
+
+        if $i7 == 0 goto label3;
+
+        $r25 = new java.lang.AssertionError;
+
+        specialinvoke $r25.<java.lang.AssertionError: void <init>()>();
+
+        throw $r25;
+
+     label3:
+        $r22 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        virtualinvoke $r22.<org.apache.lucene.util.BytesRef: void copyBytes(org.apache.lucene.util.BytesRef)>($r21);
+
+        $r24 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef prevTerm>;
+
+        $r23 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        specialinvoke r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: void setNewSuffixStart(org.apache.lucene.util.BytesRef,org.apache.lucene.util.BytesRef)>($r24, $r23);
+
+        return 1;
+
+     label4:
+        $i5 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: int newSuffixStart>;
+
+        if $i5 != 0 goto label5;
+
+        $r18 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        $i6 = $r18.<org.apache.lucene.util.BytesRef: int length>;
+
+        if $i6 == 0 goto label6;
+
+     label5:
+        r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: int newSuffixStart> = 0;
+
+        $r17 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        $r17.<org.apache.lucene.util.BytesRef: int length> = 0;
+
+        return 1;
+
+     label6:
+        return 0;
+    }
+
+    private void surrogateDance() throws java.io.IOException
+    {
+        org.apache.lucene.index.Term $r2, $r9, $r14;
+        java.lang.AssertionError $r5, $r7;
+        int $i0, $i1;
+        java.lang.String $r10, $r11;
+        boolean $z0, $z1, $z2, $z3, $z4;
+        org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum r0;
+        org.apache.lucene.util.BytesRef $r3, $r4, $r6, $r13, $r15;
+        org.apache.lucene.codecs.lucene3x.SegmentTermEnum $r1, $r8, $r12;
+
+        r0 := @this: org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum;
+
+        $z0 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean unicodeSortOrder>;
+
+        if $z0 != 0 goto label1;
+
+        return;
+
+     label1:
+        $r1 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum termEnum>;
+
+        $r2 = virtualinvoke $r1.<org.apache.lucene.codecs.lucene3x.SegmentTermEnum: org.apache.lucene.index.Term term()>();
+
+        if $r2 == null goto label2;
+
+        $r8 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum termEnum>;
+
+        $r9 = virtualinvoke $r8.<org.apache.lucene.codecs.lucene3x.SegmentTermEnum: org.apache.lucene.index.Term term()>();
+
+        $r10 = virtualinvoke $r9.<org.apache.lucene.index.Term: java.lang.String field()>();
+
+        $r11 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: java.lang.String internedFieldName>;
+
+        if $r10 == $r11 goto label3;
+
+     label2:
+        $r3 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        $r3.<org.apache.lucene.util.BytesRef: int length> = 0;
+
+        goto label4;
+
+     label3:
+        $r13 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        $r12 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum termEnum>;
+
+        $r14 = virtualinvoke $r12.<org.apache.lucene.codecs.lucene3x.SegmentTermEnum: org.apache.lucene.index.Term term()>();
+
+        $r15 = virtualinvoke $r14.<org.apache.lucene.index.Term: org.apache.lucene.util.BytesRef bytes()>();
+
+        virtualinvoke $r13.<org.apache.lucene.util.BytesRef: void copyBytes(org.apache.lucene.util.BytesRef)>($r15);
+
+     label4:
+        $z1 = <org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean $assertionsDisabled>;
+
+        if $z1 != 0 goto label5;
+
+        $r6 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef prevTerm>;
+
+        $i1 = $r6.<org.apache.lucene.util.BytesRef: int offset>;
+
+        if $i1 == 0 goto label5;
+
+        $r7 = new java.lang.AssertionError;
+
+        specialinvoke $r7.<java.lang.AssertionError: void <init>()>();
+
+        throw $r7;
+
+     label5:
+        $z2 = <org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean $assertionsDisabled>;
+
+        if $z2 != 0 goto label6;
+
+        $r4 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        $i0 = $r4.<org.apache.lucene.util.BytesRef: int offset>;
+
+        if $i0 == 0 goto label6;
+
+        $r5 = new java.lang.AssertionError;
+
+        specialinvoke $r5.<java.lang.AssertionError: void <init>()>();
+
+        throw $r5;
+
+     label6:
+        $z4 = specialinvoke r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean doContinue()>();
+
+        if $z4 == 0 goto label7;
+
+        goto label8;
+
+     label7:
+        $z3 = specialinvoke r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean doPop()>();
+
+        if $z3 != 0 goto label6;
+
+        goto label8;
+
+     label8:
+        specialinvoke r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: void doPushes()>();
+
+        return;
+    }
+
+    private void doPushes() throws java.io.IOException
+    {
+        byte[] $r2, $r5, $r6, $r8, $r9, $r11, $r12, $r14, $r16, $r18, $r28, $r29, $r31, $r32, $r34, $r35, $r51, $r53, $r54, $r60, $r62;
+        org.apache.lucene.codecs.lucene3x.Lucene3xFields $r20, $r39;
+        org.apache.lucene.index.Term $r38, $r43, $r46, $r65;
+        byte $b1, $b3, $b5, $b9, $b10, $b12, $b16, $b17;
+        org.apache.lucene.codecs.lucene3x.SegmentTermEnum $r26, $r37, $r41, $r42, $r44;
+        java.lang.AssertionError $r64, $r66;
+        java.lang.String $r25, $r48, $r49;
+        org.apache.lucene.index.FieldInfo $r23;
+        org.apache.lucene.codecs.lucene3x.TermInfosReader $r21, $r40;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, z6;
+        org.apache.lucene.util.BytesRef $r1, $r3, $r4, $r7, $r10, $r13, $r15, $r17, $r19, $r24, $r27, $r30, $r33, $r36, $r45, $r47, $r50, $r52, $r56, $r58, $r59, $r61, $r63;
+        int $i0, $i2, $i4, $i6, $i7, $i8, $i11, $i13, $i14, $i15, $i18, $i19, $i20, $i21, $i22, i23, $i24, i25, $i26, $i27;
+        org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum r0;
+
+        r0 := @this: org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum;
+
+        i23 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: int newSuffixStart>;
+
+     label01:
+        $r63 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        $i24 = $r63.<org.apache.lucene.util.BytesRef: int length>;
+
+        if i23 >= $i24 goto label15;
+
+        $r1 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        $r2 = $r1.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $z0 = specialinvoke r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean isNonBMPChar(byte[],int)>($r2, i23);
+
+        if $z0 == 0 goto label14;
+
+        $i0 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: int newSuffixStart>;
+
+        if i23 > $i0 goto label02;
+
+        $r58 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef prevTerm>;
+
+        $i22 = $r58.<org.apache.lucene.util.BytesRef: int length>;
+
+        if i23 >= $i22 goto label02;
+
+        $r59 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef prevTerm>;
+
+        $r60 = $r59.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $z3 = specialinvoke r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean isNonBMPChar(byte[],int)>($r60, i23);
+
+        if $z3 != 0 goto label14;
+
+        $r61 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef prevTerm>;
+
+        $r62 = $r61.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $z4 = specialinvoke r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean isHighBMPChar(byte[],int)>($r62, i23);
+
+        if $z4 != 0 goto label14;
+
+     label02:
+        $z5 = <org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean $assertionsDisabled>;
+
+        if $z5 != 0 goto label03;
+
+        $r56 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        $i20 = $r56.<org.apache.lucene.util.BytesRef: int length>;
+
+        $i19 = i23 + 4;
+
+        if $i20 >= $i19 goto label03;
+
+        $r64 = new java.lang.AssertionError;
+
+        specialinvoke $r64.<java.lang.AssertionError: void <init>()>();
+
+        throw $r64;
+
+     label03:
+        $r3 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        $i21 = $r3.<org.apache.lucene.util.BytesRef: int length>;
+
+        $r6 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: byte[] scratch>;
+
+        $r4 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        $r5 = $r4.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $b1 = $r5[i23];
+
+        $r6[0] = $b1;
+
+        $r9 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: byte[] scratch>;
+
+        $r7 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        $r8 = $r7.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $i2 = i23 + 1;
+
+        $b3 = $r8[$i2];
+
+        $r9[1] = $b3;
+
+        $r12 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: byte[] scratch>;
+
+        $r10 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        $r11 = $r10.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $i4 = i23 + 2;
+
+        $b5 = $r11[$i4];
+
+        $r12[2] = $b5;
+
+        $r13 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        $r14 = $r13.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $r14[i23] = -18;
+
+        $r15 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        $r16 = $r15.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $i6 = i23 + 1;
+
+        $r16[$i6] = -128;
+
+        $r17 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        $r18 = $r17.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $i7 = i23 + 2;
+
+        $r18[$i7] = -128;
+
+        $r19 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        $i8 = i23 + 3;
+
+        $r19.<org.apache.lucene.util.BytesRef: int length> = $i8;
+
+        $r20 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.Lucene3xFields this$0>;
+
+        $r21 = staticinvoke <org.apache.lucene.codecs.lucene3x.Lucene3xFields: org.apache.lucene.codecs.lucene3x.TermInfosReader access$100(org.apache.lucene.codecs.lucene3x.Lucene3xFields)>($r20);
+
+        $r26 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum seekTermEnum>;
+
+        $r65 = new org.apache.lucene.index.Term;
+
+        $r23 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.index.FieldInfo fieldInfo>;
+
+        $r25 = $r23.<org.apache.lucene.index.FieldInfo: java.lang.String name>;
+
+        $r24 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        specialinvoke $r65.<org.apache.lucene.index.Term: void <init>(java.lang.String,org.apache.lucene.util.BytesRef)>($r25, $r24);
+
+        virtualinvoke $r21.<org.apache.lucene.codecs.lucene3x.TermInfosReader: org.apache.lucene.codecs.lucene3x.TermInfo seekEnum(org.apache.lucene.codecs.lucene3x.SegmentTermEnum,org.apache.lucene.index.Term,boolean)>($r26, $r65, 1);
+
+        $r27 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        $r29 = $r27.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $r28 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: byte[] scratch>;
+
+        $b9 = $r28[0];
+
+        $r29[i23] = $b9;
+
+        $r30 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        $r32 = $r30.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $i11 = i23 + 1;
+
+        $r31 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: byte[] scratch>;
+
+        $b10 = $r31[1];
+
+        $r32[$i11] = $b10;
+
+        $r33 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        $r35 = $r33.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $i13 = i23 + 2;
+
+        $r34 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: byte[] scratch>;
+
+        $b12 = $r34[2];
+
+        $r35[$i13] = $b12;
+
+        $r36 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        $r36.<org.apache.lucene.util.BytesRef: int length> = $i21;
+
+        $r37 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum seekTermEnum>;
+
+        $r38 = virtualinvoke $r37.<org.apache.lucene.codecs.lucene3x.SegmentTermEnum: org.apache.lucene.index.Term term()>();
+
+        if $r38 == null goto label10;
+
+        $r48 = virtualinvoke $r38.<org.apache.lucene.index.Term: java.lang.String field()>();
+
+        $r49 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: java.lang.String internedFieldName>;
+
+        if $r48 != $r49 goto label10;
+
+        $r50 = virtualinvoke $r38.<org.apache.lucene.index.Term: org.apache.lucene.util.BytesRef bytes()>();
+
+        $z1 = <org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean $assertionsDisabled>;
+
+        if $z1 != 0 goto label04;
+
+        $i18 = $r50.<org.apache.lucene.util.BytesRef: int offset>;
+
+        if $i18 == 0 goto label04;
+
+        $r66 = new java.lang.AssertionError;
+
+        specialinvoke $r66.<java.lang.AssertionError: void <init>()>();
+
+        throw $r66;
+
+     label04:
+        $i15 = $r50.<org.apache.lucene.util.BytesRef: int length>;
+
+        $i14 = i23 + 3;
+
+        if $i15 < $i14 goto label08;
+
+        $r51 = $r50.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $z2 = specialinvoke r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean isHighBMPChar(byte[],int)>($r51, i23);
+
+        if $z2 == 0 goto label08;
+
+        z6 = 1;
+
+        i25 = 0;
+
+     label05:
+        if i25 >= i23 goto label07;
+
+        $r52 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        $r53 = $r52.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $b17 = $r53[i25];
+
+        $r54 = $r50.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $b16 = $r54[i25];
+
+        $i26 = (int) $b17;
+
+        $i27 = (int) $b16;
+
+        if $i26 == $i27 goto label06;
+
+        z6 = 0;
+
+        goto label07;
+
+     label06:
+        i25 = i25 + 1;
+
+        goto label05;
+
+     label07:
+        goto label09;
+
+     label08:
+        z6 = 0;
+
+     label09:
+        goto label11;
+
+     label10:
+        z6 = 0;
+
+     label11:
+        if z6 == 0 goto label12;
+
+        $r39 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.Lucene3xFields this$0>;
+
+        $r40 = staticinvoke <org.apache.lucene.codecs.lucene3x.Lucene3xFields: org.apache.lucene.codecs.lucene3x.TermInfosReader access$100(org.apache.lucene.codecs.lucene3x.Lucene3xFields)>($r39);
+
+        $r42 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum termEnum>;
+
+        $r41 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum seekTermEnum>;
+
+        $r43 = virtualinvoke $r41.<org.apache.lucene.codecs.lucene3x.SegmentTermEnum: org.apache.lucene.index.Term term()>();
+
+        virtualinvoke $r40.<org.apache.lucene.codecs.lucene3x.TermInfosReader: org.apache.lucene.codecs.lucene3x.TermInfo seekEnum(org.apache.lucene.codecs.lucene3x.SegmentTermEnum,org.apache.lucene.index.Term,boolean)>($r42, $r43, 1);
+
+        $r45 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        $r44 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum seekTermEnum>;
+
+        $r46 = virtualinvoke $r44.<org.apache.lucene.codecs.lucene3x.SegmentTermEnum: org.apache.lucene.index.Term term()>();
+
+        $r47 = virtualinvoke $r46.<org.apache.lucene.index.Term: org.apache.lucene.util.BytesRef bytes()>();
+
+        virtualinvoke $r45.<org.apache.lucene.util.BytesRef: void copyBytes(org.apache.lucene.util.BytesRef)>($r47);
+
+        i23 = i23 + 3;
+
+        goto label13;
+
+     label12:
+        i23 = i23 + 1;
+
+     label13:
+        goto label01;
+
+     label14:
+        i23 = i23 + 1;
+
+        goto label01;
+
+     label15:
+        return;
+    }
+
+    void reset(org.apache.lucene.index.FieldInfo) throws java.io.IOException
+    {
+        org.apache.lucene.codecs.lucene3x.TermInfosReader $r8, $r17, $r20;
+        org.apache.lucene.codecs.lucene3x.Lucene3xFields $r7, $r10, $r16, $r19;
+        org.apache.lucene.index.Term $r4, $r12;
+        java.lang.String $r2, $r3, $r5, $r13, $r14;
+        boolean $z0;
+        org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum r0;
+        org.apache.lucene.util.BytesRef $r15;
+        org.apache.lucene.codecs.lucene3x.SegmentTermEnum $r6, $r9, $r11, $r18, $r21;
+        org.apache.lucene.index.FieldInfo r1;
+
+        r0 := @this: org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum;
+
+        r1 := @parameter0: org.apache.lucene.index.FieldInfo;
+
+        r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.index.FieldInfo fieldInfo> = r1;
+
+        $r2 = r1.<org.apache.lucene.index.FieldInfo: java.lang.String name>;
+
+        $r3 = virtualinvoke $r2.<java.lang.String: java.lang.String intern()>();
+
+        r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: java.lang.String internedFieldName> = $r3;
+
+        $r4 = new org.apache.lucene.index.Term;
+
+        $r5 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: java.lang.String internedFieldName>;
+
+        specialinvoke $r4.<org.apache.lucene.index.Term: void <init>(java.lang.String)>($r5);
+
+        $r6 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum termEnum>;
+
+        if $r6 != null goto label1;
+
+        $r16 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.Lucene3xFields this$0>;
+
+        $r17 = staticinvoke <org.apache.lucene.codecs.lucene3x.Lucene3xFields: org.apache.lucene.codecs.lucene3x.TermInfosReader access$100(org.apache.lucene.codecs.lucene3x.Lucene3xFields)>($r16);
+
+        $r18 = virtualinvoke $r17.<org.apache.lucene.codecs.lucene3x.TermInfosReader: org.apache.lucene.codecs.lucene3x.SegmentTermEnum terms(org.apache.lucene.index.Term)>($r4);
+
+        r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum termEnum> = $r18;
+
+        $r19 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.Lucene3xFields this$0>;
+
+        $r20 = staticinvoke <org.apache.lucene.codecs.lucene3x.Lucene3xFields: org.apache.lucene.codecs.lucene3x.TermInfosReader access$100(org.apache.lucene.codecs.lucene3x.Lucene3xFields)>($r19);
+
+        $r21 = virtualinvoke $r20.<org.apache.lucene.codecs.lucene3x.TermInfosReader: org.apache.lucene.codecs.lucene3x.SegmentTermEnum terms(org.apache.lucene.index.Term)>($r4);
+
+        r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum seekTermEnum> = $r21;
+
+        goto label2;
+
+     label1:
+        $r7 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.Lucene3xFields this$0>;
+
+        $r8 = staticinvoke <org.apache.lucene.codecs.lucene3x.Lucene3xFields: org.apache.lucene.codecs.lucene3x.TermInfosReader access$100(org.apache.lucene.codecs.lucene3x.Lucene3xFields)>($r7);
+
+        $r9 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum termEnum>;
+
+        virtualinvoke $r8.<org.apache.lucene.codecs.lucene3x.TermInfosReader: org.apache.lucene.codecs.lucene3x.TermInfo seekEnum(org.apache.lucene.codecs.lucene3x.SegmentTermEnum,org.apache.lucene.index.Term,boolean)>($r9, $r4, 1);
+
+     label2:
+        r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean skipNext> = 1;
+
+        $r10 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.Lucene3xFields this$0>;
+
+        $z0 = virtualinvoke $r10.<org.apache.lucene.codecs.lucene3x.Lucene3xFields: boolean sortTermsByUnicode()>();
+
+        r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean unicodeSortOrder> = $z0;
+
+        $r11 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum termEnum>;
+
+        $r12 = virtualinvoke $r11.<org.apache.lucene.codecs.lucene3x.SegmentTermEnum: org.apache.lucene.index.Term term()>();
+
+        if $r12 == null goto label3;
+
+        $r13 = virtualinvoke $r12.<org.apache.lucene.index.Term: java.lang.String field()>();
+
+        $r14 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: java.lang.String internedFieldName>;
+
+        if $r13 != $r14 goto label3;
+
+        r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: int newSuffixStart> = 0;
+
+        $r15 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef prevTerm>;
+
+        $r15.<org.apache.lucene.util.BytesRef: int length> = 0;
+
+        specialinvoke r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: void surrogateDance()>();
+
+     label3:
+        return;
+    }
+
+    public java.util.Comparator getComparator()
+    {
+        org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum r0;
+        java.util.Comparator $r1, $r2;
+        boolean $z0;
+
+        r0 := @this: org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum;
+
+        $z0 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean unicodeSortOrder>;
+
+        if $z0 == 0 goto label1;
+
+        $r2 = staticinvoke <org.apache.lucene.util.BytesRef: java.util.Comparator getUTF8SortedAsUnicodeComparator()>();
+
+        return $r2;
+
+     label1:
+        $r1 = staticinvoke <org.apache.lucene.util.BytesRef: java.util.Comparator getUTF8SortedAsUTF16Comparator()>();
+
+        return $r1;
+    }
+
+    public void seekExact(long) throws java.io.IOException
+    {
+        java.lang.UnsupportedOperationException $r0;
+        long l0;
+        org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum r1;
+
+        r1 := @this: org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum;
+
+        l0 := @parameter0: long;
+
+        $r0 = new java.lang.UnsupportedOperationException;
+
+        specialinvoke $r0.<java.lang.UnsupportedOperationException: void <init>()>();
+
+        throw $r0;
+    }
+
+    public long ord() throws java.io.IOException
+    {
+        java.lang.UnsupportedOperationException $r0;
+        org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum r1;
+
+        r1 := @this: org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum;
+
+        $r0 = new java.lang.UnsupportedOperationException;
+
+        specialinvoke $r0.<java.lang.UnsupportedOperationException: void <init>()>();
+
+        throw $r0;
+    }
+
+    public org.apache.lucene.index.TermsEnum$SeekStatus seekCeil(org.apache.lucene.util.BytesRef, boolean) throws java.io.IOException
+    {
+        byte[] $r14;
+        org.apache.lucene.codecs.lucene3x.Lucene3xFields $r1, $r21;
+        org.apache.lucene.index.Term $r9, $r19, $r25, $r27, $r37, $r67;
+        org.apache.lucene.codecs.lucene3x.SegmentTermEnum $r7, $r8, $r16, $r17, $r23, $r24, $r26, $r36, $r63;
+        java.lang.StringBuilder $r47, $r50, $r51, $r55, $r72;
+        java.lang.AssertionError $r68, $r69, $r70, $r71, $r73;
+        java.lang.String $r6, $r32, $r33, $r38, $r39, $r41, $r42, $r48, $r49, $r53, $r54, $r56, $r58, $r59;
+        org.apache.lucene.index.TermsEnum$SeekStatus $r12, $r29, $r62, $r65, $r66;
+        org.apache.lucene.index.FieldInfo $r4;
+        org.apache.lucene.codecs.lucene3x.TermInfosReader $r2, $r22;
+        boolean $z0, z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9, $z10;
+        org.apache.lucene.util.BytesRef r5, $r10, $r11, $r13, $r15, $r18, $r20, $r28, $r30, $r34, $r35, $r43, $r44, $r52, $r60, $r61;
+        int $i0, $i1, $i2, $i3, $i4, i5, $i7;
+        org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum r0;
+
+        r0 := @this: org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum;
+
+        r5 := @parameter0: org.apache.lucene.util.BytesRef;
+
+        z1 := @parameter1: boolean;
+
+        r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean skipNext> = 0;
+
+        $r1 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.Lucene3xFields this$0>;
+
+        $r2 = staticinvoke <org.apache.lucene.codecs.lucene3x.Lucene3xFields: org.apache.lucene.codecs.lucene3x.TermInfosReader access$100(org.apache.lucene.codecs.lucene3x.Lucene3xFields)>($r1);
+
+        $r67 = new org.apache.lucene.index.Term;
+
+        $r4 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.index.FieldInfo fieldInfo>;
+
+        $r6 = $r4.<org.apache.lucene.index.FieldInfo: java.lang.String name>;
+
+        specialinvoke $r67.<org.apache.lucene.index.Term: void <init>(java.lang.String,org.apache.lucene.util.BytesRef)>($r6, r5);
+
+        $z0 = <org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean $assertionsDisabled>;
+
+        if $z0 != 0 goto label01;
+
+        $r63 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum termEnum>;
+
+        if $r63 != null goto label01;
+
+        $r68 = new java.lang.AssertionError;
+
+        specialinvoke $r68.<java.lang.AssertionError: void <init>()>();
+
+        throw $r68;
+
+     label01:
+        $r7 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum termEnum>;
+
+        virtualinvoke $r2.<org.apache.lucene.codecs.lucene3x.TermInfosReader: org.apache.lucene.codecs.lucene3x.TermInfo seekEnum(org.apache.lucene.codecs.lucene3x.SegmentTermEnum,org.apache.lucene.index.Term,boolean)>($r7, $r67, z1);
+
+        $r8 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum termEnum>;
+
+        $r9 = virtualinvoke $r8.<org.apache.lucene.codecs.lucene3x.SegmentTermEnum: org.apache.lucene.index.Term term()>();
+
+        if $r9 == null goto label02;
+
+        $r58 = virtualinvoke $r9.<org.apache.lucene.index.Term: java.lang.String field()>();
+
+        $r59 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: java.lang.String internedFieldName>;
+
+        if $r58 != $r59 goto label02;
+
+        $r60 = virtualinvoke $r9.<org.apache.lucene.index.Term: org.apache.lucene.util.BytesRef bytes()>();
+
+        $z10 = virtualinvoke r5.<org.apache.lucene.util.BytesRef: boolean bytesEquals(org.apache.lucene.util.BytesRef)>($r60);
+
+        if $z10 == 0 goto label02;
+
+        $r61 = virtualinvoke $r9.<org.apache.lucene.index.Term: org.apache.lucene.util.BytesRef bytes()>();
+
+        r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef current> = $r61;
+
+        $r62 = <org.apache.lucene.index.TermsEnum$SeekStatus: org.apache.lucene.index.TermsEnum$SeekStatus FOUND>;
+
+        return $r62;
+
+     label02:
+        if $r9 == null goto label03;
+
+        $r32 = virtualinvoke $r9.<org.apache.lucene.index.Term: java.lang.String field()>();
+
+        $r33 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: java.lang.String internedFieldName>;
+
+        if $r32 == $r33 goto label08;
+
+     label03:
+        $r10 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        virtualinvoke $r10.<org.apache.lucene.util.BytesRef: void copyBytes(org.apache.lucene.util.BytesRef)>(r5);
+
+        $z2 = <org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean $assertionsDisabled>;
+
+        if $z2 != 0 goto label04;
+
+        $r30 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        $i2 = $r30.<org.apache.lucene.util.BytesRef: int offset>;
+
+        if $i2 == 0 goto label04;
+
+        $r69 = new java.lang.AssertionError;
+
+        specialinvoke $r69.<java.lang.AssertionError: void <init>()>();
+
+        throw $r69;
+
+     label04:
+        $r11 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        $i0 = $r11.<org.apache.lucene.util.BytesRef: int length>;
+
+        i5 = $i0 - 1;
+
+     label05:
+        if i5 < 0 goto label07;
+
+        $r13 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        $r14 = $r13.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $z3 = specialinvoke r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean isHighBMPChar(byte[],int)>($r14, i5);
+
+        if $z3 == 0 goto label06;
+
+        $r16 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum seekTermEnum>;
+
+        $r15 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        $z4 = specialinvoke r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean seekToNonBMP(org.apache.lucene.codecs.lucene3x.SegmentTermEnum,org.apache.lucene.util.BytesRef,int)>($r16, $r15, i5);
+
+        if $z4 == 0 goto label06;
+
+        $r18 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef scratchTerm>;
+
+        $r17 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum seekTermEnum>;
+
+        $r19 = virtualinvoke $r17.<org.apache.lucene.codecs.lucene3x.SegmentTermEnum: org.apache.lucene.index.Term term()>();
+
+        $r20 = virtualinvoke $r19.<org.apache.lucene.index.Term: org.apache.lucene.util.BytesRef bytes()>();
+
+        virtualinvoke $r18.<org.apache.lucene.util.BytesRef: void copyBytes(org.apache.lucene.util.BytesRef)>($r20);
+
+        $r21 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.Lucene3xFields this$0>;
+
+        $r22 = staticinvoke <org.apache.lucene.codecs.lucene3x.Lucene3xFields: org.apache.lucene.codecs.lucene3x.TermInfosReader access$100(org.apache.lucene.codecs.lucene3x.Lucene3xFields)>($r21);
+
+        $r24 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum termEnum>;
+
+        $r23 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum seekTermEnum>;
+
+        $r25 = virtualinvoke $r23.<org.apache.lucene.codecs.lucene3x.SegmentTermEnum: org.apache.lucene.index.Term term()>();
+
+        virtualinvoke $r22.<org.apache.lucene.codecs.lucene3x.TermInfosReader: org.apache.lucene.codecs.lucene3x.TermInfo seekEnum(org.apache.lucene.codecs.lucene3x.SegmentTermEnum,org.apache.lucene.index.Term,boolean)>($r24, $r25, z1);
+
+        $i1 = 1 + i5;
+
+        r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: int newSuffixStart> = $i1;
+
+        specialinvoke r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: void doPushes()>();
+
+        $r26 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum termEnum>;
+
+        $r27 = virtualinvoke $r26.<org.apache.lucene.codecs.lucene3x.SegmentTermEnum: org.apache.lucene.index.Term term()>();
+
+        $r28 = virtualinvoke $r27.<org.apache.lucene.index.Term: org.apache.lucene.util.BytesRef bytes()>();
+
+        r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef current> = $r28;
+
+        $r29 = <org.apache.lucene.index.TermsEnum$SeekStatus: org.apache.lucene.index.TermsEnum$SeekStatus NOT_FOUND>;
+
+        return $r29;
+
+     label06:
+        $i7 = (int) -1;
+
+        i5 = i5 + $i7;
+
+        goto label05;
+
+     label07:
+        r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef current> = null;
+
+        $r12 = <org.apache.lucene.index.TermsEnum$SeekStatus: org.apache.lucene.index.TermsEnum$SeekStatus END>;
+
+        return $r12;
+
+     label08:
+        $r34 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef prevTerm>;
+
+        virtualinvoke $r34.<org.apache.lucene.util.BytesRef: void copyBytes(org.apache.lucene.util.BytesRef)>(r5);
+
+        $r35 = virtualinvoke $r9.<org.apache.lucene.index.Term: org.apache.lucene.util.BytesRef bytes()>();
+
+        $z5 = <org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean $assertionsDisabled>;
+
+        if $z5 != 0 goto label09;
+
+        $i4 = $r35.<org.apache.lucene.util.BytesRef: int offset>;
+
+        if $i4 == 0 goto label09;
+
+        $r70 = new java.lang.AssertionError;
+
+        specialinvoke $r70.<java.lang.AssertionError: void <init>()>();
+
+        throw $r70;
+
+     label09:
+        specialinvoke r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: void setNewSuffixStart(org.apache.lucene.util.BytesRef,org.apache.lucene.util.BytesRef)>(r5, $r35);
+
+        specialinvoke r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: void surrogateDance()>();
+
+        $r36 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum termEnum>;
+
+        $r37 = virtualinvoke $r36.<org.apache.lucene.codecs.lucene3x.SegmentTermEnum: org.apache.lucene.index.Term term()>();
+
+        if $r37 == null goto label10;
+
+        $r41 = virtualinvoke $r37.<org.apache.lucene.index.Term: java.lang.String field()>();
+
+        $r42 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: java.lang.String internedFieldName>;
+
+        if $r41 == $r42 goto label12;
+
+     label10:
+        $z6 = <org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean $assertionsDisabled>;
+
+        if $z6 != 0 goto label11;
+
+        if $r37 == null goto label11;
+
+        $r38 = virtualinvoke $r37.<org.apache.lucene.index.Term: java.lang.String field()>();
+
+        $r39 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: java.lang.String internedFieldName>;
+
+        $z7 = virtualinvoke $r38.<java.lang.String: boolean equals(java.lang.Object)>($r39);
+
+        if $z7 == 0 goto label11;
+
+        $r71 = new java.lang.AssertionError;
+
+        specialinvoke $r71.<java.lang.AssertionError: void <init>()>();
+
+        throw $r71;
+
+     label11:
+        r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef current> = null;
+
+        $r65 = <org.apache.lucene.index.TermsEnum$SeekStatus: org.apache.lucene.index.TermsEnum$SeekStatus END>;
+
+        return $r65;
+
+     label12:
+        $r43 = virtualinvoke $r37.<org.apache.lucene.index.Term: org.apache.lucene.util.BytesRef bytes()>();
+
+        r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef current> = $r43;
+
+        $z8 = <org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean $assertionsDisabled>;
+
+        if $z8 != 0 goto label13;
+
+        $z9 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean unicodeSortOrder>;
+
+        if $z9 == 0 goto label13;
+
+        $r44 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef current>;
+
+        $i3 = virtualinvoke r5.<org.apache.lucene.util.BytesRef: int compareTo(org.apache.lucene.util.BytesRef)>($r44);
+
+        if $i3 < 0 goto label13;
+
+        $r73 = new java.lang.AssertionError;
+
+        $r72 = new java.lang.StringBuilder;
+
+        specialinvoke $r72.<java.lang.StringBuilder: void <init>()>();
+
+        $r47 = virtualinvoke $r72.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("term=");
+
+        $r48 = virtualinvoke r5.<org.apache.lucene.util.BytesRef: java.lang.String utf8ToString()>();
+
+        $r49 = staticinvoke <org.apache.lucene.util.UnicodeUtil: java.lang.String toHexString(java.lang.String)>($r48);
+
+        $r50 = virtualinvoke $r47.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r49);
+
+        $r51 = virtualinvoke $r50.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" vs current=");
+
+        $r52 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef current>;
+
+        $r53 = virtualinvoke $r52.<org.apache.lucene.util.BytesRef: java.lang.String utf8ToString()>();
+
+        $r54 = staticinvoke <org.apache.lucene.util.UnicodeUtil: java.lang.String toHexString(java.lang.String)>($r53);
+
+        $r55 = virtualinvoke $r51.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r54);
+
+        $r56 = virtualinvoke $r55.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r73.<java.lang.AssertionError: void <init>(java.lang.Object)>($r56);
+
+        throw $r73;
+
+     label13:
+        $r66 = <org.apache.lucene.index.TermsEnum$SeekStatus: org.apache.lucene.index.TermsEnum$SeekStatus NOT_FOUND>;
+
+        return $r66;
+    }
+
+    private void setNewSuffixStart(org.apache.lucene.util.BytesRef, org.apache.lucene.util.BytesRef)
+    {
+        byte[] $r3, $r4, $r5, $r6;
+        short $s6, $s10, $s19, $s21;
+        byte $b5, $b9, $b15, $b18;
+        int $i0, $i1, $i2, $i3, $i4, $i7, $i8, i11, i12, $i13, $i14, $i16, $i17, $i20, $i22, $i23;
+        org.apache.lucene.util.BytesRef r0, r1;
+        org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum r2;
+
+        r2 := @this: org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum;
+
+        r0 := @parameter0: org.apache.lucene.util.BytesRef;
+
+        r1 := @parameter1: org.apache.lucene.util.BytesRef;
+
+        $i1 = r0.<org.apache.lucene.util.BytesRef: int length>;
+
+        $i0 = r1.<org.apache.lucene.util.BytesRef: int length>;
+
+        $i2 = staticinvoke <java.lang.Math: int min(int,int)>($i1, $i0);
+
+        i11 = 0;
+
+        i12 = 0;
+
+     label1:
+        if i12 >= $i2 goto label5;
+
+        $r3 = r0.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $i3 = r0.<org.apache.lucene.util.BytesRef: int offset>;
+
+        $i4 = $i3 + i12;
+
+        $b5 = $r3[$i4];
+
+        $s19 = (short) $b5;
+
+        $s6 = $s19 & 192;
+
+        $i20 = (int) $s6;
+
+        if $i20 == 192 goto label2;
+
+        $r4 = r0.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $i7 = r0.<org.apache.lucene.util.BytesRef: int offset>;
+
+        $i8 = $i7 + i12;
+
+        $b9 = $r4[$i8];
+
+        $s21 = (short) $b9;
+
+        $s10 = $s21 & 128;
+
+        if $s10 != 0 goto label3;
+
+     label2:
+        i11 = i12;
+
+     label3:
+        $r5 = r0.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $i13 = r0.<org.apache.lucene.util.BytesRef: int offset>;
+
+        $i14 = $i13 + i12;
+
+        $b15 = $r5[$i14];
+
+        $r6 = r1.<org.apache.lucene.util.BytesRef: byte[] bytes>;
+
+        $i16 = r1.<org.apache.lucene.util.BytesRef: int offset>;
+
+        $i17 = $i16 + i12;
+
+        $b18 = $r6[$i17];
+
+        $i22 = (int) $b15;
+
+        $i23 = (int) $b18;
+
+        if $i22 == $i23 goto label4;
+
+        r2.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: int newSuffixStart> = i11;
+
+        return;
+
+     label4:
+        i12 = i12 + 1;
+
+        goto label1;
+
+     label5:
+        r2.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: int newSuffixStart> = $i2;
+
+        return;
+    }
+
+    public org.apache.lucene.util.BytesRef next() throws java.io.IOException
+    {
+        org.apache.lucene.index.Term $r3, $r7, $r16, $r21, $r30, $r32, $r36;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5;
+        org.apache.lucene.util.BytesRef $r2, $r4, $r13, $r14, $r22, $r28, $r37;
+        org.apache.lucene.codecs.lucene3x.SegmentTermEnum $r1, $r5, $r6, $r15, $r19, $r20, $r29, $r31, $r35;
+        java.lang.AssertionError $r10, $r25;
+        int $i0;
+        java.lang.String $r8, $r9, $r11, $r12, $r17, $r18, $r23, $r24, $r26, $r27, $r33, $r34;
+        org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum r0;
+
+        r0 := @this: org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum;
+
+        $z0 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean skipNext>;
+
+        if $z0 == 0 goto label03;
+
+        r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean skipNext> = 0;
+
+        $r29 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum termEnum>;
+
+        $r30 = virtualinvoke $r29.<org.apache.lucene.codecs.lucene3x.SegmentTermEnum: org.apache.lucene.index.Term term()>();
+
+        if $r30 != null goto label01;
+
+        return null;
+
+     label01:
+        $r31 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum termEnum>;
+
+        $r32 = virtualinvoke $r31.<org.apache.lucene.codecs.lucene3x.SegmentTermEnum: org.apache.lucene.index.Term term()>();
+
+        $r33 = virtualinvoke $r32.<org.apache.lucene.index.Term: java.lang.String field()>();
+
+        $r34 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: java.lang.String internedFieldName>;
+
+        if $r33 == $r34 goto label02;
+
+        return null;
+
+     label02:
+        $r35 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum termEnum>;
+
+        $r36 = virtualinvoke $r35.<org.apache.lucene.codecs.lucene3x.SegmentTermEnum: org.apache.lucene.index.Term term()>();
+
+        $r37 = virtualinvoke $r36.<org.apache.lucene.index.Term: org.apache.lucene.util.BytesRef bytes()>();
+
+        r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef current> = $r37;
+
+        return $r37;
+
+     label03:
+        $r2 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef prevTerm>;
+
+        $r1 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum termEnum>;
+
+        $r3 = virtualinvoke $r1.<org.apache.lucene.codecs.lucene3x.SegmentTermEnum: org.apache.lucene.index.Term term()>();
+
+        $r4 = virtualinvoke $r3.<org.apache.lucene.index.Term: org.apache.lucene.util.BytesRef bytes()>();
+
+        virtualinvoke $r2.<org.apache.lucene.util.BytesRef: void copyBytes(org.apache.lucene.util.BytesRef)>($r4);
+
+        $r5 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum termEnum>;
+
+        $z1 = virtualinvoke $r5.<org.apache.lucene.codecs.lucene3x.SegmentTermEnum: boolean next()>();
+
+        if $z1 == 0 goto label08;
+
+        $r15 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum termEnum>;
+
+        $r16 = virtualinvoke $r15.<org.apache.lucene.codecs.lucene3x.SegmentTermEnum: org.apache.lucene.index.Term term()>();
+
+        $r17 = virtualinvoke $r16.<org.apache.lucene.index.Term: java.lang.String field()>();
+
+        $r18 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: java.lang.String internedFieldName>;
+
+        if $r17 != $r18 goto label08;
+
+        $r19 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum termEnum>;
+
+        $i0 = $r19.<org.apache.lucene.codecs.lucene3x.SegmentTermEnum: int newSuffixStart>;
+
+        r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: int newSuffixStart> = $i0;
+
+        specialinvoke r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: void surrogateDance()>();
+
+        $r20 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum termEnum>;
+
+        $r21 = virtualinvoke $r20.<org.apache.lucene.codecs.lucene3x.SegmentTermEnum: org.apache.lucene.index.Term term()>();
+
+        if $r21 == null goto label04;
+
+        $r26 = virtualinvoke $r21.<org.apache.lucene.index.Term: java.lang.String field()>();
+
+        $r27 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: java.lang.String internedFieldName>;
+
+        if $r26 == $r27 goto label06;
+
+     label04:
+        $z4 = <org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean $assertionsDisabled>;
+
+        if $z4 != 0 goto label05;
+
+        if $r21 == null goto label05;
+
+        $r23 = virtualinvoke $r21.<org.apache.lucene.index.Term: java.lang.String field()>();
+
+        $r24 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: java.lang.String internedFieldName>;
+
+        $z5 = virtualinvoke $r23.<java.lang.String: boolean equals(java.lang.Object)>($r24);
+
+        if $z5 == 0 goto label05;
+
+        $r25 = new java.lang.AssertionError;
+
+        specialinvoke $r25.<java.lang.AssertionError: void <init>()>();
+
+        throw $r25;
+
+     label05:
+        r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef current> = null;
+
+        goto label07;
+
+     label06:
+        $r28 = virtualinvoke $r21.<org.apache.lucene.index.Term: org.apache.lucene.util.BytesRef bytes()>();
+
+        r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef current> = $r28;
+
+     label07:
+        $r22 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef current>;
+
+        return $r22;
+
+     label08:
+        r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: int newSuffixStart> = 0;
+
+        specialinvoke r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: void surrogateDance()>();
+
+        $r6 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum termEnum>;
+
+        $r7 = virtualinvoke $r6.<org.apache.lucene.codecs.lucene3x.SegmentTermEnum: org.apache.lucene.index.Term term()>();
+
+        if $r7 == null goto label09;
+
+        $r11 = virtualinvoke $r7.<org.apache.lucene.index.Term: java.lang.String field()>();
+
+        $r12 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: java.lang.String internedFieldName>;
+
+        if $r11 == $r12 goto label11;
+
+     label09:
+        $z2 = <org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean $assertionsDisabled>;
+
+        if $z2 != 0 goto label10;
+
+        if $r7 == null goto label10;
+
+        $r8 = virtualinvoke $r7.<org.apache.lucene.index.Term: java.lang.String field()>();
+
+        $r9 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: java.lang.String internedFieldName>;
+
+        $z3 = virtualinvoke $r8.<java.lang.String: boolean equals(java.lang.Object)>($r9);
+
+        if $z3 == 0 goto label10;
+
+        $r10 = new java.lang.AssertionError;
+
+        specialinvoke $r10.<java.lang.AssertionError: void <init>()>();
+
+        throw $r10;
+
+     label10:
+        return null;
+
+     label11:
+        $r13 = virtualinvoke $r7.<org.apache.lucene.index.Term: org.apache.lucene.util.BytesRef bytes()>();
+
+        r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef current> = $r13;
+
+        $r14 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef current>;
+
+        return $r14;
+    }
+
+    public org.apache.lucene.util.BytesRef term()
+    {
+        org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum r0;
+        org.apache.lucene.util.BytesRef $r1;
+
+        r0 := @this: org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum;
+
+        $r1 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.util.BytesRef current>;
+
+        return $r1;
+    }
+
+    public int docFreq()
+    {
+        int $i0;
+        org.apache.lucene.codecs.lucene3x.SegmentTermEnum $r1;
+        org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum r0;
+
+        r0 := @this: org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum;
+
+        $r1 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum termEnum>;
+
+        $i0 = virtualinvoke $r1.<org.apache.lucene.codecs.lucene3x.SegmentTermEnum: int docFreq()>();
+
+        return $i0;
+    }
+
+    public long totalTermFreq()
+    {
+        org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum r0;
+
+        r0 := @this: org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum;
+
+        return -1L;
+    }
+
+    public org.apache.lucene.index.DocsEnum docs(org.apache.lucene.util.Bits, org.apache.lucene.index.DocsEnum, int) throws java.io.IOException
+    {
+        org.apache.lucene.store.IndexInput $r5, $r7;
+        org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum r2;
+        org.apache.lucene.codecs.lucene3x.Lucene3xFields $r3, $r6, $r9;
+        org.apache.lucene.codecs.lucene3x.SegmentTermEnum $r11;
+        org.apache.lucene.index.DocsEnum r0;
+        org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreDocsEnum $r1, $r8, r10, $r12;
+        int i0;
+        org.apache.lucene.util.Bits r4;
+        boolean $z0;
+
+        r2 := @this: org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum;
+
+        r4 := @parameter0: org.apache.lucene.util.Bits;
+
+        r0 := @parameter1: org.apache.lucene.index.DocsEnum;
+
+        i0 := @parameter2: int;
+
+        if r0 == null goto label1;
+
+        $z0 = r0 instanceof org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreDocsEnum;
+
+        if $z0 != 0 goto label2;
+
+     label1:
+        $r1 = new org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreDocsEnum;
+
+        $r3 = r2.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.Lucene3xFields this$0>;
+
+        specialinvoke $r1.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreDocsEnum: void <init>(org.apache.lucene.codecs.lucene3x.Lucene3xFields)>($r3);
+
+        r10 = $r1;
+
+        goto label3;
+
+     label2:
+        r10 = (org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreDocsEnum) r0;
+
+        $r5 = virtualinvoke r10.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreDocsEnum: org.apache.lucene.store.IndexInput getFreqStream()>();
+
+        $r6 = r2.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.Lucene3xFields this$0>;
+
+        $r7 = $r6.<org.apache.lucene.codecs.lucene3x.Lucene3xFields: org.apache.lucene.store.IndexInput freqStream>;
+
+        if $r5 == $r7 goto label3;
+
+        $r8 = new org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreDocsEnum;
+
+        $r9 = r2.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.Lucene3xFields this$0>;
+
+        specialinvoke $r8.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreDocsEnum: void <init>(org.apache.lucene.codecs.lucene3x.Lucene3xFields)>($r9);
+
+        r10 = $r8;
+
+     label3:
+        $r11 = r2.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum termEnum>;
+
+        $r12 = virtualinvoke r10.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreDocsEnum: org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreDocsEnum reset(org.apache.lucene.codecs.lucene3x.SegmentTermEnum,org.apache.lucene.util.Bits)>($r11, r4);
+
+        return $r12;
+    }
+
+    public org.apache.lucene.index.DocsAndPositionsEnum docsAndPositions(org.apache.lucene.util.Bits, org.apache.lucene.index.DocsAndPositionsEnum, int) throws java.io.IOException
+    {
+        org.apache.lucene.codecs.lucene3x.Lucene3xFields $r6, $r9, $r12;
+        org.apache.lucene.index.DocsAndPositionsEnum r4, $r15;
+        int i0;
+        org.apache.lucene.util.Bits r7;
+        boolean $z0;
+        org.apache.lucene.index.FieldInfo$IndexOptions $r2, $r3;
+        org.apache.lucene.store.IndexInput $r8, $r10;
+        org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum r0;
+        org.apache.lucene.codecs.lucene3x.SegmentTermEnum $r14;
+        org.apache.lucene.index.FieldInfo $r1;
+        org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreDocsAndPositionsEnum $r5, $r11, r13;
+
+        r0 := @this: org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum;
+
+        r7 := @parameter0: org.apache.lucene.util.Bits;
+
+        r4 := @parameter1: org.apache.lucene.index.DocsAndPositionsEnum;
+
+        i0 := @parameter2: int;
+
+        $r1 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.index.FieldInfo fieldInfo>;
+
+        $r2 = virtualinvoke $r1.<org.apache.lucene.index.FieldInfo: org.apache.lucene.index.FieldInfo$IndexOptions getIndexOptions()>();
+
+        $r3 = <org.apache.lucene.index.FieldInfo$IndexOptions: org.apache.lucene.index.FieldInfo$IndexOptions DOCS_AND_FREQS_AND_POSITIONS>;
+
+        if $r2 == $r3 goto label1;
+
+        return null;
+
+     label1:
+        if r4 == null goto label2;
+
+        $z0 = r4 instanceof org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreDocsAndPositionsEnum;
+
+        if $z0 != 0 goto label3;
+
+     label2:
+        $r5 = new org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreDocsAndPositionsEnum;
+
+        $r6 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.Lucene3xFields this$0>;
+
+        specialinvoke $r5.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreDocsAndPositionsEnum: void <init>(org.apache.lucene.codecs.lucene3x.Lucene3xFields)>($r6);
+
+        r13 = $r5;
+
+        goto label4;
+
+     label3:
+        r13 = (org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreDocsAndPositionsEnum) r4;
+
+        $r8 = virtualinvoke r13.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreDocsAndPositionsEnum: org.apache.lucene.store.IndexInput getFreqStream()>();
+
+        $r9 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.Lucene3xFields this$0>;
+
+        $r10 = $r9.<org.apache.lucene.codecs.lucene3x.Lucene3xFields: org.apache.lucene.store.IndexInput freqStream>;
+
+        if $r8 == $r10 goto label4;
+
+        $r11 = new org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreDocsAndPositionsEnum;
+
+        $r12 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.Lucene3xFields this$0>;
+
+        specialinvoke $r11.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreDocsAndPositionsEnum: void <init>(org.apache.lucene.codecs.lucene3x.Lucene3xFields)>($r12);
+
+        r13 = $r11;
+
+     label4:
+        $r14 = r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: org.apache.lucene.codecs.lucene3x.SegmentTermEnum termEnum>;
+
+        $r15 = virtualinvoke r13.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreDocsAndPositionsEnum: org.apache.lucene.index.DocsAndPositionsEnum reset(org.apache.lucene.codecs.lucene3x.SegmentTermEnum,org.apache.lucene.util.Bits)>($r14, r7);
+
+        return $r15;
+    }
+
+    void <init>(org.apache.lucene.codecs.lucene3x.Lucene3xFields, org.apache.lucene.codecs.lucene3x.Lucene3xFields$1)
+    {
+        org.apache.lucene.codecs.lucene3x.Lucene3xFields$1 r2;
+        org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum r0;
+        org.apache.lucene.codecs.lucene3x.Lucene3xFields r1;
+
+        r0 := @this: org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum;
+
+        r1 := @parameter0: org.apache.lucene.codecs.lucene3x.Lucene3xFields;
+
+        r2 := @parameter1: org.apache.lucene.codecs.lucene3x.Lucene3xFields$1;
+
+        specialinvoke r0.<org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: void <init>(org.apache.lucene.codecs.lucene3x.Lucene3xFields)>(r1);
+
+        return;
+    }
+
+    static void <clinit>()
+    {
+        java.lang.Class $r0;
+        boolean $z0, $z1;
+
+        <org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: byte UTF8_HIGH_BMP_LEAD> = -18;
+
+        <org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: byte UTF8_NON_BMP_LEAD> = -16;
+
+        $r0 = class "Lorg/apache/lucene/codecs/lucene3x/Lucene3xFields;";
+
+        $z0 = virtualinvoke $r0.<java.lang.Class: boolean desiredAssertionStatus()>();
+
+        if $z0 != 0 goto label1;
+
+        $z1 = 1;
+
+        goto label2;
+
+     label1:
+        $z1 = 0;
+
+     label2:
+        <org.apache.lucene.codecs.lucene3x.Lucene3xFields$PreTermsEnum: boolean $assertionsDisabled> = $z1;
+
+        return;
+    }
+}

@@ -1,0 +1,1843 @@
+public class org.eclipse.jetty.websocket.WebSocketConnectionD08 extends org.eclipse.jetty.io.AbstractConnection implements org.eclipse.jetty.websocket.WebSocketConnection
+{
+    private static final org.eclipse.jetty.util.log.Logger LOG;
+    static final byte OP_CONTINUATION;
+    static final byte OP_TEXT;
+    static final byte OP_BINARY;
+    static final byte OP_EXT_DATA;
+    static final byte OP_CONTROL;
+    static final byte OP_CLOSE;
+    static final byte OP_PING;
+    static final byte OP_PONG;
+    static final byte OP_EXT_CTRL;
+    static final int CLOSE_NORMAL;
+    static final int CLOSE_SHUTDOWN;
+    static final int CLOSE_PROTOCOL;
+    static final int CLOSE_BADDATA;
+    static final int CLOSE_NOCODE;
+    static final int CLOSE_NOCLOSE;
+    static final int CLOSE_NOTUTF8;
+    static final int FLAG_FIN;
+    static final int VERSION;
+    private static final byte[] MAGIC;
+    private final java.util.List _extensions;
+    private final org.eclipse.jetty.websocket.WebSocketParserD08 _parser;
+    private final org.eclipse.jetty.websocket.WebSocketParser$FrameHandler _inbound;
+    private final org.eclipse.jetty.websocket.WebSocketGeneratorD08 _generator;
+    private final org.eclipse.jetty.websocket.WebSocketGenerator _outbound;
+    private final org.eclipse.jetty.websocket.WebSocket _webSocket;
+    private final org.eclipse.jetty.websocket.WebSocket$OnFrame _onFrame;
+    private final org.eclipse.jetty.websocket.WebSocket$OnBinaryMessage _onBinaryMessage;
+    private final org.eclipse.jetty.websocket.WebSocket$OnTextMessage _onTextMessage;
+    private final org.eclipse.jetty.websocket.WebSocket$OnControl _onControl;
+    private final java.lang.String _protocol;
+    private final int _draft;
+    private final java.lang.ClassLoader _context;
+    private volatile int _closeCode;
+    private volatile java.lang.String _closeMessage;
+    private volatile boolean _closedIn;
+    private volatile boolean _closedOut;
+    private int _maxTextMessageSize;
+    private int _maxBinaryMessageSize;
+    private final org.eclipse.jetty.websocket.WebSocketParser$FrameHandler _frameHandler;
+    private final org.eclipse.jetty.websocket.WebSocket$FrameConnection _connection;
+
+    static boolean isLastFrame(byte)
+    {
+        byte b0, $b1;
+        boolean $z0;
+
+        b0 := @parameter0: byte;
+
+        $b1 = b0 & 8;
+
+        if $b1 == 0 goto label1;
+
+        $z0 = 1;
+
+        goto label2;
+
+     label1:
+        $z0 = 0;
+
+     label2:
+        return $z0;
+    }
+
+    static boolean isControlFrame(byte)
+    {
+        byte b0, $b1;
+        boolean $z0;
+
+        b0 := @parameter0: byte;
+
+        $b1 = b0 & 8;
+
+        if $b1 == 0 goto label1;
+
+        $z0 = 1;
+
+        goto label2;
+
+     label1:
+        $z0 = 0;
+
+     label2:
+        return $z0;
+    }
+
+    public void <init>(org.eclipse.jetty.websocket.WebSocket, org.eclipse.jetty.io.EndPoint, org.eclipse.jetty.websocket.WebSocketBuffers, long, int, java.lang.String, java.util.List, int) throws java.io.IOException
+    {
+        org.eclipse.jetty.websocket.WebSocketBuffers r3;
+        org.eclipse.jetty.io.EndPoint r2;
+        long l0;
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+        java.util.List r5;
+        int i1, i2;
+        java.lang.String r4;
+        org.eclipse.jetty.websocket.WebSocket r1;
+
+        r0 := @this: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        r1 := @parameter0: org.eclipse.jetty.websocket.WebSocket;
+
+        r2 := @parameter1: org.eclipse.jetty.io.EndPoint;
+
+        r3 := @parameter2: org.eclipse.jetty.websocket.WebSocketBuffers;
+
+        l0 := @parameter3: long;
+
+        i1 := @parameter4: int;
+
+        r4 := @parameter5: java.lang.String;
+
+        r5 := @parameter6: java.util.List;
+
+        i2 := @parameter7: int;
+
+        specialinvoke r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: void <init>(org.eclipse.jetty.websocket.WebSocket,org.eclipse.jetty.io.EndPoint,org.eclipse.jetty.websocket.WebSocketBuffers,long,int,java.lang.String,java.util.List,int,org.eclipse.jetty.websocket.MaskGen)>(r1, r2, r3, l0, i1, r4, r5, i2, null);
+
+        return;
+    }
+
+    public void <init>(org.eclipse.jetty.websocket.WebSocket, org.eclipse.jetty.io.EndPoint, org.eclipse.jetty.websocket.WebSocketBuffers, long, int, java.lang.String, java.util.List, int, org.eclipse.jetty.websocket.MaskGen) throws java.io.IOException
+    {
+        org.eclipse.jetty.websocket.MaskGen r14;
+        org.eclipse.jetty.websocket.WebSocketConnectionD08$WSFrameHandler $r46;
+        org.eclipse.jetty.websocket.WebSocketGeneratorD08 $r48;
+        java.lang.Thread $r4;
+        org.eclipse.jetty.websocket.WebSocketParserD08 $r49;
+        org.eclipse.jetty.websocket.WebSocket$OnFrame $r37;
+        org.eclipse.jetty.websocket.WebSocket$OnTextMessage $r38;
+        org.eclipse.jetty.websocket.WebSocketConnectionD08$WSFrameConnection $r47;
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+        java.lang.ClassLoader $r5;
+        org.eclipse.jetty.websocket.WebSocketBuffers r13;
+        org.eclipse.jetty.websocket.WebSocket$OnBinaryMessage $r39;
+        long l0;
+        java.lang.String r22;
+        org.eclipse.jetty.websocket.Extension r30;
+        org.eclipse.jetty.websocket.WebSocket$FrameConnection $r41;
+        org.eclipse.jetty.websocket.WebSocket r7, $r8, $r9, $r10, $r11, $r33, $r34, $r35, $r36;
+        org.eclipse.jetty.io.EndPoint r1, $r6, $r15;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5;
+        java.util.List r16, $r17, $r18, $r19, $r23, $r25, $r27;
+        org.eclipse.jetty.websocket.WebSocketGenerator $r43, $r44;
+        org.eclipse.jetty.websocket.WebSocketParser$FrameHandler $r21, $r42, $r45;
+        int i1, i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i10, i11, $i13, $i15;
+        org.eclipse.jetty.websocket.WebSocket$OnControl $r40;
+        java.util.Iterator $r28;
+        java.lang.Object $r24, $r26, $r29, $r31, $r32;
+
+        r0 := @this: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        r7 := @parameter0: org.eclipse.jetty.websocket.WebSocket;
+
+        r1 := @parameter1: org.eclipse.jetty.io.EndPoint;
+
+        r13 := @parameter2: org.eclipse.jetty.websocket.WebSocketBuffers;
+
+        l0 := @parameter3: long;
+
+        i2 := @parameter4: int;
+
+        r22 := @parameter5: java.lang.String;
+
+        r16 := @parameter6: java.util.List;
+
+        i1 := @parameter7: int;
+
+        r14 := @parameter8: org.eclipse.jetty.websocket.MaskGen;
+
+        specialinvoke r0.<org.eclipse.jetty.io.AbstractConnection: void <init>(org.eclipse.jetty.io.EndPoint,long)>(r1, l0);
+
+        $i13 = (int) -1;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: int _maxTextMessageSize> = $i13;
+
+        $i15 = (int) -1;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: int _maxBinaryMessageSize> = $i15;
+
+        $r46 = new org.eclipse.jetty.websocket.WebSocketConnectionD08$WSFrameHandler;
+
+        specialinvoke $r46.<org.eclipse.jetty.websocket.WebSocketConnectionD08$WSFrameHandler: void <init>(org.eclipse.jetty.websocket.WebSocketConnectionD08,org.eclipse.jetty.websocket.WebSocketConnectionD08$1)>(r0, null);
+
+        r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocketParser$FrameHandler _frameHandler> = $r46;
+
+        $r47 = new org.eclipse.jetty.websocket.WebSocketConnectionD08$WSFrameConnection;
+
+        specialinvoke $r47.<org.eclipse.jetty.websocket.WebSocketConnectionD08$WSFrameConnection: void <init>(org.eclipse.jetty.websocket.WebSocketConnectionD08,org.eclipse.jetty.websocket.WebSocketConnectionD08$1)>(r0, null);
+
+        r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocket$FrameConnection _connection> = $r47;
+
+        $r4 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        $r5 = virtualinvoke $r4.<java.lang.Thread: java.lang.ClassLoader getContextClassLoader()>();
+
+        r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: java.lang.ClassLoader _context> = $r5;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: int _draft> = i1;
+
+        $r6 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.io.EndPoint _endp>;
+
+        interfaceinvoke $r6.<org.eclipse.jetty.io.EndPoint: void setMaxIdleTime(int)>(i2);
+
+        r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocket _webSocket> = r7;
+
+        $r8 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocket _webSocket>;
+
+        $z0 = $r8 instanceof org.eclipse.jetty.websocket.WebSocket$OnFrame;
+
+        if $z0 == 0 goto label01;
+
+        $r36 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocket _webSocket>;
+
+        $r37 = (org.eclipse.jetty.websocket.WebSocket$OnFrame) $r36;
+
+        goto label02;
+
+     label01:
+        $r37 = null;
+
+     label02:
+        r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocket$OnFrame _onFrame> = $r37;
+
+        $r9 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocket _webSocket>;
+
+        $z1 = $r9 instanceof org.eclipse.jetty.websocket.WebSocket$OnTextMessage;
+
+        if $z1 == 0 goto label03;
+
+        $r35 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocket _webSocket>;
+
+        $r38 = (org.eclipse.jetty.websocket.WebSocket$OnTextMessage) $r35;
+
+        goto label04;
+
+     label03:
+        $r38 = null;
+
+     label04:
+        r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocket$OnTextMessage _onTextMessage> = $r38;
+
+        $r10 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocket _webSocket>;
+
+        $z2 = $r10 instanceof org.eclipse.jetty.websocket.WebSocket$OnBinaryMessage;
+
+        if $z2 == 0 goto label05;
+
+        $r34 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocket _webSocket>;
+
+        $r39 = (org.eclipse.jetty.websocket.WebSocket$OnBinaryMessage) $r34;
+
+        goto label06;
+
+     label05:
+        $r39 = null;
+
+     label06:
+        r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocket$OnBinaryMessage _onBinaryMessage> = $r39;
+
+        $r11 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocket _webSocket>;
+
+        $z3 = $r11 instanceof org.eclipse.jetty.websocket.WebSocket$OnControl;
+
+        if $z3 == 0 goto label07;
+
+        $r33 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocket _webSocket>;
+
+        $r40 = (org.eclipse.jetty.websocket.WebSocket$OnControl) $r33;
+
+        goto label08;
+
+     label07:
+        $r40 = null;
+
+     label08:
+        r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocket$OnControl _onControl> = $r40;
+
+        $r48 = new org.eclipse.jetty.websocket.WebSocketGeneratorD08;
+
+        $r15 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.io.EndPoint _endp>;
+
+        specialinvoke $r48.<org.eclipse.jetty.websocket.WebSocketGeneratorD08: void <init>(org.eclipse.jetty.websocket.WebSocketBuffers,org.eclipse.jetty.io.EndPoint,org.eclipse.jetty.websocket.MaskGen)>(r13, $r15, r14);
+
+        r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocketGeneratorD08 _generator> = $r48;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: java.util.List _extensions> = r16;
+
+        $r17 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: java.util.List _extensions>;
+
+        if $r17 == null goto label14;
+
+        i11 = 0;
+
+        $r27 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: java.util.List _extensions>;
+
+        $r28 = interfaceinvoke $r27.<java.util.List: java.util.Iterator iterator()>();
+
+     label09:
+        $z4 = interfaceinvoke $r28.<java.util.Iterator: boolean hasNext()>();
+
+        if $z4 == 0 goto label14;
+
+        $r29 = interfaceinvoke $r28.<java.util.Iterator: java.lang.Object next()>();
+
+        r30 = (org.eclipse.jetty.websocket.Extension) $r29;
+
+        $r41 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocket$FrameConnection _connection>;
+
+        $i7 = interfaceinvoke r16.<java.util.List: int size()>();
+
+        $i8 = $i7 - 1;
+
+        if i11 != $i8 goto label10;
+
+        $r42 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocketParser$FrameHandler _frameHandler>;
+
+        goto label11;
+
+     label10:
+        $i9 = i11 + 1;
+
+        $r31 = interfaceinvoke r16.<java.util.List: java.lang.Object get(int)>($i9);
+
+        $r42 = (org.eclipse.jetty.websocket.WebSocketParser$FrameHandler) $r31;
+
+     label11:
+        if i11 != 0 goto label12;
+
+        $r43 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocketGeneratorD08 _generator>;
+
+        goto label13;
+
+     label12:
+        $i10 = i11 - 1;
+
+        $r32 = interfaceinvoke r16.<java.util.List: java.lang.Object get(int)>($i10);
+
+        $r43 = (org.eclipse.jetty.websocket.WebSocketGenerator) $r32;
+
+     label13:
+        interfaceinvoke r30.<org.eclipse.jetty.websocket.Extension: void bind(org.eclipse.jetty.websocket.WebSocket$FrameConnection,org.eclipse.jetty.websocket.WebSocketParser$FrameHandler,org.eclipse.jetty.websocket.WebSocketGenerator)>($r41, $r42, $r43);
+
+        i11 = i11 + 1;
+
+        goto label09;
+
+     label14:
+        $r18 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: java.util.List _extensions>;
+
+        if $r18 == null goto label15;
+
+        $r25 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: java.util.List _extensions>;
+
+        $i4 = interfaceinvoke $r25.<java.util.List: int size()>();
+
+        if $i4 != 0 goto label16;
+
+     label15:
+        $r44 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocketGeneratorD08 _generator>;
+
+        goto label17;
+
+     label16:
+        $i5 = interfaceinvoke r16.<java.util.List: int size()>();
+
+        $i6 = $i5 - 1;
+
+        $r26 = interfaceinvoke r16.<java.util.List: java.lang.Object get(int)>($i6);
+
+        $r44 = (org.eclipse.jetty.websocket.WebSocketGenerator) $r26;
+
+     label17:
+        r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocketGenerator _outbound> = $r44;
+
+        $r19 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: java.util.List _extensions>;
+
+        if $r19 == null goto label18;
+
+        $r23 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: java.util.List _extensions>;
+
+        $i3 = interfaceinvoke $r23.<java.util.List: int size()>();
+
+        if $i3 != 0 goto label19;
+
+     label18:
+        $r45 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocketParser$FrameHandler _frameHandler>;
+
+        goto label20;
+
+     label19:
+        $r24 = interfaceinvoke r16.<java.util.List: java.lang.Object get(int)>(0);
+
+        $r45 = (org.eclipse.jetty.websocket.WebSocketParser$FrameHandler) $r24;
+
+     label20:
+        r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocketParser$FrameHandler _inbound> = $r45;
+
+        $r49 = new org.eclipse.jetty.websocket.WebSocketParserD08;
+
+        $r21 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocketParser$FrameHandler _inbound>;
+
+        if r14 != null goto label21;
+
+        $z5 = 1;
+
+        goto label22;
+
+     label21:
+        $z5 = 0;
+
+     label22:
+        specialinvoke $r49.<org.eclipse.jetty.websocket.WebSocketParserD08: void <init>(org.eclipse.jetty.websocket.WebSocketBuffers,org.eclipse.jetty.io.EndPoint,org.eclipse.jetty.websocket.WebSocketParser$FrameHandler,boolean)>(r13, r1, $r21, $z5);
+
+        r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocketParserD08 _parser> = $r49;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: java.lang.String _protocol> = r22;
+
+        return;
+    }
+
+    public org.eclipse.jetty.websocket.WebSocket$Connection getConnection()
+    {
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+        org.eclipse.jetty.websocket.WebSocket$FrameConnection $r1;
+
+        r0 := @this: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        $r1 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocket$FrameConnection _connection>;
+
+        return $r1;
+    }
+
+    public java.util.List getExtensions()
+    {
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+        java.util.List $r1, $r2, $r3;
+
+        r0 := @this: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        $r1 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: java.util.List _extensions>;
+
+        if $r1 != null goto label1;
+
+        $r3 = staticinvoke <java.util.Collections: java.util.List emptyList()>();
+
+        return $r3;
+
+     label1:
+        $r2 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: java.util.List _extensions>;
+
+        return $r2;
+    }
+
+    public org.eclipse.jetty.io.Connection handle() throws java.io.IOException
+    {
+        org.eclipse.jetty.io.EndPoint $r6, $r8, $r11, $r15, $r17, $r21, $r22, $r23;
+        org.eclipse.jetty.websocket.WebSocketGeneratorD08 $r5, $r9, $r14;
+        java.lang.Thread $r0;
+        org.eclipse.jetty.websocket.WebSocketParserD08 $r4, $r10, $r13;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9, z10, $z11, $z12, $z13;
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r2;
+        org.eclipse.jetty.websocket.WebSocketGenerator $r7, $r16;
+        java.lang.ClassLoader $r1, $r3;
+        java.lang.Throwable $r12;
+        int $i0, $i1;
+        java.io.IOException $r18, $r20;
+        org.eclipse.jetty.util.log.Logger $r19;
+
+        r2 := @this: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        $r0 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        $r1 = virtualinvoke $r0.<java.lang.Thread: java.lang.ClassLoader getContextClassLoader()>();
+
+        $r3 = r2.<org.eclipse.jetty.websocket.WebSocketConnectionD08: java.lang.ClassLoader _context>;
+
+        virtualinvoke $r0.<java.lang.Thread: void setContextClassLoader(java.lang.ClassLoader)>($r3);
+
+     label01:
+        z10 = 1;
+
+     label02:
+        if z10 == 0 goto label08;
+
+        $r9 = r2.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocketGeneratorD08 _generator>;
+
+        $i0 = virtualinvoke $r9.<org.eclipse.jetty.websocket.WebSocketGeneratorD08: int flushBuffer()>();
+
+        $r10 = r2.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocketParserD08 _parser>;
+
+        $i1 = virtualinvoke $r10.<org.eclipse.jetty.websocket.WebSocketParserD08: int parseNext()>();
+
+        if $i0 > 0 goto label03;
+
+        if $i1 <= 0 goto label04;
+
+     label03:
+        $z11 = 1;
+
+        goto label05;
+
+     label04:
+        $z11 = 0;
+
+     label05:
+        z10 = $z11;
+
+        if $i1 < 0 goto label06;
+
+        if $i0 >= 0 goto label07;
+
+     label06:
+        $r11 = r2.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.io.EndPoint _endp>;
+
+        interfaceinvoke $r11.<org.eclipse.jetty.io.EndPoint: void close()>();
+
+        goto label08;
+
+     label07:
+        goto label02;
+
+     label08:
+        virtualinvoke $r0.<java.lang.Thread: void setContextClassLoader(java.lang.ClassLoader)>($r1);
+
+        $r4 = r2.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocketParserD08 _parser>;
+
+        virtualinvoke $r4.<org.eclipse.jetty.websocket.WebSocketParserD08: void returnBuffer()>();
+
+        $r5 = r2.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocketGeneratorD08 _generator>;
+
+        virtualinvoke $r5.<org.eclipse.jetty.websocket.WebSocketGeneratorD08: void returnBuffer()>();
+
+        $r6 = r2.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.io.EndPoint _endp>;
+
+        $z0 = interfaceinvoke $r6.<org.eclipse.jetty.io.EndPoint: boolean isOpen()>();
+
+        if $z0 == 0 goto label21;
+
+        $z1 = r2.<org.eclipse.jetty.websocket.WebSocketConnectionD08: boolean _closedIn>;
+
+        if $z1 == 0 goto label09;
+
+        $z3 = r2.<org.eclipse.jetty.websocket.WebSocketConnectionD08: boolean _closedOut>;
+
+        if $z3 == 0 goto label09;
+
+        $r7 = r2.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocketGenerator _outbound>;
+
+        $z4 = interfaceinvoke $r7.<org.eclipse.jetty.websocket.WebSocketGenerator: boolean isBufferEmpty()>();
+
+        if $z4 == 0 goto label09;
+
+        $r8 = r2.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.io.EndPoint _endp>;
+
+        interfaceinvoke $r8.<org.eclipse.jetty.io.EndPoint: void close()>();
+
+        goto label21;
+
+     label09:
+        $r22 = r2.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.io.EndPoint _endp>;
+
+        $z12 = interfaceinvoke $r22.<org.eclipse.jetty.io.EndPoint: boolean isInputShutdown()>();
+
+        if $z12 == 0 goto label10;
+
+        $z2 = r2.<org.eclipse.jetty.websocket.WebSocketConnectionD08: boolean _closedIn>;
+
+        if $z2 != 0 goto label10;
+
+        virtualinvoke r2.<org.eclipse.jetty.websocket.WebSocketConnectionD08: void closeIn(int,java.lang.String)>(1006, null);
+
+        goto label21;
+
+     label10:
+        specialinvoke r2.<org.eclipse.jetty.websocket.WebSocketConnectionD08: void checkWriteable()>();
+
+        goto label21;
+
+     label11:
+        $r20 := @caughtexception;
+
+     label12:
+        $r21 = r2.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.io.EndPoint _endp>;
+
+        interfaceinvoke $r21.<org.eclipse.jetty.io.EndPoint: void close()>();
+
+     label13:
+        goto label15;
+
+     label14:
+        $r18 := @caughtexception;
+
+        $r19 = <org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.util.log.Logger LOG>;
+
+        interfaceinvoke $r19.<org.eclipse.jetty.util.log.Logger: void ignore(java.lang.Throwable)>($r18);
+
+     label15:
+        throw $r20;
+
+     label16:
+        $r12 := @caughtexception;
+
+     label17:
+        virtualinvoke $r0.<java.lang.Thread: void setContextClassLoader(java.lang.ClassLoader)>($r1);
+
+        $r13 = r2.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocketParserD08 _parser>;
+
+        virtualinvoke $r13.<org.eclipse.jetty.websocket.WebSocketParserD08: void returnBuffer()>();
+
+        $r14 = r2.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocketGeneratorD08 _generator>;
+
+        virtualinvoke $r14.<org.eclipse.jetty.websocket.WebSocketGeneratorD08: void returnBuffer()>();
+
+        $r15 = r2.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.io.EndPoint _endp>;
+
+        $z5 = interfaceinvoke $r15.<org.eclipse.jetty.io.EndPoint: boolean isOpen()>();
+
+        if $z5 == 0 goto label20;
+
+        $z6 = r2.<org.eclipse.jetty.websocket.WebSocketConnectionD08: boolean _closedIn>;
+
+        if $z6 == 0 goto label18;
+
+        $z8 = r2.<org.eclipse.jetty.websocket.WebSocketConnectionD08: boolean _closedOut>;
+
+        if $z8 == 0 goto label18;
+
+        $r16 = r2.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocketGenerator _outbound>;
+
+        $z9 = interfaceinvoke $r16.<org.eclipse.jetty.websocket.WebSocketGenerator: boolean isBufferEmpty()>();
+
+        if $z9 == 0 goto label18;
+
+        $r17 = r2.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.io.EndPoint _endp>;
+
+        interfaceinvoke $r17.<org.eclipse.jetty.io.EndPoint: void close()>();
+
+        goto label20;
+
+     label18:
+        $r23 = r2.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.io.EndPoint _endp>;
+
+        $z13 = interfaceinvoke $r23.<org.eclipse.jetty.io.EndPoint: boolean isInputShutdown()>();
+
+        if $z13 == 0 goto label19;
+
+        $z7 = r2.<org.eclipse.jetty.websocket.WebSocketConnectionD08: boolean _closedIn>;
+
+        if $z7 != 0 goto label19;
+
+        virtualinvoke r2.<org.eclipse.jetty.websocket.WebSocketConnectionD08: void closeIn(int,java.lang.String)>(1006, null);
+
+        goto label20;
+
+     label19:
+        specialinvoke r2.<org.eclipse.jetty.websocket.WebSocketConnectionD08: void checkWriteable()>();
+
+     label20:
+        throw $r12;
+
+     label21:
+        return r2;
+
+        catch java.io.IOException from label01 to label08 with label11;
+        catch java.io.IOException from label12 to label13 with label14;
+        catch java.lang.Throwable from label01 to label08 with label16;
+        catch java.lang.Throwable from label11 to label17 with label16;
+    }
+
+    public void onInputShutdown() throws java.io.IOException
+    {
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+
+        r0 := @this: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        return;
+    }
+
+    public boolean isIdle()
+    {
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+        org.eclipse.jetty.websocket.WebSocketGenerator $r2;
+        org.eclipse.jetty.websocket.WebSocketParserD08 $r1;
+        boolean $z0, $z1, $z2;
+
+        r0 := @this: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        $r1 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocketParserD08 _parser>;
+
+        $z0 = virtualinvoke $r1.<org.eclipse.jetty.websocket.WebSocketParserD08: boolean isBufferEmpty()>();
+
+        if $z0 == 0 goto label1;
+
+        $r2 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocketGenerator _outbound>;
+
+        $z1 = interfaceinvoke $r2.<org.eclipse.jetty.websocket.WebSocketGenerator: boolean isBufferEmpty()>();
+
+        if $z1 == 0 goto label1;
+
+        $z2 = 1;
+
+        goto label2;
+
+     label1:
+        $z2 = 0;
+
+     label2:
+        return $z2;
+    }
+
+    public void onIdleExpired(long)
+    {
+        org.eclipse.jetty.io.EndPoint $r5;
+        long l0;
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+        int $i1;
+        java.lang.StringBuilder $r1, $r2, $r3, $r4, $r6, $r7;
+        java.lang.String $r8;
+
+        r0 := @this: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        l0 := @parameter0: long;
+
+        $r1 = new java.lang.StringBuilder;
+
+        specialinvoke $r1.<java.lang.StringBuilder: void <init>()>();
+
+        $r2 = virtualinvoke $r1.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Idle for ");
+
+        $r3 = virtualinvoke $r2.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>(l0);
+
+        $r4 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("ms > ");
+
+        $r5 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.io.EndPoint _endp>;
+
+        $i1 = interfaceinvoke $r5.<org.eclipse.jetty.io.EndPoint: int getMaxIdleTime()>();
+
+        $r6 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i1);
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("ms");
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: void closeOut(int,java.lang.String)>(1000, $r8);
+
+        return;
+    }
+
+    public boolean isSuspended()
+    {
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+
+        r0 := @this: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        return 0;
+    }
+
+    public void onClose()
+    {
+        java.lang.Throwable $r2;
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+        int $i0;
+        org.eclipse.jetty.websocket.WebSocket $r1;
+        boolean z0, $z2, $z3;
+
+        r0 := @this: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        entermonitor r0;
+
+     label1:
+        $i0 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: int _closeCode>;
+
+        if $i0 != 0 goto label2;
+
+        $z3 = 1;
+
+        $z2 = 1;
+
+        goto label3;
+
+     label2:
+        $z3 = 0;
+
+        $z2 = 0;
+
+     label3:
+        z0 = $z2;
+
+        if $z3 == 0 goto label4;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: int _closeCode> = 1006;
+
+     label4:
+        exitmonitor r0;
+
+     label5:
+        goto label8;
+
+     label6:
+        $r2 := @caughtexception;
+
+        exitmonitor r0;
+
+     label7:
+        throw $r2;
+
+     label8:
+        if z0 == 0 goto label9;
+
+        $r1 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocket _webSocket>;
+
+        interfaceinvoke $r1.<org.eclipse.jetty.websocket.WebSocket: void onClose(int,java.lang.String)>(1006, "closed");
+
+     label9:
+        return;
+
+        catch java.lang.Throwable from label1 to label5 with label6;
+        catch java.lang.Throwable from label6 to label7 with label6;
+    }
+
+    public void closeIn(int, java.lang.String)
+    {
+        java.lang.Throwable $r8, $r12;
+        java.lang.Object[] $r0;
+        org.eclipse.jetty.io.EndPoint $r4, $r9;
+        int $i0, i1;
+        java.lang.String r2;
+        boolean z0, z1, $z3, $z4;
+        java.io.IOException $r6, $r10;
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r1;
+        org.eclipse.jetty.util.log.Logger $r3, $r7, $r11;
+        org.eclipse.jetty.websocket.WebSocket $r5;
+
+        r1 := @this: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        i1 := @parameter0: int;
+
+        r2 := @parameter1: java.lang.String;
+
+        $r3 = <org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r0 = newarray (java.lang.Object)[2];
+
+        $r0[0] = r1;
+
+        $r0[1] = r2;
+
+        interfaceinvoke $r3.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Object[])>("ClosedIn {} {}", $r0);
+
+        entermonitor r1;
+
+     label01:
+        z0 = r1.<org.eclipse.jetty.websocket.WebSocketConnectionD08: boolean _closedOut>;
+
+        r1.<org.eclipse.jetty.websocket.WebSocketConnectionD08: boolean _closedIn> = 1;
+
+        $i0 = r1.<org.eclipse.jetty.websocket.WebSocketConnectionD08: int _closeCode>;
+
+        if $i0 != 0 goto label02;
+
+        $z4 = 1;
+
+        $z3 = 1;
+
+        goto label03;
+
+     label02:
+        $z4 = 0;
+
+        $z3 = 0;
+
+     label03:
+        z1 = $z3;
+
+        if $z4 == 0 goto label04;
+
+        r1.<org.eclipse.jetty.websocket.WebSocketConnectionD08: int _closeCode> = i1;
+
+        r1.<org.eclipse.jetty.websocket.WebSocketConnectionD08: java.lang.String _closeMessage> = r2;
+
+     label04:
+        exitmonitor r1;
+
+     label05:
+        goto label08;
+
+     label06:
+        $r12 := @caughtexception;
+
+        exitmonitor r1;
+
+     label07:
+        throw $r12;
+
+     label08:
+        if z1 == 0 goto label09;
+
+        $r5 = r1.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocket _webSocket>;
+
+        interfaceinvoke $r5.<org.eclipse.jetty.websocket.WebSocket: void onClose(int,java.lang.String)>(i1, r2);
+
+     label09:
+        if z0 == 0 goto label10;
+
+        $r4 = r1.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.io.EndPoint _endp>;
+
+        interfaceinvoke $r4.<org.eclipse.jetty.io.EndPoint: void close()>();
+
+        goto label11;
+
+     label10:
+        virtualinvoke r1.<org.eclipse.jetty.websocket.WebSocketConnectionD08: void closeOut(int,java.lang.String)>(i1, r2);
+
+     label11:
+        goto label19;
+
+     label12:
+        $r10 := @caughtexception;
+
+        $r11 = <org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.util.log.Logger LOG>;
+
+        interfaceinvoke $r11.<org.eclipse.jetty.util.log.Logger: void ignore(java.lang.Throwable)>($r10);
+
+        goto label19;
+
+     label13:
+        $r8 := @caughtexception;
+
+     label14:
+        if z0 == 0 goto label15;
+
+        $r9 = r1.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.io.EndPoint _endp>;
+
+        interfaceinvoke $r9.<org.eclipse.jetty.io.EndPoint: void close()>();
+
+        goto label16;
+
+     label15:
+        virtualinvoke r1.<org.eclipse.jetty.websocket.WebSocketConnectionD08: void closeOut(int,java.lang.String)>(i1, r2);
+
+     label16:
+        goto label18;
+
+     label17:
+        $r6 := @caughtexception;
+
+        $r7 = <org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.util.log.Logger LOG>;
+
+        interfaceinvoke $r7.<org.eclipse.jetty.util.log.Logger: void ignore(java.lang.Throwable)>($r6);
+
+     label18:
+        throw $r8;
+
+     label19:
+        return;
+
+        catch java.lang.Throwable from label01 to label05 with label06;
+        catch java.lang.Throwable from label06 to label07 with label06;
+        catch java.io.IOException from label09 to label11 with label12;
+        catch java.lang.Throwable from label08 to label09 with label13;
+        catch java.io.IOException from label14 to label16 with label17;
+        catch java.lang.Throwable from label13 to label14 with label13;
+    }
+
+    public void closeOut(int, java.lang.String)
+    {
+        byte[] $r8, $r19;
+        org.eclipse.jetty.io.EndPoint $r10, $r21;
+        byte $b2, $b4, $b7, $b9;
+        boolean $z0, z1, z2, $z3, $z4, $z6, $z7;
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r1;
+        org.eclipse.jetty.websocket.WebSocketGenerator $r9, $r20, $r26, $r28;
+        java.lang.StringBuilder $r4, $r5, $r6, $r15, $r16, $r17;
+        java.lang.Throwable $r14, $r24;
+        java.lang.Object[] $r0;
+        int $i0, $i1, $i3, $i5, $i6, $i8, $i10, i11;
+        java.lang.String r2, $r7, $r18, $r25, $r27;
+        java.io.IOException $r12, $r22;
+        org.eclipse.jetty.util.log.Logger $r3, $r13, $r23;
+        org.eclipse.jetty.websocket.WebSocket $r11;
+
+        r1 := @this: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        i11 := @parameter0: int;
+
+        r2 := @parameter1: java.lang.String;
+
+        $r3 = <org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.util.log.Logger LOG>;
+
+        $r0 = newarray (java.lang.Object)[2];
+
+        $r0[0] = r1;
+
+        $r0[1] = r2;
+
+        interfaceinvoke $r3.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Object[])>("ClosedOut {} {}", $r0);
+
+        entermonitor r1;
+
+     label01:
+        $z0 = r1.<org.eclipse.jetty.websocket.WebSocketConnectionD08: boolean _closedIn>;
+
+        if $z0 != 0 goto label02;
+
+        $z3 = r1.<org.eclipse.jetty.websocket.WebSocketConnectionD08: boolean _closedOut>;
+
+        if $z3 == 0 goto label03;
+
+     label02:
+        $z4 = 1;
+
+        goto label04;
+
+     label03:
+        $z4 = 0;
+
+     label04:
+        z1 = $z4;
+
+        r1.<org.eclipse.jetty.websocket.WebSocketConnectionD08: boolean _closedOut> = 1;
+
+        $i0 = r1.<org.eclipse.jetty.websocket.WebSocketConnectionD08: int _closeCode>;
+
+        if $i0 != 0 goto label05;
+
+        $z7 = 1;
+
+        $z6 = 1;
+
+        goto label06;
+
+     label05:
+        $z7 = 0;
+
+        $z6 = 0;
+
+     label06:
+        z2 = $z6;
+
+        if $z7 == 0 goto label07;
+
+        r1.<org.eclipse.jetty.websocket.WebSocketConnectionD08: int _closeCode> = i11;
+
+        r1.<org.eclipse.jetty.websocket.WebSocketConnectionD08: java.lang.String _closeMessage> = r2;
+
+     label07:
+        exitmonitor r1;
+
+     label08:
+        goto label11;
+
+     label09:
+        $r24 := @caughtexception;
+
+        exitmonitor r1;
+
+     label10:
+        throw $r24;
+
+     label11:
+        if z2 == 0 goto label12;
+
+        $r11 = r1.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocket _webSocket>;
+
+        interfaceinvoke $r11.<org.eclipse.jetty.websocket.WebSocket: void onClose(int,java.lang.String)>(i11, r2);
+
+     label12:
+        if z1 == 0 goto label13;
+
+        $r10 = r1.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.io.EndPoint _endp>;
+
+        interfaceinvoke $r10.<org.eclipse.jetty.io.EndPoint: void close()>();
+
+        goto label17;
+
+     label13:
+        if i11 > 0 goto label14;
+
+        i11 = 1000;
+
+     label14:
+        $r4 = new java.lang.StringBuilder;
+
+        specialinvoke $r4.<java.lang.StringBuilder: void <init>()>();
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("xx");
+
+        if r2 != null goto label15;
+
+        $r25 = "";
+
+        goto label16;
+
+     label15:
+        $r25 = r2;
+
+     label16:
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r25);
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r8 = virtualinvoke $r7.<java.lang.String: byte[] getBytes(java.lang.String)>("ISO-8859-1");
+
+        $i1 = i11 / 256;
+
+        $b2 = (byte) $i1;
+
+        $r8[0] = $b2;
+
+        $i3 = i11 % 256;
+
+        $b4 = (byte) $i3;
+
+        $r8[1] = $b4;
+
+        $r9 = r1.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocketGenerator _outbound>;
+
+        $i5 = lengthof $r8;
+
+        interfaceinvoke $r9.<org.eclipse.jetty.websocket.WebSocketGenerator: void addFrame(byte,byte,byte[],int,int)>(8, 8, $r8, 0, $i5);
+
+     label17:
+        $r26 = r1.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocketGenerator _outbound>;
+
+        interfaceinvoke $r26.<org.eclipse.jetty.websocket.WebSocketGenerator: int flush()>();
+
+     label18:
+        goto label30;
+
+     label19:
+        $r22 := @caughtexception;
+
+        $r23 = <org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.util.log.Logger LOG>;
+
+        interfaceinvoke $r23.<org.eclipse.jetty.util.log.Logger: void ignore(java.lang.Throwable)>($r22);
+
+        goto label30;
+
+     label20:
+        $r14 := @caughtexception;
+
+     label21:
+        if z1 == 0 goto label22;
+
+        $r21 = r1.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.io.EndPoint _endp>;
+
+        interfaceinvoke $r21.<org.eclipse.jetty.io.EndPoint: void close()>();
+
+        goto label26;
+
+     label22:
+        if i11 > 0 goto label23;
+
+        i11 = 1000;
+
+     label23:
+        $r15 = new java.lang.StringBuilder;
+
+        specialinvoke $r15.<java.lang.StringBuilder: void <init>()>();
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("xx");
+
+        if r2 != null goto label24;
+
+        $r27 = "";
+
+        goto label25;
+
+     label24:
+        $r27 = r2;
+
+     label25:
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r27);
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r19 = virtualinvoke $r18.<java.lang.String: byte[] getBytes(java.lang.String)>("ISO-8859-1");
+
+        $i6 = i11 / 256;
+
+        $b7 = (byte) $i6;
+
+        $r19[0] = $b7;
+
+        $i8 = i11 % 256;
+
+        $b9 = (byte) $i8;
+
+        $r19[1] = $b9;
+
+        $r20 = r1.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocketGenerator _outbound>;
+
+        $i10 = lengthof $r19;
+
+        interfaceinvoke $r20.<org.eclipse.jetty.websocket.WebSocketGenerator: void addFrame(byte,byte,byte[],int,int)>(8, 8, $r19, 0, $i10);
+
+     label26:
+        $r28 = r1.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocketGenerator _outbound>;
+
+        interfaceinvoke $r28.<org.eclipse.jetty.websocket.WebSocketGenerator: int flush()>();
+
+     label27:
+        goto label29;
+
+     label28:
+        $r12 := @caughtexception;
+
+        $r13 = <org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.util.log.Logger LOG>;
+
+        interfaceinvoke $r13.<org.eclipse.jetty.util.log.Logger: void ignore(java.lang.Throwable)>($r12);
+
+     label29:
+        throw $r14;
+
+     label30:
+        return;
+
+        catch java.lang.Throwable from label01 to label08 with label09;
+        catch java.lang.Throwable from label09 to label10 with label09;
+        catch java.io.IOException from label12 to label18 with label19;
+        catch java.lang.Throwable from label11 to label12 with label20;
+        catch java.io.IOException from label21 to label27 with label28;
+        catch java.lang.Throwable from label20 to label21 with label20;
+    }
+
+    public void shutdown()
+    {
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+        org.eclipse.jetty.websocket.WebSocket$FrameConnection r1;
+
+        r0 := @this: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        r1 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocket$FrameConnection _connection>;
+
+        if r1 == null goto label1;
+
+        interfaceinvoke r1.<org.eclipse.jetty.websocket.WebSocket$Connection: void close(int,java.lang.String)>(1001, null);
+
+     label1:
+        return;
+    }
+
+    public void fillBuffersFrom(org.eclipse.jetty.io.Buffer)
+    {
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+        org.eclipse.jetty.io.Buffer r1;
+        org.eclipse.jetty.websocket.WebSocketParserD08 $r2;
+
+        r0 := @this: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        r1 := @parameter0: org.eclipse.jetty.io.Buffer;
+
+        $r2 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocketParserD08 _parser>;
+
+        virtualinvoke $r2.<org.eclipse.jetty.websocket.WebSocketParserD08: void fill(org.eclipse.jetty.io.Buffer)>(r1);
+
+        return;
+    }
+
+    private void checkWriteable()
+    {
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+        org.eclipse.jetty.io.EndPoint $r2, $r3;
+        org.eclipse.jetty.websocket.WebSocketGenerator $r1;
+        org.eclipse.jetty.io.AsyncEndPoint $r4;
+        boolean $z0, $z1;
+
+        r0 := @this: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        $r1 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocketGenerator _outbound>;
+
+        $z0 = interfaceinvoke $r1.<org.eclipse.jetty.websocket.WebSocketGenerator: boolean isBufferEmpty()>();
+
+        if $z0 != 0 goto label1;
+
+        $r2 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.io.EndPoint _endp>;
+
+        $z1 = $r2 instanceof org.eclipse.jetty.io.AsyncEndPoint;
+
+        if $z1 == 0 goto label1;
+
+        $r3 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.io.EndPoint _endp>;
+
+        $r4 = (org.eclipse.jetty.io.AsyncEndPoint) $r3;
+
+        interfaceinvoke $r4.<org.eclipse.jetty.io.AsyncEndPoint: void scheduleWrite()>();
+
+     label1:
+        return;
+    }
+
+    protected void onFrameHandshake()
+    {
+        org.eclipse.jetty.websocket.WebSocket$OnFrame $r1, $r3;
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+        org.eclipse.jetty.websocket.WebSocket$FrameConnection $r2;
+
+        r0 := @this: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        $r1 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocket$OnFrame _onFrame>;
+
+        if $r1 == null goto label1;
+
+        $r3 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocket$OnFrame _onFrame>;
+
+        $r2 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocket$FrameConnection _connection>;
+
+        interfaceinvoke $r3.<org.eclipse.jetty.websocket.WebSocket$OnFrame: void onHandshake(org.eclipse.jetty.websocket.WebSocket$FrameConnection)>($r2);
+
+     label1:
+        return;
+    }
+
+    protected void onWebSocketOpen()
+    {
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+        org.eclipse.jetty.websocket.WebSocket $r2;
+        org.eclipse.jetty.websocket.WebSocket$FrameConnection $r1;
+
+        r0 := @this: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        $r2 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocket _webSocket>;
+
+        $r1 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocket$FrameConnection _connection>;
+
+        interfaceinvoke $r2.<org.eclipse.jetty.websocket.WebSocket: void onOpen(org.eclipse.jetty.websocket.WebSocket$Connection)>($r1);
+
+        return;
+    }
+
+    public static java.lang.String hashKey(java.lang.String)
+    {
+        byte[] $r2, $r3, $r5;
+        java.security.MessageDigest $r0;
+        java.lang.RuntimeException $r8;
+        java.lang.Exception $r7;
+        char[] $r6;
+        java.lang.String r1, $r4;
+
+        r1 := @parameter0: java.lang.String;
+
+     label1:
+        $r0 = staticinvoke <java.security.MessageDigest: java.security.MessageDigest getInstance(java.lang.String)>("SHA1");
+
+        $r2 = virtualinvoke r1.<java.lang.String: byte[] getBytes(java.lang.String)>("UTF-8");
+
+        virtualinvoke $r0.<java.security.MessageDigest: void update(byte[])>($r2);
+
+        $r3 = <org.eclipse.jetty.websocket.WebSocketConnectionD08: byte[] MAGIC>;
+
+        virtualinvoke $r0.<java.security.MessageDigest: void update(byte[])>($r3);
+
+        $r4 = new java.lang.String;
+
+        $r5 = virtualinvoke $r0.<java.security.MessageDigest: byte[] digest()>();
+
+        $r6 = staticinvoke <org.eclipse.jetty.util.B64Code: char[] encode(byte[])>($r5);
+
+        specialinvoke $r4.<java.lang.String: void <init>(char[])>($r6);
+
+     label2:
+        return $r4;
+
+     label3:
+        $r7 := @caughtexception;
+
+        $r8 = new java.lang.RuntimeException;
+
+        specialinvoke $r8.<java.lang.RuntimeException: void <init>(java.lang.Throwable)>($r7);
+
+        throw $r8;
+
+        catch java.lang.Exception from label1 to label2 with label3;
+    }
+
+    public java.lang.String toString()
+    {
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r1;
+        java.lang.Object[] $r0;
+        org.eclipse.jetty.websocket.WebSocketGeneratorD08 $r4;
+        int $i0;
+        java.lang.String $r5;
+        java.lang.Integer $r2;
+        org.eclipse.jetty.websocket.WebSocketParserD08 $r3;
+
+        r1 := @this: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        $r0 = newarray (java.lang.Object)[3];
+
+        $i0 = r1.<org.eclipse.jetty.websocket.WebSocketConnectionD08: int _draft>;
+
+        $r2 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i0);
+
+        $r0[0] = $r2;
+
+        $r3 = r1.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocketParserD08 _parser>;
+
+        $r0[1] = $r3;
+
+        $r4 = r1.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocketGeneratorD08 _generator>;
+
+        $r0[2] = $r4;
+
+        $r5 = staticinvoke <java.lang.String: java.lang.String format(java.lang.String,java.lang.Object[])>("WS/D%d p=%s g=%s", $r0);
+
+        return $r5;
+    }
+
+    static boolean access$200(org.eclipse.jetty.websocket.WebSocketConnectionD08)
+    {
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+        boolean $z0;
+
+        r0 := @parameter0: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        $z0 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: boolean _closedOut>;
+
+        return $z0;
+    }
+
+    static int access$300(org.eclipse.jetty.websocket.WebSocketConnectionD08)
+    {
+        int $i0;
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+
+        r0 := @parameter0: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        $i0 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: int _closeCode>;
+
+        return $i0;
+    }
+
+    static java.lang.String access$400(org.eclipse.jetty.websocket.WebSocketConnectionD08)
+    {
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+        java.lang.String $r1;
+
+        r0 := @parameter0: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        $r1 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: java.lang.String _closeMessage>;
+
+        return $r1;
+    }
+
+    static org.eclipse.jetty.websocket.WebSocketGenerator access$500(org.eclipse.jetty.websocket.WebSocketConnectionD08)
+    {
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+        org.eclipse.jetty.websocket.WebSocketGenerator $r1;
+
+        r0 := @parameter0: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        $r1 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocketGenerator _outbound>;
+
+        return $r1;
+    }
+
+    static void access$600(org.eclipse.jetty.websocket.WebSocketConnectionD08)
+    {
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+
+        r0 := @parameter0: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        specialinvoke r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: void checkWriteable()>();
+
+        return;
+    }
+
+    static org.eclipse.jetty.io.EndPoint access$700(org.eclipse.jetty.websocket.WebSocketConnectionD08)
+    {
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+        org.eclipse.jetty.io.EndPoint $r1;
+
+        r0 := @parameter0: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        $r1 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.io.EndPoint _endp>;
+
+        return $r1;
+    }
+
+    static org.eclipse.jetty.io.EndPoint access$800(org.eclipse.jetty.websocket.WebSocketConnectionD08)
+    {
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+        org.eclipse.jetty.io.EndPoint $r1;
+
+        r0 := @parameter0: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        $r1 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.io.EndPoint _endp>;
+
+        return $r1;
+    }
+
+    static org.eclipse.jetty.io.EndPoint access$900(org.eclipse.jetty.websocket.WebSocketConnectionD08)
+    {
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+        org.eclipse.jetty.io.EndPoint $r1;
+
+        r0 := @parameter0: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        $r1 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.io.EndPoint _endp>;
+
+        return $r1;
+    }
+
+    static org.eclipse.jetty.util.log.Logger access$1000()
+    {
+        org.eclipse.jetty.util.log.Logger $r0;
+
+        $r0 = <org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.util.log.Logger LOG>;
+
+        return $r0;
+    }
+
+    static int access$1102(org.eclipse.jetty.websocket.WebSocketConnectionD08, int)
+    {
+        int i0;
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+
+        r0 := @parameter0: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        i0 := @parameter1: int;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: int _maxTextMessageSize> = i0;
+
+        return i0;
+    }
+
+    static int access$1202(org.eclipse.jetty.websocket.WebSocketConnectionD08, int)
+    {
+        int i0;
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+
+        r0 := @parameter0: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        i0 := @parameter1: int;
+
+        r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: int _maxBinaryMessageSize> = i0;
+
+        return i0;
+    }
+
+    static org.eclipse.jetty.io.EndPoint access$1300(org.eclipse.jetty.websocket.WebSocketConnectionD08)
+    {
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+        org.eclipse.jetty.io.EndPoint $r1;
+
+        r0 := @parameter0: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        $r1 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.io.EndPoint _endp>;
+
+        return $r1;
+    }
+
+    static int access$1100(org.eclipse.jetty.websocket.WebSocketConnectionD08)
+    {
+        int $i0;
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+
+        r0 := @parameter0: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        $i0 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: int _maxTextMessageSize>;
+
+        return $i0;
+    }
+
+    static int access$1200(org.eclipse.jetty.websocket.WebSocketConnectionD08)
+    {
+        int $i0;
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+
+        r0 := @parameter0: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        $i0 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: int _maxBinaryMessageSize>;
+
+        return $i0;
+    }
+
+    static java.lang.String access$1400(org.eclipse.jetty.websocket.WebSocketConnectionD08)
+    {
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+        java.lang.String $r1;
+
+        r0 := @parameter0: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        $r1 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: java.lang.String _protocol>;
+
+        return $r1;
+    }
+
+    static org.eclipse.jetty.websocket.WebSocketParserD08 access$1500(org.eclipse.jetty.websocket.WebSocketConnectionD08)
+    {
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+        org.eclipse.jetty.websocket.WebSocketParserD08 $r1;
+
+        r0 := @parameter0: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        $r1 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocketParserD08 _parser>;
+
+        return $r1;
+    }
+
+    static org.eclipse.jetty.io.EndPoint access$1600(org.eclipse.jetty.websocket.WebSocketConnectionD08)
+    {
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+        org.eclipse.jetty.io.EndPoint $r1;
+
+        r0 := @parameter0: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        $r1 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.io.EndPoint _endp>;
+
+        return $r1;
+    }
+
+    static org.eclipse.jetty.io.EndPoint access$1700(org.eclipse.jetty.websocket.WebSocketConnectionD08)
+    {
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+        org.eclipse.jetty.io.EndPoint $r1;
+
+        r0 := @parameter0: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        $r1 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.io.EndPoint _endp>;
+
+        return $r1;
+    }
+
+    static org.eclipse.jetty.io.EndPoint access$1800(org.eclipse.jetty.websocket.WebSocketConnectionD08)
+    {
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+        org.eclipse.jetty.io.EndPoint $r1;
+
+        r0 := @parameter0: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        $r1 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.io.EndPoint _endp>;
+
+        return $r1;
+    }
+
+    static org.eclipse.jetty.io.EndPoint access$1900(org.eclipse.jetty.websocket.WebSocketConnectionD08)
+    {
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+        org.eclipse.jetty.io.EndPoint $r1;
+
+        r0 := @parameter0: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        $r1 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.io.EndPoint _endp>;
+
+        return $r1;
+    }
+
+    static boolean access$2000(org.eclipse.jetty.websocket.WebSocketConnectionD08)
+    {
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+        boolean $z0;
+
+        r0 := @parameter0: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        $z0 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: boolean _closedIn>;
+
+        return $z0;
+    }
+
+    static org.eclipse.jetty.websocket.WebSocket$OnFrame access$2100(org.eclipse.jetty.websocket.WebSocketConnectionD08)
+    {
+        org.eclipse.jetty.websocket.WebSocket$OnFrame $r1;
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+
+        r0 := @parameter0: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        $r1 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocket$OnFrame _onFrame>;
+
+        return $r1;
+    }
+
+    static org.eclipse.jetty.websocket.WebSocket$OnControl access$2200(org.eclipse.jetty.websocket.WebSocketConnectionD08)
+    {
+        org.eclipse.jetty.websocket.WebSocket$OnControl $r1;
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+
+        r0 := @parameter0: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        $r1 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocket$OnControl _onControl>;
+
+        return $r1;
+    }
+
+    static org.eclipse.jetty.websocket.WebSocket$OnTextMessage access$2300(org.eclipse.jetty.websocket.WebSocketConnectionD08)
+    {
+        org.eclipse.jetty.websocket.WebSocket$OnTextMessage $r1;
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+
+        r0 := @parameter0: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        $r1 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocket$OnTextMessage _onTextMessage>;
+
+        return $r1;
+    }
+
+    static org.eclipse.jetty.websocket.WebSocket$FrameConnection access$2400(org.eclipse.jetty.websocket.WebSocketConnectionD08)
+    {
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+        org.eclipse.jetty.websocket.WebSocket$FrameConnection $r1;
+
+        r0 := @parameter0: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        $r1 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocket$FrameConnection _connection>;
+
+        return $r1;
+    }
+
+    static org.eclipse.jetty.websocket.WebSocket$OnBinaryMessage access$2500(org.eclipse.jetty.websocket.WebSocketConnectionD08)
+    {
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+        org.eclipse.jetty.websocket.WebSocket$OnBinaryMessage $r1;
+
+        r0 := @parameter0: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        $r1 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.websocket.WebSocket$OnBinaryMessage _onBinaryMessage>;
+
+        return $r1;
+    }
+
+    static org.eclipse.jetty.io.EndPoint access$2600(org.eclipse.jetty.websocket.WebSocketConnectionD08)
+    {
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+        org.eclipse.jetty.io.EndPoint $r1;
+
+        r0 := @parameter0: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        $r1 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.io.EndPoint _endp>;
+
+        return $r1;
+    }
+
+    static org.eclipse.jetty.io.EndPoint access$2700(org.eclipse.jetty.websocket.WebSocketConnectionD08)
+    {
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+        org.eclipse.jetty.io.EndPoint $r1;
+
+        r0 := @parameter0: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        $r1 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.io.EndPoint _endp>;
+
+        return $r1;
+    }
+
+    static org.eclipse.jetty.io.EndPoint access$2800(org.eclipse.jetty.websocket.WebSocketConnectionD08)
+    {
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+        org.eclipse.jetty.io.EndPoint $r1;
+
+        r0 := @parameter0: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        $r1 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.io.EndPoint _endp>;
+
+        return $r1;
+    }
+
+    static org.eclipse.jetty.io.EndPoint access$2900(org.eclipse.jetty.websocket.WebSocketConnectionD08)
+    {
+        org.eclipse.jetty.websocket.WebSocketConnectionD08 r0;
+        org.eclipse.jetty.io.EndPoint $r1;
+
+        r0 := @parameter0: org.eclipse.jetty.websocket.WebSocketConnectionD08;
+
+        $r1 = r0.<org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.io.EndPoint _endp>;
+
+        return $r1;
+    }
+
+    static void <clinit>()
+    {
+        byte[] $r2;
+        org.eclipse.jetty.util.log.Logger $r0;
+        java.lang.String $r1;
+        java.lang.RuntimeException $r4;
+        java.io.UnsupportedEncodingException $r3;
+
+        <org.eclipse.jetty.websocket.WebSocketConnectionD08: int VERSION> = 8;
+
+        <org.eclipse.jetty.websocket.WebSocketConnectionD08: int FLAG_FIN> = 8;
+
+        <org.eclipse.jetty.websocket.WebSocketConnectionD08: int CLOSE_NOTUTF8> = 1007;
+
+        <org.eclipse.jetty.websocket.WebSocketConnectionD08: int CLOSE_NOCLOSE> = 1006;
+
+        <org.eclipse.jetty.websocket.WebSocketConnectionD08: int CLOSE_NOCODE> = 1005;
+
+        <org.eclipse.jetty.websocket.WebSocketConnectionD08: int CLOSE_BADDATA> = 1003;
+
+        <org.eclipse.jetty.websocket.WebSocketConnectionD08: int CLOSE_PROTOCOL> = 1002;
+
+        <org.eclipse.jetty.websocket.WebSocketConnectionD08: int CLOSE_SHUTDOWN> = 1001;
+
+        <org.eclipse.jetty.websocket.WebSocketConnectionD08: int CLOSE_NORMAL> = 1000;
+
+        <org.eclipse.jetty.websocket.WebSocketConnectionD08: byte OP_EXT_CTRL> = 11;
+
+        <org.eclipse.jetty.websocket.WebSocketConnectionD08: byte OP_PONG> = 10;
+
+        <org.eclipse.jetty.websocket.WebSocketConnectionD08: byte OP_PING> = 9;
+
+        <org.eclipse.jetty.websocket.WebSocketConnectionD08: byte OP_CLOSE> = 8;
+
+        <org.eclipse.jetty.websocket.WebSocketConnectionD08: byte OP_CONTROL> = 8;
+
+        <org.eclipse.jetty.websocket.WebSocketConnectionD08: byte OP_EXT_DATA> = 3;
+
+        <org.eclipse.jetty.websocket.WebSocketConnectionD08: byte OP_BINARY> = 2;
+
+        <org.eclipse.jetty.websocket.WebSocketConnectionD08: byte OP_TEXT> = 1;
+
+        <org.eclipse.jetty.websocket.WebSocketConnectionD08: byte OP_CONTINUATION> = 0;
+
+        $r0 = staticinvoke <org.eclipse.jetty.util.log.Log: org.eclipse.jetty.util.log.Logger getLogger(java.lang.Class)>(class "Lorg/eclipse/jetty/websocket/WebSocketConnectionD08;");
+
+        <org.eclipse.jetty.websocket.WebSocketConnectionD08: org.eclipse.jetty.util.log.Logger LOG> = $r0;
+
+     label1:
+        $r1 = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+
+        $r2 = virtualinvoke $r1.<java.lang.String: byte[] getBytes(java.lang.String)>("ISO-8859-1");
+
+        <org.eclipse.jetty.websocket.WebSocketConnectionD08: byte[] MAGIC> = $r2;
+
+     label2:
+        goto label4;
+
+     label3:
+        $r3 := @caughtexception;
+
+        $r4 = new java.lang.RuntimeException;
+
+        specialinvoke $r4.<java.lang.RuntimeException: void <init>(java.lang.Throwable)>($r3);
+
+        throw $r4;
+
+     label4:
+        return;
+
+        catch java.io.UnsupportedEncodingException from label1 to label2 with label3;
+    }
+}

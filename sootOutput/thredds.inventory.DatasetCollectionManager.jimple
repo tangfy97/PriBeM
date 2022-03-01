@@ -1,0 +1,2052 @@
+public class thredds.inventory.DatasetCollectionManager extends java.lang.Object implements thredds.inventory.CollectionManager
+{
+    public static final java.lang.String CATALOG;
+    public static final java.lang.String RESCAN;
+    public static final java.lang.String PROTO;
+    private static final org.slf4j.Logger logger;
+    private static thredds.inventory.MController controller;
+    private static boolean enableMetadataManager;
+    protected java.lang.String collectionName;
+    protected thredds.inventory.DateExtractor dateExtractor;
+    private final thredds.inventory.CollectionSpecParser sp;
+    private final java.util.List scanList;
+    private final ucar.nc2.units.TimeUnit recheck;
+    private final double olderThanFilterInSecs;
+    private final thredds.inventory.FeatureCollectionConfig$ProtoChoice protoChoice;
+    private java.util.Map map;
+    private long lastScanned;
+    private long lastChanged;
+    private ucar.nc2.util.ListenerManager lm;
+    private thredds.inventory.bdb.MetadataManager mm;
+
+    public static void enableMetadataManager()
+    {
+        <thredds.inventory.DatasetCollectionManager: boolean enableMetadataManager> = 1;
+
+        return;
+    }
+
+    public static void setController(thredds.inventory.MController)
+    {
+        thredds.inventory.MController r0;
+
+        r0 := @parameter0: thredds.inventory.MController;
+
+        <thredds.inventory.DatasetCollectionManager: thredds.inventory.MController controller> = r0;
+
+        return;
+    }
+
+    public static thredds.inventory.DatasetCollectionManager open(java.lang.String, java.lang.String, java.util.Formatter) throws java.io.IOException
+    {
+        thredds.inventory.DatasetCollectionManager $r1;
+        java.lang.String r0, r2;
+        thredds.inventory.DatasetCollectionFromCatalog $r4;
+        boolean $z0;
+        java.util.Formatter r3;
+
+        r0 := @parameter0: java.lang.String;
+
+        r2 := @parameter1: java.lang.String;
+
+        r3 := @parameter2: java.util.Formatter;
+
+        $z0 = virtualinvoke r0.<java.lang.String: boolean startsWith(java.lang.String)>("catalog:");
+
+        if $z0 == 0 goto label1;
+
+        $r4 = new thredds.inventory.DatasetCollectionFromCatalog;
+
+        specialinvoke $r4.<thredds.inventory.DatasetCollectionFromCatalog: void <init>(java.lang.String)>(r0);
+
+        return $r4;
+
+     label1:
+        $r1 = new thredds.inventory.DatasetCollectionManager;
+
+        specialinvoke $r1.<thredds.inventory.DatasetCollectionManager: void <init>(java.lang.String,java.lang.String,java.util.Formatter)>(r0, r2, r3);
+
+        return $r1;
+    }
+
+    private void <init>(java.lang.String, java.lang.String, java.util.Formatter)
+    {
+        java.util.Formatter r4;
+        java.util.ArrayList $r25, $r27;
+        thredds.inventory.DateExtractor $r24;
+        thredds.inventory.filter.WildcardMatchOnName $r28;
+        thredds.inventory.DatasetCollectionManager r0;
+        thredds.inventory.FeatureCollectionConfig$ProtoChoice $r5;
+        thredds.inventory.CollectionSpecParser $r7, $r10, $r12, $r15, $r18, $r20, $r22, $r26;
+        java.lang.String r3, r9, $r11, $r13, $r17, $r19;
+        double $d0;
+        boolean $z0;
+        thredds.inventory.DateExtractorFromName $r30;
+        java.util.List $r16;
+        thredds.inventory.MCollection $r31;
+        thredds.inventory.DateExtractorNone $r29;
+        java.util.regex.Pattern $r8, $r23;
+
+        r0 := @this: thredds.inventory.DatasetCollectionManager;
+
+        r3 := @parameter0: java.lang.String;
+
+        r9 := @parameter1: java.lang.String;
+
+        r4 := @parameter2: java.util.Formatter;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        $r25 = new java.util.ArrayList;
+
+        specialinvoke $r25.<java.util.ArrayList: void <init>()>();
+
+        r0.<thredds.inventory.DatasetCollectionManager: java.util.List scanList> = $r25;
+
+        $r26 = new thredds.inventory.CollectionSpecParser;
+
+        specialinvoke $r26.<thredds.inventory.CollectionSpecParser: void <init>(java.lang.String,java.util.Formatter)>(r3, r4);
+
+        r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.CollectionSpecParser sp> = $r26;
+
+        r0.<thredds.inventory.DatasetCollectionManager: java.lang.String collectionName> = r3;
+
+        r0.<thredds.inventory.DatasetCollectionManager: ucar.nc2.units.TimeUnit recheck> = null;
+
+        $r5 = <thredds.inventory.FeatureCollectionConfig$ProtoChoice: thredds.inventory.FeatureCollectionConfig$ProtoChoice Penultimate>;
+
+        r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.FeatureCollectionConfig$ProtoChoice protoChoice> = $r5;
+
+        $r27 = new java.util.ArrayList;
+
+        specialinvoke $r27.<java.util.ArrayList: void <init>(int)>(2);
+
+        $r7 = r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.CollectionSpecParser sp>;
+
+        $r8 = virtualinvoke $r7.<thredds.inventory.CollectionSpecParser: java.util.regex.Pattern getFilter()>();
+
+        if null == $r8 goto label1;
+
+        $r28 = new thredds.inventory.filter.WildcardMatchOnName;
+
+        $r22 = r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.CollectionSpecParser sp>;
+
+        $r23 = virtualinvoke $r22.<thredds.inventory.CollectionSpecParser: java.util.regex.Pattern getFilter()>();
+
+        specialinvoke $r28.<thredds.inventory.filter.WildcardMatchOnName: void <init>(java.util.regex.Pattern)>($r23);
+
+        interfaceinvoke $r27.<java.util.List: boolean add(java.lang.Object)>($r28);
+
+     label1:
+        $d0 = specialinvoke r0.<thredds.inventory.DatasetCollectionManager: double getOlderThanFilter(java.util.List,java.lang.String)>($r27, r9);
+
+        r0.<thredds.inventory.DatasetCollectionManager: double olderThanFilterInSecs> = $d0;
+
+        $r10 = r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.CollectionSpecParser sp>;
+
+        $r11 = virtualinvoke $r10.<thredds.inventory.CollectionSpecParser: java.lang.String getDateFormatMark()>();
+
+        if $r11 != null goto label2;
+
+        $r29 = new thredds.inventory.DateExtractorNone;
+
+        $r24 = $r29;
+
+        specialinvoke $r29.<thredds.inventory.DateExtractorNone: void <init>()>();
+
+        goto label3;
+
+     label2:
+        $r30 = new thredds.inventory.DateExtractorFromName;
+
+        $r24 = $r30;
+
+        $r12 = r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.CollectionSpecParser sp>;
+
+        $r13 = virtualinvoke $r12.<thredds.inventory.CollectionSpecParser: java.lang.String getDateFormatMark()>();
+
+        specialinvoke $r30.<thredds.inventory.DateExtractorFromName: void <init>(java.lang.String,boolean)>($r13, 1);
+
+     label3:
+        r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.DateExtractor dateExtractor> = $r24;
+
+        $r16 = r0.<thredds.inventory.DatasetCollectionManager: java.util.List scanList>;
+
+        $r31 = new thredds.inventory.MCollection;
+
+        $r15 = r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.CollectionSpecParser sp>;
+
+        $r17 = virtualinvoke $r15.<thredds.inventory.CollectionSpecParser: java.lang.String getTopDir()>();
+
+        $r18 = r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.CollectionSpecParser sp>;
+
+        $r19 = virtualinvoke $r18.<thredds.inventory.CollectionSpecParser: java.lang.String getTopDir()>();
+
+        $r20 = r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.CollectionSpecParser sp>;
+
+        $z0 = virtualinvoke $r20.<thredds.inventory.CollectionSpecParser: boolean wantSubdirs()>();
+
+        specialinvoke $r31.<thredds.inventory.MCollection: void <init>(java.lang.String,java.lang.String,boolean,java.util.List,java.lang.Object)>($r17, $r19, $z0, $r27, null);
+
+        interfaceinvoke $r16.<java.util.List: boolean add(java.lang.Object)>($r31);
+
+        specialinvoke r0.<thredds.inventory.DatasetCollectionManager: void createListenerManager()>();
+
+        return;
+    }
+
+    public void <init>(thredds.inventory.FeatureCollectionConfig, java.util.Formatter)
+    {
+        java.util.Formatter r4;
+        thredds.inventory.DateExtractor $r30;
+        thredds.inventory.filter.WildcardMatchOnName $r34;
+        thredds.inventory.DatasetCollectionManager r0;
+        thredds.inventory.CollectionSpecParser $r8, $r11, $r13, $r16, $r19, $r21, $r27, $r32;
+        thredds.inventory.FeatureCollectionConfig$ProtoChoice $r25;
+        boolean $z0;
+        java.util.List $r17;
+        thredds.inventory.DateExtractorNone $r35;
+        java.util.regex.Pattern $r9, $r28;
+        java.util.ArrayList $r31, $r33;
+        java.lang.String $r5, $r6, $r10, $r12, $r14, $r18, $r20, $r22, $r29;
+        thredds.inventory.FeatureCollectionConfig$ProtoConfig $r24;
+        double $d0;
+        thredds.inventory.FeatureCollectionConfig r3;
+        thredds.inventory.DateExtractorFromName $r36;
+        thredds.inventory.MCollection $r37;
+        ucar.nc2.units.TimeUnit $r23;
+
+        r0 := @this: thredds.inventory.DatasetCollectionManager;
+
+        r3 := @parameter0: thredds.inventory.FeatureCollectionConfig;
+
+        r4 := @parameter1: java.util.Formatter;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        $r31 = new java.util.ArrayList;
+
+        specialinvoke $r31.<java.util.ArrayList: void <init>()>();
+
+        r0.<thredds.inventory.DatasetCollectionManager: java.util.List scanList> = $r31;
+
+        $r32 = new thredds.inventory.CollectionSpecParser;
+
+        $r5 = r3.<thredds.inventory.FeatureCollectionConfig: java.lang.String spec>;
+
+        specialinvoke $r32.<thredds.inventory.CollectionSpecParser: void <init>(java.lang.String,java.util.Formatter)>($r5, r4);
+
+        r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.CollectionSpecParser sp> = $r32;
+
+        $r6 = r3.<thredds.inventory.FeatureCollectionConfig: java.lang.String name>;
+
+        if $r6 == null goto label1;
+
+        $r29 = r3.<thredds.inventory.FeatureCollectionConfig: java.lang.String name>;
+
+        goto label2;
+
+     label1:
+        $r29 = r3.<thredds.inventory.FeatureCollectionConfig: java.lang.String spec>;
+
+     label2:
+        r0.<thredds.inventory.DatasetCollectionManager: java.lang.String collectionName> = $r29;
+
+        $r33 = new java.util.ArrayList;
+
+        specialinvoke $r33.<java.util.ArrayList: void <init>(int)>(3);
+
+        $r8 = r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.CollectionSpecParser sp>;
+
+        $r9 = virtualinvoke $r8.<thredds.inventory.CollectionSpecParser: java.util.regex.Pattern getFilter()>();
+
+        if null == $r9 goto label3;
+
+        $r34 = new thredds.inventory.filter.WildcardMatchOnName;
+
+        $r27 = r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.CollectionSpecParser sp>;
+
+        $r28 = virtualinvoke $r27.<thredds.inventory.CollectionSpecParser: java.util.regex.Pattern getFilter()>();
+
+        specialinvoke $r34.<thredds.inventory.filter.WildcardMatchOnName: void <init>(java.util.regex.Pattern)>($r28);
+
+        interfaceinvoke $r33.<java.util.List: boolean add(java.lang.Object)>($r34);
+
+     label3:
+        $r10 = r3.<thredds.inventory.FeatureCollectionConfig: java.lang.String olderThan>;
+
+        $d0 = specialinvoke r0.<thredds.inventory.DatasetCollectionManager: double getOlderThanFilter(java.util.List,java.lang.String)>($r33, $r10);
+
+        r0.<thredds.inventory.DatasetCollectionManager: double olderThanFilterInSecs> = $d0;
+
+        $r11 = r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.CollectionSpecParser sp>;
+
+        $r12 = virtualinvoke $r11.<thredds.inventory.CollectionSpecParser: java.lang.String getDateFormatMark()>();
+
+        if $r12 != null goto label4;
+
+        $r35 = new thredds.inventory.DateExtractorNone;
+
+        $r30 = $r35;
+
+        specialinvoke $r35.<thredds.inventory.DateExtractorNone: void <init>()>();
+
+        goto label5;
+
+     label4:
+        $r36 = new thredds.inventory.DateExtractorFromName;
+
+        $r30 = $r36;
+
+        $r13 = r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.CollectionSpecParser sp>;
+
+        $r14 = virtualinvoke $r13.<thredds.inventory.CollectionSpecParser: java.lang.String getDateFormatMark()>();
+
+        specialinvoke $r36.<thredds.inventory.DateExtractorFromName: void <init>(java.lang.String,boolean)>($r14, 1);
+
+     label5:
+        r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.DateExtractor dateExtractor> = $r30;
+
+        $r17 = r0.<thredds.inventory.DatasetCollectionManager: java.util.List scanList>;
+
+        $r37 = new thredds.inventory.MCollection;
+
+        $r16 = r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.CollectionSpecParser sp>;
+
+        $r18 = virtualinvoke $r16.<thredds.inventory.CollectionSpecParser: java.lang.String getTopDir()>();
+
+        $r19 = r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.CollectionSpecParser sp>;
+
+        $r20 = virtualinvoke $r19.<thredds.inventory.CollectionSpecParser: java.lang.String getTopDir()>();
+
+        $r21 = r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.CollectionSpecParser sp>;
+
+        $z0 = virtualinvoke $r21.<thredds.inventory.CollectionSpecParser: boolean wantSubdirs()>();
+
+        specialinvoke $r37.<thredds.inventory.MCollection: void <init>(java.lang.String,java.lang.String,boolean,java.util.List,java.lang.Object)>($r18, $r20, $z0, $r33, null);
+
+        interfaceinvoke $r17.<java.util.List: boolean add(java.lang.Object)>($r37);
+
+        $r22 = r3.<thredds.inventory.FeatureCollectionConfig: java.lang.String recheckAfter>;
+
+        $r23 = specialinvoke r0.<thredds.inventory.DatasetCollectionManager: ucar.nc2.units.TimeUnit makeRecheck(java.lang.String)>($r22);
+
+        r0.<thredds.inventory.DatasetCollectionManager: ucar.nc2.units.TimeUnit recheck> = $r23;
+
+        $r24 = r3.<thredds.inventory.FeatureCollectionConfig: thredds.inventory.FeatureCollectionConfig$ProtoConfig protoConfig>;
+
+        $r25 = $r24.<thredds.inventory.FeatureCollectionConfig$ProtoConfig: thredds.inventory.FeatureCollectionConfig$ProtoChoice choice>;
+
+        r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.FeatureCollectionConfig$ProtoChoice protoChoice> = $r25;
+
+        specialinvoke r0.<thredds.inventory.DatasetCollectionManager: void createListenerManager()>();
+
+        return;
+    }
+
+    private double getOlderThanFilter(java.util.List, java.lang.String)
+    {
+        org.slf4j.Logger $r6;
+        long $l0;
+        java.lang.Exception $r4;
+        java.util.List r2;
+        thredds.inventory.DatasetCollectionManager r7;
+        thredds.inventory.filter.LastModifiedLimit $r3;
+        java.lang.StringBuilder $r5, $r9, $r10;
+        java.lang.String r0, $r8, $r11;
+        ucar.nc2.units.TimeUnit $r1;
+        double $d0, $d1;
+
+        r7 := @this: thredds.inventory.DatasetCollectionManager;
+
+        r2 := @parameter0: java.util.List;
+
+        r0 := @parameter1: java.lang.String;
+
+        if r0 == null goto label4;
+
+     label1:
+        $r1 = new ucar.nc2.units.TimeUnit;
+
+        specialinvoke $r1.<ucar.nc2.units.TimeUnit: void <init>(java.lang.String)>(r0);
+
+        $d0 = virtualinvoke $r1.<ucar.nc2.units.TimeUnit: double getValueInSeconds()>();
+
+        $r3 = new thredds.inventory.filter.LastModifiedLimit;
+
+        $d1 = 1000.0 * $d0;
+
+        $l0 = (long) $d1;
+
+        specialinvoke $r3.<thredds.inventory.filter.LastModifiedLimit: void <init>(long)>($l0);
+
+        interfaceinvoke r2.<java.util.List: boolean add(java.lang.Object)>($r3);
+
+     label2:
+        return $d0;
+
+     label3:
+        $r4 := @caughtexception;
+
+        $r6 = <thredds.inventory.DatasetCollectionManager: org.slf4j.Logger logger>;
+
+        $r5 = new java.lang.StringBuilder;
+
+        specialinvoke $r5.<java.lang.StringBuilder: void <init>()>();
+
+        $r8 = r7.<thredds.inventory.DatasetCollectionManager: java.lang.String collectionName>;
+
+        $r9 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r8);
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(": Invalid time unit for olderThan = {}");
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r6.<org.slf4j.Logger: void error(java.lang.String,java.lang.Object)>($r11, r0);
+
+     label4:
+        return -1.0;
+
+        catch java.lang.Exception from label1 to label2 with label3;
+    }
+
+    private ucar.nc2.units.TimeUnit makeRecheck(java.lang.String)
+    {
+        org.slf4j.Logger $r4;
+        java.lang.Exception $r2;
+        thredds.inventory.DatasetCollectionManager r5;
+        java.lang.StringBuilder $r3, $r7, $r8;
+        java.lang.String r0, $r6, $r9;
+        ucar.nc2.units.TimeUnit $r1;
+
+        r5 := @this: thredds.inventory.DatasetCollectionManager;
+
+        r0 := @parameter0: java.lang.String;
+
+        if r0 == null goto label4;
+
+     label1:
+        $r1 = new ucar.nc2.units.TimeUnit;
+
+        specialinvoke $r1.<ucar.nc2.units.TimeUnit: void <init>(java.lang.String)>(r0);
+
+     label2:
+        return $r1;
+
+     label3:
+        $r2 := @caughtexception;
+
+        $r4 = <thredds.inventory.DatasetCollectionManager: org.slf4j.Logger logger>;
+
+        $r3 = new java.lang.StringBuilder;
+
+        specialinvoke $r3.<java.lang.StringBuilder: void <init>()>();
+
+        $r6 = r5.<thredds.inventory.DatasetCollectionManager: java.lang.String collectionName>;
+
+        $r7 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r6);
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(": Invalid time unit for recheckEvery = {}");
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r4.<org.slf4j.Logger: void error(java.lang.String,java.lang.Object)>($r9, r0);
+
+     label4:
+        return null;
+
+        catch java.lang.Exception from label1 to label2 with label3;
+    }
+
+    public void close()
+    {
+        thredds.inventory.DatasetCollectionManager r0;
+        thredds.inventory.bdb.MetadataManager $r1, $r2;
+
+        r0 := @this: thredds.inventory.DatasetCollectionManager;
+
+        $r1 = r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.bdb.MetadataManager mm>;
+
+        if $r1 == null goto label1;
+
+        $r2 = r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.bdb.MetadataManager mm>;
+
+        virtualinvoke $r2.<thredds.inventory.bdb.MetadataManager: void close()>();
+
+     label1:
+        return;
+    }
+
+    protected void <init>()
+    {
+        thredds.inventory.DatasetCollectionManager r0;
+        thredds.inventory.FeatureCollectionConfig$ProtoChoice $r2;
+        java.util.ArrayList $r1;
+
+        r0 := @this: thredds.inventory.DatasetCollectionManager;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        $r1 = new java.util.ArrayList;
+
+        specialinvoke $r1.<java.util.ArrayList: void <init>()>();
+
+        r0.<thredds.inventory.DatasetCollectionManager: java.util.List scanList> = $r1;
+
+        r0.<thredds.inventory.DatasetCollectionManager: ucar.nc2.units.TimeUnit recheck> = null;
+
+        r0.<thredds.inventory.DatasetCollectionManager: double olderThanFilterInSecs> = -1.0;
+
+        $r2 = <thredds.inventory.FeatureCollectionConfig$ProtoChoice: thredds.inventory.FeatureCollectionConfig$ProtoChoice Penultimate>;
+
+        r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.FeatureCollectionConfig$ProtoChoice protoChoice> = $r2;
+
+        r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.CollectionSpecParser sp> = null;
+
+        specialinvoke r0.<thredds.inventory.DatasetCollectionManager: void createListenerManager()>();
+
+        return;
+    }
+
+    public void <init>(java.lang.String)
+    {
+        thredds.inventory.DatasetCollectionManager r0;
+        thredds.inventory.FeatureCollectionConfig$ProtoChoice $r4;
+        java.lang.String r2;
+        ucar.nc2.units.TimeUnit $r3;
+        java.util.ArrayList $r1;
+
+        r0 := @this: thredds.inventory.DatasetCollectionManager;
+
+        r2 := @parameter0: java.lang.String;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        $r1 = new java.util.ArrayList;
+
+        specialinvoke $r1.<java.util.ArrayList: void <init>()>();
+
+        r0.<thredds.inventory.DatasetCollectionManager: java.util.List scanList> = $r1;
+
+        $r3 = specialinvoke r0.<thredds.inventory.DatasetCollectionManager: ucar.nc2.units.TimeUnit makeRecheck(java.lang.String)>(r2);
+
+        r0.<thredds.inventory.DatasetCollectionManager: ucar.nc2.units.TimeUnit recheck> = $r3;
+
+        r0.<thredds.inventory.DatasetCollectionManager: double olderThanFilterInSecs> = -1.0;
+
+        $r4 = <thredds.inventory.FeatureCollectionConfig$ProtoChoice: thredds.inventory.FeatureCollectionConfig$ProtoChoice Penultimate>;
+
+        r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.FeatureCollectionConfig$ProtoChoice protoChoice> = $r4;
+
+        r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.CollectionSpecParser sp> = null;
+
+        specialinvoke r0.<thredds.inventory.DatasetCollectionManager: void createListenerManager()>();
+
+        return;
+    }
+
+    public void setDateExtractor(thredds.inventory.DateExtractor)
+    {
+        thredds.inventory.DateExtractor r1;
+        thredds.inventory.DatasetCollectionManager r0;
+
+        r0 := @this: thredds.inventory.DatasetCollectionManager;
+
+        r1 := @parameter0: thredds.inventory.DateExtractor;
+
+        r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.DateExtractor dateExtractor> = r1;
+
+        return;
+    }
+
+    public void addDirectoryScan(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.Object)
+    {
+        thredds.inventory.MFileFilter $r25;
+        thredds.inventory.DatasetCollectionManager r7;
+        thredds.inventory.filter.LastModifiedLimit $r35;
+        boolean $z0, z1, z2, z3;
+        thredds.inventory.filter.Composite $r37;
+        thredds.inventory.filter.RegExpMatchOnName $r31;
+        java.lang.Exception $r18;
+        java.util.List $r29;
+        java.lang.StringBuilder $r13, $r14, $r15, $r22, $r23, $r32, $r36, $r39;
+        long $l1;
+        java.util.ArrayList $r30;
+        int $i0, $i2;
+        java.lang.String r1, r2, r3, r4, r5, $r16, $r21, $r24, $r28;
+        double $d0, $d1;
+        org.slf4j.Logger $r20;
+        thredds.inventory.filter.WildcardMatchOnPath $r33;
+        thredds.inventory.MCollection $r38;
+        java.lang.Object r6, $r8;
+        ucar.nc2.units.TimeUnit $r34;
+
+        r7 := @this: thredds.inventory.DatasetCollectionManager;
+
+        r5 := @parameter0: java.lang.String;
+
+        r2 := @parameter1: java.lang.String;
+
+        r1 := @parameter2: java.lang.String;
+
+        r4 := @parameter3: java.lang.String;
+
+        r3 := @parameter4: java.lang.String;
+
+        r6 := @parameter5: java.lang.Object;
+
+        $r30 = new java.util.ArrayList;
+
+        specialinvoke $r30.<java.util.ArrayList: void <init>(int)>(3);
+
+        if null == r1 goto label01;
+
+        $r31 = new thredds.inventory.filter.RegExpMatchOnName;
+
+        specialinvoke $r31.<thredds.inventory.filter.RegExpMatchOnName: void <init>(java.lang.String)>(r1);
+
+        interfaceinvoke $r30.<java.util.List: boolean add(java.lang.Object)>($r31);
+
+        goto label02;
+
+     label01:
+        if r2 == null goto label02;
+
+        $r33 = new thredds.inventory.filter.WildcardMatchOnPath;
+
+        $r32 = new java.lang.StringBuilder;
+
+        specialinvoke $r32.<java.lang.StringBuilder: void <init>()>();
+
+        $r13 = virtualinvoke $r32.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("*");
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r2);
+
+        $r15 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("$");
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r33.<thredds.inventory.filter.WildcardMatchOnPath: void <init>(java.lang.String)>($r16);
+
+        interfaceinvoke $r30.<java.util.List: boolean add(java.lang.Object)>($r33);
+
+     label02:
+        if r3 == null goto label06;
+
+     label03:
+        $r34 = new ucar.nc2.units.TimeUnit;
+
+        specialinvoke $r34.<ucar.nc2.units.TimeUnit: void <init>(java.lang.String)>(r3);
+
+        $r35 = new thredds.inventory.filter.LastModifiedLimit;
+
+        $d0 = virtualinvoke $r34.<ucar.nc2.units.TimeUnit: double getValueInSeconds()>();
+
+        $d1 = 1000.0 * $d0;
+
+        $l1 = (long) $d1;
+
+        specialinvoke $r35.<thredds.inventory.filter.LastModifiedLimit: void <init>(long)>($l1);
+
+        interfaceinvoke $r30.<java.util.List: boolean add(java.lang.Object)>($r35);
+
+     label04:
+        goto label06;
+
+     label05:
+        $r18 := @caughtexception;
+
+        $r20 = <thredds.inventory.DatasetCollectionManager: org.slf4j.Logger logger>;
+
+        $r36 = new java.lang.StringBuilder;
+
+        specialinvoke $r36.<java.lang.StringBuilder: void <init>()>();
+
+        $r21 = r7.<thredds.inventory.DatasetCollectionManager: java.lang.String collectionName>;
+
+        $r22 = virtualinvoke $r36.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r21);
+
+        $r23 = virtualinvoke $r22.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(": Invalid time unit for olderThan = {}");
+
+        $r24 = virtualinvoke $r23.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r20.<org.slf4j.Logger: void error(java.lang.String,java.lang.Object)>($r24, r3);
+
+     label06:
+        z1 = 1;
+
+        z3 = 1;
+
+        z2 = 1;
+
+        if r4 == null goto label07;
+
+        $z0 = virtualinvoke r4.<java.lang.String: boolean equalsIgnoreCase(java.lang.String)>("false");
+
+        if $z0 == 0 goto label07;
+
+        z1 = 0;
+
+        z3 = 0;
+
+        z2 = 0;
+
+     label07:
+        $i2 = interfaceinvoke $r30.<java.util.List: int size()>();
+
+        if $i2 != 0 goto label08;
+
+        $r25 = null;
+
+        goto label10;
+
+     label08:
+        $i0 = interfaceinvoke $r30.<java.util.List: int size()>();
+
+        if $i0 != 1 goto label09;
+
+        $r8 = interfaceinvoke $r30.<java.util.List: java.lang.Object get(int)>(0);
+
+        $r25 = (thredds.inventory.MFileFilter) $r8;
+
+        goto label10;
+
+     label09:
+        $r37 = new thredds.inventory.filter.Composite;
+
+        $r25 = $r37;
+
+        specialinvoke $r37.<thredds.inventory.filter.Composite: void <init>(java.util.List)>($r30);
+
+     label10:
+        $r38 = new thredds.inventory.MCollection;
+
+        specialinvoke $r38.<thredds.inventory.MCollection: void <init>(java.lang.String,java.lang.String,boolean,thredds.inventory.MFileFilter,java.lang.Object)>(r5, r5, z2, $r25, r6);
+
+        $r39 = new java.lang.StringBuilder;
+
+        specialinvoke $r39.<java.lang.StringBuilder: void <init>(java.lang.String)>(r5);
+
+        if z3 == 0 goto label11;
+
+        virtualinvoke $r39.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("**/");
+
+     label11:
+        if null == r1 goto label12;
+
+        virtualinvoke $r39.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r1);
+
+        goto label14;
+
+     label12:
+        if r2 == null goto label13;
+
+        virtualinvoke $r39.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r2);
+
+        goto label14;
+
+     label13:
+        virtualinvoke $r39.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("noFilter");
+
+     label14:
+        $r28 = virtualinvoke $r39.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        r7.<thredds.inventory.DatasetCollectionManager: java.lang.String collectionName> = $r28;
+
+        $r29 = r7.<thredds.inventory.DatasetCollectionManager: java.util.List scanList>;
+
+        interfaceinvoke $r29.<java.util.List: boolean add(java.lang.Object)>($r38);
+
+        return;
+
+        catch java.lang.Exception from label03 to label04 with label05;
+    }
+
+    public java.lang.String getCollectionName()
+    {
+        thredds.inventory.DatasetCollectionManager r0;
+        java.lang.String $r1;
+
+        r0 := @this: thredds.inventory.DatasetCollectionManager;
+
+        $r1 = r0.<thredds.inventory.DatasetCollectionManager: java.lang.String collectionName>;
+
+        return $r1;
+    }
+
+    public java.lang.String getRoot()
+    {
+        thredds.inventory.DatasetCollectionManager r0;
+        thredds.inventory.CollectionSpecParser $r1, $r2;
+        java.lang.String $r3;
+
+        r0 := @this: thredds.inventory.DatasetCollectionManager;
+
+        $r1 = r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.CollectionSpecParser sp>;
+
+        if $r1 != null goto label1;
+
+        $r3 = null;
+
+        goto label2;
+
+     label1:
+        $r2 = r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.CollectionSpecParser sp>;
+
+        $r3 = virtualinvoke $r2.<thredds.inventory.CollectionSpecParser: java.lang.String getTopDir()>();
+
+     label2:
+        return $r3;
+    }
+
+    public thredds.inventory.CollectionSpecParser getCollectionSpecParser()
+    {
+        thredds.inventory.DatasetCollectionManager r0;
+        thredds.inventory.CollectionSpecParser $r1;
+
+        r0 := @this: thredds.inventory.DatasetCollectionManager;
+
+        $r1 = r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.CollectionSpecParser sp>;
+
+        return $r1;
+    }
+
+    public double getOlderThanFilterInSecs()
+    {
+        thredds.inventory.DatasetCollectionManager r0;
+        double $d0;
+
+        r0 := @this: thredds.inventory.DatasetCollectionManager;
+
+        $d0 = r0.<thredds.inventory.DatasetCollectionManager: double olderThanFilterInSecs>;
+
+        return $d0;
+    }
+
+    public ucar.nc2.units.TimeUnit getRecheck()
+    {
+        thredds.inventory.DatasetCollectionManager r0;
+        ucar.nc2.units.TimeUnit $r1;
+
+        r0 := @this: thredds.inventory.DatasetCollectionManager;
+
+        $r1 = r0.<thredds.inventory.DatasetCollectionManager: ucar.nc2.units.TimeUnit recheck>;
+
+        return $r1;
+    }
+
+    public long getLastScanned()
+    {
+        thredds.inventory.DatasetCollectionManager r0;
+        long $l0;
+
+        r0 := @this: thredds.inventory.DatasetCollectionManager;
+
+        $l0 = r0.<thredds.inventory.DatasetCollectionManager: long lastScanned>;
+
+        return $l0;
+    }
+
+    public long getLastChanged()
+    {
+        thredds.inventory.DatasetCollectionManager r0;
+        long $l0;
+
+        r0 := @this: thredds.inventory.DatasetCollectionManager;
+
+        $l0 = r0.<thredds.inventory.DatasetCollectionManager: long lastChanged>;
+
+        return $l0;
+    }
+
+    public void scan(ucar.nc2.util.CancelTask) throws java.io.IOException
+    {
+        java.lang.Throwable $r13;
+        java.util.HashMap $r0;
+        long $l0, $l1;
+        thredds.inventory.DatasetCollectionManager r1;
+        ucar.nc2.util.CancelTask r2;
+        java.util.Map $r9;
+        int $i2;
+        java.lang.String $r6, $r12;
+        boolean $z0, $z1;
+        org.slf4j.Logger $r3, $r5;
+        java.util.Set $r10;
+        java.lang.StringBuilder $r4, $r7, $r8, $r11;
+
+        r1 := @this: thredds.inventory.DatasetCollectionManager;
+
+        r2 := @parameter0: ucar.nc2.util.CancelTask;
+
+        $r0 = new java.util.HashMap;
+
+        specialinvoke $r0.<java.util.HashMap: void <init>()>();
+
+        $z0 = virtualinvoke r1.<thredds.inventory.DatasetCollectionManager: boolean hasScans()>();
+
+        if $z0 != 0 goto label1;
+
+        r1.<thredds.inventory.DatasetCollectionManager: java.util.Map map> = $r0;
+
+        return;
+
+     label1:
+        virtualinvoke r1.<thredds.inventory.DatasetCollectionManager: void scan(java.util.Map,ucar.nc2.util.CancelTask)>($r0, r2);
+
+        specialinvoke r1.<thredds.inventory.DatasetCollectionManager: void deleteOld(java.util.Map)>($r0);
+
+        entermonitor r1;
+
+     label2:
+        r1.<thredds.inventory.DatasetCollectionManager: java.util.Map map> = $r0;
+
+        $l0 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        r1.<thredds.inventory.DatasetCollectionManager: long lastScanned> = $l0;
+
+        $l1 = r1.<thredds.inventory.DatasetCollectionManager: long lastScanned>;
+
+        r1.<thredds.inventory.DatasetCollectionManager: long lastChanged> = $l1;
+
+        exitmonitor r1;
+
+     label3:
+        goto label6;
+
+     label4:
+        $r13 := @caughtexception;
+
+        exitmonitor r1;
+
+     label5:
+        throw $r13;
+
+     label6:
+        $r3 = <thredds.inventory.DatasetCollectionManager: org.slf4j.Logger logger>;
+
+        $z1 = interfaceinvoke $r3.<org.slf4j.Logger: boolean isDebugEnabled()>();
+
+        if $z1 == 0 goto label7;
+
+        $r5 = <thredds.inventory.DatasetCollectionManager: org.slf4j.Logger logger>;
+
+        $r4 = new java.lang.StringBuilder;
+
+        specialinvoke $r4.<java.lang.StringBuilder: void <init>()>();
+
+        $r6 = r1.<thredds.inventory.DatasetCollectionManager: java.lang.String collectionName>;
+
+        $r7 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r6);
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(": initial scan found n datasets = ");
+
+        $r9 = r1.<thredds.inventory.DatasetCollectionManager: java.util.Map map>;
+
+        $r10 = interfaceinvoke $r9.<java.util.Map: java.util.Set keySet()>();
+
+        $i2 = interfaceinvoke $r10.<java.util.Set: int size()>();
+
+        $r11 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i2);
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r5.<org.slf4j.Logger: void debug(java.lang.String)>($r12);
+
+     label7:
+        return;
+
+        catch java.lang.Throwable from label2 to label3 with label4;
+        catch java.lang.Throwable from label4 to label5 with label4;
+    }
+
+    public boolean rescanIfNeeded() throws java.io.IOException
+    {
+        thredds.inventory.DatasetCollectionManager r0;
+        boolean $z0, $z1;
+
+        r0 := @this: thredds.inventory.DatasetCollectionManager;
+
+        $z0 = virtualinvoke r0.<thredds.inventory.DatasetCollectionManager: boolean isRescanNeeded()>();
+
+        if $z0 == 0 goto label1;
+
+        $z1 = virtualinvoke r0.<thredds.inventory.DatasetCollectionManager: boolean rescan()>();
+
+        return $z1;
+
+     label1:
+        return 0;
+    }
+
+    protected boolean hasScans()
+    {
+        thredds.inventory.DatasetCollectionManager r0;
+        java.util.List $r1;
+        boolean $z0, $z1;
+
+        r0 := @this: thredds.inventory.DatasetCollectionManager;
+
+        $r1 = r0.<thredds.inventory.DatasetCollectionManager: java.util.List scanList>;
+
+        $z0 = interfaceinvoke $r1.<java.util.List: boolean isEmpty()>();
+
+        if $z0 != 0 goto label1;
+
+        $z1 = 1;
+
+        goto label2;
+
+     label1:
+        $z1 = 0;
+
+     label2:
+        return $z1;
+    }
+
+    public boolean isRescanNeeded()
+    {
+        java.util.Date $r2, $r3, $r5;
+        thredds.inventory.DatasetCollectionManager r0;
+        boolean $z0, $z1, $z2, $z3, $z4;
+        java.lang.StringBuilder $r7, $r10, $r11, $r12, $r13, $r14, $r17, $r20, $r21, $r24, $r27, $r28;
+        long $l0;
+        java.lang.String $r9, $r15, $r19, $r22, $r26, $r29;
+        org.slf4j.Logger $r6, $r8, $r16, $r18, $r23, $r25;
+        ucar.nc2.units.TimeUnit $r1, $r4;
+
+        r0 := @this: thredds.inventory.DatasetCollectionManager;
+
+        $z0 = virtualinvoke r0.<thredds.inventory.DatasetCollectionManager: boolean hasScans()>();
+
+        if $z0 != 0 goto label2;
+
+        $r23 = <thredds.inventory.DatasetCollectionManager: org.slf4j.Logger logger>;
+
+        $z4 = interfaceinvoke $r23.<org.slf4j.Logger: boolean isDebugEnabled()>();
+
+        if $z4 == 0 goto label1;
+
+        $r25 = <thredds.inventory.DatasetCollectionManager: org.slf4j.Logger logger>;
+
+        $r24 = new java.lang.StringBuilder;
+
+        specialinvoke $r24.<java.lang.StringBuilder: void <init>()>();
+
+        $r26 = r0.<thredds.inventory.DatasetCollectionManager: java.lang.String collectionName>;
+
+        $r27 = virtualinvoke $r24.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r26);
+
+        $r28 = virtualinvoke $r27.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(": rescan not needed, no scanners");
+
+        $r29 = virtualinvoke $r28.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r25.<org.slf4j.Logger: void debug(java.lang.String)>($r29);
+
+     label1:
+        return 0;
+
+     label2:
+        $r1 = r0.<thredds.inventory.DatasetCollectionManager: ucar.nc2.units.TimeUnit recheck>;
+
+        if $r1 != null goto label4;
+
+        $r16 = <thredds.inventory.DatasetCollectionManager: org.slf4j.Logger logger>;
+
+        $z3 = interfaceinvoke $r16.<org.slf4j.Logger: boolean isDebugEnabled()>();
+
+        if $z3 == 0 goto label3;
+
+        $r18 = <thredds.inventory.DatasetCollectionManager: org.slf4j.Logger logger>;
+
+        $r17 = new java.lang.StringBuilder;
+
+        specialinvoke $r17.<java.lang.StringBuilder: void <init>()>();
+
+        $r19 = r0.<thredds.inventory.DatasetCollectionManager: java.lang.String collectionName>;
+
+        $r20 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r19);
+
+        $r21 = virtualinvoke $r20.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(": rescan not needed, recheck null");
+
+        $r22 = virtualinvoke $r21.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r18.<org.slf4j.Logger: void debug(java.lang.String)>($r22);
+
+     label3:
+        return 0;
+
+     label4:
+        $r2 = new java.util.Date;
+
+        specialinvoke $r2.<java.util.Date: void <init>()>();
+
+        $r3 = new java.util.Date;
+
+        $l0 = r0.<thredds.inventory.DatasetCollectionManager: long lastScanned>;
+
+        specialinvoke $r3.<java.util.Date: void <init>(long)>($l0);
+
+        $r4 = r0.<thredds.inventory.DatasetCollectionManager: ucar.nc2.units.TimeUnit recheck>;
+
+        $r5 = virtualinvoke $r4.<ucar.nc2.units.TimeUnit: java.util.Date add(java.util.Date)>($r3);
+
+        $z1 = virtualinvoke $r2.<java.util.Date: boolean before(java.util.Date)>($r5);
+
+        if $z1 == 0 goto label6;
+
+        $r6 = <thredds.inventory.DatasetCollectionManager: org.slf4j.Logger logger>;
+
+        $z2 = interfaceinvoke $r6.<org.slf4j.Logger: boolean isDebugEnabled()>();
+
+        if $z2 == 0 goto label5;
+
+        $r8 = <thredds.inventory.DatasetCollectionManager: org.slf4j.Logger logger>;
+
+        $r7 = new java.lang.StringBuilder;
+
+        specialinvoke $r7.<java.lang.StringBuilder: void <init>()>();
+
+        $r9 = r0.<thredds.inventory.DatasetCollectionManager: java.lang.String collectionName>;
+
+        $r10 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r9);
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(": rescan not needed, last= ");
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r3);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" now = ");
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r2);
+
+        $r15 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r8.<org.slf4j.Logger: void debug(java.lang.String)>($r15);
+
+     label5:
+        return 0;
+
+     label6:
+        return 1;
+    }
+
+    public boolean rescan() throws java.io.IOException
+    {
+        thredds.inventory.DatasetCollectionManager r0;
+        java.util.Map $r1, r2;
+        ucar.nc2.util.ListenerManager $r22;
+        java.lang.StringBuilder $r9, $r12, $r13, $r15, $r16, $r17, $r18, $r19, $r28, $r31, $r32, $r33, $r39, $r42, $r43, $r44, $r47, $r50, $r51, $r52;
+        java.lang.Throwable $r54, $r55;
+        long $l0, $l1, $l2;
+        thredds.inventory.DatasetCollectionManager$TriggerEvent $r21;
+        java.lang.String $r11, $r20, $r24, $r30, $r34, $r36, $r41, $r45, $r49, $r53;
+        java.util.Date $r14;
+        thredds.inventory.MFile r26, r56, r57, r58;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, z8, $z9, $z10;
+        java.util.Collection $r4, $r6;
+        java.util.HashMap $r3;
+        int i3, i4;
+        org.slf4j.Logger $r8, $r10, $r27, $r29, $r38, $r40, $r46, $r48;
+        java.util.Iterator $r5, $r7;
+        java.lang.Object $r23, $r25, $r35, $r37;
+
+        r0 := @this: thredds.inventory.DatasetCollectionManager;
+
+        $r1 = r0.<thredds.inventory.DatasetCollectionManager: java.util.Map map>;
+
+        if $r1 != null goto label01;
+
+        virtualinvoke r0.<thredds.inventory.DatasetCollectionManager: void scan(ucar.nc2.util.CancelTask)>(null);
+
+        $z6 = virtualinvoke r0.<thredds.inventory.DatasetCollectionManager: boolean hasScans()>();
+
+        return $z6;
+
+     label01:
+        r2 = r0.<thredds.inventory.DatasetCollectionManager: java.util.Map map>;
+
+        $r3 = new java.util.HashMap;
+
+        specialinvoke $r3.<java.util.HashMap: void <init>()>();
+
+        virtualinvoke r0.<thredds.inventory.DatasetCollectionManager: void scan(java.util.Map,ucar.nc2.util.CancelTask)>($r3, null);
+
+        i3 = 0;
+
+        $r4 = interfaceinvoke $r3.<java.util.Map: java.util.Collection values()>();
+
+        $r5 = interfaceinvoke $r4.<java.util.Collection: java.util.Iterator iterator()>();
+
+     label02:
+        $z0 = interfaceinvoke $r5.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label05;
+
+        $r35 = interfaceinvoke $r5.<java.util.Iterator: java.lang.Object next()>();
+
+        r56 = (thredds.inventory.MFile) $r35;
+
+        $r36 = interfaceinvoke r56.<thredds.inventory.MFile: java.lang.String getPath()>();
+
+        $r37 = interfaceinvoke r2.<java.util.Map: java.lang.Object get(java.lang.Object)>($r36);
+
+        r57 = (thredds.inventory.MFile) $r37;
+
+        if r57 == null goto label03;
+
+        interfaceinvoke $r3.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>($r36, r57);
+
+        $r46 = <thredds.inventory.DatasetCollectionManager: org.slf4j.Logger logger>;
+
+        $z5 = interfaceinvoke $r46.<org.slf4j.Logger: boolean isDebugEnabled()>();
+
+        if $z5 == 0 goto label04;
+
+        $r48 = <thredds.inventory.DatasetCollectionManager: org.slf4j.Logger logger>;
+
+        $r47 = new java.lang.StringBuilder;
+
+        specialinvoke $r47.<java.lang.StringBuilder: void <init>()>();
+
+        $r49 = r0.<thredds.inventory.DatasetCollectionManager: java.lang.String collectionName>;
+
+        $r50 = virtualinvoke $r47.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r49);
+
+        $r51 = virtualinvoke $r50.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(": rescan retains old Dataset= ");
+
+        $r52 = virtualinvoke $r51.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r36);
+
+        $r53 = virtualinvoke $r52.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r48.<org.slf4j.Logger: void debug(java.lang.String)>($r53);
+
+        goto label04;
+
+     label03:
+        i3 = i3 + 1;
+
+        $r38 = <thredds.inventory.DatasetCollectionManager: org.slf4j.Logger logger>;
+
+        $z4 = interfaceinvoke $r38.<org.slf4j.Logger: boolean isDebugEnabled()>();
+
+        if $z4 == 0 goto label04;
+
+        $r40 = <thredds.inventory.DatasetCollectionManager: org.slf4j.Logger logger>;
+
+        $r39 = new java.lang.StringBuilder;
+
+        specialinvoke $r39.<java.lang.StringBuilder: void <init>()>();
+
+        $r41 = r0.<thredds.inventory.DatasetCollectionManager: java.lang.String collectionName>;
+
+        $r42 = virtualinvoke $r39.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r41);
+
+        $r43 = virtualinvoke $r42.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(": rescan found new Dataset= ");
+
+        $r44 = virtualinvoke $r43.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r36);
+
+        $r45 = virtualinvoke $r44.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r40.<org.slf4j.Logger: void debug(java.lang.String)>($r45);
+
+     label04:
+        goto label02;
+
+     label05:
+        i4 = 0;
+
+        $r6 = interfaceinvoke r2.<java.util.Map: java.util.Collection values()>();
+
+        $r7 = interfaceinvoke $r6.<java.util.Collection: java.util.Iterator iterator()>();
+
+     label06:
+        $z1 = interfaceinvoke $r7.<java.util.Iterator: boolean hasNext()>();
+
+        if $z1 == 0 goto label08;
+
+        $r23 = interfaceinvoke $r7.<java.util.Iterator: java.lang.Object next()>();
+
+        r58 = (thredds.inventory.MFile) $r23;
+
+        $r24 = interfaceinvoke r58.<thredds.inventory.MFile: java.lang.String getPath()>();
+
+        $r25 = interfaceinvoke $r3.<java.util.Map: java.lang.Object get(java.lang.Object)>($r24);
+
+        r26 = (thredds.inventory.MFile) $r25;
+
+        if r26 != null goto label07;
+
+        i4 = i4 + 1;
+
+        $r27 = <thredds.inventory.DatasetCollectionManager: org.slf4j.Logger logger>;
+
+        $z3 = interfaceinvoke $r27.<org.slf4j.Logger: boolean isDebugEnabled()>();
+
+        if $z3 == 0 goto label07;
+
+        $r29 = <thredds.inventory.DatasetCollectionManager: org.slf4j.Logger logger>;
+
+        $r28 = new java.lang.StringBuilder;
+
+        specialinvoke $r28.<java.lang.StringBuilder: void <init>()>();
+
+        $r30 = r0.<thredds.inventory.DatasetCollectionManager: java.lang.String collectionName>;
+
+        $r31 = virtualinvoke $r28.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r30);
+
+        $r32 = virtualinvoke $r31.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(": rescan found deleted Dataset= ");
+
+        $r33 = virtualinvoke $r32.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r24);
+
+        $r34 = virtualinvoke $r33.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r29.<org.slf4j.Logger: void debug(java.lang.String)>($r34);
+
+     label07:
+        goto label06;
+
+     label08:
+        if i3 > 0 goto label09;
+
+        if i4 <= 0 goto label10;
+
+     label09:
+        $z10 = 1;
+
+        $z9 = 1;
+
+        goto label11;
+
+     label10:
+        $z10 = 0;
+
+        $z9 = 0;
+
+     label11:
+        z8 = $z9;
+
+        if $z10 == 0 goto label17;
+
+        entermonitor r0;
+
+     label12:
+        r0.<thredds.inventory.DatasetCollectionManager: java.util.Map map> = $r3;
+
+        $l1 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        r0.<thredds.inventory.DatasetCollectionManager: long lastScanned> = $l1;
+
+        $l2 = r0.<thredds.inventory.DatasetCollectionManager: long lastScanned>;
+
+        r0.<thredds.inventory.DatasetCollectionManager: long lastChanged> = $l2;
+
+        exitmonitor r0;
+
+     label13:
+        goto label16;
+
+     label14:
+        $r55 := @caughtexception;
+
+        exitmonitor r0;
+
+     label15:
+        throw $r55;
+
+     label16:
+        goto label22;
+
+     label17:
+        entermonitor r0;
+
+     label18:
+        $l0 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        r0.<thredds.inventory.DatasetCollectionManager: long lastScanned> = $l0;
+
+        exitmonitor r0;
+
+     label19:
+        goto label22;
+
+     label20:
+        $r54 := @caughtexception;
+
+        exitmonitor r0;
+
+     label21:
+        throw $r54;
+
+     label22:
+        if z8 == 0 goto label23;
+
+        $r22 = r0.<thredds.inventory.DatasetCollectionManager: ucar.nc2.util.ListenerManager lm>;
+
+        $r21 = new thredds.inventory.DatasetCollectionManager$TriggerEvent;
+
+        specialinvoke $r21.<thredds.inventory.DatasetCollectionManager$TriggerEvent: void <init>(thredds.inventory.DatasetCollectionManager,java.lang.String)>(r0, "rescan");
+
+        virtualinvoke $r22.<ucar.nc2.util.ListenerManager: void sendEvent(java.util.EventObject)>($r21);
+
+     label23:
+        $r8 = <thredds.inventory.DatasetCollectionManager: org.slf4j.Logger logger>;
+
+        $z2 = interfaceinvoke $r8.<org.slf4j.Logger: boolean isInfoEnabled()>();
+
+        if $z2 == 0 goto label24;
+
+        $r10 = <thredds.inventory.DatasetCollectionManager: org.slf4j.Logger logger>;
+
+        $r9 = new java.lang.StringBuilder;
+
+        specialinvoke $r9.<java.lang.StringBuilder: void <init>()>();
+
+        $r11 = r0.<thredds.inventory.DatasetCollectionManager: java.lang.String collectionName>;
+
+        $r12 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r11);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(": rescan at ");
+
+        $r14 = new java.util.Date;
+
+        specialinvoke $r14.<java.util.Date: void <init>()>();
+
+        $r15 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r14);
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(": nnew = ");
+
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>(i3);
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" ndelete = ");
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>(i4);
+
+        $r20 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r10.<org.slf4j.Logger: void info(java.lang.String)>($r20);
+
+     label24:
+        return z8;
+
+        catch java.lang.Throwable from label12 to label13 with label14;
+        catch java.lang.Throwable from label14 to label15 with label14;
+        catch java.lang.Throwable from label18 to label19 with label20;
+        catch java.lang.Throwable from label20 to label21 with label20;
+    }
+
+    public java.util.List getFiles()
+    {
+        thredds.inventory.DatasetCollectionManager r0;
+        java.util.Map $r1, $r3;
+        java.util.Collection $r4;
+        java.util.ArrayList $r2;
+
+        r0 := @this: thredds.inventory.DatasetCollectionManager;
+
+        $r1 = r0.<thredds.inventory.DatasetCollectionManager: java.util.Map map>;
+
+        if $r1 != null goto label1;
+
+        return null;
+
+     label1:
+        $r2 = new java.util.ArrayList;
+
+        $r3 = r0.<thredds.inventory.DatasetCollectionManager: java.util.Map map>;
+
+        $r4 = interfaceinvoke $r3.<java.util.Map: java.util.Collection values()>();
+
+        specialinvoke $r2.<java.util.ArrayList: void <init>(java.util.Collection)>($r4);
+
+        staticinvoke <java.util.Collections: void sort(java.util.List)>($r2);
+
+        return $r2;
+    }
+
+    public java.util.Date extractRunDate(thredds.inventory.MFile)
+    {
+        thredds.inventory.DateExtractor $r1, $r3;
+        thredds.inventory.DatasetCollectionManager r0;
+        thredds.inventory.MFile r2;
+        java.util.Date $r4;
+
+        r0 := @this: thredds.inventory.DatasetCollectionManager;
+
+        r2 := @parameter0: thredds.inventory.MFile;
+
+        $r1 = r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.DateExtractor dateExtractor>;
+
+        if $r1 != null goto label1;
+
+        $r4 = null;
+
+        goto label2;
+
+     label1:
+        $r3 = r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.DateExtractor dateExtractor>;
+
+        $r4 = interfaceinvoke $r3.<thredds.inventory.DateExtractor: java.util.Date getDate(thredds.inventory.MFile)>(r2);
+
+     label2:
+        return $r4;
+    }
+
+    public boolean hasDateExtractor()
+    {
+        thredds.inventory.DateExtractor $r1, $r2;
+        thredds.inventory.DatasetCollectionManager r0;
+        boolean $z0, $z1;
+
+        r0 := @this: thredds.inventory.DatasetCollectionManager;
+
+        $r1 = r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.DateExtractor dateExtractor>;
+
+        if $r1 == null goto label1;
+
+        $r2 = r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.DateExtractor dateExtractor>;
+
+        $z0 = $r2 instanceof thredds.inventory.DateExtractorNone;
+
+        if $z0 != 0 goto label1;
+
+        $z1 = 1;
+
+        goto label2;
+
+     label1:
+        $z1 = 0;
+
+     label2:
+        return $z1;
+    }
+
+    protected void scan(java.util.Map, ucar.nc2.util.CancelTask) throws java.io.IOException
+    {
+        thredds.inventory.DatasetCollectionManager r1;
+        thredds.inventory.MFile r10;
+        ucar.nc2.util.CancelTask r8;
+        java.util.Map r12;
+        java.lang.String $r13, $r16, $r20;
+        boolean $z0, $z1, $z2, $z3;
+        org.slf4j.Logger $r15;
+        thredds.filesystem.ControllerOS $r22;
+        java.util.Iterator $r3, r7, $r23;
+        java.util.List $r2;
+        thredds.inventory.MCollection r5;
+        thredds.inventory.MController $r0, $r6, $r21;
+        java.lang.Object $r4, $r9, $r11;
+        java.lang.StringBuilder $r14, $r17, $r18, $r19;
+
+        r1 := @this: thredds.inventory.DatasetCollectionManager;
+
+        r12 := @parameter0: java.util.Map;
+
+        r8 := @parameter1: ucar.nc2.util.CancelTask;
+
+        $r0 = <thredds.inventory.DatasetCollectionManager: thredds.inventory.MController controller>;
+
+        if null != $r0 goto label1;
+
+        $r22 = new thredds.filesystem.ControllerOS;
+
+        specialinvoke $r22.<thredds.filesystem.ControllerOS: void <init>()>();
+
+        <thredds.inventory.DatasetCollectionManager: thredds.inventory.MController controller> = $r22;
+
+     label1:
+        $r2 = r1.<thredds.inventory.DatasetCollectionManager: java.util.List scanList>;
+
+        $r3 = interfaceinvoke $r2.<java.util.List: java.util.Iterator iterator()>();
+
+     label2:
+        $z3 = interfaceinvoke $r3.<java.util.Iterator: boolean hasNext()>();
+
+        if $z3 == 0 goto label8;
+
+        $r4 = interfaceinvoke $r3.<java.util.Iterator: java.lang.Object next()>();
+
+        r5 = (thredds.inventory.MCollection) $r4;
+
+        $z0 = virtualinvoke r5.<thredds.inventory.MCollection: boolean wantSubdirs()>();
+
+        if $z0 == 0 goto label3;
+
+        $r21 = <thredds.inventory.DatasetCollectionManager: thredds.inventory.MController controller>;
+
+        $r23 = interfaceinvoke $r21.<thredds.inventory.MController: java.util.Iterator getInventory(thredds.inventory.MCollection)>(r5);
+
+        goto label4;
+
+     label3:
+        $r6 = <thredds.inventory.DatasetCollectionManager: thredds.inventory.MController controller>;
+
+        $r23 = interfaceinvoke $r6.<thredds.inventory.MController: java.util.Iterator getInventoryNoSubdirs(thredds.inventory.MCollection)>(r5);
+
+     label4:
+        r7 = $r23;
+
+        if $r23 != null goto label5;
+
+        $r15 = <thredds.inventory.DatasetCollectionManager: org.slf4j.Logger logger>;
+
+        $r14 = new java.lang.StringBuilder;
+
+        specialinvoke $r14.<java.lang.StringBuilder: void <init>()>();
+
+        $r16 = r1.<thredds.inventory.DatasetCollectionManager: java.lang.String collectionName>;
+
+        $r17 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r16);
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(": DatasetCollectionManager Invalid collection= ");
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r5);
+
+        $r20 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r15.<org.slf4j.Logger: void error(java.lang.String)>($r20);
+
+        goto label2;
+
+     label5:
+        $z1 = interfaceinvoke r7.<java.util.Iterator: boolean hasNext()>();
+
+        if $z1 == 0 goto label6;
+
+        $r9 = interfaceinvoke r7.<java.util.Iterator: java.lang.Object next()>();
+
+        r10 = (thredds.inventory.MFile) $r9;
+
+        $r11 = virtualinvoke r5.<thredds.inventory.MCollection: java.lang.Object getAuxInfo()>();
+
+        interfaceinvoke r10.<thredds.inventory.MFile: void setAuxInfo(java.lang.Object)>($r11);
+
+        $r13 = interfaceinvoke r10.<thredds.inventory.MFile: java.lang.String getPath()>();
+
+        interfaceinvoke r12.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>($r13, r10);
+
+        goto label5;
+
+     label6:
+        if r8 == null goto label7;
+
+        $z2 = interfaceinvoke r8.<ucar.nc2.util.CancelTask: boolean isCancel()>();
+
+        if $z2 == 0 goto label7;
+
+        return;
+
+     label7:
+        goto label2;
+
+     label8:
+        return;
+    }
+
+    public java.lang.String toString()
+    {
+        java.lang.Object[] $r1, $r10;
+        java.util.Iterator $r6;
+        thredds.inventory.MFileFilter $r12;
+        java.util.Formatter $r0;
+        thredds.inventory.DatasetCollectionManager r2;
+        java.util.List $r5;
+        thredds.inventory.MCollection r9;
+        java.lang.Object $r8;
+        java.lang.String $r3, $r7, $r11;
+        ucar.nc2.units.TimeUnit $r4;
+        boolean $z0;
+
+        r2 := @this: thredds.inventory.DatasetCollectionManager;
+
+        $r0 = new java.util.Formatter;
+
+        specialinvoke $r0.<java.util.Formatter: void <init>()>();
+
+        $r1 = newarray (java.lang.Object)[2];
+
+        $r3 = r2.<thredds.inventory.DatasetCollectionManager: java.lang.String collectionName>;
+
+        $r1[0] = $r3;
+
+        $r4 = r2.<thredds.inventory.DatasetCollectionManager: ucar.nc2.units.TimeUnit recheck>;
+
+        $r1[1] = $r4;
+
+        virtualinvoke $r0.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("DatasetCollectionManager{ collectionName=\'%s\' recheck=%s ", $r1);
+
+        $r5 = r2.<thredds.inventory.DatasetCollectionManager: java.util.List scanList>;
+
+        $r6 = interfaceinvoke $r5.<java.util.List: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r6.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label2;
+
+        $r8 = interfaceinvoke $r6.<java.util.Iterator: java.lang.Object next()>();
+
+        r9 = (thredds.inventory.MCollection) $r8;
+
+        $r10 = newarray (java.lang.Object)[2];
+
+        $r11 = virtualinvoke r9.<thredds.inventory.MCollection: java.lang.String getDirectoryName()>();
+
+        $r10[0] = $r11;
+
+        $r12 = virtualinvoke r9.<thredds.inventory.MCollection: thredds.inventory.MFileFilter getFileFilter()>();
+
+        $r10[1] = $r12;
+
+        virtualinvoke $r0.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("%n dir=%s filter=%s", $r10);
+
+        goto label1;
+
+     label2:
+        $r7 = virtualinvoke $r0.<java.util.Formatter: java.lang.String toString()>();
+
+        return $r7;
+    }
+
+    public int getProtoIndex()
+    {
+        java.util.Collection $r2;
+        java.util.Random $r5;
+        long $l5;
+        thredds.inventory.DatasetCollectionManager r0;
+        int[] $r4;
+        thredds.inventory.FeatureCollectionConfig$ProtoChoice $r3;
+        java.util.Map $r1;
+        int $i0, $i1, $i2, $i3, $i4, $i6, i7;
+
+        r0 := @this: thredds.inventory.DatasetCollectionManager;
+
+        $r1 = r0.<thredds.inventory.DatasetCollectionManager: java.util.Map map>;
+
+        $r2 = interfaceinvoke $r1.<java.util.Map: java.util.Collection values()>();
+
+        $i0 = interfaceinvoke $r2.<java.util.Collection: int size()>();
+
+        i7 = 0;
+
+        $r4 = <thredds.inventory.DatasetCollectionManager$1: int[] $SwitchMap$thredds$inventory$FeatureCollectionConfig$ProtoChoice>;
+
+        $r3 = r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.FeatureCollectionConfig$ProtoChoice protoChoice>;
+
+        $i1 = virtualinvoke $r3.<thredds.inventory.FeatureCollectionConfig$ProtoChoice: int ordinal()>();
+
+        $i2 = $r4[$i1];
+
+        tableswitch($i2)
+        {
+            case 1: goto label1;
+            case 2: goto label2;
+            case 3: goto label3;
+            case 4: goto label4;
+            default: goto label5;
+        };
+
+     label1:
+        i7 = 0;
+
+        goto label5;
+
+     label2:
+        $r5 = new java.util.Random;
+
+        $l5 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        specialinvoke $r5.<java.util.Random: void <init>(long)>($l5);
+
+        $i6 = $i0 - 1;
+
+        i7 = virtualinvoke $r5.<java.util.Random: int nextInt(int)>($i6);
+
+        goto label5;
+
+     label3:
+        $i4 = $i0 - 2;
+
+        i7 = staticinvoke <java.lang.Math: int max(int,int)>($i4, 0);
+
+        goto label5;
+
+     label4:
+        $i3 = $i0 - 1;
+
+        i7 = staticinvoke <java.lang.Math: int max(int,int)>($i3, 0);
+
+     label5:
+        return i7;
+    }
+
+    public void resetProto()
+    {
+        thredds.inventory.DatasetCollectionManager r0;
+        thredds.inventory.DatasetCollectionManager$TriggerEvent $r1;
+        ucar.nc2.util.ListenerManager $r2;
+
+        r0 := @this: thredds.inventory.DatasetCollectionManager;
+
+        $r2 = r0.<thredds.inventory.DatasetCollectionManager: ucar.nc2.util.ListenerManager lm>;
+
+        $r1 = new thredds.inventory.DatasetCollectionManager$TriggerEvent;
+
+        specialinvoke $r1.<thredds.inventory.DatasetCollectionManager$TriggerEvent: void <init>(thredds.inventory.DatasetCollectionManager,java.lang.String)>(r0, "proto");
+
+        virtualinvoke $r2.<ucar.nc2.util.ListenerManager: void sendEvent(java.util.EventObject)>($r1);
+
+        return;
+    }
+
+    private void createListenerManager()
+    {
+        thredds.inventory.DatasetCollectionManager r0;
+        ucar.nc2.util.ListenerManager $r1;
+
+        r0 := @this: thredds.inventory.DatasetCollectionManager;
+
+        $r1 = new ucar.nc2.util.ListenerManager;
+
+        specialinvoke $r1.<ucar.nc2.util.ListenerManager: void <init>(java.lang.String,java.lang.String,java.lang.String)>("thredds.inventory.DatasetCollectionManager$TriggerListener", "thredds.inventory.DatasetCollectionManager$TriggerEvent", "handleCollectionEvent");
+
+        r0.<thredds.inventory.DatasetCollectionManager: ucar.nc2.util.ListenerManager lm> = $r1;
+
+        return;
+    }
+
+    public void addEventListener(thredds.inventory.DatasetCollectionManager$TriggerListener)
+    {
+        thredds.inventory.DatasetCollectionManager r0;
+        thredds.inventory.DatasetCollectionManager$TriggerListener r1;
+        ucar.nc2.util.ListenerManager $r2;
+
+        r0 := @this: thredds.inventory.DatasetCollectionManager;
+
+        r1 := @parameter0: thredds.inventory.DatasetCollectionManager$TriggerListener;
+
+        $r2 = r0.<thredds.inventory.DatasetCollectionManager: ucar.nc2.util.ListenerManager lm>;
+
+        virtualinvoke $r2.<ucar.nc2.util.ListenerManager: void addListener(java.lang.Object)>(r1);
+
+        return;
+    }
+
+    public void removeEventListener(thredds.inventory.DatasetCollectionManager$TriggerListener)
+    {
+        thredds.inventory.DatasetCollectionManager r0;
+        thredds.inventory.DatasetCollectionManager$TriggerListener r1;
+        ucar.nc2.util.ListenerManager $r2;
+
+        r0 := @this: thredds.inventory.DatasetCollectionManager;
+
+        r1 := @parameter0: thredds.inventory.DatasetCollectionManager$TriggerListener;
+
+        $r2 = r0.<thredds.inventory.DatasetCollectionManager: ucar.nc2.util.ListenerManager lm>;
+
+        virtualinvoke $r2.<ucar.nc2.util.ListenerManager: void removeListener(java.lang.Object)>(r1);
+
+        return;
+    }
+
+    private void initMM()
+    {
+        thredds.inventory.DatasetCollectionManager r0;
+        thredds.inventory.bdb.MetadataManager $r2;
+        java.io.IOException $r4;
+        java.lang.String $r1, $r3, $r6;
+        java.lang.RuntimeException $r5;
+
+        r0 := @this: thredds.inventory.DatasetCollectionManager;
+
+        $r1 = r0.<thredds.inventory.DatasetCollectionManager: java.lang.String collectionName>;
+
+        if $r1 != null goto label1;
+
+        return;
+
+     label1:
+        $r2 = new thredds.inventory.bdb.MetadataManager;
+
+        $r3 = r0.<thredds.inventory.DatasetCollectionManager: java.lang.String collectionName>;
+
+        specialinvoke $r2.<thredds.inventory.bdb.MetadataManager: void <init>(java.lang.String)>($r3);
+
+        r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.bdb.MetadataManager mm> = $r2;
+
+     label2:
+        goto label4;
+
+     label3:
+        $r4 := @caughtexception;
+
+        virtualinvoke $r4.<java.io.IOException: void printStackTrace()>();
+
+        $r5 = new java.lang.RuntimeException;
+
+        $r6 = virtualinvoke $r4.<java.io.IOException: java.lang.String getMessage()>();
+
+        specialinvoke $r5.<java.lang.RuntimeException: void <init>(java.lang.String)>($r6);
+
+        throw $r5;
+
+     label4:
+        return;
+
+        catch java.io.IOException from label1 to label2 with label3;
+    }
+
+    private void deleteOld(java.util.Map)
+    {
+        thredds.inventory.DatasetCollectionManager r0;
+        java.util.Map r2;
+        thredds.inventory.bdb.MetadataManager $r1, $r3, $r4;
+        boolean $z0;
+
+        r0 := @this: thredds.inventory.DatasetCollectionManager;
+
+        r2 := @parameter0: java.util.Map;
+
+        $r1 = r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.bdb.MetadataManager mm>;
+
+        if $r1 != null goto label1;
+
+        $z0 = <thredds.inventory.DatasetCollectionManager: boolean enableMetadataManager>;
+
+        if $z0 == 0 goto label1;
+
+        specialinvoke r0.<thredds.inventory.DatasetCollectionManager: void initMM()>();
+
+     label1:
+        $r4 = r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.bdb.MetadataManager mm>;
+
+        if $r4 == null goto label2;
+
+        $r3 = r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.bdb.MetadataManager mm>;
+
+        virtualinvoke $r3.<thredds.inventory.bdb.MetadataManager: void delete(java.util.Map)>(r2);
+
+     label2:
+        return;
+    }
+
+    public void putMetadata(thredds.inventory.MFile, java.lang.String, byte[])
+    {
+        byte[] r12;
+        thredds.inventory.bdb.MetadataManager $r1, $r2, $r4;
+        thredds.inventory.DatasetCollectionManager r0;
+        thredds.inventory.MFile r5;
+        java.lang.StringBuilder $r3, $r7, $r8, $r10;
+        java.lang.String $r6, r9, $r11;
+
+        r0 := @this: thredds.inventory.DatasetCollectionManager;
+
+        r5 := @parameter0: thredds.inventory.MFile;
+
+        r9 := @parameter1: java.lang.String;
+
+        r12 := @parameter2: byte[];
+
+        $r1 = r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.bdb.MetadataManager mm>;
+
+        if $r1 != null goto label1;
+
+        specialinvoke r0.<thredds.inventory.DatasetCollectionManager: void initMM()>();
+
+     label1:
+        $r2 = r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.bdb.MetadataManager mm>;
+
+        if $r2 == null goto label2;
+
+        $r4 = r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.bdb.MetadataManager mm>;
+
+        $r3 = new java.lang.StringBuilder;
+
+        specialinvoke $r3.<java.lang.StringBuilder: void <init>()>();
+
+        $r6 = interfaceinvoke r5.<thredds.inventory.MFile: java.lang.String getPath()>();
+
+        $r7 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r6);
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("#");
+
+        $r10 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r9);
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r4.<thredds.inventory.bdb.MetadataManager: void put(java.lang.String,byte[])>($r11, r12);
+
+     label2:
+        return;
+    }
+
+    public byte[] getMetadata(thredds.inventory.MFile, java.lang.String)
+    {
+        byte[] $r12;
+        thredds.inventory.bdb.MetadataManager $r1, $r2, $r4;
+        thredds.inventory.DatasetCollectionManager r0;
+        thredds.inventory.MFile r5;
+        java.lang.StringBuilder $r3, $r7, $r8, $r10;
+        java.lang.String $r6, r9, $r11;
+
+        r0 := @this: thredds.inventory.DatasetCollectionManager;
+
+        r5 := @parameter0: thredds.inventory.MFile;
+
+        r9 := @parameter1: java.lang.String;
+
+        $r1 = r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.bdb.MetadataManager mm>;
+
+        if $r1 != null goto label1;
+
+        specialinvoke r0.<thredds.inventory.DatasetCollectionManager: void initMM()>();
+
+     label1:
+        $r2 = r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.bdb.MetadataManager mm>;
+
+        if $r2 != null goto label2;
+
+        $r12 = null;
+
+        goto label3;
+
+     label2:
+        $r4 = r0.<thredds.inventory.DatasetCollectionManager: thredds.inventory.bdb.MetadataManager mm>;
+
+        $r3 = new java.lang.StringBuilder;
+
+        specialinvoke $r3.<java.lang.StringBuilder: void <init>()>();
+
+        $r6 = interfaceinvoke r5.<thredds.inventory.MFile: java.lang.String getPath()>();
+
+        $r7 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r6);
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("#");
+
+        $r10 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r9);
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r12 = virtualinvoke $r4.<thredds.inventory.bdb.MetadataManager: byte[] getBytes(java.lang.String)>($r11);
+
+     label3:
+        return $r12;
+    }
+
+    static void <clinit>()
+    {
+        org.slf4j.Logger $r0;
+
+        <thredds.inventory.DatasetCollectionManager: java.lang.String PROTO> = "proto";
+
+        <thredds.inventory.DatasetCollectionManager: java.lang.String RESCAN> = "rescan";
+
+        <thredds.inventory.DatasetCollectionManager: java.lang.String CATALOG> = "catalog:";
+
+        $r0 = staticinvoke <org.slf4j.LoggerFactory: org.slf4j.Logger getLogger(java.lang.Class)>(class "Lthredds/inventory/DatasetCollectionManager;");
+
+        <thredds.inventory.DatasetCollectionManager: org.slf4j.Logger logger> = $r0;
+
+        <thredds.inventory.DatasetCollectionManager: boolean enableMetadataManager> = 0;
+
+        return;
+    }
+}

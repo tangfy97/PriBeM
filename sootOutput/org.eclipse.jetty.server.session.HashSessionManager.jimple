@@ -1,0 +1,1752 @@
+public class org.eclipse.jetty.server.session.HashSessionManager extends org.eclipse.jetty.server.session.AbstractSessionManager
+{
+    static final org.eclipse.jetty.util.log.Logger __log;
+    protected final java.util.concurrent.ConcurrentMap _sessions;
+    private static int __id;
+    private java.util.Timer _timer;
+    private boolean _timerStop;
+    private java.util.TimerTask _task;
+    long _scavengePeriodMs;
+    long _savePeriodMs;
+    long _idleSavePeriodMs;
+    private java.util.TimerTask _saveTask;
+    java.io.File _storeDir;
+    private boolean _lazyLoad;
+    private volatile boolean _sessionsLoaded;
+    private boolean _deleteUnrestorableSessions;
+
+    public void <init>()
+    {
+        org.eclipse.jetty.server.session.HashSessionManager r0;
+        java.util.concurrent.ConcurrentHashMap $r1;
+
+        r0 := @this: org.eclipse.jetty.server.session.HashSessionManager;
+
+        specialinvoke r0.<org.eclipse.jetty.server.session.AbstractSessionManager: void <init>()>();
+
+        $r1 = new java.util.concurrent.ConcurrentHashMap;
+
+        specialinvoke $r1.<java.util.concurrent.ConcurrentHashMap: void <init>()>();
+
+        r0.<org.eclipse.jetty.server.session.HashSessionManager: java.util.concurrent.ConcurrentMap _sessions> = $r1;
+
+        r0.<org.eclipse.jetty.server.session.HashSessionManager: boolean _timerStop> = 0;
+
+        r0.<org.eclipse.jetty.server.session.HashSessionManager: long _scavengePeriodMs> = 30000L;
+
+        r0.<org.eclipse.jetty.server.session.HashSessionManager: long _savePeriodMs> = 0L;
+
+        r0.<org.eclipse.jetty.server.session.HashSessionManager: long _idleSavePeriodMs> = 0L;
+
+        r0.<org.eclipse.jetty.server.session.HashSessionManager: boolean _lazyLoad> = 0;
+
+        r0.<org.eclipse.jetty.server.session.HashSessionManager: boolean _sessionsLoaded> = 0;
+
+        r0.<org.eclipse.jetty.server.session.HashSessionManager: boolean _deleteUnrestorableSessions> = 0;
+
+        return;
+    }
+
+    public void doStart() throws java.lang.Exception
+    {
+        java.util.Timer $r2, $r6, $r12;
+        org.eclipse.jetty.server.session.HashSessionManager r0;
+        org.eclipse.jetty.server.handler.ContextHandler$Context $r1;
+        int $i0, $i1, $i2, $i3;
+        java.lang.String $r10;
+        boolean $z0, $z1;
+        java.io.File $r3, $r4, $r5;
+        java.lang.StringBuilder $r7, $r8, $r9;
+        java.lang.Object $r11;
+
+        r0 := @this: org.eclipse.jetty.server.session.HashSessionManager;
+
+        specialinvoke r0.<org.eclipse.jetty.server.session.AbstractSessionManager: void doStart()>();
+
+        r0.<org.eclipse.jetty.server.session.HashSessionManager: boolean _timerStop> = 0;
+
+        $r1 = staticinvoke <org.eclipse.jetty.server.handler.ContextHandler: org.eclipse.jetty.server.handler.ContextHandler$Context getCurrentContext()>();
+
+        if $r1 == null goto label1;
+
+        $r11 = interfaceinvoke $r1.<javax.servlet.ServletContext: java.lang.Object getAttribute(java.lang.String)>("org.eclipse.jetty.server.session.timer");
+
+        $r12 = (java.util.Timer) $r11;
+
+        r0.<org.eclipse.jetty.server.session.HashSessionManager: java.util.Timer _timer> = $r12;
+
+     label1:
+        $r2 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.util.Timer _timer>;
+
+        if $r2 != null goto label2;
+
+        r0.<org.eclipse.jetty.server.session.HashSessionManager: boolean _timerStop> = 1;
+
+        $r6 = new java.util.Timer;
+
+        $r7 = new java.lang.StringBuilder;
+
+        specialinvoke $r7.<java.lang.StringBuilder: void <init>()>();
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("HashSessionScavenger-");
+
+        $i1 = <org.eclipse.jetty.server.session.HashSessionManager: int __id>;
+
+        $i2 = $i1 + 1;
+
+        <org.eclipse.jetty.server.session.HashSessionManager: int __id> = $i2;
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i1);
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r6.<java.util.Timer: void <init>(java.lang.String,boolean)>($r10, 1);
+
+        r0.<org.eclipse.jetty.server.session.HashSessionManager: java.util.Timer _timer> = $r6;
+
+     label2:
+        $i0 = virtualinvoke r0.<org.eclipse.jetty.server.session.HashSessionManager: int getScavengePeriod()>();
+
+        virtualinvoke r0.<org.eclipse.jetty.server.session.HashSessionManager: void setScavengePeriod(int)>($i0);
+
+        $r3 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.io.File _storeDir>;
+
+        if $r3 == null goto label4;
+
+        $r4 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.io.File _storeDir>;
+
+        $z0 = virtualinvoke $r4.<java.io.File: boolean exists()>();
+
+        if $z0 != 0 goto label3;
+
+        $r5 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.io.File _storeDir>;
+
+        virtualinvoke $r5.<java.io.File: boolean mkdirs()>();
+
+     label3:
+        $z1 = r0.<org.eclipse.jetty.server.session.HashSessionManager: boolean _lazyLoad>;
+
+        if $z1 != 0 goto label4;
+
+        virtualinvoke r0.<org.eclipse.jetty.server.session.HashSessionManager: void restoreSessions()>();
+
+     label4:
+        $i3 = virtualinvoke r0.<org.eclipse.jetty.server.session.HashSessionManager: int getSavePeriod()>();
+
+        virtualinvoke r0.<org.eclipse.jetty.server.session.HashSessionManager: void setSavePeriod(int)>($i3);
+
+        return;
+    }
+
+    public void doStop() throws java.lang.Exception
+    {
+        java.lang.Throwable $r8;
+        java.util.Timer $r3, $r5;
+        java.util.concurrent.ConcurrentMap $r4;
+        org.eclipse.jetty.server.session.HashSessionManager r0;
+        java.util.TimerTask $r1, $r2, $r6, $r7;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.server.session.HashSessionManager;
+
+        entermonitor r0;
+
+     label1:
+        $r1 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.util.TimerTask _saveTask>;
+
+        if $r1 == null goto label2;
+
+        $r7 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.util.TimerTask _saveTask>;
+
+        virtualinvoke $r7.<java.util.TimerTask: boolean cancel()>();
+
+     label2:
+        r0.<org.eclipse.jetty.server.session.HashSessionManager: java.util.TimerTask _saveTask> = null;
+
+        $r2 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.util.TimerTask _task>;
+
+        if $r2 == null goto label3;
+
+        $r6 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.util.TimerTask _task>;
+
+        virtualinvoke $r6.<java.util.TimerTask: boolean cancel()>();
+
+     label3:
+        r0.<org.eclipse.jetty.server.session.HashSessionManager: java.util.TimerTask _task> = null;
+
+        $r3 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.util.Timer _timer>;
+
+        if $r3 == null goto label4;
+
+        $z0 = r0.<org.eclipse.jetty.server.session.HashSessionManager: boolean _timerStop>;
+
+        if $z0 == 0 goto label4;
+
+        $r5 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.util.Timer _timer>;
+
+        virtualinvoke $r5.<java.util.Timer: void cancel()>();
+
+     label4:
+        r0.<org.eclipse.jetty.server.session.HashSessionManager: java.util.Timer _timer> = null;
+
+        exitmonitor r0;
+
+     label5:
+        goto label8;
+
+     label6:
+        $r8 := @caughtexception;
+
+        exitmonitor r0;
+
+     label7:
+        throw $r8;
+
+     label8:
+        specialinvoke r0.<org.eclipse.jetty.server.session.AbstractSessionManager: void doStop()>();
+
+        $r4 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.util.concurrent.ConcurrentMap _sessions>;
+
+        interfaceinvoke $r4.<java.util.concurrent.ConcurrentMap: void clear()>();
+
+        return;
+
+        catch java.lang.Throwable from label1 to label5 with label6;
+        catch java.lang.Throwable from label6 to label7 with label6;
+    }
+
+    public int getScavengePeriod()
+    {
+        org.eclipse.jetty.server.session.HashSessionManager r0;
+        int $i2;
+        long $l0, $l1;
+
+        r0 := @this: org.eclipse.jetty.server.session.HashSessionManager;
+
+        $l0 = r0.<org.eclipse.jetty.server.session.HashSessionManager: long _scavengePeriodMs>;
+
+        $l1 = $l0 / 1000L;
+
+        $i2 = (int) $l1;
+
+        return $i2;
+    }
+
+    public int getSessions()
+    {
+        java.lang.Object[] $r11;
+        java.util.concurrent.ConcurrentMap $r2, $r6;
+        org.eclipse.jetty.server.session.HashSessionManager r0;
+        int $i0, $i1, $i2;
+        java.lang.String $r10;
+        boolean $z0;
+        java.lang.StringBuilder $r3, $r5, $r7, $r8, $r9;
+        org.eclipse.jetty.util.log.Logger $r1, $r4;
+
+        r0 := @this: org.eclipse.jetty.server.session.HashSessionManager;
+
+        $i0 = specialinvoke r0.<org.eclipse.jetty.server.session.AbstractSessionManager: int getSessions()>();
+
+        $r1 = <org.eclipse.jetty.server.session.HashSessionManager: org.eclipse.jetty.util.log.Logger __log>;
+
+        $z0 = interfaceinvoke $r1.<org.eclipse.jetty.util.log.Logger: boolean isDebugEnabled()>();
+
+        if $z0 == 0 goto label1;
+
+        $r2 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.util.concurrent.ConcurrentMap _sessions>;
+
+        $i1 = interfaceinvoke $r2.<java.util.concurrent.ConcurrentMap: int size()>();
+
+        if $i1 == $i0 goto label1;
+
+        $r4 = <org.eclipse.jetty.server.session.HashSessionManager: org.eclipse.jetty.util.log.Logger __log>;
+
+        $r3 = new java.lang.StringBuilder;
+
+        specialinvoke $r3.<java.lang.StringBuilder: void <init>()>();
+
+        $r5 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("sessions: ");
+
+        $r6 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.util.concurrent.ConcurrentMap _sessions>;
+
+        $i2 = interfaceinvoke $r6.<java.util.concurrent.ConcurrentMap: int size()>();
+
+        $r7 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i2);
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("!=");
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i0);
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r11 = newarray (java.lang.Object)[0];
+
+        interfaceinvoke $r4.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.String,java.lang.Object[])>($r10, $r11);
+
+     label1:
+        return $i0;
+    }
+
+    public int getIdleSavePeriod()
+    {
+        org.eclipse.jetty.server.session.HashSessionManager r0;
+        byte $b1;
+        int $i4, $i5;
+        long $l0, $l2, $l3;
+
+        r0 := @this: org.eclipse.jetty.server.session.HashSessionManager;
+
+        $l0 = r0.<org.eclipse.jetty.server.session.HashSessionManager: long _idleSavePeriodMs>;
+
+        $b1 = $l0 cmp 0L;
+
+        $i5 = (int) $b1;
+
+        if $i5 > 0 goto label1;
+
+        return 0;
+
+     label1:
+        $l2 = r0.<org.eclipse.jetty.server.session.HashSessionManager: long _idleSavePeriodMs>;
+
+        $l3 = $l2 / 1000L;
+
+        $i4 = (int) $l3;
+
+        return $i4;
+    }
+
+    public void setIdleSavePeriod(int)
+    {
+        org.eclipse.jetty.server.session.HashSessionManager r0;
+        int i0;
+        long $l1, $l2;
+
+        r0 := @this: org.eclipse.jetty.server.session.HashSessionManager;
+
+        i0 := @parameter0: int;
+
+        $l1 = (long) i0;
+
+        $l2 = $l1 * 1000L;
+
+        r0.<org.eclipse.jetty.server.session.HashSessionManager: long _idleSavePeriodMs> = $l2;
+
+        return;
+    }
+
+    public void setMaxInactiveInterval(int)
+    {
+        long $l3, $l4, $l5;
+        org.eclipse.jetty.server.session.HashSessionManager r0;
+        byte $b6;
+        int i0, $i1, $i2, $i7, $i8, $i9, $i10;
+
+        r0 := @this: org.eclipse.jetty.server.session.HashSessionManager;
+
+        i0 := @parameter0: int;
+
+        specialinvoke r0.<org.eclipse.jetty.server.session.AbstractSessionManager: void setMaxInactiveInterval(int)>(i0);
+
+        $i1 = r0.<org.eclipse.jetty.server.session.HashSessionManager: int _dftMaxIdleSecs>;
+
+        if $i1 <= 0 goto label1;
+
+        $l5 = r0.<org.eclipse.jetty.server.session.HashSessionManager: long _scavengePeriodMs>;
+
+        $i2 = r0.<org.eclipse.jetty.server.session.HashSessionManager: int _dftMaxIdleSecs>;
+
+        $l3 = (long) $i2;
+
+        $l4 = $l3 * 1000L;
+
+        $b6 = $l5 cmp $l4;
+
+        $i10 = (int) $b6;
+
+        if $i10 <= 0 goto label1;
+
+        $i7 = r0.<org.eclipse.jetty.server.session.HashSessionManager: int _dftMaxIdleSecs>;
+
+        $i8 = $i7 + 9;
+
+        $i9 = $i8 / 10;
+
+        virtualinvoke r0.<org.eclipse.jetty.server.session.HashSessionManager: void setScavengePeriod(int)>($i9);
+
+     label1:
+        return;
+    }
+
+    public void setSavePeriod(int)
+    {
+        java.lang.Throwable $r8;
+        long $l1, $l3, $l5, $l6, l7;
+        java.util.Timer $r1, $r6;
+        org.eclipse.jetty.server.session.HashSessionManager r0;
+        org.eclipse.jetty.server.session.HashSessionManager$1 $r9;
+        byte $b2, $b4;
+        int i0, $i8, $i9;
+        java.util.TimerTask $r2, $r5, $r7;
+        java.io.File $r3;
+
+        r0 := @this: org.eclipse.jetty.server.session.HashSessionManager;
+
+        i0 := @parameter0: int;
+
+        $l1 = (long) i0;
+
+        l7 = $l1 * 1000L;
+
+        $b2 = l7 cmp 0L;
+
+        $i8 = (int) $b2;
+
+        if $i8 >= 0 goto label1;
+
+        l7 = 0L;
+
+     label1:
+        r0.<org.eclipse.jetty.server.session.HashSessionManager: long _savePeriodMs> = l7;
+
+        $r1 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.util.Timer _timer>;
+
+        if $r1 == null goto label8;
+
+        entermonitor r0;
+
+     label2:
+        $r2 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.util.TimerTask _saveTask>;
+
+        if $r2 == null goto label3;
+
+        $r7 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.util.TimerTask _saveTask>;
+
+        virtualinvoke $r7.<java.util.TimerTask: boolean cancel()>();
+
+     label3:
+        $l3 = r0.<org.eclipse.jetty.server.session.HashSessionManager: long _savePeriodMs>;
+
+        $b4 = $l3 cmp 0L;
+
+        $i9 = (int) $b4;
+
+        if $i9 <= 0 goto label4;
+
+        $r3 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.io.File _storeDir>;
+
+        if $r3 == null goto label4;
+
+        $r9 = new org.eclipse.jetty.server.session.HashSessionManager$1;
+
+        specialinvoke $r9.<org.eclipse.jetty.server.session.HashSessionManager$1: void <init>(org.eclipse.jetty.server.session.HashSessionManager)>(r0);
+
+        r0.<org.eclipse.jetty.server.session.HashSessionManager: java.util.TimerTask _saveTask> = $r9;
+
+        $r6 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.util.Timer _timer>;
+
+        $r5 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.util.TimerTask _saveTask>;
+
+        $l6 = r0.<org.eclipse.jetty.server.session.HashSessionManager: long _savePeriodMs>;
+
+        $l5 = r0.<org.eclipse.jetty.server.session.HashSessionManager: long _savePeriodMs>;
+
+        virtualinvoke $r6.<java.util.Timer: void schedule(java.util.TimerTask,long,long)>($r5, $l6, $l5);
+
+     label4:
+        exitmonitor r0;
+
+     label5:
+        goto label8;
+
+     label6:
+        $r8 := @caughtexception;
+
+        exitmonitor r0;
+
+     label7:
+        throw $r8;
+
+     label8:
+        return;
+
+        catch java.lang.Throwable from label2 to label5 with label6;
+        catch java.lang.Throwable from label6 to label7 with label6;
+    }
+
+    public int getSavePeriod()
+    {
+        org.eclipse.jetty.server.session.HashSessionManager r0;
+        byte $b1;
+        int $i4, $i5;
+        long $l0, $l2, $l3;
+
+        r0 := @this: org.eclipse.jetty.server.session.HashSessionManager;
+
+        $l0 = r0.<org.eclipse.jetty.server.session.HashSessionManager: long _savePeriodMs>;
+
+        $b1 = $l0 cmp 0L;
+
+        $i5 = (int) $b1;
+
+        if $i5 > 0 goto label1;
+
+        return 0;
+
+     label1:
+        $l2 = r0.<org.eclipse.jetty.server.session.HashSessionManager: long _savePeriodMs>;
+
+        $l3 = $l2 / 1000L;
+
+        $i4 = (int) $l3;
+
+        return $i4;
+    }
+
+    public void setScavengePeriod(int)
+    {
+        java.lang.Throwable $r8;
+        long $l0, $l4, $l5, $l6, $l7, l9;
+        java.util.Timer $r1, $r5;
+        org.eclipse.jetty.server.session.HashSessionManager r0;
+        org.eclipse.jetty.server.session.HashSessionManager$2 $r9;
+        byte $b1, $b2, $b3;
+        int i8, $i10, $i11;
+        java.util.TimerTask $r2, $r4, $r6, $r7;
+
+        r0 := @this: org.eclipse.jetty.server.session.HashSessionManager;
+
+        i8 := @parameter0: int;
+
+        if i8 != 0 goto label01;
+
+        i8 = 60;
+
+     label01:
+        $l6 = r0.<org.eclipse.jetty.server.session.HashSessionManager: long _scavengePeriodMs>;
+
+        $l0 = (long) i8;
+
+        $l7 = $l0 * 1000L;
+
+        l9 = $l7;
+
+        $b1 = $l7 cmp 60000L;
+
+        $i10 = (int) $b1;
+
+        if $i10 <= 0 goto label02;
+
+        l9 = 60000L;
+
+     label02:
+        $b2 = l9 cmp 1000L;
+
+        $i11 = (int) $b2;
+
+        if $i11 >= 0 goto label03;
+
+        l9 = 1000L;
+
+     label03:
+        r0.<org.eclipse.jetty.server.session.HashSessionManager: long _scavengePeriodMs> = l9;
+
+        $r1 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.util.Timer _timer>;
+
+        if $r1 == null goto label10;
+
+        $b3 = l9 cmp $l6;
+
+        if $b3 != 0 goto label04;
+
+        $r7 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.util.TimerTask _task>;
+
+        if $r7 != null goto label10;
+
+     label04:
+        entermonitor r0;
+
+     label05:
+        $r2 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.util.TimerTask _task>;
+
+        if $r2 == null goto label06;
+
+        $r6 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.util.TimerTask _task>;
+
+        virtualinvoke $r6.<java.util.TimerTask: boolean cancel()>();
+
+     label06:
+        $r9 = new org.eclipse.jetty.server.session.HashSessionManager$2;
+
+        specialinvoke $r9.<org.eclipse.jetty.server.session.HashSessionManager$2: void <init>(org.eclipse.jetty.server.session.HashSessionManager)>(r0);
+
+        r0.<org.eclipse.jetty.server.session.HashSessionManager: java.util.TimerTask _task> = $r9;
+
+        $r5 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.util.Timer _timer>;
+
+        $r4 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.util.TimerTask _task>;
+
+        $l5 = r0.<org.eclipse.jetty.server.session.HashSessionManager: long _scavengePeriodMs>;
+
+        $l4 = r0.<org.eclipse.jetty.server.session.HashSessionManager: long _scavengePeriodMs>;
+
+        virtualinvoke $r5.<java.util.Timer: void schedule(java.util.TimerTask,long,long)>($r4, $l5, $l4);
+
+        exitmonitor r0;
+
+     label07:
+        goto label10;
+
+     label08:
+        $r8 := @caughtexception;
+
+        exitmonitor r0;
+
+     label09:
+        throw $r8;
+
+     label10:
+        return;
+
+        catch java.lang.Throwable from label05 to label07 with label08;
+        catch java.lang.Throwable from label08 to label09 with label08;
+    }
+
+    protected void scavenge()
+    {
+        byte $b4, $b6, $b10, $b13;
+        java.lang.Thread $r1;
+        boolean $z0, $z1, $z2;
+        java.util.Collection $r5;
+        java.lang.Exception $r11, $r18;
+        java.lang.StringBuilder $r14, $r16, $r20;
+        java.lang.ClassLoader $r2, $r3, $r9;
+        java.lang.Throwable $r10;
+        long $l0, $l2, l3, $l5, $l7, $l8, $l9, $l11, $l12;
+        java.util.concurrent.ConcurrentMap $r4;
+        org.eclipse.jetty.server.session.HashSessionManager r0;
+        int $i1, $i14, $i15, $i16, $i17;
+        java.lang.String $r15, $r17;
+        org.eclipse.jetty.server.session.HashedSession r8;
+        java.util.Iterator $r6;
+        java.lang.Object $r7;
+        org.eclipse.jetty.util.log.Logger $r13, $r19;
+
+        r0 := @this: org.eclipse.jetty.server.session.HashSessionManager;
+
+        $z0 = virtualinvoke r0.<org.eclipse.jetty.server.session.HashSessionManager: boolean isStopping()>();
+
+        if $z0 != 0 goto label01;
+
+        $z1 = virtualinvoke r0.<org.eclipse.jetty.server.session.HashSessionManager: boolean isStopped()>();
+
+        if $z1 == 0 goto label02;
+
+     label01:
+        return;
+
+     label02:
+        $r1 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        $r2 = virtualinvoke $r1.<java.lang.Thread: java.lang.ClassLoader getContextClassLoader()>();
+
+     label03:
+        $r3 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.lang.ClassLoader _loader>;
+
+        if $r3 == null goto label04;
+
+        $r9 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.lang.ClassLoader _loader>;
+
+        virtualinvoke $r1.<java.lang.Thread: void setContextClassLoader(java.lang.ClassLoader)>($r9);
+
+     label04:
+        $l0 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        $r4 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.util.concurrent.ConcurrentMap _sessions>;
+
+        $r5 = interfaceinvoke $r4.<java.util.concurrent.ConcurrentMap: java.util.Collection values()>();
+
+        $r6 = interfaceinvoke $r5.<java.util.Collection: java.util.Iterator iterator()>();
+
+     label05:
+        $z2 = interfaceinvoke $r6.<java.util.Iterator: boolean hasNext()>();
+
+        if $z2 == 0 goto label14;
+
+        $r7 = interfaceinvoke $r6.<java.util.Iterator: java.lang.Object next()>();
+
+        r8 = (org.eclipse.jetty.server.session.HashedSession) $r7;
+
+        $i1 = virtualinvoke r8.<org.eclipse.jetty.server.session.HashedSession: int getMaxInactiveInterval()>();
+
+        $l2 = (long) $i1;
+
+        l3 = $l2 * 1000L;
+
+        $b4 = l3 cmp 0L;
+
+        $i14 = (int) $b4;
+
+        if $i14 <= 0 goto label09;
+
+        $l11 = virtualinvoke r8.<org.eclipse.jetty.server.session.HashedSession: long getAccessed()>();
+
+        $l12 = $l11 + l3;
+
+        $b13 = $l12 cmp $l0;
+
+        $i15 = (int) $b13;
+
+        if $i15 >= 0 goto label09;
+
+     label06:
+        virtualinvoke r8.<org.eclipse.jetty.server.session.HashedSession: void timeout()>();
+
+     label07:
+        goto label13;
+
+     label08:
+        $r18 := @caughtexception;
+
+        $r19 = <org.eclipse.jetty.server.session.HashSessionManager: org.eclipse.jetty.util.log.Logger __log>;
+
+        interfaceinvoke $r19.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.String,java.lang.Throwable)>("Problem scavenging sessions", $r18);
+
+        goto label13;
+
+     label09:
+        $l5 = r0.<org.eclipse.jetty.server.session.HashSessionManager: long _idleSavePeriodMs>;
+
+        $b6 = $l5 cmp 0L;
+
+        $i16 = (int) $b6;
+
+        if $i16 <= 0 goto label13;
+
+        $l7 = virtualinvoke r8.<org.eclipse.jetty.server.session.HashedSession: long getAccessed()>();
+
+        $l8 = r0.<org.eclipse.jetty.server.session.HashSessionManager: long _idleSavePeriodMs>;
+
+        $l9 = $l7 + $l8;
+
+        $b10 = $l9 cmp $l0;
+
+        $i17 = (int) $b10;
+
+        if $i17 >= 0 goto label13;
+
+     label10:
+        virtualinvoke r8.<org.eclipse.jetty.server.session.HashedSession: void idle()>();
+
+     label11:
+        goto label13;
+
+     label12:
+        $r11 := @caughtexception;
+
+        $r13 = <org.eclipse.jetty.server.session.HashSessionManager: org.eclipse.jetty.util.log.Logger __log>;
+
+        $r20 = new java.lang.StringBuilder;
+
+        specialinvoke $r20.<java.lang.StringBuilder: void <init>()>();
+
+        $r14 = virtualinvoke $r20.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Problem idling session ");
+
+        $r15 = virtualinvoke r8.<org.eclipse.jetty.server.session.HashedSession: java.lang.String getId()>();
+
+        $r16 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r15);
+
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r13.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.String,java.lang.Throwable)>($r17, $r11);
+
+     label13:
+        goto label05;
+
+     label14:
+        virtualinvoke $r1.<java.lang.Thread: void setContextClassLoader(java.lang.ClassLoader)>($r2);
+
+        goto label17;
+
+     label15:
+        $r10 := @caughtexception;
+
+     label16:
+        virtualinvoke $r1.<java.lang.Thread: void setContextClassLoader(java.lang.ClassLoader)>($r2);
+
+        throw $r10;
+
+     label17:
+        return;
+
+        catch java.lang.Exception from label06 to label07 with label08;
+        catch java.lang.Exception from label10 to label11 with label12;
+        catch java.lang.Throwable from label03 to label14 with label15;
+        catch java.lang.Throwable from label15 to label16 with label15;
+    }
+
+    protected void addSession(org.eclipse.jetty.server.session.AbstractSession)
+    {
+        org.eclipse.jetty.server.session.HashSessionManager r0;
+        org.eclipse.jetty.server.session.HashedSession $r4;
+        java.lang.String $r3;
+        org.eclipse.jetty.server.session.AbstractSession r1;
+        boolean $z0;
+        java.util.concurrent.ConcurrentMap $r2;
+
+        r0 := @this: org.eclipse.jetty.server.session.HashSessionManager;
+
+        r1 := @parameter0: org.eclipse.jetty.server.session.AbstractSession;
+
+        $z0 = virtualinvoke r0.<org.eclipse.jetty.server.session.HashSessionManager: boolean isRunning()>();
+
+        if $z0 == 0 goto label1;
+
+        $r2 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.util.concurrent.ConcurrentMap _sessions>;
+
+        $r3 = virtualinvoke r1.<org.eclipse.jetty.server.session.AbstractSession: java.lang.String getClusterId()>();
+
+        $r4 = (org.eclipse.jetty.server.session.HashedSession) r1;
+
+        interfaceinvoke $r2.<java.util.concurrent.ConcurrentMap: java.lang.Object put(java.lang.Object,java.lang.Object)>($r3, $r4);
+
+     label1:
+        return;
+    }
+
+    public org.eclipse.jetty.server.session.AbstractSession getSession(java.lang.String)
+    {
+        org.eclipse.jetty.server.session.HashedSession r6;
+        long $l0;
+        java.lang.Exception $r3;
+        java.util.concurrent.ConcurrentMap $r5;
+        org.eclipse.jetty.server.session.HashSessionManager r0;
+        byte $b1;
+        java.lang.Object $r2;
+        java.lang.String r1;
+        org.eclipse.jetty.util.log.Logger $r4;
+        boolean $z0, $z1, $z2;
+
+        r0 := @this: org.eclipse.jetty.server.session.HashSessionManager;
+
+        r1 := @parameter0: java.lang.String;
+
+        $z0 = r0.<org.eclipse.jetty.server.session.HashSessionManager: boolean _lazyLoad>;
+
+        if $z0 == 0 goto label4;
+
+        $z2 = r0.<org.eclipse.jetty.server.session.HashSessionManager: boolean _sessionsLoaded>;
+
+        if $z2 != 0 goto label4;
+
+     label1:
+        virtualinvoke r0.<org.eclipse.jetty.server.session.HashSessionManager: void restoreSessions()>();
+
+     label2:
+        goto label4;
+
+     label3:
+        $r3 := @caughtexception;
+
+        $r4 = <org.eclipse.jetty.server.session.HashSessionManager: org.eclipse.jetty.util.log.Logger __log>;
+
+        interfaceinvoke $r4.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.Throwable)>($r3);
+
+     label4:
+        $r5 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.util.concurrent.ConcurrentMap _sessions>;
+
+        if $r5 != null goto label5;
+
+        return null;
+
+     label5:
+        $r2 = interfaceinvoke $r5.<java.util.Map: java.lang.Object get(java.lang.Object)>(r1);
+
+        r6 = (org.eclipse.jetty.server.session.HashedSession) $r2;
+
+        if r6 != null goto label6;
+
+        $z1 = r0.<org.eclipse.jetty.server.session.HashSessionManager: boolean _lazyLoad>;
+
+        if $z1 == 0 goto label6;
+
+        r6 = virtualinvoke r0.<org.eclipse.jetty.server.session.HashSessionManager: org.eclipse.jetty.server.session.HashedSession restoreSession(java.lang.String)>(r1);
+
+     label6:
+        if r6 != null goto label7;
+
+        return null;
+
+     label7:
+        $l0 = r0.<org.eclipse.jetty.server.session.HashSessionManager: long _idleSavePeriodMs>;
+
+        $b1 = $l0 cmp 0L;
+
+        if $b1 == 0 goto label8;
+
+        virtualinvoke r6.<org.eclipse.jetty.server.session.HashedSession: void deIdle()>();
+
+     label8:
+        return r6;
+
+        catch java.lang.Exception from label1 to label2 with label3;
+    }
+
+    protected void invalidateSessions() throws java.lang.Exception
+    {
+        java.util.concurrent.ConcurrentMap $r2, $r5;
+        java.util.ArrayList r13, $r17, $r18;
+        org.eclipse.jetty.server.session.HashSessionManager r1;
+        int $i0, $i1, i2, $i4;
+        boolean $z0, $z1, $z2, $z3, $z4;
+        org.eclipse.jetty.server.session.HashedSession r14, r16;
+        java.util.Iterator $r11, $r15;
+        java.util.Collection $r3, $r6;
+        java.io.File $r8, $r9, $r10;
+        java.lang.Object $r7, $r12;
+
+        r1 := @this: org.eclipse.jetty.server.session.HashSessionManager;
+
+        $r17 = new java.util.ArrayList;
+
+        $r2 = r1.<org.eclipse.jetty.server.session.HashSessionManager: java.util.concurrent.ConcurrentMap _sessions>;
+
+        $r3 = interfaceinvoke $r2.<java.util.concurrent.ConcurrentMap: java.util.Collection values()>();
+
+        specialinvoke $r17.<java.util.ArrayList: void <init>(java.util.Collection)>($r3);
+
+        r13 = $r17;
+
+        i2 = 100;
+
+     label1:
+        $i0 = virtualinvoke r13.<java.util.ArrayList: int size()>();
+
+        if $i0 <= 0 goto label7;
+
+        $i1 = i2;
+
+        $i4 = (int) -1;
+
+        i2 = i2 + $i4;
+
+        if $i1 <= 0 goto label7;
+
+        $z0 = virtualinvoke r1.<org.eclipse.jetty.server.session.HashSessionManager: boolean isStopping()>();
+
+        if $z0 == 0 goto label4;
+
+        $r8 = r1.<org.eclipse.jetty.server.session.HashSessionManager: java.io.File _storeDir>;
+
+        if $r8 == null goto label4;
+
+        $r9 = r1.<org.eclipse.jetty.server.session.HashSessionManager: java.io.File _storeDir>;
+
+        $z1 = virtualinvoke $r9.<java.io.File: boolean exists()>();
+
+        if $z1 == 0 goto label4;
+
+        $r10 = r1.<org.eclipse.jetty.server.session.HashSessionManager: java.io.File _storeDir>;
+
+        $z2 = virtualinvoke $r10.<java.io.File: boolean canWrite()>();
+
+        if $z2 == 0 goto label4;
+
+        $r11 = virtualinvoke r13.<java.util.ArrayList: java.util.Iterator iterator()>();
+
+     label2:
+        $z3 = interfaceinvoke $r11.<java.util.Iterator: boolean hasNext()>();
+
+        if $z3 == 0 goto label3;
+
+        $r12 = interfaceinvoke $r11.<java.util.Iterator: java.lang.Object next()>();
+
+        r14 = (org.eclipse.jetty.server.session.HashedSession) $r12;
+
+        virtualinvoke r14.<org.eclipse.jetty.server.session.HashedSession: void save(boolean)>(0);
+
+        virtualinvoke r1.<org.eclipse.jetty.server.session.HashSessionManager: void removeSession(org.eclipse.jetty.server.session.AbstractSession,boolean)>(r14, 0);
+
+        goto label2;
+
+     label3:
+        goto label6;
+
+     label4:
+        $r15 = virtualinvoke r13.<java.util.ArrayList: java.util.Iterator iterator()>();
+
+     label5:
+        $z4 = interfaceinvoke $r15.<java.util.Iterator: boolean hasNext()>();
+
+        if $z4 == 0 goto label6;
+
+        $r7 = interfaceinvoke $r15.<java.util.Iterator: java.lang.Object next()>();
+
+        r16 = (org.eclipse.jetty.server.session.HashedSession) $r7;
+
+        virtualinvoke r16.<org.eclipse.jetty.server.session.HashedSession: void invalidate()>();
+
+        goto label5;
+
+     label6:
+        $r18 = new java.util.ArrayList;
+
+        $r5 = r1.<org.eclipse.jetty.server.session.HashSessionManager: java.util.concurrent.ConcurrentMap _sessions>;
+
+        $r6 = interfaceinvoke $r5.<java.util.concurrent.ConcurrentMap: java.util.Collection values()>();
+
+        specialinvoke $r18.<java.util.ArrayList: void <init>(java.util.Collection)>($r6);
+
+        r13 = $r18;
+
+        goto label1;
+
+     label7:
+        return;
+    }
+
+    protected org.eclipse.jetty.server.session.AbstractSession newSession(javax.servlet.http.HttpServletRequest)
+    {
+        org.eclipse.jetty.server.session.HashSessionManager r1;
+        javax.servlet.http.HttpServletRequest r2;
+        org.eclipse.jetty.server.session.HashedSession $r0;
+
+        r1 := @this: org.eclipse.jetty.server.session.HashSessionManager;
+
+        r2 := @parameter0: javax.servlet.http.HttpServletRequest;
+
+        $r0 = new org.eclipse.jetty.server.session.HashedSession;
+
+        specialinvoke $r0.<org.eclipse.jetty.server.session.HashedSession: void <init>(org.eclipse.jetty.server.session.HashSessionManager,javax.servlet.http.HttpServletRequest)>(r1, r2);
+
+        return $r0;
+    }
+
+    protected org.eclipse.jetty.server.session.AbstractSession newSession(long, long, java.lang.String)
+    {
+        org.eclipse.jetty.server.session.HashSessionManager r1;
+        org.eclipse.jetty.server.session.HashedSession $r0;
+        long l0, l1;
+        java.lang.String r2;
+
+        r1 := @this: org.eclipse.jetty.server.session.HashSessionManager;
+
+        l0 := @parameter0: long;
+
+        l1 := @parameter1: long;
+
+        r2 := @parameter2: java.lang.String;
+
+        $r0 = new org.eclipse.jetty.server.session.HashedSession;
+
+        specialinvoke $r0.<org.eclipse.jetty.server.session.HashedSession: void <init>(org.eclipse.jetty.server.session.HashSessionManager,long,long,java.lang.String)>(r1, l0, l1, r2);
+
+        return $r0;
+    }
+
+    protected boolean removeSession(java.lang.String)
+    {
+        org.eclipse.jetty.server.session.HashSessionManager r0;
+        java.lang.Object $r3;
+        java.lang.String r1;
+        java.util.concurrent.ConcurrentMap $r2;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.server.session.HashSessionManager;
+
+        r1 := @parameter0: java.lang.String;
+
+        $r2 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.util.concurrent.ConcurrentMap _sessions>;
+
+        $r3 = interfaceinvoke $r2.<java.util.concurrent.ConcurrentMap: java.lang.Object remove(java.lang.Object)>(r1);
+
+        if $r3 == null goto label1;
+
+        $z0 = 1;
+
+        goto label2;
+
+     label1:
+        $z0 = 0;
+
+     label2:
+        return $z0;
+    }
+
+    public void setStoreDirectory(java.io.File) throws java.io.IOException
+    {
+        org.eclipse.jetty.server.session.HashSessionManager r0;
+        java.io.File r1, $r2;
+
+        r0 := @this: org.eclipse.jetty.server.session.HashSessionManager;
+
+        r1 := @parameter0: java.io.File;
+
+        $r2 = virtualinvoke r1.<java.io.File: java.io.File getCanonicalFile()>();
+
+        r0.<org.eclipse.jetty.server.session.HashSessionManager: java.io.File _storeDir> = $r2;
+
+        return;
+    }
+
+    public java.io.File getStoreDirectory()
+    {
+        org.eclipse.jetty.server.session.HashSessionManager r0;
+        java.io.File $r1;
+
+        r0 := @this: org.eclipse.jetty.server.session.HashSessionManager;
+
+        $r1 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.io.File _storeDir>;
+
+        return $r1;
+    }
+
+    public void setLazyLoad(boolean)
+    {
+        org.eclipse.jetty.server.session.HashSessionManager r0;
+        boolean z0;
+
+        r0 := @this: org.eclipse.jetty.server.session.HashSessionManager;
+
+        z0 := @parameter0: boolean;
+
+        r0.<org.eclipse.jetty.server.session.HashSessionManager: boolean _lazyLoad> = z0;
+
+        return;
+    }
+
+    public boolean isLazyLoad()
+    {
+        org.eclipse.jetty.server.session.HashSessionManager r0;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.server.session.HashSessionManager;
+
+        $z0 = r0.<org.eclipse.jetty.server.session.HashSessionManager: boolean _lazyLoad>;
+
+        return $z0;
+    }
+
+    public boolean isDeleteUnrestorableSessions()
+    {
+        org.eclipse.jetty.server.session.HashSessionManager r0;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.server.session.HashSessionManager;
+
+        $z0 = r0.<org.eclipse.jetty.server.session.HashSessionManager: boolean _deleteUnrestorableSessions>;
+
+        return $z0;
+    }
+
+    public void setDeleteUnrestorableSessions(boolean)
+    {
+        org.eclipse.jetty.server.session.HashSessionManager r0;
+        boolean z0;
+
+        r0 := @this: org.eclipse.jetty.server.session.HashSessionManager;
+
+        z0 := @parameter0: boolean;
+
+        r0.<org.eclipse.jetty.server.session.HashSessionManager: boolean _deleteUnrestorableSessions> = z0;
+
+        return;
+    }
+
+    public void restoreSessions() throws java.lang.Exception
+    {
+        java.lang.Object[] $r14;
+        java.lang.String[] $r5;
+        org.eclipse.jetty.server.session.HashSessionManager r0;
+        int $i0, i1;
+        java.lang.String $r6, $r11, $r13;
+        boolean $z0, $z1;
+        java.io.File $r1, $r2, $r3, $r4, $r10;
+        java.lang.StringBuilder $r7, $r9, $r12;
+        org.eclipse.jetty.util.log.Logger $r8;
+
+        r0 := @this: org.eclipse.jetty.server.session.HashSessionManager;
+
+        r0.<org.eclipse.jetty.server.session.HashSessionManager: boolean _sessionsLoaded> = 1;
+
+        $r1 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.io.File _storeDir>;
+
+        if $r1 == null goto label1;
+
+        $r2 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.io.File _storeDir>;
+
+        $z0 = virtualinvoke $r2.<java.io.File: boolean exists()>();
+
+        if $z0 != 0 goto label2;
+
+     label1:
+        return;
+
+     label2:
+        $r3 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.io.File _storeDir>;
+
+        $z1 = virtualinvoke $r3.<java.io.File: boolean canRead()>();
+
+        if $z1 != 0 goto label3;
+
+        $r8 = <org.eclipse.jetty.server.session.HashSessionManager: org.eclipse.jetty.util.log.Logger __log>;
+
+        $r7 = new java.lang.StringBuilder;
+
+        specialinvoke $r7.<java.lang.StringBuilder: void <init>()>();
+
+        $r9 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Unable to restore Sessions: Cannot read from Session storage directory ");
+
+        $r10 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.io.File _storeDir>;
+
+        $r11 = virtualinvoke $r10.<java.io.File: java.lang.String getAbsolutePath()>();
+
+        $r12 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r11);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r14 = newarray (java.lang.Object)[0];
+
+        interfaceinvoke $r8.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.String,java.lang.Object[])>($r13, $r14);
+
+        return;
+
+     label3:
+        $r4 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.io.File _storeDir>;
+
+        $r5 = virtualinvoke $r4.<java.io.File: java.lang.String[] list()>();
+
+        i1 = 0;
+
+     label4:
+        if $r5 == null goto label5;
+
+        $i0 = lengthof $r5;
+
+        if i1 >= $i0 goto label5;
+
+        $r6 = $r5[i1];
+
+        virtualinvoke r0.<org.eclipse.jetty.server.session.HashSessionManager: org.eclipse.jetty.server.session.HashedSession restoreSession(java.lang.String)>($r6);
+
+        i1 = i1 + 1;
+
+        goto label4;
+
+     label5:
+        return;
+    }
+
+    protected synchronized org.eclipse.jetty.server.session.HashedSession restoreSession(java.lang.String)
+    {
+        java.lang.Exception $r28;
+        java.lang.StringBuilder $r6, $r8, $r9, $r15, $r17, $r18, $r23, $r25, $r26, $r31, $r33, $r34, $r38, $r39, $r40, $r43, $r44, $r45, $r48, $r49, $r50, $r53, $r54, $r55;
+        java.lang.Throwable $r20;
+        org.eclipse.jetty.server.session.HashSessionManager r1;
+        java.lang.String r2, $r10, $r19, $r27, $r35, $r41, $r46, $r51, $r56;
+        java.io.File $r0, $r3, $r4, $r5, $r13, $r14, $r21, $r22, $r29, $r30;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9, $z10, $z11, $z12;
+        org.eclipse.jetty.server.session.HashedSession $r12;
+        java.io.FileInputStream $r11, r36;
+        org.eclipse.jetty.util.log.Logger $r7, $r16, $r24, $r32, $r37, $r42, $r47, $r52;
+
+        r1 := @this: org.eclipse.jetty.server.session.HashSessionManager;
+
+        r2 := @parameter0: java.lang.String;
+
+        $r0 = new java.io.File;
+
+        $r3 = r1.<org.eclipse.jetty.server.session.HashSessionManager: java.io.File _storeDir>;
+
+        specialinvoke $r0.<java.io.File: void <init>(java.io.File,java.lang.String)>($r3, r2);
+
+        r36 = null;
+
+     label01:
+        $z0 = virtualinvoke $r0.<java.io.File: boolean exists()>();
+
+        if $z0 == 0 goto label07;
+
+        $r11 = new java.io.FileInputStream;
+
+        specialinvoke $r11.<java.io.FileInputStream: void <init>(java.io.File)>($r0);
+
+        r36 = $r11;
+
+        $r12 = virtualinvoke r1.<org.eclipse.jetty.server.session.HashSessionManager: org.eclipse.jetty.server.session.HashedSession restoreSession(java.io.InputStream,org.eclipse.jetty.server.session.HashedSession)>($r11, null);
+
+        virtualinvoke r1.<org.eclipse.jetty.server.session.HashSessionManager: void addSession(org.eclipse.jetty.server.session.AbstractSession,boolean)>($r12, 0);
+
+        virtualinvoke $r12.<org.eclipse.jetty.server.session.HashedSession: void didActivate()>();
+
+     label02:
+        if $r11 == null goto label03;
+
+        staticinvoke <org.eclipse.jetty.util.IO: void close(java.io.InputStream)>($r11);
+
+     label03:
+        if null == null goto label05;
+
+        $z4 = virtualinvoke r1.<org.eclipse.jetty.server.session.HashSessionManager: boolean isDeleteUnrestorableSessions()>();
+
+        if $z4 == 0 goto label04;
+
+        $z5 = virtualinvoke $r0.<java.io.File: boolean exists()>();
+
+        if $z5 == 0 goto label04;
+
+        $r13 = virtualinvoke $r0.<java.io.File: java.io.File getParentFile()>();
+
+        $r14 = r1.<org.eclipse.jetty.server.session.HashSessionManager: java.io.File _storeDir>;
+
+        $z6 = virtualinvoke $r13.<java.io.File: boolean equals(java.lang.Object)>($r14);
+
+        if $z6 == 0 goto label04;
+
+        virtualinvoke $r0.<java.io.File: boolean delete()>();
+
+        $r16 = <org.eclipse.jetty.server.session.HashSessionManager: org.eclipse.jetty.util.log.Logger __log>;
+
+        $r15 = new java.lang.StringBuilder;
+
+        specialinvoke $r15.<java.lang.StringBuilder: void <init>()>();
+
+        $r17 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Deleting file for unrestorable session ");
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r2);
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r16.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.String,java.lang.Throwable)>($r19, null);
+
+        goto label06;
+
+     label04:
+        $r37 = <org.eclipse.jetty.server.session.HashSessionManager: org.eclipse.jetty.util.log.Logger __log>;
+
+        $r38 = new java.lang.StringBuilder;
+
+        specialinvoke $r38.<java.lang.StringBuilder: void <init>()>();
+
+        $r39 = virtualinvoke $r38.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Problem restoring session ");
+
+        $r40 = virtualinvoke $r39.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r2);
+
+        $r41 = virtualinvoke $r40.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r37.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.String,java.lang.Throwable)>($r41, null);
+
+        goto label06;
+
+     label05:
+        virtualinvoke $r0.<java.io.File: boolean delete()>();
+
+     label06:
+        return $r12;
+
+     label07:
+        if null == null goto label08;
+
+        staticinvoke <org.eclipse.jetty.util.IO: void close(java.io.InputStream)>(null);
+
+     label08:
+        if null == null goto label10;
+
+        $z1 = virtualinvoke r1.<org.eclipse.jetty.server.session.HashSessionManager: boolean isDeleteUnrestorableSessions()>();
+
+        if $z1 == 0 goto label09;
+
+        $z2 = virtualinvoke $r0.<java.io.File: boolean exists()>();
+
+        if $z2 == 0 goto label09;
+
+        $r4 = virtualinvoke $r0.<java.io.File: java.io.File getParentFile()>();
+
+        $r5 = r1.<org.eclipse.jetty.server.session.HashSessionManager: java.io.File _storeDir>;
+
+        $z3 = virtualinvoke $r4.<java.io.File: boolean equals(java.lang.Object)>($r5);
+
+        if $z3 == 0 goto label09;
+
+        virtualinvoke $r0.<java.io.File: boolean delete()>();
+
+        $r7 = <org.eclipse.jetty.server.session.HashSessionManager: org.eclipse.jetty.util.log.Logger __log>;
+
+        $r6 = new java.lang.StringBuilder;
+
+        specialinvoke $r6.<java.lang.StringBuilder: void <init>()>();
+
+        $r8 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Deleting file for unrestorable session ");
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r2);
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r7.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.String,java.lang.Throwable)>($r10, null);
+
+        goto label22;
+
+     label09:
+        $r42 = <org.eclipse.jetty.server.session.HashSessionManager: org.eclipse.jetty.util.log.Logger __log>;
+
+        $r43 = new java.lang.StringBuilder;
+
+        specialinvoke $r43.<java.lang.StringBuilder: void <init>()>();
+
+        $r44 = virtualinvoke $r43.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Problem restoring session ");
+
+        $r45 = virtualinvoke $r44.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r2);
+
+        $r46 = virtualinvoke $r45.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r42.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.String,java.lang.Throwable)>($r46, null);
+
+        goto label22;
+
+     label10:
+        virtualinvoke $r0.<java.io.File: boolean delete()>();
+
+        goto label22;
+
+     label11:
+        $r28 := @caughtexception;
+
+     label12:
+        if r36 == null goto label13;
+
+        staticinvoke <org.eclipse.jetty.util.IO: void close(java.io.InputStream)>(r36);
+
+     label13:
+        if $r28 == null goto label15;
+
+        $z10 = virtualinvoke r1.<org.eclipse.jetty.server.session.HashSessionManager: boolean isDeleteUnrestorableSessions()>();
+
+        if $z10 == 0 goto label14;
+
+        $z11 = virtualinvoke $r0.<java.io.File: boolean exists()>();
+
+        if $z11 == 0 goto label14;
+
+        $r29 = virtualinvoke $r0.<java.io.File: java.io.File getParentFile()>();
+
+        $r30 = r1.<org.eclipse.jetty.server.session.HashSessionManager: java.io.File _storeDir>;
+
+        $z12 = virtualinvoke $r29.<java.io.File: boolean equals(java.lang.Object)>($r30);
+
+        if $z12 == 0 goto label14;
+
+        virtualinvoke $r0.<java.io.File: boolean delete()>();
+
+        $r32 = <org.eclipse.jetty.server.session.HashSessionManager: org.eclipse.jetty.util.log.Logger __log>;
+
+        $r31 = new java.lang.StringBuilder;
+
+        specialinvoke $r31.<java.lang.StringBuilder: void <init>()>();
+
+        $r33 = virtualinvoke $r31.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Deleting file for unrestorable session ");
+
+        $r34 = virtualinvoke $r33.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r2);
+
+        $r35 = virtualinvoke $r34.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r32.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.String,java.lang.Throwable)>($r35, $r28);
+
+        goto label22;
+
+     label14:
+        $r47 = <org.eclipse.jetty.server.session.HashSessionManager: org.eclipse.jetty.util.log.Logger __log>;
+
+        $r48 = new java.lang.StringBuilder;
+
+        specialinvoke $r48.<java.lang.StringBuilder: void <init>()>();
+
+        $r49 = virtualinvoke $r48.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Problem restoring session ");
+
+        $r50 = virtualinvoke $r49.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r2);
+
+        $r51 = virtualinvoke $r50.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r47.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.String,java.lang.Throwable)>($r51, $r28);
+
+        goto label22;
+
+     label15:
+        virtualinvoke $r0.<java.io.File: boolean delete()>();
+
+        goto label22;
+
+     label16:
+        $r20 := @caughtexception;
+
+     label17:
+        if r36 == null goto label18;
+
+        staticinvoke <org.eclipse.jetty.util.IO: void close(java.io.InputStream)>(r36);
+
+     label18:
+        if null == null goto label20;
+
+        $z7 = virtualinvoke r1.<org.eclipse.jetty.server.session.HashSessionManager: boolean isDeleteUnrestorableSessions()>();
+
+        if $z7 == 0 goto label19;
+
+        $z8 = virtualinvoke $r0.<java.io.File: boolean exists()>();
+
+        if $z8 == 0 goto label19;
+
+        $r21 = virtualinvoke $r0.<java.io.File: java.io.File getParentFile()>();
+
+        $r22 = r1.<org.eclipse.jetty.server.session.HashSessionManager: java.io.File _storeDir>;
+
+        $z9 = virtualinvoke $r21.<java.io.File: boolean equals(java.lang.Object)>($r22);
+
+        if $z9 == 0 goto label19;
+
+        virtualinvoke $r0.<java.io.File: boolean delete()>();
+
+        $r24 = <org.eclipse.jetty.server.session.HashSessionManager: org.eclipse.jetty.util.log.Logger __log>;
+
+        $r23 = new java.lang.StringBuilder;
+
+        specialinvoke $r23.<java.lang.StringBuilder: void <init>()>();
+
+        $r25 = virtualinvoke $r23.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Deleting file for unrestorable session ");
+
+        $r26 = virtualinvoke $r25.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r2);
+
+        $r27 = virtualinvoke $r26.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r24.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.String,java.lang.Throwable)>($r27, null);
+
+        goto label21;
+
+     label19:
+        $r52 = <org.eclipse.jetty.server.session.HashSessionManager: org.eclipse.jetty.util.log.Logger __log>;
+
+        $r53 = new java.lang.StringBuilder;
+
+        specialinvoke $r53.<java.lang.StringBuilder: void <init>()>();
+
+        $r54 = virtualinvoke $r53.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Problem restoring session ");
+
+        $r55 = virtualinvoke $r54.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r2);
+
+        $r56 = virtualinvoke $r55.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r52.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.String,java.lang.Throwable)>($r56, null);
+
+        goto label21;
+
+     label20:
+        virtualinvoke $r0.<java.io.File: boolean delete()>();
+
+     label21:
+        throw $r20;
+
+     label22:
+        return null;
+
+        catch java.lang.Exception from label01 to label02 with label11;
+        catch java.lang.Throwable from label01 to label02 with label16;
+        catch java.lang.Throwable from label11 to label12 with label16;
+        catch java.lang.Throwable from label16 to label17 with label16;
+    }
+
+    public void saveSessions(boolean) throws java.lang.Exception
+    {
+        java.lang.Object[] $r17;
+        java.util.concurrent.ConcurrentMap $r4;
+        org.eclipse.jetty.server.session.HashSessionManager r0;
+        java.lang.String $r13, $r16;
+        boolean $z0, $z1, $z2, z3;
+        org.eclipse.jetty.server.session.HashedSession r8;
+        java.util.Iterator $r6;
+        java.util.Collection $r5;
+        java.io.File $r1, $r2, $r3, $r12;
+        java.lang.Object $r7;
+        java.lang.StringBuilder $r9, $r11, $r14, $r15;
+        org.eclipse.jetty.util.log.Logger $r10;
+
+        r0 := @this: org.eclipse.jetty.server.session.HashSessionManager;
+
+        z3 := @parameter0: boolean;
+
+        $r1 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.io.File _storeDir>;
+
+        if $r1 == null goto label1;
+
+        $r2 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.io.File _storeDir>;
+
+        $z0 = virtualinvoke $r2.<java.io.File: boolean exists()>();
+
+        if $z0 != 0 goto label2;
+
+     label1:
+        return;
+
+     label2:
+        $r3 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.io.File _storeDir>;
+
+        $z1 = virtualinvoke $r3.<java.io.File: boolean canWrite()>();
+
+        if $z1 != 0 goto label3;
+
+        $r10 = <org.eclipse.jetty.server.session.HashSessionManager: org.eclipse.jetty.util.log.Logger __log>;
+
+        $r9 = new java.lang.StringBuilder;
+
+        specialinvoke $r9.<java.lang.StringBuilder: void <init>()>();
+
+        $r11 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Unable to save Sessions: Session persistence storage directory ");
+
+        $r12 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.io.File _storeDir>;
+
+        $r13 = virtualinvoke $r12.<java.io.File: java.lang.String getAbsolutePath()>();
+
+        $r14 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r13);
+
+        $r15 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" is not writeable");
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r17 = newarray (java.lang.Object)[0];
+
+        interfaceinvoke $r10.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.String,java.lang.Object[])>($r16, $r17);
+
+        return;
+
+     label3:
+        $r4 = r0.<org.eclipse.jetty.server.session.HashSessionManager: java.util.concurrent.ConcurrentMap _sessions>;
+
+        $r5 = interfaceinvoke $r4.<java.util.concurrent.ConcurrentMap: java.util.Collection values()>();
+
+        $r6 = interfaceinvoke $r5.<java.util.Collection: java.util.Iterator iterator()>();
+
+     label4:
+        $z2 = interfaceinvoke $r6.<java.util.Iterator: boolean hasNext()>();
+
+        if $z2 == 0 goto label5;
+
+        $r7 = interfaceinvoke $r6.<java.util.Iterator: java.lang.Object next()>();
+
+        r8 = (org.eclipse.jetty.server.session.HashedSession) $r7;
+
+        virtualinvoke r8.<org.eclipse.jetty.server.session.HashedSession: void save(boolean)>(1);
+
+        goto label4;
+
+     label5:
+        return;
+    }
+
+    public org.eclipse.jetty.server.session.HashedSession restoreSession(java.io.InputStream, org.eclipse.jetty.server.session.HashedSession) throws java.lang.Exception
+    {
+        java.lang.Throwable $r8, $r9;
+        java.io.DataInputStream $r0;
+        long $l0, $l1;
+        org.eclipse.jetty.server.session.HashSessionManager r4;
+        int $i2, $i3, i4;
+        java.lang.String $r2, $r5;
+        org.eclipse.jetty.server.session.HashedSession r10;
+        org.eclipse.jetty.server.session.HashSessionManager$ClassLoadingObjectInputStream $r3;
+        org.eclipse.jetty.server.session.AbstractSession $r7;
+        java.lang.Object $r6;
+        java.io.InputStream r1;
+
+        r4 := @this: org.eclipse.jetty.server.session.HashSessionManager;
+
+        r1 := @parameter0: java.io.InputStream;
+
+        r10 := @parameter1: org.eclipse.jetty.server.session.HashedSession;
+
+        $r0 = new java.io.DataInputStream;
+
+        specialinvoke $r0.<java.io.DataInputStream: void <init>(java.io.InputStream)>(r1);
+
+     label01:
+        $r2 = virtualinvoke $r0.<java.io.DataInputStream: java.lang.String readUTF()>();
+
+        virtualinvoke $r0.<java.io.DataInputStream: java.lang.String readUTF()>();
+
+        $l0 = virtualinvoke $r0.<java.io.DataInputStream: long readLong()>();
+
+        $l1 = virtualinvoke $r0.<java.io.DataInputStream: long readLong()>();
+
+        $i2 = virtualinvoke $r0.<java.io.DataInputStream: int readInt()>();
+
+        if r10 != null goto label02;
+
+        $r7 = virtualinvoke r4.<org.eclipse.jetty.server.session.HashSessionManager: org.eclipse.jetty.server.session.AbstractSession newSession(long,long,java.lang.String)>($l0, $l1, $r2);
+
+        r10 = (org.eclipse.jetty.server.session.HashedSession) $r7;
+
+     label02:
+        virtualinvoke r10.<org.eclipse.jetty.server.session.HashedSession: void setRequests(int)>($i2);
+
+        $i3 = virtualinvoke $r0.<java.io.DataInputStream: int readInt()>();
+
+        if $i3 <= 0 goto label08;
+
+        $r3 = new org.eclipse.jetty.server.session.HashSessionManager$ClassLoadingObjectInputStream;
+
+        specialinvoke $r3.<org.eclipse.jetty.server.session.HashSessionManager$ClassLoadingObjectInputStream: void <init>(org.eclipse.jetty.server.session.HashSessionManager,java.io.InputStream)>(r4, $r0);
+
+     label03:
+        i4 = 0;
+
+     label04:
+        if i4 >= $i3 goto label05;
+
+        $r5 = virtualinvoke $r3.<org.eclipse.jetty.server.session.HashSessionManager$ClassLoadingObjectInputStream: java.lang.String readUTF()>();
+
+        $r6 = virtualinvoke $r3.<org.eclipse.jetty.server.session.HashSessionManager$ClassLoadingObjectInputStream: java.lang.Object readObject()>();
+
+        virtualinvoke r10.<org.eclipse.jetty.server.session.HashedSession: void setAttribute(java.lang.String,java.lang.Object)>($r5, $r6);
+
+        i4 = i4 + 1;
+
+        goto label04;
+
+     label05:
+        staticinvoke <org.eclipse.jetty.util.IO: void close(java.io.InputStream)>($r3);
+
+        goto label08;
+
+     label06:
+        $r9 := @caughtexception;
+
+     label07:
+        staticinvoke <org.eclipse.jetty.util.IO: void close(java.io.InputStream)>($r3);
+
+        throw $r9;
+
+     label08:
+        staticinvoke <org.eclipse.jetty.util.IO: void close(java.io.InputStream)>($r0);
+
+        return r10;
+
+     label09:
+        $r8 := @caughtexception;
+
+     label10:
+        staticinvoke <org.eclipse.jetty.util.IO: void close(java.io.InputStream)>($r0);
+
+        throw $r8;
+
+        catch java.lang.Throwable from label03 to label05 with label06;
+        catch java.lang.Throwable from label06 to label07 with label06;
+        catch java.lang.Throwable from label01 to label08 with label09;
+        catch java.lang.Throwable from label09 to label10 with label09;
+    }
+
+    static void <clinit>()
+    {
+        org.eclipse.jetty.util.log.Logger $r0;
+
+        $r0 = <org.eclipse.jetty.server.session.SessionHandler: org.eclipse.jetty.util.log.Logger LOG>;
+
+        <org.eclipse.jetty.server.session.HashSessionManager: org.eclipse.jetty.util.log.Logger __log> = $r0;
+
+        return;
+    }
+}

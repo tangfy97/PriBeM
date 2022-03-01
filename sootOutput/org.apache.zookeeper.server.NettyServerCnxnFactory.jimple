@@ -1,0 +1,763 @@
+public class org.apache.zookeeper.server.NettyServerCnxnFactory extends org.apache.zookeeper.server.ServerCnxnFactory
+{
+    org.slf4j.Logger LOG;
+    org.jboss.netty.bootstrap.ServerBootstrap bootstrap;
+    org.jboss.netty.channel.Channel parentChannel;
+    org.jboss.netty.channel.group.ChannelGroup allChannels;
+    java.util.HashMap ipMap;
+    java.net.InetSocketAddress localAddress;
+    int maxClientCnxns;
+    org.apache.zookeeper.server.NettyServerCnxnFactory$CnxnChannelHandler channelHandler;
+    boolean killed;
+
+    void <init>()
+    {
+        org.jboss.netty.channel.group.DefaultChannelGroup $r18;
+        org.jboss.netty.bootstrap.ServerBootstrap $r9, $r11, $r13, $r15, $r22;
+        java.util.HashMap $r19;
+        java.lang.Integer $r14;
+        org.jboss.netty.channel.ChannelPipeline $r16;
+        org.apache.zookeeper.server.NettyServerCnxnFactory r0;
+        java.lang.Boolean $r10, $r12;
+        org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory $r21;
+        java.util.concurrent.ExecutorService $r7, $r8;
+        org.apache.zookeeper.server.NettyServerCnxnFactory$CnxnChannelHandler $r17, $r20;
+        org.jboss.netty.channel.ChannelHandler $r25;
+        org.slf4j.Logger $r1;
+        org.jboss.netty.channel.group.ChannelGroup $r23;
+        org.jboss.netty.channel.ChannelFactory $r24;
+
+        r0 := @this: org.apache.zookeeper.server.NettyServerCnxnFactory;
+
+        specialinvoke r0.<org.apache.zookeeper.server.ServerCnxnFactory: void <init>()>();
+
+        $r1 = staticinvoke <org.slf4j.LoggerFactory: org.slf4j.Logger getLogger(java.lang.Class)>(class "Lorg/apache/zookeeper/server/NettyServerCnxnFactory;");
+
+        r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: org.slf4j.Logger LOG> = $r1;
+
+        $r18 = new org.jboss.netty.channel.group.DefaultChannelGroup;
+
+        specialinvoke $r18.<org.jboss.netty.channel.group.DefaultChannelGroup: void <init>(java.lang.String)>("zkServerCnxns");
+
+        $r23 = (org.jboss.netty.channel.group.ChannelGroup) $r18;
+
+        r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: org.jboss.netty.channel.group.ChannelGroup allChannels> = $r23;
+
+        $r19 = new java.util.HashMap;
+
+        specialinvoke $r19.<java.util.HashMap: void <init>()>();
+
+        r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: java.util.HashMap ipMap> = $r19;
+
+        r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: int maxClientCnxns> = 60;
+
+        $r20 = new org.apache.zookeeper.server.NettyServerCnxnFactory$CnxnChannelHandler;
+
+        specialinvoke $r20.<org.apache.zookeeper.server.NettyServerCnxnFactory$CnxnChannelHandler: void <init>(org.apache.zookeeper.server.NettyServerCnxnFactory)>(r0);
+
+        r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: org.apache.zookeeper.server.NettyServerCnxnFactory$CnxnChannelHandler channelHandler> = $r20;
+
+        $r22 = new org.jboss.netty.bootstrap.ServerBootstrap;
+
+        $r21 = new org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
+
+        $r7 = staticinvoke <java.util.concurrent.Executors: java.util.concurrent.ExecutorService newCachedThreadPool()>();
+
+        $r8 = staticinvoke <java.util.concurrent.Executors: java.util.concurrent.ExecutorService newCachedThreadPool()>();
+
+        specialinvoke $r21.<org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory: void <init>(java.util.concurrent.Executor,java.util.concurrent.Executor)>($r7, $r8);
+
+        $r24 = (org.jboss.netty.channel.ChannelFactory) $r21;
+
+        specialinvoke $r22.<org.jboss.netty.bootstrap.ServerBootstrap: void <init>(org.jboss.netty.channel.ChannelFactory)>($r24);
+
+        r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: org.jboss.netty.bootstrap.ServerBootstrap bootstrap> = $r22;
+
+        $r9 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: org.jboss.netty.bootstrap.ServerBootstrap bootstrap>;
+
+        $r10 = staticinvoke <java.lang.Boolean: java.lang.Boolean valueOf(boolean)>(1);
+
+        virtualinvoke $r9.<org.jboss.netty.bootstrap.ServerBootstrap: void setOption(java.lang.String,java.lang.Object)>("reuseAddress", $r10);
+
+        $r11 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: org.jboss.netty.bootstrap.ServerBootstrap bootstrap>;
+
+        $r12 = staticinvoke <java.lang.Boolean: java.lang.Boolean valueOf(boolean)>(1);
+
+        virtualinvoke $r11.<org.jboss.netty.bootstrap.ServerBootstrap: void setOption(java.lang.String,java.lang.Object)>("child.tcpNoDelay", $r12);
+
+        $r13 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: org.jboss.netty.bootstrap.ServerBootstrap bootstrap>;
+
+        $r14 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(2);
+
+        virtualinvoke $r13.<org.jboss.netty.bootstrap.ServerBootstrap: void setOption(java.lang.String,java.lang.Object)>("child.soLinger", $r14);
+
+        $r15 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: org.jboss.netty.bootstrap.ServerBootstrap bootstrap>;
+
+        $r16 = virtualinvoke $r15.<org.jboss.netty.bootstrap.ServerBootstrap: org.jboss.netty.channel.ChannelPipeline getPipeline()>();
+
+        $r17 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: org.apache.zookeeper.server.NettyServerCnxnFactory$CnxnChannelHandler channelHandler>;
+
+        $r25 = (org.jboss.netty.channel.ChannelHandler) $r17;
+
+        interfaceinvoke $r16.<org.jboss.netty.channel.ChannelPipeline: void addLast(java.lang.String,org.jboss.netty.channel.ChannelHandler)>("servercnxnfactory", $r25);
+
+        return;
+    }
+
+    public void closeAll()
+    {
+        org.apache.zookeeper.server.NettyServerCnxnFactory r0;
+        org.apache.zookeeper.server.NettyServerCnxn[] $r5, $r19;
+        boolean $z0, $z1;
+        org.jboss.netty.channel.group.ChannelGroup $r11;
+        java.lang.Exception $r21;
+        java.lang.StringBuilder $r8, $r10, $r12, $r13, $r15, $r22, $r24, $r26;
+        java.lang.Throwable $r20;
+        java.lang.Object[] $r6;
+        long $l4;
+        java.util.HashSet $r2, $r3, $r4, $r14;
+        int $i0, $i1, $i2, $i3, i5;
+        java.lang.String $r16, $r25, $r27;
+        org.slf4j.Logger $r1, $r7, $r9, $r18, $r23;
+        org.apache.zookeeper.server.NettyServerCnxn r17;
+
+        r0 := @this: org.apache.zookeeper.server.NettyServerCnxnFactory;
+
+        $r1 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: org.slf4j.Logger LOG>;
+
+        $z0 = interfaceinvoke $r1.<org.slf4j.Logger: boolean isDebugEnabled()>();
+
+        if $z0 == 0 goto label01;
+
+        $r18 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: org.slf4j.Logger LOG>;
+
+        interfaceinvoke $r18.<org.slf4j.Logger: void debug(java.lang.String)>("closeAll()");
+
+     label01:
+        $r2 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: java.util.HashSet cnxns>;
+
+        entermonitor $r2;
+
+     label02:
+        $r4 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: java.util.HashSet cnxns>;
+
+        $r3 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: java.util.HashSet cnxns>;
+
+        $i0 = virtualinvoke $r3.<java.util.HashSet: int size()>();
+
+        $r5 = newarray (org.apache.zookeeper.server.NettyServerCnxn)[$i0];
+
+        $r6 = virtualinvoke $r4.<java.util.HashSet: java.lang.Object[] toArray(java.lang.Object[])>($r5);
+
+        $r19 = (org.apache.zookeeper.server.NettyServerCnxn[]) $r6;
+
+        $i3 = lengthof $r19;
+
+        i5 = 0;
+
+     label03:
+        if i5 >= $i3 goto label08;
+
+        r17 = $r19[i5];
+
+     label04:
+        virtualinvoke r17.<org.apache.zookeeper.server.NettyServerCnxn: void close()>();
+
+     label05:
+        goto label07;
+
+     label06:
+        $r21 := @caughtexception;
+
+        $r23 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: org.slf4j.Logger LOG>;
+
+        $r22 = new java.lang.StringBuilder;
+
+        specialinvoke $r22.<java.lang.StringBuilder: void <init>()>();
+
+        $r24 = virtualinvoke $r22.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Ignoring exception closing cnxn sessionid 0x");
+
+        $l4 = virtualinvoke r17.<org.apache.zookeeper.server.NettyServerCnxn: long getSessionId()>();
+
+        $r25 = staticinvoke <java.lang.Long: java.lang.String toHexString(long)>($l4);
+
+        $r26 = virtualinvoke $r24.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r25);
+
+        $r27 = virtualinvoke $r26.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r23.<org.slf4j.Logger: void warn(java.lang.String,java.lang.Throwable)>($r27, $r21);
+
+     label07:
+        i5 = i5 + 1;
+
+        goto label03;
+
+     label08:
+        exitmonitor $r2;
+
+     label09:
+        goto label12;
+
+     label10:
+        $r20 := @caughtexception;
+
+        exitmonitor $r2;
+
+     label11:
+        throw $r20;
+
+     label12:
+        $r7 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: org.slf4j.Logger LOG>;
+
+        $z1 = interfaceinvoke $r7.<org.slf4j.Logger: boolean isDebugEnabled()>();
+
+        if $z1 == 0 goto label13;
+
+        $r9 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: org.slf4j.Logger LOG>;
+
+        $r8 = new java.lang.StringBuilder;
+
+        specialinvoke $r8.<java.lang.StringBuilder: void <init>()>();
+
+        $r10 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("allChannels size:");
+
+        $r11 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: org.jboss.netty.channel.group.ChannelGroup allChannels>;
+
+        $i1 = interfaceinvoke $r11.<org.jboss.netty.channel.group.ChannelGroup: int size()>();
+
+        $r12 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i1);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" cnxns size:");
+
+        $r14 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: java.util.HashSet cnxns>;
+
+        $i2 = virtualinvoke $r14.<java.util.HashSet: int size()>();
+
+        $r15 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i2);
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r9.<org.slf4j.Logger: void debug(java.lang.String)>($r16);
+
+     label13:
+        return;
+
+        catch java.lang.Exception from label04 to label05 with label06;
+        catch java.lang.Throwable from label02 to label09 with label10;
+        catch java.lang.Throwable from label10 to label11 with label10;
+    }
+
+    public void closeSession(long)
+    {
+        java.lang.Throwable $r14;
+        java.lang.Object[] $r6;
+        long $l1, l2;
+        java.util.HashSet $r2, $r3, $r4;
+        byte $b3;
+        org.apache.zookeeper.server.NettyServerCnxnFactory r0;
+        int $i0, $i4, i5;
+        org.apache.zookeeper.server.NettyServerCnxn[] $r5, $r13;
+        java.lang.String $r12;
+        boolean $z0;
+        org.slf4j.Logger $r1, $r9, $r16;
+        java.lang.Exception $r15;
+        org.apache.zookeeper.server.NettyServerCnxn r7;
+        java.lang.StringBuilder $r8, $r10, $r11;
+
+        r0 := @this: org.apache.zookeeper.server.NettyServerCnxnFactory;
+
+        l2 := @parameter0: long;
+
+        $r1 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: org.slf4j.Logger LOG>;
+
+        $z0 = interfaceinvoke $r1.<org.slf4j.Logger: boolean isDebugEnabled()>();
+
+        if $z0 == 0 goto label01;
+
+        $r9 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: org.slf4j.Logger LOG>;
+
+        $r8 = new java.lang.StringBuilder;
+
+        specialinvoke $r8.<java.lang.StringBuilder: void <init>()>();
+
+        $r10 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("closeSession sessionid:0x");
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>(l2);
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r9.<org.slf4j.Logger: void debug(java.lang.String)>($r12);
+
+     label01:
+        $r2 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: java.util.HashSet cnxns>;
+
+        entermonitor $r2;
+
+     label02:
+        $r4 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: java.util.HashSet cnxns>;
+
+        $r3 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: java.util.HashSet cnxns>;
+
+        $i0 = virtualinvoke $r3.<java.util.HashSet: int size()>();
+
+        $r5 = newarray (org.apache.zookeeper.server.NettyServerCnxn)[$i0];
+
+        $r6 = virtualinvoke $r4.<java.util.HashSet: java.lang.Object[] toArray(java.lang.Object[])>($r5);
+
+        $r13 = (org.apache.zookeeper.server.NettyServerCnxn[]) $r6;
+
+        $i4 = lengthof $r13;
+
+        i5 = 0;
+
+     label03:
+        if i5 >= $i4 goto label08;
+
+        r7 = $r13[i5];
+
+        $l1 = virtualinvoke r7.<org.apache.zookeeper.server.NettyServerCnxn: long getSessionId()>();
+
+        $b3 = $l1 cmp l2;
+
+        if $b3 != 0 goto label07;
+
+     label04:
+        virtualinvoke r7.<org.apache.zookeeper.server.NettyServerCnxn: void close()>();
+
+     label05:
+        goto label08;
+
+     label06:
+        $r15 := @caughtexception;
+
+        $r16 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: org.slf4j.Logger LOG>;
+
+        interfaceinvoke $r16.<org.slf4j.Logger: void warn(java.lang.String,java.lang.Throwable)>("exception during session close", $r15);
+
+        goto label08;
+
+     label07:
+        i5 = i5 + 1;
+
+        goto label03;
+
+     label08:
+        exitmonitor $r2;
+
+     label09:
+        goto label12;
+
+     label10:
+        $r14 := @caughtexception;
+
+        exitmonitor $r2;
+
+     label11:
+        throw $r14;
+
+     label12:
+        return;
+
+        catch java.lang.Exception from label04 to label05 with label06;
+        catch java.lang.Throwable from label02 to label09 with label10;
+        catch java.lang.Throwable from label10 to label11 with label10;
+    }
+
+    public void configure(java.net.InetSocketAddress, int) throws java.io.IOException
+    {
+        int i0;
+        org.apache.zookeeper.server.NettyServerCnxnFactory r0;
+        java.net.InetSocketAddress r1;
+
+        r0 := @this: org.apache.zookeeper.server.NettyServerCnxnFactory;
+
+        r1 := @parameter0: java.net.InetSocketAddress;
+
+        i0 := @parameter1: int;
+
+        virtualinvoke r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: void configureSaslLogin()>();
+
+        r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: java.net.InetSocketAddress localAddress> = r1;
+
+        r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: int maxClientCnxns> = i0;
+
+        return;
+    }
+
+    public int getMaxClientCnxnsPerHost()
+    {
+        int $i0;
+        org.apache.zookeeper.server.NettyServerCnxnFactory r0;
+
+        r0 := @this: org.apache.zookeeper.server.NettyServerCnxnFactory;
+
+        $i0 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: int maxClientCnxns>;
+
+        return $i0;
+    }
+
+    public void setMaxClientCnxnsPerHost(int)
+    {
+        int i0;
+        org.apache.zookeeper.server.NettyServerCnxnFactory r0;
+
+        r0 := @this: org.apache.zookeeper.server.NettyServerCnxnFactory;
+
+        i0 := @parameter0: int;
+
+        r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: int maxClientCnxns> = i0;
+
+        return;
+    }
+
+    public int getLocalPort()
+    {
+        int $i0;
+        org.apache.zookeeper.server.NettyServerCnxnFactory r0;
+        java.net.InetSocketAddress $r1;
+
+        r0 := @this: org.apache.zookeeper.server.NettyServerCnxnFactory;
+
+        $r1 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: java.net.InetSocketAddress localAddress>;
+
+        $i0 = virtualinvoke $r1.<java.net.InetSocketAddress: int getPort()>();
+
+        return $i0;
+    }
+
+    public void join() throws java.lang.InterruptedException
+    {
+        java.lang.Throwable $r1;
+        org.apache.zookeeper.server.NettyServerCnxnFactory r0;
+        boolean $z0;
+
+        r0 := @this: org.apache.zookeeper.server.NettyServerCnxnFactory;
+
+        entermonitor r0;
+
+     label1:
+        $z0 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: boolean killed>;
+
+        if $z0 != 0 goto label2;
+
+        virtualinvoke r0.<java.lang.Object: void wait()>();
+
+        goto label1;
+
+     label2:
+        exitmonitor r0;
+
+     label3:
+        goto label6;
+
+     label4:
+        $r1 := @caughtexception;
+
+        exitmonitor r0;
+
+     label5:
+        throw $r1;
+
+     label6:
+        return;
+
+        catch java.lang.Throwable from label1 to label3 with label4;
+        catch java.lang.Throwable from label4 to label5 with label4;
+    }
+
+    public void shutdown()
+    {
+        java.lang.Throwable $r17;
+        org.jboss.netty.bootstrap.ServerBootstrap $r15;
+        org.jboss.netty.channel.group.ChannelGroupFuture $r14;
+        org.apache.zookeeper.Login $r7, $r16;
+        org.apache.zookeeper.server.NettyServerCnxnFactory r0;
+        org.jboss.netty.channel.ChannelFuture $r12;
+        java.lang.String $r6;
+        org.slf4j.Logger $r2;
+        org.jboss.netty.channel.group.ChannelGroup $r13;
+        java.net.InetSocketAddress $r4;
+        org.jboss.netty.channel.Channel $r8, $r11;
+        org.apache.zookeeper.server.ZooKeeperServer $r9, $r10;
+        java.lang.StringBuilder $r1, $r3, $r5;
+
+        r0 := @this: org.apache.zookeeper.server.NettyServerCnxnFactory;
+
+        $r2 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: org.slf4j.Logger LOG>;
+
+        $r1 = new java.lang.StringBuilder;
+
+        specialinvoke $r1.<java.lang.StringBuilder: void <init>()>();
+
+        $r3 = virtualinvoke $r1.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("shutdown called ");
+
+        $r4 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: java.net.InetSocketAddress localAddress>;
+
+        $r5 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r4);
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r2.<org.slf4j.Logger: void info(java.lang.String)>($r6);
+
+        $r7 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: org.apache.zookeeper.Login login>;
+
+        if $r7 == null goto label1;
+
+        $r16 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: org.apache.zookeeper.Login login>;
+
+        virtualinvoke $r16.<org.apache.zookeeper.Login: void shutdown()>();
+
+     label1:
+        $r8 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: org.jboss.netty.channel.Channel parentChannel>;
+
+        if $r8 == null goto label2;
+
+        $r11 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: org.jboss.netty.channel.Channel parentChannel>;
+
+        $r12 = interfaceinvoke $r11.<org.jboss.netty.channel.Channel: org.jboss.netty.channel.ChannelFuture close()>();
+
+        interfaceinvoke $r12.<org.jboss.netty.channel.ChannelFuture: org.jboss.netty.channel.ChannelFuture awaitUninterruptibly()>();
+
+        virtualinvoke r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: void closeAll()>();
+
+        $r13 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: org.jboss.netty.channel.group.ChannelGroup allChannels>;
+
+        $r14 = interfaceinvoke $r13.<org.jboss.netty.channel.group.ChannelGroup: org.jboss.netty.channel.group.ChannelGroupFuture close()>();
+
+        interfaceinvoke $r14.<org.jboss.netty.channel.group.ChannelGroupFuture: org.jboss.netty.channel.group.ChannelGroupFuture awaitUninterruptibly()>();
+
+        $r15 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: org.jboss.netty.bootstrap.ServerBootstrap bootstrap>;
+
+        virtualinvoke $r15.<org.jboss.netty.bootstrap.ServerBootstrap: void releaseExternalResources()>();
+
+     label2:
+        $r9 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: org.apache.zookeeper.server.ZooKeeperServer zkServer>;
+
+        if $r9 == null goto label3;
+
+        $r10 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: org.apache.zookeeper.server.ZooKeeperServer zkServer>;
+
+        virtualinvoke $r10.<org.apache.zookeeper.server.ZooKeeperServer: void shutdown()>();
+
+     label3:
+        entermonitor r0;
+
+     label4:
+        r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: boolean killed> = 1;
+
+        virtualinvoke r0.<java.lang.Object: void notifyAll()>();
+
+        exitmonitor r0;
+
+     label5:
+        goto label8;
+
+     label6:
+        $r17 := @caughtexception;
+
+        exitmonitor r0;
+
+     label7:
+        throw $r17;
+
+     label8:
+        return;
+
+        catch java.lang.Throwable from label4 to label5 with label6;
+        catch java.lang.Throwable from label6 to label7 with label6;
+    }
+
+    public void start()
+    {
+        org.slf4j.Logger $r2;
+        org.jboss.netty.bootstrap.ServerBootstrap $r8;
+        java.net.InetSocketAddress $r4, $r7;
+        org.jboss.netty.channel.Channel $r9;
+        org.apache.zookeeper.server.NettyServerCnxnFactory r0;
+        java.lang.StringBuilder $r1, $r3, $r5;
+        java.lang.String $r6;
+
+        r0 := @this: org.apache.zookeeper.server.NettyServerCnxnFactory;
+
+        $r2 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: org.slf4j.Logger LOG>;
+
+        $r1 = new java.lang.StringBuilder;
+
+        specialinvoke $r1.<java.lang.StringBuilder: void <init>()>();
+
+        $r3 = virtualinvoke $r1.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("binding to port ");
+
+        $r4 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: java.net.InetSocketAddress localAddress>;
+
+        $r5 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r4);
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r2.<org.slf4j.Logger: void info(java.lang.String)>($r6);
+
+        $r8 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: org.jboss.netty.bootstrap.ServerBootstrap bootstrap>;
+
+        $r7 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: java.net.InetSocketAddress localAddress>;
+
+        $r9 = virtualinvoke $r8.<org.jboss.netty.bootstrap.ServerBootstrap: org.jboss.netty.channel.Channel bind(java.net.SocketAddress)>($r7);
+
+        r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: org.jboss.netty.channel.Channel parentChannel> = $r9;
+
+        return;
+    }
+
+    public void startup(org.apache.zookeeper.server.ZooKeeperServer) throws java.io.IOException, java.lang.InterruptedException
+    {
+        org.apache.zookeeper.server.ZooKeeperServer r1;
+        org.apache.zookeeper.server.NettyServerCnxnFactory r0;
+
+        r0 := @this: org.apache.zookeeper.server.NettyServerCnxnFactory;
+
+        r1 := @parameter0: org.apache.zookeeper.server.ZooKeeperServer;
+
+        virtualinvoke r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: void start()>();
+
+        virtualinvoke r1.<org.apache.zookeeper.server.ZooKeeperServer: void startdata()>();
+
+        virtualinvoke r1.<org.apache.zookeeper.server.ZooKeeperServer: void startup()>();
+
+        virtualinvoke r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: void setZooKeeperServer(org.apache.zookeeper.server.ZooKeeperServer)>(r1);
+
+        return;
+    }
+
+    public java.lang.Iterable getConnections()
+    {
+        java.util.HashSet $r1;
+        org.apache.zookeeper.server.NettyServerCnxnFactory r0;
+
+        r0 := @this: org.apache.zookeeper.server.NettyServerCnxnFactory;
+
+        $r1 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: java.util.HashSet cnxns>;
+
+        return $r1;
+    }
+
+    public java.net.InetSocketAddress getLocalAddress()
+    {
+        org.apache.zookeeper.server.NettyServerCnxnFactory r0;
+        java.net.InetSocketAddress $r1;
+
+        r0 := @this: org.apache.zookeeper.server.NettyServerCnxnFactory;
+
+        $r1 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: java.net.InetSocketAddress localAddress>;
+
+        return $r1;
+    }
+
+    private void addCnxn(org.apache.zookeeper.server.NettyServerCnxn)
+    {
+        java.lang.Throwable $r13, $r14;
+        java.net.SocketAddress $r6;
+        java.util.HashMap $r4, $r9, $r11;
+        java.util.HashSet $r1, $r3, $r12;
+        java.net.InetAddress $r8;
+        org.apache.zookeeper.server.NettyServerCnxnFactory r0;
+        java.util.Set r15;
+        java.net.InetSocketAddress $r7;
+        org.jboss.netty.channel.Channel $r5;
+        org.apache.zookeeper.server.NettyServerCnxn r2;
+        java.lang.Object $r10;
+
+        r0 := @this: org.apache.zookeeper.server.NettyServerCnxnFactory;
+
+        r2 := @parameter0: org.apache.zookeeper.server.NettyServerCnxn;
+
+        $r1 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: java.util.HashSet cnxns>;
+
+        entermonitor $r1;
+
+     label01:
+        $r3 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: java.util.HashSet cnxns>;
+
+        virtualinvoke $r3.<java.util.HashSet: boolean add(java.lang.Object)>(r2);
+
+        $r4 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: java.util.HashMap ipMap>;
+
+        entermonitor $r4;
+
+     label02:
+        $r5 = r2.<org.apache.zookeeper.server.NettyServerCnxn: org.jboss.netty.channel.Channel channel>;
+
+        $r6 = interfaceinvoke $r5.<org.jboss.netty.channel.Channel: java.net.SocketAddress getRemoteAddress()>();
+
+        $r7 = (java.net.InetSocketAddress) $r6;
+
+        $r8 = virtualinvoke $r7.<java.net.InetSocketAddress: java.net.InetAddress getAddress()>();
+
+        $r9 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: java.util.HashMap ipMap>;
+
+        $r10 = virtualinvoke $r9.<java.util.HashMap: java.lang.Object get(java.lang.Object)>($r8);
+
+        r15 = (java.util.Set) $r10;
+
+        if r15 != null goto label03;
+
+        $r12 = new java.util.HashSet;
+
+        specialinvoke $r12.<java.util.HashSet: void <init>()>();
+
+        r15 = $r12;
+
+     label03:
+        interfaceinvoke r15.<java.util.Set: boolean add(java.lang.Object)>(r2);
+
+        $r11 = r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: java.util.HashMap ipMap>;
+
+        virtualinvoke $r11.<java.util.HashMap: java.lang.Object put(java.lang.Object,java.lang.Object)>($r8, r15);
+
+        exitmonitor $r4;
+
+     label04:
+        goto label07;
+
+     label05:
+        $r14 := @caughtexception;
+
+        exitmonitor $r4;
+
+     label06:
+        throw $r14;
+
+     label07:
+        exitmonitor $r1;
+
+     label08:
+        goto label11;
+
+     label09:
+        $r13 := @caughtexception;
+
+        exitmonitor $r1;
+
+     label10:
+        throw $r13;
+
+     label11:
+        return;
+
+        catch java.lang.Throwable from label02 to label04 with label05;
+        catch java.lang.Throwable from label05 to label06 with label05;
+        catch java.lang.Throwable from label01 to label08 with label09;
+        catch java.lang.Throwable from label09 to label10 with label09;
+    }
+
+    static void access$000(org.apache.zookeeper.server.NettyServerCnxnFactory, org.apache.zookeeper.server.NettyServerCnxn)
+    {
+        org.apache.zookeeper.server.NettyServerCnxn r1;
+        org.apache.zookeeper.server.NettyServerCnxnFactory r0;
+
+        r0 := @parameter0: org.apache.zookeeper.server.NettyServerCnxnFactory;
+
+        r1 := @parameter1: org.apache.zookeeper.server.NettyServerCnxn;
+
+        specialinvoke r0.<org.apache.zookeeper.server.NettyServerCnxnFactory: void addCnxn(org.apache.zookeeper.server.NettyServerCnxn)>(r1);
+
+        return;
+    }
+}

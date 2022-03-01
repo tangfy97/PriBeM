@@ -1,0 +1,970 @@
+public final class org.apache.lucene.analysis.shingle.ShingleFilter extends org.apache.lucene.analysis.TokenFilter
+{
+    public static final char[] FILLER_TOKEN;
+    public static final int DEFAULT_MAX_SHINGLE_SIZE;
+    public static final int DEFAULT_MIN_SHINGLE_SIZE;
+    public static final java.lang.String DEFAULT_TOKEN_TYPE;
+    public static final java.lang.String TOKEN_SEPARATOR;
+    private java.util.LinkedList inputWindow;
+    private org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence gramSize;
+    private java.lang.StringBuilder gramBuilder;
+    private java.lang.String tokenType;
+    private java.lang.String tokenSeparator;
+    private boolean outputUnigrams;
+    private boolean outputUnigramsIfNoShingles;
+    private int maxShingleSize;
+    private int minShingleSize;
+    private int numFillerTokensToInsert;
+    private org.apache.lucene.util.AttributeSource nextInputStreamToken;
+    private boolean isNextInputStreamToken;
+    private boolean isOutputHere;
+    boolean noShingleOutput;
+    private final org.apache.lucene.analysis.tokenattributes.CharTermAttribute termAtt;
+    private final org.apache.lucene.analysis.tokenattributes.OffsetAttribute offsetAtt;
+    private final org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute posIncrAtt;
+    private final org.apache.lucene.analysis.tokenattributes.PositionLengthAttribute posLenAtt;
+    private final org.apache.lucene.analysis.tokenattributes.TypeAttribute typeAtt;
+    private boolean exhausted;
+
+    public void <init>(org.apache.lucene.analysis.TokenStream, int, int)
+    {
+        org.apache.lucene.analysis.tokenattributes.PositionLengthAttribute $r11;
+        org.apache.lucene.analysis.shingle.ShingleFilter r0;
+        int i0, i1;
+        java.util.LinkedList $r2;
+        org.apache.lucene.analysis.tokenattributes.CharTermAttribute $r5;
+        org.apache.lucene.analysis.TokenStream r1;
+        org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute $r9;
+        org.apache.lucene.analysis.tokenattributes.OffsetAttribute $r7;
+        java.lang.StringBuilder $r3;
+        org.apache.lucene.util.Attribute $r4, $r6, $r8, $r10, $r12;
+        org.apache.lucene.analysis.tokenattributes.TypeAttribute $r13;
+
+        r0 := @this: org.apache.lucene.analysis.shingle.ShingleFilter;
+
+        r1 := @parameter0: org.apache.lucene.analysis.TokenStream;
+
+        i1 := @parameter1: int;
+
+        i0 := @parameter2: int;
+
+        specialinvoke r0.<org.apache.lucene.analysis.TokenFilter: void <init>(org.apache.lucene.analysis.TokenStream)>(r1);
+
+        $r2 = new java.util.LinkedList;
+
+        specialinvoke $r2.<java.util.LinkedList: void <init>()>();
+
+        r0.<org.apache.lucene.analysis.shingle.ShingleFilter: java.util.LinkedList inputWindow> = $r2;
+
+        $r3 = new java.lang.StringBuilder;
+
+        specialinvoke $r3.<java.lang.StringBuilder: void <init>()>();
+
+        r0.<org.apache.lucene.analysis.shingle.ShingleFilter: java.lang.StringBuilder gramBuilder> = $r3;
+
+        r0.<org.apache.lucene.analysis.shingle.ShingleFilter: java.lang.String tokenType> = "shingle";
+
+        r0.<org.apache.lucene.analysis.shingle.ShingleFilter: java.lang.String tokenSeparator> = " ";
+
+        r0.<org.apache.lucene.analysis.shingle.ShingleFilter: boolean outputUnigrams> = 1;
+
+        r0.<org.apache.lucene.analysis.shingle.ShingleFilter: boolean outputUnigramsIfNoShingles> = 0;
+
+        r0.<org.apache.lucene.analysis.shingle.ShingleFilter: boolean isNextInputStreamToken> = 0;
+
+        r0.<org.apache.lucene.analysis.shingle.ShingleFilter: boolean isOutputHere> = 0;
+
+        r0.<org.apache.lucene.analysis.shingle.ShingleFilter: boolean noShingleOutput> = 1;
+
+        $r4 = virtualinvoke r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.util.Attribute addAttribute(java.lang.Class)>(class "Lorg/apache/lucene/analysis/tokenattributes/CharTermAttribute;");
+
+        $r5 = (org.apache.lucene.analysis.tokenattributes.CharTermAttribute) $r4;
+
+        r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.analysis.tokenattributes.CharTermAttribute termAtt> = $r5;
+
+        $r6 = virtualinvoke r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.util.Attribute addAttribute(java.lang.Class)>(class "Lorg/apache/lucene/analysis/tokenattributes/OffsetAttribute;");
+
+        $r7 = (org.apache.lucene.analysis.tokenattributes.OffsetAttribute) $r6;
+
+        r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.analysis.tokenattributes.OffsetAttribute offsetAtt> = $r7;
+
+        $r8 = virtualinvoke r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.util.Attribute addAttribute(java.lang.Class)>(class "Lorg/apache/lucene/analysis/tokenattributes/PositionIncrementAttribute;");
+
+        $r9 = (org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute) $r8;
+
+        r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute posIncrAtt> = $r9;
+
+        $r10 = virtualinvoke r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.util.Attribute addAttribute(java.lang.Class)>(class "Lorg/apache/lucene/analysis/tokenattributes/PositionLengthAttribute;");
+
+        $r11 = (org.apache.lucene.analysis.tokenattributes.PositionLengthAttribute) $r10;
+
+        r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.analysis.tokenattributes.PositionLengthAttribute posLenAtt> = $r11;
+
+        $r12 = virtualinvoke r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.util.Attribute addAttribute(java.lang.Class)>(class "Lorg/apache/lucene/analysis/tokenattributes/TypeAttribute;");
+
+        $r13 = (org.apache.lucene.analysis.tokenattributes.TypeAttribute) $r12;
+
+        r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.analysis.tokenattributes.TypeAttribute typeAtt> = $r13;
+
+        virtualinvoke r0.<org.apache.lucene.analysis.shingle.ShingleFilter: void setMaxShingleSize(int)>(i0);
+
+        virtualinvoke r0.<org.apache.lucene.analysis.shingle.ShingleFilter: void setMinShingleSize(int)>(i1);
+
+        return;
+    }
+
+    public void <init>(org.apache.lucene.analysis.TokenStream, int)
+    {
+        org.apache.lucene.analysis.shingle.ShingleFilter r0;
+        int i0;
+        org.apache.lucene.analysis.TokenStream r1;
+
+        r0 := @this: org.apache.lucene.analysis.shingle.ShingleFilter;
+
+        r1 := @parameter0: org.apache.lucene.analysis.TokenStream;
+
+        i0 := @parameter1: int;
+
+        specialinvoke r0.<org.apache.lucene.analysis.shingle.ShingleFilter: void <init>(org.apache.lucene.analysis.TokenStream,int,int)>(r1, 2, i0);
+
+        return;
+    }
+
+    public void <init>(org.apache.lucene.analysis.TokenStream)
+    {
+        org.apache.lucene.analysis.shingle.ShingleFilter r0;
+        org.apache.lucene.analysis.TokenStream r1;
+
+        r0 := @this: org.apache.lucene.analysis.shingle.ShingleFilter;
+
+        r1 := @parameter0: org.apache.lucene.analysis.TokenStream;
+
+        specialinvoke r0.<org.apache.lucene.analysis.shingle.ShingleFilter: void <init>(org.apache.lucene.analysis.TokenStream,int,int)>(r1, 2, 2);
+
+        return;
+    }
+
+    public void <init>(org.apache.lucene.analysis.TokenStream, java.lang.String)
+    {
+        org.apache.lucene.analysis.shingle.ShingleFilter r0;
+        java.lang.String r2;
+        org.apache.lucene.analysis.TokenStream r1;
+
+        r0 := @this: org.apache.lucene.analysis.shingle.ShingleFilter;
+
+        r1 := @parameter0: org.apache.lucene.analysis.TokenStream;
+
+        r2 := @parameter1: java.lang.String;
+
+        specialinvoke r0.<org.apache.lucene.analysis.shingle.ShingleFilter: void <init>(org.apache.lucene.analysis.TokenStream,int,int)>(r1, 2, 2);
+
+        virtualinvoke r0.<org.apache.lucene.analysis.shingle.ShingleFilter: void setTokenType(java.lang.String)>(r2);
+
+        return;
+    }
+
+    public void setTokenType(java.lang.String)
+    {
+        org.apache.lucene.analysis.shingle.ShingleFilter r0;
+        java.lang.String r1;
+
+        r0 := @this: org.apache.lucene.analysis.shingle.ShingleFilter;
+
+        r1 := @parameter0: java.lang.String;
+
+        r0.<org.apache.lucene.analysis.shingle.ShingleFilter: java.lang.String tokenType> = r1;
+
+        return;
+    }
+
+    public void setOutputUnigrams(boolean)
+    {
+        org.apache.lucene.analysis.shingle.ShingleFilter r0;
+        org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence $r1;
+        boolean z0;
+
+        r0 := @this: org.apache.lucene.analysis.shingle.ShingleFilter;
+
+        z0 := @parameter0: boolean;
+
+        r0.<org.apache.lucene.analysis.shingle.ShingleFilter: boolean outputUnigrams> = z0;
+
+        $r1 = new org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence;
+
+        specialinvoke $r1.<org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence: void <init>(org.apache.lucene.analysis.shingle.ShingleFilter)>(r0);
+
+        r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence gramSize> = $r1;
+
+        return;
+    }
+
+    public void setOutputUnigramsIfNoShingles(boolean)
+    {
+        org.apache.lucene.analysis.shingle.ShingleFilter r0;
+        boolean z0;
+
+        r0 := @this: org.apache.lucene.analysis.shingle.ShingleFilter;
+
+        z0 := @parameter0: boolean;
+
+        r0.<org.apache.lucene.analysis.shingle.ShingleFilter: boolean outputUnigramsIfNoShingles> = z0;
+
+        return;
+    }
+
+    public void setMaxShingleSize(int)
+    {
+        int i0;
+        org.apache.lucene.analysis.shingle.ShingleFilter r0;
+        java.lang.IllegalArgumentException $r1;
+
+        r0 := @this: org.apache.lucene.analysis.shingle.ShingleFilter;
+
+        i0 := @parameter0: int;
+
+        if i0 >= 2 goto label1;
+
+        $r1 = new java.lang.IllegalArgumentException;
+
+        specialinvoke $r1.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>("Max shingle size must be >= 2");
+
+        throw $r1;
+
+     label1:
+        r0.<org.apache.lucene.analysis.shingle.ShingleFilter: int maxShingleSize> = i0;
+
+        return;
+    }
+
+    public void setMinShingleSize(int)
+    {
+        org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence $r1;
+        int i0, $i1;
+        org.apache.lucene.analysis.shingle.ShingleFilter r0;
+        java.lang.IllegalArgumentException $r2, $r3;
+
+        r0 := @this: org.apache.lucene.analysis.shingle.ShingleFilter;
+
+        i0 := @parameter0: int;
+
+        if i0 >= 2 goto label1;
+
+        $r3 = new java.lang.IllegalArgumentException;
+
+        specialinvoke $r3.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>("Min shingle size must be >= 2");
+
+        throw $r3;
+
+     label1:
+        $i1 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: int maxShingleSize>;
+
+        if i0 <= $i1 goto label2;
+
+        $r2 = new java.lang.IllegalArgumentException;
+
+        specialinvoke $r2.<java.lang.IllegalArgumentException: void <init>(java.lang.String)>("Min shingle size must be <= max shingle size");
+
+        throw $r2;
+
+     label2:
+        r0.<org.apache.lucene.analysis.shingle.ShingleFilter: int minShingleSize> = i0;
+
+        $r1 = new org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence;
+
+        specialinvoke $r1.<org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence: void <init>(org.apache.lucene.analysis.shingle.ShingleFilter)>(r0);
+
+        r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence gramSize> = $r1;
+
+        return;
+    }
+
+    public void setTokenSeparator(java.lang.String)
+    {
+        org.apache.lucene.analysis.shingle.ShingleFilter r0;
+        java.lang.String r1, $r2;
+
+        r0 := @this: org.apache.lucene.analysis.shingle.ShingleFilter;
+
+        r1 := @parameter0: java.lang.String;
+
+        if null != r1 goto label1;
+
+        $r2 = "";
+
+        goto label2;
+
+     label1:
+        $r2 = r1;
+
+     label2:
+        r0.<org.apache.lucene.analysis.shingle.ShingleFilter: java.lang.String tokenSeparator> = $r2;
+
+        return;
+    }
+
+    public final boolean incrementToken() throws java.io.IOException
+    {
+        org.apache.lucene.analysis.tokenattributes.PositionLengthAttribute $r20;
+        byte $b13;
+        org.apache.lucene.util.AttributeSource $r11;
+        boolean $z0, $z1, $z2, $z3, z4, z5, z6, z7;
+        org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute $r12;
+        org.apache.lucene.analysis.tokenattributes.OffsetAttribute $r17, $r18, $r19;
+        java.lang.StringBuilder $r2, $r15, $r29, $r33;
+        org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence $r1, $r4, $r7, $r16, $r21, $r24, $r26, $r27, $r35, $r36;
+        org.apache.lucene.analysis.shingle.ShingleFilter r0;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i10, i11, i12;
+        java.lang.String $r22, $r32;
+        java.util.LinkedList $r3, $r5, $r8, $r34;
+        org.apache.lucene.analysis.tokenattributes.CharTermAttribute $r13, $r14, $r28, $r31;
+        java.util.Iterator $r6;
+        org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken $r10, r37;
+        char[] $r30;
+        java.lang.Object $r9, $r25;
+        org.apache.lucene.analysis.tokenattributes.TypeAttribute $r23;
+
+        r0 := @this: org.apache.lucene.analysis.shingle.ShingleFilter;
+
+        z4 = 0;
+
+        i11 = 0;
+
+        $r1 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence gramSize>;
+
+        $z0 = virtualinvoke $r1.<org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence: boolean atMinValue()>();
+
+        if $z0 != 0 goto label01;
+
+        $r34 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: java.util.LinkedList inputWindow>;
+
+        $i9 = virtualinvoke $r34.<java.util.LinkedList: int size()>();
+
+        $r35 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence gramSize>;
+
+        $i10 = virtualinvoke $r35.<org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence: int getValue()>();
+
+        if $i9 >= $i10 goto label02;
+
+     label01:
+        specialinvoke r0.<org.apache.lucene.analysis.shingle.ShingleFilter: void shiftInputWindow()>();
+
+        $r2 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: java.lang.StringBuilder gramBuilder>;
+
+        virtualinvoke $r2.<java.lang.StringBuilder: void setLength(int)>(0);
+
+        goto label03;
+
+     label02:
+        $r36 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence gramSize>;
+
+        i11 = virtualinvoke $r36.<org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence: int getPreviousValue()>();
+
+     label03:
+        $r3 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: java.util.LinkedList inputWindow>;
+
+        $i0 = virtualinvoke $r3.<java.util.LinkedList: int size()>();
+
+        $r4 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence gramSize>;
+
+        $i1 = virtualinvoke $r4.<org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence: int getValue()>();
+
+        if $i0 < $i1 goto label13;
+
+        z5 = 1;
+
+        z7 = 1;
+
+        z6 = 1;
+
+        r37 = null;
+
+        $r5 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: java.util.LinkedList inputWindow>;
+
+        $r6 = virtualinvoke $r5.<java.util.LinkedList: java.util.Iterator iterator()>();
+
+        i12 = 1;
+
+     label04:
+        $z1 = interfaceinvoke $r6.<java.util.Iterator: boolean hasNext()>();
+
+        if $z1 == 0 goto label09;
+
+        $r24 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence gramSize>;
+
+        $i6 = virtualinvoke $r24.<org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence: int getValue()>();
+
+        if i11 >= $i6 goto label09;
+
+        $r25 = interfaceinvoke $r6.<java.util.Iterator: java.lang.Object next()>();
+
+        r37 = (org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken) $r25;
+
+        if i11 >= i12 goto label06;
+
+        if i11 <= 0 goto label05;
+
+        $r33 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: java.lang.StringBuilder gramBuilder>;
+
+        $r32 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: java.lang.String tokenSeparator>;
+
+        virtualinvoke $r33.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r32);
+
+     label05:
+        $r29 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: java.lang.StringBuilder gramBuilder>;
+
+        $r28 = r37.<org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken: org.apache.lucene.analysis.tokenattributes.CharTermAttribute termAtt>;
+
+        $r30 = interfaceinvoke $r28.<org.apache.lucene.analysis.tokenattributes.CharTermAttribute: char[] buffer()>();
+
+        $r31 = r37.<org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken: org.apache.lucene.analysis.tokenattributes.CharTermAttribute termAtt>;
+
+        $i8 = interfaceinvoke $r31.<org.apache.lucene.analysis.tokenattributes.CharTermAttribute: int length()>();
+
+        virtualinvoke $r29.<java.lang.StringBuilder: java.lang.StringBuilder append(char[],int,int)>($r30, 0, $i8);
+
+        i11 = i11 + 1;
+
+     label06:
+        if z6 == 0 goto label07;
+
+        $z3 = r37.<org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken: boolean isFiller>;
+
+        if $z3 == 0 goto label07;
+
+        $r26 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence gramSize>;
+
+        $i7 = virtualinvoke $r26.<org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence: int getValue()>();
+
+        if i12 != $i7 goto label08;
+
+        $r27 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence gramSize>;
+
+        virtualinvoke $r27.<org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence: void advance()>();
+
+        goto label08;
+
+     label07:
+        z5 = 0;
+
+        z7 = 0;
+
+        z6 = 0;
+
+     label08:
+        i12 = i12 + 1;
+
+        goto label04;
+
+     label09:
+        if z7 != 0 goto label13;
+
+        $r7 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence gramSize>;
+
+        $i2 = virtualinvoke $r7.<org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence: int getValue()>();
+
+        if i11 != $i2 goto label13;
+
+        $r8 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: java.util.LinkedList inputWindow>;
+
+        $r9 = virtualinvoke $r8.<java.util.LinkedList: java.lang.Object getFirst()>();
+
+        $r10 = (org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken) $r9;
+
+        $r11 = $r10.<org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken: org.apache.lucene.util.AttributeSource attSource>;
+
+        virtualinvoke $r11.<org.apache.lucene.util.AttributeSource: void copyTo(org.apache.lucene.util.AttributeSource)>(r0);
+
+        $r12 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute posIncrAtt>;
+
+        $z2 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: boolean isOutputHere>;
+
+        if $z2 == 0 goto label10;
+
+        $b13 = 0;
+
+        goto label11;
+
+     label10:
+        $b13 = 1;
+
+     label11:
+        interfaceinvoke $r12.<org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute: void setPositionIncrement(int)>($b13);
+
+        $r13 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.analysis.tokenattributes.CharTermAttribute termAtt>;
+
+        $r14 = interfaceinvoke $r13.<org.apache.lucene.analysis.tokenattributes.CharTermAttribute: org.apache.lucene.analysis.tokenattributes.CharTermAttribute setEmpty()>();
+
+        $r15 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: java.lang.StringBuilder gramBuilder>;
+
+        interfaceinvoke $r14.<org.apache.lucene.analysis.tokenattributes.CharTermAttribute: org.apache.lucene.analysis.tokenattributes.CharTermAttribute append(java.lang.StringBuilder)>($r15);
+
+        $r16 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence gramSize>;
+
+        $i3 = virtualinvoke $r16.<org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence: int getValue()>();
+
+        if $i3 <= 1 goto label12;
+
+        $r23 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.analysis.tokenattributes.TypeAttribute typeAtt>;
+
+        $r22 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: java.lang.String tokenType>;
+
+        interfaceinvoke $r23.<org.apache.lucene.analysis.tokenattributes.TypeAttribute: void setType(java.lang.String)>($r22);
+
+        r0.<org.apache.lucene.analysis.shingle.ShingleFilter: boolean noShingleOutput> = 0;
+
+     label12:
+        $r18 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.analysis.tokenattributes.OffsetAttribute offsetAtt>;
+
+        $r17 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.analysis.tokenattributes.OffsetAttribute offsetAtt>;
+
+        $i4 = interfaceinvoke $r17.<org.apache.lucene.analysis.tokenattributes.OffsetAttribute: int startOffset()>();
+
+        $r19 = r37.<org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken: org.apache.lucene.analysis.tokenattributes.OffsetAttribute offsetAtt>;
+
+        $i5 = interfaceinvoke $r19.<org.apache.lucene.analysis.tokenattributes.OffsetAttribute: int endOffset()>();
+
+        interfaceinvoke $r18.<org.apache.lucene.analysis.tokenattributes.OffsetAttribute: void setOffset(int,int)>($i4, $i5);
+
+        $r20 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.analysis.tokenattributes.PositionLengthAttribute posLenAtt>;
+
+        interfaceinvoke $r20.<org.apache.lucene.analysis.tokenattributes.PositionLengthAttribute: void setPositionLength(int)>(i11);
+
+        r0.<org.apache.lucene.analysis.shingle.ShingleFilter: boolean isOutputHere> = 1;
+
+        $r21 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence gramSize>;
+
+        virtualinvoke $r21.<org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence: void advance()>();
+
+        z4 = 1;
+
+     label13:
+        return z4;
+    }
+
+    private org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken getNextToken(org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken) throws java.io.IOException
+    {
+        org.apache.lucene.util.AttributeSource $r3, $r6, $r7, $r14, $r16, $r17, $r18, $r20, $r21, $r22, $r23, $r31, $r32;
+        boolean $z0, $z1, $z2;
+        org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute $r4, $r5;
+        org.apache.lucene.analysis.tokenattributes.OffsetAttribute $r8, $r9, $r10, $r24, $r25, $r26;
+        org.apache.lucene.analysis.shingle.ShingleFilter r1;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i10, $i11, $i12, $i13, $i14, $i15, $i16;
+        org.apache.lucene.analysis.tokenattributes.CharTermAttribute $r13, $r29;
+        org.apache.lucene.analysis.TokenStream $r2;
+        org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken r0, $r15, $r19, $r30, r33;
+        char[] $r11, $r12, $r27, $r28;
+
+        r1 := @this: org.apache.lucene.analysis.shingle.ShingleFilter;
+
+        r0 := @parameter0: org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken;
+
+        r33 = r0;
+
+        $i0 = r1.<org.apache.lucene.analysis.shingle.ShingleFilter: int numFillerTokensToInsert>;
+
+        if $i0 <= 0 goto label03;
+
+        if null != r0 goto label01;
+
+        $r30 = new org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken;
+
+        $r31 = r1.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.util.AttributeSource nextInputStreamToken>;
+
+        $r32 = virtualinvoke $r31.<org.apache.lucene.util.AttributeSource: org.apache.lucene.util.AttributeSource cloneAttributes()>();
+
+        specialinvoke $r30.<org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken: void <init>(org.apache.lucene.analysis.shingle.ShingleFilter,org.apache.lucene.util.AttributeSource)>(r1, $r32);
+
+        r33 = $r30;
+
+        goto label02;
+
+     label01:
+        $r23 = r1.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.util.AttributeSource nextInputStreamToken>;
+
+        $r22 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken: org.apache.lucene.util.AttributeSource attSource>;
+
+        virtualinvoke $r23.<org.apache.lucene.util.AttributeSource: void copyTo(org.apache.lucene.util.AttributeSource)>($r22);
+
+     label02:
+        $r25 = r33.<org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken: org.apache.lucene.analysis.tokenattributes.OffsetAttribute offsetAtt>;
+
+        $r24 = r33.<org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken: org.apache.lucene.analysis.tokenattributes.OffsetAttribute offsetAtt>;
+
+        $i12 = interfaceinvoke $r24.<org.apache.lucene.analysis.tokenattributes.OffsetAttribute: int startOffset()>();
+
+        $r26 = r33.<org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken: org.apache.lucene.analysis.tokenattributes.OffsetAttribute offsetAtt>;
+
+        $i13 = interfaceinvoke $r26.<org.apache.lucene.analysis.tokenattributes.OffsetAttribute: int startOffset()>();
+
+        interfaceinvoke $r25.<org.apache.lucene.analysis.tokenattributes.OffsetAttribute: void setOffset(int,int)>($i12, $i13);
+
+        $r29 = r33.<org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken: org.apache.lucene.analysis.tokenattributes.CharTermAttribute termAtt>;
+
+        $r28 = <org.apache.lucene.analysis.shingle.ShingleFilter: char[] FILLER_TOKEN>;
+
+        $r27 = <org.apache.lucene.analysis.shingle.ShingleFilter: char[] FILLER_TOKEN>;
+
+        $i14 = lengthof $r27;
+
+        interfaceinvoke $r29.<org.apache.lucene.analysis.tokenattributes.CharTermAttribute: void copyBuffer(char[],int,int)>($r28, 0, $i14);
+
+        r33.<org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken: boolean isFiller> = 1;
+
+        $i15 = r1.<org.apache.lucene.analysis.shingle.ShingleFilter: int numFillerTokensToInsert>;
+
+        $i16 = $i15 - 1;
+
+        r1.<org.apache.lucene.analysis.shingle.ShingleFilter: int numFillerTokensToInsert> = $i16;
+
+        goto label13;
+
+     label03:
+        $z0 = r1.<org.apache.lucene.analysis.shingle.ShingleFilter: boolean isNextInputStreamToken>;
+
+        if $z0 == 0 goto label06;
+
+        if null != r0 goto label04;
+
+        $r19 = new org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken;
+
+        $r20 = r1.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.util.AttributeSource nextInputStreamToken>;
+
+        $r21 = virtualinvoke $r20.<org.apache.lucene.util.AttributeSource: org.apache.lucene.util.AttributeSource cloneAttributes()>();
+
+        specialinvoke $r19.<org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken: void <init>(org.apache.lucene.analysis.shingle.ShingleFilter,org.apache.lucene.util.AttributeSource)>(r1, $r21);
+
+        r33 = $r19;
+
+        goto label05;
+
+     label04:
+        $r18 = r1.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.util.AttributeSource nextInputStreamToken>;
+
+        $r17 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken: org.apache.lucene.util.AttributeSource attSource>;
+
+        virtualinvoke $r18.<org.apache.lucene.util.AttributeSource: void copyTo(org.apache.lucene.util.AttributeSource)>($r17);
+
+     label05:
+        r1.<org.apache.lucene.analysis.shingle.ShingleFilter: boolean isNextInputStreamToken> = 0;
+
+        r33.<org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken: boolean isFiller> = 0;
+
+        goto label13;
+
+     label06:
+        $z1 = r1.<org.apache.lucene.analysis.shingle.ShingleFilter: boolean exhausted>;
+
+        if $z1 != 0 goto label12;
+
+        $r2 = r1.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.analysis.TokenStream input>;
+
+        $z2 = virtualinvoke $r2.<org.apache.lucene.analysis.TokenStream: boolean incrementToken()>();
+
+        if $z2 == 0 goto label12;
+
+        if null != r0 goto label07;
+
+        $r15 = new org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken;
+
+        $r16 = virtualinvoke r1.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.util.AttributeSource cloneAttributes()>();
+
+        specialinvoke $r15.<org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken: void <init>(org.apache.lucene.analysis.shingle.ShingleFilter,org.apache.lucene.util.AttributeSource)>(r1, $r16);
+
+        r33 = $r15;
+
+        goto label08;
+
+     label07:
+        $r3 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken: org.apache.lucene.util.AttributeSource attSource>;
+
+        virtualinvoke r1.<org.apache.lucene.analysis.shingle.ShingleFilter: void copyTo(org.apache.lucene.util.AttributeSource)>($r3);
+
+     label08:
+        $r4 = r1.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute posIncrAtt>;
+
+        $i1 = interfaceinvoke $r4.<org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute: int getPositionIncrement()>();
+
+        if $i1 <= 1 goto label11;
+
+        $r5 = r1.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute posIncrAtt>;
+
+        $i2 = interfaceinvoke $r5.<org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute: int getPositionIncrement()>();
+
+        $i5 = $i2 - 1;
+
+        $i3 = r1.<org.apache.lucene.analysis.shingle.ShingleFilter: int maxShingleSize>;
+
+        $i4 = $i3 - 1;
+
+        $i6 = staticinvoke <java.lang.Math: int min(int,int)>($i5, $i4);
+
+        r1.<org.apache.lucene.analysis.shingle.ShingleFilter: int numFillerTokensToInsert> = $i6;
+
+        $r6 = r1.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.util.AttributeSource nextInputStreamToken>;
+
+        if null != $r6 goto label09;
+
+        $r14 = virtualinvoke r1.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.util.AttributeSource cloneAttributes()>();
+
+        r1.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.util.AttributeSource nextInputStreamToken> = $r14;
+
+        goto label10;
+
+     label09:
+        $r7 = r1.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.util.AttributeSource nextInputStreamToken>;
+
+        virtualinvoke r1.<org.apache.lucene.analysis.shingle.ShingleFilter: void copyTo(org.apache.lucene.util.AttributeSource)>($r7);
+
+     label10:
+        r1.<org.apache.lucene.analysis.shingle.ShingleFilter: boolean isNextInputStreamToken> = 1;
+
+        $r9 = r33.<org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken: org.apache.lucene.analysis.tokenattributes.OffsetAttribute offsetAtt>;
+
+        $r8 = r1.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.analysis.tokenattributes.OffsetAttribute offsetAtt>;
+
+        $i7 = interfaceinvoke $r8.<org.apache.lucene.analysis.tokenattributes.OffsetAttribute: int startOffset()>();
+
+        $r10 = r1.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.analysis.tokenattributes.OffsetAttribute offsetAtt>;
+
+        $i8 = interfaceinvoke $r10.<org.apache.lucene.analysis.tokenattributes.OffsetAttribute: int startOffset()>();
+
+        interfaceinvoke $r9.<org.apache.lucene.analysis.tokenattributes.OffsetAttribute: void setOffset(int,int)>($i7, $i8);
+
+        $r13 = r33.<org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken: org.apache.lucene.analysis.tokenattributes.CharTermAttribute termAtt>;
+
+        $r12 = <org.apache.lucene.analysis.shingle.ShingleFilter: char[] FILLER_TOKEN>;
+
+        $r11 = <org.apache.lucene.analysis.shingle.ShingleFilter: char[] FILLER_TOKEN>;
+
+        $i9 = lengthof $r11;
+
+        interfaceinvoke $r13.<org.apache.lucene.analysis.tokenattributes.CharTermAttribute: void copyBuffer(char[],int,int)>($r12, 0, $i9);
+
+        r33.<org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken: boolean isFiller> = 1;
+
+        $i10 = r1.<org.apache.lucene.analysis.shingle.ShingleFilter: int numFillerTokensToInsert>;
+
+        $i11 = $i10 - 1;
+
+        r1.<org.apache.lucene.analysis.shingle.ShingleFilter: int numFillerTokensToInsert> = $i11;
+
+        goto label13;
+
+     label11:
+        r33.<org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken: boolean isFiller> = 0;
+
+        goto label13;
+
+     label12:
+        r33 = null;
+
+        r1.<org.apache.lucene.analysis.shingle.ShingleFilter: boolean exhausted> = 1;
+
+     label13:
+        return r33;
+    }
+
+    private void shiftInputWindow() throws java.io.IOException
+    {
+        org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence $r2, $r4, $r13;
+        org.apache.lucene.analysis.shingle.ShingleFilter r0;
+        int $i0, $i1, $i2, $i3, $i4, $i5;
+        java.util.LinkedList $r1, $r3, $r6, $r8, $r9, $r12;
+        boolean $z0, $z1;
+        org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken $r5, $r7, r11;
+        java.lang.Object $r10;
+
+        r0 := @this: org.apache.lucene.analysis.shingle.ShingleFilter;
+
+        r11 = null;
+
+        $r1 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: java.util.LinkedList inputWindow>;
+
+        $i0 = virtualinvoke $r1.<java.util.LinkedList: int size()>();
+
+        if $i0 <= 0 goto label1;
+
+        $r9 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: java.util.LinkedList inputWindow>;
+
+        $r10 = virtualinvoke $r9.<java.util.LinkedList: java.lang.Object removeFirst()>();
+
+        r11 = (org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken) $r10;
+
+     label1:
+        $r12 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: java.util.LinkedList inputWindow>;
+
+        $i4 = virtualinvoke $r12.<java.util.LinkedList: int size()>();
+
+        $i5 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: int maxShingleSize>;
+
+        if $i4 >= $i5 goto label3;
+
+        if null == r11 goto label2;
+
+        $r7 = specialinvoke r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken getNextToken(org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken)>(r11);
+
+        if null == $r7 goto label3;
+
+        $r8 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: java.util.LinkedList inputWindow>;
+
+        virtualinvoke $r8.<java.util.LinkedList: boolean add(java.lang.Object)>(r11);
+
+        r11 = null;
+
+        goto label1;
+
+     label2:
+        $r5 = specialinvoke r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken getNextToken(org.apache.lucene.analysis.shingle.ShingleFilter$InputWindowToken)>(null);
+
+        if null == $r5 goto label3;
+
+        $r6 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: java.util.LinkedList inputWindow>;
+
+        virtualinvoke $r6.<java.util.LinkedList: boolean add(java.lang.Object)>($r5);
+
+        goto label1;
+
+     label3:
+        $z1 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: boolean outputUnigramsIfNoShingles>;
+
+        if $z1 == 0 goto label4;
+
+        $z0 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: boolean noShingleOutput>;
+
+        if $z0 == 0 goto label4;
+
+        $r2 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence gramSize>;
+
+        $i1 = staticinvoke <org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence: int access$000(org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence)>($r2);
+
+        if $i1 <= 1 goto label4;
+
+        $r3 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: java.util.LinkedList inputWindow>;
+
+        $i2 = virtualinvoke $r3.<java.util.LinkedList: int size()>();
+
+        $i3 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: int minShingleSize>;
+
+        if $i2 >= $i3 goto label4;
+
+        $r4 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence gramSize>;
+
+        staticinvoke <org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence: int access$002(org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence,int)>($r4, 1);
+
+     label4:
+        $r13 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence gramSize>;
+
+        virtualinvoke $r13.<org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence: void reset()>();
+
+        r0.<org.apache.lucene.analysis.shingle.ShingleFilter: boolean isOutputHere> = 0;
+
+        return;
+    }
+
+    public void reset() throws java.io.IOException
+    {
+        org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence $r1, $r3;
+        org.apache.lucene.analysis.shingle.ShingleFilter r0;
+        int $i0;
+        java.util.LinkedList $r2;
+        boolean $z0, $z1;
+
+        r0 := @this: org.apache.lucene.analysis.shingle.ShingleFilter;
+
+        specialinvoke r0.<org.apache.lucene.analysis.TokenFilter: void reset()>();
+
+        $r1 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence gramSize>;
+
+        virtualinvoke $r1.<org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence: void reset()>();
+
+        $r2 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: java.util.LinkedList inputWindow>;
+
+        virtualinvoke $r2.<java.util.LinkedList: void clear()>();
+
+        r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.util.AttributeSource nextInputStreamToken> = null;
+
+        r0.<org.apache.lucene.analysis.shingle.ShingleFilter: boolean isNextInputStreamToken> = 0;
+
+        r0.<org.apache.lucene.analysis.shingle.ShingleFilter: int numFillerTokensToInsert> = 0;
+
+        r0.<org.apache.lucene.analysis.shingle.ShingleFilter: boolean isOutputHere> = 0;
+
+        r0.<org.apache.lucene.analysis.shingle.ShingleFilter: boolean noShingleOutput> = 1;
+
+        r0.<org.apache.lucene.analysis.shingle.ShingleFilter: boolean exhausted> = 0;
+
+        $z0 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: boolean outputUnigramsIfNoShingles>;
+
+        if $z0 == 0 goto label1;
+
+        $z1 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: boolean outputUnigrams>;
+
+        if $z1 != 0 goto label1;
+
+        $r3 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence gramSize>;
+
+        $i0 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: int minShingleSize>;
+
+        staticinvoke <org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence: int access$002(org.apache.lucene.analysis.shingle.ShingleFilter$CircularSequence,int)>($r3, $i0);
+
+     label1:
+        return;
+    }
+
+    static boolean access$100(org.apache.lucene.analysis.shingle.ShingleFilter)
+    {
+        org.apache.lucene.analysis.shingle.ShingleFilter r0;
+        boolean $z0;
+
+        r0 := @parameter0: org.apache.lucene.analysis.shingle.ShingleFilter;
+
+        $z0 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: boolean outputUnigrams>;
+
+        return $z0;
+    }
+
+    static int access$200(org.apache.lucene.analysis.shingle.ShingleFilter)
+    {
+        org.apache.lucene.analysis.shingle.ShingleFilter r0;
+        int $i0;
+
+        r0 := @parameter0: org.apache.lucene.analysis.shingle.ShingleFilter;
+
+        $i0 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: int minShingleSize>;
+
+        return $i0;
+    }
+
+    static int access$300(org.apache.lucene.analysis.shingle.ShingleFilter)
+    {
+        org.apache.lucene.analysis.shingle.ShingleFilter r0;
+        int $i0;
+
+        r0 := @parameter0: org.apache.lucene.analysis.shingle.ShingleFilter;
+
+        $i0 = r0.<org.apache.lucene.analysis.shingle.ShingleFilter: int maxShingleSize>;
+
+        return $i0;
+    }
+
+    static void <clinit>()
+    {
+        char[] $r0;
+
+        <org.apache.lucene.analysis.shingle.ShingleFilter: java.lang.String TOKEN_SEPARATOR> = " ";
+
+        <org.apache.lucene.analysis.shingle.ShingleFilter: java.lang.String DEFAULT_TOKEN_TYPE> = "shingle";
+
+        <org.apache.lucene.analysis.shingle.ShingleFilter: int DEFAULT_MIN_SHINGLE_SIZE> = 2;
+
+        <org.apache.lucene.analysis.shingle.ShingleFilter: int DEFAULT_MAX_SHINGLE_SIZE> = 2;
+
+        $r0 = newarray (char)[1];
+
+        $r0[0] = 95;
+
+        <org.apache.lucene.analysis.shingle.ShingleFilter: char[] FILLER_TOKEN> = $r0;
+
+        return;
+    }
+}

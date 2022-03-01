@@ -1,0 +1,369 @@
+public final class org.apache.lucene.analysis.cn.ChineseTokenizer extends org.apache.lucene.analysis.Tokenizer
+{
+    private int offset;
+    private int bufferIndex;
+    private int dataLen;
+    private static final int MAX_WORD_LEN;
+    private static final int IO_BUFFER_SIZE;
+    private final char[] buffer;
+    private final char[] ioBuffer;
+    private int length;
+    private int start;
+    private final org.apache.lucene.analysis.tokenattributes.CharTermAttribute termAtt;
+    private final org.apache.lucene.analysis.tokenattributes.OffsetAttribute offsetAtt;
+
+    public void <init>(java.io.Reader)
+    {
+        org.apache.lucene.analysis.tokenattributes.CharTermAttribute $r5;
+        java.io.Reader r1;
+        org.apache.lucene.analysis.tokenattributes.OffsetAttribute $r7;
+        char[] $r2, $r3;
+        org.apache.lucene.util.Attribute $r4, $r6;
+        org.apache.lucene.analysis.cn.ChineseTokenizer r0;
+
+        r0 := @this: org.apache.lucene.analysis.cn.ChineseTokenizer;
+
+        r1 := @parameter0: java.io.Reader;
+
+        specialinvoke r0.<org.apache.lucene.analysis.Tokenizer: void <init>(java.io.Reader)>(r1);
+
+        r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int offset> = 0;
+
+        r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int bufferIndex> = 0;
+
+        r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int dataLen> = 0;
+
+        $r2 = newarray (char)[255];
+
+        r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: char[] buffer> = $r2;
+
+        $r3 = newarray (char)[1024];
+
+        r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: char[] ioBuffer> = $r3;
+
+        $r4 = virtualinvoke r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: org.apache.lucene.util.Attribute addAttribute(java.lang.Class)>(class "Lorg/apache/lucene/analysis/tokenattributes/CharTermAttribute;");
+
+        $r5 = (org.apache.lucene.analysis.tokenattributes.CharTermAttribute) $r4;
+
+        r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: org.apache.lucene.analysis.tokenattributes.CharTermAttribute termAtt> = $r5;
+
+        $r6 = virtualinvoke r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: org.apache.lucene.util.Attribute addAttribute(java.lang.Class)>(class "Lorg/apache/lucene/analysis/tokenattributes/OffsetAttribute;");
+
+        $r7 = (org.apache.lucene.analysis.tokenattributes.OffsetAttribute) $r6;
+
+        r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: org.apache.lucene.analysis.tokenattributes.OffsetAttribute offsetAtt> = $r7;
+
+        return;
+    }
+
+    public void <init>(org.apache.lucene.util.AttributeSource$AttributeFactory, java.io.Reader)
+    {
+        org.apache.lucene.analysis.tokenattributes.CharTermAttribute $r6;
+        org.apache.lucene.util.AttributeSource$AttributeFactory r1;
+        java.io.Reader r2;
+        org.apache.lucene.analysis.tokenattributes.OffsetAttribute $r8;
+        char[] $r3, $r4;
+        org.apache.lucene.util.Attribute $r5, $r7;
+        org.apache.lucene.analysis.cn.ChineseTokenizer r0;
+
+        r0 := @this: org.apache.lucene.analysis.cn.ChineseTokenizer;
+
+        r1 := @parameter0: org.apache.lucene.util.AttributeSource$AttributeFactory;
+
+        r2 := @parameter1: java.io.Reader;
+
+        specialinvoke r0.<org.apache.lucene.analysis.Tokenizer: void <init>(org.apache.lucene.util.AttributeSource$AttributeFactory,java.io.Reader)>(r1, r2);
+
+        r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int offset> = 0;
+
+        r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int bufferIndex> = 0;
+
+        r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int dataLen> = 0;
+
+        $r3 = newarray (char)[255];
+
+        r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: char[] buffer> = $r3;
+
+        $r4 = newarray (char)[1024];
+
+        r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: char[] ioBuffer> = $r4;
+
+        $r5 = virtualinvoke r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: org.apache.lucene.util.Attribute addAttribute(java.lang.Class)>(class "Lorg/apache/lucene/analysis/tokenattributes/CharTermAttribute;");
+
+        $r6 = (org.apache.lucene.analysis.tokenattributes.CharTermAttribute) $r5;
+
+        r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: org.apache.lucene.analysis.tokenattributes.CharTermAttribute termAtt> = $r6;
+
+        $r7 = virtualinvoke r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: org.apache.lucene.util.Attribute addAttribute(java.lang.Class)>(class "Lorg/apache/lucene/analysis/tokenattributes/OffsetAttribute;");
+
+        $r8 = (org.apache.lucene.analysis.tokenattributes.OffsetAttribute) $r7;
+
+        r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: org.apache.lucene.analysis.tokenattributes.OffsetAttribute offsetAtt> = $r8;
+
+        return;
+    }
+
+    private final void push(char)
+    {
+        char c3, $c4;
+        int $i0, $i1, $i2, $i5, $i6;
+        char[] $r1;
+        org.apache.lucene.analysis.cn.ChineseTokenizer r0;
+
+        r0 := @this: org.apache.lucene.analysis.cn.ChineseTokenizer;
+
+        c3 := @parameter0: char;
+
+        $i0 = r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int length>;
+
+        if $i0 != 0 goto label1;
+
+        $i5 = r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int offset>;
+
+        $i6 = $i5 - 1;
+
+        r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int start> = $i6;
+
+     label1:
+        $r1 = r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: char[] buffer>;
+
+        $i1 = r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int length>;
+
+        $i2 = $i1 + 1;
+
+        r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int length> = $i2;
+
+        $c4 = staticinvoke <java.lang.Character: char toLowerCase(char)>(c3);
+
+        $r1[$i1] = $c4;
+
+        return;
+    }
+
+    private final boolean flush()
+    {
+        org.apache.lucene.analysis.tokenattributes.CharTermAttribute $r2;
+        org.apache.lucene.analysis.tokenattributes.OffsetAttribute $r3;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7;
+        char[] $r1;
+        org.apache.lucene.analysis.cn.ChineseTokenizer r0;
+
+        r0 := @this: org.apache.lucene.analysis.cn.ChineseTokenizer;
+
+        $i0 = r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int length>;
+
+        if $i0 <= 0 goto label1;
+
+        $r2 = r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: org.apache.lucene.analysis.tokenattributes.CharTermAttribute termAtt>;
+
+        $r1 = r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: char[] buffer>;
+
+        $i1 = r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int length>;
+
+        interfaceinvoke $r2.<org.apache.lucene.analysis.tokenattributes.CharTermAttribute: void copyBuffer(char[],int,int)>($r1, 0, $i1);
+
+        $r3 = r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: org.apache.lucene.analysis.tokenattributes.OffsetAttribute offsetAtt>;
+
+        $i2 = r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int start>;
+
+        $i3 = virtualinvoke r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int correctOffset(int)>($i2);
+
+        $i5 = r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int start>;
+
+        $i4 = r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int length>;
+
+        $i6 = $i5 + $i4;
+
+        $i7 = virtualinvoke r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int correctOffset(int)>($i6);
+
+        interfaceinvoke $r3.<org.apache.lucene.analysis.tokenattributes.OffsetAttribute: void setOffset(int,int)>($i3, $i7);
+
+        return 1;
+
+     label1:
+        return 0;
+    }
+
+    public boolean incrementToken() throws java.io.IOException
+    {
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i9, $i10, $i11, $i12, $i13, $i14, $i15, $i16, $i17, $i18, $i19, $i21;
+        org.apache.lucene.analysis.cn.ChineseTokenizer r0;
+        boolean $z0, $z1, $z2, $z3, $z4;
+        char c8;
+        java.io.Reader $r3;
+        char[] $r1, $r2;
+
+        r0 := @this: org.apache.lucene.analysis.cn.ChineseTokenizer;
+
+        virtualinvoke r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: void clearAttributes()>();
+
+        r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int length> = 0;
+
+        $i0 = r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int offset>;
+
+        r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int start> = $i0;
+
+     label1:
+        $i1 = r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int offset>;
+
+        $i2 = $i1 + 1;
+
+        r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int offset> = $i2;
+
+        $i4 = r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int bufferIndex>;
+
+        $i3 = r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int dataLen>;
+
+        if $i4 < $i3 goto label2;
+
+        $r3 = r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: java.io.Reader input>;
+
+        $r2 = r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: char[] ioBuffer>;
+
+        $i19 = virtualinvoke $r3.<java.io.Reader: int read(char[])>($r2);
+
+        r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int dataLen> = $i19;
+
+        r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int bufferIndex> = 0;
+
+     label2:
+        $i5 = r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int dataLen>;
+
+        $i21 = (int) -1;
+
+        if $i5 != $i21 goto label3;
+
+        $i17 = r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int offset>;
+
+        $i18 = $i17 - 1;
+
+        r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int offset> = $i18;
+
+        $z4 = specialinvoke r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: boolean flush()>();
+
+        return $z4;
+
+     label3:
+        $r1 = r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: char[] ioBuffer>;
+
+        $i6 = r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int bufferIndex>;
+
+        $i7 = $i6 + 1;
+
+        r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int bufferIndex> = $i7;
+
+        c8 = $r1[$i6];
+
+        $i9 = staticinvoke <java.lang.Character: int getType(char)>(c8);
+
+        tableswitch($i9)
+        {
+            case 1: goto label4;
+            case 2: goto label4;
+            case 3: goto label7;
+            case 4: goto label7;
+            case 5: goto label5;
+            case 6: goto label7;
+            case 7: goto label7;
+            case 8: goto label7;
+            case 9: goto label4;
+            default: goto label7;
+        };
+
+     label4:
+        specialinvoke r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: void push(char)>(c8);
+
+        $i15 = r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int length>;
+
+        if $i15 != 255 goto label8;
+
+        $z2 = specialinvoke r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: boolean flush()>();
+
+        return $z2;
+
+     label5:
+        $i10 = r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int length>;
+
+        if $i10 <= 0 goto label6;
+
+        $i11 = r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int bufferIndex>;
+
+        $i12 = $i11 - 1;
+
+        r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int bufferIndex> = $i12;
+
+        $i13 = r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int offset>;
+
+        $i14 = $i13 - 1;
+
+        r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int offset> = $i14;
+
+        $z1 = specialinvoke r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: boolean flush()>();
+
+        return $z1;
+
+     label6:
+        specialinvoke r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: void push(char)>(c8);
+
+        $z0 = specialinvoke r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: boolean flush()>();
+
+        return $z0;
+
+     label7:
+        $i16 = r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int length>;
+
+        if $i16 <= 0 goto label8;
+
+        $z3 = specialinvoke r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: boolean flush()>();
+
+        return $z3;
+
+     label8:
+        goto label1;
+    }
+
+    public final void end()
+    {
+        int $i0, $i1;
+        org.apache.lucene.analysis.tokenattributes.OffsetAttribute $r1;
+        org.apache.lucene.analysis.cn.ChineseTokenizer r0;
+
+        r0 := @this: org.apache.lucene.analysis.cn.ChineseTokenizer;
+
+        $i0 = r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int offset>;
+
+        $i1 = virtualinvoke r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int correctOffset(int)>($i0);
+
+        $r1 = r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: org.apache.lucene.analysis.tokenattributes.OffsetAttribute offsetAtt>;
+
+        interfaceinvoke $r1.<org.apache.lucene.analysis.tokenattributes.OffsetAttribute: void setOffset(int,int)>($i1, $i1);
+
+        return;
+    }
+
+    public void reset() throws java.io.IOException
+    {
+        org.apache.lucene.analysis.cn.ChineseTokenizer r0;
+
+        r0 := @this: org.apache.lucene.analysis.cn.ChineseTokenizer;
+
+        specialinvoke r0.<org.apache.lucene.analysis.Tokenizer: void reset()>();
+
+        r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int dataLen> = 0;
+
+        r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int bufferIndex> = 0;
+
+        r0.<org.apache.lucene.analysis.cn.ChineseTokenizer: int offset> = 0;
+
+        return;
+    }
+
+    public static void <clinit>()
+    {
+        <org.apache.lucene.analysis.cn.ChineseTokenizer: int IO_BUFFER_SIZE> = 1024;
+
+        <org.apache.lucene.analysis.cn.ChineseTokenizer: int MAX_WORD_LEN> = 255;
+
+        return;
+    }
+}

@@ -1,0 +1,5232 @@
+public class ucar.nc2.iosp.hdf4.H4header extends java.lang.Object
+{
+    private static org.slf4j.Logger log;
+    private static final byte[] head;
+    private static final java.lang.String shead;
+    private static final long maxHeaderPos;
+    private static boolean debugDD;
+    private static boolean debugTag1;
+    private static boolean debugTag2;
+    private static boolean debugTagDetail;
+    private static boolean debugConstruct;
+    private static boolean debugAtt;
+    private static boolean debugLinked;
+    private static boolean debugChunkTable;
+    private static boolean debugChunkDetail;
+    private static boolean debugTracker;
+    private static boolean warnings;
+    private static boolean debugHdfEosOff;
+    private ucar.nc2.NetcdfFile ncfile;
+    private ucar.unidata.io.RandomAccessFile raf;
+    private java.util.List alltags;
+    private java.util.Map tagMap;
+    private java.util.Map refnoMap;
+    private ucar.nc2.iosp.hdf4.H4header$MemTracker memTracker;
+    private java.io.PrintStream debugOut;
+    private static boolean showFile;
+    static final boolean $assertionsDisabled;
+
+    public void <init>()
+    {
+        java.io.PrintStream $r3;
+        ucar.nc2.iosp.hdf4.H4header r0;
+        java.util.HashMap $r1, $r2;
+
+        r0 := @this: ucar.nc2.iosp.hdf4.H4header;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        $r1 = new java.util.HashMap;
+
+        specialinvoke $r1.<java.util.HashMap: void <init>()>();
+
+        r0.<ucar.nc2.iosp.hdf4.H4header: java.util.Map tagMap> = $r1;
+
+        $r2 = new java.util.HashMap;
+
+        specialinvoke $r2.<java.util.HashMap: void <init>()>();
+
+        r0.<ucar.nc2.iosp.hdf4.H4header: java.util.Map refnoMap> = $r2;
+
+        $r3 = <java.lang.System: java.io.PrintStream out>;
+
+        r0.<ucar.nc2.iosp.hdf4.H4header: java.io.PrintStream debugOut> = $r3;
+
+        return;
+    }
+
+    static boolean isValidFile(ucar.unidata.io.RandomAccessFile) throws java.io.IOException
+    {
+        byte[] r1;
+        ucar.unidata.io.RandomAccessFile r0;
+        long $l0, l4, $l5;
+        byte $b1, $b2, $b3;
+        int $i6, $i7;
+        java.lang.String $r3, $r4;
+        boolean $z0;
+
+        r0 := @parameter0: ucar.unidata.io.RandomAccessFile;
+
+        l4 = 0L;
+
+        $l0 = virtualinvoke r0.<ucar.unidata.io.RandomAccessFile: long length()>();
+
+        r1 = newarray (byte)[4];
+
+     label1:
+        $b1 = l4 cmp $l0;
+
+        $i6 = (int) $b1;
+
+        if $i6 >= 0 goto label5;
+
+        $b2 = l4 cmp 500000L;
+
+        $i7 = (int) $b2;
+
+        if $i7 >= 0 goto label5;
+
+        virtualinvoke r0.<ucar.unidata.io.RandomAccessFile: void seek(long)>(l4);
+
+        virtualinvoke r0.<ucar.unidata.io.RandomAccessFile: int read(byte[])>(r1);
+
+        $r4 = new java.lang.String;
+
+        specialinvoke $r4.<java.lang.String: void <init>(byte[])>(r1);
+
+        $r3 = <ucar.nc2.iosp.hdf4.H4header: java.lang.String shead>;
+
+        $z0 = virtualinvoke $r4.<java.lang.String: boolean equals(java.lang.Object)>($r3);
+
+        if $z0 == 0 goto label2;
+
+        return 1;
+
+     label2:
+        $b3 = l4 cmp 0L;
+
+        if $b3 != 0 goto label3;
+
+        $l5 = 512L;
+
+        goto label4;
+
+     label3:
+        $l5 = 2L * l4;
+
+     label4:
+        l4 = $l5;
+
+        goto label1;
+
+     label5:
+        return 0;
+    }
+
+    static java.lang.String createValidObjectName(java.lang.String)
+    {
+        java.lang.String r0, $r1;
+
+        r0 := @parameter0: java.lang.String;
+
+        $r1 = staticinvoke <ucar.unidata.util.StringUtil: java.lang.String replace(java.lang.String,char,java.lang.String)>(r0, 32, "_");
+
+        return $r1;
+    }
+
+    public static void setDebugFlags(ucar.nc2.util.DebugFlags)
+    {
+        ucar.nc2.util.DebugFlags r0;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9, $z10;
+
+        r0 := @parameter0: ucar.nc2.util.DebugFlags;
+
+        $z0 = interfaceinvoke r0.<ucar.nc2.util.DebugFlags: boolean isSet(java.lang.String)>("H4header/tag1");
+
+        <ucar.nc2.iosp.hdf4.H4header: boolean debugTag1> = $z0;
+
+        $z1 = interfaceinvoke r0.<ucar.nc2.util.DebugFlags: boolean isSet(java.lang.String)>("H4header/tag2");
+
+        <ucar.nc2.iosp.hdf4.H4header: boolean debugTag2> = $z1;
+
+        $z2 = interfaceinvoke r0.<ucar.nc2.util.DebugFlags: boolean isSet(java.lang.String)>("H4header/tagDetail");
+
+        <ucar.nc2.iosp.hdf4.H4header: boolean debugTagDetail> = $z2;
+
+        $z3 = interfaceinvoke r0.<ucar.nc2.util.DebugFlags: boolean isSet(java.lang.String)>("H4header/construct");
+
+        <ucar.nc2.iosp.hdf4.H4header: boolean debugConstruct> = $z3;
+
+        $z4 = interfaceinvoke r0.<ucar.nc2.util.DebugFlags: boolean isSet(java.lang.String)>("H4header/att");
+
+        <ucar.nc2.iosp.hdf4.H4header: boolean debugAtt> = $z4;
+
+        $z5 = interfaceinvoke r0.<ucar.nc2.util.DebugFlags: boolean isSet(java.lang.String)>("H4header/linked");
+
+        <ucar.nc2.iosp.hdf4.H4header: boolean debugLinked> = $z5;
+
+        $z6 = interfaceinvoke r0.<ucar.nc2.util.DebugFlags: boolean isSet(java.lang.String)>("H4header/chunkTable");
+
+        <ucar.nc2.iosp.hdf4.H4header: boolean debugChunkTable> = $z6;
+
+        $z7 = interfaceinvoke r0.<ucar.nc2.util.DebugFlags: boolean isSet(java.lang.String)>("H4header/chunkDetail");
+
+        <ucar.nc2.iosp.hdf4.H4header: boolean debugChunkDetail> = $z7;
+
+        $z8 = interfaceinvoke r0.<ucar.nc2.util.DebugFlags: boolean isSet(java.lang.String)>("H4header/memTracker");
+
+        <ucar.nc2.iosp.hdf4.H4header: boolean debugTracker> = $z8;
+
+        $z9 = interfaceinvoke r0.<ucar.nc2.util.DebugFlags: boolean isSet(java.lang.String)>("HdfEos/turnOff");
+
+        <ucar.nc2.iosp.hdf4.H4header: boolean debugHdfEosOff> = $z9;
+
+        $z10 = interfaceinvoke r0.<ucar.nc2.util.DebugFlags: boolean isSet(java.lang.String)>("HdfEos/showWork");
+
+        if $z10 == 0 goto label1;
+
+        <ucar.nc2.iosp.hdf4.HdfEos: boolean showWork> = 1;
+
+     label1:
+        return;
+    }
+
+    void read(ucar.unidata.io.RandomAccessFile, ucar.nc2.NetcdfFile) throws java.io.IOException
+    {
+        java.lang.Integer $r28;
+        byte $b7;
+        java.util.Map $r27;
+        ucar.nc2.Group $r19;
+        ucar.nc2.Attribute $r51;
+        java.lang.StringBuilder $r23, $r24, $r33, $r36, $r37, $r38, $r39, $r48, $r50;
+        ucar.nc2.iosp.hdf4.H4header r0;
+        long $l0, $l1, $l5, l6;
+        java.util.ArrayList $r49;
+        short $s2, $s3;
+        java.lang.String $r12, $r20, $r25, $r35, $r40;
+        java.io.IOException $r47;
+        ucar.unidata.io.RandomAccessFile r1, $r3, $r5, $r7, $r9, $r34;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9, $z10;
+        java.util.List $r10, $r13, $r15, $r30;
+        ucar.nc2.iosp.hdf4.H4header$Tag r42, r44;
+        ucar.nc2.NetcdfFile r2;
+        int $i4, $i8;
+        java.io.PrintStream $r18, $r29, $r32;
+        java.util.Iterator $r11, $r16;
+        ucar.nc2.iosp.hdf4.H4header$MemTracker $r6, $r14, $r46;
+        java.lang.Object $r17, $r26, $r43, $r45;
+
+        r0 := @this: ucar.nc2.iosp.hdf4.H4header;
+
+        r1 := @parameter0: ucar.unidata.io.RandomAccessFile;
+
+        r2 := @parameter1: ucar.nc2.NetcdfFile;
+
+        r0.<ucar.nc2.iosp.hdf4.H4header: ucar.unidata.io.RandomAccessFile raf> = r1;
+
+        r0.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.NetcdfFile ncfile> = r2;
+
+        $r3 = r0.<ucar.nc2.iosp.hdf4.H4header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $l0 = virtualinvoke $r3.<ucar.unidata.io.RandomAccessFile: long length()>();
+
+        $r46 = new ucar.nc2.iosp.hdf4.H4header$MemTracker;
+
+        specialinvoke $r46.<ucar.nc2.iosp.hdf4.H4header$MemTracker: void <init>(ucar.nc2.iosp.hdf4.H4header,long)>(r0, $l0);
+
+        r0.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.iosp.hdf4.H4header$MemTracker memTracker> = $r46;
+
+        $z0 = staticinvoke <ucar.nc2.iosp.hdf4.H4header: boolean isValidFile(ucar.unidata.io.RandomAccessFile)>(r1);
+
+        if $z0 != 0 goto label01;
+
+        $r47 = new java.io.IOException;
+
+        specialinvoke $r47.<java.io.IOException: void <init>(java.lang.String)>("Not an HDF4 file ");
+
+        throw $r47;
+
+     label01:
+        $r6 = r0.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.iosp.hdf4.H4header$MemTracker memTracker>;
+
+        $r5 = r0.<ucar.nc2.iosp.hdf4.H4header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $l1 = virtualinvoke $r5.<ucar.unidata.io.RandomAccessFile: long getFilePointer()>();
+
+        virtualinvoke $r6.<ucar.nc2.iosp.hdf4.H4header$MemTracker: void add(java.lang.String,long,long)>("header", 0L, $l1);
+
+        $r7 = r0.<ucar.nc2.iosp.hdf4.H4header: ucar.unidata.io.RandomAccessFile raf>;
+
+        virtualinvoke $r7.<ucar.unidata.io.RandomAccessFile: void order(int)>(0);
+
+        $z1 = <ucar.nc2.iosp.hdf4.H4header: boolean debugConstruct>;
+
+        if $z1 == 0 goto label02;
+
+        $r32 = r0.<ucar.nc2.iosp.hdf4.H4header: java.io.PrintStream debugOut>;
+
+        $r48 = new java.lang.StringBuilder;
+
+        specialinvoke $r48.<java.lang.StringBuilder: void <init>()>();
+
+        $r33 = virtualinvoke $r48.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("H4header 0pened file to read:\'");
+
+        $r34 = r0.<ucar.nc2.iosp.hdf4.H4header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $r35 = virtualinvoke $r34.<ucar.unidata.io.RandomAccessFile: java.lang.String getLocation()>();
+
+        $r36 = virtualinvoke $r33.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r35);
+
+        $r37 = virtualinvoke $r36.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("\', size=");
+
+        $l5 = $l0 / 1000L;
+
+        $r38 = virtualinvoke $r37.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l5);
+
+        $r39 = virtualinvoke $r38.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" Kb");
+
+        $r40 = virtualinvoke $r39.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r32.<java.io.PrintStream: void println(java.lang.String)>($r40);
+
+     label02:
+        $r49 = new java.util.ArrayList;
+
+        specialinvoke $r49.<java.util.ArrayList: void <init>()>();
+
+        r0.<ucar.nc2.iosp.hdf4.H4header: java.util.List alltags> = $r49;
+
+        $r9 = r0.<ucar.nc2.iosp.hdf4.H4header: ucar.unidata.io.RandomAccessFile raf>;
+
+        l6 = virtualinvoke $r9.<ucar.unidata.io.RandomAccessFile: long getFilePointer()>();
+
+     label03:
+        $b7 = l6 cmp 0L;
+
+        $i8 = (int) $b7;
+
+        if $i8 <= 0 goto label04;
+
+        $r30 = r0.<ucar.nc2.iosp.hdf4.H4header: java.util.List alltags>;
+
+        l6 = specialinvoke r0.<ucar.nc2.iosp.hdf4.H4header: long readDDH(java.util.List,long)>($r30, l6);
+
+        goto label03;
+
+     label04:
+        $r10 = r0.<ucar.nc2.iosp.hdf4.H4header: java.util.List alltags>;
+
+        $r11 = interfaceinvoke $r10.<java.util.List: java.util.Iterator iterator()>();
+
+     label05:
+        $z2 = interfaceinvoke $r11.<java.util.Iterator: boolean hasNext()>();
+
+        if $z2 == 0 goto label09;
+
+        $r26 = interfaceinvoke $r11.<java.util.Iterator: java.lang.Object next()>();
+
+        r42 = (ucar.nc2.iosp.hdf4.H4header$Tag) $r26;
+
+        virtualinvoke r42.<ucar.nc2.iosp.hdf4.H4header$Tag: void read()>();
+
+        $r27 = r0.<ucar.nc2.iosp.hdf4.H4header: java.util.Map tagMap>;
+
+        $s3 = r42.<ucar.nc2.iosp.hdf4.H4header$Tag: short refno>;
+
+        $s2 = r42.<ucar.nc2.iosp.hdf4.H4header$Tag: short code>;
+
+        $i4 = staticinvoke <ucar.nc2.iosp.hdf4.H4header: int tagid(short,short)>($s3, $s2);
+
+        $r28 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i4);
+
+        interfaceinvoke $r27.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>($r28, r42);
+
+        $z8 = <ucar.nc2.iosp.hdf4.H4header: boolean debugTag1>;
+
+        if $z8 == 0 goto label08;
+
+        $r29 = <java.lang.System: java.io.PrintStream out>;
+
+        $z9 = <ucar.nc2.iosp.hdf4.H4header: boolean debugTagDetail>;
+
+        if $z9 == 0 goto label06;
+
+        $r43 = virtualinvoke r42.<ucar.nc2.iosp.hdf4.H4header$Tag: java.lang.String detail()>();
+
+        goto label07;
+
+     label06:
+        $r43 = r42;
+
+     label07:
+        virtualinvoke $r29.<java.io.PrintStream: void println(java.lang.Object)>($r43);
+
+     label08:
+        goto label05;
+
+     label09:
+        $r12 = virtualinvoke r1.<ucar.unidata.io.RandomAccessFile: java.lang.String getLocation()>();
+
+        virtualinvoke r2.<ucar.nc2.NetcdfFile: void setLocation(java.lang.String)>($r12);
+
+        $r13 = r0.<ucar.nc2.iosp.hdf4.H4header: java.util.List alltags>;
+
+        specialinvoke r0.<ucar.nc2.iosp.hdf4.H4header: void construct(ucar.nc2.NetcdfFile,java.util.List)>(r2, $r13);
+
+        $z3 = <ucar.nc2.iosp.hdf4.H4header: boolean debugHdfEosOff>;
+
+        if $z3 != 0 goto label10;
+
+        $r19 = virtualinvoke r2.<ucar.nc2.NetcdfFile: ucar.nc2.Group getRootGroup()>();
+
+        $z7 = staticinvoke <ucar.nc2.iosp.hdf4.HdfEos: boolean amendFromODL(ucar.nc2.NetcdfFile,ucar.nc2.Group)>(r2, $r19);
+
+        if $z7 == 0 goto label10;
+
+        specialinvoke r0.<ucar.nc2.iosp.hdf4.H4header: void adjustDimensions()>();
+
+        $r20 = virtualinvoke r2.<ucar.nc2.NetcdfFile: java.lang.String findAttValueIgnoreCase(ucar.nc2.Variable,java.lang.String,java.lang.String)>(null, "_History", "");
+
+        $r51 = new ucar.nc2.Attribute;
+
+        $r50 = new java.lang.StringBuilder;
+
+        specialinvoke $r50.<java.lang.StringBuilder: void <init>()>();
+
+        $r23 = virtualinvoke $r50.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r20);
+
+        $r24 = virtualinvoke $r23.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("; HDF-EOS StructMetadata information was read");
+
+        $r25 = virtualinvoke $r24.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r51.<ucar.nc2.Attribute: void <init>(java.lang.String,java.lang.String)>("_History", $r25);
+
+        virtualinvoke r2.<ucar.nc2.NetcdfFile: ucar.nc2.Attribute addAttribute(ucar.nc2.Group,ucar.nc2.Attribute)>(null, $r51);
+
+     label10:
+        $z10 = <ucar.nc2.iosp.hdf4.H4header: boolean debugTag2>;
+
+        if $z10 == 0 goto label14;
+
+        $r15 = r0.<ucar.nc2.iosp.hdf4.H4header: java.util.List alltags>;
+
+        $r16 = interfaceinvoke $r15.<java.util.List: java.util.Iterator iterator()>();
+
+     label11:
+        $z5 = interfaceinvoke $r16.<java.util.Iterator: boolean hasNext()>();
+
+        if $z5 == 0 goto label14;
+
+        $r17 = interfaceinvoke $r16.<java.util.Iterator: java.lang.Object next()>();
+
+        r44 = (ucar.nc2.iosp.hdf4.H4header$Tag) $r17;
+
+        $r18 = r0.<ucar.nc2.iosp.hdf4.H4header: java.io.PrintStream debugOut>;
+
+        $z6 = <ucar.nc2.iosp.hdf4.H4header: boolean debugTagDetail>;
+
+        if $z6 == 0 goto label12;
+
+        $r45 = virtualinvoke r44.<ucar.nc2.iosp.hdf4.H4header$Tag: java.lang.String detail()>();
+
+        goto label13;
+
+     label12:
+        $r45 = r44;
+
+     label13:
+        virtualinvoke $r18.<java.io.PrintStream: void println(java.lang.Object)>($r45);
+
+        goto label11;
+
+     label14:
+        $z4 = <ucar.nc2.iosp.hdf4.H4header: boolean debugTracker>;
+
+        if $z4 == 0 goto label15;
+
+        $r14 = r0.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.iosp.hdf4.H4header$MemTracker memTracker>;
+
+        virtualinvoke $r14.<ucar.nc2.iosp.hdf4.H4header$MemTracker: void report()>();
+
+     label15:
+        return;
+    }
+
+    public void getEosInfo(java.util.Formatter) throws java.io.IOException
+    {
+        ucar.nc2.iosp.hdf4.H4header r0;
+        ucar.nc2.NetcdfFile $r1, $r2;
+        ucar.nc2.Group $r3;
+        java.util.Formatter r4;
+
+        r0 := @this: ucar.nc2.iosp.hdf4.H4header;
+
+        r4 := @parameter0: java.util.Formatter;
+
+        $r2 = r0.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.NetcdfFile ncfile>;
+
+        $r1 = r0.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.NetcdfFile ncfile>;
+
+        $r3 = virtualinvoke $r1.<ucar.nc2.NetcdfFile: ucar.nc2.Group getRootGroup()>();
+
+        staticinvoke <ucar.nc2.iosp.hdf4.HdfEos: void getEosInfo(ucar.nc2.NetcdfFile,ucar.nc2.Group,java.util.Formatter)>($r2, $r3, r4);
+
+        return;
+    }
+
+    private static int tagid(short, short)
+    {
+        short s0, $s1, s2;
+        int i3, i4, i5, $i6, $i7, $i9;
+
+        s2 := @parameter0: short;
+
+        s0 := @parameter1: short;
+
+        $s1 = s0 & 16383;
+
+        $i6 = (int) $s1;
+
+        i4 = $i6 << 16;
+
+        $i7 = (int) s2;
+
+        $i9 = (int) 65535;
+
+        i3 = $i7 & $i9;
+
+        i5 = i4 + i3;
+
+        return i5;
+    }
+
+    private void construct(ucar.nc2.NetcdfFile, java.util.List) throws java.io.IOException
+    {
+        ucar.nc2.iosp.hdf4.H4header$TagText $r20, $r27;
+        java.util.Map $r34;
+        ucar.nc2.Group $r9, $r42, $r46, $r47, $r49, r75;
+        ucar.nc2.Attribute $r83, $r84, $r85, $r87, $r89;
+        java.lang.StringBuilder $r17, $r18, $r24, $r25, $r86, $r88;
+        ucar.nc2.iosp.hdf4.H4header$Vinfo r37;
+        ucar.nc2.iosp.hdf4.H4header r33;
+        java.util.ArrayList $r81, $r82;
+        short $s0, $s1, $s2, $s3, $s4, $s5, $s6, $s7, $s8, $s9, $s10, $s11, $s12;
+        ucar.nc2.iosp.hdf4.H4header$TagAnnotate r78;
+        java.lang.String $r19, $r21, $r26, $r28, $r31, $r39, $r43, $r51, $r52, $r57, $r60, $r61, $r62, $r63, $r79;
+        ucar.nc2.iosp.hdf4.H4header$TagVersion $r30;
+        ucar.nc2.iosp.hdf4.H4header$TagVH r70, r72;
+        java.lang.Short $r35;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9, $z10, $z11, $z12, $z13, $z14, $z15, $z16, $z17, $z18;
+        ucar.nc2.iosp.hdf4.H4header$TagVGroup r68, r74;
+        java.util.List r2;
+        ucar.nc2.iosp.hdf4.H4header$Tag r67, r69, r71, r73, r77, r80;
+        ucar.nc2.NetcdfFile r8;
+        int $i13, $i14, $i15, $i16, $i17, $i18, $i19, $i20, $i21, $i22, $i23, $i24;
+        ucar.nc2.Variable $r40, $r44, $r53, $r56, $r58, $r64, $r66, r76;
+        java.util.Iterator $r3, $r4, $r5, $r6, $r7, $r10, $r11, $r13;
+        ucar.nc2.iosp.hdf4.H4header$TagGroup $r55, $r65;
+        java.lang.Object $r14, $r32, $r36, $r41, $r45, $r48, $r50, $r54, $r59;
+
+        r33 := @this: ucar.nc2.iosp.hdf4.H4header;
+
+        r8 := @parameter0: ucar.nc2.NetcdfFile;
+
+        r2 := @parameter1: java.util.List;
+
+        $r81 = new java.util.ArrayList;
+
+        specialinvoke $r81.<java.util.ArrayList: void <init>()>();
+
+        $r82 = new java.util.ArrayList;
+
+        specialinvoke $r82.<java.util.ArrayList: void <init>()>();
+
+        $r3 = interfaceinvoke r2.<java.util.List: java.util.Iterator iterator()>();
+
+     label01:
+        $z0 = interfaceinvoke $r3.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label09;
+
+        $r59 = interfaceinvoke $r3.<java.util.Iterator: java.lang.Object next()>();
+
+        r67 = (ucar.nc2.iosp.hdf4.H4header$Tag) $r59;
+
+        $s11 = r67.<ucar.nc2.iosp.hdf4.H4header$Tag: short code>;
+
+        $i13 = (int) $s11;
+
+        if $i13 != 306 goto label03;
+
+        $r65 = (ucar.nc2.iosp.hdf4.H4header$TagGroup) r67;
+
+        $r66 = specialinvoke r33.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.Variable makeImage(ucar.nc2.iosp.hdf4.H4header$TagGroup)>($r65);
+
+        if $r66 == null goto label02;
+
+        interfaceinvoke $r81.<java.util.List: boolean add(java.lang.Object)>($r66);
+
+     label02:
+        goto label08;
+
+     label03:
+        $s12 = r67.<ucar.nc2.iosp.hdf4.H4header$Tag: short code>;
+
+        $i14 = (int) $s12;
+
+        if $i14 != 1965 goto label08;
+
+        r68 = (ucar.nc2.iosp.hdf4.H4header$TagVGroup) r67;
+
+        $r60 = r68.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: java.lang.String className>;
+
+        $z12 = virtualinvoke $r60.<java.lang.String: boolean startsWith(java.lang.String)>("Dim");
+
+        if $z12 != 0 goto label04;
+
+        $r61 = r68.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: java.lang.String className>;
+
+        $z13 = virtualinvoke $r61.<java.lang.String: boolean startsWith(java.lang.String)>("UDim");
+
+        if $z13 == 0 goto label05;
+
+     label04:
+        specialinvoke r33.<ucar.nc2.iosp.hdf4.H4header: void makeDimension(ucar.nc2.iosp.hdf4.H4header$TagVGroup)>(r68);
+
+        goto label08;
+
+     label05:
+        $r62 = r68.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: java.lang.String className>;
+
+        $z14 = virtualinvoke $r62.<java.lang.String: boolean startsWith(java.lang.String)>("Var");
+
+        if $z14 == 0 goto label07;
+
+        $r64 = specialinvoke r33.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.Variable makeVariable(ucar.nc2.iosp.hdf4.H4header$TagVGroup)>(r68);
+
+        if $r64 == null goto label06;
+
+        interfaceinvoke $r81.<java.util.List: boolean add(java.lang.Object)>($r64);
+
+     label06:
+        goto label08;
+
+     label07:
+        $r63 = r68.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: java.lang.String className>;
+
+        $z15 = virtualinvoke $r63.<java.lang.String: boolean startsWith(java.lang.String)>("CDF0.0");
+
+        if $z15 == 0 goto label08;
+
+        specialinvoke r33.<ucar.nc2.iosp.hdf4.H4header: void addGlobalAttributes(ucar.nc2.iosp.hdf4.H4header$TagVGroup)>(r68);
+
+     label08:
+        goto label01;
+
+     label09:
+        $r4 = interfaceinvoke r2.<java.util.List: java.util.Iterator iterator()>();
+
+     label10:
+        $z16 = interfaceinvoke $r4.<java.util.Iterator: boolean hasNext()>();
+
+        if $z16 == 0 goto label15;
+
+        $r54 = interfaceinvoke $r4.<java.util.Iterator: java.lang.Object next()>();
+
+        r69 = (ucar.nc2.iosp.hdf4.H4header$Tag) $r54;
+
+        $z10 = r69.<ucar.nc2.iosp.hdf4.H4header$Tag: boolean used>;
+
+        if $z10 == 0 goto label11;
+
+        goto label10;
+
+     label11:
+        $s9 = r69.<ucar.nc2.iosp.hdf4.H4header$Tag: short code>;
+
+        $i15 = (int) $s9;
+
+        if $i15 != 1962 goto label13;
+
+        r70 = (ucar.nc2.iosp.hdf4.H4header$TagVH) r69;
+
+        $r57 = r70.<ucar.nc2.iosp.hdf4.H4header$TagVH: java.lang.String className>;
+
+        $z11 = virtualinvoke $r57.<java.lang.String: boolean startsWith(java.lang.String)>("Data");
+
+        if $z11 == 0 goto label12;
+
+        $r58 = specialinvoke r33.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.Variable makeVariable(ucar.nc2.iosp.hdf4.H4header$TagVH)>(r70);
+
+        if $r58 == null goto label12;
+
+        interfaceinvoke $r81.<java.util.List: boolean add(java.lang.Object)>($r58);
+
+     label12:
+        goto label14;
+
+     label13:
+        $s10 = r69.<ucar.nc2.iosp.hdf4.H4header$Tag: short code>;
+
+        $i16 = (int) $s10;
+
+        if $i16 != 720 goto label14;
+
+        $r55 = (ucar.nc2.iosp.hdf4.H4header$TagGroup) r69;
+
+        $r56 = specialinvoke r33.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.Variable makeVariable(ucar.nc2.iosp.hdf4.H4header$TagGroup)>($r55);
+
+        if $r56 == null goto label14;
+
+        interfaceinvoke $r81.<java.util.List: boolean add(java.lang.Object)>($r56);
+
+     label14:
+        goto label10;
+
+     label15:
+        $r5 = interfaceinvoke r2.<java.util.List: java.util.Iterator iterator()>();
+
+     label16:
+        $z17 = interfaceinvoke $r5.<java.util.Iterator: boolean hasNext()>();
+
+        if $z17 == 0 goto label19;
+
+        $r50 = interfaceinvoke $r5.<java.util.Iterator: java.lang.Object next()>();
+
+        r71 = (ucar.nc2.iosp.hdf4.H4header$Tag) $r50;
+
+        $z7 = r71.<ucar.nc2.iosp.hdf4.H4header$Tag: boolean used>;
+
+        if $z7 == 0 goto label17;
+
+        goto label16;
+
+     label17:
+        $s8 = r71.<ucar.nc2.iosp.hdf4.H4header$Tag: short code>;
+
+        $i17 = (int) $s8;
+
+        if $i17 != 1962 goto label18;
+
+        r72 = (ucar.nc2.iosp.hdf4.H4header$TagVH) r71;
+
+        $r51 = r72.<ucar.nc2.iosp.hdf4.H4header$TagVH: java.lang.String className>;
+
+        $z8 = virtualinvoke $r51.<java.lang.String: boolean startsWith(java.lang.String)>("Att");
+
+        if $z8 != 0 goto label18;
+
+        $r52 = r72.<ucar.nc2.iosp.hdf4.H4header$TagVH: java.lang.String className>;
+
+        $z9 = virtualinvoke $r52.<java.lang.String: boolean startsWith(java.lang.String)>("_HDF_CHK_TBL");
+
+        if $z9 != 0 goto label18;
+
+        $r53 = specialinvoke r33.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.Variable makeVariable(ucar.nc2.iosp.hdf4.H4header$TagVH)>(r72);
+
+        if $r53 == null goto label18;
+
+        interfaceinvoke $r81.<java.util.List: boolean add(java.lang.Object)>($r53);
+
+     label18:
+        goto label16;
+
+     label19:
+        $r6 = interfaceinvoke r2.<java.util.List: java.util.Iterator iterator()>();
+
+     label20:
+        $z18 = interfaceinvoke $r6.<java.util.Iterator: boolean hasNext()>();
+
+        if $z18 == 0 goto label23;
+
+        $r48 = interfaceinvoke $r6.<java.util.Iterator: java.lang.Object next()>();
+
+        r73 = (ucar.nc2.iosp.hdf4.H4header$Tag) $r48;
+
+        $z6 = r73.<ucar.nc2.iosp.hdf4.H4header$Tag: boolean used>;
+
+        if $z6 == 0 goto label21;
+
+        goto label20;
+
+     label21:
+        $s7 = r73.<ucar.nc2.iosp.hdf4.H4header$Tag: short code>;
+
+        $i18 = (int) $s7;
+
+        if $i18 != 1965 goto label22;
+
+        r74 = (ucar.nc2.iosp.hdf4.H4header$TagVGroup) r73;
+
+        $r49 = specialinvoke r33.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.Group makeGroup(ucar.nc2.iosp.hdf4.H4header$TagVGroup,ucar.nc2.Group)>(r74, null);
+
+        if $r49 == null goto label22;
+
+        interfaceinvoke $r82.<java.util.List: boolean add(java.lang.Object)>($r49);
+
+     label22:
+        goto label20;
+
+     label23:
+        $r7 = interfaceinvoke $r82.<java.util.List: java.util.Iterator iterator()>();
+
+     label24:
+        $z1 = interfaceinvoke $r7.<java.util.Iterator: boolean hasNext()>();
+
+        if $z1 == 0 goto label26;
+
+        $r45 = interfaceinvoke $r7.<java.util.Iterator: java.lang.Object next()>();
+
+        r75 = (ucar.nc2.Group) $r45;
+
+        $r46 = virtualinvoke r75.<ucar.nc2.Group: ucar.nc2.Group getParentGroup()>();
+
+        $r47 = virtualinvoke r8.<ucar.nc2.NetcdfFile: ucar.nc2.Group getRootGroup()>();
+
+        if $r46 != $r47 goto label25;
+
+        virtualinvoke r8.<ucar.nc2.NetcdfFile: ucar.nc2.Group addGroup(ucar.nc2.Group,ucar.nc2.Group)>(null, r75);
+
+     label25:
+        goto label24;
+
+     label26:
+        $r9 = virtualinvoke r8.<ucar.nc2.NetcdfFile: ucar.nc2.Group getRootGroup()>();
+
+        $r10 = interfaceinvoke $r81.<java.util.List: java.util.Iterator iterator()>();
+
+     label27:
+        $z2 = interfaceinvoke $r10.<java.util.Iterator: boolean hasNext()>();
+
+        if $z2 == 0 goto label29;
+
+        $r41 = interfaceinvoke $r10.<java.util.Iterator: java.lang.Object next()>();
+
+        r76 = (ucar.nc2.Variable) $r41;
+
+        $r42 = virtualinvoke r76.<ucar.nc2.Variable: ucar.nc2.Group getParentGroup()>();
+
+        if $r42 != $r9 goto label28;
+
+        $r43 = virtualinvoke r76.<ucar.nc2.Variable: java.lang.String getShortName()>();
+
+        $r44 = virtualinvoke $r9.<ucar.nc2.Group: ucar.nc2.Variable findVariable(java.lang.String)>($r43);
+
+        if $r44 != null goto label28;
+
+        virtualinvoke $r9.<ucar.nc2.Group: void addVariable(ucar.nc2.Variable)>(r76);
+
+     label28:
+        goto label27;
+
+     label29:
+        $r11 = interfaceinvoke r2.<java.util.List: java.util.Iterator iterator()>();
+
+     label30:
+        $z3 = interfaceinvoke $r11.<java.util.Iterator: boolean hasNext()>();
+
+        if $z3 == 0 goto label34;
+
+        $r32 = interfaceinvoke $r11.<java.util.Iterator: java.lang.Object next()>();
+
+        r77 = (ucar.nc2.iosp.hdf4.H4header$Tag) $r32;
+
+        $z5 = r77 instanceof ucar.nc2.iosp.hdf4.H4header$TagAnnotate;
+
+        if $z5 == 0 goto label33;
+
+        r78 = (ucar.nc2.iosp.hdf4.H4header$TagAnnotate) r77;
+
+        $r34 = r33.<ucar.nc2.iosp.hdf4.H4header: java.util.Map refnoMap>;
+
+        $s5 = r78.<ucar.nc2.iosp.hdf4.H4header$TagAnnotate: short obj_refno>;
+
+        $r35 = staticinvoke <java.lang.Short: java.lang.Short valueOf(short)>($s5);
+
+        $r36 = interfaceinvoke $r34.<java.util.Map: java.lang.Object get(java.lang.Object)>($r35);
+
+        r37 = (ucar.nc2.iosp.hdf4.H4header$Vinfo) $r36;
+
+        if r37 == null goto label33;
+
+        $r40 = r37.<ucar.nc2.iosp.hdf4.H4header$Vinfo: ucar.nc2.Variable v>;
+
+        $r83 = new ucar.nc2.Attribute;
+
+        $s6 = r77.<ucar.nc2.iosp.hdf4.H4header$Tag: short code>;
+
+        $i19 = (int) $s6;
+
+        if $i19 != 105 goto label31;
+
+        $r79 = "description";
+
+        goto label32;
+
+     label31:
+        $r79 = "long_name";
+
+     label32:
+        $r39 = r78.<ucar.nc2.iosp.hdf4.H4header$TagAnnotate: java.lang.String text>;
+
+        specialinvoke $r83.<ucar.nc2.Attribute: void <init>(java.lang.String,java.lang.String)>($r79, $r39);
+
+        virtualinvoke $r40.<ucar.nc2.Variable: ucar.nc2.Attribute addAttribute(ucar.nc2.Attribute)>($r83);
+
+        r77.<ucar.nc2.iosp.hdf4.H4header$Tag: boolean used> = 1;
+
+     label33:
+        goto label30;
+
+     label34:
+        $r84 = new ucar.nc2.Attribute;
+
+        specialinvoke $r84.<ucar.nc2.Attribute: void <init>(java.lang.String,java.lang.String)>("_History", "Direct read of HDF4 file through CDM library");
+
+        virtualinvoke r8.<ucar.nc2.NetcdfFile: ucar.nc2.Attribute addAttribute(ucar.nc2.Group,ucar.nc2.Attribute)>(null, $r84);
+
+        $r13 = interfaceinvoke r2.<java.util.List: java.util.Iterator iterator()>();
+
+     label35:
+        $z4 = interfaceinvoke $r13.<java.util.Iterator: boolean hasNext()>();
+
+        if $z4 == 0 goto label39;
+
+        $r14 = interfaceinvoke $r13.<java.util.Iterator: java.lang.Object next()>();
+
+        r80 = (ucar.nc2.iosp.hdf4.H4header$Tag) $r14;
+
+        $s0 = r80.<ucar.nc2.iosp.hdf4.H4header$Tag: short code>;
+
+        $i20 = (int) $s0;
+
+        if $i20 != 30 goto label36;
+
+        $r85 = new ucar.nc2.Attribute;
+
+        $r30 = (ucar.nc2.iosp.hdf4.H4header$TagVersion) r80;
+
+        $r31 = virtualinvoke $r30.<ucar.nc2.iosp.hdf4.H4header$TagVersion: java.lang.String value()>();
+
+        specialinvoke $r85.<ucar.nc2.Attribute: void <init>(java.lang.String,java.lang.String)>("HDF4_Version", $r31);
+
+        virtualinvoke r8.<ucar.nc2.NetcdfFile: ucar.nc2.Attribute addAttribute(ucar.nc2.Group,ucar.nc2.Attribute)>(null, $r85);
+
+        r80.<ucar.nc2.iosp.hdf4.H4header$Tag: boolean used> = 1;
+
+        goto label38;
+
+     label36:
+        $s1 = r80.<ucar.nc2.iosp.hdf4.H4header$Tag: short code>;
+
+        $i21 = (int) $s1;
+
+        if $i21 != 100 goto label37;
+
+        $r87 = new ucar.nc2.Attribute;
+
+        $r86 = new java.lang.StringBuilder;
+
+        specialinvoke $r86.<java.lang.StringBuilder: void <init>()>();
+
+        $r24 = virtualinvoke $r86.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Title-");
+
+        $s4 = r80.<ucar.nc2.iosp.hdf4.H4header$Tag: short refno>;
+
+        $i22 = (int) $s4;
+
+        $r25 = virtualinvoke $r24.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i22);
+
+        $r26 = virtualinvoke $r25.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r27 = (ucar.nc2.iosp.hdf4.H4header$TagText) r80;
+
+        $r28 = $r27.<ucar.nc2.iosp.hdf4.H4header$TagText: java.lang.String text>;
+
+        specialinvoke $r87.<ucar.nc2.Attribute: void <init>(java.lang.String,java.lang.String)>($r26, $r28);
+
+        virtualinvoke r8.<ucar.nc2.NetcdfFile: ucar.nc2.Attribute addAttribute(ucar.nc2.Group,ucar.nc2.Attribute)>(null, $r87);
+
+        r80.<ucar.nc2.iosp.hdf4.H4header$Tag: boolean used> = 1;
+
+        goto label38;
+
+     label37:
+        $s2 = r80.<ucar.nc2.iosp.hdf4.H4header$Tag: short code>;
+
+        $i23 = (int) $s2;
+
+        if $i23 != 101 goto label38;
+
+        $r89 = new ucar.nc2.Attribute;
+
+        $r88 = new java.lang.StringBuilder;
+
+        specialinvoke $r88.<java.lang.StringBuilder: void <init>()>();
+
+        $r17 = virtualinvoke $r88.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Description-");
+
+        $s3 = r80.<ucar.nc2.iosp.hdf4.H4header$Tag: short refno>;
+
+        $i24 = (int) $s3;
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i24);
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        $r20 = (ucar.nc2.iosp.hdf4.H4header$TagText) r80;
+
+        $r21 = $r20.<ucar.nc2.iosp.hdf4.H4header$TagText: java.lang.String text>;
+
+        specialinvoke $r89.<ucar.nc2.Attribute: void <init>(java.lang.String,java.lang.String)>($r19, $r21);
+
+        virtualinvoke r8.<ucar.nc2.NetcdfFile: ucar.nc2.Attribute addAttribute(ucar.nc2.Group,ucar.nc2.Attribute)>(null, $r89);
+
+        r80.<ucar.nc2.iosp.hdf4.H4header$Tag: boolean used> = 1;
+
+     label38:
+        goto label35;
+
+     label39:
+        return;
+    }
+
+    private void adjustDimensions()
+    {
+        ucar.nc2.iosp.hdf4.H4header r1;
+        java.util.HashMap $r0;
+        ucar.nc2.Variable r18;
+        boolean $z0, $z1, $z2, $z3;
+        java.io.PrintStream $r16;
+        java.util.Iterator $r8, $r9, $r14;
+        java.util.Set $r4;
+        ucar.nc2.Group $r3, $r6, $r15, $r19, r22;
+        java.util.List $r7, r13;
+        java.lang.Object $r10, $r12, $r17, $r20;
+        ucar.nc2.Dimension r11, r21;
+        ucar.nc2.NetcdfFile $r2, $r5;
+
+        r1 := @this: ucar.nc2.iosp.hdf4.H4header;
+
+        $r0 = new java.util.HashMap;
+
+        specialinvoke $r0.<java.util.HashMap: void <init>()>();
+
+        $r2 = r1.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.NetcdfFile ncfile>;
+
+        $r3 = virtualinvoke $r2.<ucar.nc2.NetcdfFile: ucar.nc2.Group getRootGroup()>();
+
+        specialinvoke r1.<ucar.nc2.iosp.hdf4.H4header: void findUsedDimensions(ucar.nc2.Group,java.util.Map)>($r3, $r0);
+
+        $r4 = interfaceinvoke $r0.<java.util.Map: java.util.Set keySet()>();
+
+        $r5 = r1.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.NetcdfFile ncfile>;
+
+        $r6 = virtualinvoke $r5.<ucar.nc2.NetcdfFile: ucar.nc2.Group getRootGroup()>();
+
+        $r7 = virtualinvoke $r6.<ucar.nc2.Group: java.util.List getDimensions()>();
+
+        $r8 = interfaceinvoke $r7.<java.util.List: java.util.Iterator iterator()>();
+
+     label01:
+        $z0 = interfaceinvoke $r8.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label03;
+
+        $r20 = interfaceinvoke $r8.<java.util.Iterator: java.lang.Object next()>();
+
+        r21 = (ucar.nc2.Dimension) $r20;
+
+        $z3 = interfaceinvoke $r4.<java.util.Set: boolean contains(java.lang.Object)>(r21);
+
+        if $z3 != 0 goto label02;
+
+        interfaceinvoke $r8.<java.util.Iterator: void remove()>();
+
+     label02:
+        goto label01;
+
+     label03:
+        $r9 = interfaceinvoke $r4.<java.util.Set: java.util.Iterator iterator()>();
+
+     label04:
+        $z1 = interfaceinvoke $r9.<java.util.Iterator: boolean hasNext()>();
+
+        if $z1 == 0 goto label11;
+
+        $r10 = interfaceinvoke $r9.<java.util.Iterator: java.lang.Object next()>();
+
+        r11 = (ucar.nc2.Dimension) $r10;
+
+        r22 = null;
+
+        $r12 = interfaceinvoke $r0.<java.util.Map: java.lang.Object get(java.lang.Object)>(r11);
+
+        r13 = (java.util.List) $r12;
+
+        $r14 = interfaceinvoke r13.<java.util.List: java.util.Iterator iterator()>();
+
+     label05:
+        $z2 = interfaceinvoke $r14.<java.util.Iterator: boolean hasNext()>();
+
+        if $z2 == 0 goto label08;
+
+        $r17 = interfaceinvoke $r14.<java.util.Iterator: java.lang.Object next()>();
+
+        r18 = (ucar.nc2.Variable) $r17;
+
+        if r22 != null goto label06;
+
+        r22 = virtualinvoke r18.<ucar.nc2.Variable: ucar.nc2.Group getParentGroup()>();
+
+        goto label07;
+
+     label06:
+        $r19 = virtualinvoke r18.<ucar.nc2.Variable: ucar.nc2.Group getParentGroup()>();
+
+        r22 = virtualinvoke r22.<ucar.nc2.Group: ucar.nc2.Group commonParent(ucar.nc2.Group)>($r19);
+
+     label07:
+        goto label05;
+
+     label08:
+        $r15 = virtualinvoke r11.<ucar.nc2.Dimension: ucar.nc2.Group getGroup()>();
+
+        if $r15 != null goto label09;
+
+        $r16 = <java.lang.System: java.io.PrintStream out>;
+
+        virtualinvoke $r16.<java.io.PrintStream: void println(java.lang.String)>("HEY! current == null");
+
+     label09:
+        if $r15 == r22 goto label10;
+
+        virtualinvoke r22.<ucar.nc2.Group: void addDimension(ucar.nc2.Dimension)>(r11);
+
+        virtualinvoke $r15.<ucar.nc2.Group: boolean remove(ucar.nc2.Dimension)>(r11);
+
+     label10:
+        goto label04;
+
+     label11:
+        return;
+    }
+
+    private void findUsedDimensions(ucar.nc2.Group, java.util.Map)
+    {
+        ucar.nc2.iosp.hdf4.H4header r6;
+        java.util.ArrayList $r14;
+        java.util.Map r7;
+        ucar.nc2.Variable r15;
+        boolean $z0, $z1, $z2, $z3;
+        java.util.Iterator $r2, $r4, $r10;
+        ucar.nc2.Group r0, r17;
+        java.util.List $r1, $r3, $r9, r16;
+        java.lang.Object $r5, $r8, $r11, $r13;
+        ucar.nc2.Dimension r12;
+
+        r6 := @this: ucar.nc2.iosp.hdf4.H4header;
+
+        r0 := @parameter0: ucar.nc2.Group;
+
+        r7 := @parameter1: java.util.Map;
+
+        $r1 = virtualinvoke r0.<ucar.nc2.Group: java.util.List getVariables()>();
+
+        $r2 = interfaceinvoke $r1.<java.util.List: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r2.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label6;
+
+        $r8 = interfaceinvoke $r2.<java.util.Iterator: java.lang.Object next()>();
+
+        r15 = (ucar.nc2.Variable) $r8;
+
+        $r9 = virtualinvoke r15.<ucar.nc2.Variable: java.util.List getDimensions()>();
+
+        $r10 = interfaceinvoke $r9.<java.util.List: java.util.Iterator iterator()>();
+
+     label2:
+        $z3 = interfaceinvoke $r10.<java.util.Iterator: boolean hasNext()>();
+
+        if $z3 == 0 goto label5;
+
+        $r11 = interfaceinvoke $r10.<java.util.Iterator: java.lang.Object next()>();
+
+        r12 = (ucar.nc2.Dimension) $r11;
+
+        $z2 = virtualinvoke r12.<ucar.nc2.Dimension: boolean isShared()>();
+
+        if $z2 != 0 goto label3;
+
+        goto label2;
+
+     label3:
+        $r13 = interfaceinvoke r7.<java.util.Map: java.lang.Object get(java.lang.Object)>(r12);
+
+        r16 = (java.util.List) $r13;
+
+        if r16 != null goto label4;
+
+        $r14 = new java.util.ArrayList;
+
+        specialinvoke $r14.<java.util.ArrayList: void <init>()>();
+
+        r16 = $r14;
+
+        interfaceinvoke r7.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>(r12, $r14);
+
+     label4:
+        interfaceinvoke r16.<java.util.List: boolean add(java.lang.Object)>(r15);
+
+        goto label2;
+
+     label5:
+        goto label1;
+
+     label6:
+        $r3 = virtualinvoke r0.<ucar.nc2.Group: java.util.List getGroups()>();
+
+        $r4 = interfaceinvoke $r3.<java.util.List: java.util.Iterator iterator()>();
+
+     label7:
+        $z1 = interfaceinvoke $r4.<java.util.Iterator: boolean hasNext()>();
+
+        if $z1 == 0 goto label8;
+
+        $r5 = interfaceinvoke $r4.<java.util.Iterator: java.lang.Object next()>();
+
+        r17 = (ucar.nc2.Group) $r5;
+
+        specialinvoke r6.<ucar.nc2.iosp.hdf4.H4header: void findUsedDimensions(ucar.nc2.Group,java.util.Map)>(r17, r7);
+
+        goto label7;
+
+     label8:
+        return;
+    }
+
+    private void makeDimension(ucar.nc2.iosp.hdf4.H4header$TagVGroup) throws java.io.IOException
+    {
+        java.lang.Integer $r32, $r51;
+        java.util.Map $r31, $r50;
+        java.lang.StringBuilder $r10, $r11, $r12, $r13, $r17, $r18, $r19, $r20, $r21, $r22, $r26, $r27, $r38, $r39, $r40, $r41, $r42, $r43, $r61, $r62, $r63, $r65;
+        ucar.nc2.iosp.hdf4.H4header r6;
+        long $l8, $l12;
+        java.util.ArrayList $r58;
+        short $s2, $s3, $s4, $s5, $s10, $s13, $s14, $s16, $s17;
+        java.lang.String $r4, $r5, $r14, $r23, $r28, $r44;
+        ucar.nc2.Dimension $r64;
+        java.lang.IllegalStateException $r59, $r60;
+        ucar.unidata.io.RandomAccessFile $r34, $r35, $r45, $r46;
+        ucar.nc2.iosp.hdf4.H4header$TagVH $r53, r57;
+        boolean $z0, $z1, $z2, $z3;
+        ucar.nc2.iosp.hdf4.H4header$TagVGroup r1;
+        ucar.nc2.iosp.hdf4.H4header$Tag r55, r56;
+        ucar.nc2.NetcdfFile $r7;
+        short[] $r48, $r49;
+        ucar.nc2.iosp.hdf4.TagEnum $r30;
+        int $i0, $i1, $i6, $i7, $i9, $i11, $i15, i18, i19, $i20, $i21, $i22, $i23, $i24;
+        java.io.PrintStream $r9, $r37;
+        org.slf4j.Logger $r16, $r25;
+        java.util.Iterator $r2;
+        java.lang.Object $r29, $r33, $r52;
+
+        r6 := @this: ucar.nc2.iosp.hdf4.H4header;
+
+        r1 := @parameter0: ucar.nc2.iosp.hdf4.H4header$TagVGroup;
+
+        $r58 = new java.util.ArrayList;
+
+        specialinvoke $r58.<java.util.ArrayList: void <init>()>();
+
+        r55 = null;
+
+        i18 = 0;
+
+     label01:
+        $i0 = r1.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: int nelems>;
+
+        if i18 >= $i0 goto label05;
+
+        $r50 = r6.<ucar.nc2.iosp.hdf4.H4header: java.util.Map tagMap>;
+
+        $r48 = r1.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: short[] elem_ref>;
+
+        $s14 = $r48[i18];
+
+        $r49 = r1.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: short[] elem_tag>;
+
+        $s13 = $r49[i18];
+
+        $i15 = staticinvoke <ucar.nc2.iosp.hdf4.H4header: int tagid(short,short)>($s14, $s13);
+
+        $r51 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i15);
+
+        $r52 = interfaceinvoke $r50.<java.util.Map: java.lang.Object get(java.lang.Object)>($r51);
+
+        r56 = (ucar.nc2.iosp.hdf4.H4header$Tag) $r52;
+
+        if r56 != null goto label02;
+
+        $r59 = new java.lang.IllegalStateException;
+
+        specialinvoke $r59.<java.lang.IllegalStateException: void <init>()>();
+
+        throw $r59;
+
+     label02:
+        $s16 = r56.<ucar.nc2.iosp.hdf4.H4header$Tag: short code>;
+
+        $i20 = (int) $s16;
+
+        if $i20 != 1962 goto label03;
+
+        $r53 = (ucar.nc2.iosp.hdf4.H4header$TagVH) r56;
+
+        interfaceinvoke $r58.<java.util.List: boolean add(java.lang.Object)>($r53);
+
+     label03:
+        $s17 = r56.<ucar.nc2.iosp.hdf4.H4header$Tag: short code>;
+
+        $i21 = (int) $s17;
+
+        if $i21 != 1963 goto label04;
+
+        r55 = r56;
+
+     label04:
+        i18 = i18 + 1;
+
+        goto label01;
+
+     label05:
+        $i1 = interfaceinvoke $r58.<java.util.List: int size()>();
+
+        if $i1 != 0 goto label06;
+
+        $r60 = new java.lang.IllegalStateException;
+
+        specialinvoke $r60.<java.lang.IllegalStateException: void <init>()>();
+
+        throw $r60;
+
+     label06:
+        i19 = 0;
+
+        if r55 == null goto label07;
+
+        $r45 = r6.<ucar.nc2.iosp.hdf4.H4header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $i11 = r55.<ucar.nc2.iosp.hdf4.H4header$Tag: int offset>;
+
+        $l12 = (long) $i11;
+
+        virtualinvoke $r45.<ucar.unidata.io.RandomAccessFile: void seek(long)>($l12);
+
+        $r46 = r6.<ucar.nc2.iosp.hdf4.H4header: ucar.unidata.io.RandomAccessFile raf>;
+
+        i19 = virtualinvoke $r46.<ucar.unidata.io.RandomAccessFile: int readInt()>();
+
+        r55.<ucar.nc2.iosp.hdf4.H4header$Tag: boolean used> = 1;
+
+        goto label11;
+
+     label07:
+        $r2 = interfaceinvoke $r58.<java.util.List: java.util.Iterator iterator()>();
+
+     label08:
+        $z0 = interfaceinvoke $r2.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label11;
+
+        $r29 = interfaceinvoke $r2.<java.util.Iterator: java.lang.Object next()>();
+
+        r57 = (ucar.nc2.iosp.hdf4.H4header$TagVH) $r29;
+
+        r57.<ucar.nc2.iosp.hdf4.H4header$TagVH: boolean used> = 1;
+
+        $r31 = r6.<ucar.nc2.iosp.hdf4.H4header: java.util.Map tagMap>;
+
+        $s4 = r57.<ucar.nc2.iosp.hdf4.H4header$TagVH: short refno>;
+
+        $r30 = <ucar.nc2.iosp.hdf4.TagEnum: ucar.nc2.iosp.hdf4.TagEnum VS>;
+
+        $s5 = virtualinvoke $r30.<ucar.nc2.iosp.hdf4.TagEnum: short getCode()>();
+
+        $i6 = staticinvoke <ucar.nc2.iosp.hdf4.H4header: int tagid(short,short)>($s4, $s5);
+
+        $r32 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i6);
+
+        $r33 = interfaceinvoke $r31.<java.util.Map: java.lang.Object get(java.lang.Object)>($r32);
+
+        r55 = (ucar.nc2.iosp.hdf4.H4header$Tag) $r33;
+
+        if null == r55 goto label10;
+
+        r55.<ucar.nc2.iosp.hdf4.H4header$Tag: boolean used> = 1;
+
+        $r34 = r6.<ucar.nc2.iosp.hdf4.H4header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $i7 = r55.<ucar.nc2.iosp.hdf4.H4header$Tag: int offset>;
+
+        $l8 = (long) $i7;
+
+        virtualinvoke $r34.<ucar.unidata.io.RandomAccessFile: void seek(long)>($l8);
+
+        $r35 = r6.<ucar.nc2.iosp.hdf4.H4header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $i9 = virtualinvoke $r35.<ucar.unidata.io.RandomAccessFile: int readInt()>();
+
+        $z2 = <ucar.nc2.iosp.hdf4.H4header: boolean debugConstruct>;
+
+        if $z2 == 0 goto label09;
+
+        $r37 = <java.lang.System: java.io.PrintStream out>;
+
+        $r61 = new java.lang.StringBuilder;
+
+        specialinvoke $r61.<java.lang.StringBuilder: void <init>()>();
+
+        $r38 = virtualinvoke $r61.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("dimension length=");
+
+        $r39 = virtualinvoke $r38.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i9);
+
+        $r40 = virtualinvoke $r39.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" for TagVGroup= ");
+
+        $r41 = virtualinvoke $r40.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r1);
+
+        $r42 = virtualinvoke $r41.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" using data ");
+
+        $s10 = r55.<ucar.nc2.iosp.hdf4.H4header$Tag: short refno>;
+
+        $i22 = (int) $s10;
+
+        $r43 = virtualinvoke $r42.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i22);
+
+        $r44 = virtualinvoke $r43.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r37.<java.io.PrintStream: void println(java.lang.String)>($r44);
+
+     label09:
+        if $i9 <= 0 goto label10;
+
+        i19 = $i9;
+
+        goto label11;
+
+     label10:
+        goto label08;
+
+     label11:
+        if r55 != null goto label12;
+
+        $r25 = <ucar.nc2.iosp.hdf4.H4header: org.slf4j.Logger log>;
+
+        $r62 = new java.lang.StringBuilder;
+
+        specialinvoke $r62.<java.lang.StringBuilder: void <init>()>();
+
+        $r26 = virtualinvoke $r62.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("**no data for dimension TagVGroup= ");
+
+        $r27 = virtualinvoke $r26.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r1);
+
+        $r28 = virtualinvoke $r27.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r25.<org.slf4j.Logger: void error(java.lang.String)>($r28);
+
+        return;
+
+     label12:
+        if i19 > 0 goto label13;
+
+        $r16 = <ucar.nc2.iosp.hdf4.H4header: org.slf4j.Logger log>;
+
+        $r63 = new java.lang.StringBuilder;
+
+        specialinvoke $r63.<java.lang.StringBuilder: void <init>()>();
+
+        $r17 = virtualinvoke $r63.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("**dimension length=");
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>(i19);
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" for TagVGroup= ");
+
+        $r20 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r1);
+
+        $r21 = virtualinvoke $r20.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" using data ");
+
+        $s3 = r55.<ucar.nc2.iosp.hdf4.H4header$Tag: short refno>;
+
+        $i23 = (int) $s3;
+
+        $r22 = virtualinvoke $r21.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i23);
+
+        $r23 = virtualinvoke $r22.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r16.<org.slf4j.Logger: void warn(java.lang.String)>($r23);
+
+     label13:
+        if i19 != 0 goto label14;
+
+        $z3 = 1;
+
+        goto label15;
+
+     label14:
+        $z3 = 0;
+
+     label15:
+        $r64 = new ucar.nc2.Dimension;
+
+        $r4 = r1.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: java.lang.String name>;
+
+        $r5 = staticinvoke <ucar.nc2.iosp.hdf4.H4header: java.lang.String createValidObjectName(java.lang.String)>($r4);
+
+        specialinvoke $r64.<ucar.nc2.Dimension: void <init>(java.lang.String,int,boolean,boolean,boolean)>($r5, i19, 1, $z3, 0);
+
+        $z1 = <ucar.nc2.iosp.hdf4.H4header: boolean debugConstruct>;
+
+        if $z1 == 0 goto label16;
+
+        $r9 = <java.lang.System: java.io.PrintStream out>;
+
+        $r65 = new java.lang.StringBuilder;
+
+        specialinvoke $r65.<java.lang.StringBuilder: void <init>()>();
+
+        $r10 = virtualinvoke $r65.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("added dimension ");
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r64);
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" from VG ");
+
+        $s2 = r1.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: short refno>;
+
+        $i24 = (int) $s2;
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i24);
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r9.<java.io.PrintStream: void println(java.lang.String)>($r14);
+
+     label16:
+        $r7 = r6.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.NetcdfFile ncfile>;
+
+        virtualinvoke $r7.<ucar.nc2.NetcdfFile: ucar.nc2.Dimension addDimension(ucar.nc2.Group,ucar.nc2.Dimension)>(null, $r64);
+
+        return;
+    }
+
+    private void addGlobalAttributes(ucar.nc2.iosp.hdf4.H4header$TagVGroup) throws java.io.IOException
+    {
+        java.lang.IllegalStateException $r21;
+        java.lang.Integer $r5;
+        ucar.nc2.iosp.hdf4.H4header$TagVH r8;
+        int[] $r16;
+        java.util.Map $r4;
+        boolean $z0, $z1, $z2, $z3, $z4;
+        ucar.ma2.DataType $r14, $r15;
+        ucar.nc2.iosp.hdf4.H4header$TagVGroup r0;
+        ucar.nc2.Attribute $r20;
+        ucar.nc2.iosp.hdf4.H4header$Tag r7;
+        short[] $r2, $r3, $r13;
+        ucar.nc2.NetcdfFile $r12, $r18;
+        ucar.nc2.iosp.hdf4.H4header r1;
+        short $s1, $s2, $s4, $s5, $s6;
+        int $i0, $i3, $i7, i8, $i9;
+        ucar.nc2.Variable $r19;
+        java.lang.String $r9, $r10, $r11;
+        java.lang.Object $r6;
+
+        r1 := @this: ucar.nc2.iosp.hdf4.H4header;
+
+        r0 := @parameter0: ucar.nc2.iosp.hdf4.H4header$TagVGroup;
+
+        i8 = 0;
+
+     label1:
+        $i0 = r0.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: int nelems>;
+
+        if i8 >= $i0 goto label6;
+
+        $r4 = r1.<ucar.nc2.iosp.hdf4.H4header: java.util.Map tagMap>;
+
+        $r2 = r0.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: short[] elem_ref>;
+
+        $s2 = $r2[i8];
+
+        $r3 = r0.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: short[] elem_tag>;
+
+        $s1 = $r3[i8];
+
+        $i3 = staticinvoke <ucar.nc2.iosp.hdf4.H4header: int tagid(short,short)>($s2, $s1);
+
+        $r5 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i3);
+
+        $r6 = interfaceinvoke $r4.<java.util.Map: java.lang.Object get(java.lang.Object)>($r5);
+
+        r7 = (ucar.nc2.iosp.hdf4.H4header$Tag) $r6;
+
+        if r7 != null goto label2;
+
+        $r21 = new java.lang.IllegalStateException;
+
+        specialinvoke $r21.<java.lang.IllegalStateException: void <init>()>();
+
+        throw $r21;
+
+     label2:
+        $s4 = r7.<ucar.nc2.iosp.hdf4.H4header$Tag: short code>;
+
+        $i9 = (int) $s4;
+
+        if $i9 != 1962 goto label5;
+
+        r8 = (ucar.nc2.iosp.hdf4.H4header$TagVH) r7;
+
+        $r9 = r8.<ucar.nc2.iosp.hdf4.H4header$TagVH: java.lang.String className>;
+
+        $z0 = virtualinvoke $r9.<java.lang.String: boolean startsWith(java.lang.String)>("Att");
+
+        if $z0 == 0 goto label5;
+
+        $r10 = r8.<ucar.nc2.iosp.hdf4.H4header$TagVH: java.lang.String name>;
+
+        $r11 = virtualinvoke $r10.<java.lang.String: java.lang.String toLowerCase()>();
+
+        $s5 = r8.<ucar.nc2.iosp.hdf4.H4header$TagVH: short nfields>;
+
+        if $s5 != 1 goto label4;
+
+        $r13 = r8.<ucar.nc2.iosp.hdf4.H4header$TagVH: short[] fld_type>;
+
+        $s6 = $r13[0];
+
+        $r14 = staticinvoke <ucar.nc2.iosp.hdf4.H4type: ucar.ma2.DataType setDataType(short,ucar.nc2.Variable)>($s6, null);
+
+        $r15 = <ucar.ma2.DataType: ucar.ma2.DataType CHAR>;
+
+        if $r14 != $r15 goto label4;
+
+        $r16 = r8.<ucar.nc2.iosp.hdf4.H4header$TagVH: int[] fld_isize>;
+
+        $i7 = $r16[0];
+
+        if $i7 > 4000 goto label3;
+
+        $z1 = virtualinvoke $r11.<java.lang.String: boolean startsWith(java.lang.String)>("archivemetadata");
+
+        if $z1 != 0 goto label3;
+
+        $z2 = virtualinvoke $r11.<java.lang.String: boolean startsWith(java.lang.String)>("coremetadata");
+
+        if $z2 != 0 goto label3;
+
+        $z3 = virtualinvoke $r11.<java.lang.String: boolean startsWith(java.lang.String)>("productmetadata");
+
+        if $z3 != 0 goto label3;
+
+        $z4 = virtualinvoke $r11.<java.lang.String: boolean startsWith(java.lang.String)>("structmetadata");
+
+        if $z4 == 0 goto label4;
+
+     label3:
+        $r18 = r1.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.NetcdfFile ncfile>;
+
+        $r19 = specialinvoke r1.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.Variable makeVariable(ucar.nc2.iosp.hdf4.H4header$TagVH)>(r8);
+
+        virtualinvoke $r18.<ucar.nc2.NetcdfFile: ucar.nc2.Variable addVariable(ucar.nc2.Group,ucar.nc2.Variable)>(null, $r19);
+
+        goto label5;
+
+     label4:
+        $r20 = specialinvoke r1.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.Attribute makeAttribute(ucar.nc2.iosp.hdf4.H4header$TagVH)>(r8);
+
+        if null == $r20 goto label5;
+
+        $r12 = r1.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.NetcdfFile ncfile>;
+
+        virtualinvoke $r12.<ucar.nc2.NetcdfFile: ucar.nc2.Attribute addAttribute(ucar.nc2.Group,ucar.nc2.Attribute)>(null, $r20);
+
+     label5:
+        i8 = i8 + 1;
+
+        goto label1;
+
+     label6:
+        r0.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: boolean used> = 1;
+
+        return;
+    }
+
+    private ucar.nc2.Attribute makeAttribute(ucar.nc2.iosp.hdf4.H4header$TagVH) throws java.io.IOException
+    {
+        java.lang.Float $r69;
+        byte[] r84;
+        java.lang.Integer $r4, $r33;
+        byte $b15, $b16;
+        java.lang.Long $r24;
+        java.util.Map $r3;
+        ucar.nc2.Attribute r80, $r90, $r91, $r92, $r93, $r94, $r95, $r96, $r97, $r98, $r99, $r100, $r101, $r102, $r103;
+        java.lang.StringBuilder $r18, $r19, $r104;
+        ucar.nc2.iosp.hdf4.H4header r0;
+        java.lang.Double $r60;
+        double[] r83;
+        long $l8, $l9, $l10;
+        float[] r82;
+        short $s0, $s1, $s3, s4, $s13, $s14;
+        java.lang.String r7, $r20, $r75, $r77;
+        ucar.ma2.Array $r15, $r29, $r38, $r47, $r56, $r65, $r74;
+        java.lang.IllegalStateException $r88, $r89;
+        ucar.unidata.io.RandomAccessFile $r10, $r21, $r23, $r30, $r32, $r39, $r41, $r48, $r50, $r57, $r59, $r66, $r68;
+        ucar.nc2.iosp.hdf4.H4header$TagVH r1;
+        int[] $r9, $r14, $r28, $r37, $r46, $r55, $r64, $r73, r86;
+        java.lang.Short $r42;
+        java.lang.Byte $r51;
+        boolean $z0;
+        ucar.ma2.DataType $r12, $r26, $r35, $r44, $r53, $r62, $r71;
+        float $f0, $f1;
+        ucar.nc2.iosp.hdf4.H4header$Tag r6;
+        short[] $r8, r85;
+        java.lang.String[] r81;
+        ucar.nc2.iosp.hdf4.TagEnum $r2;
+        long[] r87;
+        int $i2, i5, i6, $i7, $i11, $i12, i17, i18, i19, i20, i21, i22, i23, $i24;
+        double $d0, $d1;
+        java.io.PrintStream $r17;
+        java.lang.Object $r5;
+        java.lang.Class $r13, $r27, $r36, $r45, $r54, $r63, $r72;
+
+        r0 := @this: ucar.nc2.iosp.hdf4.H4header;
+
+        r1 := @parameter0: ucar.nc2.iosp.hdf4.H4header$TagVH;
+
+        $r3 = r0.<ucar.nc2.iosp.hdf4.H4header: java.util.Map tagMap>;
+
+        $s0 = r1.<ucar.nc2.iosp.hdf4.H4header$TagVH: short refno>;
+
+        $r2 = <ucar.nc2.iosp.hdf4.TagEnum: ucar.nc2.iosp.hdf4.TagEnum VS>;
+
+        $s1 = virtualinvoke $r2.<ucar.nc2.iosp.hdf4.TagEnum: short getCode()>();
+
+        $i2 = staticinvoke <ucar.nc2.iosp.hdf4.H4header: int tagid(short,short)>($s0, $s1);
+
+        $r4 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i2);
+
+        $r5 = interfaceinvoke $r3.<java.util.Map: java.lang.Object get(java.lang.Object)>($r4);
+
+        r6 = (ucar.nc2.iosp.hdf4.H4header$Tag) $r5;
+
+        if r6 != null goto label01;
+
+        $r88 = new java.lang.IllegalStateException;
+
+        specialinvoke $r88.<java.lang.IllegalStateException: void <init>()>();
+
+        throw $r88;
+
+     label01:
+        $s3 = r1.<ucar.nc2.iosp.hdf4.H4header$TagVH: short nfields>;
+
+        if $s3 == 1 goto label02;
+
+        $r89 = new java.lang.IllegalStateException;
+
+        specialinvoke $r89.<java.lang.IllegalStateException: void <init>()>();
+
+        throw $r89;
+
+     label02:
+        r7 = r1.<ucar.nc2.iosp.hdf4.H4header$TagVH: java.lang.String name>;
+
+        $r8 = r1.<ucar.nc2.iosp.hdf4.H4header$TagVH: short[] fld_type>;
+
+        s4 = $r8[0];
+
+        $r9 = r1.<ucar.nc2.iosp.hdf4.H4header$TagVH: int[] fld_isize>;
+
+        i5 = $r9[0];
+
+        i6 = r1.<ucar.nc2.iosp.hdf4.H4header$TagVH: int nvert>;
+
+        r1.<ucar.nc2.iosp.hdf4.H4header$TagVH: boolean used> = 1;
+
+        r6.<ucar.nc2.iosp.hdf4.H4header$Tag: boolean used> = 1;
+
+        r80 = null;
+
+        $r10 = r0.<ucar.nc2.iosp.hdf4.H4header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $i7 = r6.<ucar.nc2.iosp.hdf4.H4header$Tag: int offset>;
+
+        $l8 = (long) $i7;
+
+        virtualinvoke $r10.<ucar.unidata.io.RandomAccessFile: void seek(long)>($l8);
+
+        $i24 = (int) s4;
+
+        tableswitch($i24)
+        {
+            case 3: goto label03;
+            case 4: goto label03;
+            case 5: goto label07;
+            case 6: goto label11;
+            case 7: goto label31;
+            case 8: goto label31;
+            case 9: goto label31;
+            case 10: goto label31;
+            case 11: goto label31;
+            case 12: goto label31;
+            case 13: goto label31;
+            case 14: goto label31;
+            case 15: goto label31;
+            case 16: goto label31;
+            case 17: goto label31;
+            case 18: goto label31;
+            case 19: goto label31;
+            case 20: goto label15;
+            case 21: goto label15;
+            case 22: goto label19;
+            case 23: goto label19;
+            case 24: goto label23;
+            case 25: goto label23;
+            case 26: goto label27;
+            case 27: goto label27;
+            default: goto label31;
+        };
+
+     label03:
+        if i6 != 1 goto label04;
+
+        $r90 = new ucar.nc2.Attribute;
+
+        $r77 = specialinvoke r0.<ucar.nc2.iosp.hdf4.H4header: java.lang.String readString(int)>(i5);
+
+        specialinvoke $r90.<ucar.nc2.Attribute: void <init>(java.lang.String,java.lang.String)>(r7, $r77);
+
+        r80 = $r90;
+
+        goto label31;
+
+     label04:
+        r81 = newarray (java.lang.String)[i6];
+
+        i17 = 0;
+
+     label05:
+        if i17 >= i6 goto label06;
+
+        $r75 = specialinvoke r0.<ucar.nc2.iosp.hdf4.H4header: java.lang.String readString(int)>(i5);
+
+        r81[i17] = $r75;
+
+        i17 = i17 + 1;
+
+        goto label05;
+
+     label06:
+        $r91 = new ucar.nc2.Attribute;
+
+        $r71 = <ucar.ma2.DataType: ucar.ma2.DataType STRING>;
+
+        $r72 = virtualinvoke $r71.<ucar.ma2.DataType: java.lang.Class getPrimitiveClassType()>();
+
+        $r73 = newarray (int)[1];
+
+        $r73[0] = i6;
+
+        $r74 = staticinvoke <ucar.ma2.Array: ucar.ma2.Array factory(java.lang.Class,int[],java.lang.Object)>($r72, $r73, r81);
+
+        specialinvoke $r91.<ucar.nc2.Attribute: void <init>(java.lang.String,ucar.ma2.Array)>(r7, $r74);
+
+        r80 = $r91;
+
+        goto label31;
+
+     label07:
+        if i6 != 1 goto label08;
+
+        $r92 = new ucar.nc2.Attribute;
+
+        $r68 = r0.<ucar.nc2.iosp.hdf4.H4header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $f1 = virtualinvoke $r68.<ucar.unidata.io.RandomAccessFile: float readFloat()>();
+
+        $r69 = staticinvoke <java.lang.Float: java.lang.Float valueOf(float)>($f1);
+
+        specialinvoke $r92.<ucar.nc2.Attribute: void <init>(java.lang.String,java.lang.Number)>(r7, $r69);
+
+        r80 = $r92;
+
+        goto label31;
+
+     label08:
+        r82 = newarray (float)[i6];
+
+        i18 = 0;
+
+     label09:
+        if i18 >= i6 goto label10;
+
+        $r66 = r0.<ucar.nc2.iosp.hdf4.H4header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $f0 = virtualinvoke $r66.<ucar.unidata.io.RandomAccessFile: float readFloat()>();
+
+        r82[i18] = $f0;
+
+        i18 = i18 + 1;
+
+        goto label09;
+
+     label10:
+        $r93 = new ucar.nc2.Attribute;
+
+        $r62 = <ucar.ma2.DataType: ucar.ma2.DataType FLOAT>;
+
+        $r63 = virtualinvoke $r62.<ucar.ma2.DataType: java.lang.Class getPrimitiveClassType()>();
+
+        $r64 = newarray (int)[1];
+
+        $r64[0] = i6;
+
+        $r65 = staticinvoke <ucar.ma2.Array: ucar.ma2.Array factory(java.lang.Class,int[],java.lang.Object)>($r63, $r64, r82);
+
+        specialinvoke $r93.<ucar.nc2.Attribute: void <init>(java.lang.String,ucar.ma2.Array)>(r7, $r65);
+
+        r80 = $r93;
+
+        goto label31;
+
+     label11:
+        if i6 != 1 goto label12;
+
+        $r94 = new ucar.nc2.Attribute;
+
+        $r59 = r0.<ucar.nc2.iosp.hdf4.H4header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $d1 = virtualinvoke $r59.<ucar.unidata.io.RandomAccessFile: double readDouble()>();
+
+        $r60 = staticinvoke <java.lang.Double: java.lang.Double valueOf(double)>($d1);
+
+        specialinvoke $r94.<ucar.nc2.Attribute: void <init>(java.lang.String,java.lang.Number)>(r7, $r60);
+
+        r80 = $r94;
+
+        goto label31;
+
+     label12:
+        r83 = newarray (double)[i6];
+
+        i19 = 0;
+
+     label13:
+        if i19 >= i6 goto label14;
+
+        $r57 = r0.<ucar.nc2.iosp.hdf4.H4header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $d0 = virtualinvoke $r57.<ucar.unidata.io.RandomAccessFile: double readDouble()>();
+
+        r83[i19] = $d0;
+
+        i19 = i19 + 1;
+
+        goto label13;
+
+     label14:
+        $r95 = new ucar.nc2.Attribute;
+
+        $r53 = <ucar.ma2.DataType: ucar.ma2.DataType DOUBLE>;
+
+        $r54 = virtualinvoke $r53.<ucar.ma2.DataType: java.lang.Class getPrimitiveClassType()>();
+
+        $r55 = newarray (int)[1];
+
+        $r55[0] = i6;
+
+        $r56 = staticinvoke <ucar.ma2.Array: ucar.ma2.Array factory(java.lang.Class,int[],java.lang.Object)>($r54, $r55, r83);
+
+        specialinvoke $r95.<ucar.nc2.Attribute: void <init>(java.lang.String,ucar.ma2.Array)>(r7, $r56);
+
+        r80 = $r95;
+
+        goto label31;
+
+     label15:
+        if i6 != 1 goto label16;
+
+        $r96 = new ucar.nc2.Attribute;
+
+        $r50 = r0.<ucar.nc2.iosp.hdf4.H4header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $b16 = virtualinvoke $r50.<ucar.unidata.io.RandomAccessFile: byte readByte()>();
+
+        $r51 = staticinvoke <java.lang.Byte: java.lang.Byte valueOf(byte)>($b16);
+
+        specialinvoke $r96.<ucar.nc2.Attribute: void <init>(java.lang.String,java.lang.Number)>(r7, $r51);
+
+        r80 = $r96;
+
+        goto label31;
+
+     label16:
+        r84 = newarray (byte)[i6];
+
+        i20 = 0;
+
+     label17:
+        if i20 >= i6 goto label18;
+
+        $r48 = r0.<ucar.nc2.iosp.hdf4.H4header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $b15 = virtualinvoke $r48.<ucar.unidata.io.RandomAccessFile: byte readByte()>();
+
+        r84[i20] = $b15;
+
+        i20 = i20 + 1;
+
+        goto label17;
+
+     label18:
+        $r97 = new ucar.nc2.Attribute;
+
+        $r44 = <ucar.ma2.DataType: ucar.ma2.DataType BYTE>;
+
+        $r45 = virtualinvoke $r44.<ucar.ma2.DataType: java.lang.Class getPrimitiveClassType()>();
+
+        $r46 = newarray (int)[1];
+
+        $r46[0] = i6;
+
+        $r47 = staticinvoke <ucar.ma2.Array: ucar.ma2.Array factory(java.lang.Class,int[],java.lang.Object)>($r45, $r46, r84);
+
+        specialinvoke $r97.<ucar.nc2.Attribute: void <init>(java.lang.String,ucar.ma2.Array)>(r7, $r47);
+
+        r80 = $r97;
+
+        goto label31;
+
+     label19:
+        if i6 != 1 goto label20;
+
+        $r98 = new ucar.nc2.Attribute;
+
+        $r41 = r0.<ucar.nc2.iosp.hdf4.H4header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $s14 = virtualinvoke $r41.<ucar.unidata.io.RandomAccessFile: short readShort()>();
+
+        $r42 = staticinvoke <java.lang.Short: java.lang.Short valueOf(short)>($s14);
+
+        specialinvoke $r98.<ucar.nc2.Attribute: void <init>(java.lang.String,java.lang.Number)>(r7, $r42);
+
+        r80 = $r98;
+
+        goto label31;
+
+     label20:
+        r85 = newarray (short)[i6];
+
+        i21 = 0;
+
+     label21:
+        if i21 >= i6 goto label22;
+
+        $r39 = r0.<ucar.nc2.iosp.hdf4.H4header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $s13 = virtualinvoke $r39.<ucar.unidata.io.RandomAccessFile: short readShort()>();
+
+        r85[i21] = $s13;
+
+        i21 = i21 + 1;
+
+        goto label21;
+
+     label22:
+        $r99 = new ucar.nc2.Attribute;
+
+        $r35 = <ucar.ma2.DataType: ucar.ma2.DataType SHORT>;
+
+        $r36 = virtualinvoke $r35.<ucar.ma2.DataType: java.lang.Class getPrimitiveClassType()>();
+
+        $r37 = newarray (int)[1];
+
+        $r37[0] = i6;
+
+        $r38 = staticinvoke <ucar.ma2.Array: ucar.ma2.Array factory(java.lang.Class,int[],java.lang.Object)>($r36, $r37, r85);
+
+        specialinvoke $r99.<ucar.nc2.Attribute: void <init>(java.lang.String,ucar.ma2.Array)>(r7, $r38);
+
+        r80 = $r99;
+
+        goto label31;
+
+     label23:
+        if i6 != 1 goto label24;
+
+        $r100 = new ucar.nc2.Attribute;
+
+        $r32 = r0.<ucar.nc2.iosp.hdf4.H4header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $i12 = virtualinvoke $r32.<ucar.unidata.io.RandomAccessFile: int readInt()>();
+
+        $r33 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i12);
+
+        specialinvoke $r100.<ucar.nc2.Attribute: void <init>(java.lang.String,java.lang.Number)>(r7, $r33);
+
+        r80 = $r100;
+
+        goto label31;
+
+     label24:
+        r86 = newarray (int)[i6];
+
+        i22 = 0;
+
+     label25:
+        if i22 >= i6 goto label26;
+
+        $r30 = r0.<ucar.nc2.iosp.hdf4.H4header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $i11 = virtualinvoke $r30.<ucar.unidata.io.RandomAccessFile: int readInt()>();
+
+        r86[i22] = $i11;
+
+        i22 = i22 + 1;
+
+        goto label25;
+
+     label26:
+        $r101 = new ucar.nc2.Attribute;
+
+        $r26 = <ucar.ma2.DataType: ucar.ma2.DataType INT>;
+
+        $r27 = virtualinvoke $r26.<ucar.ma2.DataType: java.lang.Class getPrimitiveClassType()>();
+
+        $r28 = newarray (int)[1];
+
+        $r28[0] = i6;
+
+        $r29 = staticinvoke <ucar.ma2.Array: ucar.ma2.Array factory(java.lang.Class,int[],java.lang.Object)>($r27, $r28, r86);
+
+        specialinvoke $r101.<ucar.nc2.Attribute: void <init>(java.lang.String,ucar.ma2.Array)>(r7, $r29);
+
+        r80 = $r101;
+
+        goto label31;
+
+     label27:
+        if i6 != 1 goto label28;
+
+        $r102 = new ucar.nc2.Attribute;
+
+        $r23 = r0.<ucar.nc2.iosp.hdf4.H4header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $l10 = virtualinvoke $r23.<ucar.unidata.io.RandomAccessFile: long readLong()>();
+
+        $r24 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l10);
+
+        specialinvoke $r102.<ucar.nc2.Attribute: void <init>(java.lang.String,java.lang.Number)>(r7, $r24);
+
+        r80 = $r102;
+
+        goto label31;
+
+     label28:
+        r87 = newarray (long)[i6];
+
+        i23 = 0;
+
+     label29:
+        if i23 >= i6 goto label30;
+
+        $r21 = r0.<ucar.nc2.iosp.hdf4.H4header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $l9 = virtualinvoke $r21.<ucar.unidata.io.RandomAccessFile: long readLong()>();
+
+        r87[i23] = $l9;
+
+        i23 = i23 + 1;
+
+        goto label29;
+
+     label30:
+        $r103 = new ucar.nc2.Attribute;
+
+        $r12 = <ucar.ma2.DataType: ucar.ma2.DataType LONG>;
+
+        $r13 = virtualinvoke $r12.<ucar.ma2.DataType: java.lang.Class getPrimitiveClassType()>();
+
+        $r14 = newarray (int)[1];
+
+        $r14[0] = i6;
+
+        $r15 = staticinvoke <ucar.ma2.Array: ucar.ma2.Array factory(java.lang.Class,int[],java.lang.Object)>($r13, $r14, r87);
+
+        specialinvoke $r103.<ucar.nc2.Attribute: void <init>(java.lang.String,ucar.ma2.Array)>(r7, $r15);
+
+        r80 = $r103;
+
+     label31:
+        $z0 = <ucar.nc2.iosp.hdf4.H4header: boolean debugAtt>;
+
+        if $z0 == 0 goto label32;
+
+        $r17 = <java.lang.System: java.io.PrintStream out>;
+
+        $r104 = new java.lang.StringBuilder;
+
+        specialinvoke $r104.<java.lang.StringBuilder: void <init>()>();
+
+        $r18 = virtualinvoke $r104.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("added attribute ");
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r80);
+
+        $r20 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r17.<java.io.PrintStream: void println(java.lang.String)>($r20);
+
+     label32:
+        return r80;
+    }
+
+    private ucar.nc2.Group makeGroup(ucar.nc2.iosp.hdf4.H4header$TagVGroup, ucar.nc2.Group) throws java.io.IOException
+    {
+        java.lang.Integer $r17;
+        java.util.Map $r16;
+        ucar.nc2.Group r3, $r20, $r21, $r22, $r23, $r25, $r26, $r27, $r54;
+        ucar.nc2.Attribute $r31;
+        java.lang.StringBuilder $r8, $r10, $r11, $r12, $r36, $r37, $r41, $r43, $r44, $r46, $r47, $r48, $r55, $r56, $r57;
+        ucar.nc2.iosp.hdf4.H4header$Vinfo $r29, $r30, $r32, $r33;
+        ucar.nc2.iosp.hdf4.H4header r2;
+        short $s2, $s3, $s4, $s6, $s7, $s8, $s9, $s10, $s12, $s13;
+        java.lang.String $r4, $r9, $r13, $r28, $r38, $r49;
+        ucar.nc2.iosp.hdf4.H4header$TagVH r51;
+        boolean $z0, $z1;
+        ucar.nc2.iosp.hdf4.H4header$TagVGroup r0, r53;
+        ucar.nc2.iosp.hdf4.H4header$Tag r19;
+        ucar.nc2.NetcdfFile $r5, $r24;
+        short[] $r14, $r15, $r42, $r45;
+        int $i0, $i1, $i5, i11, $i14, $i15, $i16, $i17, $i18, $i19, $i20, $i21;
+        ucar.nc2.Variable r50, r52;
+        java.io.PrintStream $r7;
+        org.slf4j.Logger $r35, $r40;
+        java.lang.Object $r18;
+
+        r2 := @this: ucar.nc2.iosp.hdf4.H4header;
+
+        r0 := @parameter0: ucar.nc2.iosp.hdf4.H4header$TagVGroup;
+
+        r3 := @parameter1: ucar.nc2.Group;
+
+        $i0 = r0.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: int nelems>;
+
+        if $i0 >= 1 goto label01;
+
+        return null;
+
+     label01:
+        $r54 = new ucar.nc2.Group;
+
+        $r5 = r2.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.NetcdfFile ncfile>;
+
+        $r4 = r0.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: java.lang.String name>;
+
+        specialinvoke $r54.<ucar.nc2.Group: void <init>(ucar.nc2.NetcdfFile,ucar.nc2.Group,java.lang.String)>($r5, r3, $r4);
+
+        r0.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: boolean used> = 1;
+
+        r0.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: ucar.nc2.Group group> = $r54;
+
+        i11 = 0;
+
+     label02:
+        $i1 = r0.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: int nelems>;
+
+        if i11 >= $i1 goto label11;
+
+        $r16 = r2.<ucar.nc2.iosp.hdf4.H4header: java.util.Map tagMap>;
+
+        $r14 = r0.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: short[] elem_ref>;
+
+        $s4 = $r14[i11];
+
+        $r15 = r0.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: short[] elem_tag>;
+
+        $s3 = $r15[i11];
+
+        $i5 = staticinvoke <ucar.nc2.iosp.hdf4.H4header: int tagid(short,short)>($s4, $s3);
+
+        $r17 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i5);
+
+        $r18 = interfaceinvoke $r16.<java.util.Map: java.lang.Object get(java.lang.Object)>($r17);
+
+        r19 = (ucar.nc2.iosp.hdf4.H4header$Tag) $r18;
+
+        if r19 != null goto label03;
+
+        $r40 = <ucar.nc2.iosp.hdf4.H4header: org.slf4j.Logger log>;
+
+        $r55 = new java.lang.StringBuilder;
+
+        specialinvoke $r55.<java.lang.StringBuilder: void <init>()>();
+
+        $r41 = virtualinvoke $r55.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Reference tag missing= ");
+
+        $r42 = r0.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: short[] elem_ref>;
+
+        $s8 = $r42[i11];
+
+        $i14 = (int) $s8;
+
+        $r43 = virtualinvoke $r41.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i14);
+
+        $r44 = virtualinvoke $r43.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("/");
+
+        $r45 = r0.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: short[] elem_tag>;
+
+        $s9 = $r45[i11];
+
+        $i15 = (int) $s9;
+
+        $r46 = virtualinvoke $r44.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i15);
+
+        $r47 = virtualinvoke $r46.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" for group ");
+
+        $s10 = r0.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: short refno>;
+
+        $i16 = (int) $s10;
+
+        $r48 = virtualinvoke $r47.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i16);
+
+        $r49 = virtualinvoke $r48.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r40.<org.slf4j.Logger: void error(java.lang.String)>($r49);
+
+        goto label10;
+
+     label03:
+        $s6 = r19.<ucar.nc2.iosp.hdf4.H4header$Tag: short code>;
+
+        $i17 = (int) $s6;
+
+        if $i17 != 720 goto label05;
+
+        $r32 = r19.<ucar.nc2.iosp.hdf4.H4header$Tag: ucar.nc2.iosp.hdf4.H4header$Vinfo vinfo>;
+
+        if $r32 == null goto label05;
+
+        $r33 = r19.<ucar.nc2.iosp.hdf4.H4header$Tag: ucar.nc2.iosp.hdf4.H4header$Vinfo vinfo>;
+
+        r50 = $r33.<ucar.nc2.iosp.hdf4.H4header$Vinfo: ucar.nc2.Variable v>;
+
+        if r50 == null goto label04;
+
+        specialinvoke r2.<ucar.nc2.iosp.hdf4.H4header: void addVariableToGroup(ucar.nc2.Group,ucar.nc2.Variable,ucar.nc2.iosp.hdf4.H4header$Tag)>($r54, r50, r19);
+
+        goto label05;
+
+     label04:
+        $r35 = <ucar.nc2.iosp.hdf4.H4header: org.slf4j.Logger log>;
+
+        $r56 = new java.lang.StringBuilder;
+
+        specialinvoke $r56.<java.lang.StringBuilder: void <init>()>();
+
+        $r36 = virtualinvoke $r56.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Missing variable ");
+
+        $s7 = r19.<ucar.nc2.iosp.hdf4.H4header$Tag: short refno>;
+
+        $i18 = (int) $s7;
+
+        $r37 = virtualinvoke $r36.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i18);
+
+        $r38 = virtualinvoke $r37.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r35.<org.slf4j.Logger: void error(java.lang.String)>($r38);
+
+     label05:
+        $s12 = r19.<ucar.nc2.iosp.hdf4.H4header$Tag: short code>;
+
+        $i19 = (int) $s12;
+
+        if $i19 != 1962 goto label08;
+
+        r51 = (ucar.nc2.iosp.hdf4.H4header$TagVH) r19;
+
+        $r28 = r51.<ucar.nc2.iosp.hdf4.H4header$TagVH: java.lang.String className>;
+
+        $z1 = virtualinvoke $r28.<java.lang.String: boolean startsWith(java.lang.String)>("Att");
+
+        if $z1 == 0 goto label07;
+
+        $r31 = specialinvoke r2.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.Attribute makeAttribute(ucar.nc2.iosp.hdf4.H4header$TagVH)>(r51);
+
+        if null == $r31 goto label06;
+
+        virtualinvoke $r54.<ucar.nc2.Group: void addAttribute(ucar.nc2.Attribute)>($r31);
+
+     label06:
+        goto label08;
+
+     label07:
+        $r29 = r19.<ucar.nc2.iosp.hdf4.H4header$Tag: ucar.nc2.iosp.hdf4.H4header$Vinfo vinfo>;
+
+        if $r29 == null goto label08;
+
+        $r30 = r19.<ucar.nc2.iosp.hdf4.H4header$Tag: ucar.nc2.iosp.hdf4.H4header$Vinfo vinfo>;
+
+        r52 = $r30.<ucar.nc2.iosp.hdf4.H4header$Vinfo: ucar.nc2.Variable v>;
+
+        specialinvoke r2.<ucar.nc2.iosp.hdf4.H4header: void addVariableToGroup(ucar.nc2.Group,ucar.nc2.Variable,ucar.nc2.iosp.hdf4.H4header$Tag)>($r54, r52, r19);
+
+     label08:
+        $s13 = r19.<ucar.nc2.iosp.hdf4.H4header$Tag: short code>;
+
+        $i20 = (int) $s13;
+
+        if $i20 != 1965 goto label10;
+
+        r53 = (ucar.nc2.iosp.hdf4.H4header$TagVGroup) r19;
+
+        $r20 = r53.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: ucar.nc2.Group group>;
+
+        if $r20 == null goto label09;
+
+        $r22 = r53.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: ucar.nc2.Group group>;
+
+        $r23 = virtualinvoke $r22.<ucar.nc2.Group: ucar.nc2.Group getParentGroup()>();
+
+        $r24 = r2.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.NetcdfFile ncfile>;
+
+        $r25 = virtualinvoke $r24.<ucar.nc2.NetcdfFile: ucar.nc2.Group getRootGroup()>();
+
+        if $r23 != $r25 goto label09;
+
+        $r26 = r53.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: ucar.nc2.Group group>;
+
+        specialinvoke r2.<ucar.nc2.iosp.hdf4.H4header: void addGroupToGroup(ucar.nc2.Group,ucar.nc2.Group,ucar.nc2.iosp.hdf4.H4header$Tag)>($r54, $r26, r53);
+
+        $r27 = r53.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: ucar.nc2.Group group>;
+
+        virtualinvoke $r27.<ucar.nc2.Group: void setParentGroup(ucar.nc2.Group)>($r54);
+
+        goto label10;
+
+     label09:
+        $r21 = specialinvoke r2.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.Group makeGroup(ucar.nc2.iosp.hdf4.H4header$TagVGroup,ucar.nc2.Group)>(r53, $r54);
+
+        if $r21 == null goto label10;
+
+        specialinvoke r2.<ucar.nc2.iosp.hdf4.H4header: void addGroupToGroup(ucar.nc2.Group,ucar.nc2.Group,ucar.nc2.iosp.hdf4.H4header$Tag)>($r54, $r21, r53);
+
+     label10:
+        i11 = i11 + 1;
+
+        goto label02;
+
+     label11:
+        $z0 = <ucar.nc2.iosp.hdf4.H4header: boolean debugConstruct>;
+
+        if $z0 == 0 goto label12;
+
+        $r7 = <java.lang.System: java.io.PrintStream out>;
+
+        $r57 = new java.lang.StringBuilder;
+
+        specialinvoke $r57.<java.lang.StringBuilder: void <init>()>();
+
+        $r8 = virtualinvoke $r57.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("added group ");
+
+        $r9 = virtualinvoke $r54.<ucar.nc2.Group: java.lang.String getName()>();
+
+        $r10 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r9);
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" from VG ");
+
+        $s2 = r0.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: short refno>;
+
+        $i21 = (int) $s2;
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i21);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r7.<java.io.PrintStream: void println(java.lang.String)>($r13);
+
+     label12:
+        return $r54;
+    }
+
+    private void addVariableToGroup(ucar.nc2.Group, ucar.nc2.Variable, ucar.nc2.iosp.hdf4.H4header$Tag)
+    {
+        ucar.nc2.iosp.hdf4.H4header r10;
+        ucar.nc2.Group r0;
+        short $s0;
+        int $i1;
+        ucar.nc2.Variable r1, $r3;
+        java.lang.StringBuilder $r6, $r8, $r11;
+        ucar.nc2.iosp.hdf4.H4header$Tag r7;
+        java.lang.String $r2, $r5, $r9;
+
+        r10 := @this: ucar.nc2.iosp.hdf4.H4header;
+
+        r0 := @parameter0: ucar.nc2.Group;
+
+        r1 := @parameter1: ucar.nc2.Variable;
+
+        r7 := @parameter2: ucar.nc2.iosp.hdf4.H4header$Tag;
+
+        $r2 = virtualinvoke r1.<ucar.nc2.Variable: java.lang.String getShortName()>();
+
+        $r3 = virtualinvoke r0.<ucar.nc2.Group: ucar.nc2.Variable findVariable(java.lang.String)>($r2);
+
+        if $r3 == null goto label1;
+
+        $r11 = new java.lang.StringBuilder;
+
+        specialinvoke $r11.<java.lang.StringBuilder: void <init>()>();
+
+        $r5 = virtualinvoke r1.<ucar.nc2.Variable: java.lang.String getShortName()>();
+
+        $r6 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r5);
+
+        $s0 = r7.<ucar.nc2.iosp.hdf4.H4header$Tag: short refno>;
+
+        $i1 = (int) $s0;
+
+        $r8 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i1);
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke r1.<ucar.nc2.Variable: void setName(java.lang.String)>($r9);
+
+     label1:
+        virtualinvoke r0.<ucar.nc2.Group: void addVariable(ucar.nc2.Variable)>(r1);
+
+        return;
+    }
+
+    private void addGroupToGroup(ucar.nc2.Group, ucar.nc2.Group, ucar.nc2.iosp.hdf4.H4header$Tag)
+    {
+        ucar.nc2.iosp.hdf4.H4header r10;
+        ucar.nc2.Group r0, r1, $r3;
+        short $s0;
+        int $i1;
+        java.lang.StringBuilder $r6, $r8, $r11;
+        ucar.nc2.iosp.hdf4.H4header$Tag r7;
+        java.lang.String $r2, $r5, $r9;
+
+        r10 := @this: ucar.nc2.iosp.hdf4.H4header;
+
+        r0 := @parameter0: ucar.nc2.Group;
+
+        r1 := @parameter1: ucar.nc2.Group;
+
+        r7 := @parameter2: ucar.nc2.iosp.hdf4.H4header$Tag;
+
+        $r2 = virtualinvoke r1.<ucar.nc2.Group: java.lang.String getShortName()>();
+
+        $r3 = virtualinvoke r0.<ucar.nc2.Group: ucar.nc2.Group findGroup(java.lang.String)>($r2);
+
+        if $r3 == null goto label1;
+
+        $r11 = new java.lang.StringBuilder;
+
+        specialinvoke $r11.<java.lang.StringBuilder: void <init>()>();
+
+        $r5 = virtualinvoke r1.<ucar.nc2.Group: java.lang.String getShortName()>();
+
+        $r6 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r5);
+
+        $s0 = r7.<ucar.nc2.iosp.hdf4.H4header$Tag: short refno>;
+
+        $i1 = (int) $s0;
+
+        $r8 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i1);
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke r1.<ucar.nc2.Group: void setName(java.lang.String)>($r9);
+
+     label1:
+        virtualinvoke r0.<ucar.nc2.Group: void addGroup(ucar.nc2.Group)>(r1);
+
+        return;
+    }
+
+    private ucar.nc2.Variable makeImage(ucar.nc2.iosp.hdf4.H4header$TagGroup)
+    {
+        java.lang.Integer $r5, $r53;
+        byte $b7;
+        java.util.Map $r4, $r52;
+        ucar.nc2.iosp.hdf4.H4header$TagRIDimension r68;
+        java.lang.StringBuilder $r15, $r16, $r26, $r27, $r31, $r33, $r34, $r38, $r40, $r41, $r45, $r47, $r48, $r58, $r60, $r61, $r63, $r64, $r66, $r75, $r76, $r77, $r78, $r79, $r81;
+        ucar.nc2.iosp.hdf4.H4header$Vinfo $r74;
+        ucar.nc2.iosp.hdf4.H4header r1;
+        java.util.ArrayList $r80;
+        short $s0, $s2, $s3, $s6, $s8, $s11, $s12, $s13, $s15, $s16, $s17, $s18, $s19;
+        java.lang.String $r17, $r28, $r32, $r35, $r39, $r42, $r46, $r49, $r59, $r67;
+        ucar.nc2.iosp.hdf4.H4header$TagNumberType r73;
+        ucar.nc2.iosp.hdf4.H4header$TagRIPalette r71;
+        ucar.nc2.Dimension $r21, $r23;
+        boolean $z0;
+        java.util.List $r7, $r8, $r9, $r10, $r11, $r18, $r20, $r22, $r55;
+        ucar.nc2.iosp.hdf4.H4header$Tag r69, r70, r72;
+        ucar.nc2.NetcdfFile $r14;
+        short[] $r50, $r51, $r62, $r65;
+        ucar.nc2.iosp.hdf4.TagEnum $r3;
+        int $i1, $i4, $i5, $i9, $i10, $i14, i20, $i21, $i22, $i23, $i24, $i25, $i26, $i27;
+        ucar.nc2.Variable $r82;
+        java.io.PrintStream $r25;
+        org.slf4j.Logger $r30, $r37, $r44, $r57;
+        ucar.nc2.iosp.hdf4.H4header$TagGroup r2;
+        java.lang.Object $r6, $r54;
+
+        r1 := @this: ucar.nc2.iosp.hdf4.H4header;
+
+        r2 := @parameter0: ucar.nc2.iosp.hdf4.H4header$TagGroup;
+
+        r68 = null;
+
+        r69 = null;
+
+        $r74 = new ucar.nc2.iosp.hdf4.H4header$Vinfo;
+
+        $s0 = r2.<ucar.nc2.iosp.hdf4.H4header$TagGroup: short refno>;
+
+        specialinvoke $r74.<ucar.nc2.iosp.hdf4.H4header$Vinfo: void <init>(ucar.nc2.iosp.hdf4.H4header,short)>(r1, $s0);
+
+        r2.<ucar.nc2.iosp.hdf4.H4header$TagGroup: boolean used> = 1;
+
+        i20 = 0;
+
+     label01:
+        $i1 = r2.<ucar.nc2.iosp.hdf4.H4header$TagGroup: int nelems>;
+
+        if i20 >= $i1 goto label06;
+
+        $r52 = r1.<ucar.nc2.iosp.hdf4.H4header: java.util.Map tagMap>;
+
+        $r50 = r2.<ucar.nc2.iosp.hdf4.H4header$TagGroup: short[] elem_ref>;
+
+        $s13 = $r50[i20];
+
+        $r51 = r2.<ucar.nc2.iosp.hdf4.H4header$TagGroup: short[] elem_tag>;
+
+        $s12 = $r51[i20];
+
+        $i14 = staticinvoke <ucar.nc2.iosp.hdf4.H4header: int tagid(short,short)>($s13, $s12);
+
+        $r53 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i14);
+
+        $r54 = interfaceinvoke $r52.<java.util.Map: java.lang.Object get(java.lang.Object)>($r53);
+
+        r70 = (ucar.nc2.iosp.hdf4.H4header$Tag) $r54;
+
+        if r70 != null goto label02;
+
+        $r57 = <ucar.nc2.iosp.hdf4.H4header: org.slf4j.Logger log>;
+
+        $r75 = new java.lang.StringBuilder;
+
+        specialinvoke $r75.<java.lang.StringBuilder: void <init>()>();
+
+        $r58 = virtualinvoke $r75.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Image Group ");
+
+        $r59 = virtualinvoke r2.<ucar.nc2.iosp.hdf4.H4header$TagGroup: java.lang.String tag()>();
+
+        $r60 = virtualinvoke $r58.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r59);
+
+        $r61 = virtualinvoke $r60.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" has missing tag=");
+
+        $r62 = r2.<ucar.nc2.iosp.hdf4.H4header$TagGroup: short[] elem_ref>;
+
+        $s18 = $r62[i20];
+
+        $i21 = (int) $s18;
+
+        $r63 = virtualinvoke $r61.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i21);
+
+        $r64 = virtualinvoke $r63.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("/");
+
+        $r65 = r2.<ucar.nc2.iosp.hdf4.H4header$TagGroup: short[] elem_tag>;
+
+        $s19 = $r65[i20];
+
+        $i22 = (int) $s19;
+
+        $r66 = virtualinvoke $r64.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i22);
+
+        $r67 = virtualinvoke $r66.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r57.<org.slf4j.Logger: void warn(java.lang.String)>($r67);
+
+        return null;
+
+     label02:
+        $r55 = $r74.<ucar.nc2.iosp.hdf4.H4header$Vinfo: java.util.List tags>;
+
+        interfaceinvoke $r55.<java.util.List: boolean add(java.lang.Object)>(r70);
+
+        r70.<ucar.nc2.iosp.hdf4.H4header$Tag: ucar.nc2.iosp.hdf4.H4header$Vinfo vinfo> = $r74;
+
+        r70.<ucar.nc2.iosp.hdf4.H4header$Tag: boolean used> = 1;
+
+        $s15 = r70.<ucar.nc2.iosp.hdf4.H4header$Tag: short code>;
+
+        $i23 = (int) $s15;
+
+        if $i23 != 300 goto label03;
+
+        r68 = (ucar.nc2.iosp.hdf4.H4header$TagRIDimension) r70;
+
+     label03:
+        $s16 = r70.<ucar.nc2.iosp.hdf4.H4header$Tag: short code>;
+
+        $i24 = (int) $s16;
+
+        if $i24 != 302 goto label04;
+
+        r69 = r70;
+
+     label04:
+        $s17 = r70.<ucar.nc2.iosp.hdf4.H4header$Tag: short code>;
+
+        $i25 = (int) $s17;
+
+        if $i25 != 301 goto label05;
+
+        r71 = (ucar.nc2.iosp.hdf4.H4header$TagRIPalette) r70;
+
+     label05:
+        i20 = i20 + 1;
+
+        goto label01;
+
+     label06:
+        if r68 != null goto label07;
+
+        $r44 = <ucar.nc2.iosp.hdf4.H4header: org.slf4j.Logger log>;
+
+        $r76 = new java.lang.StringBuilder;
+
+        specialinvoke $r76.<java.lang.StringBuilder: void <init>()>();
+
+        $r45 = virtualinvoke $r76.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Image Group ");
+
+        $r46 = virtualinvoke r2.<ucar.nc2.iosp.hdf4.H4header$TagGroup: java.lang.String tag()>();
+
+        $r47 = virtualinvoke $r45.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r46);
+
+        $r48 = virtualinvoke $r47.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" missing dimension tag");
+
+        $r49 = virtualinvoke $r48.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r44.<org.slf4j.Logger: void warn(java.lang.String)>($r49);
+
+        return null;
+
+     label07:
+        if r69 != null goto label08;
+
+        $r37 = <ucar.nc2.iosp.hdf4.H4header: org.slf4j.Logger log>;
+
+        $r77 = new java.lang.StringBuilder;
+
+        specialinvoke $r77.<java.lang.StringBuilder: void <init>()>();
+
+        $r38 = virtualinvoke $r77.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Image Group ");
+
+        $r39 = virtualinvoke r2.<ucar.nc2.iosp.hdf4.H4header$TagGroup: java.lang.String tag()>();
+
+        $r40 = virtualinvoke $r38.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r39);
+
+        $r41 = virtualinvoke $r40.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" missing data tag");
+
+        $r42 = virtualinvoke $r41.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r37.<org.slf4j.Logger: void warn(java.lang.String)>($r42);
+
+        return null;
+
+     label08:
+        $r4 = r1.<ucar.nc2.iosp.hdf4.H4header: java.util.Map tagMap>;
+
+        $s2 = r68.<ucar.nc2.iosp.hdf4.H4header$TagRIDimension: short nt_ref>;
+
+        $r3 = <ucar.nc2.iosp.hdf4.TagEnum: ucar.nc2.iosp.hdf4.TagEnum NT>;
+
+        $s3 = virtualinvoke $r3.<ucar.nc2.iosp.hdf4.TagEnum: short getCode()>();
+
+        $i4 = staticinvoke <ucar.nc2.iosp.hdf4.H4header: int tagid(short,short)>($s2, $s3);
+
+        $r5 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i4);
+
+        $r6 = interfaceinvoke $r4.<java.util.Map: java.lang.Object get(java.lang.Object)>($r5);
+
+        r72 = (ucar.nc2.iosp.hdf4.H4header$Tag) $r6;
+
+        if r72 != null goto label09;
+
+        $r30 = <ucar.nc2.iosp.hdf4.H4header: org.slf4j.Logger log>;
+
+        $r78 = new java.lang.StringBuilder;
+
+        specialinvoke $r78.<java.lang.StringBuilder: void <init>()>();
+
+        $r31 = virtualinvoke $r78.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Image Group ");
+
+        $r32 = virtualinvoke r2.<ucar.nc2.iosp.hdf4.H4header$TagGroup: java.lang.String tag()>();
+
+        $r33 = virtualinvoke $r31.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r32);
+
+        $r34 = virtualinvoke $r33.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" missing NT tag");
+
+        $r35 = virtualinvoke $r34.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r30.<org.slf4j.Logger: void warn(java.lang.String)>($r35);
+
+        return null;
+
+     label09:
+        r73 = (ucar.nc2.iosp.hdf4.H4header$TagNumberType) r72;
+
+        $z0 = <ucar.nc2.iosp.hdf4.H4header: boolean debugConstruct>;
+
+        if $z0 == 0 goto label10;
+
+        $r25 = <java.lang.System: java.io.PrintStream out>;
+
+        $r79 = new java.lang.StringBuilder;
+
+        specialinvoke $r79.<java.lang.StringBuilder: void <init>()>();
+
+        $r26 = virtualinvoke $r79.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("construct image ");
+
+        $s11 = r2.<ucar.nc2.iosp.hdf4.H4header$TagGroup: short refno>;
+
+        $i26 = (int) $s11;
+
+        $r27 = virtualinvoke $r26.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i26);
+
+        $r28 = virtualinvoke $r27.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r25.<java.io.PrintStream: void println(java.lang.String)>($r28);
+
+     label10:
+        $i5 = r69.<ucar.nc2.iosp.hdf4.H4header$Tag: int offset>;
+
+        $r74.<ucar.nc2.iosp.hdf4.H4header$Vinfo: int start> = $i5;
+
+        $r7 = $r74.<ucar.nc2.iosp.hdf4.H4header$Vinfo: java.util.List tags>;
+
+        interfaceinvoke $r7.<java.util.List: boolean add(java.lang.Object)>(r2);
+
+        $r8 = $r74.<ucar.nc2.iosp.hdf4.H4header$Vinfo: java.util.List tags>;
+
+        interfaceinvoke $r8.<java.util.List: boolean add(java.lang.Object)>(r68);
+
+        $r9 = $r74.<ucar.nc2.iosp.hdf4.H4header$Vinfo: java.util.List tags>;
+
+        interfaceinvoke $r9.<java.util.List: boolean add(java.lang.Object)>(r69);
+
+        $r10 = $r74.<ucar.nc2.iosp.hdf4.H4header$Vinfo: java.util.List tags>;
+
+        interfaceinvoke $r10.<java.util.List: boolean add(java.lang.Object)>(r73);
+
+        $r11 = r68.<ucar.nc2.iosp.hdf4.H4header$TagRIDimension: java.util.List dims>;
+
+        if $r11 != null goto label11;
+
+        $r80 = new java.util.ArrayList;
+
+        specialinvoke $r80.<java.util.ArrayList: void <init>()>();
+
+        r68.<ucar.nc2.iosp.hdf4.H4header$TagRIDimension: java.util.List dims> = $r80;
+
+        $r20 = r68.<ucar.nc2.iosp.hdf4.H4header$TagRIDimension: java.util.List dims>;
+
+        $i9 = r68.<ucar.nc2.iosp.hdf4.H4header$TagRIDimension: int ydim>;
+
+        $r21 = specialinvoke r1.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.Dimension makeDimensionUnshared(java.lang.String,int)>("ydim", $i9);
+
+        interfaceinvoke $r20.<java.util.List: boolean add(java.lang.Object)>($r21);
+
+        $r22 = r68.<ucar.nc2.iosp.hdf4.H4header$TagRIDimension: java.util.List dims>;
+
+        $i10 = r68.<ucar.nc2.iosp.hdf4.H4header$TagRIDimension: int xdim>;
+
+        $r23 = specialinvoke r1.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.Dimension makeDimensionUnshared(java.lang.String,int)>("xdim", $i10);
+
+        interfaceinvoke $r22.<java.util.List: boolean add(java.lang.Object)>($r23);
+
+     label11:
+        $r82 = new ucar.nc2.Variable;
+
+        $r14 = r1.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.NetcdfFile ncfile>;
+
+        $r81 = new java.lang.StringBuilder;
+
+        specialinvoke $r81.<java.lang.StringBuilder: void <init>()>();
+
+        $r15 = virtualinvoke $r81.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Image-");
+
+        $s6 = r2.<ucar.nc2.iosp.hdf4.H4header$TagGroup: short refno>;
+
+        $i27 = (int) $s6;
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i27);
+
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r82.<ucar.nc2.Variable: void <init>(ucar.nc2.NetcdfFile,ucar.nc2.Group,ucar.nc2.Structure,java.lang.String)>($r14, null, null, $r17);
+
+        $b7 = r73.<ucar.nc2.iosp.hdf4.H4header$TagNumberType: byte type>;
+
+        $s8 = (short) $b7;
+
+        staticinvoke <ucar.nc2.iosp.hdf4.H4type: ucar.ma2.DataType setDataType(short,ucar.nc2.Variable)>($s8, $r82);
+
+        $r18 = r68.<ucar.nc2.iosp.hdf4.H4header$TagRIDimension: java.util.List dims>;
+
+        virtualinvoke $r82.<ucar.nc2.Variable: void setDimensions(java.util.List)>($r18);
+
+        virtualinvoke $r74.<ucar.nc2.iosp.hdf4.H4header$Vinfo: void setVariable(ucar.nc2.Variable)>($r82);
+
+        return $r82;
+    }
+
+    private ucar.nc2.Dimension makeDimensionUnshared(java.lang.String, int)
+    {
+        ucar.nc2.iosp.hdf4.H4header r2;
+        int i0;
+        ucar.nc2.Dimension $r0;
+        java.lang.String r1;
+
+        r2 := @this: ucar.nc2.iosp.hdf4.H4header;
+
+        r1 := @parameter0: java.lang.String;
+
+        i0 := @parameter1: int;
+
+        $r0 = new ucar.nc2.Dimension;
+
+        specialinvoke $r0.<ucar.nc2.Dimension: void <init>(java.lang.String,int,boolean)>(r1, i0, 0);
+
+        return $r0;
+    }
+
+    private ucar.nc2.Dimension makeDimensionShared(java.lang.String, int)
+    {
+        ucar.nc2.iosp.hdf4.H4header r0;
+        int i0, $i1, $i2;
+        java.lang.String $r7, r9;
+        ucar.nc2.Group $r2;
+        ucar.nc2.Dimension $r3, $r8, $r11, $r12;
+        java.lang.StringBuilder $r4, $r5, $r6;
+        ucar.nc2.NetcdfFile $r1, $r10;
+
+        r0 := @this: ucar.nc2.iosp.hdf4.H4header;
+
+        r9 := @parameter0: java.lang.String;
+
+        i0 := @parameter1: int;
+
+        $r1 = r0.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.NetcdfFile ncfile>;
+
+        $r2 = virtualinvoke $r1.<ucar.nc2.NetcdfFile: ucar.nc2.Group getRootGroup()>();
+
+        $r3 = virtualinvoke $r2.<ucar.nc2.Group: ucar.nc2.Dimension findDimension(java.lang.String)>(r9);
+
+        if $r3 == null goto label1;
+
+        $i2 = virtualinvoke $r3.<ucar.nc2.Dimension: int getLength()>();
+
+        if $i2 != i0 goto label1;
+
+        return $r3;
+
+     label1:
+        if $r3 == null goto label2;
+
+        $r4 = new java.lang.StringBuilder;
+
+        specialinvoke $r4.<java.lang.StringBuilder: void <init>()>();
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r9);
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>(i0);
+
+        $r7 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        r9 = $r7;
+
+        $r8 = virtualinvoke $r2.<ucar.nc2.Group: ucar.nc2.Dimension findDimension(java.lang.String)>($r7);
+
+        if $r8 == null goto label2;
+
+        $i1 = virtualinvoke $r8.<ucar.nc2.Dimension: int getLength()>();
+
+        if $i1 != i0 goto label2;
+
+        return $r8;
+
+     label2:
+        $r10 = r0.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.NetcdfFile ncfile>;
+
+        $r11 = new ucar.nc2.Dimension;
+
+        specialinvoke $r11.<ucar.nc2.Dimension: void <init>(java.lang.String,int)>(r9, i0);
+
+        $r12 = virtualinvoke $r10.<ucar.nc2.NetcdfFile: ucar.nc2.Dimension addDimension(ucar.nc2.Group,ucar.nc2.Dimension)>(null, $r11);
+
+        return $r12;
+    }
+
+    private ucar.nc2.Variable makeVariable(ucar.nc2.iosp.hdf4.H4header$TagVH) throws java.io.IOException
+    {
+        java.lang.Integer $r6;
+        java.util.Map $r5;
+        java.lang.StringBuilder $r15, $r17, $r18, $r19, $r52, $r53, $r54, $r56, $r57, $r59, $r68, $r76;
+        ucar.nc2.iosp.hdf4.H4header$Vinfo $r67;
+        ucar.nc2.iosp.hdf4.H4header r1;
+        ucar.nc2.Structure $r72;
+        short $s0, $s1, $s2, $s4, $s5, s8, s10, $s13, $s15, $s16, $s19, $s20, $s21, $s26, $s27, $s28, $s30;
+        java.lang.String $r11, $r16, $r20, $r23, $r33, $r58, $r60, $r63;
+        ucar.nc2.iosp.hdf4.H4header$Minfo $r74;
+        ucar.ma2.InvalidRangeException $r61, $r64;
+        java.lang.IllegalStateException $r69, $r71, $r75;
+        ucar.nc2.iosp.hdf4.H4header$TagVH r2;
+        int[] $r26, $r29, $r30, $r31, $r38, $r39, $r40, $r44, $r45, $r46, $r47;
+        ucar.nc2.iosp.hdf4.H4header$TagData r8;
+        boolean $z0;
+        java.util.List $r3, $r9;
+        ucar.nc2.NetcdfFile $r12, $r24, $r34;
+        short[] $r25, $r27, $r35, $r36, $r37, $r41, $r42, $r43, $r48;
+        java.lang.String[] $r22;
+        ucar.nc2.iosp.hdf4.TagEnum $r4, $r55;
+        int $i3, $i6, $i7, i9, $i11, $i12, $i14, $i17, $i18, $i22, $i23, $i24, $i25, i29, $i31, $i32, $i33, $i34, $i35, $i36, $i37, $i38, $i39, $i40, $i41, $i42;
+        ucar.nc2.Variable r66, $r70, $r73;
+        java.io.PrintStream $r14;
+        org.slf4j.Logger $r51;
+        java.lang.Object $r7;
+
+        r1 := @this: ucar.nc2.iosp.hdf4.H4header;
+
+        r2 := @parameter0: ucar.nc2.iosp.hdf4.H4header$TagVH;
+
+        $r67 = new ucar.nc2.iosp.hdf4.H4header$Vinfo;
+
+        $s0 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVH: short refno>;
+
+        specialinvoke $r67.<ucar.nc2.iosp.hdf4.H4header$Vinfo: void <init>(ucar.nc2.iosp.hdf4.H4header,short)>(r1, $s0);
+
+        $r3 = $r67.<ucar.nc2.iosp.hdf4.H4header$Vinfo: java.util.List tags>;
+
+        interfaceinvoke $r3.<java.util.List: boolean add(java.lang.Object)>(r2);
+
+        r2.<ucar.nc2.iosp.hdf4.H4header$TagVH: ucar.nc2.iosp.hdf4.H4header$Vinfo vinfo> = $r67;
+
+        r2.<ucar.nc2.iosp.hdf4.H4header$TagVH: boolean used> = 1;
+
+        $r5 = r1.<ucar.nc2.iosp.hdf4.H4header: java.util.Map tagMap>;
+
+        $s1 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVH: short refno>;
+
+        $r4 = <ucar.nc2.iosp.hdf4.TagEnum: ucar.nc2.iosp.hdf4.TagEnum VS>;
+
+        $s2 = virtualinvoke $r4.<ucar.nc2.iosp.hdf4.TagEnum: short getCode()>();
+
+        $i3 = staticinvoke <ucar.nc2.iosp.hdf4.H4header: int tagid(short,short)>($s1, $s2);
+
+        $r6 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i3);
+
+        $r7 = interfaceinvoke $r5.<java.util.Map: java.lang.Object get(java.lang.Object)>($r6);
+
+        r8 = (ucar.nc2.iosp.hdf4.H4header$TagData) $r7;
+
+        if r8 != null goto label01;
+
+        $r51 = <ucar.nc2.iosp.hdf4.H4header: org.slf4j.Logger log>;
+
+        $r68 = new java.lang.StringBuilder;
+
+        specialinvoke $r68.<java.lang.StringBuilder: void <init>()>();
+
+        $r52 = virtualinvoke $r68.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Cant find tag ");
+
+        $s27 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVH: short refno>;
+
+        $i31 = (int) $s27;
+
+        $r53 = virtualinvoke $r52.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i31);
+
+        $r54 = virtualinvoke $r53.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("/");
+
+        $r55 = <ucar.nc2.iosp.hdf4.TagEnum: ucar.nc2.iosp.hdf4.TagEnum VS>;
+
+        $s28 = virtualinvoke $r55.<ucar.nc2.iosp.hdf4.TagEnum: short getCode()>();
+
+        $i32 = (int) $s28;
+
+        $r56 = virtualinvoke $r54.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i32);
+
+        $r57 = virtualinvoke $r56.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" for TagVH=");
+
+        $r58 = virtualinvoke r2.<ucar.nc2.iosp.hdf4.H4header$TagVH: java.lang.String detail()>();
+
+        $r59 = virtualinvoke $r57.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r58);
+
+        $r60 = virtualinvoke $r59.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r51.<org.slf4j.Logger: void error(java.lang.String)>($r60);
+
+        return null;
+
+     label01:
+        $r9 = $r67.<ucar.nc2.iosp.hdf4.H4header$Vinfo: java.util.List tags>;
+
+        interfaceinvoke $r9.<java.util.List: boolean add(java.lang.Object)>(r8);
+
+        r8.<ucar.nc2.iosp.hdf4.H4header$TagData: boolean used> = 1;
+
+        r8.<ucar.nc2.iosp.hdf4.H4header$TagData: ucar.nc2.iosp.hdf4.H4header$Vinfo vinfo> = $r67;
+
+        $s4 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVH: short nfields>;
+
+        $i33 = (int) $s4;
+
+        if $i33 >= 1 goto label02;
+
+        $r69 = new java.lang.IllegalStateException;
+
+        specialinvoke $r69.<java.lang.IllegalStateException: void <init>()>();
+
+        throw $r69;
+
+     label02:
+        $s5 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVH: short nfields>;
+
+        if $s5 != 1 goto label12;
+
+        $r70 = new ucar.nc2.Variable;
+
+        $r34 = r1.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.NetcdfFile ncfile>;
+
+        $r33 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVH: java.lang.String name>;
+
+        specialinvoke $r70.<ucar.nc2.Variable: void <init>(ucar.nc2.NetcdfFile,ucar.nc2.Group,ucar.nc2.Structure,java.lang.String)>($r34, null, null, $r33);
+
+        r66 = $r70;
+
+        virtualinvoke $r67.<ucar.nc2.iosp.hdf4.H4header$Vinfo: void setVariable(ucar.nc2.Variable)>($r70);
+
+        $r35 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVH: short[] fld_type>;
+
+        $s13 = $r35[0];
+
+        staticinvoke <ucar.nc2.iosp.hdf4.H4type: ucar.ma2.DataType setDataType(short,ucar.nc2.Variable)>($s13, $r70);
+
+     label03:
+        $i14 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVH: int nvert>;
+
+        if $i14 <= 1 goto label06;
+
+        $r42 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVH: short[] fld_order>;
+
+        $s20 = $r42[0];
+
+        $i34 = (int) $s20;
+
+        if $i34 <= 1 goto label04;
+
+        $r47 = newarray (int)[2];
+
+        $i25 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVH: int nvert>;
+
+        $r47[0] = $i25;
+
+        $r48 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVH: short[] fld_order>;
+
+        $s26 = $r48[0];
+
+        $i35 = (int) $s26;
+
+        $r47[1] = $i35;
+
+        virtualinvoke $r70.<ucar.nc2.Variable: void setDimensionsAnonymous(int[])>($r47);
+
+        goto label09;
+
+     label04:
+        $r43 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVH: short[] fld_order>;
+
+        $s21 = $r43[0];
+
+        $i36 = (int) $s21;
+
+        if $i36 >= 0 goto label05;
+
+        $r45 = newarray (int)[2];
+
+        $i23 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVH: int nvert>;
+
+        $r45[0] = $i23;
+
+        $r46 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVH: int[] fld_isize>;
+
+        $i24 = $r46[0];
+
+        $r45[1] = $i24;
+
+        virtualinvoke $r70.<ucar.nc2.Variable: void setDimensionsAnonymous(int[])>($r45);
+
+        goto label09;
+
+     label05:
+        $r44 = newarray (int)[1];
+
+        $i22 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVH: int nvert>;
+
+        $r44[0] = $i22;
+
+        virtualinvoke $r70.<ucar.nc2.Variable: void setDimensionsAnonymous(int[])>($r44);
+
+        goto label09;
+
+     label06:
+        $r36 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVH: short[] fld_order>;
+
+        $s15 = $r36[0];
+
+        $i37 = (int) $s15;
+
+        if $i37 <= 1 goto label07;
+
+        $r40 = newarray (int)[1];
+
+        $r41 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVH: short[] fld_order>;
+
+        $s19 = $r41[0];
+
+        $i38 = (int) $s19;
+
+        $r40[0] = $i38;
+
+        virtualinvoke $r70.<ucar.nc2.Variable: void setDimensionsAnonymous(int[])>($r40);
+
+        goto label09;
+
+     label07:
+        $r37 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVH: short[] fld_order>;
+
+        $s16 = $r37[0];
+
+        $i39 = (int) $s16;
+
+        if $i39 >= 0 goto label08;
+
+        $r38 = newarray (int)[1];
+
+        $r39 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVH: int[] fld_isize>;
+
+        $i18 = $r39[0];
+
+        $r38[0] = $i18;
+
+        virtualinvoke $r70.<ucar.nc2.Variable: void setDimensionsAnonymous(int[])>($r38);
+
+        goto label09;
+
+     label08:
+        virtualinvoke $r70.<ucar.nc2.Variable: void setIsScalar()>();
+
+     label09:
+        goto label11;
+
+     label10:
+        $r64 := @caughtexception;
+
+        $r71 = new java.lang.IllegalStateException;
+
+        specialinvoke $r71.<java.lang.IllegalStateException: void <init>()>();
+
+        throw $r71;
+
+     label11:
+        $i17 = virtualinvoke $r70.<ucar.nc2.Variable: int getElementSize()>();
+
+        virtualinvoke $r67.<ucar.nc2.iosp.hdf4.H4header$Vinfo: void setData(ucar.nc2.iosp.hdf4.H4header$TagData,int)>(r8, $i17);
+
+        goto label21;
+
+     label12:
+        $r72 = new ucar.nc2.Structure;
+
+        $r12 = r1.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.NetcdfFile ncfile>;
+
+        $r11 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVH: java.lang.String name>;
+
+        specialinvoke $r72.<ucar.nc2.Structure: void <init>(ucar.nc2.NetcdfFile,ucar.nc2.Group,ucar.nc2.Structure,java.lang.String)>($r12, null, null, $r11);
+
+        virtualinvoke $r67.<ucar.nc2.iosp.hdf4.H4header$Vinfo: void setVariable(ucar.nc2.Variable)>($r72);
+
+        $i6 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVH: int nvert>;
+
+        if $i6 <= 1 goto label13;
+
+        $r31 = newarray (int)[1];
+
+        $i12 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVH: int nvert>;
+
+        $r31[0] = $i12;
+
+        virtualinvoke $r72.<ucar.nc2.Structure: void setDimensionsAnonymous(int[])>($r31);
+
+        goto label14;
+
+     label13:
+        virtualinvoke $r72.<ucar.nc2.Structure: void setIsScalar()>();
+
+     label14:
+        i29 = 0;
+
+     label15:
+        $s30 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVH: short nfields>;
+
+        $i40 = (int) $s30;
+
+        if i29 >= $i40 goto label18;
+
+        $r73 = new ucar.nc2.Variable;
+
+        $r24 = r1.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.NetcdfFile ncfile>;
+
+        $r22 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVH: java.lang.String[] fld_name>;
+
+        $r23 = $r22[i29];
+
+        specialinvoke $r73.<ucar.nc2.Variable: void <init>(ucar.nc2.NetcdfFile,ucar.nc2.Group,ucar.nc2.Structure,java.lang.String)>($r24, null, $r72, $r23);
+
+        $r25 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVH: short[] fld_type>;
+
+        s8 = $r25[i29];
+
+        $r26 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVH: int[] fld_isize>;
+
+        i9 = $r26[i29];
+
+        $r27 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVH: short[] fld_order>;
+
+        s10 = $r27[i29];
+
+        staticinvoke <ucar.nc2.iosp.hdf4.H4type: ucar.ma2.DataType setDataType(short,ucar.nc2.Variable)>(s8, $r73);
+
+        $i41 = (int) s10;
+
+        if $i41 <= 1 goto label16;
+
+        $r30 = newarray (int)[1];
+
+        $i42 = (int) s10;
+
+        $r30[0] = $i42;
+
+        virtualinvoke $r73.<ucar.nc2.Variable: void setDimensionsAnonymous(int[])>($r30);
+
+        goto label17;
+
+     label16:
+        virtualinvoke $r73.<ucar.nc2.Variable: void setIsScalar()>();
+
+     label17:
+        $r74 = new ucar.nc2.iosp.hdf4.H4header$Minfo;
+
+        $r29 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVH: int[] fld_offset>;
+
+        $i11 = $r29[i29];
+
+        specialinvoke $r74.<ucar.nc2.iosp.hdf4.H4header$Minfo: void <init>(int,int,short)>($i11, i9, s10);
+
+        virtualinvoke $r73.<ucar.nc2.Variable: void setSPobject(java.lang.Object)>($r74);
+
+        virtualinvoke $r72.<ucar.nc2.Structure: ucar.nc2.Variable addMemberVariable(ucar.nc2.Variable)>($r73);
+
+        i29 = i29 + 1;
+
+        goto label15;
+
+     label18:
+        goto label20;
+
+     label19:
+        $r61 := @caughtexception;
+
+        $r75 = new java.lang.IllegalStateException;
+
+        $r63 = virtualinvoke $r61.<ucar.ma2.InvalidRangeException: java.lang.String getMessage()>();
+
+        specialinvoke $r75.<java.lang.IllegalStateException: void <init>(java.lang.String)>($r63);
+
+        throw $r75;
+
+     label20:
+        $i7 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVH: int ivsize>;
+
+        virtualinvoke $r67.<ucar.nc2.iosp.hdf4.H4header$Vinfo: void setData(ucar.nc2.iosp.hdf4.H4header$TagData,int)>(r8, $i7);
+
+        r66 = $r72;
+
+     label21:
+        $z0 = <ucar.nc2.iosp.hdf4.H4header: boolean debugConstruct>;
+
+        if $z0 == 0 goto label22;
+
+        $r14 = <java.lang.System: java.io.PrintStream out>;
+
+        $r76 = new java.lang.StringBuilder;
+
+        specialinvoke $r76.<java.lang.StringBuilder: void <init>()>();
+
+        $r15 = virtualinvoke $r76.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("added variable ");
+
+        $r16 = virtualinvoke r66.<ucar.nc2.Variable: java.lang.String getNameAndDimensions()>();
+
+        $r17 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r16);
+
+        $r18 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" from VH ");
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r2);
+
+        $r20 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r14.<java.io.PrintStream: void println(java.lang.String)>($r20);
+
+     label22:
+        return r66;
+
+        catch ucar.ma2.InvalidRangeException from label03 to label09 with label10;
+        catch ucar.ma2.InvalidRangeException from label12 to label18 with label19;
+    }
+
+    private ucar.nc2.Variable makeVariable(ucar.nc2.iosp.hdf4.H4header$TagVGroup) throws java.io.IOException
+    {
+        java.lang.Integer $r68;
+        byte $b2;
+        java.util.Map $r67;
+        java.lang.StringBuilder $r10, $r12, $r13, $r14, $r18, $r20, $r28, $r29, $r37, $r38, $r40, $r41, $r43, $r49, $r50, $r51, $r53, $r57, $r58, $r62, $r63, $r81, $r83, $r84, $r86, $r98, $r100, $r101, $r102, $r105, $r106, $r107, $r108;
+        short $s0, $s3, $s5, $s12, $s13, $s14, $s15, $s16, $s18, $s19, $s20, $s21, $s22, $s23;
+        ucar.ma2.InvalidRangeException $r88;
+        int[] $r31, $r32, $r36, $r45, $r94;
+        ucar.nc2.iosp.hdf4.H4header$TagVGroup r2, r93;
+        int $i1, $i4, $i6, $i7, $i8, $i9, $i10, $i11, $i17, i24, i25, $i26, $i27, $i28, $i29, $i30, $i31, $i32, $i33, $i34, $i35, $i36;
+        ucar.nc2.Variable $r103;
+        java.io.PrintStream $r9, $r17, $r22, $r24, $r27;
+        org.slf4j.Logger $r35, $r48, $r56, $r61, $r80;
+        java.lang.Object $r25, $r69;
+        ucar.nc2.Group $r75;
+        ucar.nc2.iosp.hdf4.H4header$Vinfo $r96;
+        ucar.nc2.iosp.hdf4.H4header r1;
+        java.lang.AssertionError $r104;
+        ucar.nc2.iosp.hdf4.H4header$TagSDDimension r89;
+        java.util.ArrayList $r97;
+        java.lang.String $r6, $r11, $r15, $r19, $r21, $r30, $r42, $r44, $r52, $r54, $r59, $r64, $r71, $r72, $r73, $r78, $r87;
+        ucar.nc2.iosp.hdf4.H4header$TagNumberType r90;
+        ucar.nc2.Dimension $r33, $r39, $r76, r95;
+        java.lang.IllegalStateException $r99;
+        ucar.nc2.iosp.hdf4.H4header$TagData r91;
+        boolean $z0, $z1, $z2, $z3, $z4, z5, $z6;
+        java.util.List $r3, $r70;
+        ucar.nc2.iosp.hdf4.H4header$Tag r92;
+        ucar.nc2.NetcdfFile $r7, $r74;
+        short[] $r65, $r66, $r82, $r85;
+        java.util.Iterator $r23;
+
+        r1 := @this: ucar.nc2.iosp.hdf4.H4header;
+
+        r2 := @parameter0: ucar.nc2.iosp.hdf4.H4header$TagVGroup;
+
+        $r96 = new ucar.nc2.iosp.hdf4.H4header$Vinfo;
+
+        $s0 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: short refno>;
+
+        specialinvoke $r96.<ucar.nc2.iosp.hdf4.H4header$Vinfo: void <init>(ucar.nc2.iosp.hdf4.H4header,short)>(r1, $s0);
+
+        $r3 = $r96.<ucar.nc2.iosp.hdf4.H4header$Vinfo: java.util.List tags>;
+
+        interfaceinvoke $r3.<java.util.List: boolean add(java.lang.Object)>(r2);
+
+        r2.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: boolean used> = 1;
+
+        r89 = null;
+
+        r90 = null;
+
+        r91 = null;
+
+        $r97 = new java.util.ArrayList;
+
+        specialinvoke $r97.<java.util.ArrayList: void <init>()>();
+
+        i24 = 0;
+
+     label01:
+        $i1 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: int nelems>;
+
+        if i24 >= $i1 goto label09;
+
+        $r67 = r1.<ucar.nc2.iosp.hdf4.H4header: java.util.Map tagMap>;
+
+        $r65 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: short[] elem_ref>;
+
+        $s16 = $r65[i24];
+
+        $r66 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: short[] elem_tag>;
+
+        $s15 = $r66[i24];
+
+        $i17 = staticinvoke <ucar.nc2.iosp.hdf4.H4header: int tagid(short,short)>($s16, $s15);
+
+        $r68 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i17);
+
+        $r69 = interfaceinvoke $r67.<java.util.Map: java.lang.Object get(java.lang.Object)>($r68);
+
+        r92 = (ucar.nc2.iosp.hdf4.H4header$Tag) $r69;
+
+        if r92 != null goto label02;
+
+        $r80 = <ucar.nc2.iosp.hdf4.H4header: org.slf4j.Logger log>;
+
+        $r98 = new java.lang.StringBuilder;
+
+        specialinvoke $r98.<java.lang.StringBuilder: void <init>()>();
+
+        $r81 = virtualinvoke $r98.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Reference tag missing= ");
+
+        $r82 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: short[] elem_ref>;
+
+        $s22 = $r82[i24];
+
+        $i27 = (int) $s22;
+
+        $r83 = virtualinvoke $r81.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i27);
+
+        $r84 = virtualinvoke $r83.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("/");
+
+        $r85 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: short[] elem_tag>;
+
+        $s23 = $r85[i24];
+
+        $i28 = (int) $s23;
+
+        $r86 = virtualinvoke $r84.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i28);
+
+        $r87 = virtualinvoke $r86.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r80.<org.slf4j.Logger: void error(java.lang.String)>($r87);
+
+        goto label08;
+
+     label02:
+        $r70 = $r96.<ucar.nc2.iosp.hdf4.H4header$Vinfo: java.util.List tags>;
+
+        interfaceinvoke $r70.<java.util.List: boolean add(java.lang.Object)>(r92);
+
+        r92.<ucar.nc2.iosp.hdf4.H4header$Tag: ucar.nc2.iosp.hdf4.H4header$Vinfo vinfo> = $r96;
+
+        r92.<ucar.nc2.iosp.hdf4.H4header$Tag: boolean used> = 1;
+
+        $s18 = r92.<ucar.nc2.iosp.hdf4.H4header$Tag: short code>;
+
+        $i29 = (int) $s18;
+
+        if $i29 != 106 goto label03;
+
+        r90 = (ucar.nc2.iosp.hdf4.H4header$TagNumberType) r92;
+
+     label03:
+        $s19 = r92.<ucar.nc2.iosp.hdf4.H4header$Tag: short code>;
+
+        $i30 = (int) $s19;
+
+        if $i30 != 701 goto label04;
+
+        r89 = (ucar.nc2.iosp.hdf4.H4header$TagSDDimension) r92;
+
+     label04:
+        $s20 = r92.<ucar.nc2.iosp.hdf4.H4header$Tag: short code>;
+
+        $i31 = (int) $s20;
+
+        if $i31 != 702 goto label05;
+
+        r91 = (ucar.nc2.iosp.hdf4.H4header$TagData) r92;
+
+     label05:
+        $s21 = r92.<ucar.nc2.iosp.hdf4.H4header$Tag: short code>;
+
+        $i32 = (int) $s21;
+
+        if $i32 != 1965 goto label08;
+
+        r93 = (ucar.nc2.iosp.hdf4.H4header$TagVGroup) r92;
+
+        $r71 = r93.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: java.lang.String className>;
+
+        $z3 = virtualinvoke $r71.<java.lang.String: boolean startsWith(java.lang.String)>("Dim");
+
+        if $z3 != 0 goto label06;
+
+        $r78 = r93.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: java.lang.String className>;
+
+        $z4 = virtualinvoke $r78.<java.lang.String: boolean startsWith(java.lang.String)>("UDim");
+
+        if $z4 == 0 goto label08;
+
+     label06:
+        $r72 = r93.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: java.lang.String name>;
+
+        $r73 = staticinvoke <ucar.nc2.iosp.hdf4.H4header: java.lang.String createValidObjectName(java.lang.String)>($r72);
+
+        $r74 = r1.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.NetcdfFile ncfile>;
+
+        $r75 = virtualinvoke $r74.<ucar.nc2.NetcdfFile: ucar.nc2.Group getRootGroup()>();
+
+        $r76 = virtualinvoke $r75.<ucar.nc2.Group: ucar.nc2.Dimension findDimension(java.lang.String)>($r73);
+
+        if $r76 != null goto label07;
+
+        $r99 = new java.lang.IllegalStateException;
+
+        specialinvoke $r99.<java.lang.IllegalStateException: void <init>()>();
+
+        throw $r99;
+
+     label07:
+        interfaceinvoke $r97.<java.util.List: boolean add(java.lang.Object)>($r76);
+
+     label08:
+        i24 = i24 + 1;
+
+        goto label01;
+
+     label09:
+        if r90 != null goto label10;
+
+        $r61 = <ucar.nc2.iosp.hdf4.H4header: org.slf4j.Logger log>;
+
+        $r100 = new java.lang.StringBuilder;
+
+        specialinvoke $r100.<java.lang.StringBuilder: void <init>()>();
+
+        $r62 = virtualinvoke $r100.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("ntype tag missing vgroup= ");
+
+        $s14 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: short refno>;
+
+        $i33 = (int) $s14;
+
+        $r63 = virtualinvoke $r62.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i33);
+
+        $r64 = virtualinvoke $r63.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r61.<org.slf4j.Logger: void error(java.lang.String)>($r64);
+
+        return null;
+
+     label10:
+        if r89 != null goto label11;
+
+        $r56 = <ucar.nc2.iosp.hdf4.H4header: org.slf4j.Logger log>;
+
+        $r101 = new java.lang.StringBuilder;
+
+        specialinvoke $r101.<java.lang.StringBuilder: void <init>()>();
+
+        $r57 = virtualinvoke $r101.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("dim tag missing vgroup= ");
+
+        $s13 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: short refno>;
+
+        $i34 = (int) $s13;
+
+        $r58 = virtualinvoke $r57.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i34);
+
+        $r59 = virtualinvoke $r58.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r56.<org.slf4j.Logger: void error(java.lang.String)>($r59);
+
+        return null;
+
+     label11:
+        if r91 != null goto label12;
+
+        $r48 = <ucar.nc2.iosp.hdf4.H4header: org.slf4j.Logger log>;
+
+        $r102 = new java.lang.StringBuilder;
+
+        specialinvoke $r102.<java.lang.StringBuilder: void <init>()>();
+
+        $r49 = virtualinvoke $r102.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("data tag missing vgroup= ");
+
+        $s12 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: short refno>;
+
+        $i35 = (int) $s12;
+
+        $r50 = virtualinvoke $r49.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i35);
+
+        $r51 = virtualinvoke $r50.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" ");
+
+        $r52 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: java.lang.String name>;
+
+        $r53 = virtualinvoke $r51.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r52);
+
+        $r54 = virtualinvoke $r53.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r48.<org.slf4j.Logger: void warn(java.lang.String)>($r54);
+
+     label12:
+        $r103 = new ucar.nc2.Variable;
+
+        $r7 = r1.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.NetcdfFile ncfile>;
+
+        $r6 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: java.lang.String name>;
+
+        specialinvoke $r103.<ucar.nc2.Variable: void <init>(ucar.nc2.NetcdfFile,ucar.nc2.Group,ucar.nc2.Structure,java.lang.String)>($r7, null, null, $r6);
+
+        virtualinvoke $r103.<ucar.nc2.Variable: void setDimensions(java.util.List)>($r97);
+
+        $b2 = r90.<ucar.nc2.iosp.hdf4.H4header$TagNumberType: byte type>;
+
+        $s3 = (short) $b2;
+
+        staticinvoke <ucar.nc2.iosp.hdf4.H4type: ucar.ma2.DataType setDataType(short,ucar.nc2.Variable)>($s3, $r103);
+
+        virtualinvoke $r96.<ucar.nc2.iosp.hdf4.H4header$Vinfo: void setVariable(ucar.nc2.Variable)>($r103);
+
+        $i4 = virtualinvoke $r103.<ucar.nc2.Variable: int getElementSize()>();
+
+        virtualinvoke $r96.<ucar.nc2.iosp.hdf4.H4header$Vinfo: void setData(ucar.nc2.iosp.hdf4.H4header$TagData,int)>(r91, $i4);
+
+        $z0 = <ucar.nc2.iosp.hdf4.H4header: boolean $assertionsDisabled>;
+
+        if $z0 != 0 goto label13;
+
+        $r45 = r89.<ucar.nc2.iosp.hdf4.H4header$TagSDDimension: int[] shape>;
+
+        $i10 = lengthof $r45;
+
+        $i11 = virtualinvoke $r103.<ucar.nc2.Variable: int getRank()>();
+
+        if $i10 == $i11 goto label13;
+
+        $r104 = new java.lang.AssertionError;
+
+        specialinvoke $r104.<java.lang.AssertionError: void <init>()>();
+
+        throw $r104;
+
+     label13:
+        z5 = 1;
+
+        i25 = 0;
+
+     label14:
+        $r94 = r89.<ucar.nc2.iosp.hdf4.H4header$TagSDDimension: int[] shape>;
+
+        $i26 = lengthof $r94;
+
+        if i25 >= $i26 goto label17;
+
+        $r32 = r89.<ucar.nc2.iosp.hdf4.H4header$TagSDDimension: int[] shape>;
+
+        $i6 = $r32[i25];
+
+        $r33 = virtualinvoke $r103.<ucar.nc2.Variable: ucar.nc2.Dimension getDimension(int)>(i25);
+
+        $i7 = virtualinvoke $r33.<ucar.nc2.Dimension: int getLength()>();
+
+        if $i6 == $i7 goto label16;
+
+        $z2 = <ucar.nc2.iosp.hdf4.H4header: boolean warnings>;
+
+        if $z2 == 0 goto label15;
+
+        $r35 = <ucar.nc2.iosp.hdf4.H4header: org.slf4j.Logger log>;
+
+        $r105 = new java.lang.StringBuilder;
+
+        specialinvoke $r105.<java.lang.StringBuilder: void <init>()>();
+
+        $r36 = r89.<ucar.nc2.iosp.hdf4.H4header$TagSDDimension: int[] shape>;
+
+        $i8 = $r36[i25];
+
+        $r37 = virtualinvoke $r105.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i8);
+
+        $r38 = virtualinvoke $r37.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" != ");
+
+        $r39 = virtualinvoke $r103.<ucar.nc2.Variable: ucar.nc2.Dimension getDimension(int)>(i25);
+
+        $i9 = virtualinvoke $r39.<ucar.nc2.Dimension: int getLength()>();
+
+        $r40 = virtualinvoke $r38.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i9);
+
+        $r41 = virtualinvoke $r40.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" for ");
+
+        $r42 = virtualinvoke $r103.<ucar.nc2.Variable: java.lang.String getName()>();
+
+        $r43 = virtualinvoke $r41.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r42);
+
+        $r44 = virtualinvoke $r43.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r35.<org.slf4j.Logger: void info(java.lang.String)>($r44);
+
+     label15:
+        z5 = 0;
+
+     label16:
+        i25 = i25 + 1;
+
+        goto label14;
+
+     label17:
+        if z5 != 0 goto label21;
+
+     label18:
+        $r31 = r89.<ucar.nc2.iosp.hdf4.H4header$TagSDDimension: int[] shape>;
+
+        virtualinvoke $r103.<ucar.nc2.Variable: void setDimensionsAnonymous(int[])>($r31);
+
+     label19:
+        goto label21;
+
+     label20:
+        $r88 := @caughtexception;
+
+        virtualinvoke $r88.<ucar.ma2.InvalidRangeException: void printStackTrace()>();
+
+     label21:
+        specialinvoke r1.<ucar.nc2.iosp.hdf4.H4header: void addVariableAttributes(ucar.nc2.iosp.hdf4.H4header$TagGroup,ucar.nc2.iosp.hdf4.H4header$Vinfo)>(r2, $r96);
+
+        $z6 = <ucar.nc2.iosp.hdf4.H4header: boolean debugConstruct>;
+
+        if $z6 == 0 goto label24;
+
+        $r9 = <java.lang.System: java.io.PrintStream out>;
+
+        $r106 = new java.lang.StringBuilder;
+
+        specialinvoke $r106.<java.lang.StringBuilder: void <init>()>();
+
+        $r10 = virtualinvoke $r106.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("added variable ");
+
+        $r11 = virtualinvoke $r103.<ucar.nc2.Variable: java.lang.String getNameAndDimensions()>();
+
+        $r12 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r11);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" from VG ");
+
+        $s5 = r2.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: short refno>;
+
+        $i36 = (int) $s5;
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i36);
+
+        $r15 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r9.<java.io.PrintStream: void println(java.lang.String)>($r15);
+
+        $r17 = <java.lang.System: java.io.PrintStream out>;
+
+        $r107 = new java.lang.StringBuilder;
+
+        specialinvoke $r107.<java.lang.StringBuilder: void <init>()>();
+
+        $r18 = virtualinvoke $r107.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("  SDdim= ");
+
+        $r19 = virtualinvoke r89.<ucar.nc2.iosp.hdf4.H4header$TagSDDimension: java.lang.String detail()>();
+
+        $r20 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r19);
+
+        $r21 = virtualinvoke $r20.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r17.<java.io.PrintStream: void println(java.lang.String)>($r21);
+
+        $r22 = <java.lang.System: java.io.PrintStream out>;
+
+        virtualinvoke $r22.<java.io.PrintStream: void print(java.lang.String)>("  VGdim= ");
+
+        $r23 = interfaceinvoke $r97.<java.util.List: java.util.Iterator iterator()>();
+
+     label22:
+        $z1 = interfaceinvoke $r23.<java.util.Iterator: boolean hasNext()>();
+
+        if $z1 == 0 goto label23;
+
+        $r25 = interfaceinvoke $r23.<java.util.Iterator: java.lang.Object next()>();
+
+        r95 = (ucar.nc2.Dimension) $r25;
+
+        $r27 = <java.lang.System: java.io.PrintStream out>;
+
+        $r108 = new java.lang.StringBuilder;
+
+        specialinvoke $r108.<java.lang.StringBuilder: void <init>()>();
+
+        $r28 = virtualinvoke $r108.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r95);
+
+        $r29 = virtualinvoke $r28.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" ");
+
+        $r30 = virtualinvoke $r29.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r27.<java.io.PrintStream: void print(java.lang.String)>($r30);
+
+        goto label22;
+
+     label23:
+        $r24 = <java.lang.System: java.io.PrintStream out>;
+
+        virtualinvoke $r24.<java.io.PrintStream: void println()>();
+
+     label24:
+        return $r103;
+
+        catch ucar.ma2.InvalidRangeException from label18 to label19 with label20;
+    }
+
+    private ucar.nc2.Variable makeVariable(ucar.nc2.iosp.hdf4.H4header$TagGroup) throws java.io.IOException
+    {
+        java.lang.Integer $r7, $r34, $r52;
+        byte $b6;
+        java.util.Map $r6, $r33, $r51;
+        ucar.nc2.Attribute $r84, $r85, $r86, $r87, $r88;
+        java.lang.StringBuilder $r12, $r13, $r19, $r21, $r22, $r23, $r27, $r29, $r57, $r59, $r60, $r62, $r63, $r64, $r77, $r80, $r89, $r90;
+        ucar.nc2.iosp.hdf4.H4header$Vinfo $r76;
+        ucar.nc2.iosp.hdf4.H4header r1;
+        ucar.nc2.iosp.hdf4.H4header$TagSDDimension r68;
+        short $s0, $s2, $s3, $s5, $s7, $s10, $s11, $s13, $s14, $s15, $s16, $s17, $s18, $s19, $s20, $s21, $s23, $s24, $s25, $s26, $s27;
+        ucar.nc2.iosp.hdf4.H4header$TagSDminmax r75;
+        java.lang.String $r14, $r20, $r24, $r28, $r30, $r65;
+        java.lang.Number $r38, $r40;
+        ucar.nc2.iosp.hdf4.H4header$TagNumberType r71;
+        ucar.ma2.InvalidRangeException $r66;
+        java.lang.IllegalStateException $r78, $r79, $r82, $r83;
+        int[] $r15;
+        ucar.nc2.iosp.hdf4.H4header$TagData r69;
+        boolean $z0;
+        ucar.ma2.DataType $r16;
+        java.util.List $r3, $r42, $r44, $r46, $r54;
+        ucar.nc2.iosp.hdf4.H4header$Tag r36, r70;
+        ucar.nc2.NetcdfFile $r11;
+        short[] $r31, $r32, $r49, $r50, $r58, $r61;
+        ucar.nc2.iosp.hdf4.TagEnum $r5;
+        int $i1, $i4, $i8, $i9, $i12, $i22, i28, i29, $i30, $i31, $i32, $i33, $i34, $i35, $i36, $i37, $i38, $i39, $i40, $i41, $i42;
+        ucar.nc2.Variable $r81;
+        java.io.PrintStream $r18, $r26;
+        org.slf4j.Logger $r56;
+        ucar.nc2.iosp.hdf4.H4header$TagGroup r2;
+        ucar.nc2.iosp.hdf4.H4header$TagTextN r72, r73, r74;
+        java.lang.Object $r8, $r35, $r53;
+
+        r1 := @this: ucar.nc2.iosp.hdf4.H4header;
+
+        r2 := @parameter0: ucar.nc2.iosp.hdf4.H4header$TagGroup;
+
+        $r76 = new ucar.nc2.iosp.hdf4.H4header$Vinfo;
+
+        $s0 = r2.<ucar.nc2.iosp.hdf4.H4header$TagGroup: short refno>;
+
+        specialinvoke $r76.<ucar.nc2.iosp.hdf4.H4header$Vinfo: void <init>(ucar.nc2.iosp.hdf4.H4header,short)>(r1, $s0);
+
+        $r3 = $r76.<ucar.nc2.iosp.hdf4.H4header$Vinfo: java.util.List tags>;
+
+        interfaceinvoke $r3.<java.util.List: boolean add(java.lang.Object)>(r2);
+
+        r2.<ucar.nc2.iosp.hdf4.H4header$TagGroup: boolean used> = 1;
+
+        r68 = null;
+
+        r69 = null;
+
+        i28 = 0;
+
+     label01:
+        $i1 = r2.<ucar.nc2.iosp.hdf4.H4header$TagGroup: int nelems>;
+
+        if i28 >= $i1 goto label05;
+
+        $r51 = r1.<ucar.nc2.iosp.hdf4.H4header: java.util.Map tagMap>;
+
+        $r49 = r2.<ucar.nc2.iosp.hdf4.H4header$TagGroup: short[] elem_ref>;
+
+        $s21 = $r49[i28];
+
+        $r50 = r2.<ucar.nc2.iosp.hdf4.H4header$TagGroup: short[] elem_tag>;
+
+        $s20 = $r50[i28];
+
+        $i22 = staticinvoke <ucar.nc2.iosp.hdf4.H4header: int tagid(short,short)>($s21, $s20);
+
+        $r52 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i22);
+
+        $r53 = interfaceinvoke $r51.<java.util.Map: java.lang.Object get(java.lang.Object)>($r52);
+
+        r70 = (ucar.nc2.iosp.hdf4.H4header$Tag) $r53;
+
+        if r70 != null goto label02;
+
+        $r56 = <ucar.nc2.iosp.hdf4.H4header: org.slf4j.Logger log>;
+
+        $r77 = new java.lang.StringBuilder;
+
+        specialinvoke $r77.<java.lang.StringBuilder: void <init>()>();
+
+        $r57 = virtualinvoke $r77.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Cant find tag ");
+
+        $r58 = r2.<ucar.nc2.iosp.hdf4.H4header$TagGroup: short[] elem_ref>;
+
+        $s25 = $r58[i28];
+
+        $i30 = (int) $s25;
+
+        $r59 = virtualinvoke $r57.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i30);
+
+        $r60 = virtualinvoke $r59.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("/");
+
+        $r61 = r2.<ucar.nc2.iosp.hdf4.H4header$TagGroup: short[] elem_tag>;
+
+        $s26 = $r61[i28];
+
+        $i31 = (int) $s26;
+
+        $r62 = virtualinvoke $r60.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i31);
+
+        $r63 = virtualinvoke $r62.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" for group=");
+
+        $s27 = r2.<ucar.nc2.iosp.hdf4.H4header$TagGroup: short refno>;
+
+        $i32 = (int) $s27;
+
+        $r64 = virtualinvoke $r63.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i32);
+
+        $r65 = virtualinvoke $r64.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r56.<org.slf4j.Logger: void error(java.lang.String)>($r65);
+
+        goto label04;
+
+     label02:
+        $r54 = $r76.<ucar.nc2.iosp.hdf4.H4header$Vinfo: java.util.List tags>;
+
+        interfaceinvoke $r54.<java.util.List: boolean add(java.lang.Object)>(r70);
+
+        r70.<ucar.nc2.iosp.hdf4.H4header$Tag: ucar.nc2.iosp.hdf4.H4header$Vinfo vinfo> = $r76;
+
+        r70.<ucar.nc2.iosp.hdf4.H4header$Tag: boolean used> = 1;
+
+        $s23 = r70.<ucar.nc2.iosp.hdf4.H4header$Tag: short code>;
+
+        $i33 = (int) $s23;
+
+        if $i33 != 701 goto label03;
+
+        r68 = (ucar.nc2.iosp.hdf4.H4header$TagSDDimension) r70;
+
+     label03:
+        $s24 = r70.<ucar.nc2.iosp.hdf4.H4header$Tag: short code>;
+
+        $i34 = (int) $s24;
+
+        if $i34 != 702 goto label04;
+
+        r69 = (ucar.nc2.iosp.hdf4.H4header$TagData) r70;
+
+     label04:
+        i28 = i28 + 1;
+
+        goto label01;
+
+     label05:
+        if r68 == null goto label06;
+
+        if r69 != null goto label07;
+
+     label06:
+        $r78 = new java.lang.IllegalStateException;
+
+        specialinvoke $r78.<java.lang.IllegalStateException: void <init>()>();
+
+        throw $r78;
+
+     label07:
+        $r6 = r1.<ucar.nc2.iosp.hdf4.H4header: java.util.Map tagMap>;
+
+        $s2 = r68.<ucar.nc2.iosp.hdf4.H4header$TagSDDimension: short nt_ref>;
+
+        $r5 = <ucar.nc2.iosp.hdf4.TagEnum: ucar.nc2.iosp.hdf4.TagEnum NT>;
+
+        $s3 = virtualinvoke $r5.<ucar.nc2.iosp.hdf4.TagEnum: short getCode()>();
+
+        $i4 = staticinvoke <ucar.nc2.iosp.hdf4.H4header: int tagid(short,short)>($s2, $s3);
+
+        $r7 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i4);
+
+        $r8 = interfaceinvoke $r6.<java.util.Map: java.lang.Object get(java.lang.Object)>($r7);
+
+        r71 = (ucar.nc2.iosp.hdf4.H4header$TagNumberType) $r8;
+
+        if null != r71 goto label08;
+
+        $r79 = new java.lang.IllegalStateException;
+
+        specialinvoke $r79.<java.lang.IllegalStateException: void <init>()>();
+
+        throw $r79;
+
+     label08:
+        $r81 = new ucar.nc2.Variable;
+
+        $r11 = r1.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.NetcdfFile ncfile>;
+
+        $r80 = new java.lang.StringBuilder;
+
+        specialinvoke $r80.<java.lang.StringBuilder: void <init>()>();
+
+        $r12 = virtualinvoke $r80.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("SDS-");
+
+        $s5 = r2.<ucar.nc2.iosp.hdf4.H4header$TagGroup: short refno>;
+
+        $i35 = (int) $s5;
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i35);
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r81.<ucar.nc2.Variable: void <init>(ucar.nc2.NetcdfFile,ucar.nc2.Group,ucar.nc2.Structure,java.lang.String)>($r11, null, null, $r14);
+
+     label09:
+        $r15 = r68.<ucar.nc2.iosp.hdf4.H4header$TagSDDimension: int[] shape>;
+
+        virtualinvoke $r81.<ucar.nc2.Variable: void setDimensionsAnonymous(int[])>($r15);
+
+     label10:
+        goto label12;
+
+     label11:
+        $r66 := @caughtexception;
+
+        $r82 = new java.lang.IllegalStateException;
+
+        specialinvoke $r82.<java.lang.IllegalStateException: void <init>()>();
+
+        throw $r82;
+
+     label12:
+        $b6 = r71.<ucar.nc2.iosp.hdf4.H4header$TagNumberType: byte type>;
+
+        $s7 = (short) $b6;
+
+        $r16 = staticinvoke <ucar.nc2.iosp.hdf4.H4type: ucar.ma2.DataType setDataType(short,ucar.nc2.Variable)>($s7, $r81);
+
+        virtualinvoke $r76.<ucar.nc2.iosp.hdf4.H4header$Vinfo: void setVariable(ucar.nc2.Variable)>($r81);
+
+        $i8 = virtualinvoke $r81.<ucar.nc2.Variable: int getElementSize()>();
+
+        virtualinvoke $r76.<ucar.nc2.iosp.hdf4.H4header$Vinfo: void setData(ucar.nc2.iosp.hdf4.H4header$TagData,int)>(r69, $i8);
+
+        i29 = 0;
+
+     label13:
+        $i9 = r2.<ucar.nc2.iosp.hdf4.H4header$TagGroup: int nelems>;
+
+        if i29 >= $i9 goto label19;
+
+        $r33 = r1.<ucar.nc2.iosp.hdf4.H4header: java.util.Map tagMap>;
+
+        $r31 = r2.<ucar.nc2.iosp.hdf4.H4header$TagGroup: short[] elem_ref>;
+
+        $s11 = $r31[i29];
+
+        $r32 = r2.<ucar.nc2.iosp.hdf4.H4header$TagGroup: short[] elem_tag>;
+
+        $s10 = $r32[i29];
+
+        $i12 = staticinvoke <ucar.nc2.iosp.hdf4.H4header: int tagid(short,short)>($s11, $s10);
+
+        $r34 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i12);
+
+        $r35 = interfaceinvoke $r33.<java.util.Map: java.lang.Object get(java.lang.Object)>($r34);
+
+        r36 = (ucar.nc2.iosp.hdf4.H4header$Tag) $r35;
+
+        if r36 != null goto label14;
+
+        $r83 = new java.lang.IllegalStateException;
+
+        specialinvoke $r83.<java.lang.IllegalStateException: void <init>()>();
+
+        throw $r83;
+
+     label14:
+        $s13 = r36.<ucar.nc2.iosp.hdf4.H4header$Tag: short code>;
+
+        $i36 = (int) $s13;
+
+        if $i36 != 704 goto label15;
+
+        r72 = (ucar.nc2.iosp.hdf4.H4header$TagTextN) r36;
+
+        $s19 = r68.<ucar.nc2.iosp.hdf4.H4header$TagSDDimension: short rank>;
+
+        $i37 = (int) $s19;
+
+        virtualinvoke r72.<ucar.nc2.iosp.hdf4.H4header$TagTextN: void read(int)>($i37);
+
+        r36.<ucar.nc2.iosp.hdf4.H4header$Tag: boolean used> = 1;
+
+        $r84 = new ucar.nc2.Attribute;
+
+        $r46 = staticinvoke <ucar.nc2.iosp.hdf4.H4header$TagTextN: java.util.List access$000(ucar.nc2.iosp.hdf4.H4header$TagTextN)>(r72);
+
+        specialinvoke $r84.<ucar.nc2.Attribute: void <init>(java.lang.String,java.util.List)>("long_name", $r46);
+
+        virtualinvoke $r81.<ucar.nc2.Variable: ucar.nc2.Attribute addAttribute(ucar.nc2.Attribute)>($r84);
+
+     label15:
+        $s14 = r36.<ucar.nc2.iosp.hdf4.H4header$Tag: short code>;
+
+        $i38 = (int) $s14;
+
+        if $i38 != 705 goto label16;
+
+        r73 = (ucar.nc2.iosp.hdf4.H4header$TagTextN) r36;
+
+        $s18 = r68.<ucar.nc2.iosp.hdf4.H4header$TagSDDimension: short rank>;
+
+        $i39 = (int) $s18;
+
+        virtualinvoke r73.<ucar.nc2.iosp.hdf4.H4header$TagTextN: void read(int)>($i39);
+
+        r36.<ucar.nc2.iosp.hdf4.H4header$Tag: boolean used> = 1;
+
+        $r85 = new ucar.nc2.Attribute;
+
+        $r44 = staticinvoke <ucar.nc2.iosp.hdf4.H4header$TagTextN: java.util.List access$000(ucar.nc2.iosp.hdf4.H4header$TagTextN)>(r73);
+
+        specialinvoke $r85.<ucar.nc2.Attribute: void <init>(java.lang.String,java.util.List)>("units", $r44);
+
+        virtualinvoke $r81.<ucar.nc2.Variable: ucar.nc2.Attribute addAttribute(ucar.nc2.Attribute)>($r85);
+
+     label16:
+        $s15 = r36.<ucar.nc2.iosp.hdf4.H4header$Tag: short code>;
+
+        $i40 = (int) $s15;
+
+        if $i40 != 706 goto label17;
+
+        r74 = (ucar.nc2.iosp.hdf4.H4header$TagTextN) r36;
+
+        $s17 = r68.<ucar.nc2.iosp.hdf4.H4header$TagSDDimension: short rank>;
+
+        $i41 = (int) $s17;
+
+        virtualinvoke r74.<ucar.nc2.iosp.hdf4.H4header$TagTextN: void read(int)>($i41);
+
+        r36.<ucar.nc2.iosp.hdf4.H4header$Tag: boolean used> = 1;
+
+        $r86 = new ucar.nc2.Attribute;
+
+        $r42 = staticinvoke <ucar.nc2.iosp.hdf4.H4header$TagTextN: java.util.List access$000(ucar.nc2.iosp.hdf4.H4header$TagTextN)>(r74);
+
+        specialinvoke $r86.<ucar.nc2.Attribute: void <init>(java.lang.String,java.util.List)>("formats", $r42);
+
+        virtualinvoke $r81.<ucar.nc2.Variable: ucar.nc2.Attribute addAttribute(ucar.nc2.Attribute)>($r86);
+
+     label17:
+        $s16 = r36.<ucar.nc2.iosp.hdf4.H4header$Tag: short code>;
+
+        $i42 = (int) $s16;
+
+        if $i42 != 707 goto label18;
+
+        r75 = (ucar.nc2.iosp.hdf4.H4header$TagSDminmax) r36;
+
+        r36.<ucar.nc2.iosp.hdf4.H4header$Tag: boolean used> = 1;
+
+        $r87 = new ucar.nc2.Attribute;
+
+        $r38 = virtualinvoke r75.<ucar.nc2.iosp.hdf4.H4header$TagSDminmax: java.lang.Number getMin(ucar.ma2.DataType)>($r16);
+
+        specialinvoke $r87.<ucar.nc2.Attribute: void <init>(java.lang.String,java.lang.Number)>("min", $r38);
+
+        virtualinvoke $r81.<ucar.nc2.Variable: ucar.nc2.Attribute addAttribute(ucar.nc2.Attribute)>($r87);
+
+        $r88 = new ucar.nc2.Attribute;
+
+        $r40 = virtualinvoke r75.<ucar.nc2.iosp.hdf4.H4header$TagSDminmax: java.lang.Number getMax(ucar.ma2.DataType)>($r16);
+
+        specialinvoke $r88.<ucar.nc2.Attribute: void <init>(java.lang.String,java.lang.Number)>("max", $r40);
+
+        virtualinvoke $r81.<ucar.nc2.Variable: ucar.nc2.Attribute addAttribute(ucar.nc2.Attribute)>($r88);
+
+     label18:
+        i29 = i29 + 1;
+
+        goto label13;
+
+     label19:
+        specialinvoke r1.<ucar.nc2.iosp.hdf4.H4header: void addVariableAttributes(ucar.nc2.iosp.hdf4.H4header$TagGroup,ucar.nc2.iosp.hdf4.H4header$Vinfo)>(r2, $r76);
+
+        $z0 = <ucar.nc2.iosp.hdf4.H4header: boolean debugConstruct>;
+
+        if $z0 == 0 goto label20;
+
+        $r18 = <java.lang.System: java.io.PrintStream out>;
+
+        $r89 = new java.lang.StringBuilder;
+
+        specialinvoke $r89.<java.lang.StringBuilder: void <init>()>();
+
+        $r19 = virtualinvoke $r89.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("added variable ");
+
+        $r20 = virtualinvoke $r81.<ucar.nc2.Variable: java.lang.String getNameAndDimensions()>();
+
+        $r21 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r20);
+
+        $r22 = virtualinvoke $r21.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" from Group ");
+
+        $r23 = virtualinvoke $r22.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r2);
+
+        $r24 = virtualinvoke $r23.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r18.<java.io.PrintStream: void println(java.lang.String)>($r24);
+
+        $r26 = <java.lang.System: java.io.PrintStream out>;
+
+        $r90 = new java.lang.StringBuilder;
+
+        specialinvoke $r90.<java.lang.StringBuilder: void <init>()>();
+
+        $r27 = virtualinvoke $r90.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("  SDdim= ");
+
+        $r28 = virtualinvoke r68.<ucar.nc2.iosp.hdf4.H4header$TagSDDimension: java.lang.String detail()>();
+
+        $r29 = virtualinvoke $r27.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r28);
+
+        $r30 = virtualinvoke $r29.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r26.<java.io.PrintStream: void println(java.lang.String)>($r30);
+
+     label20:
+        return $r81;
+
+        catch ucar.ma2.InvalidRangeException from label09 to label10 with label11;
+    }
+
+    private void addVariableAttributes(ucar.nc2.iosp.hdf4.H4header$TagGroup, ucar.nc2.iosp.hdf4.H4header$Vinfo) throws java.io.IOException
+    {
+        ucar.nc2.iosp.hdf4.H4header$Vinfo r11;
+        java.lang.IllegalStateException $r15;
+        ucar.nc2.iosp.hdf4.H4header r1;
+        java.lang.Integer $r5;
+        ucar.nc2.iosp.hdf4.H4header$TagVH r8;
+        short $s1, $s2, $s4;
+        java.util.Map $r4;
+        int $i0, $i3, i5, $i6;
+        ucar.nc2.Variable $r12;
+        java.lang.String $r9, $r13;
+        boolean $z0, $z1;
+        ucar.nc2.iosp.hdf4.H4header$TagGroup r0;
+        ucar.nc2.Attribute $r10;
+        java.lang.Object $r6;
+        ucar.nc2.iosp.hdf4.H4header$Tag r7;
+        short[] $r2, $r3;
+
+        r1 := @this: ucar.nc2.iosp.hdf4.H4header;
+
+        r0 := @parameter0: ucar.nc2.iosp.hdf4.H4header$TagGroup;
+
+        r11 := @parameter1: ucar.nc2.iosp.hdf4.H4header$Vinfo;
+
+        i5 = 0;
+
+     label1:
+        $i0 = r0.<ucar.nc2.iosp.hdf4.H4header$TagGroup: int nelems>;
+
+        if i5 >= $i0 goto label4;
+
+        $r4 = r1.<ucar.nc2.iosp.hdf4.H4header: java.util.Map tagMap>;
+
+        $r2 = r0.<ucar.nc2.iosp.hdf4.H4header$TagGroup: short[] elem_ref>;
+
+        $s2 = $r2[i5];
+
+        $r3 = r0.<ucar.nc2.iosp.hdf4.H4header$TagGroup: short[] elem_tag>;
+
+        $s1 = $r3[i5];
+
+        $i3 = staticinvoke <ucar.nc2.iosp.hdf4.H4header: int tagid(short,short)>($s2, $s1);
+
+        $r5 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i3);
+
+        $r6 = interfaceinvoke $r4.<java.util.Map: java.lang.Object get(java.lang.Object)>($r5);
+
+        r7 = (ucar.nc2.iosp.hdf4.H4header$Tag) $r6;
+
+        if r7 != null goto label2;
+
+        $r15 = new java.lang.IllegalStateException;
+
+        specialinvoke $r15.<java.lang.IllegalStateException: void <init>()>();
+
+        throw $r15;
+
+     label2:
+        $s4 = r7.<ucar.nc2.iosp.hdf4.H4header$Tag: short code>;
+
+        $i6 = (int) $s4;
+
+        if $i6 != 1962 goto label3;
+
+        r8 = (ucar.nc2.iosp.hdf4.H4header$TagVH) r7;
+
+        $r9 = r8.<ucar.nc2.iosp.hdf4.H4header$TagVH: java.lang.String className>;
+
+        $z0 = virtualinvoke $r9.<java.lang.String: boolean startsWith(java.lang.String)>("Att");
+
+        if $z0 == 0 goto label3;
+
+        $r10 = specialinvoke r1.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.Attribute makeAttribute(ucar.nc2.iosp.hdf4.H4header$TagVH)>(r8);
+
+        if null == $r10 goto label3;
+
+        $r12 = r11.<ucar.nc2.iosp.hdf4.H4header$Vinfo: ucar.nc2.Variable v>;
+
+        virtualinvoke $r12.<ucar.nc2.Variable: ucar.nc2.Attribute addAttribute(ucar.nc2.Attribute)>($r10);
+
+        $r13 = virtualinvoke $r10.<ucar.nc2.Attribute: java.lang.String getName()>();
+
+        $z1 = virtualinvoke $r13.<java.lang.String: boolean equals(java.lang.Object)>("_FillValue");
+
+        if $z1 == 0 goto label3;
+
+        virtualinvoke r11.<ucar.nc2.iosp.hdf4.H4header$Vinfo: void setFillValue(ucar.nc2.Attribute)>($r10);
+
+     label3:
+        i5 = i5 + 1;
+
+        goto label1;
+
+     label4:
+        return;
+    }
+
+    private long readDDH(java.util.List, long) throws java.io.IOException
+    {
+        ucar.unidata.io.RandomAccessFile $r1, $r2, $r3, $r4, $r5, $r7;
+        ucar.nc2.iosp.hdf4.H4header r0;
+        long l0, $l4, $l5, l7;
+        short $s1, $s6;
+        int $i2, $i3, i8, $i9;
+        java.lang.String $r16;
+        boolean $z0;
+        java.io.PrintStream $r11;
+        ucar.nc2.iosp.hdf4.H4header$MemTracker $r6;
+        java.util.List r9;
+        ucar.nc2.iosp.hdf4.H4header$Tag $r8;
+        java.lang.StringBuilder $r12, $r13, $r14, $r15, $r17;
+
+        r0 := @this: ucar.nc2.iosp.hdf4.H4header;
+
+        r9 := @parameter0: java.util.List;
+
+        l0 := @parameter1: long;
+
+        $r1 = r0.<ucar.nc2.iosp.hdf4.H4header: ucar.unidata.io.RandomAccessFile raf>;
+
+        virtualinvoke $r1.<ucar.unidata.io.RandomAccessFile: void seek(long)>(l0);
+
+        $r2 = r0.<ucar.nc2.iosp.hdf4.H4header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $s1 = virtualinvoke $r2.<ucar.unidata.io.RandomAccessFile: short readShort()>();
+
+        $i2 = staticinvoke <ucar.ma2.DataType: int unsignedShortToInt(short)>($s1);
+
+        $r3 = r0.<ucar.nc2.iosp.hdf4.H4header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $i3 = virtualinvoke $r3.<ucar.unidata.io.RandomAccessFile: int readInt()>();
+
+        $l4 = staticinvoke <ucar.ma2.DataType: long unsignedIntToLong(int)>($i3);
+
+        $z0 = <ucar.nc2.iosp.hdf4.H4header: boolean debugDD>;
+
+        if $z0 == 0 goto label1;
+
+        $r11 = <java.lang.System: java.io.PrintStream out>;
+
+        $r17 = new java.lang.StringBuilder;
+
+        specialinvoke $r17.<java.lang.StringBuilder: void <init>()>();
+
+        $r12 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" DDHeader ndd=");
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i2);
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" link=");
+
+        $r15 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>($l4);
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r11.<java.io.PrintStream: void println(java.lang.String)>($r16);
+
+     label1:
+        $r4 = r0.<ucar.nc2.iosp.hdf4.H4header: ucar.unidata.io.RandomAccessFile raf>;
+
+        l7 = virtualinvoke $r4.<ucar.unidata.io.RandomAccessFile: long getFilePointer()>();
+
+        i8 = 0;
+
+     label2:
+        if i8 >= $i2 goto label4;
+
+        $r7 = r0.<ucar.nc2.iosp.hdf4.H4header: ucar.unidata.io.RandomAccessFile raf>;
+
+        virtualinvoke $r7.<ucar.unidata.io.RandomAccessFile: void seek(long)>(l7);
+
+        $r8 = specialinvoke r0.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.iosp.hdf4.H4header$Tag factory()>();
+
+        l7 = l7 + 12L;
+
+        $s6 = $r8.<ucar.nc2.iosp.hdf4.H4header$Tag: short code>;
+
+        $i9 = (int) $s6;
+
+        if $i9 <= 1 goto label3;
+
+        interfaceinvoke r9.<java.util.List: boolean add(java.lang.Object)>($r8);
+
+     label3:
+        i8 = i8 + 1;
+
+        goto label2;
+
+     label4:
+        $r6 = r0.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.iosp.hdf4.H4header$MemTracker memTracker>;
+
+        $r5 = r0.<ucar.nc2.iosp.hdf4.H4header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $l5 = virtualinvoke $r5.<ucar.unidata.io.RandomAccessFile: long getFilePointer()>();
+
+        virtualinvoke $r6.<ucar.nc2.iosp.hdf4.H4header$MemTracker: void add(java.lang.String,long,long)>("DD block", l0, $l5);
+
+        return $l4;
+    }
+
+    private ucar.nc2.iosp.hdf4.H4header$Tag factory() throws java.io.IOException
+    {
+        ucar.unidata.io.RandomAccessFile $r1;
+        ucar.nc2.iosp.hdf4.H4header$TagText $r20;
+        ucar.nc2.iosp.hdf4.H4header r0;
+        ucar.nc2.iosp.hdf4.H4header$TagLinkedBlock $r17;
+        ucar.nc2.iosp.hdf4.H4header$TagSDDimension $r26;
+        ucar.nc2.iosp.hdf4.H4header$TagVH $r29;
+        short $s0, s1;
+        int $i2;
+        ucar.nc2.iosp.hdf4.H4header$TagAnnotate $r21;
+        ucar.nc2.iosp.hdf4.H4header$TagSDminmax $r28;
+        ucar.nc2.iosp.hdf4.H4header$TagData $r19;
+        ucar.nc2.iosp.hdf4.H4header$TagGroup $r25;
+        ucar.nc2.iosp.hdf4.H4header$TagNumberType $r22;
+        ucar.nc2.iosp.hdf4.H4header$TagTextN $r27;
+        ucar.nc2.iosp.hdf4.H4header$TagRIDimension $r23;
+        ucar.nc2.iosp.hdf4.H4header$TagVersion $r18;
+        ucar.nc2.iosp.hdf4.H4header$TagRIPalette $r24;
+        ucar.nc2.iosp.hdf4.H4header$TagVGroup $r30;
+        ucar.nc2.iosp.hdf4.H4header$Tag $r31;
+
+        r0 := @this: ucar.nc2.iosp.hdf4.H4header;
+
+        $r1 = r0.<ucar.nc2.iosp.hdf4.H4header: ucar.unidata.io.RandomAccessFile raf>;
+
+        $s0 = virtualinvoke $r1.<ucar.unidata.io.RandomAccessFile: short readShort()>();
+
+        s1 = $s0 & 16383;
+
+        $i2 = (int) s1;
+
+        lookupswitch($i2)
+        {
+            case 20: goto label01;
+            case 30: goto label02;
+            case 40: goto label03;
+            case 61: goto label03;
+            case 100: goto label04;
+            case 101: goto label04;
+            case 104: goto label05;
+            case 105: goto label05;
+            case 106: goto label06;
+            case 300: goto label07;
+            case 301: goto label08;
+            case 306: goto label09;
+            case 307: goto label07;
+            case 308: goto label07;
+            case 701: goto label10;
+            case 702: goto label03;
+            case 704: goto label11;
+            case 705: goto label11;
+            case 706: goto label11;
+            case 707: goto label12;
+            case 708: goto label04;
+            case 720: goto label09;
+            case 1962: goto label13;
+            case 1963: goto label03;
+            case 1965: goto label14;
+            default: goto label15;
+        };
+
+     label01:
+        $r17 = new ucar.nc2.iosp.hdf4.H4header$TagLinkedBlock;
+
+        specialinvoke $r17.<ucar.nc2.iosp.hdf4.H4header$TagLinkedBlock: void <init>(ucar.nc2.iosp.hdf4.H4header,short)>(r0, $s0);
+
+        return $r17;
+
+     label02:
+        $r18 = new ucar.nc2.iosp.hdf4.H4header$TagVersion;
+
+        specialinvoke $r18.<ucar.nc2.iosp.hdf4.H4header$TagVersion: void <init>(ucar.nc2.iosp.hdf4.H4header,short)>(r0, $s0);
+
+        return $r18;
+
+     label03:
+        $r19 = new ucar.nc2.iosp.hdf4.H4header$TagData;
+
+        specialinvoke $r19.<ucar.nc2.iosp.hdf4.H4header$TagData: void <init>(ucar.nc2.iosp.hdf4.H4header,short)>(r0, $s0);
+
+        return $r19;
+
+     label04:
+        $r20 = new ucar.nc2.iosp.hdf4.H4header$TagText;
+
+        specialinvoke $r20.<ucar.nc2.iosp.hdf4.H4header$TagText: void <init>(ucar.nc2.iosp.hdf4.H4header,short)>(r0, $s0);
+
+        return $r20;
+
+     label05:
+        $r21 = new ucar.nc2.iosp.hdf4.H4header$TagAnnotate;
+
+        specialinvoke $r21.<ucar.nc2.iosp.hdf4.H4header$TagAnnotate: void <init>(ucar.nc2.iosp.hdf4.H4header,short)>(r0, $s0);
+
+        return $r21;
+
+     label06:
+        $r22 = new ucar.nc2.iosp.hdf4.H4header$TagNumberType;
+
+        specialinvoke $r22.<ucar.nc2.iosp.hdf4.H4header$TagNumberType: void <init>(ucar.nc2.iosp.hdf4.H4header,short)>(r0, $s0);
+
+        return $r22;
+
+     label07:
+        $r23 = new ucar.nc2.iosp.hdf4.H4header$TagRIDimension;
+
+        specialinvoke $r23.<ucar.nc2.iosp.hdf4.H4header$TagRIDimension: void <init>(ucar.nc2.iosp.hdf4.H4header,short)>(r0, $s0);
+
+        return $r23;
+
+     label08:
+        $r24 = new ucar.nc2.iosp.hdf4.H4header$TagRIPalette;
+
+        specialinvoke $r24.<ucar.nc2.iosp.hdf4.H4header$TagRIPalette: void <init>(ucar.nc2.iosp.hdf4.H4header,short)>(r0, $s0);
+
+        return $r24;
+
+     label09:
+        $r25 = new ucar.nc2.iosp.hdf4.H4header$TagGroup;
+
+        specialinvoke $r25.<ucar.nc2.iosp.hdf4.H4header$TagGroup: void <init>(ucar.nc2.iosp.hdf4.H4header,short)>(r0, $s0);
+
+        return $r25;
+
+     label10:
+        $r26 = new ucar.nc2.iosp.hdf4.H4header$TagSDDimension;
+
+        specialinvoke $r26.<ucar.nc2.iosp.hdf4.H4header$TagSDDimension: void <init>(ucar.nc2.iosp.hdf4.H4header,short)>(r0, $s0);
+
+        return $r26;
+
+     label11:
+        $r27 = new ucar.nc2.iosp.hdf4.H4header$TagTextN;
+
+        specialinvoke $r27.<ucar.nc2.iosp.hdf4.H4header$TagTextN: void <init>(ucar.nc2.iosp.hdf4.H4header,short)>(r0, $s0);
+
+        return $r27;
+
+     label12:
+        $r28 = new ucar.nc2.iosp.hdf4.H4header$TagSDminmax;
+
+        specialinvoke $r28.<ucar.nc2.iosp.hdf4.H4header$TagSDminmax: void <init>(ucar.nc2.iosp.hdf4.H4header,short)>(r0, $s0);
+
+        return $r28;
+
+     label13:
+        $r29 = new ucar.nc2.iosp.hdf4.H4header$TagVH;
+
+        specialinvoke $r29.<ucar.nc2.iosp.hdf4.H4header$TagVH: void <init>(ucar.nc2.iosp.hdf4.H4header,short)>(r0, $s0);
+
+        return $r29;
+
+     label14:
+        $r30 = new ucar.nc2.iosp.hdf4.H4header$TagVGroup;
+
+        specialinvoke $r30.<ucar.nc2.iosp.hdf4.H4header$TagVGroup: void <init>(ucar.nc2.iosp.hdf4.H4header,short)>(r0, $s0);
+
+        return $r30;
+
+     label15:
+        $r31 = new ucar.nc2.iosp.hdf4.H4header$Tag;
+
+        specialinvoke $r31.<ucar.nc2.iosp.hdf4.H4header$Tag: void <init>(ucar.nc2.iosp.hdf4.H4header,short)>(r0, $s0);
+
+        return $r31;
+    }
+
+    private java.lang.String printa(int[])
+    {
+        ucar.nc2.iosp.hdf4.H4header r4;
+        int[] r1;
+        int $i0, $i1, i2;
+        java.lang.StringBuilder $r0, $r3;
+        java.lang.String $r2;
+
+        r4 := @this: ucar.nc2.iosp.hdf4.H4header;
+
+        r1 := @parameter0: int[];
+
+        $r0 = new java.lang.StringBuilder;
+
+        specialinvoke $r0.<java.lang.StringBuilder: void <init>()>();
+
+        i2 = 0;
+
+     label1:
+        $i0 = lengthof r1;
+
+        if i2 >= $i0 goto label2;
+
+        $r3 = virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" ");
+
+        $i1 = r1[i2];
+
+        virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i1);
+
+        i2 = i2 + 1;
+
+        goto label1;
+
+     label2:
+        $r2 = virtualinvoke $r0.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        return $r2;
+    }
+
+    private java.lang.String readString(int) throws java.io.IOException
+    {
+        java.io.PrintStream $r3;
+        byte[] $r4;
+        ucar.unidata.io.RandomAccessFile $r1;
+        ucar.nc2.iosp.hdf4.H4header r0;
+        byte $b1;
+        int i0, i2;
+        java.lang.String $r2;
+
+        r0 := @this: ucar.nc2.iosp.hdf4.H4header;
+
+        i0 := @parameter0: int;
+
+        if i0 >= 0 goto label1;
+
+        $r3 = <java.lang.System: java.io.PrintStream out>;
+
+        virtualinvoke $r3.<java.io.PrintStream: void println(java.lang.String)>("what");
+
+     label1:
+        $r4 = newarray (byte)[i0];
+
+        $r1 = r0.<ucar.nc2.iosp.hdf4.H4header: ucar.unidata.io.RandomAccessFile raf>;
+
+        virtualinvoke $r1.<ucar.unidata.io.RandomAccessFile: int read(byte[])>($r4);
+
+        i2 = 0;
+
+     label2:
+        if i2 >= i0 goto label4;
+
+        $b1 = $r4[i2];
+
+        if $b1 != 0 goto label3;
+
+        goto label4;
+
+     label3:
+        i2 = i2 + 1;
+
+        goto label2;
+
+     label4:
+        $r2 = new java.lang.String;
+
+        specialinvoke $r2.<java.lang.String: void <init>(byte[],int,int,java.lang.String)>($r4, 0, i2, "UTF-8");
+
+        return $r2;
+    }
+
+    public java.util.List getTags()
+    {
+        java.util.List $r1;
+        ucar.nc2.iosp.hdf4.H4header r0;
+
+        r0 := @this: ucar.nc2.iosp.hdf4.H4header;
+
+        $r1 = r0.<ucar.nc2.iosp.hdf4.H4header: java.util.List alltags>;
+
+        return $r1;
+    }
+
+    static void readAllDir(java.lang.String, boolean) throws java.io.IOException
+    {
+        int i0, i1, i2, i3;
+        java.lang.String r3, $r5, $r8, $r9, $r14;
+        boolean $z0, z1, $z2;
+        java.io.PrintStream $r1, $r11;
+        java.io.File $r6, r15, r16;
+        java.lang.StringBuilder $r0, $r2, $r4, $r10, $r12, $r13;
+        java.io.File[] $r7;
+
+        r3 := @parameter0: java.lang.String;
+
+        z1 := @parameter1: boolean;
+
+        $r1 = <java.lang.System: java.io.PrintStream out>;
+
+        $r0 = new java.lang.StringBuilder;
+
+        specialinvoke $r0.<java.lang.StringBuilder: void <init>()>();
+
+        $r2 = virtualinvoke $r0.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("---------------Reading directory ");
+
+        $r4 = virtualinvoke $r2.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r3);
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r1.<java.io.PrintStream: void println(java.lang.String)>($r5);
+
+        $r6 = new java.io.File;
+
+        specialinvoke $r6.<java.io.File: void <init>(java.lang.String)>(r3);
+
+        $r7 = virtualinvoke $r6.<java.io.File: java.io.File[] listFiles()>();
+
+        if null != $r7 goto label1;
+
+        $r11 = <java.lang.System: java.io.PrintStream out>;
+
+        $r10 = new java.lang.StringBuilder;
+
+        specialinvoke $r10.<java.lang.StringBuilder: void <init>()>();
+
+        $r12 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("---------------INVALID ");
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r3);
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r11.<java.io.PrintStream: void println(java.lang.String)>($r14);
+
+        return;
+
+     label1:
+        i0 = lengthof $r7;
+
+        i1 = 0;
+
+     label2:
+        if i1 >= i0 goto label4;
+
+        r15 = $r7[i1];
+
+        $r9 = virtualinvoke r15.<java.io.File: java.lang.String getAbsolutePath()>();
+
+        $z2 = virtualinvoke $r9.<java.lang.String: boolean endsWith(java.lang.String)>(".hdf");
+
+        if $z2 == 0 goto label3;
+
+        staticinvoke <ucar.nc2.iosp.hdf4.H4header: void test(java.lang.String)>($r9);
+
+     label3:
+        i1 = i1 + 1;
+
+        goto label2;
+
+     label4:
+        i2 = lengthof $r7;
+
+        i3 = 0;
+
+     label5:
+        if i3 >= i2 goto label7;
+
+        r16 = $r7[i3];
+
+        $z0 = virtualinvoke r16.<java.io.File: boolean isDirectory()>();
+
+        if $z0 == 0 goto label6;
+
+        if z1 == 0 goto label6;
+
+        $r8 = virtualinvoke r16.<java.io.File: java.lang.String getAbsolutePath()>();
+
+        staticinvoke <ucar.nc2.iosp.hdf4.H4header: void readAllDir(java.lang.String,boolean)>($r8, z1);
+
+     label6:
+        i3 = i3 + 1;
+
+        goto label5;
+
+     label7:
+        return;
+    }
+
+    static void testPelim(java.lang.String) throws java.io.IOException
+    {
+        java.io.PrintStream $r4;
+        ucar.unidata.io.RandomAccessFile $r0;
+        ucar.nc2.iosp.hdf4.H4header $r3;
+        java.lang.String r1;
+        ucar.nc2.iosp.hdf4.H4header$MyNetcdfFile $r2;
+        boolean $z0;
+
+        r1 := @parameter0: java.lang.String;
+
+        $r0 = new ucar.unidata.io.RandomAccessFile;
+
+        specialinvoke $r0.<ucar.unidata.io.RandomAccessFile: void <init>(java.lang.String,java.lang.String)>(r1, "r");
+
+        $r2 = new ucar.nc2.iosp.hdf4.H4header$MyNetcdfFile;
+
+        specialinvoke $r2.<ucar.nc2.iosp.hdf4.H4header$MyNetcdfFile: void <init>()>();
+
+        $r3 = new ucar.nc2.iosp.hdf4.H4header;
+
+        specialinvoke $r3.<ucar.nc2.iosp.hdf4.H4header: void <init>()>();
+
+        virtualinvoke $r3.<ucar.nc2.iosp.hdf4.H4header: void read(ucar.unidata.io.RandomAccessFile,ucar.nc2.NetcdfFile)>($r0, $r2);
+
+        $z0 = <ucar.nc2.iosp.hdf4.H4header: boolean showFile>;
+
+        if $z0 == 0 goto label1;
+
+        $r4 = <java.lang.System: java.io.PrintStream out>;
+
+        virtualinvoke $r4.<java.io.PrintStream: void println(java.lang.Object)>($r2);
+
+     label1:
+        return;
+    }
+
+    static void test(java.lang.String) throws java.io.IOException
+    {
+        java.io.PrintStream $r2;
+        java.lang.String r0;
+        ucar.nc2.NetcdfFile $r1;
+        boolean $z0;
+
+        r0 := @parameter0: java.lang.String;
+
+        $r1 = staticinvoke <ucar.nc2.NetcdfFile: ucar.nc2.NetcdfFile open(java.lang.String)>(r0);
+
+        $z0 = <ucar.nc2.iosp.hdf4.H4header: boolean showFile>;
+
+        if $z0 == 0 goto label1;
+
+        $r2 = <java.lang.System: java.io.PrintStream out>;
+
+        virtualinvoke $r2.<java.io.PrintStream: void println(java.lang.Object)>($r1);
+
+     label1:
+        return;
+    }
+
+    static void testTagid(short, short) throws java.io.IOException
+    {
+        java.io.PrintStream $r1;
+        java.lang.Object[] $r0;
+        java.lang.Integer $r4;
+        short s0, s1;
+        java.lang.Short $r2, $r3;
+        int $i2;
+
+        s0 := @parameter0: short;
+
+        s1 := @parameter1: short;
+
+        $r1 = <java.lang.System: java.io.PrintStream out>;
+
+        $r0 = newarray (java.lang.Object)[3];
+
+        $r2 = staticinvoke <java.lang.Short: java.lang.Short valueOf(short)>(s0);
+
+        $r0[0] = $r2;
+
+        $r3 = staticinvoke <java.lang.Short: java.lang.Short valueOf(short)>(s1);
+
+        $r0[1] = $r3;
+
+        $i2 = staticinvoke <ucar.nc2.iosp.hdf4.H4header: int tagid(short,short)>(s1, s0);
+
+        $r4 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i2);
+
+        $r0[2] = $r4;
+
+        virtualinvoke $r1.<java.io.PrintStream: java.io.PrintStream format(java.lang.String,java.lang.Object[])>(" tag= %#x refno=%#x tagid=%#x \n", $r0);
+
+        return;
+    }
+
+    public static void main(java.lang.String[]) throws java.io.IOException
+    {
+        java.lang.String[] r0;
+        short $s1;
+
+        r0 := @parameter0: java.lang.String[];
+
+        $s1 = (short) -12;
+
+        staticinvoke <ucar.nc2.iosp.hdf4.H4header: void testTagid(short,short)>(123, $s1);
+
+        staticinvoke <ucar.nc2.iosp.hdf4.H4header: void testTagid(short,short)>(123, -5385);
+
+        return;
+    }
+
+    static java.util.Map access$100(ucar.nc2.iosp.hdf4.H4header)
+    {
+        ucar.nc2.iosp.hdf4.H4header r0;
+        java.util.Map $r1;
+
+        r0 := @parameter0: ucar.nc2.iosp.hdf4.H4header;
+
+        $r1 = r0.<ucar.nc2.iosp.hdf4.H4header: java.util.Map refnoMap>;
+
+        return $r1;
+    }
+
+    static ucar.unidata.io.RandomAccessFile access$200(ucar.nc2.iosp.hdf4.H4header)
+    {
+        ucar.unidata.io.RandomAccessFile $r1;
+        ucar.nc2.iosp.hdf4.H4header r0;
+
+        r0 := @parameter0: ucar.nc2.iosp.hdf4.H4header;
+
+        $r1 = r0.<ucar.nc2.iosp.hdf4.H4header: ucar.unidata.io.RandomAccessFile raf>;
+
+        return $r1;
+    }
+
+    static boolean access$300()
+    {
+        boolean $z0;
+
+        $z0 = <ucar.nc2.iosp.hdf4.H4header: boolean debugTracker>;
+
+        return $z0;
+    }
+
+    static ucar.nc2.iosp.hdf4.H4header$MemTracker access$400(ucar.nc2.iosp.hdf4.H4header)
+    {
+        ucar.nc2.iosp.hdf4.H4header$MemTracker $r1;
+        ucar.nc2.iosp.hdf4.H4header r0;
+
+        r0 := @parameter0: ucar.nc2.iosp.hdf4.H4header;
+
+        $r1 = r0.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.iosp.hdf4.H4header$MemTracker memTracker>;
+
+        return $r1;
+    }
+
+    static boolean access$600()
+    {
+        boolean $z0;
+
+        $z0 = <ucar.nc2.iosp.hdf4.H4header: boolean debugChunkTable>;
+
+        return $z0;
+    }
+
+    static int access$700(short, short)
+    {
+        int $i2;
+        short s0, s1;
+
+        s0 := @parameter0: short;
+
+        s1 := @parameter1: short;
+
+        $i2 = staticinvoke <ucar.nc2.iosp.hdf4.H4header: int tagid(short,short)>(s0, s1);
+
+        return $i2;
+    }
+
+    static java.util.Map access$800(ucar.nc2.iosp.hdf4.H4header)
+    {
+        ucar.nc2.iosp.hdf4.H4header r0;
+        java.util.Map $r1;
+
+        r0 := @parameter0: ucar.nc2.iosp.hdf4.H4header;
+
+        $r1 = r0.<ucar.nc2.iosp.hdf4.H4header: java.util.Map tagMap>;
+
+        return $r1;
+    }
+
+    static ucar.nc2.Variable access$900(ucar.nc2.iosp.hdf4.H4header, ucar.nc2.iosp.hdf4.H4header$TagVH) throws java.io.IOException
+    {
+        ucar.nc2.Variable $r2;
+        ucar.nc2.iosp.hdf4.H4header r0;
+        ucar.nc2.iosp.hdf4.H4header$TagVH r1;
+
+        r0 := @parameter0: ucar.nc2.iosp.hdf4.H4header;
+
+        r1 := @parameter1: ucar.nc2.iosp.hdf4.H4header$TagVH;
+
+        $r2 = specialinvoke r0.<ucar.nc2.iosp.hdf4.H4header: ucar.nc2.Variable makeVariable(ucar.nc2.iosp.hdf4.H4header$TagVH)>(r1);
+
+        return $r2;
+    }
+
+    static boolean access$1000()
+    {
+        boolean $z0;
+
+        $z0 = <ucar.nc2.iosp.hdf4.H4header: boolean debugChunkDetail>;
+
+        return $z0;
+    }
+
+    static boolean access$1100()
+    {
+        boolean $z0;
+
+        $z0 = <ucar.nc2.iosp.hdf4.H4header: boolean debugLinked>;
+
+        return $z0;
+    }
+
+    static java.lang.String access$1200(ucar.nc2.iosp.hdf4.H4header, int) throws java.io.IOException
+    {
+        int i0;
+        java.lang.String $r1;
+        ucar.nc2.iosp.hdf4.H4header r0;
+
+        r0 := @parameter0: ucar.nc2.iosp.hdf4.H4header;
+
+        i0 := @parameter1: int;
+
+        $r1 = specialinvoke r0.<ucar.nc2.iosp.hdf4.H4header: java.lang.String readString(int)>(i0);
+
+        return $r1;
+    }
+
+    static java.io.PrintStream access$1300(ucar.nc2.iosp.hdf4.H4header)
+    {
+        java.io.PrintStream $r1;
+        ucar.nc2.iosp.hdf4.H4header r0;
+
+        r0 := @parameter0: ucar.nc2.iosp.hdf4.H4header;
+
+        $r1 = r0.<ucar.nc2.iosp.hdf4.H4header: java.io.PrintStream debugOut>;
+
+        return $r1;
+    }
+
+    static void <clinit>()
+    {
+        byte[] $r2, $r4;
+        org.slf4j.Logger $r1;
+        java.lang.Class $r0;
+        java.lang.String $r3;
+        boolean $z0, $z1;
+
+        <ucar.nc2.iosp.hdf4.H4header: long maxHeaderPos> = 500000L;
+
+        $r0 = class "Lucar/nc2/iosp/hdf4/H4header;";
+
+        $z0 = virtualinvoke $r0.<java.lang.Class: boolean desiredAssertionStatus()>();
+
+        if $z0 != 0 goto label1;
+
+        $z1 = 1;
+
+        goto label2;
+
+     label1:
+        $z1 = 0;
+
+     label2:
+        <ucar.nc2.iosp.hdf4.H4header: boolean $assertionsDisabled> = $z1;
+
+        $r1 = staticinvoke <org.slf4j.LoggerFactory: org.slf4j.Logger getLogger(java.lang.Class)>(class "Lucar/nc2/iosp/hdf4/H4header;");
+
+        <ucar.nc2.iosp.hdf4.H4header: org.slf4j.Logger log> = $r1;
+
+        $r2 = newarray (byte)[4];
+
+        $r2[0] = 14;
+
+        $r2[1] = 3;
+
+        $r2[2] = 19;
+
+        $r2[3] = 1;
+
+        <ucar.nc2.iosp.hdf4.H4header: byte[] head> = $r2;
+
+        $r3 = new java.lang.String;
+
+        $r4 = <ucar.nc2.iosp.hdf4.H4header: byte[] head>;
+
+        specialinvoke $r3.<java.lang.String: void <init>(byte[])>($r4);
+
+        <ucar.nc2.iosp.hdf4.H4header: java.lang.String shead> = $r3;
+
+        <ucar.nc2.iosp.hdf4.H4header: boolean debugDD> = 0;
+
+        <ucar.nc2.iosp.hdf4.H4header: boolean debugTag1> = 0;
+
+        <ucar.nc2.iosp.hdf4.H4header: boolean debugTag2> = 0;
+
+        <ucar.nc2.iosp.hdf4.H4header: boolean debugTagDetail> = 0;
+
+        <ucar.nc2.iosp.hdf4.H4header: boolean debugConstruct> = 0;
+
+        <ucar.nc2.iosp.hdf4.H4header: boolean debugAtt> = 0;
+
+        <ucar.nc2.iosp.hdf4.H4header: boolean debugLinked> = 0;
+
+        <ucar.nc2.iosp.hdf4.H4header: boolean debugChunkTable> = 0;
+
+        <ucar.nc2.iosp.hdf4.H4header: boolean debugChunkDetail> = 0;
+
+        <ucar.nc2.iosp.hdf4.H4header: boolean debugTracker> = 0;
+
+        <ucar.nc2.iosp.hdf4.H4header: boolean warnings> = 0;
+
+        <ucar.nc2.iosp.hdf4.H4header: boolean debugHdfEosOff> = 0;
+
+        <ucar.nc2.iosp.hdf4.H4header: boolean showFile> = 1;
+
+        return;
+    }
+}

@@ -1,0 +1,692 @@
+public class org.springframework.web.context.ContextLoader extends java.lang.Object
+{
+    public static final java.lang.String CONTEXT_CLASS_PARAM;
+    public static final java.lang.String CONTEXT_ID_PARAM;
+    public static final java.lang.String CONFIG_LOCATION_PARAM;
+    public static final java.lang.String LOCATOR_FACTORY_SELECTOR_PARAM;
+    public static final java.lang.String LOCATOR_FACTORY_KEY_PARAM;
+    private static final java.lang.String DEFAULT_STRATEGIES_PATH;
+    private static final java.util.Properties defaultStrategies;
+    private static final java.util.Map currentContextPerThread;
+    private static volatile org.springframework.web.context.WebApplicationContext currentContext;
+    private org.springframework.web.context.WebApplicationContext context;
+    private org.springframework.beans.factory.access.BeanFactoryReference parentContextRef;
+
+    static void <clinit>()
+    {
+        java.lang.IllegalStateException $r4;
+        java.util.Properties $r1;
+        org.springframework.core.io.ClassPathResource $r0;
+        java.util.concurrent.ConcurrentHashMap $r2;
+        java.io.IOException $r3;
+        java.lang.StringBuilder $r5, $r7;
+        java.lang.String $r6, $r8;
+
+        <org.springframework.web.context.ContextLoader: java.lang.String DEFAULT_STRATEGIES_PATH> = "ContextLoader.properties";
+
+        <org.springframework.web.context.ContextLoader: java.lang.String LOCATOR_FACTORY_KEY_PARAM> = "parentContextKey";
+
+        <org.springframework.web.context.ContextLoader: java.lang.String LOCATOR_FACTORY_SELECTOR_PARAM> = "locatorFactorySelector";
+
+        <org.springframework.web.context.ContextLoader: java.lang.String CONFIG_LOCATION_PARAM> = "contextConfigLocation";
+
+        <org.springframework.web.context.ContextLoader: java.lang.String CONTEXT_ID_PARAM> = "contextId";
+
+        <org.springframework.web.context.ContextLoader: java.lang.String CONTEXT_CLASS_PARAM> = "contextClass";
+
+     label1:
+        $r0 = new org.springframework.core.io.ClassPathResource;
+
+        specialinvoke $r0.<org.springframework.core.io.ClassPathResource: void <init>(java.lang.String,java.lang.Class)>("ContextLoader.properties", class "Lorg/springframework/web/context/ContextLoader;");
+
+        $r1 = staticinvoke <org.springframework.core.io.support.PropertiesLoaderUtils: java.util.Properties loadProperties(org.springframework.core.io.Resource)>($r0);
+
+        <org.springframework.web.context.ContextLoader: java.util.Properties defaultStrategies> = $r1;
+
+     label2:
+        goto label4;
+
+     label3:
+        $r3 := @caughtexception;
+
+        $r4 = new java.lang.IllegalStateException;
+
+        $r5 = new java.lang.StringBuilder;
+
+        specialinvoke $r5.<java.lang.StringBuilder: void <init>(java.lang.String)>("Could not load \'ContextLoader.properties\': ");
+
+        $r6 = virtualinvoke $r3.<java.io.IOException: java.lang.String getMessage()>();
+
+        $r7 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r6);
+
+        $r8 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r4.<java.lang.IllegalStateException: void <init>(java.lang.String)>($r8);
+
+        throw $r4;
+
+     label4:
+        $r2 = new java.util.concurrent.ConcurrentHashMap;
+
+        specialinvoke $r2.<java.util.concurrent.ConcurrentHashMap: void <init>(int)>(1);
+
+        <org.springframework.web.context.ContextLoader: java.util.Map currentContextPerThread> = $r2;
+
+        return;
+
+        catch java.io.IOException from label1 to label2 with label3;
+    }
+
+    public void <init>()
+    {
+        org.springframework.web.context.ContextLoader r0;
+
+        r0 := @this: org.springframework.web.context.ContextLoader;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        return;
+    }
+
+    public org.springframework.web.context.WebApplicationContext initWebApplicationContext(javax.servlet.ServletContext)
+    {
+        java.lang.IllegalStateException $r26;
+        java.lang.Thread $r9;
+        java.util.Map $r24;
+        boolean $z0, $z1, $z2;
+        org.springframework.web.context.WebApplicationContext $r6, $r7, $r13, $r23, $r25;
+        java.lang.StringBuilder $r14, $r15, $r16, $r18, $r20, $r21;
+        java.lang.ClassLoader $r10, $r12;
+        java.lang.Error $r27;
+        long $l0, $l1, l2;
+        org.springframework.web.context.ContextLoader r4;
+        java.lang.String $r1, $r8, $r17, $r19, $r22, $r28, $r30;
+        java.lang.RuntimeException $r29;
+        org.springframework.context.ApplicationContext $r5;
+        javax.servlet.ServletContext r0;
+        java.lang.Object $r2;
+        org.apache.commons.logging.Log $r3;
+        java.lang.Class $r11;
+
+        r4 := @this: org.springframework.web.context.ContextLoader;
+
+        r0 := @parameter0: javax.servlet.ServletContext;
+
+        $r1 = <org.springframework.web.context.WebApplicationContext: java.lang.String ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE>;
+
+        $r2 = interfaceinvoke r0.<javax.servlet.ServletContext: java.lang.Object getAttribute(java.lang.String)>($r1);
+
+        if $r2 == null goto label01;
+
+        $r26 = new java.lang.IllegalStateException;
+
+        specialinvoke $r26.<java.lang.IllegalStateException: void <init>(java.lang.String)>("Cannot initialize context because there is already a root application context present - check whether you have multiple ContextLoader* definitions in your web.xml!");
+
+        throw $r26;
+
+     label01:
+        $r3 = staticinvoke <org.apache.commons.logging.LogFactory: org.apache.commons.logging.Log getLog(java.lang.Class)>(class "Lorg/springframework/web/context/ContextLoader;");
+
+        interfaceinvoke r0.<javax.servlet.ServletContext: void log(java.lang.String)>("Initializing Spring root WebApplicationContext");
+
+        $z0 = interfaceinvoke $r3.<org.apache.commons.logging.Log: boolean isInfoEnabled()>();
+
+        if $z0 == 0 goto label02;
+
+        interfaceinvoke $r3.<org.apache.commons.logging.Log: void info(java.lang.Object)>("Root WebApplicationContext: initialization started");
+
+     label02:
+        $l0 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+     label03:
+        $r5 = virtualinvoke r4.<org.springframework.web.context.ContextLoader: org.springframework.context.ApplicationContext loadParentContext(javax.servlet.ServletContext)>(r0);
+
+        $r6 = virtualinvoke r4.<org.springframework.web.context.ContextLoader: org.springframework.web.context.WebApplicationContext createWebApplicationContext(javax.servlet.ServletContext,org.springframework.context.ApplicationContext)>(r0, $r5);
+
+        r4.<org.springframework.web.context.ContextLoader: org.springframework.web.context.WebApplicationContext context> = $r6;
+
+        $r8 = <org.springframework.web.context.WebApplicationContext: java.lang.String ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE>;
+
+        $r7 = r4.<org.springframework.web.context.ContextLoader: org.springframework.web.context.WebApplicationContext context>;
+
+        interfaceinvoke r0.<javax.servlet.ServletContext: void setAttribute(java.lang.String,java.lang.Object)>($r8, $r7);
+
+        $r9 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        $r10 = virtualinvoke $r9.<java.lang.Thread: java.lang.ClassLoader getContextClassLoader()>();
+
+        $r11 = class "Lorg/springframework/web/context/ContextLoader;";
+
+        $r12 = virtualinvoke $r11.<java.lang.Class: java.lang.ClassLoader getClassLoader()>();
+
+        if $r10 != $r12 goto label04;
+
+        $r25 = r4.<org.springframework.web.context.ContextLoader: org.springframework.web.context.WebApplicationContext context>;
+
+        <org.springframework.web.context.ContextLoader: org.springframework.web.context.WebApplicationContext currentContext> = $r25;
+
+        goto label05;
+
+     label04:
+        if $r10 == null goto label05;
+
+        $r24 = <org.springframework.web.context.ContextLoader: java.util.Map currentContextPerThread>;
+
+        $r23 = r4.<org.springframework.web.context.ContextLoader: org.springframework.web.context.WebApplicationContext context>;
+
+        interfaceinvoke $r24.<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>($r10, $r23);
+
+     label05:
+        $z2 = interfaceinvoke $r3.<org.apache.commons.logging.Log: boolean isDebugEnabled()>();
+
+        if $z2 == 0 goto label06;
+
+        $r18 = new java.lang.StringBuilder;
+
+        specialinvoke $r18.<java.lang.StringBuilder: void <init>(java.lang.String)>("Published root WebApplicationContext as ServletContext attribute with name [");
+
+        $r19 = <org.springframework.web.context.WebApplicationContext: java.lang.String ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE>;
+
+        $r20 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r19);
+
+        $r21 = virtualinvoke $r20.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("]");
+
+        $r22 = virtualinvoke $r21.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r3.<org.apache.commons.logging.Log: void debug(java.lang.Object)>($r22);
+
+     label06:
+        $z1 = interfaceinvoke $r3.<org.apache.commons.logging.Log: boolean isInfoEnabled()>();
+
+        if $z1 == 0 goto label07;
+
+        $l1 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        l2 = $l1 - $l0;
+
+        $r14 = new java.lang.StringBuilder;
+
+        specialinvoke $r14.<java.lang.StringBuilder: void <init>(java.lang.String)>("Root WebApplicationContext: initialization completed in ");
+
+        $r15 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>(l2);
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" ms");
+
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r3.<org.apache.commons.logging.Log: void info(java.lang.Object)>($r17);
+
+     label07:
+        $r13 = r4.<org.springframework.web.context.ContextLoader: org.springframework.web.context.WebApplicationContext context>;
+
+     label08:
+        return $r13;
+
+     label09:
+        $r29 := @caughtexception;
+
+        interfaceinvoke $r3.<org.apache.commons.logging.Log: void error(java.lang.Object,java.lang.Throwable)>("Context initialization failed", $r29);
+
+        $r30 = <org.springframework.web.context.WebApplicationContext: java.lang.String ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE>;
+
+        interfaceinvoke r0.<javax.servlet.ServletContext: void setAttribute(java.lang.String,java.lang.Object)>($r30, $r29);
+
+        throw $r29;
+
+     label10:
+        $r27 := @caughtexception;
+
+        interfaceinvoke $r3.<org.apache.commons.logging.Log: void error(java.lang.Object,java.lang.Throwable)>("Context initialization failed", $r27);
+
+        $r28 = <org.springframework.web.context.WebApplicationContext: java.lang.String ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE>;
+
+        interfaceinvoke r0.<javax.servlet.ServletContext: void setAttribute(java.lang.String,java.lang.Object)>($r28, $r27);
+
+        throw $r27;
+
+        catch java.lang.RuntimeException from label03 to label08 with label09;
+        catch java.lang.Error from label03 to label08 with label10;
+    }
+
+    protected org.springframework.web.context.WebApplicationContext createWebApplicationContext(javax.servlet.ServletContext, org.springframework.context.ApplicationContext)
+    {
+        org.springframework.context.ApplicationContextException $r22;
+        boolean $z0;
+        java.lang.StringBuilder $r7, $r12, $r15, $r20, $r23, $r25, $r26, $r29, $r30;
+        org.springframework.web.context.ContextLoader r0;
+        int $i0, $i1;
+        java.lang.String $r6, $r8, $r9, $r10, $r11, $r13, $r16, $r17, $r18, $r19, $r21, $r24, $r28, $r31, $r32;
+        org.springframework.context.ApplicationContext r14;
+        org.springframework.web.context.ConfigurableWebApplicationContext r5;
+        javax.servlet.ServletContext r1;
+        java.lang.Class $r2, $r3, $r27;
+        java.lang.Object $r4;
+
+        r0 := @this: org.springframework.web.context.ContextLoader;
+
+        r1 := @parameter0: javax.servlet.ServletContext;
+
+        r14 := @parameter1: org.springframework.context.ApplicationContext;
+
+        $r2 = virtualinvoke r0.<org.springframework.web.context.ContextLoader: java.lang.Class determineContextClass(javax.servlet.ServletContext)>(r1);
+
+        $r3 = class "Lorg/springframework/web/context/ConfigurableWebApplicationContext;";
+
+        $z0 = virtualinvoke $r3.<java.lang.Class: boolean isAssignableFrom(java.lang.Class)>($r2);
+
+        if $z0 != 0 goto label1;
+
+        $r22 = new org.springframework.context.ApplicationContextException;
+
+        $r23 = new java.lang.StringBuilder;
+
+        specialinvoke $r23.<java.lang.StringBuilder: void <init>(java.lang.String)>("Custom context class [");
+
+        $r24 = virtualinvoke $r2.<java.lang.Class: java.lang.String getName()>();
+
+        $r25 = virtualinvoke $r23.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r24);
+
+        $r26 = virtualinvoke $r25.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("] is not of type [");
+
+        $r27 = class "Lorg/springframework/web/context/ConfigurableWebApplicationContext;";
+
+        $r28 = virtualinvoke $r27.<java.lang.Class: java.lang.String getName()>();
+
+        $r29 = virtualinvoke $r26.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r28);
+
+        $r30 = virtualinvoke $r29.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("]");
+
+        $r31 = virtualinvoke $r30.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r22.<org.springframework.context.ApplicationContextException: void <init>(java.lang.String)>($r31);
+
+        throw $r22;
+
+     label1:
+        $r4 = staticinvoke <org.springframework.beans.BeanUtils: java.lang.Object instantiateClass(java.lang.Class)>($r2);
+
+        r5 = (org.springframework.web.context.ConfigurableWebApplicationContext) $r4;
+
+        $r6 = interfaceinvoke r1.<javax.servlet.ServletContext: java.lang.String getInitParameter(java.lang.String)>("contextId");
+
+        if $r6 == null goto label2;
+
+        interfaceinvoke r5.<org.springframework.web.context.ConfigurableWebApplicationContext: void setId(java.lang.String)>($r6);
+
+        goto label4;
+
+     label2:
+        $i0 = interfaceinvoke r1.<javax.servlet.ServletContext: int getMajorVersion()>();
+
+        if $i0 != 2 goto label3;
+
+        $i1 = interfaceinvoke r1.<javax.servlet.ServletContext: int getMinorVersion()>();
+
+        if $i1 >= 5 goto label3;
+
+        $r15 = new java.lang.StringBuilder;
+
+        $r16 = <org.springframework.web.context.ConfigurableWebApplicationContext: java.lang.String APPLICATION_CONTEXT_ID_PREFIX>;
+
+        $r17 = staticinvoke <java.lang.String: java.lang.String valueOf(java.lang.Object)>($r16);
+
+        specialinvoke $r15.<java.lang.StringBuilder: void <init>(java.lang.String)>($r17);
+
+        $r18 = interfaceinvoke r1.<javax.servlet.ServletContext: java.lang.String getServletContextName()>();
+
+        $r19 = staticinvoke <org.springframework.util.ObjectUtils: java.lang.String getDisplayString(java.lang.Object)>($r18);
+
+        $r20 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r19);
+
+        $r21 = virtualinvoke $r20.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke r5.<org.springframework.web.context.ConfigurableWebApplicationContext: void setId(java.lang.String)>($r21);
+
+        goto label4;
+
+     label3:
+        $r7 = new java.lang.StringBuilder;
+
+        $r8 = <org.springframework.web.context.ConfigurableWebApplicationContext: java.lang.String APPLICATION_CONTEXT_ID_PREFIX>;
+
+        $r9 = staticinvoke <java.lang.String: java.lang.String valueOf(java.lang.Object)>($r8);
+
+        specialinvoke $r7.<java.lang.StringBuilder: void <init>(java.lang.String)>($r9);
+
+        $r10 = interfaceinvoke r1.<javax.servlet.ServletContext: java.lang.String getContextPath()>();
+
+        $r11 = staticinvoke <org.springframework.util.ObjectUtils: java.lang.String getDisplayString(java.lang.Object)>($r10);
+
+        $r12 = virtualinvoke $r7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r11);
+
+        $r13 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke r5.<org.springframework.web.context.ConfigurableWebApplicationContext: void setId(java.lang.String)>($r13);
+
+     label4:
+        interfaceinvoke r5.<org.springframework.web.context.ConfigurableWebApplicationContext: void setParent(org.springframework.context.ApplicationContext)>(r14);
+
+        interfaceinvoke r5.<org.springframework.web.context.ConfigurableWebApplicationContext: void setServletContext(javax.servlet.ServletContext)>(r1);
+
+        $r32 = interfaceinvoke r1.<javax.servlet.ServletContext: java.lang.String getInitParameter(java.lang.String)>("contextConfigLocation");
+
+        interfaceinvoke r5.<org.springframework.web.context.ConfigurableWebApplicationContext: void setConfigLocation(java.lang.String)>($r32);
+
+        virtualinvoke r0.<org.springframework.web.context.ContextLoader: void customizeContext(javax.servlet.ServletContext,org.springframework.web.context.ConfigurableWebApplicationContext)>(r1, r5);
+
+        interfaceinvoke r5.<org.springframework.web.context.ConfigurableWebApplicationContext: void refresh()>();
+
+        return r5;
+    }
+
+    protected java.lang.Class determineContextClass(javax.servlet.ServletContext)
+    {
+        org.springframework.context.ApplicationContextException $r12, $r18;
+        org.springframework.web.context.ContextLoader r23;
+        java.lang.String $r1, $r4, $r5, $r16, $r22;
+        java.util.Properties $r3;
+        javax.servlet.ServletContext r0;
+        java.lang.Class $r2, $r6, $r8, $r10;
+        java.lang.ClassNotFoundException $r11, $r17;
+        java.lang.StringBuilder $r13, $r14, $r15, $r19, $r20, $r21;
+        java.lang.ClassLoader $r7, $r9;
+
+        r23 := @this: org.springframework.web.context.ContextLoader;
+
+        r0 := @parameter0: javax.servlet.ServletContext;
+
+        $r1 = interfaceinvoke r0.<javax.servlet.ServletContext: java.lang.String getInitParameter(java.lang.String)>("contextClass");
+
+        if $r1 == null goto label4;
+
+     label1:
+        $r9 = staticinvoke <org.springframework.util.ClassUtils: java.lang.ClassLoader getDefaultClassLoader()>();
+
+        $r10 = staticinvoke <org.springframework.util.ClassUtils: java.lang.Class forName(java.lang.String,java.lang.ClassLoader)>($r1, $r9);
+
+     label2:
+        return $r10;
+
+     label3:
+        $r17 := @caughtexception;
+
+        $r18 = new org.springframework.context.ApplicationContextException;
+
+        $r19 = new java.lang.StringBuilder;
+
+        specialinvoke $r19.<java.lang.StringBuilder: void <init>(java.lang.String)>("Failed to load custom context class [");
+
+        $r20 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r1);
+
+        $r21 = virtualinvoke $r20.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("]");
+
+        $r22 = virtualinvoke $r21.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r18.<org.springframework.context.ApplicationContextException: void <init>(java.lang.String,java.lang.Throwable)>($r22, $r17);
+
+        throw $r18;
+
+     label4:
+        $r3 = <org.springframework.web.context.ContextLoader: java.util.Properties defaultStrategies>;
+
+        $r2 = class "Lorg/springframework/web/context/WebApplicationContext;";
+
+        $r4 = virtualinvoke $r2.<java.lang.Class: java.lang.String getName()>();
+
+        $r5 = virtualinvoke $r3.<java.util.Properties: java.lang.String getProperty(java.lang.String)>($r4);
+
+     label5:
+        $r6 = class "Lorg/springframework/web/context/ContextLoader;";
+
+        $r7 = virtualinvoke $r6.<java.lang.Class: java.lang.ClassLoader getClassLoader()>();
+
+        $r8 = staticinvoke <org.springframework.util.ClassUtils: java.lang.Class forName(java.lang.String,java.lang.ClassLoader)>($r5, $r7);
+
+     label6:
+        return $r8;
+
+     label7:
+        $r11 := @caughtexception;
+
+        $r12 = new org.springframework.context.ApplicationContextException;
+
+        $r13 = new java.lang.StringBuilder;
+
+        specialinvoke $r13.<java.lang.StringBuilder: void <init>(java.lang.String)>("Failed to load default context class [");
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r5);
+
+        $r15 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("]");
+
+        $r16 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        specialinvoke $r12.<org.springframework.context.ApplicationContextException: void <init>(java.lang.String,java.lang.Throwable)>($r16, $r11);
+
+        throw $r12;
+
+        catch java.lang.ClassNotFoundException from label1 to label2 with label3;
+        catch java.lang.ClassNotFoundException from label5 to label6 with label7;
+    }
+
+    protected void customizeContext(javax.servlet.ServletContext, org.springframework.web.context.ConfigurableWebApplicationContext)
+    {
+        javax.servlet.ServletContext r1;
+        org.springframework.web.context.ContextLoader r0;
+        org.springframework.web.context.ConfigurableWebApplicationContext r2;
+
+        r0 := @this: org.springframework.web.context.ContextLoader;
+
+        r1 := @parameter0: javax.servlet.ServletContext;
+
+        r2 := @parameter1: org.springframework.web.context.ConfigurableWebApplicationContext;
+
+        return;
+    }
+
+    protected org.springframework.context.ApplicationContext loadParentContext(javax.servlet.ServletContext)
+    {
+        org.springframework.beans.factory.access.BeanFactoryReference $r6, $r7;
+        org.springframework.context.ApplicationContext r13;
+        org.springframework.web.context.ContextLoader r5;
+        org.springframework.beans.factory.BeanFactory $r8;
+        javax.servlet.ServletContext r0;
+        org.apache.commons.logging.Log $r4;
+        java.lang.StringBuilder $r9, $r10, $r11;
+        java.lang.String $r1, $r2, $r12;
+        org.springframework.beans.factory.access.BeanFactoryLocator $r3;
+        boolean $z0;
+
+        r5 := @this: org.springframework.web.context.ContextLoader;
+
+        r0 := @parameter0: javax.servlet.ServletContext;
+
+        r13 = null;
+
+        $r1 = interfaceinvoke r0.<javax.servlet.ServletContext: java.lang.String getInitParameter(java.lang.String)>("locatorFactorySelector");
+
+        $r2 = interfaceinvoke r0.<javax.servlet.ServletContext: java.lang.String getInitParameter(java.lang.String)>("parentContextKey");
+
+        if $r2 == null goto label2;
+
+        $r3 = staticinvoke <org.springframework.context.access.ContextSingletonBeanFactoryLocator: org.springframework.beans.factory.access.BeanFactoryLocator getInstance(java.lang.String)>($r1);
+
+        $r4 = staticinvoke <org.apache.commons.logging.LogFactory: org.apache.commons.logging.Log getLog(java.lang.Class)>(class "Lorg/springframework/web/context/ContextLoader;");
+
+        $z0 = interfaceinvoke $r4.<org.apache.commons.logging.Log: boolean isDebugEnabled()>();
+
+        if $z0 == 0 goto label1;
+
+        $r9 = new java.lang.StringBuilder;
+
+        specialinvoke $r9.<java.lang.StringBuilder: void <init>(java.lang.String)>("Getting parent context definition: using parent context key of \'");
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r2);
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("\' with BeanFactoryLocator");
+
+        $r12 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r4.<org.apache.commons.logging.Log: void debug(java.lang.Object)>($r12);
+
+     label1:
+        $r6 = interfaceinvoke $r3.<org.springframework.beans.factory.access.BeanFactoryLocator: org.springframework.beans.factory.access.BeanFactoryReference useBeanFactory(java.lang.String)>($r2);
+
+        r5.<org.springframework.web.context.ContextLoader: org.springframework.beans.factory.access.BeanFactoryReference parentContextRef> = $r6;
+
+        $r7 = r5.<org.springframework.web.context.ContextLoader: org.springframework.beans.factory.access.BeanFactoryReference parentContextRef>;
+
+        $r8 = interfaceinvoke $r7.<org.springframework.beans.factory.access.BeanFactoryReference: org.springframework.beans.factory.BeanFactory getFactory()>();
+
+        r13 = (org.springframework.context.ApplicationContext) $r8;
+
+     label2:
+        return r13;
+    }
+
+    public void closeWebApplicationContext(javax.servlet.ServletContext)
+    {
+        java.lang.Throwable $r11;
+        org.springframework.web.context.ContextLoader r1;
+        java.lang.Thread $r3, $r12;
+        java.util.Map $r8, $r17;
+        java.lang.String $r18, $r20;
+        boolean $z0;
+        org.springframework.web.context.WebApplicationContext $r2, $r9;
+        org.springframework.beans.factory.access.BeanFactoryReference $r7, $r16, $r19, $r21;
+        org.springframework.web.context.ConfigurableWebApplicationContext $r10;
+        javax.servlet.ServletContext r0;
+        java.lang.Class $r5, $r14;
+        java.lang.ClassLoader $r4, $r6, $r13, $r15;
+
+        r1 := @this: org.springframework.web.context.ContextLoader;
+
+        r0 := @parameter0: javax.servlet.ServletContext;
+
+        interfaceinvoke r0.<javax.servlet.ServletContext: void log(java.lang.String)>("Closing Spring root WebApplicationContext");
+
+     label1:
+        $r2 = r1.<org.springframework.web.context.ContextLoader: org.springframework.web.context.WebApplicationContext context>;
+
+        $z0 = $r2 instanceof org.springframework.web.context.ConfigurableWebApplicationContext;
+
+        if $z0 == 0 goto label6;
+
+        $r9 = r1.<org.springframework.web.context.ContextLoader: org.springframework.web.context.WebApplicationContext context>;
+
+        $r10 = (org.springframework.web.context.ConfigurableWebApplicationContext) $r9;
+
+        interfaceinvoke $r10.<org.springframework.web.context.ConfigurableWebApplicationContext: void close()>();
+
+        goto label6;
+
+     label2:
+        $r11 := @caughtexception;
+
+        $r12 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        $r13 = virtualinvoke $r12.<java.lang.Thread: java.lang.ClassLoader getContextClassLoader()>();
+
+        $r14 = class "Lorg/springframework/web/context/ContextLoader;";
+
+        $r15 = virtualinvoke $r14.<java.lang.Class: java.lang.ClassLoader getClassLoader()>();
+
+        if $r13 != $r15 goto label3;
+
+        <org.springframework.web.context.ContextLoader: org.springframework.web.context.WebApplicationContext currentContext> = null;
+
+        goto label4;
+
+     label3:
+        if $r13 == null goto label4;
+
+        $r17 = <org.springframework.web.context.ContextLoader: java.util.Map currentContextPerThread>;
+
+        interfaceinvoke $r17.<java.util.Map: java.lang.Object remove(java.lang.Object)>($r13);
+
+     label4:
+        $r18 = <org.springframework.web.context.WebApplicationContext: java.lang.String ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE>;
+
+        interfaceinvoke r0.<javax.servlet.ServletContext: void removeAttribute(java.lang.String)>($r18);
+
+        $r19 = r1.<org.springframework.web.context.ContextLoader: org.springframework.beans.factory.access.BeanFactoryReference parentContextRef>;
+
+        if $r19 == null goto label5;
+
+        $r16 = r1.<org.springframework.web.context.ContextLoader: org.springframework.beans.factory.access.BeanFactoryReference parentContextRef>;
+
+        interfaceinvoke $r16.<org.springframework.beans.factory.access.BeanFactoryReference: void release()>();
+
+     label5:
+        throw $r11;
+
+     label6:
+        $r3 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        $r4 = virtualinvoke $r3.<java.lang.Thread: java.lang.ClassLoader getContextClassLoader()>();
+
+        $r5 = class "Lorg/springframework/web/context/ContextLoader;";
+
+        $r6 = virtualinvoke $r5.<java.lang.Class: java.lang.ClassLoader getClassLoader()>();
+
+        if $r4 != $r6 goto label7;
+
+        <org.springframework.web.context.ContextLoader: org.springframework.web.context.WebApplicationContext currentContext> = null;
+
+        goto label8;
+
+     label7:
+        if $r4 == null goto label8;
+
+        $r8 = <org.springframework.web.context.ContextLoader: java.util.Map currentContextPerThread>;
+
+        interfaceinvoke $r8.<java.util.Map: java.lang.Object remove(java.lang.Object)>($r4);
+
+     label8:
+        $r20 = <org.springframework.web.context.WebApplicationContext: java.lang.String ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE>;
+
+        interfaceinvoke r0.<javax.servlet.ServletContext: void removeAttribute(java.lang.String)>($r20);
+
+        $r21 = r1.<org.springframework.web.context.ContextLoader: org.springframework.beans.factory.access.BeanFactoryReference parentContextRef>;
+
+        if $r21 == null goto label9;
+
+        $r7 = r1.<org.springframework.web.context.ContextLoader: org.springframework.beans.factory.access.BeanFactoryReference parentContextRef>;
+
+        interfaceinvoke $r7.<org.springframework.beans.factory.access.BeanFactoryReference: void release()>();
+
+     label9:
+        return;
+
+        catch java.lang.Throwable from label1 to label2 with label2;
+    }
+
+    public static org.springframework.web.context.WebApplicationContext getCurrentWebApplicationContext()
+    {
+        java.lang.Thread $r0;
+        java.util.Map $r3;
+        org.springframework.web.context.WebApplicationContext $r2, r5;
+        java.lang.Object $r4;
+        java.lang.ClassLoader $r1;
+
+        $r0 = staticinvoke <java.lang.Thread: java.lang.Thread currentThread()>();
+
+        $r1 = virtualinvoke $r0.<java.lang.Thread: java.lang.ClassLoader getContextClassLoader()>();
+
+        if $r1 == null goto label1;
+
+        $r3 = <org.springframework.web.context.ContextLoader: java.util.Map currentContextPerThread>;
+
+        $r4 = interfaceinvoke $r3.<java.util.Map: java.lang.Object get(java.lang.Object)>($r1);
+
+        r5 = (org.springframework.web.context.WebApplicationContext) $r4;
+
+        if r5 == null goto label1;
+
+        return r5;
+
+     label1:
+        $r2 = <org.springframework.web.context.ContextLoader: org.springframework.web.context.WebApplicationContext currentContext>;
+
+        return $r2;
+    }
+}

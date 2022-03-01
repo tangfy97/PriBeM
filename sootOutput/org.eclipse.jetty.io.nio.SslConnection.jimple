@@ -1,0 +1,2226 @@
+public class org.eclipse.jetty.io.nio.SslConnection extends org.eclipse.jetty.io.AbstractConnection implements org.eclipse.jetty.io.nio.AsyncConnection
+{
+    private final org.eclipse.jetty.util.log.Logger _logger;
+    private static final org.eclipse.jetty.io.nio.NIOBuffer __ZERO_BUFFER;
+    private static final java.lang.ThreadLocal __buffers;
+    private final javax.net.ssl.SSLEngine _engine;
+    private final javax.net.ssl.SSLSession _session;
+    private org.eclipse.jetty.io.nio.AsyncConnection _connection;
+    private final org.eclipse.jetty.io.nio.SslConnection$SslEndPoint _sslEndPoint;
+    private int _allocations;
+    private org.eclipse.jetty.io.nio.SslConnection$SslBuffers _buffers;
+    private org.eclipse.jetty.io.nio.NIOBuffer _inbound;
+    private org.eclipse.jetty.io.nio.NIOBuffer _unwrapBuf;
+    private org.eclipse.jetty.io.nio.NIOBuffer _outbound;
+    private org.eclipse.jetty.io.AsyncEndPoint _aEndp;
+    private boolean _allowRenegotiate;
+    private boolean _handshook;
+    private boolean _ishut;
+    private boolean _oshut;
+    private final java.util.concurrent.atomic.AtomicBoolean _progressed;
+
+    public void <init>(javax.net.ssl.SSLEngine, org.eclipse.jetty.io.EndPoint)
+    {
+        org.eclipse.jetty.io.EndPoint r2;
+        org.eclipse.jetty.io.nio.SslConnection r0;
+        long $l0;
+        javax.net.ssl.SSLEngine r1;
+
+        r0 := @this: org.eclipse.jetty.io.nio.SslConnection;
+
+        r1 := @parameter0: javax.net.ssl.SSLEngine;
+
+        r2 := @parameter1: org.eclipse.jetty.io.EndPoint;
+
+        $l0 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        specialinvoke r0.<org.eclipse.jetty.io.nio.SslConnection: void <init>(javax.net.ssl.SSLEngine,org.eclipse.jetty.io.EndPoint,long)>(r1, r2, $l0);
+
+        return;
+    }
+
+    public void <init>(javax.net.ssl.SSLEngine, org.eclipse.jetty.io.EndPoint, long)
+    {
+        org.eclipse.jetty.io.nio.SslConnection$SslEndPoint $r8;
+        org.eclipse.jetty.io.EndPoint r1;
+        java.util.concurrent.atomic.AtomicBoolean $r3;
+        long l0;
+        javax.net.ssl.SSLEngine r4, $r5;
+        javax.net.ssl.SSLSession $r6;
+        org.eclipse.jetty.io.nio.SslConnection r0;
+        org.eclipse.jetty.io.AsyncEndPoint $r7;
+        org.eclipse.jetty.util.log.Logger $r2;
+
+        r0 := @this: org.eclipse.jetty.io.nio.SslConnection;
+
+        r4 := @parameter0: javax.net.ssl.SSLEngine;
+
+        r1 := @parameter1: org.eclipse.jetty.io.EndPoint;
+
+        l0 := @parameter2: long;
+
+        specialinvoke r0.<org.eclipse.jetty.io.AbstractConnection: void <init>(org.eclipse.jetty.io.EndPoint,long)>(r1, l0);
+
+        $r2 = staticinvoke <org.eclipse.jetty.util.log.Log: org.eclipse.jetty.util.log.Logger getLogger(java.lang.String)>("org.eclipse.jetty.io.nio.ssl");
+
+        r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.util.log.Logger _logger> = $r2;
+
+        r0.<org.eclipse.jetty.io.nio.SslConnection: boolean _allowRenegotiate> = 1;
+
+        $r3 = new java.util.concurrent.atomic.AtomicBoolean;
+
+        specialinvoke $r3.<java.util.concurrent.atomic.AtomicBoolean: void <init>()>();
+
+        r0.<org.eclipse.jetty.io.nio.SslConnection: java.util.concurrent.atomic.AtomicBoolean _progressed> = $r3;
+
+        r0.<org.eclipse.jetty.io.nio.SslConnection: javax.net.ssl.SSLEngine _engine> = r4;
+
+        $r5 = r0.<org.eclipse.jetty.io.nio.SslConnection: javax.net.ssl.SSLEngine _engine>;
+
+        $r6 = virtualinvoke $r5.<javax.net.ssl.SSLEngine: javax.net.ssl.SSLSession getSession()>();
+
+        r0.<org.eclipse.jetty.io.nio.SslConnection: javax.net.ssl.SSLSession _session> = $r6;
+
+        $r7 = (org.eclipse.jetty.io.AsyncEndPoint) r1;
+
+        r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.AsyncEndPoint _aEndp> = $r7;
+
+        $r8 = virtualinvoke r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.SslConnection$SslEndPoint newSslEndPoint()>();
+
+        r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.SslConnection$SslEndPoint _sslEndPoint> = $r8;
+
+        return;
+    }
+
+    protected org.eclipse.jetty.io.nio.SslConnection$SslEndPoint newSslEndPoint()
+    {
+        org.eclipse.jetty.io.nio.SslConnection$SslEndPoint $r0;
+        org.eclipse.jetty.io.nio.SslConnection r1;
+
+        r1 := @this: org.eclipse.jetty.io.nio.SslConnection;
+
+        $r0 = new org.eclipse.jetty.io.nio.SslConnection$SslEndPoint;
+
+        specialinvoke $r0.<org.eclipse.jetty.io.nio.SslConnection$SslEndPoint: void <init>(org.eclipse.jetty.io.nio.SslConnection)>(r1);
+
+        return $r0;
+    }
+
+    public boolean isAllowRenegotiate()
+    {
+        org.eclipse.jetty.io.nio.SslConnection r0;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.io.nio.SslConnection;
+
+        $z0 = r0.<org.eclipse.jetty.io.nio.SslConnection: boolean _allowRenegotiate>;
+
+        return $z0;
+    }
+
+    public void setAllowRenegotiate(boolean)
+    {
+        org.eclipse.jetty.io.nio.SslConnection r0;
+        boolean z0;
+
+        r0 := @this: org.eclipse.jetty.io.nio.SslConnection;
+
+        z0 := @parameter0: boolean;
+
+        r0.<org.eclipse.jetty.io.nio.SslConnection: boolean _allowRenegotiate> = z0;
+
+        return;
+    }
+
+    private void allocateBuffers()
+    {
+        java.lang.Throwable $r16;
+        javax.net.ssl.SSLSession $r14, $r15;
+        org.eclipse.jetty.io.nio.NIOBuffer $r7, $r9, $r11;
+        org.eclipse.jetty.io.nio.SslConnection r0;
+        int $i0, $i1, $i2, $i3, $i4, $i5;
+        java.lang.ThreadLocal $r2, $r12;
+        org.eclipse.jetty.io.nio.SslConnection$SslBuffers $r1, $r4, $r5, $r6, $r8, $r10, $r13;
+        java.lang.Object $r3;
+
+        r0 := @this: org.eclipse.jetty.io.nio.SslConnection;
+
+        entermonitor r0;
+
+     label1:
+        $i0 = r0.<org.eclipse.jetty.io.nio.SslConnection: int _allocations>;
+
+        $i1 = $i0 + 1;
+
+        r0.<org.eclipse.jetty.io.nio.SslConnection: int _allocations> = $i1;
+
+        if $i0 != 0 goto label3;
+
+        $r1 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.SslConnection$SslBuffers _buffers>;
+
+        if $r1 != null goto label3;
+
+        $r2 = <org.eclipse.jetty.io.nio.SslConnection: java.lang.ThreadLocal __buffers>;
+
+        $r3 = virtualinvoke $r2.<java.lang.ThreadLocal: java.lang.Object get()>();
+
+        $r4 = (org.eclipse.jetty.io.nio.SslConnection$SslBuffers) $r3;
+
+        r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.SslConnection$SslBuffers _buffers> = $r4;
+
+        $r5 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.SslConnection$SslBuffers _buffers>;
+
+        if $r5 != null goto label2;
+
+        $r13 = new org.eclipse.jetty.io.nio.SslConnection$SslBuffers;
+
+        $r14 = r0.<org.eclipse.jetty.io.nio.SslConnection: javax.net.ssl.SSLSession _session>;
+
+        $i2 = interfaceinvoke $r14.<javax.net.ssl.SSLSession: int getPacketBufferSize()>();
+
+        $i3 = $i2 * 2;
+
+        $r15 = r0.<org.eclipse.jetty.io.nio.SslConnection: javax.net.ssl.SSLSession _session>;
+
+        $i4 = interfaceinvoke $r15.<javax.net.ssl.SSLSession: int getApplicationBufferSize()>();
+
+        $i5 = $i4 * 2;
+
+        specialinvoke $r13.<org.eclipse.jetty.io.nio.SslConnection$SslBuffers: void <init>(int,int)>($i3, $i5);
+
+        r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.SslConnection$SslBuffers _buffers> = $r13;
+
+     label2:
+        $r6 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.SslConnection$SslBuffers _buffers>;
+
+        $r7 = $r6.<org.eclipse.jetty.io.nio.SslConnection$SslBuffers: org.eclipse.jetty.io.nio.NIOBuffer _in>;
+
+        r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _inbound> = $r7;
+
+        $r8 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.SslConnection$SslBuffers _buffers>;
+
+        $r9 = $r8.<org.eclipse.jetty.io.nio.SslConnection$SslBuffers: org.eclipse.jetty.io.nio.NIOBuffer _out>;
+
+        r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _outbound> = $r9;
+
+        $r10 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.SslConnection$SslBuffers _buffers>;
+
+        $r11 = $r10.<org.eclipse.jetty.io.nio.SslConnection$SslBuffers: org.eclipse.jetty.io.nio.NIOBuffer _unwrap>;
+
+        r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _unwrapBuf> = $r11;
+
+        $r12 = <org.eclipse.jetty.io.nio.SslConnection: java.lang.ThreadLocal __buffers>;
+
+        virtualinvoke $r12.<java.lang.ThreadLocal: void set(java.lang.Object)>(null);
+
+     label3:
+        exitmonitor r0;
+
+     label4:
+        goto label7;
+
+     label5:
+        $r16 := @caughtexception;
+
+        exitmonitor r0;
+
+     label6:
+        throw $r16;
+
+     label7:
+        return;
+
+        catch java.lang.Throwable from label1 to label4 with label5;
+        catch java.lang.Throwable from label5 to label6 with label5;
+    }
+
+    private void releaseBuffers()
+    {
+        java.lang.Throwable $r7;
+        java.lang.ThreadLocal $r6;
+        org.eclipse.jetty.io.nio.SslConnection$SslBuffers $r1, $r5;
+        org.eclipse.jetty.io.nio.NIOBuffer $r2, $r3, $r4;
+        org.eclipse.jetty.io.nio.SslConnection r0;
+        int $i0, $i1, $i2, $i3, $i4;
+
+        r0 := @this: org.eclipse.jetty.io.nio.SslConnection;
+
+        entermonitor r0;
+
+     label1:
+        $i0 = r0.<org.eclipse.jetty.io.nio.SslConnection: int _allocations>;
+
+        $i1 = $i0 - 1;
+
+        r0.<org.eclipse.jetty.io.nio.SslConnection: int _allocations> = $i1;
+
+        if $i1 != 0 goto label2;
+
+        $r1 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.SslConnection$SslBuffers _buffers>;
+
+        if $r1 == null goto label2;
+
+        $r2 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _inbound>;
+
+        $i2 = interfaceinvoke $r2.<org.eclipse.jetty.io.nio.NIOBuffer: int length()>();
+
+        if $i2 != 0 goto label2;
+
+        $r3 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _outbound>;
+
+        $i3 = interfaceinvoke $r3.<org.eclipse.jetty.io.nio.NIOBuffer: int length()>();
+
+        if $i3 != 0 goto label2;
+
+        $r4 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _unwrapBuf>;
+
+        $i4 = interfaceinvoke $r4.<org.eclipse.jetty.io.nio.NIOBuffer: int length()>();
+
+        if $i4 != 0 goto label2;
+
+        r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _inbound> = null;
+
+        r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _outbound> = null;
+
+        r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _unwrapBuf> = null;
+
+        $r6 = <org.eclipse.jetty.io.nio.SslConnection: java.lang.ThreadLocal __buffers>;
+
+        $r5 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.SslConnection$SslBuffers _buffers>;
+
+        virtualinvoke $r6.<java.lang.ThreadLocal: void set(java.lang.Object)>($r5);
+
+        r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.SslConnection$SslBuffers _buffers> = null;
+
+     label2:
+        exitmonitor r0;
+
+     label3:
+        goto label6;
+
+     label4:
+        $r7 := @caughtexception;
+
+        exitmonitor r0;
+
+     label5:
+        throw $r7;
+
+     label6:
+        return;
+
+        catch java.lang.Throwable from label1 to label3 with label4;
+        catch java.lang.Throwable from label4 to label5 with label4;
+    }
+
+    public org.eclipse.jetty.io.Connection handle() throws java.io.IOException
+    {
+        org.eclipse.jetty.io.nio.SslConnection$SslEndPoint $r1, $r2, $r15, $r17, $r18, $r24;
+        javax.net.ssl.SSLEngineResult$HandshakeStatus $r5, $r6;
+        org.eclipse.jetty.io.nio.SslConnection r0;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, z6;
+        org.eclipse.jetty.io.nio.AsyncConnection $r3, $r7, $r9, $r10, $r19;
+        java.lang.Throwable $r13, $r16, $r22;
+        java.lang.Object[] $r26;
+        javax.net.ssl.SSLEngine $r4;
+        javax.net.ssl.SSLSession $r27;
+        java.lang.Boolean $r28;
+        java.io.IOException $r11, $r20;
+        org.eclipse.jetty.io.Connection $r8;
+        org.eclipse.jetty.util.log.Logger $r12, $r14, $r21, $r23, $r25;
+
+        r0 := @this: org.eclipse.jetty.io.nio.SslConnection;
+
+     label01:
+        specialinvoke r0.<org.eclipse.jetty.io.nio.SslConnection: void allocateBuffers()>();
+
+        z6 = 1;
+
+     label02:
+        if z6 == 0 goto label05;
+
+        z6 = 0;
+
+        $r4 = r0.<org.eclipse.jetty.io.nio.SslConnection: javax.net.ssl.SSLEngine _engine>;
+
+        $r5 = virtualinvoke $r4.<javax.net.ssl.SSLEngine: javax.net.ssl.SSLEngineResult$HandshakeStatus getHandshakeStatus()>();
+
+        $r6 = <javax.net.ssl.SSLEngineResult$HandshakeStatus: javax.net.ssl.SSLEngineResult$HandshakeStatus NOT_HANDSHAKING>;
+
+        if $r5 == $r6 goto label03;
+
+        z6 = specialinvoke r0.<org.eclipse.jetty.io.nio.SslConnection: boolean process(org.eclipse.jetty.io.Buffer,org.eclipse.jetty.io.Buffer)>(null, null);
+
+     label03:
+        $r7 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.AsyncConnection _connection>;
+
+        $r8 = interfaceinvoke $r7.<org.eclipse.jetty.io.nio.AsyncConnection: org.eclipse.jetty.io.Connection handle()>();
+
+        $r10 = (org.eclipse.jetty.io.nio.AsyncConnection) $r8;
+
+        $r9 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.AsyncConnection _connection>;
+
+        if $r10 == $r9 goto label04;
+
+        if $r10 == null goto label04;
+
+        r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.AsyncConnection _connection> = $r10;
+
+        z6 = 1;
+
+     label04:
+        $r25 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.util.log.Logger _logger>;
+
+        $r26 = newarray (java.lang.Object)[3];
+
+        $r27 = r0.<org.eclipse.jetty.io.nio.SslConnection: javax.net.ssl.SSLSession _session>;
+
+        $r26[0] = $r27;
+
+        $r26[1] = r0;
+
+        $r28 = staticinvoke <java.lang.Boolean: java.lang.Boolean valueOf(boolean)>(z6);
+
+        $r26[2] = $r28;
+
+        interfaceinvoke $r25.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Object[])>("{} handle {} progress={}", $r26);
+
+        goto label02;
+
+     label05:
+        specialinvoke r0.<org.eclipse.jetty.io.nio.SslConnection: void releaseBuffers()>();
+
+        $z0 = r0.<org.eclipse.jetty.io.nio.SslConnection: boolean _ishut>;
+
+        if $z0 != 0 goto label22;
+
+        $r1 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.SslConnection$SslEndPoint _sslEndPoint>;
+
+        $z1 = virtualinvoke $r1.<org.eclipse.jetty.io.nio.SslConnection$SslEndPoint: boolean isInputShutdown()>();
+
+        if $z1 == 0 goto label22;
+
+        $r2 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.SslConnection$SslEndPoint _sslEndPoint>;
+
+        $z2 = virtualinvoke $r2.<org.eclipse.jetty.io.nio.SslConnection$SslEndPoint: boolean isOpen()>();
+
+        if $z2 == 0 goto label22;
+
+        r0.<org.eclipse.jetty.io.nio.SslConnection: boolean _ishut> = 1;
+
+     label06:
+        $r3 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.AsyncConnection _connection>;
+
+        interfaceinvoke $r3.<org.eclipse.jetty.io.nio.AsyncConnection: void onInputShutdown()>();
+
+     label07:
+        goto label22;
+
+     label08:
+        $r22 := @caughtexception;
+
+        $r23 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.util.log.Logger _logger>;
+
+        interfaceinvoke $r23.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.String,java.lang.Throwable)>("onInputShutdown failed", $r22);
+
+     label09:
+        $r24 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.SslConnection$SslEndPoint _sslEndPoint>;
+
+        virtualinvoke $r24.<org.eclipse.jetty.io.nio.SslConnection$SslEndPoint: void close()>();
+
+     label10:
+        goto label12;
+
+     label11:
+        $r20 := @caughtexception;
+
+        $r21 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.util.log.Logger _logger>;
+
+        interfaceinvoke $r21.<org.eclipse.jetty.util.log.Logger: void ignore(java.lang.Throwable)>($r20);
+
+     label12:
+        goto label22;
+
+     label13:
+        $r16 := @caughtexception;
+
+     label14:
+        specialinvoke r0.<org.eclipse.jetty.io.nio.SslConnection: void releaseBuffers()>();
+
+        $z3 = r0.<org.eclipse.jetty.io.nio.SslConnection: boolean _ishut>;
+
+        if $z3 != 0 goto label21;
+
+        $r17 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.SslConnection$SslEndPoint _sslEndPoint>;
+
+        $z4 = virtualinvoke $r17.<org.eclipse.jetty.io.nio.SslConnection$SslEndPoint: boolean isInputShutdown()>();
+
+        if $z4 == 0 goto label21;
+
+        $r18 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.SslConnection$SslEndPoint _sslEndPoint>;
+
+        $z5 = virtualinvoke $r18.<org.eclipse.jetty.io.nio.SslConnection$SslEndPoint: boolean isOpen()>();
+
+        if $z5 == 0 goto label21;
+
+        r0.<org.eclipse.jetty.io.nio.SslConnection: boolean _ishut> = 1;
+
+     label15:
+        $r19 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.AsyncConnection _connection>;
+
+        interfaceinvoke $r19.<org.eclipse.jetty.io.nio.AsyncConnection: void onInputShutdown()>();
+
+     label16:
+        goto label21;
+
+     label17:
+        $r13 := @caughtexception;
+
+        $r14 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.util.log.Logger _logger>;
+
+        interfaceinvoke $r14.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.String,java.lang.Throwable)>("onInputShutdown failed", $r13);
+
+     label18:
+        $r15 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.SslConnection$SslEndPoint _sslEndPoint>;
+
+        virtualinvoke $r15.<org.eclipse.jetty.io.nio.SslConnection$SslEndPoint: void close()>();
+
+     label19:
+        goto label21;
+
+     label20:
+        $r11 := @caughtexception;
+
+        $r12 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.util.log.Logger _logger>;
+
+        interfaceinvoke $r12.<org.eclipse.jetty.util.log.Logger: void ignore(java.lang.Throwable)>($r11);
+
+     label21:
+        throw $r16;
+
+     label22:
+        return r0;
+
+        catch java.lang.Throwable from label06 to label07 with label08;
+        catch java.io.IOException from label09 to label10 with label11;
+        catch java.lang.Throwable from label01 to label05 with label13;
+        catch java.lang.Throwable from label15 to label16 with label17;
+        catch java.io.IOException from label18 to label19 with label20;
+        catch java.lang.Throwable from label13 to label14 with label13;
+    }
+
+    public boolean isIdle()
+    {
+        org.eclipse.jetty.io.nio.SslConnection r0;
+
+        r0 := @this: org.eclipse.jetty.io.nio.SslConnection;
+
+        return 0;
+    }
+
+    public boolean isSuspended()
+    {
+        org.eclipse.jetty.io.nio.SslConnection r0;
+
+        r0 := @this: org.eclipse.jetty.io.nio.SslConnection;
+
+        return 0;
+    }
+
+    public void onClose()
+    {
+        org.eclipse.jetty.io.nio.SslConnection$SslEndPoint $r1;
+        org.eclipse.jetty.io.Connection $r2;
+        org.eclipse.jetty.io.nio.SslConnection r0;
+
+        r0 := @this: org.eclipse.jetty.io.nio.SslConnection;
+
+        $r1 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.SslConnection$SslEndPoint _sslEndPoint>;
+
+        $r2 = virtualinvoke $r1.<org.eclipse.jetty.io.nio.SslConnection$SslEndPoint: org.eclipse.jetty.io.Connection getConnection()>();
+
+        if $r2 == null goto label1;
+
+        if $r2 == r0 goto label1;
+
+        interfaceinvoke $r2.<org.eclipse.jetty.io.Connection: void onClose()>();
+
+     label1:
+        return;
+    }
+
+    public void onIdleExpired(long)
+    {
+        org.eclipse.jetty.io.nio.SslConnection$SslEndPoint $r5, $r6;
+        java.lang.Object[] $r1;
+        org.eclipse.jetty.io.EndPoint $r4;
+        long l0;
+        java.io.IOException $r7;
+        java.lang.Long $r3;
+        org.eclipse.jetty.io.nio.SslConnection r0;
+        org.eclipse.jetty.util.log.Logger $r2, $r8;
+        boolean $z0;
+
+        r0 := @this: org.eclipse.jetty.io.nio.SslConnection;
+
+        l0 := @parameter0: long;
+
+     label1:
+        $r2 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.util.log.Logger _logger>;
+
+        $r1 = newarray (java.lang.Object)[2];
+
+        $r3 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>(l0);
+
+        $r1[0] = $r3;
+
+        $r1[1] = r0;
+
+        interfaceinvoke $r2.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Object[])>("onIdleExpired {}ms on {}", $r1);
+
+        $r4 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.EndPoint _endp>;
+
+        $z0 = interfaceinvoke $r4.<org.eclipse.jetty.io.EndPoint: boolean isOutputShutdown()>();
+
+        if $z0 == 0 goto label2;
+
+        $r6 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.SslConnection$SslEndPoint _sslEndPoint>;
+
+        virtualinvoke $r6.<org.eclipse.jetty.io.nio.SslConnection$SslEndPoint: void close()>();
+
+        goto label3;
+
+     label2:
+        $r5 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.SslConnection$SslEndPoint _sslEndPoint>;
+
+        virtualinvoke $r5.<org.eclipse.jetty.io.nio.SslConnection$SslEndPoint: void shutdownOutput()>();
+
+     label3:
+        goto label5;
+
+     label4:
+        $r7 := @caughtexception;
+
+        $r8 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.util.log.Logger _logger>;
+
+        interfaceinvoke $r8.<org.eclipse.jetty.util.log.Logger: void warn(java.lang.Throwable)>($r7);
+
+        specialinvoke r0.<org.eclipse.jetty.io.AbstractConnection: void onIdleExpired(long)>(l0);
+
+     label5:
+        return;
+
+        catch java.io.IOException from label1 to label3 with label4;
+    }
+
+    public void onInputShutdown() throws java.io.IOException
+    {
+        org.eclipse.jetty.io.nio.SslConnection r0;
+
+        r0 := @this: org.eclipse.jetty.io.nio.SslConnection;
+
+        return;
+    }
+
+    private synchronized boolean process(org.eclipse.jetty.io.Buffer, org.eclipse.jetty.io.Buffer) throws java.io.IOException
+    {
+        java.lang.Integer $r49, $r51, $r52, $r54, $r65, $r67, $r68, $r70;
+        org.eclipse.jetty.io.nio.AsyncConnection $r6;
+        java.lang.Throwable $r41, $r43;
+        java.lang.Object[] $r44, $r61;
+        javax.net.ssl.SSLSession $r1, $r45, $r62;
+        org.eclipse.jetty.io.nio.NIOBuffer $r2, $r3, $r5, $r8, $r12, $r14, $r17, $r23, $r24, $r26, $r28, $r30, $r31, $r32, $r34, $r36, $r37, $r38, $r40, $r50, $r53, $r59, $r66, $r69;
+        java.io.IOException $r55;
+        org.eclipse.jetty.io.AsyncEndPoint $r7;
+        java.lang.IllegalStateException $r73;
+        org.eclipse.jetty.io.EndPoint $r15, $r16, $r18, $r19, $r20, $r27, $r29, $r56, $r71, $r72;
+        javax.net.ssl.SSLEngineResult$HandshakeStatus $r11, $r48, $r64;
+        java.lang.Runnable $r22;
+        int[] $r10;
+        org.eclipse.jetty.io.nio.SslConnection r0;
+        org.eclipse.jetty.io.Buffer r57, r58;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8, $z9, $z10, $z11, $z12, $z13, $z14, $z15, $z16, $z17, $z18, z19, z20, $z21, $z22, $z23, $z24, z25, z26;
+        java.util.concurrent.atomic.AtomicBoolean $r4, $r33, $r35, $r39, $r42;
+        javax.net.ssl.SSLEngine $r9, $r13, $r21, $r46, $r63;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i10, $i11, $i12, i13, i14, $i15, $i16, $i18;
+        org.eclipse.jetty.util.log.Logger $r47, $r60;
+
+        r0 := @this: org.eclipse.jetty.io.nio.SslConnection;
+
+        r57 := @parameter0: org.eclipse.jetty.io.Buffer;
+
+        r58 := @parameter1: org.eclipse.jetty.io.Buffer;
+
+        z19 = 0;
+
+     label01:
+        specialinvoke r0.<org.eclipse.jetty.io.nio.SslConnection: void allocateBuffers()>();
+
+        if r57 != null goto label02;
+
+        $r40 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _unwrapBuf>;
+
+        interfaceinvoke $r40.<org.eclipse.jetty.io.nio.NIOBuffer: void compact()>();
+
+        r57 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _unwrapBuf>;
+
+        goto label10;
+
+     label02:
+        $i0 = interfaceinvoke r57.<org.eclipse.jetty.io.Buffer: int capacity()>();
+
+        $r1 = r0.<org.eclipse.jetty.io.nio.SslConnection: javax.net.ssl.SSLSession _session>;
+
+        $i1 = interfaceinvoke $r1.<javax.net.ssl.SSLSession: int getApplicationBufferSize()>();
+
+        if $i0 >= $i1 goto label07;
+
+        $z17 = specialinvoke r0.<org.eclipse.jetty.io.nio.SslConnection: boolean process(org.eclipse.jetty.io.Buffer,org.eclipse.jetty.io.Buffer)>(null, r58);
+
+        $r34 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _unwrapBuf>;
+
+        if $r34 == null goto label05;
+
+        $r36 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _unwrapBuf>;
+
+        $z18 = interfaceinvoke $r36.<org.eclipse.jetty.io.nio.NIOBuffer: boolean hasContent()>();
+
+        if $z18 == 0 goto label05;
+
+        $r38 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _unwrapBuf>;
+
+        $r37 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _unwrapBuf>;
+
+        $i10 = interfaceinvoke r57.<org.eclipse.jetty.io.Buffer: int put(org.eclipse.jetty.io.Buffer)>($r37);
+
+        interfaceinvoke $r38.<org.eclipse.jetty.io.nio.NIOBuffer: int skip(int)>($i10);
+
+     label03:
+        specialinvoke r0.<org.eclipse.jetty.io.nio.SslConnection: void releaseBuffers()>();
+
+        if 0 == 0 goto label04;
+
+        $r39 = r0.<org.eclipse.jetty.io.nio.SslConnection: java.util.concurrent.atomic.AtomicBoolean _progressed>;
+
+        virtualinvoke $r39.<java.util.concurrent.atomic.AtomicBoolean: void set(boolean)>(1);
+
+     label04:
+        return 1;
+
+     label05:
+        specialinvoke r0.<org.eclipse.jetty.io.nio.SslConnection: void releaseBuffers()>();
+
+        if 0 == 0 goto label06;
+
+        $r35 = r0.<org.eclipse.jetty.io.nio.SslConnection: java.util.concurrent.atomic.AtomicBoolean _progressed>;
+
+        virtualinvoke $r35.<java.util.concurrent.atomic.AtomicBoolean: void set(boolean)>(1);
+
+     label06:
+        return $z17;
+
+     label07:
+        $r2 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _unwrapBuf>;
+
+        if $r2 == null goto label10;
+
+        $r30 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _unwrapBuf>;
+
+        $z16 = interfaceinvoke $r30.<org.eclipse.jetty.io.nio.NIOBuffer: boolean hasContent()>();
+
+        if $z16 == 0 goto label10;
+
+        $r32 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _unwrapBuf>;
+
+        $r31 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _unwrapBuf>;
+
+        $i9 = interfaceinvoke r57.<org.eclipse.jetty.io.Buffer: int put(org.eclipse.jetty.io.Buffer)>($r31);
+
+        interfaceinvoke $r32.<org.eclipse.jetty.io.nio.NIOBuffer: int skip(int)>($i9);
+
+     label08:
+        specialinvoke r0.<org.eclipse.jetty.io.nio.SslConnection: void releaseBuffers()>();
+
+        if 0 == 0 goto label09;
+
+        $r33 = r0.<org.eclipse.jetty.io.nio.SslConnection: java.util.concurrent.atomic.AtomicBoolean _progressed>;
+
+        virtualinvoke $r33.<java.util.concurrent.atomic.AtomicBoolean: void set(boolean)>(1);
+
+     label09:
+        return 1;
+
+     label10:
+        if r58 != null goto label11;
+
+        r58 = <org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer __ZERO_BUFFER>;
+
+     label11:
+        z20 = 1;
+
+        z25 = 1;
+
+     label12:
+        if z25 == 0 goto label33;
+
+        z20 = 0;
+
+        z26 = 0;
+
+        z25 = 0;
+
+        i13 = 0;
+
+        i14 = 0;
+
+     label13:
+        $r8 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _inbound>;
+
+        $i2 = interfaceinvoke $r8.<org.eclipse.jetty.io.nio.NIOBuffer: int space()>();
+
+        if $i2 <= 0 goto label14;
+
+        $r29 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.EndPoint _endp>;
+
+        $r28 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _inbound>;
+
+        $i8 = interfaceinvoke $r29.<org.eclipse.jetty.io.EndPoint: int fill(org.eclipse.jetty.io.Buffer)>($r28);
+
+        i13 = $i8;
+
+        if $i8 <= 0 goto label14;
+
+        z20 = 1;
+
+        z26 = 1;
+
+        z25 = 1;
+
+     label14:
+        $r59 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _outbound>;
+
+        $z21 = interfaceinvoke $r59.<org.eclipse.jetty.io.nio.NIOBuffer: boolean hasContent()>();
+
+        if $z21 == 0 goto label15;
+
+        $r27 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.EndPoint _endp>;
+
+        $r26 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _outbound>;
+
+        $i7 = interfaceinvoke $r27.<org.eclipse.jetty.io.EndPoint: int flush(org.eclipse.jetty.io.Buffer)>($r26);
+
+        i14 = $i7;
+
+        if $i7 <= 0 goto label15;
+
+        z20 = 1;
+
+        z26 = 1;
+
+        z25 = 1;
+
+     label15:
+        $r60 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.util.log.Logger _logger>;
+
+        $r61 = newarray (java.lang.Object)[7];
+
+        $r62 = r0.<org.eclipse.jetty.io.nio.SslConnection: javax.net.ssl.SSLSession _session>;
+
+        $r61[0] = $r62;
+
+        $r61[1] = r0;
+
+        $r63 = r0.<org.eclipse.jetty.io.nio.SslConnection: javax.net.ssl.SSLEngine _engine>;
+
+        $r64 = virtualinvoke $r63.<javax.net.ssl.SSLEngine: javax.net.ssl.SSLEngineResult$HandshakeStatus getHandshakeStatus()>();
+
+        $r61[2] = $r64;
+
+        $r65 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i13);
+
+        $r61[3] = $r65;
+
+        $r66 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _inbound>;
+
+        $i15 = interfaceinvoke $r66.<org.eclipse.jetty.io.nio.NIOBuffer: int length()>();
+
+        $r67 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i15);
+
+        $r61[4] = $r67;
+
+        $r68 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i14);
+
+        $r61[5] = $r68;
+
+        $r69 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _outbound>;
+
+        $i16 = interfaceinvoke $r69.<org.eclipse.jetty.io.nio.NIOBuffer: int length()>();
+
+        $r70 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i16);
+
+        $r61[6] = $r70;
+
+        interfaceinvoke $r60.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Object[])>("{} {} {} filled={}/{} flushed={}/{}", $r61);
+
+        goto label19;
+
+     label16:
+        $r55 := @caughtexception;
+
+        $r56 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.EndPoint _endp>;
+
+        interfaceinvoke $r56.<org.eclipse.jetty.io.EndPoint: void close()>();
+
+        throw $r55;
+
+     label17:
+        $r43 := @caughtexception;
+
+     label18:
+        $r47 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.util.log.Logger _logger>;
+
+        $r44 = newarray (java.lang.Object)[7];
+
+        $r45 = r0.<org.eclipse.jetty.io.nio.SslConnection: javax.net.ssl.SSLSession _session>;
+
+        $r44[0] = $r45;
+
+        $r44[1] = r0;
+
+        $r46 = r0.<org.eclipse.jetty.io.nio.SslConnection: javax.net.ssl.SSLEngine _engine>;
+
+        $r48 = virtualinvoke $r46.<javax.net.ssl.SSLEngine: javax.net.ssl.SSLEngineResult$HandshakeStatus getHandshakeStatus()>();
+
+        $r44[2] = $r48;
+
+        $r49 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i13);
+
+        $r44[3] = $r49;
+
+        $r50 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _inbound>;
+
+        $i11 = interfaceinvoke $r50.<org.eclipse.jetty.io.nio.NIOBuffer: int length()>();
+
+        $r51 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i11);
+
+        $r44[4] = $r51;
+
+        $r52 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>(i14);
+
+        $r44[5] = $r52;
+
+        $r53 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _outbound>;
+
+        $i12 = interfaceinvoke $r53.<org.eclipse.jetty.io.nio.NIOBuffer: int length()>();
+
+        $r54 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i12);
+
+        $r44[6] = $r54;
+
+        interfaceinvoke $r47.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Object[])>("{} {} {} filled={}/{} flushed={}/{}", $r44);
+
+        throw $r43;
+
+     label19:
+        $r10 = <org.eclipse.jetty.io.nio.SslConnection$1: int[] $SwitchMap$javax$net$ssl$SSLEngineResult$HandshakeStatus>;
+
+        $r9 = r0.<org.eclipse.jetty.io.nio.SslConnection: javax.net.ssl.SSLEngine _engine>;
+
+        $r11 = virtualinvoke $r9.<javax.net.ssl.SSLEngine: javax.net.ssl.SSLEngineResult$HandshakeStatus getHandshakeStatus()>();
+
+        $i3 = virtualinvoke $r11.<javax.net.ssl.SSLEngineResult$HandshakeStatus: int ordinal()>();
+
+        $i4 = $r10[$i3];
+
+        tableswitch($i4)
+        {
+            case 1: goto label20;
+            case 2: goto label21;
+            case 3: goto label23;
+            case 4: goto label25;
+            case 5: goto label27;
+            default: goto label30;
+        };
+
+     label20:
+        $r73 = new java.lang.IllegalStateException;
+
+        specialinvoke $r73.<java.lang.IllegalStateException: void <init>()>();
+
+        throw $r73;
+
+     label21:
+        $i5 = interfaceinvoke r57.<org.eclipse.jetty.io.Buffer: int space()>();
+
+        if $i5 <= 0 goto label22;
+
+        $r24 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _inbound>;
+
+        $z14 = interfaceinvoke $r24.<org.eclipse.jetty.io.nio.NIOBuffer: boolean hasContent()>();
+
+        if $z14 == 0 goto label22;
+
+        $z15 = specialinvoke r0.<org.eclipse.jetty.io.nio.SslConnection: boolean unwrap(org.eclipse.jetty.io.Buffer)>(r57);
+
+        if $z15 == 0 goto label22;
+
+        z20 = 1;
+
+        z26 = 1;
+
+        z25 = 1;
+
+     label22:
+        $z22 = interfaceinvoke r58.<org.eclipse.jetty.io.Buffer: boolean hasContent()>();
+
+        if $z22 == 0 goto label30;
+
+        $r23 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _outbound>;
+
+        $i6 = interfaceinvoke $r23.<org.eclipse.jetty.io.nio.NIOBuffer: int space()>();
+
+        if $i6 <= 0 goto label30;
+
+        $z13 = specialinvoke r0.<org.eclipse.jetty.io.nio.SslConnection: boolean wrap(org.eclipse.jetty.io.Buffer)>(r58);
+
+        if $z13 == 0 goto label30;
+
+        z20 = 1;
+
+        z26 = 1;
+
+        z25 = 1;
+
+        goto label30;
+
+     label23:
+        $r21 = r0.<org.eclipse.jetty.io.nio.SslConnection: javax.net.ssl.SSLEngine _engine>;
+
+        $r22 = virtualinvoke $r21.<javax.net.ssl.SSLEngine: java.lang.Runnable getDelegatedTask()>();
+
+        if $r22 == null goto label24;
+
+        z20 = 1;
+
+        z26 = 1;
+
+        z25 = 1;
+
+        interfaceinvoke $r22.<java.lang.Runnable: void run()>();
+
+        goto label23;
+
+     label24:
+        goto label30;
+
+     label25:
+        $z10 = r0.<org.eclipse.jetty.io.nio.SslConnection: boolean _handshook>;
+
+        if $z10 == 0 goto label26;
+
+        $z12 = r0.<org.eclipse.jetty.io.nio.SslConnection: boolean _allowRenegotiate>;
+
+        if $z12 != 0 goto label26;
+
+        $r20 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.EndPoint _endp>;
+
+        interfaceinvoke $r20.<org.eclipse.jetty.io.EndPoint: void close()>();
+
+        goto label30;
+
+     label26:
+        $z11 = specialinvoke r0.<org.eclipse.jetty.io.nio.SslConnection: boolean wrap(org.eclipse.jetty.io.Buffer)>(r58);
+
+        if $z11 == 0 goto label30;
+
+        z20 = 1;
+
+        z26 = 1;
+
+        z25 = 1;
+
+        goto label30;
+
+     label27:
+        $z2 = r0.<org.eclipse.jetty.io.nio.SslConnection: boolean _handshook>;
+
+        if $z2 == 0 goto label28;
+
+        $z9 = r0.<org.eclipse.jetty.io.nio.SslConnection: boolean _allowRenegotiate>;
+
+        if $z9 != 0 goto label28;
+
+        $r19 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.EndPoint _endp>;
+
+        interfaceinvoke $r19.<org.eclipse.jetty.io.EndPoint: void close()>();
+
+        goto label30;
+
+     label28:
+        $r12 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _inbound>;
+
+        $z3 = interfaceinvoke $r12.<org.eclipse.jetty.io.nio.NIOBuffer: boolean hasContent()>();
+
+        if $z3 != 0 goto label29;
+
+        $i18 = (int) -1;
+
+        if i13 != $i18 goto label29;
+
+        $r18 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.EndPoint _endp>;
+
+        interfaceinvoke $r18.<org.eclipse.jetty.io.EndPoint: void shutdownInput()>();
+
+        goto label30;
+
+     label29:
+        $z4 = specialinvoke r0.<org.eclipse.jetty.io.nio.SslConnection: boolean unwrap(org.eclipse.jetty.io.Buffer)>(r57);
+
+        if $z4 == 0 goto label30;
+
+        z20 = 1;
+
+        z26 = 1;
+
+        z25 = 1;
+
+     label30:
+        $r71 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.EndPoint _endp>;
+
+        $z23 = interfaceinvoke $r71.<org.eclipse.jetty.io.EndPoint: boolean isOpen()>();
+
+        if $z23 == 0 goto label31;
+
+        $r16 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.EndPoint _endp>;
+
+        $z7 = interfaceinvoke $r16.<org.eclipse.jetty.io.EndPoint: boolean isInputShutdown()>();
+
+        if $z7 == 0 goto label31;
+
+        $r17 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _inbound>;
+
+        $z8 = interfaceinvoke $r17.<org.eclipse.jetty.io.nio.NIOBuffer: boolean hasContent()>();
+
+        if $z8 != 0 goto label31;
+
+        specialinvoke r0.<org.eclipse.jetty.io.nio.SslConnection: void closeInbound()>();
+
+     label31:
+        $r72 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.EndPoint _endp>;
+
+        $z24 = interfaceinvoke $r72.<org.eclipse.jetty.io.EndPoint: boolean isOpen()>();
+
+        if $z24 == 0 goto label32;
+
+        $r13 = r0.<org.eclipse.jetty.io.nio.SslConnection: javax.net.ssl.SSLEngine _engine>;
+
+        $z5 = virtualinvoke $r13.<javax.net.ssl.SSLEngine: boolean isOutboundDone()>();
+
+        if $z5 == 0 goto label32;
+
+        $r14 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _outbound>;
+
+        $z6 = interfaceinvoke $r14.<org.eclipse.jetty.io.nio.NIOBuffer: boolean hasContent()>();
+
+        if $z6 != 0 goto label32;
+
+        $r15 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.EndPoint _endp>;
+
+        interfaceinvoke $r15.<org.eclipse.jetty.io.EndPoint: void shutdownOutput()>();
+
+     label32:
+        z19 = z19 | z26;
+
+        goto label12;
+
+     label33:
+        $r3 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _unwrapBuf>;
+
+        if r57 != $r3 goto label34;
+
+        $r5 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _unwrapBuf>;
+
+        $z0 = interfaceinvoke $r5.<org.eclipse.jetty.io.nio.NIOBuffer: boolean hasContent()>();
+
+        if $z0 == 0 goto label34;
+
+        $r6 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.AsyncConnection _connection>;
+
+        $z1 = interfaceinvoke $r6.<org.eclipse.jetty.io.nio.AsyncConnection: boolean isSuspended()>();
+
+        if $z1 != 0 goto label34;
+
+        $r7 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.AsyncEndPoint _aEndp>;
+
+        interfaceinvoke $r7.<org.eclipse.jetty.io.AsyncEndPoint: void dispatch()>();
+
+     label34:
+        specialinvoke r0.<org.eclipse.jetty.io.nio.SslConnection: void releaseBuffers()>();
+
+        if z19 == 0 goto label38;
+
+        $r4 = r0.<org.eclipse.jetty.io.nio.SslConnection: java.util.concurrent.atomic.AtomicBoolean _progressed>;
+
+        virtualinvoke $r4.<java.util.concurrent.atomic.AtomicBoolean: void set(boolean)>(1);
+
+        goto label38;
+
+     label35:
+        $r41 := @caughtexception;
+
+     label36:
+        specialinvoke r0.<org.eclipse.jetty.io.nio.SslConnection: void releaseBuffers()>();
+
+        if z19 == 0 goto label37;
+
+        $r42 = r0.<org.eclipse.jetty.io.nio.SslConnection: java.util.concurrent.atomic.AtomicBoolean _progressed>;
+
+        virtualinvoke $r42.<java.util.concurrent.atomic.AtomicBoolean: void set(boolean)>(1);
+
+     label37:
+        throw $r41;
+
+     label38:
+        return z19;
+
+        catch java.io.IOException from label13 to label15 with label16;
+        catch java.lang.Throwable from label13 to label15 with label17;
+        catch java.lang.Throwable from label16 to label18 with label17;
+        catch java.lang.Throwable from label01 to label03 with label35;
+        catch java.lang.Throwable from label07 to label08 with label35;
+        catch java.lang.Throwable from label10 to label34 with label35;
+        catch java.lang.Throwable from label35 to label36 with label35;
+    }
+
+    private void closeInbound()
+    {
+        javax.net.ssl.SSLException $r2;
+        org.eclipse.jetty.io.nio.SslConnection r0;
+        org.eclipse.jetty.util.log.Logger $r3;
+        javax.net.ssl.SSLEngine $r1;
+
+        r0 := @this: org.eclipse.jetty.io.nio.SslConnection;
+
+     label1:
+        $r1 = r0.<org.eclipse.jetty.io.nio.SslConnection: javax.net.ssl.SSLEngine _engine>;
+
+        virtualinvoke $r1.<javax.net.ssl.SSLEngine: void closeInbound()>();
+
+     label2:
+        goto label4;
+
+     label3:
+        $r2 := @caughtexception;
+
+        $r3 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.util.log.Logger _logger>;
+
+        interfaceinvoke $r3.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.Throwable)>($r2);
+
+     label4:
+        return;
+
+        catch javax.net.ssl.SSLException from label1 to label2 with label3;
+    }
+
+    private synchronized boolean wrap(org.eclipse.jetty.io.Buffer) throws java.io.IOException
+    {
+        java.lang.IllegalStateException $r21;
+        org.eclipse.jetty.io.EndPoint $r18, $r38, $r41;
+        javax.net.ssl.SSLEngineResult$HandshakeStatus $r16, $r17, $r19, $r20, $r31;
+        java.lang.Integer $r32, $r33;
+        java.nio.ByteBuffer $r2, $r5;
+        int[] $r12;
+        org.eclipse.jetty.io.nio.SslConnection r0;
+        org.eclipse.jetty.io.Buffer r1;
+        boolean $z0, $z1;
+        javax.net.ssl.SSLException $r37;
+        java.lang.Throwable $r34, $r35, $r36;
+        java.lang.Object[] $r14, $r22, $r27;
+        javax.net.ssl.SSLEngine $r7;
+        javax.net.ssl.SSLEngineResult $r8;
+        javax.net.ssl.SSLSession $r23, $r28;
+        org.eclipse.jetty.io.nio.NIOBuffer $r3, $r4, $r6, $r10, $r11;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i10, $i11, $i12, $i13, $i14, $i15, $i16, $i17;
+        java.lang.String $r26, $r40;
+        javax.net.ssl.SSLEngineResult$Status $r13, $r30;
+        java.io.IOException $r25;
+        org.eclipse.jetty.util.log.Logger $r9, $r15, $r24, $r29, $r39;
+
+        r0 := @this: org.eclipse.jetty.io.nio.SslConnection;
+
+        r1 := @parameter0: org.eclipse.jetty.io.Buffer;
+
+        $r2 = specialinvoke r0.<org.eclipse.jetty.io.nio.SslConnection: java.nio.ByteBuffer extractByteBuffer(org.eclipse.jetty.io.Buffer)>(r1);
+
+        entermonitor $r2;
+
+     label01:
+        $r3 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _outbound>;
+
+        interfaceinvoke $r3.<org.eclipse.jetty.io.nio.NIOBuffer: void compact()>();
+
+        $r4 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _outbound>;
+
+        $r5 = interfaceinvoke $r4.<org.eclipse.jetty.io.nio.NIOBuffer: java.nio.ByteBuffer getByteBuffer()>();
+
+        entermonitor $r5;
+
+     label02:
+        $i0 = interfaceinvoke r1.<org.eclipse.jetty.io.Buffer: int getIndex()>();
+
+        virtualinvoke $r2.<java.nio.ByteBuffer: java.nio.Buffer position(int)>($i0);
+
+        $i1 = interfaceinvoke r1.<org.eclipse.jetty.io.Buffer: int putIndex()>();
+
+        virtualinvoke $r2.<java.nio.ByteBuffer: java.nio.Buffer limit(int)>($i1);
+
+        $r6 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _outbound>;
+
+        $i2 = interfaceinvoke $r6.<org.eclipse.jetty.io.nio.NIOBuffer: int putIndex()>();
+
+        virtualinvoke $r5.<java.nio.ByteBuffer: java.nio.Buffer position(int)>($i2);
+
+        $i3 = virtualinvoke $r5.<java.nio.ByteBuffer: int capacity()>();
+
+        virtualinvoke $r5.<java.nio.ByteBuffer: java.nio.Buffer limit(int)>($i3);
+
+        $r7 = r0.<org.eclipse.jetty.io.nio.SslConnection: javax.net.ssl.SSLEngine _engine>;
+
+        $r8 = virtualinvoke $r7.<javax.net.ssl.SSLEngine: javax.net.ssl.SSLEngineResult wrap(java.nio.ByteBuffer,java.nio.ByteBuffer)>($r2, $r5);
+
+        $r9 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.util.log.Logger _logger>;
+
+        $z0 = interfaceinvoke $r9.<org.eclipse.jetty.util.log.Logger: boolean isDebugEnabled()>();
+
+        if $z0 == 0 goto label03;
+
+        $r29 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.util.log.Logger _logger>;
+
+        $r27 = newarray (java.lang.Object)[5];
+
+        $r28 = r0.<org.eclipse.jetty.io.nio.SslConnection: javax.net.ssl.SSLSession _session>;
+
+        $r27[0] = $r28;
+
+        $r30 = virtualinvoke $r8.<javax.net.ssl.SSLEngineResult: javax.net.ssl.SSLEngineResult$Status getStatus()>();
+
+        $r27[1] = $r30;
+
+        $r31 = virtualinvoke $r8.<javax.net.ssl.SSLEngineResult: javax.net.ssl.SSLEngineResult$HandshakeStatus getHandshakeStatus()>();
+
+        $r27[2] = $r31;
+
+        $i13 = virtualinvoke $r8.<javax.net.ssl.SSLEngineResult: int bytesConsumed()>();
+
+        $r32 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i13);
+
+        $r27[3] = $r32;
+
+        $i14 = virtualinvoke $r8.<javax.net.ssl.SSLEngineResult: int bytesProduced()>();
+
+        $r33 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i14);
+
+        $r27[4] = $r33;
+
+        interfaceinvoke $r29.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Object[])>("{} wrap {} {} consumed={} produced={}", $r27);
+
+     label03:
+        $i4 = virtualinvoke $r8.<javax.net.ssl.SSLEngineResult: int bytesConsumed()>();
+
+        interfaceinvoke r1.<org.eclipse.jetty.io.Buffer: int skip(int)>($i4);
+
+        $r11 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _outbound>;
+
+        $r10 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _outbound>;
+
+        $i5 = interfaceinvoke $r10.<org.eclipse.jetty.io.nio.NIOBuffer: int putIndex()>();
+
+        $i6 = virtualinvoke $r8.<javax.net.ssl.SSLEngineResult: int bytesProduced()>();
+
+        $i7 = $i5 + $i6;
+
+        interfaceinvoke $r11.<org.eclipse.jetty.io.nio.NIOBuffer: void setPutIndex(int)>($i7);
+
+     label04:
+        virtualinvoke $r5.<java.nio.ByteBuffer: java.nio.Buffer position(int)>(0);
+
+        $i8 = virtualinvoke $r5.<java.nio.ByteBuffer: int capacity()>();
+
+        virtualinvoke $r5.<java.nio.ByteBuffer: java.nio.Buffer limit(int)>($i8);
+
+        virtualinvoke $r2.<java.nio.ByteBuffer: java.nio.Buffer position(int)>(0);
+
+        $i9 = virtualinvoke $r2.<java.nio.ByteBuffer: int capacity()>();
+
+        virtualinvoke $r2.<java.nio.ByteBuffer: java.nio.Buffer limit(int)>($i9);
+
+        goto label08;
+
+     label05:
+        $r37 := @caughtexception;
+
+        $r39 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.util.log.Logger _logger>;
+
+        $r38 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.EndPoint _endp>;
+
+        $r40 = staticinvoke <java.lang.String: java.lang.String valueOf(java.lang.Object)>($r38);
+
+        interfaceinvoke $r39.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Throwable)>($r40, $r37);
+
+        $r41 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.EndPoint _endp>;
+
+        interfaceinvoke $r41.<org.eclipse.jetty.io.EndPoint: void close()>();
+
+        throw $r37;
+
+     label06:
+        $r36 := @caughtexception;
+
+     label07:
+        virtualinvoke $r5.<java.nio.ByteBuffer: java.nio.Buffer position(int)>(0);
+
+        $i15 = virtualinvoke $r5.<java.nio.ByteBuffer: int capacity()>();
+
+        virtualinvoke $r5.<java.nio.ByteBuffer: java.nio.Buffer limit(int)>($i15);
+
+        virtualinvoke $r2.<java.nio.ByteBuffer: java.nio.Buffer position(int)>(0);
+
+        $i16 = virtualinvoke $r2.<java.nio.ByteBuffer: int capacity()>();
+
+        virtualinvoke $r2.<java.nio.ByteBuffer: java.nio.Buffer limit(int)>($i16);
+
+        throw $r36;
+
+     label08:
+        exitmonitor $r5;
+
+     label09:
+        goto label12;
+
+     label10:
+        $r35 := @caughtexception;
+
+        exitmonitor $r5;
+
+     label11:
+        throw $r35;
+
+     label12:
+        exitmonitor $r2;
+
+     label13:
+        goto label16;
+
+     label14:
+        $r34 := @caughtexception;
+
+        exitmonitor $r2;
+
+     label15:
+        throw $r34;
+
+     label16:
+        $r12 = <org.eclipse.jetty.io.nio.SslConnection$1: int[] $SwitchMap$javax$net$ssl$SSLEngineResult$Status>;
+
+        $r13 = virtualinvoke $r8.<javax.net.ssl.SSLEngineResult: javax.net.ssl.SSLEngineResult$Status getStatus()>();
+
+        $i10 = virtualinvoke $r13.<javax.net.ssl.SSLEngineResult$Status: int ordinal()>();
+
+        $i11 = $r12[$i10];
+
+        tableswitch($i11)
+        {
+            case 1: goto label17;
+            case 2: goto label18;
+            case 3: goto label19;
+            case 4: goto label20;
+            default: goto label21;
+        };
+
+     label17:
+        $r21 = new java.lang.IllegalStateException;
+
+        specialinvoke $r21.<java.lang.IllegalStateException: void <init>()>();
+
+        throw $r21;
+
+     label18:
+        goto label22;
+
+     label19:
+        $r19 = virtualinvoke $r8.<javax.net.ssl.SSLEngineResult: javax.net.ssl.SSLEngineResult$HandshakeStatus getHandshakeStatus()>();
+
+        $r20 = <javax.net.ssl.SSLEngineResult$HandshakeStatus: javax.net.ssl.SSLEngineResult$HandshakeStatus FINISHED>;
+
+        if $r19 != $r20 goto label22;
+
+        r0.<org.eclipse.jetty.io.nio.SslConnection: boolean _handshook> = 1;
+
+        goto label22;
+
+     label20:
+        $r15 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.util.log.Logger _logger>;
+
+        $r14 = newarray (java.lang.Object)[2];
+
+        $r14[0] = r0;
+
+        $r14[1] = $r8;
+
+        interfaceinvoke $r15.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Object[])>("wrap CLOSE {} {}", $r14);
+
+        $r16 = virtualinvoke $r8.<javax.net.ssl.SSLEngineResult: javax.net.ssl.SSLEngineResult$HandshakeStatus getHandshakeStatus()>();
+
+        $r17 = <javax.net.ssl.SSLEngineResult$HandshakeStatus: javax.net.ssl.SSLEngineResult$HandshakeStatus FINISHED>;
+
+        if $r16 != $r17 goto label22;
+
+        $r18 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.EndPoint _endp>;
+
+        interfaceinvoke $r18.<org.eclipse.jetty.io.EndPoint: void close()>();
+
+        goto label22;
+
+     label21:
+        $r24 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.util.log.Logger _logger>;
+
+        $r22 = newarray (java.lang.Object)[2];
+
+        $r23 = r0.<org.eclipse.jetty.io.nio.SslConnection: javax.net.ssl.SSLSession _session>;
+
+        $r22[0] = $r23;
+
+        $r22[1] = $r8;
+
+        interfaceinvoke $r24.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Object[])>("{} wrap default {}", $r22);
+
+        $r25 = new java.io.IOException;
+
+        $r26 = virtualinvoke $r8.<javax.net.ssl.SSLEngineResult: java.lang.String toString()>();
+
+        specialinvoke $r25.<java.io.IOException: void <init>(java.lang.String)>($r26);
+
+        throw $r25;
+
+     label22:
+        $i17 = virtualinvoke $r8.<javax.net.ssl.SSLEngineResult: int bytesConsumed()>();
+
+        if $i17 > 0 goto label23;
+
+        $i12 = virtualinvoke $r8.<javax.net.ssl.SSLEngineResult: int bytesProduced()>();
+
+        if $i12 <= 0 goto label24;
+
+     label23:
+        $z1 = 1;
+
+        goto label25;
+
+     label24:
+        $z1 = 0;
+
+     label25:
+        return $z1;
+
+        catch javax.net.ssl.SSLException from label02 to label04 with label05;
+        catch java.lang.Throwable from label02 to label04 with label06;
+        catch java.lang.Throwable from label05 to label07 with label06;
+        catch java.lang.Throwable from label02 to label09 with label10;
+        catch java.lang.Throwable from label10 to label11 with label10;
+        catch java.lang.Throwable from label01 to label13 with label14;
+        catch java.lang.Throwable from label14 to label15 with label14;
+    }
+
+    private synchronized boolean unwrap(org.eclipse.jetty.io.Buffer) throws java.io.IOException
+    {
+        java.lang.Integer $r42, $r43;
+        javax.net.ssl.SSLException $r47;
+        java.lang.Throwable $r44, $r45, $r46;
+        java.lang.Object[] $r15, $r23, $r32, $r37;
+        javax.net.ssl.SSLEngineResult $r9;
+        javax.net.ssl.SSLSession $r24, $r33, $r38;
+        org.eclipse.jetty.io.nio.NIOBuffer $r1, $r4, $r6, $r7, $r11, $r12, $r27, $r31;
+        java.lang.String $r28, $r29, $r36, $r50;
+        javax.net.ssl.SSLEngineResult$Status $r14, $r26, $r40;
+        java.io.IOException $r35;
+        org.eclipse.jetty.io.EndPoint $r19, $r30, $r48, $r51;
+        javax.net.ssl.SSLEngineResult$HandshakeStatus $r17, $r18, $r20, $r21, $r41;
+        java.nio.ByteBuffer $r3, $r5;
+        int[] $r13;
+        org.eclipse.jetty.io.nio.SslConnection r0;
+        org.eclipse.jetty.io.Buffer r2;
+        boolean $z0, $z1, $z2, $z3, $z4;
+        javax.net.ssl.SSLEngine $r8;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, $i10, $i11, $i12, $i13, $i14, $i15, $i16, $i17;
+        org.eclipse.jetty.util.log.Logger $r10, $r16, $r22, $r25, $r34, $r39, $r49;
+
+        r0 := @this: org.eclipse.jetty.io.nio.SslConnection;
+
+        r2 := @parameter0: org.eclipse.jetty.io.Buffer;
+
+        $r1 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _inbound>;
+
+        $z0 = interfaceinvoke $r1.<org.eclipse.jetty.io.nio.NIOBuffer: boolean hasContent()>();
+
+        if $z0 != 0 goto label01;
+
+        return 0;
+
+     label01:
+        $r3 = specialinvoke r0.<org.eclipse.jetty.io.nio.SslConnection: java.nio.ByteBuffer extractByteBuffer(org.eclipse.jetty.io.Buffer)>(r2);
+
+        entermonitor $r3;
+
+     label02:
+        $r4 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _inbound>;
+
+        $r5 = interfaceinvoke $r4.<org.eclipse.jetty.io.nio.NIOBuffer: java.nio.ByteBuffer getByteBuffer()>();
+
+        entermonitor $r5;
+
+     label03:
+        $i0 = interfaceinvoke r2.<org.eclipse.jetty.io.Buffer: int putIndex()>();
+
+        virtualinvoke $r3.<java.nio.ByteBuffer: java.nio.Buffer position(int)>($i0);
+
+        $i1 = interfaceinvoke r2.<org.eclipse.jetty.io.Buffer: int capacity()>();
+
+        virtualinvoke $r3.<java.nio.ByteBuffer: java.nio.Buffer limit(int)>($i1);
+
+        $r6 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _inbound>;
+
+        $i2 = interfaceinvoke $r6.<org.eclipse.jetty.io.nio.NIOBuffer: int getIndex()>();
+
+        virtualinvoke $r5.<java.nio.ByteBuffer: java.nio.Buffer position(int)>($i2);
+
+        $r7 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _inbound>;
+
+        $i3 = interfaceinvoke $r7.<org.eclipse.jetty.io.nio.NIOBuffer: int putIndex()>();
+
+        virtualinvoke $r5.<java.nio.ByteBuffer: java.nio.Buffer limit(int)>($i3);
+
+        $r8 = r0.<org.eclipse.jetty.io.nio.SslConnection: javax.net.ssl.SSLEngine _engine>;
+
+        $r9 = virtualinvoke $r8.<javax.net.ssl.SSLEngine: javax.net.ssl.SSLEngineResult unwrap(java.nio.ByteBuffer,java.nio.ByteBuffer)>($r5, $r3);
+
+        $r10 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.util.log.Logger _logger>;
+
+        $z1 = interfaceinvoke $r10.<org.eclipse.jetty.util.log.Logger: boolean isDebugEnabled()>();
+
+        if $z1 == 0 goto label04;
+
+        $r39 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.util.log.Logger _logger>;
+
+        $r37 = newarray (java.lang.Object)[5];
+
+        $r38 = r0.<org.eclipse.jetty.io.nio.SslConnection: javax.net.ssl.SSLSession _session>;
+
+        $r37[0] = $r38;
+
+        $r40 = virtualinvoke $r9.<javax.net.ssl.SSLEngineResult: javax.net.ssl.SSLEngineResult$Status getStatus()>();
+
+        $r37[1] = $r40;
+
+        $r41 = virtualinvoke $r9.<javax.net.ssl.SSLEngineResult: javax.net.ssl.SSLEngineResult$HandshakeStatus getHandshakeStatus()>();
+
+        $r37[2] = $r41;
+
+        $i13 = virtualinvoke $r9.<javax.net.ssl.SSLEngineResult: int bytesConsumed()>();
+
+        $r42 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i13);
+
+        $r37[3] = $r42;
+
+        $i14 = virtualinvoke $r9.<javax.net.ssl.SSLEngineResult: int bytesProduced()>();
+
+        $r43 = staticinvoke <java.lang.Integer: java.lang.Integer valueOf(int)>($i14);
+
+        $r37[4] = $r43;
+
+        interfaceinvoke $r39.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Object[])>("{} unwrap {} {} consumed={} produced={}", $r37);
+
+     label04:
+        $r11 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _inbound>;
+
+        $i4 = virtualinvoke $r9.<javax.net.ssl.SSLEngineResult: int bytesConsumed()>();
+
+        interfaceinvoke $r11.<org.eclipse.jetty.io.nio.NIOBuffer: int skip(int)>($i4);
+
+        $r12 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _inbound>;
+
+        interfaceinvoke $r12.<org.eclipse.jetty.io.nio.NIOBuffer: void compact()>();
+
+        $i5 = interfaceinvoke r2.<org.eclipse.jetty.io.Buffer: int putIndex()>();
+
+        $i6 = virtualinvoke $r9.<javax.net.ssl.SSLEngineResult: int bytesProduced()>();
+
+        $i7 = $i5 + $i6;
+
+        interfaceinvoke r2.<org.eclipse.jetty.io.Buffer: void setPutIndex(int)>($i7);
+
+     label05:
+        virtualinvoke $r5.<java.nio.ByteBuffer: java.nio.Buffer position(int)>(0);
+
+        $i8 = virtualinvoke $r5.<java.nio.ByteBuffer: int capacity()>();
+
+        virtualinvoke $r5.<java.nio.ByteBuffer: java.nio.Buffer limit(int)>($i8);
+
+        virtualinvoke $r3.<java.nio.ByteBuffer: java.nio.Buffer position(int)>(0);
+
+        $i9 = virtualinvoke $r3.<java.nio.ByteBuffer: int capacity()>();
+
+        virtualinvoke $r3.<java.nio.ByteBuffer: java.nio.Buffer limit(int)>($i9);
+
+        goto label09;
+
+     label06:
+        $r47 := @caughtexception;
+
+        $r49 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.util.log.Logger _logger>;
+
+        $r48 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.EndPoint _endp>;
+
+        $r50 = staticinvoke <java.lang.String: java.lang.String valueOf(java.lang.Object)>($r48);
+
+        interfaceinvoke $r49.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Throwable)>($r50, $r47);
+
+        $r51 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.EndPoint _endp>;
+
+        interfaceinvoke $r51.<org.eclipse.jetty.io.EndPoint: void close()>();
+
+        throw $r47;
+
+     label07:
+        $r46 := @caughtexception;
+
+     label08:
+        virtualinvoke $r5.<java.nio.ByteBuffer: java.nio.Buffer position(int)>(0);
+
+        $i15 = virtualinvoke $r5.<java.nio.ByteBuffer: int capacity()>();
+
+        virtualinvoke $r5.<java.nio.ByteBuffer: java.nio.Buffer limit(int)>($i15);
+
+        virtualinvoke $r3.<java.nio.ByteBuffer: java.nio.Buffer position(int)>(0);
+
+        $i16 = virtualinvoke $r3.<java.nio.ByteBuffer: int capacity()>();
+
+        virtualinvoke $r3.<java.nio.ByteBuffer: java.nio.Buffer limit(int)>($i16);
+
+        throw $r46;
+
+     label09:
+        exitmonitor $r5;
+
+     label10:
+        goto label13;
+
+     label11:
+        $r45 := @caughtexception;
+
+        exitmonitor $r5;
+
+     label12:
+        throw $r45;
+
+     label13:
+        exitmonitor $r3;
+
+     label14:
+        goto label17;
+
+     label15:
+        $r44 := @caughtexception;
+
+        exitmonitor $r3;
+
+     label16:
+        throw $r44;
+
+     label17:
+        $r13 = <org.eclipse.jetty.io.nio.SslConnection$1: int[] $SwitchMap$javax$net$ssl$SSLEngineResult$Status>;
+
+        $r14 = virtualinvoke $r9.<javax.net.ssl.SSLEngineResult: javax.net.ssl.SSLEngineResult$Status getStatus()>();
+
+        $i10 = virtualinvoke $r14.<javax.net.ssl.SSLEngineResult$Status: int ordinal()>();
+
+        $i11 = $r13[$i10];
+
+        tableswitch($i11)
+        {
+            case 1: goto label18;
+            case 2: goto label19;
+            case 3: goto label20;
+            case 4: goto label21;
+            default: goto label22;
+        };
+
+     label18:
+        $r30 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.EndPoint _endp>;
+
+        $z3 = interfaceinvoke $r30.<org.eclipse.jetty.io.EndPoint: boolean isInputShutdown()>();
+
+        if $z3 == 0 goto label23;
+
+        $r31 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _inbound>;
+
+        interfaceinvoke $r31.<org.eclipse.jetty.io.nio.NIOBuffer: void clear()>();
+
+        goto label23;
+
+     label19:
+        $r22 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.util.log.Logger _logger>;
+
+        $z2 = interfaceinvoke $r22.<org.eclipse.jetty.util.log.Logger: boolean isDebugEnabled()>();
+
+        if $z2 == 0 goto label23;
+
+        $r25 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.util.log.Logger _logger>;
+
+        $r23 = newarray (java.lang.Object)[4];
+
+        $r24 = r0.<org.eclipse.jetty.io.nio.SslConnection: javax.net.ssl.SSLSession _session>;
+
+        $r23[0] = $r24;
+
+        $r26 = virtualinvoke $r9.<javax.net.ssl.SSLEngineResult: javax.net.ssl.SSLEngineResult$Status getStatus()>();
+
+        $r23[1] = $r26;
+
+        $r27 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _inbound>;
+
+        $r28 = interfaceinvoke $r27.<org.eclipse.jetty.io.nio.NIOBuffer: java.lang.String toDetailString()>();
+
+        $r23[2] = $r28;
+
+        $r29 = interfaceinvoke r2.<org.eclipse.jetty.io.Buffer: java.lang.String toDetailString()>();
+
+        $r23[3] = $r29;
+
+        interfaceinvoke $r25.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Object[])>("{} unwrap {} {}->{}", $r23);
+
+        goto label23;
+
+     label20:
+        $r20 = virtualinvoke $r9.<javax.net.ssl.SSLEngineResult: javax.net.ssl.SSLEngineResult$HandshakeStatus getHandshakeStatus()>();
+
+        $r21 = <javax.net.ssl.SSLEngineResult$HandshakeStatus: javax.net.ssl.SSLEngineResult$HandshakeStatus FINISHED>;
+
+        if $r20 != $r21 goto label23;
+
+        r0.<org.eclipse.jetty.io.nio.SslConnection: boolean _handshook> = 1;
+
+        goto label23;
+
+     label21:
+        $r16 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.util.log.Logger _logger>;
+
+        $r15 = newarray (java.lang.Object)[2];
+
+        $r15[0] = r0;
+
+        $r15[1] = $r9;
+
+        interfaceinvoke $r16.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Object[])>("unwrap CLOSE {} {}", $r15);
+
+        $r17 = virtualinvoke $r9.<javax.net.ssl.SSLEngineResult: javax.net.ssl.SSLEngineResult$HandshakeStatus getHandshakeStatus()>();
+
+        $r18 = <javax.net.ssl.SSLEngineResult$HandshakeStatus: javax.net.ssl.SSLEngineResult$HandshakeStatus FINISHED>;
+
+        if $r17 != $r18 goto label23;
+
+        $r19 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.EndPoint _endp>;
+
+        interfaceinvoke $r19.<org.eclipse.jetty.io.EndPoint: void close()>();
+
+        goto label23;
+
+     label22:
+        $r34 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.util.log.Logger _logger>;
+
+        $r32 = newarray (java.lang.Object)[2];
+
+        $r33 = r0.<org.eclipse.jetty.io.nio.SslConnection: javax.net.ssl.SSLSession _session>;
+
+        $r32[0] = $r33;
+
+        $r32[1] = $r9;
+
+        interfaceinvoke $r34.<org.eclipse.jetty.util.log.Logger: void debug(java.lang.String,java.lang.Object[])>("{} wrap default {}", $r32);
+
+        $r35 = new java.io.IOException;
+
+        $r36 = virtualinvoke $r9.<javax.net.ssl.SSLEngineResult: java.lang.String toString()>();
+
+        specialinvoke $r35.<java.io.IOException: void <init>(java.lang.String)>($r36);
+
+        throw $r35;
+
+     label23:
+        $i17 = virtualinvoke $r9.<javax.net.ssl.SSLEngineResult: int bytesConsumed()>();
+
+        if $i17 > 0 goto label24;
+
+        $i12 = virtualinvoke $r9.<javax.net.ssl.SSLEngineResult: int bytesProduced()>();
+
+        if $i12 <= 0 goto label25;
+
+     label24:
+        $z4 = 1;
+
+        goto label26;
+
+     label25:
+        $z4 = 0;
+
+     label26:
+        return $z4;
+
+        catch javax.net.ssl.SSLException from label03 to label05 with label06;
+        catch java.lang.Throwable from label03 to label05 with label07;
+        catch java.lang.Throwable from label06 to label08 with label07;
+        catch java.lang.Throwable from label03 to label10 with label11;
+        catch java.lang.Throwable from label11 to label12 with label11;
+        catch java.lang.Throwable from label02 to label14 with label15;
+        catch java.lang.Throwable from label15 to label16 with label15;
+    }
+
+    private java.nio.ByteBuffer extractByteBuffer(org.eclipse.jetty.io.Buffer)
+    {
+        byte[] $r2;
+        java.nio.ByteBuffer $r3, $r6;
+        org.eclipse.jetty.io.nio.NIOBuffer $r5;
+        org.eclipse.jetty.io.nio.SslConnection r7;
+        org.eclipse.jetty.io.Buffer r0, $r1, $r4;
+        boolean $z0;
+
+        r7 := @this: org.eclipse.jetty.io.nio.SslConnection;
+
+        r0 := @parameter0: org.eclipse.jetty.io.Buffer;
+
+        $r1 = interfaceinvoke r0.<org.eclipse.jetty.io.Buffer: org.eclipse.jetty.io.Buffer buffer()>();
+
+        $z0 = $r1 instanceof org.eclipse.jetty.io.nio.NIOBuffer;
+
+        if $z0 == 0 goto label1;
+
+        $r4 = interfaceinvoke r0.<org.eclipse.jetty.io.Buffer: org.eclipse.jetty.io.Buffer buffer()>();
+
+        $r5 = (org.eclipse.jetty.io.nio.NIOBuffer) $r4;
+
+        $r6 = interfaceinvoke $r5.<org.eclipse.jetty.io.nio.NIOBuffer: java.nio.ByteBuffer getByteBuffer()>();
+
+        return $r6;
+
+     label1:
+        $r2 = interfaceinvoke r0.<org.eclipse.jetty.io.Buffer: byte[] array()>();
+
+        $r3 = staticinvoke <java.nio.ByteBuffer: java.nio.ByteBuffer wrap(byte[])>($r2);
+
+        return $r3;
+    }
+
+    public org.eclipse.jetty.io.AsyncEndPoint getSslEndPoint()
+    {
+        org.eclipse.jetty.io.nio.SslConnection$SslEndPoint $r1;
+        org.eclipse.jetty.io.nio.SslConnection r0;
+
+        r0 := @this: org.eclipse.jetty.io.nio.SslConnection;
+
+        $r1 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.SslConnection$SslEndPoint _sslEndPoint>;
+
+        return $r1;
+    }
+
+    public java.lang.String toString()
+    {
+        org.eclipse.jetty.io.nio.SslConnection$SslEndPoint $r3;
+        java.lang.Object[] $r0;
+        org.eclipse.jetty.io.nio.SslConnection r1;
+        java.lang.String $r2, $r4;
+
+        r1 := @this: org.eclipse.jetty.io.nio.SslConnection;
+
+        $r0 = newarray (java.lang.Object)[2];
+
+        $r2 = specialinvoke r1.<org.eclipse.jetty.io.AbstractConnection: java.lang.String toString()>();
+
+        $r0[0] = $r2;
+
+        $r3 = r1.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.SslConnection$SslEndPoint _sslEndPoint>;
+
+        $r0[1] = $r3;
+
+        $r4 = staticinvoke <java.lang.String: java.lang.String format(java.lang.String,java.lang.Object[])>("%s %s", $r0);
+
+        return $r4;
+    }
+
+    static javax.net.ssl.SSLEngine access$000(org.eclipse.jetty.io.nio.SslConnection)
+    {
+        org.eclipse.jetty.io.nio.SslConnection r0;
+        javax.net.ssl.SSLEngine $r1;
+
+        r0 := @parameter0: org.eclipse.jetty.io.nio.SslConnection;
+
+        $r1 = r0.<org.eclipse.jetty.io.nio.SslConnection: javax.net.ssl.SSLEngine _engine>;
+
+        return $r1;
+    }
+
+    static org.eclipse.jetty.io.AsyncEndPoint access$100(org.eclipse.jetty.io.nio.SslConnection)
+    {
+        org.eclipse.jetty.io.AsyncEndPoint $r1;
+        org.eclipse.jetty.io.nio.SslConnection r0;
+
+        r0 := @parameter0: org.eclipse.jetty.io.nio.SslConnection;
+
+        $r1 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.AsyncEndPoint _aEndp>;
+
+        return $r1;
+    }
+
+    static javax.net.ssl.SSLSession access$200(org.eclipse.jetty.io.nio.SslConnection)
+    {
+        javax.net.ssl.SSLSession $r1;
+        org.eclipse.jetty.io.nio.SslConnection r0;
+
+        r0 := @parameter0: org.eclipse.jetty.io.nio.SslConnection;
+
+        $r1 = r0.<org.eclipse.jetty.io.nio.SslConnection: javax.net.ssl.SSLSession _session>;
+
+        return $r1;
+    }
+
+    static org.eclipse.jetty.util.log.Logger access$300(org.eclipse.jetty.io.nio.SslConnection)
+    {
+        org.eclipse.jetty.util.log.Logger $r1;
+        org.eclipse.jetty.io.nio.SslConnection r0;
+
+        r0 := @parameter0: org.eclipse.jetty.io.nio.SslConnection;
+
+        $r1 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.util.log.Logger _logger>;
+
+        return $r1;
+    }
+
+    static boolean access$402(org.eclipse.jetty.io.nio.SslConnection, boolean)
+    {
+        org.eclipse.jetty.io.nio.SslConnection r0;
+        boolean z0;
+
+        r0 := @parameter0: org.eclipse.jetty.io.nio.SslConnection;
+
+        z0 := @parameter1: boolean;
+
+        r0.<org.eclipse.jetty.io.nio.SslConnection: boolean _oshut> = z0;
+
+        return z0;
+    }
+
+    static boolean access$400(org.eclipse.jetty.io.nio.SslConnection)
+    {
+        org.eclipse.jetty.io.nio.SslConnection r0;
+        boolean $z0;
+
+        r0 := @parameter0: org.eclipse.jetty.io.nio.SslConnection;
+
+        $z0 = r0.<org.eclipse.jetty.io.nio.SslConnection: boolean _oshut>;
+
+        return $z0;
+    }
+
+    static org.eclipse.jetty.io.EndPoint access$500(org.eclipse.jetty.io.nio.SslConnection)
+    {
+        org.eclipse.jetty.io.EndPoint $r1;
+        org.eclipse.jetty.io.nio.SslConnection r0;
+
+        r0 := @parameter0: org.eclipse.jetty.io.nio.SslConnection;
+
+        $r1 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.EndPoint _endp>;
+
+        return $r1;
+    }
+
+    static org.eclipse.jetty.io.nio.NIOBuffer access$600(org.eclipse.jetty.io.nio.SslConnection)
+    {
+        org.eclipse.jetty.io.nio.NIOBuffer $r1;
+        org.eclipse.jetty.io.nio.SslConnection r0;
+
+        r0 := @parameter0: org.eclipse.jetty.io.nio.SslConnection;
+
+        $r1 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _unwrapBuf>;
+
+        return $r1;
+    }
+
+    static org.eclipse.jetty.io.nio.NIOBuffer access$700(org.eclipse.jetty.io.nio.SslConnection)
+    {
+        org.eclipse.jetty.io.nio.NIOBuffer $r1;
+        org.eclipse.jetty.io.nio.SslConnection r0;
+
+        r0 := @parameter0: org.eclipse.jetty.io.nio.SslConnection;
+
+        $r1 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _inbound>;
+
+        return $r1;
+    }
+
+    static org.eclipse.jetty.io.EndPoint access$800(org.eclipse.jetty.io.nio.SslConnection)
+    {
+        org.eclipse.jetty.io.EndPoint $r1;
+        org.eclipse.jetty.io.nio.SslConnection r0;
+
+        r0 := @parameter0: org.eclipse.jetty.io.nio.SslConnection;
+
+        $r1 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.EndPoint _endp>;
+
+        return $r1;
+    }
+
+    static boolean access$900(org.eclipse.jetty.io.nio.SslConnection, org.eclipse.jetty.io.Buffer, org.eclipse.jetty.io.Buffer) throws java.io.IOException
+    {
+        org.eclipse.jetty.io.nio.SslConnection r0;
+        org.eclipse.jetty.io.Buffer r1, r2;
+        boolean $z0;
+
+        r0 := @parameter0: org.eclipse.jetty.io.nio.SslConnection;
+
+        r1 := @parameter1: org.eclipse.jetty.io.Buffer;
+
+        r2 := @parameter2: org.eclipse.jetty.io.Buffer;
+
+        $z0 = specialinvoke r0.<org.eclipse.jetty.io.nio.SslConnection: boolean process(org.eclipse.jetty.io.Buffer,org.eclipse.jetty.io.Buffer)>(r1, r2);
+
+        return $z0;
+    }
+
+    static org.eclipse.jetty.io.EndPoint access$1000(org.eclipse.jetty.io.nio.SslConnection)
+    {
+        org.eclipse.jetty.io.EndPoint $r1;
+        org.eclipse.jetty.io.nio.SslConnection r0;
+
+        r0 := @parameter0: org.eclipse.jetty.io.nio.SslConnection;
+
+        $r1 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.EndPoint _endp>;
+
+        return $r1;
+    }
+
+    static org.eclipse.jetty.io.EndPoint access$1100(org.eclipse.jetty.io.nio.SslConnection)
+    {
+        org.eclipse.jetty.io.EndPoint $r1;
+        org.eclipse.jetty.io.nio.SslConnection r0;
+
+        r0 := @parameter0: org.eclipse.jetty.io.nio.SslConnection;
+
+        $r1 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.EndPoint _endp>;
+
+        return $r1;
+    }
+
+    static org.eclipse.jetty.io.EndPoint access$1200(org.eclipse.jetty.io.nio.SslConnection)
+    {
+        org.eclipse.jetty.io.EndPoint $r1;
+        org.eclipse.jetty.io.nio.SslConnection r0;
+
+        r0 := @parameter0: org.eclipse.jetty.io.nio.SslConnection;
+
+        $r1 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.EndPoint _endp>;
+
+        return $r1;
+    }
+
+    static org.eclipse.jetty.io.EndPoint access$1300(org.eclipse.jetty.io.nio.SslConnection)
+    {
+        org.eclipse.jetty.io.EndPoint $r1;
+        org.eclipse.jetty.io.nio.SslConnection r0;
+
+        r0 := @parameter0: org.eclipse.jetty.io.nio.SslConnection;
+
+        $r1 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.EndPoint _endp>;
+
+        return $r1;
+    }
+
+    static java.util.concurrent.atomic.AtomicBoolean access$1400(org.eclipse.jetty.io.nio.SslConnection)
+    {
+        java.util.concurrent.atomic.AtomicBoolean $r1;
+        org.eclipse.jetty.io.nio.SslConnection r0;
+
+        r0 := @parameter0: org.eclipse.jetty.io.nio.SslConnection;
+
+        $r1 = r0.<org.eclipse.jetty.io.nio.SslConnection: java.util.concurrent.atomic.AtomicBoolean _progressed>;
+
+        return $r1;
+    }
+
+    static org.eclipse.jetty.io.nio.AsyncConnection access$1500(org.eclipse.jetty.io.nio.SslConnection)
+    {
+        org.eclipse.jetty.io.nio.AsyncConnection $r1;
+        org.eclipse.jetty.io.nio.SslConnection r0;
+
+        r0 := @parameter0: org.eclipse.jetty.io.nio.SslConnection;
+
+        $r1 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.AsyncConnection _connection>;
+
+        return $r1;
+    }
+
+    static org.eclipse.jetty.io.nio.AsyncConnection access$1502(org.eclipse.jetty.io.nio.SslConnection, org.eclipse.jetty.io.nio.AsyncConnection)
+    {
+        org.eclipse.jetty.io.nio.AsyncConnection r1;
+        org.eclipse.jetty.io.nio.SslConnection r0;
+
+        r0 := @parameter0: org.eclipse.jetty.io.nio.SslConnection;
+
+        r1 := @parameter1: org.eclipse.jetty.io.nio.AsyncConnection;
+
+        r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.AsyncConnection _connection> = r1;
+
+        return r1;
+    }
+
+    static org.eclipse.jetty.io.nio.NIOBuffer access$1600(org.eclipse.jetty.io.nio.SslConnection)
+    {
+        org.eclipse.jetty.io.nio.NIOBuffer $r1;
+        org.eclipse.jetty.io.nio.SslConnection r0;
+
+        r0 := @parameter0: org.eclipse.jetty.io.nio.SslConnection;
+
+        $r1 = r0.<org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer _outbound>;
+
+        return $r1;
+    }
+
+    static boolean access$1700(org.eclipse.jetty.io.nio.SslConnection)
+    {
+        org.eclipse.jetty.io.nio.SslConnection r0;
+        boolean $z0;
+
+        r0 := @parameter0: org.eclipse.jetty.io.nio.SslConnection;
+
+        $z0 = r0.<org.eclipse.jetty.io.nio.SslConnection: boolean _ishut>;
+
+        return $z0;
+    }
+
+    static void <clinit>()
+    {
+        org.eclipse.jetty.io.nio.IndirectNIOBuffer $r0;
+        java.lang.ThreadLocal $r1;
+
+        $r0 = new org.eclipse.jetty.io.nio.IndirectNIOBuffer;
+
+        specialinvoke $r0.<org.eclipse.jetty.io.nio.IndirectNIOBuffer: void <init>(int)>(0);
+
+        <org.eclipse.jetty.io.nio.SslConnection: org.eclipse.jetty.io.nio.NIOBuffer __ZERO_BUFFER> = $r0;
+
+        $r1 = new java.lang.ThreadLocal;
+
+        specialinvoke $r1.<java.lang.ThreadLocal: void <init>()>();
+
+        <org.eclipse.jetty.io.nio.SslConnection: java.lang.ThreadLocal __buffers> = $r1;
+
+        return;
+    }
+}

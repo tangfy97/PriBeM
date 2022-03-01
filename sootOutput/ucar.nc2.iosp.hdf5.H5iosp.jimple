@@ -1,0 +1,1647 @@
+public class ucar.nc2.iosp.hdf5.H5iosp extends ucar.nc2.iosp.AbstractIOServiceProvider
+{
+    static boolean debug;
+    static boolean debugPos;
+    static boolean debugHeap;
+    static boolean debugFilter;
+    static boolean debugFilterDetails;
+    static boolean debugString;
+    static boolean debugFilterIndexer;
+    static boolean debugChunkIndexer;
+    static boolean debugVlen;
+    static boolean debugStructure;
+    private static org.slf4j.Logger log;
+    private ucar.unidata.io.RandomAccessFile myRaf;
+    private ucar.nc2.iosp.hdf5.H5header headerParser;
+    static final boolean $assertionsDisabled;
+
+    public void <init>()
+    {
+        ucar.nc2.iosp.hdf5.H5iosp r0;
+
+        r0 := @this: ucar.nc2.iosp.hdf5.H5iosp;
+
+        specialinvoke r0.<ucar.nc2.iosp.AbstractIOServiceProvider: void <init>()>();
+
+        return;
+    }
+
+    public static void setDebugFlags(ucar.nc2.util.DebugFlags)
+    {
+        ucar.nc2.util.DebugFlags r0;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6;
+
+        r0 := @parameter0: ucar.nc2.util.DebugFlags;
+
+        $z0 = interfaceinvoke r0.<ucar.nc2.util.DebugFlags: boolean isSet(java.lang.String)>("H5iosp/read");
+
+        <ucar.nc2.iosp.hdf5.H5iosp: boolean debug> = $z0;
+
+        $z1 = interfaceinvoke r0.<ucar.nc2.util.DebugFlags: boolean isSet(java.lang.String)>("H5iosp/filePos");
+
+        <ucar.nc2.iosp.hdf5.H5iosp: boolean debugPos> = $z1;
+
+        $z2 = interfaceinvoke r0.<ucar.nc2.util.DebugFlags: boolean isSet(java.lang.String)>("H5iosp/Heap");
+
+        <ucar.nc2.iosp.hdf5.H5iosp: boolean debugHeap> = $z2;
+
+        $z3 = interfaceinvoke r0.<ucar.nc2.util.DebugFlags: boolean isSet(java.lang.String)>("H5iosp/filter");
+
+        <ucar.nc2.iosp.hdf5.H5iosp: boolean debugFilter> = $z3;
+
+        $z4 = interfaceinvoke r0.<ucar.nc2.util.DebugFlags: boolean isSet(java.lang.String)>("H5iosp/filterIndexer");
+
+        <ucar.nc2.iosp.hdf5.H5iosp: boolean debugFilterIndexer> = $z4;
+
+        $z5 = interfaceinvoke r0.<ucar.nc2.util.DebugFlags: boolean isSet(java.lang.String)>("H5iosp/chunkIndexer");
+
+        <ucar.nc2.iosp.hdf5.H5iosp: boolean debugChunkIndexer> = $z5;
+
+        $z6 = interfaceinvoke r0.<ucar.nc2.util.DebugFlags: boolean isSet(java.lang.String)>("H5iosp/vlen");
+
+        <ucar.nc2.iosp.hdf5.H5iosp: boolean debugVlen> = $z6;
+
+        staticinvoke <ucar.nc2.iosp.hdf5.H5header: void setDebugFlags(ucar.nc2.util.DebugFlags)>(r0);
+
+        staticinvoke <ucar.nc2.iosp.hdf4.H4header: void setDebugFlags(ucar.nc2.util.DebugFlags)>(r0);
+
+        return;
+    }
+
+    public boolean isValidFile(ucar.unidata.io.RandomAccessFile) throws java.io.IOException
+    {
+        ucar.unidata.io.RandomAccessFile r0;
+        ucar.nc2.iosp.hdf5.H5iosp r1;
+        boolean $z0;
+
+        r1 := @this: ucar.nc2.iosp.hdf5.H5iosp;
+
+        r0 := @parameter0: ucar.unidata.io.RandomAccessFile;
+
+        $z0 = staticinvoke <ucar.nc2.iosp.hdf5.H5header: boolean isValidFile(ucar.unidata.io.RandomAccessFile)>(r0);
+
+        return $z0;
+    }
+
+    public java.lang.String getFileTypeId()
+    {
+        ucar.nc2.iosp.hdf5.H5iosp r0;
+
+        r0 := @this: ucar.nc2.iosp.hdf5.H5iosp;
+
+        return "HDF5";
+    }
+
+    public java.lang.String getFileTypeDescription()
+    {
+        ucar.nc2.iosp.hdf5.H5iosp r0;
+
+        r0 := @this: ucar.nc2.iosp.hdf5.H5iosp;
+
+        return "Hierarchical Data Format, version 5";
+    }
+
+    public void open(ucar.unidata.io.RandomAccessFile, ucar.nc2.NetcdfFile, ucar.nc2.util.CancelTask) throws java.io.IOException
+    {
+        ucar.unidata.io.RandomAccessFile r1, $r4;
+        ucar.nc2.Group $r6, $r7;
+        ucar.nc2.util.CancelTask r8;
+        ucar.nc2.iosp.hdf5.H5iosp r0;
+        ucar.nc2.iosp.hdf5.H5header $r2, $r5;
+        ucar.nc2.NetcdfFile r3;
+
+        r0 := @this: ucar.nc2.iosp.hdf5.H5iosp;
+
+        r1 := @parameter0: ucar.unidata.io.RandomAccessFile;
+
+        r3 := @parameter1: ucar.nc2.NetcdfFile;
+
+        r8 := @parameter2: ucar.nc2.util.CancelTask;
+
+        r0.<ucar.nc2.iosp.hdf5.H5iosp: ucar.unidata.io.RandomAccessFile myRaf> = r1;
+
+        $r2 = new ucar.nc2.iosp.hdf5.H5header;
+
+        $r4 = r0.<ucar.nc2.iosp.hdf5.H5iosp: ucar.unidata.io.RandomAccessFile myRaf>;
+
+        specialinvoke $r2.<ucar.nc2.iosp.hdf5.H5header: void <init>(ucar.unidata.io.RandomAccessFile,ucar.nc2.NetcdfFile,ucar.nc2.iosp.hdf5.H5iosp)>($r4, r3, r0);
+
+        r0.<ucar.nc2.iosp.hdf5.H5iosp: ucar.nc2.iosp.hdf5.H5header headerParser> = $r2;
+
+        $r5 = r0.<ucar.nc2.iosp.hdf5.H5iosp: ucar.nc2.iosp.hdf5.H5header headerParser>;
+
+        virtualinvoke $r5.<ucar.nc2.iosp.hdf5.H5header: void read(java.io.PrintStream)>(null);
+
+        $r6 = virtualinvoke r3.<ucar.nc2.NetcdfFile: ucar.nc2.Group getRootGroup()>();
+
+        $r7 = virtualinvoke $r6.<ucar.nc2.Group: ucar.nc2.Group findGroup(java.lang.String)>("HDFEOS INFORMATION");
+
+        if $r7 == null goto label1;
+
+        staticinvoke <ucar.nc2.iosp.hdf4.HdfEos: boolean amendFromODL(ucar.nc2.NetcdfFile,ucar.nc2.Group)>(r3, $r7);
+
+     label1:
+        virtualinvoke r3.<ucar.nc2.NetcdfFile: void finish()>();
+
+        return;
+    }
+
+    public ucar.ma2.Array readData(ucar.nc2.Variable, ucar.ma2.Section) throws java.io.IOException, ucar.ma2.InvalidRangeException
+    {
+        ucar.ma2.Section r4;
+        ucar.nc2.iosp.hdf5.H5iosp r3;
+        ucar.nc2.Variable r0;
+        java.lang.Object $r1;
+        ucar.nc2.iosp.hdf5.H5header$Vinfo r2;
+        long $l0;
+        ucar.ma2.Array $r5;
+
+        r3 := @this: ucar.nc2.iosp.hdf5.H5iosp;
+
+        r0 := @parameter0: ucar.nc2.Variable;
+
+        r4 := @parameter1: ucar.ma2.Section;
+
+        $r1 = virtualinvoke r0.<ucar.nc2.Variable: java.lang.Object getSPobject()>();
+
+        r2 = (ucar.nc2.iosp.hdf5.H5header$Vinfo) $r1;
+
+        $l0 = r2.<ucar.nc2.iosp.hdf5.H5header$Vinfo: long dataPos>;
+
+        $r5 = specialinvoke r3.<ucar.nc2.iosp.hdf5.H5iosp: ucar.ma2.Array readData(ucar.nc2.Variable,long,ucar.ma2.Section)>(r0, $l0, r4);
+
+        return $r5;
+    }
+
+    private ucar.ma2.Array readData(ucar.nc2.Variable, long, ucar.ma2.Section) throws java.io.IOException, ucar.ma2.InvalidRangeException
+    {
+        byte[] $r21, $r22, $r64, $r65;
+        ucar.nc2.iosp.LayoutBB $r46;
+        ucar.nc2.iosp.hdf5.H5header$Vinfo r2, $r27;
+        ucar.nc2.iosp.hdf5.H5tiledLayout $r25;
+        ucar.nc2.iosp.hdf5.H5tiledLayoutBB $r42;
+        java.nio.ByteOrder $r68;
+        java.lang.StringBuilder $r33, $r35, $r37, $r38, $r39, $r50, $r52, $r54, $r55, $r56;
+        ucar.ma2.Section $r7, r66;
+        long l3, $l5;
+        java.lang.AssertionError $r49;
+        ucar.nc2.Structure $r19;
+        ucar.nc2.iosp.hdf5.H5header$MessageFilter $r4, $r43;
+        ucar.nc2.iosp.hdf5.H5iosp r13;
+        ucar.nc2.iosp.hdf5.H5header$MessageDatatype $r32;
+        java.lang.String $r36, $r40, $r53, $r57;
+        ucar.nc2.iosp.LayoutRegular $r11;
+        ucar.ma2.Array $r18, $r24, $r63;
+        ucar.nc2.iosp.hdf5.H5header$TypeInfo $r5, $r8, $r9, $r10, $r28, $r29, $r30, r31, $r41;
+        ucar.unidata.io.RandomAccessFile $r44;
+        ucar.ma2.ArrayStructure $r23;
+        ucar.nc2.iosp.Layout r69;
+        int[] $r6, $r12, $r14, $r17, $r20, $r62;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6;
+        ucar.ma2.DataType $r3, $r15, $r47, $r60, r71;
+        ucar.nc2.iosp.hdf5.H5header$Filter[] $r45;
+        int $i0, $i1, $i2, $i4, $i6, i7, i8;
+        ucar.nc2.Variable r0;
+        java.io.PrintStream $r34, $r51;
+        java.lang.Object $r1, $r26, $r48, $r58, $r59, r67, r70, r72;
+        java.lang.Class $r16, $r61;
+
+        r13 := @this: ucar.nc2.iosp.hdf5.H5iosp;
+
+        r0 := @parameter0: ucar.nc2.Variable;
+
+        l3 := @parameter1: long;
+
+        r66 := @parameter2: ucar.ma2.Section;
+
+        $r1 = virtualinvoke r0.<ucar.nc2.Variable: java.lang.Object getSPobject()>();
+
+        r2 = (ucar.nc2.iosp.hdf5.H5header$Vinfo) $r1;
+
+        $r3 = virtualinvoke r0.<ucar.nc2.Variable: ucar.ma2.DataType getDataType()>();
+
+        $z0 = r2.<ucar.nc2.iosp.hdf5.H5header$Vinfo: boolean useFillValue>;
+
+        if $z0 == 0 goto label02;
+
+        $l5 = virtualinvoke r66.<ucar.ma2.Section: long computeSize()>();
+
+        $i6 = (int) $l5;
+
+        $r58 = virtualinvoke r2.<ucar.nc2.iosp.hdf5.H5header$Vinfo: java.lang.Object getFillValue()>();
+
+        $r59 = staticinvoke <ucar.nc2.iosp.IospHelper: java.lang.Object makePrimitiveArray(int,ucar.ma2.DataType,java.lang.Object)>($i6, $r3, $r58);
+
+        r67 = $r59;
+
+        $r60 = <ucar.ma2.DataType: ucar.ma2.DataType CHAR>;
+
+        if $r3 != $r60 goto label01;
+
+        $r64 = (byte[]) $r59;
+
+        $r65 = (byte[]) $r64;
+
+        r67 = staticinvoke <ucar.nc2.iosp.IospHelper: char[] convertByteToChar(byte[])>($r65);
+
+     label01:
+        $r61 = virtualinvoke $r3.<ucar.ma2.DataType: java.lang.Class getPrimitiveClassType()>();
+
+        $r62 = virtualinvoke r66.<ucar.ma2.Section: int[] getShape()>();
+
+        $r63 = staticinvoke <ucar.ma2.Array: ucar.ma2.Array factory(java.lang.Class,int[],java.lang.Object)>($r61, $r62, r67);
+
+        return $r63;
+
+     label02:
+        $r4 = r2.<ucar.nc2.iosp.hdf5.H5header$Vinfo: ucar.nc2.iosp.hdf5.H5header$MessageFilter mfp>;
+
+        if $r4 == null goto label07;
+
+        $z2 = <ucar.nc2.iosp.hdf5.H5iosp: boolean debugFilter>;
+
+        if $z2 == 0 goto label03;
+
+        $r51 = <java.lang.System: java.io.PrintStream out>;
+
+        $r50 = new java.lang.StringBuilder;
+
+        specialinvoke $r50.<java.lang.StringBuilder: void <init>()>();
+
+        $r52 = virtualinvoke $r50.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("read variable filtered ");
+
+        $r53 = virtualinvoke r0.<ucar.nc2.Variable: java.lang.String getName()>();
+
+        $r54 = virtualinvoke $r52.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r53);
+
+        $r55 = virtualinvoke $r54.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" vinfo = ");
+
+        $r56 = virtualinvoke $r55.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r2);
+
+        $r57 = virtualinvoke $r56.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r51.<java.io.PrintStream: void println(java.lang.String)>($r57);
+
+     label03:
+        $z3 = <ucar.nc2.iosp.hdf5.H5iosp: boolean $assertionsDisabled>;
+
+        if $z3 != 0 goto label04;
+
+        $z4 = r2.<ucar.nc2.iosp.hdf5.H5header$Vinfo: boolean isChunked>;
+
+        if $z4 != 0 goto label04;
+
+        $r49 = new java.lang.AssertionError;
+
+        specialinvoke $r49.<java.lang.AssertionError: void <init>()>();
+
+        throw $r49;
+
+     label04:
+        $r41 = r2.<ucar.nc2.iosp.hdf5.H5header$Vinfo: ucar.nc2.iosp.hdf5.H5header$TypeInfo typeInfo>;
+
+        $i4 = $r41.<ucar.nc2.iosp.hdf5.H5header$TypeInfo: int endian>;
+
+        if $i4 != 0 goto label05;
+
+        $r68 = <java.nio.ByteOrder: java.nio.ByteOrder BIG_ENDIAN>;
+
+        goto label06;
+
+     label05:
+        $r68 = <java.nio.ByteOrder: java.nio.ByteOrder LITTLE_ENDIAN>;
+
+     label06:
+        $r42 = new ucar.nc2.iosp.hdf5.H5tiledLayoutBB;
+
+        $r44 = r13.<ucar.nc2.iosp.hdf5.H5iosp: ucar.unidata.io.RandomAccessFile myRaf>;
+
+        $r43 = r2.<ucar.nc2.iosp.hdf5.H5header$Vinfo: ucar.nc2.iosp.hdf5.H5header$MessageFilter mfp>;
+
+        $r45 = virtualinvoke $r43.<ucar.nc2.iosp.hdf5.H5header$MessageFilter: ucar.nc2.iosp.hdf5.H5header$Filter[] getFilters()>();
+
+        specialinvoke $r42.<ucar.nc2.iosp.hdf5.H5tiledLayoutBB: void <init>(ucar.nc2.Variable,ucar.ma2.Section,ucar.unidata.io.RandomAccessFile,ucar.nc2.iosp.hdf5.H5header$Filter[],java.nio.ByteOrder)>(r0, r66, $r44, $r45, $r68);
+
+        r69 = $r42;
+
+        $r46 = (ucar.nc2.iosp.LayoutBB) $r42;
+
+        $r47 = virtualinvoke r0.<ucar.nc2.Variable: ucar.ma2.DataType getDataType()>();
+
+        $r48 = virtualinvoke r2.<ucar.nc2.iosp.hdf5.H5header$Vinfo: java.lang.Object getFillValue()>();
+
+        r70 = staticinvoke <ucar.nc2.iosp.IospHelper: java.lang.Object readDataFill(ucar.nc2.iosp.LayoutBB,ucar.ma2.DataType,java.lang.Object)>($r46, $r47, $r48);
+
+        goto label14;
+
+     label07:
+        $z1 = <ucar.nc2.iosp.hdf5.H5iosp: boolean debug>;
+
+        if $z1 == 0 goto label08;
+
+        $r34 = <java.lang.System: java.io.PrintStream out>;
+
+        $r33 = new java.lang.StringBuilder;
+
+        specialinvoke $r33.<java.lang.StringBuilder: void <init>()>();
+
+        $r35 = virtualinvoke $r33.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("read variable ");
+
+        $r36 = virtualinvoke r0.<ucar.nc2.Variable: java.lang.String getName()>();
+
+        $r37 = virtualinvoke $r35.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r36);
+
+        $r38 = virtualinvoke $r37.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" vinfo = ");
+
+        $r39 = virtualinvoke $r38.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r2);
+
+        $r40 = virtualinvoke $r39.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r34.<java.io.PrintStream: void println(java.lang.String)>($r40);
+
+     label08:
+        r71 = virtualinvoke r0.<ucar.nc2.Variable: ucar.ma2.DataType getDataType()>();
+
+        i7 = virtualinvoke r0.<ucar.nc2.Variable: int getElementSize()>();
+
+        r72 = virtualinvoke r2.<ucar.nc2.iosp.hdf5.H5header$Vinfo: java.lang.Object getFillValue()>();
+
+        $r5 = r2.<ucar.nc2.iosp.hdf5.H5header$Vinfo: ucar.nc2.iosp.hdf5.H5header$TypeInfo typeInfo>;
+
+        i8 = $r5.<ucar.nc2.iosp.hdf5.H5header$TypeInfo: int endian>;
+
+        $r6 = virtualinvoke r0.<ucar.nc2.Variable: int[] getShape()>();
+
+        $r7 = staticinvoke <ucar.ma2.Section: ucar.ma2.Section fill(ucar.ma2.Section,int[])>(r66, $r6);
+
+        r66 = $r7;
+
+        $r8 = r2.<ucar.nc2.iosp.hdf5.H5header$Vinfo: ucar.nc2.iosp.hdf5.H5header$TypeInfo typeInfo>;
+
+        $i0 = $r8.<ucar.nc2.iosp.hdf5.H5header$TypeInfo: int hdfType>;
+
+        if $i0 != 2 goto label09;
+
+        $r32 = r2.<ucar.nc2.iosp.hdf5.H5header$Vinfo: ucar.nc2.iosp.hdf5.H5header$MessageDatatype mdt>;
+
+        r71 = $r32.<ucar.nc2.iosp.hdf5.H5header$MessageDatatype: ucar.ma2.DataType timeType>;
+
+        i7 = virtualinvoke r71.<ucar.ma2.DataType: int getSize()>();
+
+        r72 = virtualinvoke r2.<ucar.nc2.iosp.hdf5.H5header$Vinfo: java.lang.Object getFillValueDefault(ucar.ma2.DataType)>(r71);
+
+        goto label11;
+
+     label09:
+        $r9 = r2.<ucar.nc2.iosp.hdf5.H5header$Vinfo: ucar.nc2.iosp.hdf5.H5header$TypeInfo typeInfo>;
+
+        $i1 = $r9.<ucar.nc2.iosp.hdf5.H5header$TypeInfo: int hdfType>;
+
+        if $i1 != 8 goto label10;
+
+        $r30 = r2.<ucar.nc2.iosp.hdf5.H5header$Vinfo: ucar.nc2.iosp.hdf5.H5header$TypeInfo typeInfo>;
+
+        r31 = $r30.<ucar.nc2.iosp.hdf5.H5header$TypeInfo: ucar.nc2.iosp.hdf5.H5header$TypeInfo base>;
+
+        r71 = r31.<ucar.nc2.iosp.hdf5.H5header$TypeInfo: ucar.ma2.DataType dataType>;
+
+        i7 = virtualinvoke r71.<ucar.ma2.DataType: int getSize()>();
+
+        r72 = virtualinvoke r2.<ucar.nc2.iosp.hdf5.H5header$Vinfo: java.lang.Object getFillValueDefault(ucar.ma2.DataType)>(r71);
+
+        i8 = r31.<ucar.nc2.iosp.hdf5.H5header$TypeInfo: int endian>;
+
+        goto label11;
+
+     label10:
+        $r10 = r2.<ucar.nc2.iosp.hdf5.H5header$Vinfo: ucar.nc2.iosp.hdf5.H5header$TypeInfo typeInfo>;
+
+        $i2 = $r10.<ucar.nc2.iosp.hdf5.H5header$TypeInfo: int hdfType>;
+
+        if $i2 != 9 goto label11;
+
+        $r28 = r2.<ucar.nc2.iosp.hdf5.H5header$Vinfo: ucar.nc2.iosp.hdf5.H5header$TypeInfo typeInfo>;
+
+        i7 = $r28.<ucar.nc2.iosp.hdf5.H5header$TypeInfo: int byteSize>;
+
+        $r29 = r2.<ucar.nc2.iosp.hdf5.H5header$Vinfo: ucar.nc2.iosp.hdf5.H5header$TypeInfo typeInfo>;
+
+        i8 = $r29.<ucar.nc2.iosp.hdf5.H5header$TypeInfo: int endian>;
+
+        r66 = virtualinvoke $r7.<ucar.ma2.Section: ucar.ma2.Section removeVlen()>();
+
+     label11:
+        $z5 = r2.<ucar.nc2.iosp.hdf5.H5header$Vinfo: boolean isChunked>;
+
+        if $z5 == 0 goto label12;
+
+        $r25 = new ucar.nc2.iosp.hdf5.H5tiledLayout;
+
+        $r26 = virtualinvoke r0.<ucar.nc2.Variable: java.lang.Object getSPobject()>();
+
+        $r27 = (ucar.nc2.iosp.hdf5.H5header$Vinfo) $r26;
+
+        specialinvoke $r25.<ucar.nc2.iosp.hdf5.H5tiledLayout: void <init>(ucar.nc2.iosp.hdf5.H5header$Vinfo,ucar.ma2.DataType,ucar.ma2.Section)>($r27, r71, r66);
+
+        r69 = $r25;
+
+        goto label13;
+
+     label12:
+        $r11 = new ucar.nc2.iosp.LayoutRegular;
+
+        $r12 = virtualinvoke r0.<ucar.nc2.Variable: int[] getShape()>();
+
+        specialinvoke $r11.<ucar.nc2.iosp.LayoutRegular: void <init>(long,int,int[],ucar.ma2.Section)>(l3, i7, $r12, r66);
+
+        r69 = $r11;
+
+     label13:
+        $r14 = virtualinvoke r66.<ucar.ma2.Section: int[] getShape()>();
+
+        r70 = specialinvoke r13.<ucar.nc2.iosp.hdf5.H5iosp: java.lang.Object readData(ucar.nc2.iosp.hdf5.H5header$Vinfo,ucar.nc2.Variable,ucar.nc2.iosp.Layout,ucar.ma2.DataType,int[],java.lang.Object,int)>(r2, r0, r69, r71, $r14, r72, i8);
+
+     label14:
+        $z6 = r70 instanceof ucar.ma2.Array;
+
+        if $z6 == 0 goto label15;
+
+        $r24 = (ucar.ma2.Array) r70;
+
+        return $r24;
+
+     label15:
+        $r15 = <ucar.ma2.DataType: ucar.ma2.DataType STRUCTURE>;
+
+        if $r3 != $r15 goto label16;
+
+        $r19 = (ucar.nc2.Structure) r0;
+
+        $r20 = virtualinvoke r66.<ucar.ma2.Section: int[] getShape()>();
+
+        $r21 = (byte[]) r70;
+
+        $r22 = (byte[]) $r21;
+
+        $r23 = specialinvoke r13.<ucar.nc2.iosp.hdf5.H5iosp: ucar.ma2.ArrayStructure convertStructure(ucar.nc2.Structure,ucar.nc2.iosp.Layout,int[],byte[])>($r19, r69, $r20, $r22);
+
+        return $r23;
+
+     label16:
+        $r16 = virtualinvoke $r3.<ucar.ma2.DataType: java.lang.Class getPrimitiveClassType()>();
+
+        $r17 = virtualinvoke r66.<ucar.ma2.Section: int[] getShape()>();
+
+        $r18 = staticinvoke <ucar.ma2.Array: ucar.ma2.Array factory(java.lang.Class,int[],java.lang.Object)>($r16, $r17, r70);
+
+        return $r18;
+    }
+
+    private java.lang.Object readData(ucar.nc2.iosp.hdf5.H5header$Vinfo, ucar.nc2.Variable, ucar.nc2.iosp.Layout, ucar.ma2.DataType, int[], java.lang.Object, int) throws java.io.IOException, ucar.ma2.InvalidRangeException
+    {
+        byte[] r50;
+        ucar.nc2.iosp.hdf5.H5header$Vinfo r0;
+        ucar.nc2.iosp.hdf5.H5header $r30, $r42;
+        java.lang.StringBuilder $r15, $r17, $r19, $r20, $r21, $r22, $r23;
+        java.lang.Object[] $r48;
+        long $l5, $l6, $l8, $l9, $l17, $l20, l21, $l24, $l26, $l29, l33;
+        ucar.nc2.Structure $r10;
+        ucar.nc2.iosp.hdf5.H5iosp r4;
+        java.lang.String $r18, $r24, $r45;
+        ucar.ma2.Array $r31, $r36, $r40, $r41, $r49;
+        ucar.nc2.iosp.hdf5.H5header$TypeInfo r1, $r25, $r32;
+        ucar.unidata.io.RandomAccessFile $r13, $r14, $r33, $r37;
+        ucar.nc2.iosp.Layout r5;
+        ucar.ma2.ArrayStructure $r11;
+        java.util.Date $r43;
+        int[] r6;
+        ucar.nc2.iosp.Layout$Chunk $r12, $r29;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5;
+        ucar.ma2.DataType r2, $r3, r47;
+        ucar.nc2.units.DateFormatter $r44;
+        java.lang.String[] r46;
+        int $i0, $i1, $i2, i3, $i4, $i7, $i10, $i11, $i12, $i13, $i14, $i15, $i16, $i18, $i19, $i22, $i23, $i25, $i27, i28, $i30, i31, i32;
+        ucar.nc2.Variable r9;
+        java.io.PrintStream $r16;
+        ucar.ma2.ArrayObject $r26;
+        java.lang.Object r7, $r8, $r27, $r34, $r38;
+        java.lang.Class $r28, $r35, $r39;
+
+        r4 := @this: ucar.nc2.iosp.hdf5.H5iosp;
+
+        r0 := @parameter0: ucar.nc2.iosp.hdf5.H5header$Vinfo;
+
+        r9 := @parameter1: ucar.nc2.Variable;
+
+        r5 := @parameter2: ucar.nc2.iosp.Layout;
+
+        r2 := @parameter3: ucar.ma2.DataType;
+
+        r6 := @parameter4: int[];
+
+        r7 := @parameter5: java.lang.Object;
+
+        i3 := @parameter6: int;
+
+        r1 = r0.<ucar.nc2.iosp.hdf5.H5header$Vinfo: ucar.nc2.iosp.hdf5.H5header$TypeInfo typeInfo>;
+
+        $i0 = r1.<ucar.nc2.iosp.hdf5.H5header$TypeInfo: int hdfType>;
+
+        if $i0 != 2 goto label03;
+
+        $r37 = r4.<ucar.nc2.iosp.hdf5.H5iosp: ucar.unidata.io.RandomAccessFile myRaf>;
+
+        $r38 = staticinvoke <ucar.nc2.iosp.IospHelper: java.lang.Object readDataFill(ucar.unidata.io.RandomAccessFile,ucar.nc2.iosp.Layout,ucar.ma2.DataType,java.lang.Object,int,boolean)>($r37, r5, r2, r7, i3, 1);
+
+        $r39 = virtualinvoke r2.<ucar.ma2.DataType: java.lang.Class getPrimitiveClassType()>();
+
+        $r40 = staticinvoke <ucar.ma2.Array: ucar.ma2.Array factory(java.lang.Class,int[],java.lang.Object)>($r39, r6, $r38);
+
+        $l24 = virtualinvoke $r40.<ucar.ma2.Array: long getSize()>();
+
+        $i25 = (int) $l24;
+
+        r46 = newarray (java.lang.String)[$i25];
+
+        i28 = 0;
+
+     label01:
+        $z3 = virtualinvoke $r40.<ucar.ma2.Array: boolean hasNext()>();
+
+        if $z3 == 0 goto label02;
+
+        $l26 = virtualinvoke $r40.<ucar.ma2.Array: long nextLong()>();
+
+        $i27 = i28;
+
+        i28 = i28 + 1;
+
+        $r42 = r4.<ucar.nc2.iosp.hdf5.H5iosp: ucar.nc2.iosp.hdf5.H5header headerParser>;
+
+        $r44 = $r42.<ucar.nc2.iosp.hdf5.H5header: ucar.nc2.units.DateFormatter formatter>;
+
+        $r43 = new java.util.Date;
+
+        specialinvoke $r43.<java.util.Date: void <init>(long)>($l26);
+
+        $r45 = virtualinvoke $r44.<ucar.nc2.units.DateFormatter: java.lang.String toDateTimeStringISO(java.util.Date)>($r43);
+
+        r46[$i27] = $r45;
+
+        goto label01;
+
+     label02:
+        $r41 = staticinvoke <ucar.ma2.Array: ucar.ma2.Array factory(java.lang.Class,int[],java.lang.Object)>(class "Ljava/lang/String;", r6, r46);
+
+        return $r41;
+
+     label03:
+        $i1 = r1.<ucar.nc2.iosp.hdf5.H5header$TypeInfo: int hdfType>;
+
+        if $i1 != 8 goto label04;
+
+        $r33 = r4.<ucar.nc2.iosp.hdf5.H5iosp: ucar.unidata.io.RandomAccessFile myRaf>;
+
+        $r34 = staticinvoke <ucar.nc2.iosp.IospHelper: java.lang.Object readDataFill(ucar.unidata.io.RandomAccessFile,ucar.nc2.iosp.Layout,ucar.ma2.DataType,java.lang.Object,int)>($r33, r5, r2, r7, i3);
+
+        $r35 = virtualinvoke r2.<ucar.ma2.DataType: java.lang.Class getPrimitiveClassType()>();
+
+        $r36 = staticinvoke <ucar.ma2.Array: ucar.ma2.Array factory(java.lang.Class,int[],java.lang.Object)>($r35, r6, $r34);
+
+        return $r36;
+
+     label04:
+        $i2 = r1.<ucar.nc2.iosp.hdf5.H5header$TypeInfo: int hdfType>;
+
+        if $i2 != 9 goto label14;
+
+        $z1 = r1.<ucar.nc2.iosp.hdf5.H5header$TypeInfo: boolean isVString>;
+
+        if $z1 != 0 goto label14;
+
+        r47 = r2;
+
+        $z2 = r1.<ucar.nc2.iosp.hdf5.H5header$TypeInfo: boolean isVString>;
+
+        if $z2 == 0 goto label05;
+
+        r47 = <ucar.ma2.DataType: ucar.ma2.DataType BYTE>;
+
+        goto label06;
+
+     label05:
+        $r25 = r1.<ucar.nc2.iosp.hdf5.H5header$TypeInfo: ucar.nc2.iosp.hdf5.H5header$TypeInfo base>;
+
+        $i15 = $r25.<ucar.nc2.iosp.hdf5.H5header$TypeInfo: int hdfType>;
+
+        if $i15 != 7 goto label06;
+
+        r47 = <ucar.ma2.DataType: ucar.ma2.DataType LONG>;
+
+     label06:
+        $l29 = interfaceinvoke r5.<ucar.nc2.iosp.Layout: long getTotalNelems()>();
+
+        $i30 = (int) $l29;
+
+        $r48 = newarray (java.lang.Object)[$i30];
+
+        i31 = 0;
+
+     label07:
+        $z4 = interfaceinvoke r5.<ucar.nc2.iosp.Layout: boolean hasNext()>();
+
+        if $z4 == 0 goto label13;
+
+        $r29 = interfaceinvoke r5.<ucar.nc2.iosp.Layout: ucar.nc2.iosp.Layout$Chunk next()>();
+
+        if $r29 != null goto label08;
+
+        goto label07;
+
+     label08:
+        i32 = 0;
+
+     label09:
+        $i16 = interfaceinvoke $r29.<ucar.nc2.iosp.Layout$Chunk: int getNelems()>();
+
+        if i32 >= $i16 goto label12;
+
+        $l17 = interfaceinvoke $r29.<ucar.nc2.iosp.Layout$Chunk: long getSrcPos()>();
+
+        $i18 = interfaceinvoke r5.<ucar.nc2.iosp.Layout: int getElemSize()>();
+
+        $i19 = $i18 * i32;
+
+        $l20 = (long) $i19;
+
+        l21 = $l17 + $l20;
+
+        $r30 = r4.<ucar.nc2.iosp.hdf5.H5iosp: ucar.nc2.iosp.hdf5.H5header headerParser>;
+
+        $r31 = virtualinvoke $r30.<ucar.nc2.iosp.hdf5.H5header: ucar.ma2.Array getHeapDataArray(long,ucar.ma2.DataType,int)>(l21, r47, i3);
+
+        $i22 = i31;
+
+        i31 = i31 + 1;
+
+        $r32 = r1.<ucar.nc2.iosp.hdf5.H5header$TypeInfo: ucar.nc2.iosp.hdf5.H5header$TypeInfo base>;
+
+        $i23 = $r32.<ucar.nc2.iosp.hdf5.H5header$TypeInfo: int hdfType>;
+
+        if $i23 != 7 goto label10;
+
+        $r49 = virtualinvoke r4.<ucar.nc2.iosp.hdf5.H5iosp: ucar.ma2.Array convertReference(ucar.ma2.Array)>($r31);
+
+        goto label11;
+
+     label10:
+        $r49 = $r31;
+
+     label11:
+        $r48[$i22] = $r49;
+
+        i32 = i32 + 1;
+
+        goto label09;
+
+     label12:
+        goto label07;
+
+     label13:
+        $r26 = new ucar.ma2.ArrayObject;
+
+        $r27 = $r48[0];
+
+        $r28 = virtualinvoke $r27.<java.lang.Object: java.lang.Class getClass()>();
+
+        specialinvoke $r26.<ucar.ma2.ArrayObject: void <init>(java.lang.Class,int[],java.lang.Object[])>($r28, r6, $r48);
+
+        return $r26;
+
+     label14:
+        $r3 = <ucar.ma2.DataType: ucar.ma2.DataType STRUCTURE>;
+
+        if r2 != $r3 goto label19;
+
+        $i4 = interfaceinvoke r5.<ucar.nc2.iosp.Layout: int getElemSize()>();
+
+        $l5 = (long) $i4;
+
+        $l6 = interfaceinvoke r5.<ucar.nc2.iosp.Layout: long getTotalNelems()>();
+
+        l33 = $l5 * $l6;
+
+        $i7 = (int) l33;
+
+        r50 = newarray (byte)[$i7];
+
+     label15:
+        $z5 = interfaceinvoke r5.<ucar.nc2.iosp.Layout: boolean hasNext()>();
+
+        if $z5 == 0 goto label18;
+
+        $r12 = interfaceinvoke r5.<ucar.nc2.iosp.Layout: ucar.nc2.iosp.Layout$Chunk next()>();
+
+        if $r12 != null goto label16;
+
+        goto label15;
+
+     label16:
+        $z0 = <ucar.nc2.iosp.hdf5.H5iosp: boolean debugStructure>;
+
+        if $z0 == 0 goto label17;
+
+        $r16 = <java.lang.System: java.io.PrintStream out>;
+
+        $r15 = new java.lang.StringBuilder;
+
+        specialinvoke $r15.<java.lang.StringBuilder: void <init>()>();
+
+        $r17 = virtualinvoke $r15.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" readStructure ");
+
+        $r18 = virtualinvoke r9.<ucar.nc2.Variable: java.lang.String getName()>();
+
+        $r19 = virtualinvoke $r17.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r18);
+
+        $r20 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" chunk= ");
+
+        $r21 = virtualinvoke $r20.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r12);
+
+        $r22 = virtualinvoke $r21.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" index.getElemSize= ");
+
+        $i14 = interfaceinvoke r5.<ucar.nc2.iosp.Layout: int getElemSize()>();
+
+        $r23 = virtualinvoke $r22.<java.lang.StringBuilder: java.lang.StringBuilder append(int)>($i14);
+
+        $r24 = virtualinvoke $r23.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r16.<java.io.PrintStream: void println(java.lang.String)>($r24);
+
+     label17:
+        $r13 = r4.<ucar.nc2.iosp.hdf5.H5iosp: ucar.unidata.io.RandomAccessFile myRaf>;
+
+        $l8 = interfaceinvoke $r12.<ucar.nc2.iosp.Layout$Chunk: long getSrcPos()>();
+
+        virtualinvoke $r13.<ucar.unidata.io.RandomAccessFile: void seek(long)>($l8);
+
+        $r14 = r4.<ucar.nc2.iosp.hdf5.H5iosp: ucar.unidata.io.RandomAccessFile myRaf>;
+
+        $l9 = interfaceinvoke $r12.<ucar.nc2.iosp.Layout$Chunk: long getDestElem()>();
+
+        $i10 = (int) $l9;
+
+        $i11 = $i10 * $i4;
+
+        $i12 = interfaceinvoke $r12.<ucar.nc2.iosp.Layout$Chunk: int getNelems()>();
+
+        $i13 = $i12 * $i4;
+
+        virtualinvoke $r14.<ucar.unidata.io.RandomAccessFile: int read(byte[],int,int)>(r50, $i11, $i13);
+
+        goto label15;
+
+     label18:
+        $r10 = (ucar.nc2.Structure) r9;
+
+        $r11 = specialinvoke r4.<ucar.nc2.iosp.hdf5.H5iosp: ucar.ma2.ArrayStructure convertStructure(ucar.nc2.Structure,ucar.nc2.iosp.Layout,int[],byte[])>($r10, r5, r6, r50);
+
+        return $r11;
+
+     label19:
+        $r8 = virtualinvoke r4.<ucar.nc2.iosp.hdf5.H5iosp: java.lang.Object readDataPrimitive(ucar.nc2.iosp.Layout,ucar.ma2.DataType,int[],java.lang.Object,int,boolean)>(r5, r2, r6, r7, i3, 1);
+
+        return $r8;
+    }
+
+    ucar.ma2.Array convertReference(ucar.ma2.Array) throws java.io.IOException
+    {
+        java.lang.Object[] $r9;
+        long $l0, $l2;
+        java.lang.String[] r2;
+        int[] $r3;
+        java.lang.Long $r11;
+        ucar.nc2.iosp.hdf5.H5iosp r6;
+        int i1, i3;
+        java.lang.String $r8, $r12;
+        boolean $z0;
+        java.io.PrintStream $r10;
+        ucar.ma2.Array r0, $r4;
+        ucar.ma2.Index $r1, $r5;
+        ucar.nc2.iosp.hdf5.H5header $r7;
+
+        r6 := @this: ucar.nc2.iosp.hdf5.H5iosp;
+
+        r0 := @parameter0: ucar.ma2.Array;
+
+        $l0 = virtualinvoke r0.<ucar.ma2.Array: long getSize()>();
+
+        i1 = (int) $l0;
+
+        $r1 = virtualinvoke r0.<ucar.ma2.Array: ucar.ma2.Index getIndex()>();
+
+        r2 = newarray (java.lang.String)[i1];
+
+        i3 = 0;
+
+     label1:
+        if i3 >= i1 goto label3;
+
+        $r5 = virtualinvoke $r1.<ucar.ma2.Index: ucar.ma2.Index set(int)>(i3);
+
+        $l2 = virtualinvoke r0.<ucar.ma2.Array: long getLong(ucar.ma2.Index)>($r5);
+
+        $r7 = r6.<ucar.nc2.iosp.hdf5.H5iosp: ucar.nc2.iosp.hdf5.H5header headerParser>;
+
+        $r8 = virtualinvoke $r7.<ucar.nc2.iosp.hdf5.H5header: java.lang.String getDataObjectName(long)>($l2);
+
+        r2[i3] = $r8;
+
+        $z0 = <ucar.nc2.iosp.hdf5.H5iosp: boolean debugVlen>;
+
+        if $z0 == 0 goto label2;
+
+        $r10 = <java.lang.System: java.io.PrintStream out>;
+
+        $r9 = newarray (java.lang.Object)[2];
+
+        $r11 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l2);
+
+        $r9[0] = $r11;
+
+        $r12 = r2[i3];
+
+        $r9[1] = $r12;
+
+        virtualinvoke $r10.<java.io.PrintStream: java.io.PrintStream printf(java.lang.String,java.lang.Object[])>(" convertReference 0x%x to %s %n", $r9);
+
+     label2:
+        i3 = i3 + 1;
+
+        goto label1;
+
+     label3:
+        $r3 = newarray (int)[1];
+
+        $r3[0] = i1;
+
+        $r4 = staticinvoke <ucar.ma2.Array: ucar.ma2.Array factory(java.lang.Class,int[],java.lang.Object)>(class "Ljava/lang/String;", $r3, r2);
+
+        return $r4;
+    }
+
+    private ucar.ma2.ArrayStructure convertStructure(ucar.nc2.Structure, ucar.nc2.iosp.Layout, int[], byte[]) throws java.io.IOException
+    {
+        byte[] r5;
+        ucar.nc2.iosp.Layout r4;
+        java.nio.ByteBuffer $r6;
+        ucar.ma2.StructureMembers$Member r16;
+        byte $b3;
+        ucar.ma2.ArrayStructureBB $r21;
+        int[] r8;
+        ucar.nc2.iosp.hdf5.H5header$Vinfo r17;
+        boolean $z0, z1;
+        ucar.ma2.DataType $r19, $r20;
+        java.nio.ByteOrder $r18;
+        java.util.List $r2;
+        ucar.ma2.StructureMembers $r1;
+        long $l1, $l2, $l7;
+        ucar.nc2.Structure r0;
+        ucar.nc2.iosp.hdf5.H5iosp r9;
+        int $i0, $i4, $i5, $i6, $i8, i9, i10, $i11;
+        ucar.nc2.Variable $r12;
+        java.lang.String $r11;
+        java.util.Iterator $r3;
+        java.lang.Object $r10, $r13;
+        ucar.nc2.iosp.hdf5.H5header$TypeInfo $r14, $r15;
+
+        r9 := @this: ucar.nc2.iosp.hdf5.H5iosp;
+
+        r0 := @parameter0: ucar.nc2.Structure;
+
+        r4 := @parameter1: ucar.nc2.iosp.Layout;
+
+        r8 := @parameter2: int[];
+
+        r5 := @parameter3: byte[];
+
+        z1 = 0;
+
+        $r1 = virtualinvoke r0.<ucar.nc2.Structure: ucar.ma2.StructureMembers makeStructureMembers()>();
+
+        $r2 = virtualinvoke $r1.<ucar.ma2.StructureMembers: java.util.List getMembers()>();
+
+        $r3 = interfaceinvoke $r2.<java.util.List: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r3.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label6;
+
+        $r10 = interfaceinvoke $r3.<java.util.Iterator: java.lang.Object next()>();
+
+        r16 = (ucar.ma2.StructureMembers$Member) $r10;
+
+        $r11 = virtualinvoke r16.<ucar.ma2.StructureMembers$Member: java.lang.String getName()>();
+
+        $r12 = virtualinvoke r0.<ucar.nc2.Structure: ucar.nc2.Variable findVariable(java.lang.String)>($r11);
+
+        $r13 = virtualinvoke $r12.<ucar.nc2.Variable: java.lang.Object getSPobject()>();
+
+        r17 = (ucar.nc2.iosp.hdf5.H5header$Vinfo) $r13;
+
+        $r14 = r17.<ucar.nc2.iosp.hdf5.H5header$Vinfo: ucar.nc2.iosp.hdf5.H5header$TypeInfo typeInfo>;
+
+        $i5 = $r14.<ucar.nc2.iosp.hdf5.H5header$TypeInfo: int endian>;
+
+        if $i5 < 0 goto label4;
+
+        $r15 = r17.<ucar.nc2.iosp.hdf5.H5header$Vinfo: ucar.nc2.iosp.hdf5.H5header$TypeInfo typeInfo>;
+
+        $i6 = $r15.<ucar.nc2.iosp.hdf5.H5header$TypeInfo: int endian>;
+
+        if $i6 != 1 goto label2;
+
+        $r18 = <java.nio.ByteOrder: java.nio.ByteOrder LITTLE_ENDIAN>;
+
+        goto label3;
+
+     label2:
+        $r18 = <java.nio.ByteOrder: java.nio.ByteOrder BIG_ENDIAN>;
+
+     label3:
+        virtualinvoke r16.<ucar.ma2.StructureMembers$Member: void setDataObject(java.lang.Object)>($r18);
+
+     label4:
+        $l7 = r17.<ucar.nc2.iosp.hdf5.H5header$Vinfo: long dataPos>;
+
+        $i8 = (int) $l7;
+
+        virtualinvoke r16.<ucar.ma2.StructureMembers$Member: void setDataParam(int)>($i8);
+
+        $r19 = virtualinvoke $r12.<ucar.nc2.Variable: ucar.ma2.DataType getDataType()>();
+
+        $r20 = <ucar.ma2.DataType: ucar.ma2.DataType STRING>;
+
+        if $r19 != $r20 goto label5;
+
+        z1 = 1;
+
+     label5:
+        goto label1;
+
+     label6:
+        $i0 = interfaceinvoke r4.<ucar.nc2.iosp.Layout: int getElemSize()>();
+
+        virtualinvoke $r1.<ucar.ma2.StructureMembers: void setStructureSize(int)>($i0);
+
+        $r6 = staticinvoke <java.nio.ByteBuffer: java.nio.ByteBuffer wrap(byte[])>(r5);
+
+        $r21 = new ucar.ma2.ArrayStructureBB;
+
+        specialinvoke $r21.<ucar.ma2.ArrayStructureBB: void <init>(ucar.ma2.StructureMembers,int[],java.nio.ByteBuffer,int)>($r1, r8, $r6, 0);
+
+        if z1 == 0 goto label8;
+
+        i9 = 0;
+
+        i10 = 0;
+
+     label7:
+        $l1 = (long) i10;
+
+        $l2 = interfaceinvoke r4.<ucar.nc2.iosp.Layout: long getTotalNelems()>();
+
+        $b3 = $l1 cmp $l2;
+
+        $i11 = (int) $b3;
+
+        if $i11 >= 0 goto label8;
+
+        virtualinvoke r9.<ucar.nc2.iosp.hdf5.H5iosp: void convertStrings(ucar.ma2.ArrayStructureBB,int,ucar.ma2.StructureMembers)>($r21, i9, $r1);
+
+        $i4 = interfaceinvoke r4.<ucar.nc2.iosp.Layout: int getElemSize()>();
+
+        i9 = i9 + $i4;
+
+        i10 = i10 + 1;
+
+        goto label7;
+
+     label8:
+        return $r21;
+    }
+
+    void convertStrings(ucar.ma2.ArrayStructureBB, int, ucar.ma2.StructureMembers) throws java.io.IOException
+    {
+        java.lang.String[] r10;
+        java.nio.ByteBuffer $r1;
+        ucar.ma2.StructureMembers$Member r6;
+        ucar.ma2.ArrayStructureBB r0;
+        ucar.nc2.iosp.hdf5.H5iosp r12;
+        int $i0, i1, $i2, i3, $i4, $i5, $i6, i7;
+        java.lang.String $r14;
+        boolean $z0;
+        java.util.Iterator $r4;
+        ucar.ma2.DataType $r7, $r8;
+        java.nio.ByteOrder $r9, $r11;
+        java.util.List $r3;
+        ucar.ma2.StructureMembers r2;
+        ucar.nc2.iosp.hdf5.H5header $r13;
+        java.lang.Object $r5;
+
+        r12 := @this: ucar.nc2.iosp.hdf5.H5iosp;
+
+        r0 := @parameter0: ucar.ma2.ArrayStructureBB;
+
+        i1 := @parameter1: int;
+
+        r2 := @parameter2: ucar.ma2.StructureMembers;
+
+        $r1 = virtualinvoke r0.<ucar.ma2.ArrayStructureBB: java.nio.ByteBuffer getByteBuffer()>();
+
+        $r3 = virtualinvoke r2.<ucar.ma2.StructureMembers: java.util.List getMembers()>();
+
+        $r4 = interfaceinvoke $r3.<java.util.List: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r4.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label5;
+
+        $r5 = interfaceinvoke $r4.<java.util.Iterator: java.lang.Object next()>();
+
+        r6 = (ucar.ma2.StructureMembers$Member) $r5;
+
+        $r7 = virtualinvoke r6.<ucar.ma2.StructureMembers$Member: ucar.ma2.DataType getDataType()>();
+
+        $r8 = <ucar.ma2.DataType: ucar.ma2.DataType STRING>;
+
+        if $r7 != $r8 goto label4;
+
+        $r9 = staticinvoke <java.nio.ByteOrder: java.nio.ByteOrder nativeOrder()>();
+
+        virtualinvoke r6.<ucar.ma2.StructureMembers$Member: void setDataObject(java.lang.Object)>($r9);
+
+        $i0 = virtualinvoke r6.<ucar.ma2.StructureMembers$Member: int getSize()>();
+
+        $i2 = virtualinvoke r6.<ucar.ma2.StructureMembers$Member: int getDataParam()>();
+
+        i3 = i1 + $i2;
+
+        r10 = newarray (java.lang.String)[$i0];
+
+        i7 = 0;
+
+     label2:
+        if i7 >= $i0 goto label3;
+
+        $r13 = r12.<ucar.nc2.iosp.hdf5.H5iosp: ucar.nc2.iosp.hdf5.H5header headerParser>;
+
+        $i5 = i7 * 16;
+
+        $i6 = i3 + $i5;
+
+        $r14 = virtualinvoke $r13.<ucar.nc2.iosp.hdf5.H5header: java.lang.String readHeapString(java.nio.ByteBuffer,int)>($r1, $i6);
+
+        r10[i7] = $r14;
+
+        i7 = i7 + 1;
+
+        goto label2;
+
+     label3:
+        $i4 = virtualinvoke r0.<ucar.ma2.ArrayStructureBB: int addObjectToHeap(java.lang.Object)>(r10);
+
+        $r11 = staticinvoke <java.nio.ByteOrder: java.nio.ByteOrder nativeOrder()>();
+
+        virtualinvoke $r1.<java.nio.ByteBuffer: java.nio.ByteBuffer order(java.nio.ByteOrder)>($r11);
+
+        virtualinvoke $r1.<java.nio.ByteBuffer: java.nio.ByteBuffer putInt(int,int)>(i3, $i4);
+
+     label4:
+        goto label1;
+
+     label5:
+        return;
+    }
+
+    java.lang.Object readDataPrimitive(ucar.nc2.iosp.Layout, ucar.ma2.DataType, int[], java.lang.Object, int, boolean) throws java.io.IOException, ucar.ma2.InvalidRangeException
+    {
+        byte[] r11;
+        ucar.unidata.io.RandomAccessFile $r6, $r12, $r13;
+        ucar.nc2.iosp.Layout r4;
+        java.nio.ByteBuffer $r14;
+        byte $b10;
+        int[] r9;
+        ucar.nc2.iosp.Layout$Chunk $r10, $r17;
+        boolean z0, $z1, $z2, $z3;
+        ucar.ma2.DataType r0, $r1, $r2;
+        ucar.nc2.iosp.hdf5.H5header $r18;
+        ucar.ma2.Section $r15;
+        long $l3, $l5, $l6, $l8, $l9, $l11, $l14, $l17, $l18;
+        java.lang.String[] r20;
+        java.lang.AssertionError $r16;
+        ucar.nc2.iosp.hdf5.H5iosp r3;
+        int i0, $i1, $i2, $i4, $i7, $i12, $i13, $i15, $i16, i19, i20, i21, i22, i23;
+        java.lang.String $r19;
+        ucar.ma2.ArrayObject $r8;
+        java.lang.Object r5, $r7;
+
+        r3 := @this: ucar.nc2.iosp.hdf5.H5iosp;
+
+        r4 := @parameter0: ucar.nc2.iosp.Layout;
+
+        r0 := @parameter1: ucar.ma2.DataType;
+
+        r9 := @parameter2: int[];
+
+        r5 := @parameter3: java.lang.Object;
+
+        i0 := @parameter4: int;
+
+        z0 := @parameter5: boolean;
+
+        $r1 = <ucar.ma2.DataType: ucar.ma2.DataType STRING>;
+
+        if r0 != $r1 goto label06;
+
+        $l11 = interfaceinvoke r4.<ucar.nc2.iosp.Layout: long getTotalNelems()>();
+
+        i19 = (int) $l11;
+
+        r20 = newarray (java.lang.String)[i19];
+
+        i20 = 0;
+
+     label01:
+        $z2 = interfaceinvoke r4.<ucar.nc2.iosp.Layout: boolean hasNext()>();
+
+        if $z2 == 0 goto label05;
+
+        $r17 = interfaceinvoke r4.<ucar.nc2.iosp.Layout: ucar.nc2.iosp.Layout$Chunk next()>();
+
+        if $r17 != null goto label02;
+
+        goto label01;
+
+     label02:
+        i21 = 0;
+
+     label03:
+        $i12 = interfaceinvoke $r17.<ucar.nc2.iosp.Layout$Chunk: int getNelems()>();
+
+        if i21 >= $i12 goto label04;
+
+        $i13 = i20;
+
+        i20 = i20 + 1;
+
+        $r18 = r3.<ucar.nc2.iosp.hdf5.H5iosp: ucar.nc2.iosp.hdf5.H5header headerParser>;
+
+        $l14 = interfaceinvoke $r17.<ucar.nc2.iosp.Layout$Chunk: long getSrcPos()>();
+
+        $i15 = interfaceinvoke r4.<ucar.nc2.iosp.Layout: int getElemSize()>();
+
+        $i16 = $i15 * i21;
+
+        $l17 = (long) $i16;
+
+        $l18 = $l14 + $l17;
+
+        $r19 = virtualinvoke $r18.<ucar.nc2.iosp.hdf5.H5header: java.lang.String readHeapString(long)>($l18);
+
+        r20[$i13] = $r19;
+
+        i21 = i21 + 1;
+
+        goto label03;
+
+     label04:
+        goto label01;
+
+     label05:
+        return r20;
+
+     label06:
+        $r2 = <ucar.ma2.DataType: ucar.ma2.DataType OPAQUE>;
+
+        if r0 != $r2 goto label13;
+
+        $r8 = new ucar.ma2.ArrayObject;
+
+        specialinvoke $r8.<ucar.ma2.ArrayObject: void <init>(java.lang.Class,int[])>(class "Ljava/nio/ByteBuffer;", r9);
+
+        $z1 = <ucar.nc2.iosp.hdf5.H5iosp: boolean $assertionsDisabled>;
+
+        if $z1 != 0 goto label07;
+
+        $r15 = new ucar.ma2.Section;
+
+        specialinvoke $r15.<ucar.ma2.Section: void <init>(int[])>(r9);
+
+        $l8 = virtualinvoke $r15.<ucar.ma2.Section: long computeSize()>();
+
+        $l9 = interfaceinvoke r4.<ucar.nc2.iosp.Layout: long getTotalNelems()>();
+
+        $b10 = $l8 cmp $l9;
+
+        if $b10 == 0 goto label07;
+
+        $r16 = new java.lang.AssertionError;
+
+        specialinvoke $r16.<java.lang.AssertionError: void <init>()>();
+
+        throw $r16;
+
+     label07:
+        i22 = 0;
+
+     label08:
+        $z3 = interfaceinvoke r4.<ucar.nc2.iosp.Layout: boolean hasNext()>();
+
+        if $z3 == 0 goto label12;
+
+        $r10 = interfaceinvoke r4.<ucar.nc2.iosp.Layout: ucar.nc2.iosp.Layout$Chunk next()>();
+
+        if $r10 != null goto label09;
+
+        goto label08;
+
+     label09:
+        $i1 = interfaceinvoke r4.<ucar.nc2.iosp.Layout: int getElemSize()>();
+
+        i23 = 0;
+
+     label10:
+        $i2 = interfaceinvoke $r10.<ucar.nc2.iosp.Layout$Chunk: int getNelems()>();
+
+        if i23 >= $i2 goto label11;
+
+        r11 = newarray (byte)[$i1];
+
+        $r12 = r3.<ucar.nc2.iosp.hdf5.H5iosp: ucar.unidata.io.RandomAccessFile myRaf>;
+
+        $l3 = interfaceinvoke $r10.<ucar.nc2.iosp.Layout$Chunk: long getSrcPos()>();
+
+        $i4 = i23 * $i1;
+
+        $l5 = (long) $i4;
+
+        $l6 = $l3 + $l5;
+
+        virtualinvoke $r12.<ucar.unidata.io.RandomAccessFile: void seek(long)>($l6);
+
+        $r13 = r3.<ucar.nc2.iosp.hdf5.H5iosp: ucar.unidata.io.RandomAccessFile myRaf>;
+
+        virtualinvoke $r13.<ucar.unidata.io.RandomAccessFile: int read(byte[],int,int)>(r11, 0, $i1);
+
+        $i7 = i22;
+
+        i22 = i22 + 1;
+
+        $r14 = staticinvoke <java.nio.ByteBuffer: java.nio.ByteBuffer wrap(byte[])>(r11);
+
+        virtualinvoke $r8.<ucar.ma2.Array: void setObject(int,java.lang.Object)>($i7, $r14);
+
+        i23 = i23 + 1;
+
+        goto label10;
+
+     label11:
+        goto label08;
+
+     label12:
+        return $r8;
+
+     label13:
+        $r6 = r3.<ucar.nc2.iosp.hdf5.H5iosp: ucar.unidata.io.RandomAccessFile myRaf>;
+
+        $r7 = staticinvoke <ucar.nc2.iosp.IospHelper: java.lang.Object readDataFill(ucar.unidata.io.RandomAccessFile,ucar.nc2.iosp.Layout,ucar.ma2.DataType,java.lang.Object,int,boolean)>($r6, r4, r0, r5, i0, z0);
+
+        return $r7;
+    }
+
+    private ucar.ma2.StructureData readStructure(ucar.nc2.Structure, ucar.ma2.ArrayStructureW, long) throws java.io.IOException, ucar.ma2.InvalidRangeException
+    {
+        ucar.nc2.iosp.hdf5.H5header$Vinfo r9;
+        boolean $z0, $z1, $z2;
+        java.util.List $r4;
+        ucar.ma2.StructureMembers $r2;
+        java.lang.StringBuilder $r14, $r16, $r18, $r19, $r20, $r22, $r24, $r26, $r27, $r28;
+        ucar.ma2.Section $r11;
+        long l0, $l1, $l2;
+        ucar.ma2.StructureDataW $r0;
+        ucar.nc2.Structure r3;
+        ucar.ma2.ArrayStructureW r1;
+        ucar.nc2.iosp.hdf5.H5iosp r10;
+        ucar.nc2.Variable r7;
+        java.lang.String $r13, $r17, $r21, $r25, $r29;
+        java.io.PrintStream $r15, $r23;
+        java.util.Iterator $r5;
+        ucar.ma2.Array $r12;
+        java.lang.Object $r6, $r8;
+
+        r10 := @this: ucar.nc2.iosp.hdf5.H5iosp;
+
+        r3 := @parameter0: ucar.nc2.Structure;
+
+        r1 := @parameter1: ucar.ma2.ArrayStructureW;
+
+        l0 := @parameter2: long;
+
+        $r0 = new ucar.ma2.StructureDataW;
+
+        $r2 = virtualinvoke r1.<ucar.ma2.ArrayStructureW: ucar.ma2.StructureMembers getStructureMembers()>();
+
+        specialinvoke $r0.<ucar.ma2.StructureDataW: void <init>(ucar.ma2.StructureMembers)>($r2);
+
+        $z0 = <ucar.nc2.iosp.hdf5.H5iosp: boolean debug>;
+
+        if $z0 == 0 goto label1;
+
+        $r23 = <java.lang.System: java.io.PrintStream out>;
+
+        $r22 = new java.lang.StringBuilder;
+
+        specialinvoke $r22.<java.lang.StringBuilder: void <init>()>();
+
+        $r24 = virtualinvoke $r22.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" readStructure ");
+
+        $r25 = virtualinvoke r3.<ucar.nc2.Structure: java.lang.String getName()>();
+
+        $r26 = virtualinvoke $r24.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r25);
+
+        $r27 = virtualinvoke $r26.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" dataPos = ");
+
+        $r28 = virtualinvoke $r27.<java.lang.StringBuilder: java.lang.StringBuilder append(long)>(l0);
+
+        $r29 = virtualinvoke $r28.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r23.<java.io.PrintStream: void println(java.lang.String)>($r29);
+
+     label1:
+        $r4 = virtualinvoke r3.<ucar.nc2.Structure: java.util.List getVariables()>();
+
+        $r5 = interfaceinvoke $r4.<java.util.List: java.util.Iterator iterator()>();
+
+     label2:
+        $z2 = interfaceinvoke $r5.<java.util.Iterator: boolean hasNext()>();
+
+        if $z2 == 0 goto label4;
+
+        $r6 = interfaceinvoke $r5.<java.util.Iterator: java.lang.Object next()>();
+
+        r7 = (ucar.nc2.Variable) $r6;
+
+        $r8 = virtualinvoke r7.<ucar.nc2.Variable: java.lang.Object getSPobject()>();
+
+        r9 = (ucar.nc2.iosp.hdf5.H5header$Vinfo) $r8;
+
+        $z1 = <ucar.nc2.iosp.hdf5.H5iosp: boolean debug>;
+
+        if $z1 == 0 goto label3;
+
+        $r15 = <java.lang.System: java.io.PrintStream out>;
+
+        $r14 = new java.lang.StringBuilder;
+
+        specialinvoke $r14.<java.lang.StringBuilder: void <init>()>();
+
+        $r16 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" readStructureMember ");
+
+        $r17 = virtualinvoke r7.<ucar.nc2.Variable: java.lang.String getName()>();
+
+        $r18 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r17);
+
+        $r19 = virtualinvoke $r18.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" vinfo = ");
+
+        $r20 = virtualinvoke $r19.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>(r9);
+
+        $r21 = virtualinvoke $r20.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r15.<java.io.PrintStream: void println(java.lang.String)>($r21);
+
+     label3:
+        $l1 = r9.<ucar.nc2.iosp.hdf5.H5header$Vinfo: long dataPos>;
+
+        $l2 = l0 + $l1;
+
+        $r11 = virtualinvoke r7.<ucar.nc2.Variable: ucar.ma2.Section getShapeAsSection()>();
+
+        $r12 = specialinvoke r10.<ucar.nc2.iosp.hdf5.H5iosp: ucar.ma2.Array readData(ucar.nc2.Variable,long,ucar.ma2.Section)>(r7, $l2, $r11);
+
+        $r13 = virtualinvoke r7.<ucar.nc2.Variable: java.lang.String getShortName()>();
+
+        virtualinvoke $r0.<ucar.ma2.StructureDataW: void setMemberData(java.lang.String,ucar.ma2.Array)>($r13, $r12);
+
+        goto label2;
+
+     label4:
+        return $r0;
+    }
+
+    public void close() throws java.io.IOException
+    {
+        ucar.unidata.io.RandomAccessFile $r1, $r3;
+        ucar.nc2.iosp.hdf5.H5iosp r0;
+        ucar.nc2.iosp.hdf5.H5header $r2;
+
+        r0 := @this: ucar.nc2.iosp.hdf5.H5iosp;
+
+        $r1 = r0.<ucar.nc2.iosp.hdf5.H5iosp: ucar.unidata.io.RandomAccessFile myRaf>;
+
+        if $r1 == null goto label1;
+
+        $r3 = r0.<ucar.nc2.iosp.hdf5.H5iosp: ucar.unidata.io.RandomAccessFile myRaf>;
+
+        virtualinvoke $r3.<ucar.unidata.io.RandomAccessFile: void close()>();
+
+     label1:
+        r0.<ucar.nc2.iosp.hdf5.H5iosp: ucar.unidata.io.RandomAccessFile myRaf> = null;
+
+        $r2 = r0.<ucar.nc2.iosp.hdf5.H5iosp: ucar.nc2.iosp.hdf5.H5header headerParser>;
+
+        virtualinvoke $r2.<ucar.nc2.iosp.hdf5.H5header: void close()>();
+
+        return;
+    }
+
+    public java.lang.String toStringDebug(java.lang.Object)
+    {
+        ucar.nc2.iosp.hdf5.H5iosp r5;
+        java.lang.Object r0, $r2;
+        ucar.nc2.Variable r1;
+        ucar.nc2.iosp.hdf5.H5header$Vinfo r3;
+        java.lang.String $r4;
+        boolean $z0;
+
+        r5 := @this: ucar.nc2.iosp.hdf5.H5iosp;
+
+        r0 := @parameter0: java.lang.Object;
+
+        $z0 = r0 instanceof ucar.nc2.Variable;
+
+        if $z0 == 0 goto label1;
+
+        r1 = (ucar.nc2.Variable) r0;
+
+        $r2 = virtualinvoke r1.<ucar.nc2.Variable: java.lang.Object getSPobject()>();
+
+        r3 = (ucar.nc2.iosp.hdf5.H5header$Vinfo) $r2;
+
+        $r4 = virtualinvoke r3.<ucar.nc2.iosp.hdf5.H5header$Vinfo: java.lang.String toString()>();
+
+        return $r4;
+
+     label1:
+        return null;
+    }
+
+    public java.lang.String getDetailInfo()
+    {
+        java.io.PrintStream $r5;
+        ucar.unidata.io.RandomAccessFile $r4;
+        java.io.ByteArrayOutputStream $r0;
+        ucar.nc2.iosp.hdf5.H5iosp$FakeNetcdfFile $r1;
+        java.io.IOException $r7;
+        ucar.nc2.iosp.hdf5.H5iosp r3;
+        ucar.nc2.iosp.hdf5.H5header $r2;
+        java.lang.String $r6;
+
+        r3 := @this: ucar.nc2.iosp.hdf5.H5iosp;
+
+        $r0 = new java.io.ByteArrayOutputStream;
+
+        specialinvoke $r0.<java.io.ByteArrayOutputStream: void <init>(int)>(100000);
+
+     label1:
+        $r1 = new ucar.nc2.iosp.hdf5.H5iosp$FakeNetcdfFile;
+
+        specialinvoke $r1.<ucar.nc2.iosp.hdf5.H5iosp$FakeNetcdfFile: void <init>(ucar.nc2.iosp.hdf5.H5iosp$1)>(null);
+
+        $r2 = new ucar.nc2.iosp.hdf5.H5header;
+
+        $r4 = r3.<ucar.nc2.iosp.hdf5.H5iosp: ucar.unidata.io.RandomAccessFile myRaf>;
+
+        specialinvoke $r2.<ucar.nc2.iosp.hdf5.H5header: void <init>(ucar.unidata.io.RandomAccessFile,ucar.nc2.NetcdfFile,ucar.nc2.iosp.hdf5.H5iosp)>($r4, $r1, r3);
+
+        $r5 = new java.io.PrintStream;
+
+        specialinvoke $r5.<java.io.PrintStream: void <init>(java.io.OutputStream)>($r0);
+
+        virtualinvoke $r2.<ucar.nc2.iosp.hdf5.H5header: void read(java.io.PrintStream)>($r5);
+
+     label2:
+        goto label4;
+
+     label3:
+        $r7 := @caughtexception;
+
+        virtualinvoke $r7.<java.io.IOException: void printStackTrace()>();
+
+     label4:
+        $r6 = virtualinvoke $r0.<java.io.ByteArrayOutputStream: java.lang.String toString()>();
+
+        return $r6;
+
+        catch java.io.IOException from label1 to label2 with label3;
+    }
+
+    public java.lang.Object sendIospMessage(java.lang.Object)
+    {
+        ucar.unidata.io.RandomAccessFile $r7;
+        ucar.nc2.iosp.hdf5.H5iosp$FakeNetcdfFile $r5;
+        ucar.nc2.iosp.hdf5.H5iosp r3;
+        ucar.nc2.iosp.hdf5.H5header $r6, $r8;
+        java.lang.Object r0, $r4;
+        java.lang.String $r1, $r2;
+        boolean $z0, $z1;
+
+        r3 := @this: ucar.nc2.iosp.hdf5.H5iosp;
+
+        r0 := @parameter0: java.lang.Object;
+
+        $r1 = virtualinvoke r0.<java.lang.Object: java.lang.String toString()>();
+
+        $z0 = virtualinvoke $r1.<java.lang.String: boolean equals(java.lang.Object)>("header");
+
+        if $z0 == 0 goto label1;
+
+        $r8 = r3.<ucar.nc2.iosp.hdf5.H5iosp: ucar.nc2.iosp.hdf5.H5header headerParser>;
+
+        return $r8;
+
+     label1:
+        $r2 = virtualinvoke r0.<java.lang.Object: java.lang.String toString()>();
+
+        $z1 = virtualinvoke $r2.<java.lang.String: boolean equals(java.lang.Object)>("headerEmpty");
+
+        if $z1 == 0 goto label2;
+
+        $r5 = new ucar.nc2.iosp.hdf5.H5iosp$FakeNetcdfFile;
+
+        specialinvoke $r5.<ucar.nc2.iosp.hdf5.H5iosp$FakeNetcdfFile: void <init>(ucar.nc2.iosp.hdf5.H5iosp$1)>(null);
+
+        $r6 = new ucar.nc2.iosp.hdf5.H5header;
+
+        $r7 = r3.<ucar.nc2.iosp.hdf5.H5iosp: ucar.unidata.io.RandomAccessFile myRaf>;
+
+        specialinvoke $r6.<ucar.nc2.iosp.hdf5.H5header: void <init>(ucar.unidata.io.RandomAccessFile,ucar.nc2.NetcdfFile,ucar.nc2.iosp.hdf5.H5iosp)>($r7, $r5, r3);
+
+        return $r6;
+
+     label2:
+        $r4 = specialinvoke r3.<ucar.nc2.iosp.AbstractIOServiceProvider: java.lang.Object sendIospMessage(java.lang.Object)>(r0);
+
+        return $r4;
+    }
+
+    static void <clinit>()
+    {
+        org.slf4j.Logger $r1;
+        java.lang.Class $r0;
+        boolean $z0, $z1;
+
+        $r0 = class "Lucar/nc2/iosp/hdf5/H5iosp;";
+
+        $z0 = virtualinvoke $r0.<java.lang.Class: boolean desiredAssertionStatus()>();
+
+        if $z0 != 0 goto label1;
+
+        $z1 = 1;
+
+        goto label2;
+
+     label1:
+        $z1 = 0;
+
+     label2:
+        <ucar.nc2.iosp.hdf5.H5iosp: boolean $assertionsDisabled> = $z1;
+
+        <ucar.nc2.iosp.hdf5.H5iosp: boolean debug> = 0;
+
+        <ucar.nc2.iosp.hdf5.H5iosp: boolean debugPos> = 0;
+
+        <ucar.nc2.iosp.hdf5.H5iosp: boolean debugHeap> = 0;
+
+        <ucar.nc2.iosp.hdf5.H5iosp: boolean debugFilter> = 0;
+
+        <ucar.nc2.iosp.hdf5.H5iosp: boolean debugFilterDetails> = 0;
+
+        <ucar.nc2.iosp.hdf5.H5iosp: boolean debugString> = 0;
+
+        <ucar.nc2.iosp.hdf5.H5iosp: boolean debugFilterIndexer> = 0;
+
+        <ucar.nc2.iosp.hdf5.H5iosp: boolean debugChunkIndexer> = 0;
+
+        <ucar.nc2.iosp.hdf5.H5iosp: boolean debugVlen> = 0;
+
+        <ucar.nc2.iosp.hdf5.H5iosp: boolean debugStructure> = 0;
+
+        $r1 = staticinvoke <org.slf4j.LoggerFactory: org.slf4j.Logger getLogger(java.lang.Class)>(class "Lucar/nc2/iosp/hdf5/H5iosp;");
+
+        <ucar.nc2.iosp.hdf5.H5iosp: org.slf4j.Logger log> = $r1;
+
+        return;
+    }
+}

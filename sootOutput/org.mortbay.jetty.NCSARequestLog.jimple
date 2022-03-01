@@ -1,0 +1,1376 @@
+public class org.mortbay.jetty.NCSARequestLog extends org.mortbay.component.AbstractLifeCycle implements org.mortbay.jetty.RequestLog
+{
+    private java.lang.String _filename;
+    private boolean _extended;
+    private boolean _append;
+    private int _retainDays;
+    private boolean _closeOut;
+    private boolean _preferProxiedForAddress;
+    private java.lang.String _logDateFormat;
+    private java.lang.String _filenameDateFormat;
+    private java.util.Locale _logLocale;
+    private java.lang.String _logTimeZone;
+    private java.lang.String[] _ignorePaths;
+    private boolean _logLatency;
+    private boolean _logCookies;
+    private boolean _logServer;
+    private transient java.io.OutputStream _out;
+    private transient java.io.OutputStream _fileOut;
+    private transient org.mortbay.util.DateCache _logDateCache;
+    private transient org.mortbay.jetty.servlet.PathMap _ignorePathMap;
+    private transient java.io.Writer _writer;
+    private transient java.util.ArrayList _buffers;
+    private transient char[] _copy;
+
+    public void <init>()
+    {
+        org.mortbay.jetty.NCSARequestLog r0;
+        java.util.Locale $r1;
+
+        r0 := @this: org.mortbay.jetty.NCSARequestLog;
+
+        specialinvoke r0.<org.mortbay.component.AbstractLifeCycle: void <init>()>();
+
+        r0.<org.mortbay.jetty.NCSARequestLog: java.lang.String _logDateFormat> = "dd/MMM/yyyy:HH:mm:ss Z";
+
+        r0.<org.mortbay.jetty.NCSARequestLog: java.lang.String _filenameDateFormat> = null;
+
+        $r1 = staticinvoke <java.util.Locale: java.util.Locale getDefault()>();
+
+        r0.<org.mortbay.jetty.NCSARequestLog: java.util.Locale _logLocale> = $r1;
+
+        r0.<org.mortbay.jetty.NCSARequestLog: java.lang.String _logTimeZone> = "GMT";
+
+        r0.<org.mortbay.jetty.NCSARequestLog: boolean _logLatency> = 0;
+
+        r0.<org.mortbay.jetty.NCSARequestLog: boolean _logCookies> = 0;
+
+        r0.<org.mortbay.jetty.NCSARequestLog: boolean _logServer> = 0;
+
+        r0.<org.mortbay.jetty.NCSARequestLog: boolean _extended> = 1;
+
+        r0.<org.mortbay.jetty.NCSARequestLog: boolean _append> = 1;
+
+        r0.<org.mortbay.jetty.NCSARequestLog: int _retainDays> = 31;
+
+        return;
+    }
+
+    public void <init>(java.lang.String)
+    {
+        org.mortbay.jetty.NCSARequestLog r0;
+        java.lang.String r2;
+        java.util.Locale $r1;
+
+        r0 := @this: org.mortbay.jetty.NCSARequestLog;
+
+        r2 := @parameter0: java.lang.String;
+
+        specialinvoke r0.<org.mortbay.component.AbstractLifeCycle: void <init>()>();
+
+        r0.<org.mortbay.jetty.NCSARequestLog: java.lang.String _logDateFormat> = "dd/MMM/yyyy:HH:mm:ss Z";
+
+        r0.<org.mortbay.jetty.NCSARequestLog: java.lang.String _filenameDateFormat> = null;
+
+        $r1 = staticinvoke <java.util.Locale: java.util.Locale getDefault()>();
+
+        r0.<org.mortbay.jetty.NCSARequestLog: java.util.Locale _logLocale> = $r1;
+
+        r0.<org.mortbay.jetty.NCSARequestLog: java.lang.String _logTimeZone> = "GMT";
+
+        r0.<org.mortbay.jetty.NCSARequestLog: boolean _logLatency> = 0;
+
+        r0.<org.mortbay.jetty.NCSARequestLog: boolean _logCookies> = 0;
+
+        r0.<org.mortbay.jetty.NCSARequestLog: boolean _logServer> = 0;
+
+        r0.<org.mortbay.jetty.NCSARequestLog: boolean _extended> = 1;
+
+        r0.<org.mortbay.jetty.NCSARequestLog: boolean _append> = 1;
+
+        r0.<org.mortbay.jetty.NCSARequestLog: int _retainDays> = 31;
+
+        virtualinvoke r0.<org.mortbay.jetty.NCSARequestLog: void setFilename(java.lang.String)>(r2);
+
+        return;
+    }
+
+    public void setFilename(java.lang.String)
+    {
+        org.mortbay.jetty.NCSARequestLog r0;
+        int $i0;
+        java.lang.String $r1, r2;
+
+        r0 := @this: org.mortbay.jetty.NCSARequestLog;
+
+        r2 := @parameter0: java.lang.String;
+
+        if r2 == null goto label1;
+
+        $r1 = virtualinvoke r2.<java.lang.String: java.lang.String trim()>();
+
+        r2 = $r1;
+
+        $i0 = virtualinvoke $r1.<java.lang.String: int length()>();
+
+        if $i0 != 0 goto label1;
+
+        r2 = null;
+
+     label1:
+        r0.<org.mortbay.jetty.NCSARequestLog: java.lang.String _filename> = r2;
+
+        return;
+    }
+
+    public java.lang.String getFilename()
+    {
+        org.mortbay.jetty.NCSARequestLog r0;
+        java.lang.String $r1;
+
+        r0 := @this: org.mortbay.jetty.NCSARequestLog;
+
+        $r1 = r0.<org.mortbay.jetty.NCSARequestLog: java.lang.String _filename>;
+
+        return $r1;
+    }
+
+    public java.lang.String getDatedFilename()
+    {
+        java.io.OutputStream $r1, $r2;
+        org.mortbay.jetty.NCSARequestLog r0;
+        java.lang.String $r4;
+        org.mortbay.util.RolloverFileOutputStream $r3;
+        boolean $z0;
+
+        r0 := @this: org.mortbay.jetty.NCSARequestLog;
+
+        $r1 = r0.<org.mortbay.jetty.NCSARequestLog: java.io.OutputStream _fileOut>;
+
+        $z0 = $r1 instanceof org.mortbay.util.RolloverFileOutputStream;
+
+        if $z0 == 0 goto label1;
+
+        $r2 = r0.<org.mortbay.jetty.NCSARequestLog: java.io.OutputStream _fileOut>;
+
+        $r3 = (org.mortbay.util.RolloverFileOutputStream) $r2;
+
+        $r4 = virtualinvoke $r3.<org.mortbay.util.RolloverFileOutputStream: java.lang.String getDatedFilename()>();
+
+        return $r4;
+
+     label1:
+        return null;
+    }
+
+    public void setLogDateFormat(java.lang.String)
+    {
+        org.mortbay.jetty.NCSARequestLog r0;
+        java.lang.String r1;
+
+        r0 := @this: org.mortbay.jetty.NCSARequestLog;
+
+        r1 := @parameter0: java.lang.String;
+
+        r0.<org.mortbay.jetty.NCSARequestLog: java.lang.String _logDateFormat> = r1;
+
+        return;
+    }
+
+    public java.lang.String getLogDateFormat()
+    {
+        org.mortbay.jetty.NCSARequestLog r0;
+        java.lang.String $r1;
+
+        r0 := @this: org.mortbay.jetty.NCSARequestLog;
+
+        $r1 = r0.<org.mortbay.jetty.NCSARequestLog: java.lang.String _logDateFormat>;
+
+        return $r1;
+    }
+
+    public void setLogLocale(java.util.Locale)
+    {
+        org.mortbay.jetty.NCSARequestLog r0;
+        java.util.Locale r1;
+
+        r0 := @this: org.mortbay.jetty.NCSARequestLog;
+
+        r1 := @parameter0: java.util.Locale;
+
+        r0.<org.mortbay.jetty.NCSARequestLog: java.util.Locale _logLocale> = r1;
+
+        return;
+    }
+
+    public java.util.Locale getLogLocale()
+    {
+        org.mortbay.jetty.NCSARequestLog r0;
+        java.util.Locale $r1;
+
+        r0 := @this: org.mortbay.jetty.NCSARequestLog;
+
+        $r1 = r0.<org.mortbay.jetty.NCSARequestLog: java.util.Locale _logLocale>;
+
+        return $r1;
+    }
+
+    public void setLogTimeZone(java.lang.String)
+    {
+        org.mortbay.jetty.NCSARequestLog r0;
+        java.lang.String r1;
+
+        r0 := @this: org.mortbay.jetty.NCSARequestLog;
+
+        r1 := @parameter0: java.lang.String;
+
+        r0.<org.mortbay.jetty.NCSARequestLog: java.lang.String _logTimeZone> = r1;
+
+        return;
+    }
+
+    public java.lang.String getLogTimeZone()
+    {
+        org.mortbay.jetty.NCSARequestLog r0;
+        java.lang.String $r1;
+
+        r0 := @this: org.mortbay.jetty.NCSARequestLog;
+
+        $r1 = r0.<org.mortbay.jetty.NCSARequestLog: java.lang.String _logTimeZone>;
+
+        return $r1;
+    }
+
+    public void setRetainDays(int)
+    {
+        int i0;
+        org.mortbay.jetty.NCSARequestLog r0;
+
+        r0 := @this: org.mortbay.jetty.NCSARequestLog;
+
+        i0 := @parameter0: int;
+
+        r0.<org.mortbay.jetty.NCSARequestLog: int _retainDays> = i0;
+
+        return;
+    }
+
+    public int getRetainDays()
+    {
+        int $i0;
+        org.mortbay.jetty.NCSARequestLog r0;
+
+        r0 := @this: org.mortbay.jetty.NCSARequestLog;
+
+        $i0 = r0.<org.mortbay.jetty.NCSARequestLog: int _retainDays>;
+
+        return $i0;
+    }
+
+    public void setExtended(boolean)
+    {
+        org.mortbay.jetty.NCSARequestLog r0;
+        boolean z0;
+
+        r0 := @this: org.mortbay.jetty.NCSARequestLog;
+
+        z0 := @parameter0: boolean;
+
+        r0.<org.mortbay.jetty.NCSARequestLog: boolean _extended> = z0;
+
+        return;
+    }
+
+    public boolean isExtended()
+    {
+        org.mortbay.jetty.NCSARequestLog r0;
+        boolean $z0;
+
+        r0 := @this: org.mortbay.jetty.NCSARequestLog;
+
+        $z0 = r0.<org.mortbay.jetty.NCSARequestLog: boolean _extended>;
+
+        return $z0;
+    }
+
+    public void setAppend(boolean)
+    {
+        org.mortbay.jetty.NCSARequestLog r0;
+        boolean z0;
+
+        r0 := @this: org.mortbay.jetty.NCSARequestLog;
+
+        z0 := @parameter0: boolean;
+
+        r0.<org.mortbay.jetty.NCSARequestLog: boolean _append> = z0;
+
+        return;
+    }
+
+    public boolean isAppend()
+    {
+        org.mortbay.jetty.NCSARequestLog r0;
+        boolean $z0;
+
+        r0 := @this: org.mortbay.jetty.NCSARequestLog;
+
+        $z0 = r0.<org.mortbay.jetty.NCSARequestLog: boolean _append>;
+
+        return $z0;
+    }
+
+    public void setIgnorePaths(java.lang.String[])
+    {
+        org.mortbay.jetty.NCSARequestLog r0;
+        java.lang.String[] r1;
+
+        r0 := @this: org.mortbay.jetty.NCSARequestLog;
+
+        r1 := @parameter0: java.lang.String[];
+
+        r0.<org.mortbay.jetty.NCSARequestLog: java.lang.String[] _ignorePaths> = r1;
+
+        return;
+    }
+
+    public java.lang.String[] getIgnorePaths()
+    {
+        org.mortbay.jetty.NCSARequestLog r0;
+        java.lang.String[] $r1;
+
+        r0 := @this: org.mortbay.jetty.NCSARequestLog;
+
+        $r1 = r0.<org.mortbay.jetty.NCSARequestLog: java.lang.String[] _ignorePaths>;
+
+        return $r1;
+    }
+
+    public void setLogCookies(boolean)
+    {
+        org.mortbay.jetty.NCSARequestLog r0;
+        boolean z0;
+
+        r0 := @this: org.mortbay.jetty.NCSARequestLog;
+
+        z0 := @parameter0: boolean;
+
+        r0.<org.mortbay.jetty.NCSARequestLog: boolean _logCookies> = z0;
+
+        return;
+    }
+
+    public boolean getLogCookies()
+    {
+        org.mortbay.jetty.NCSARequestLog r0;
+        boolean $z0;
+
+        r0 := @this: org.mortbay.jetty.NCSARequestLog;
+
+        $z0 = r0.<org.mortbay.jetty.NCSARequestLog: boolean _logCookies>;
+
+        return $z0;
+    }
+
+    public boolean getLogServer()
+    {
+        org.mortbay.jetty.NCSARequestLog r0;
+        boolean $z0;
+
+        r0 := @this: org.mortbay.jetty.NCSARequestLog;
+
+        $z0 = r0.<org.mortbay.jetty.NCSARequestLog: boolean _logServer>;
+
+        return $z0;
+    }
+
+    public void setLogServer(boolean)
+    {
+        org.mortbay.jetty.NCSARequestLog r0;
+        boolean z0;
+
+        r0 := @this: org.mortbay.jetty.NCSARequestLog;
+
+        z0 := @parameter0: boolean;
+
+        r0.<org.mortbay.jetty.NCSARequestLog: boolean _logServer> = z0;
+
+        return;
+    }
+
+    public void setLogLatency(boolean)
+    {
+        org.mortbay.jetty.NCSARequestLog r0;
+        boolean z0;
+
+        r0 := @this: org.mortbay.jetty.NCSARequestLog;
+
+        z0 := @parameter0: boolean;
+
+        r0.<org.mortbay.jetty.NCSARequestLog: boolean _logLatency> = z0;
+
+        return;
+    }
+
+    public boolean getLogLatency()
+    {
+        org.mortbay.jetty.NCSARequestLog r0;
+        boolean $z0;
+
+        r0 := @this: org.mortbay.jetty.NCSARequestLog;
+
+        $z0 = r0.<org.mortbay.jetty.NCSARequestLog: boolean _logLatency>;
+
+        return $z0;
+    }
+
+    public void setPreferProxiedForAddress(boolean)
+    {
+        org.mortbay.jetty.NCSARequestLog r0;
+        boolean z0;
+
+        r0 := @this: org.mortbay.jetty.NCSARequestLog;
+
+        z0 := @parameter0: boolean;
+
+        r0.<org.mortbay.jetty.NCSARequestLog: boolean _preferProxiedForAddress> = z0;
+
+        return;
+    }
+
+    public void log(org.mortbay.jetty.Request, org.mortbay.jetty.Response)
+    {
+        byte $b15, $b23, $b24, $b25, $b26, $b27;
+        org.mortbay.util.Utf8StringBuffer $r62, r63, $r68;
+        javax.servlet.http.Cookie[] $r27;
+        long $l14, $l16, $l17, $l18, $l28, $l29, $l32, $l33, $l34, $l37, $l38, $l39, $l42, $l43, $l44, $l47, $l48, $l49, $l52;
+        java.lang.StringBuffer $r7;
+        org.mortbay.jetty.NCSARequestLog r0;
+        java.io.IOException $r57;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i7, $i8, $i9, $i11, $i12, $i19, $i20, $i21, $i22, $i30, $i35, $i40, $i45, $i50, i53, i54, $i55, i56, $i57, i58, $i59, $i60, $i61, $i62, $i63, $i64;
+        org.mortbay.util.DateCache $r10, $r51;
+        org.mortbay.jetty.Response r16;
+        java.lang.Object $r6;
+        org.mortbay.jetty.servlet.PathMap $r1, $r54;
+        java.lang.Throwable $r58, $r59, $r60, $r61;
+        org.mortbay.jetty.HttpURI $r14;
+        org.mortbay.jetty.Request r8;
+        java.util.ArrayList $r4, $r5, $r20, $r48;
+        java.lang.String $r9, $r12, $r13, $r15, $r21, $r26, $r33, $r37, $r42, $r50, $r52, $r53, $r55, r64, $r65;
+        char[] $r17, $r18, $r40, $r43, $r44, $r45, $r49, $r67;
+        boolean $z0, $z1, $z2, $z3, $z4, $z5, $z6, $z7, $z8;
+        java.io.Writer $r3, $r19, $r22, $r23, $r24, $r25, $r28, $r29, $r30, $r32, $r34, $r36, $r38, $r39, $r41, $r46, $r47, $r66;
+        org.mortbay.jetty.servlet.PathMap$Entry $r56;
+        javax.servlet.http.Cookie $r31, $r35;
+        java.io.OutputStream $r2;
+        org.mortbay.io.Buffer $r11;
+        char $c6, $c10, $c13, $c31, $c36, $c41, $c46, $c51;
+
+        r0 := @this: org.mortbay.jetty.NCSARequestLog;
+
+        r8 := @parameter0: org.mortbay.jetty.Request;
+
+        r16 := @parameter1: org.mortbay.jetty.Response;
+
+        $z0 = virtualinvoke r0.<org.mortbay.jetty.NCSARequestLog: boolean isStarted()>();
+
+        if $z0 != 0 goto label01;
+
+        return;
+
+     label01:
+        $r1 = r0.<org.mortbay.jetty.NCSARequestLog: org.mortbay.jetty.servlet.PathMap _ignorePathMap>;
+
+        if $r1 == null goto label03;
+
+        $r54 = r0.<org.mortbay.jetty.NCSARequestLog: org.mortbay.jetty.servlet.PathMap _ignorePathMap>;
+
+        $r55 = virtualinvoke r8.<org.mortbay.jetty.Request: java.lang.String getRequestURI()>();
+
+        $r56 = virtualinvoke $r54.<org.mortbay.jetty.servlet.PathMap: org.mortbay.jetty.servlet.PathMap$Entry getMatch(java.lang.String)>($r55);
+
+        if $r56 == null goto label03;
+
+     label02:
+        return;
+
+     label03:
+        $r2 = r0.<org.mortbay.jetty.NCSARequestLog: java.io.OutputStream _fileOut>;
+
+        if $r2 != null goto label05;
+
+     label04:
+        return;
+
+     label05:
+        $r3 = r0.<org.mortbay.jetty.NCSARequestLog: java.io.Writer _writer>;
+
+        entermonitor $r3;
+
+     label06:
+        $r4 = r0.<org.mortbay.jetty.NCSARequestLog: java.util.ArrayList _buffers>;
+
+        $i0 = virtualinvoke $r4.<java.util.ArrayList: int size()>();
+
+        if $i0 != 0 goto label07;
+
+        $r68 = new org.mortbay.util.Utf8StringBuffer;
+
+        $r62 = $r68;
+
+        specialinvoke $r68.<org.mortbay.util.Utf8StringBuffer: void <init>(int)>(160);
+
+        goto label08;
+
+     label07:
+        $r5 = r0.<org.mortbay.jetty.NCSARequestLog: java.util.ArrayList _buffers>;
+
+        $i1 = $i0 - 1;
+
+        $r6 = virtualinvoke $r5.<java.util.ArrayList: java.lang.Object remove(int)>($i1);
+
+        $r62 = (org.mortbay.util.Utf8StringBuffer) $r6;
+
+     label08:
+        r63 = $r62;
+
+        $r7 = virtualinvoke $r62.<org.mortbay.util.Utf8StringBuffer: java.lang.StringBuffer getStringBuffer()>();
+
+        exitmonitor $r3;
+
+     label09:
+        goto label12;
+
+     label10:
+        $r61 := @caughtexception;
+
+        exitmonitor $r3;
+
+     label11:
+        throw $r61;
+
+     label12:
+        entermonitor $r7;
+
+     label13:
+        $z1 = r0.<org.mortbay.jetty.NCSARequestLog: boolean _logServer>;
+
+        if $z1 == 0 goto label14;
+
+        $r53 = virtualinvoke r8.<org.mortbay.jetty.Request: java.lang.String getServerName()>();
+
+        virtualinvoke $r7.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>($r53);
+
+        virtualinvoke $r7.<java.lang.StringBuffer: java.lang.StringBuffer append(char)>(32);
+
+     label14:
+        r64 = null;
+
+        $z2 = r0.<org.mortbay.jetty.NCSARequestLog: boolean _preferProxiedForAddress>;
+
+        if $z2 == 0 goto label15;
+
+        r64 = virtualinvoke r8.<org.mortbay.jetty.Request: java.lang.String getHeader(java.lang.String)>("X-Forwarded-For");
+
+     label15:
+        if r64 != null goto label16;
+
+        r64 = virtualinvoke r8.<org.mortbay.jetty.Request: java.lang.String getRemoteAddr()>();
+
+     label16:
+        virtualinvoke $r7.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>(r64);
+
+        virtualinvoke $r7.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>(" - ");
+
+        $r9 = virtualinvoke r8.<org.mortbay.jetty.Request: java.lang.String getRemoteUser()>();
+
+        if $r9 != null goto label17;
+
+        $r65 = " - ";
+
+        goto label18;
+
+     label17:
+        $r65 = $r9;
+
+     label18:
+        virtualinvoke $r7.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>($r65);
+
+        virtualinvoke $r7.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>(" [");
+
+        $r10 = r0.<org.mortbay.jetty.NCSARequestLog: org.mortbay.util.DateCache _logDateCache>;
+
+        if $r10 == null goto label19;
+
+        $r51 = r0.<org.mortbay.jetty.NCSARequestLog: org.mortbay.util.DateCache _logDateCache>;
+
+        $l52 = virtualinvoke r8.<org.mortbay.jetty.Request: long getTimeStamp()>();
+
+        $r52 = virtualinvoke $r51.<org.mortbay.util.DateCache: java.lang.String format(long)>($l52);
+
+        virtualinvoke $r7.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>($r52);
+
+        goto label20;
+
+     label19:
+        $r11 = virtualinvoke r8.<org.mortbay.jetty.Request: org.mortbay.io.Buffer getTimeStampBuffer()>();
+
+        $r12 = virtualinvoke $r11.<java.lang.Object: java.lang.String toString()>();
+
+        virtualinvoke $r7.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>($r12);
+
+     label20:
+        virtualinvoke $r7.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>("] \"");
+
+        $r13 = virtualinvoke r8.<org.mortbay.jetty.Request: java.lang.String getMethod()>();
+
+        virtualinvoke $r7.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>($r13);
+
+        virtualinvoke $r7.<java.lang.StringBuffer: java.lang.StringBuffer append(char)>(32);
+
+        $r14 = virtualinvoke r8.<org.mortbay.jetty.Request: org.mortbay.jetty.HttpURI getUri()>();
+
+        virtualinvoke $r14.<org.mortbay.jetty.HttpURI: void writeTo(org.mortbay.util.Utf8StringBuffer)>(r63);
+
+        virtualinvoke $r7.<java.lang.StringBuffer: java.lang.StringBuffer append(char)>(32);
+
+        $r15 = virtualinvoke r8.<org.mortbay.jetty.Request: java.lang.String getProtocol()>();
+
+        virtualinvoke $r7.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>($r15);
+
+        virtualinvoke $r7.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>("\" ");
+
+        $i2 = virtualinvoke r16.<org.mortbay.jetty.Response: int getStatus()>();
+
+        i53 = $i2;
+
+        if $i2 > 0 goto label21;
+
+        i53 = 404;
+
+     label21:
+        $i3 = i53 / 100;
+
+        $i4 = $i3 % 10;
+
+        $i5 = 48 + $i4;
+
+        $c6 = (char) $i5;
+
+        virtualinvoke $r7.<java.lang.StringBuffer: java.lang.StringBuffer append(char)>($c6);
+
+        $i7 = i53 / 10;
+
+        $i8 = $i7 % 10;
+
+        $i9 = 48 + $i8;
+
+        $c10 = (char) $i9;
+
+        virtualinvoke $r7.<java.lang.StringBuffer: java.lang.StringBuffer append(char)>($c10);
+
+        $i11 = i53 % 10;
+
+        $i12 = 48 + $i11;
+
+        $c13 = (char) $i12;
+
+        virtualinvoke $r7.<java.lang.StringBuffer: java.lang.StringBuffer append(char)>($c13);
+
+        $l14 = virtualinvoke r16.<org.mortbay.jetty.Response: long getContentCount()>();
+
+        $b15 = $l14 cmp 0L;
+
+        $i59 = (int) $b15;
+
+        if $i59 < 0 goto label28;
+
+        virtualinvoke $r7.<java.lang.StringBuffer: java.lang.StringBuffer append(char)>(32);
+
+        $b23 = $l14 cmp 99999L;
+
+        $i60 = (int) $b23;
+
+        if $i60 <= 0 goto label22;
+
+        $r50 = staticinvoke <java.lang.Long: java.lang.String toString(long)>($l14);
+
+        virtualinvoke $r7.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>($r50);
+
+        goto label27;
+
+     label22:
+        $b24 = $l14 cmp 9999L;
+
+        $i61 = (int) $b24;
+
+        if $i61 <= 0 goto label23;
+
+        $l47 = $l14 / 10000L;
+
+        $l48 = $l47 % 10L;
+
+        $l49 = 48L + $l48;
+
+        $i50 = (int) $l49;
+
+        $c51 = (char) $i50;
+
+        virtualinvoke $r7.<java.lang.StringBuffer: java.lang.StringBuffer append(char)>($c51);
+
+     label23:
+        $b25 = $l14 cmp 999L;
+
+        $i62 = (int) $b25;
+
+        if $i62 <= 0 goto label24;
+
+        $l42 = $l14 / 1000L;
+
+        $l43 = $l42 % 10L;
+
+        $l44 = 48L + $l43;
+
+        $i45 = (int) $l44;
+
+        $c46 = (char) $i45;
+
+        virtualinvoke $r7.<java.lang.StringBuffer: java.lang.StringBuffer append(char)>($c46);
+
+     label24:
+        $b26 = $l14 cmp 99L;
+
+        $i63 = (int) $b26;
+
+        if $i63 <= 0 goto label25;
+
+        $l37 = $l14 / 100L;
+
+        $l38 = $l37 % 10L;
+
+        $l39 = 48L + $l38;
+
+        $i40 = (int) $l39;
+
+        $c41 = (char) $i40;
+
+        virtualinvoke $r7.<java.lang.StringBuffer: java.lang.StringBuffer append(char)>($c41);
+
+     label25:
+        $b27 = $l14 cmp 9L;
+
+        $i64 = (int) $b27;
+
+        if $i64 <= 0 goto label26;
+
+        $l32 = $l14 / 10L;
+
+        $l33 = $l32 % 10L;
+
+        $l34 = 48L + $l33;
+
+        $i35 = (int) $l34;
+
+        $c36 = (char) $i35;
+
+        virtualinvoke $r7.<java.lang.StringBuffer: java.lang.StringBuffer append(char)>($c36);
+
+     label26:
+        $l28 = $l14 % 10L;
+
+        $l29 = 48L + $l28;
+
+        $i30 = (int) $l29;
+
+        $c31 = (char) $i30;
+
+        virtualinvoke $r7.<java.lang.StringBuffer: java.lang.StringBuffer append(char)>($c31);
+
+     label27:
+        virtualinvoke $r7.<java.lang.StringBuffer: java.lang.StringBuffer append(char)>(32);
+
+        goto label29;
+
+     label28:
+        virtualinvoke $r7.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>(" - ");
+
+     label29:
+        exitmonitor $r7;
+
+     label30:
+        goto label33;
+
+     label31:
+        $r60 := @caughtexception;
+
+        exitmonitor $r7;
+
+     label32:
+        throw $r60;
+
+     label33:
+        $z3 = r0.<org.mortbay.jetty.NCSARequestLog: boolean _extended>;
+
+        if $z3 != 0 goto label40;
+
+        $z6 = r0.<org.mortbay.jetty.NCSARequestLog: boolean _logCookies>;
+
+        if $z6 != 0 goto label40;
+
+        $z7 = r0.<org.mortbay.jetty.NCSARequestLog: boolean _logLatency>;
+
+        if $z7 != 0 goto label40;
+
+        $r41 = r0.<org.mortbay.jetty.NCSARequestLog: java.io.Writer _writer>;
+
+        entermonitor $r41;
+
+     label34:
+        $r42 = <org.mortbay.util.StringUtil: java.lang.String __LINE_SEPARATOR>;
+
+        virtualinvoke $r7.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>($r42);
+
+        $i21 = virtualinvoke $r7.<java.lang.StringBuffer: int length()>();
+
+        i54 = $i21;
+
+        $r43 = r0.<org.mortbay.jetty.NCSARequestLog: char[] _copy>;
+
+        $i22 = lengthof $r43;
+
+        if $i21 <= $i22 goto label35;
+
+        $r49 = r0.<org.mortbay.jetty.NCSARequestLog: char[] _copy>;
+
+        i54 = lengthof $r49;
+
+     label35:
+        $r44 = r0.<org.mortbay.jetty.NCSARequestLog: char[] _copy>;
+
+        virtualinvoke $r7.<java.lang.StringBuffer: void getChars(int,int,char[],int)>(0, i54, $r44, 0);
+
+        $r46 = r0.<org.mortbay.jetty.NCSARequestLog: java.io.Writer _writer>;
+
+        $r45 = r0.<org.mortbay.jetty.NCSARequestLog: char[] _copy>;
+
+        virtualinvoke $r46.<java.io.Writer: void write(char[],int,int)>($r45, 0, i54);
+
+        $r47 = r0.<org.mortbay.jetty.NCSARequestLog: java.io.Writer _writer>;
+
+        virtualinvoke $r47.<java.io.Writer: void flush()>();
+
+        virtualinvoke r63.<org.mortbay.util.Utf8StringBuffer: void reset()>();
+
+        $r48 = r0.<org.mortbay.jetty.NCSARequestLog: java.util.ArrayList _buffers>;
+
+        virtualinvoke $r48.<java.util.ArrayList: boolean add(java.lang.Object)>(r63);
+
+        exitmonitor $r41;
+
+     label36:
+        goto label39;
+
+     label37:
+        $r59 := @caughtexception;
+
+        exitmonitor $r41;
+
+     label38:
+        throw $r59;
+
+     label39:
+        goto label54;
+
+     label40:
+        $r66 = r0.<org.mortbay.jetty.NCSARequestLog: java.io.Writer _writer>;
+
+        entermonitor $r66;
+
+     label41:
+        $i55 = virtualinvoke $r7.<java.lang.StringBuffer: int length()>();
+
+        i56 = $i55;
+
+        $r67 = r0.<org.mortbay.jetty.NCSARequestLog: char[] _copy>;
+
+        $i57 = lengthof $r67;
+
+        if $i55 <= $i57 goto label42;
+
+        $r40 = r0.<org.mortbay.jetty.NCSARequestLog: char[] _copy>;
+
+        i56 = lengthof $r40;
+
+     label42:
+        $r17 = r0.<org.mortbay.jetty.NCSARequestLog: char[] _copy>;
+
+        virtualinvoke $r7.<java.lang.StringBuffer: void getChars(int,int,char[],int)>(0, i56, $r17, 0);
+
+        $r19 = r0.<org.mortbay.jetty.NCSARequestLog: java.io.Writer _writer>;
+
+        $r18 = r0.<org.mortbay.jetty.NCSARequestLog: char[] _copy>;
+
+        virtualinvoke $r19.<java.io.Writer: void write(char[],int,int)>($r18, 0, i56);
+
+        virtualinvoke r63.<org.mortbay.util.Utf8StringBuffer: void reset()>();
+
+        $r20 = r0.<org.mortbay.jetty.NCSARequestLog: java.util.ArrayList _buffers>;
+
+        virtualinvoke $r20.<java.util.ArrayList: boolean add(java.lang.Object)>(r63);
+
+        $z4 = r0.<org.mortbay.jetty.NCSARequestLog: boolean _extended>;
+
+        if $z4 == 0 goto label43;
+
+        $r39 = r0.<org.mortbay.jetty.NCSARequestLog: java.io.Writer _writer>;
+
+        virtualinvoke r0.<org.mortbay.jetty.NCSARequestLog: void logExtended(org.mortbay.jetty.Request,org.mortbay.jetty.Response,java.io.Writer)>(r8, r16, $r39);
+
+     label43:
+        $z5 = r0.<org.mortbay.jetty.NCSARequestLog: boolean _logCookies>;
+
+        if $z5 == 0 goto label49;
+
+        $r27 = virtualinvoke r8.<org.mortbay.jetty.Request: javax.servlet.http.Cookie[] getCookies()>();
+
+        if $r27 == null goto label44;
+
+        $i19 = lengthof $r27;
+
+        if $i19 != 0 goto label45;
+
+     label44:
+        $r28 = r0.<org.mortbay.jetty.NCSARequestLog: java.io.Writer _writer>;
+
+        virtualinvoke $r28.<java.io.Writer: void write(java.lang.String)>(" -");
+
+        goto label49;
+
+     label45:
+        $r29 = r0.<org.mortbay.jetty.NCSARequestLog: java.io.Writer _writer>;
+
+        virtualinvoke $r29.<java.io.Writer: void write(java.lang.String)>(" \"");
+
+        i58 = 0;
+
+     label46:
+        $i20 = lengthof $r27;
+
+        if i58 >= $i20 goto label48;
+
+        if i58 == 0 goto label47;
+
+        $r38 = r0.<org.mortbay.jetty.NCSARequestLog: java.io.Writer _writer>;
+
+        virtualinvoke $r38.<java.io.Writer: void write(int)>(59);
+
+     label47:
+        $r32 = r0.<org.mortbay.jetty.NCSARequestLog: java.io.Writer _writer>;
+
+        $r31 = $r27[i58];
+
+        $r33 = virtualinvoke $r31.<javax.servlet.http.Cookie: java.lang.String getName()>();
+
+        virtualinvoke $r32.<java.io.Writer: void write(java.lang.String)>($r33);
+
+        $r34 = r0.<org.mortbay.jetty.NCSARequestLog: java.io.Writer _writer>;
+
+        virtualinvoke $r34.<java.io.Writer: void write(int)>(61);
+
+        $r36 = r0.<org.mortbay.jetty.NCSARequestLog: java.io.Writer _writer>;
+
+        $r35 = $r27[i58];
+
+        $r37 = virtualinvoke $r35.<javax.servlet.http.Cookie: java.lang.String getValue()>();
+
+        virtualinvoke $r36.<java.io.Writer: void write(java.lang.String)>($r37);
+
+        i58 = i58 + 1;
+
+        goto label46;
+
+     label48:
+        $r30 = r0.<org.mortbay.jetty.NCSARequestLog: java.io.Writer _writer>;
+
+        virtualinvoke $r30.<java.io.Writer: void write(int)>(34);
+
+     label49:
+        $z8 = r0.<org.mortbay.jetty.NCSARequestLog: boolean _logLatency>;
+
+        if $z8 == 0 goto label50;
+
+        $r24 = r0.<org.mortbay.jetty.NCSARequestLog: java.io.Writer _writer>;
+
+        virtualinvoke $r24.<java.io.Writer: void write(int)>(32);
+
+        $r25 = r0.<org.mortbay.jetty.NCSARequestLog: java.io.Writer _writer>;
+
+        $l16 = staticinvoke <java.lang.System: long currentTimeMillis()>();
+
+        $l17 = virtualinvoke r8.<org.mortbay.jetty.Request: long getTimeStamp()>();
+
+        $l18 = $l16 - $l17;
+
+        $r26 = staticinvoke <org.mortbay.util.TypeUtil: java.lang.String toString(long)>($l18);
+
+        virtualinvoke $r25.<java.io.Writer: void write(java.lang.String)>($r26);
+
+     label50:
+        $r22 = r0.<org.mortbay.jetty.NCSARequestLog: java.io.Writer _writer>;
+
+        $r21 = <org.mortbay.util.StringUtil: java.lang.String __LINE_SEPARATOR>;
+
+        virtualinvoke $r22.<java.io.Writer: void write(java.lang.String)>($r21);
+
+        $r23 = r0.<org.mortbay.jetty.NCSARequestLog: java.io.Writer _writer>;
+
+        virtualinvoke $r23.<java.io.Writer: void flush()>();
+
+        exitmonitor $r66;
+
+     label51:
+        goto label54;
+
+     label52:
+        $r58 := @caughtexception;
+
+        exitmonitor $r66;
+
+     label53:
+        throw $r58;
+
+     label54:
+        goto label56;
+
+     label55:
+        $r57 := @caughtexception;
+
+        staticinvoke <org.mortbay.log.Log: void warn(java.lang.Throwable)>($r57);
+
+     label56:
+        return;
+
+        catch java.lang.Throwable from label06 to label09 with label10;
+        catch java.lang.Throwable from label10 to label11 with label10;
+        catch java.lang.Throwable from label13 to label30 with label31;
+        catch java.lang.Throwable from label31 to label32 with label31;
+        catch java.lang.Throwable from label34 to label36 with label37;
+        catch java.lang.Throwable from label37 to label38 with label37;
+        catch java.lang.Throwable from label41 to label51 with label52;
+        catch java.lang.Throwable from label52 to label53 with label52;
+        catch java.io.IOException from label01 to label02 with label55;
+        catch java.io.IOException from label03 to label04 with label55;
+        catch java.io.IOException from label05 to label54 with label55;
+    }
+
+    protected void logExtended(org.mortbay.jetty.Request, org.mortbay.jetty.Response, java.io.Writer) throws java.io.IOException
+    {
+        org.mortbay.jetty.NCSARequestLog r4;
+        java.io.Writer r2;
+        org.mortbay.jetty.Request r0;
+        java.lang.String $r1, $r3;
+        org.mortbay.jetty.Response r5;
+
+        r4 := @this: org.mortbay.jetty.NCSARequestLog;
+
+        r0 := @parameter0: org.mortbay.jetty.Request;
+
+        r5 := @parameter1: org.mortbay.jetty.Response;
+
+        r2 := @parameter2: java.io.Writer;
+
+        $r1 = virtualinvoke r0.<org.mortbay.jetty.Request: java.lang.String getHeader(java.lang.String)>("Referer");
+
+        if $r1 != null goto label1;
+
+        virtualinvoke r2.<java.io.Writer: void write(java.lang.String)>("\"-\" ");
+
+        goto label2;
+
+     label1:
+        virtualinvoke r2.<java.io.Writer: void write(int)>(34);
+
+        virtualinvoke r2.<java.io.Writer: void write(java.lang.String)>($r1);
+
+        virtualinvoke r2.<java.io.Writer: void write(java.lang.String)>("\" ");
+
+     label2:
+        $r3 = virtualinvoke r0.<org.mortbay.jetty.Request: java.lang.String getHeader(java.lang.String)>("User-Agent");
+
+        if $r3 != null goto label3;
+
+        virtualinvoke r2.<java.io.Writer: void write(java.lang.String)>("\"-\" ");
+
+        goto label4;
+
+     label3:
+        virtualinvoke r2.<java.io.Writer: void write(int)>(34);
+
+        virtualinvoke r2.<java.io.Writer: void write(java.lang.String)>($r3);
+
+        virtualinvoke r2.<java.io.Writer: void write(int)>(34);
+
+     label4:
+        return;
+    }
+
+    protected void doStart() throws java.lang.Exception
+    {
+        java.util.Locale $r25;
+        org.mortbay.jetty.servlet.PathMap $r7, $r13;
+        boolean $z0;
+        java.util.TimeZone $r17;
+        org.mortbay.util.RolloverFileOutputStream $r14;
+        java.lang.String[] $r5, $r6, $r8, $r9, $r10;
+        java.util.ArrayList $r31;
+        java.lang.StringBuffer $r19, $r20, $r22;
+        int $i0, $i1, $i2, i3;
+        java.io.OutputStreamWriter $r29;
+        java.lang.String $r1, $r2, $r11, $r12, $r15, $r16, $r18, $r21, $r23, $r26, $r27;
+        org.mortbay.util.DateCache $r24, $r28;
+        java.io.PrintStream $r3;
+        java.io.OutputStream $r4, $r30;
+        org.mortbay.jetty.NCSARequestLog r0;
+        char[] $r32;
+
+        r0 := @this: org.mortbay.jetty.NCSARequestLog;
+
+        $r1 = r0.<org.mortbay.jetty.NCSARequestLog: java.lang.String _logDateFormat>;
+
+        if $r1 == null goto label1;
+
+        $r24 = new org.mortbay.util.DateCache;
+
+        $r26 = r0.<org.mortbay.jetty.NCSARequestLog: java.lang.String _logDateFormat>;
+
+        $r25 = r0.<org.mortbay.jetty.NCSARequestLog: java.util.Locale _logLocale>;
+
+        specialinvoke $r24.<org.mortbay.util.DateCache: void <init>(java.lang.String,java.util.Locale)>($r26, $r25);
+
+        r0.<org.mortbay.jetty.NCSARequestLog: org.mortbay.util.DateCache _logDateCache> = $r24;
+
+        $r28 = r0.<org.mortbay.jetty.NCSARequestLog: org.mortbay.util.DateCache _logDateCache>;
+
+        $r27 = r0.<org.mortbay.jetty.NCSARequestLog: java.lang.String _logTimeZone>;
+
+        virtualinvoke $r28.<org.mortbay.util.DateCache: void setTimeZoneID(java.lang.String)>($r27);
+
+     label1:
+        $r2 = r0.<org.mortbay.jetty.NCSARequestLog: java.lang.String _filename>;
+
+        if $r2 == null goto label2;
+
+        $r14 = new org.mortbay.util.RolloverFileOutputStream;
+
+        $r16 = r0.<org.mortbay.jetty.NCSARequestLog: java.lang.String _filename>;
+
+        $z0 = r0.<org.mortbay.jetty.NCSARequestLog: boolean _append>;
+
+        $i2 = r0.<org.mortbay.jetty.NCSARequestLog: int _retainDays>;
+
+        $r15 = r0.<org.mortbay.jetty.NCSARequestLog: java.lang.String _logTimeZone>;
+
+        $r17 = staticinvoke <java.util.TimeZone: java.util.TimeZone getTimeZone(java.lang.String)>($r15);
+
+        $r18 = r0.<org.mortbay.jetty.NCSARequestLog: java.lang.String _filenameDateFormat>;
+
+        specialinvoke $r14.<org.mortbay.util.RolloverFileOutputStream: void <init>(java.lang.String,boolean,int,java.util.TimeZone,java.lang.String,java.lang.String)>($r16, $z0, $i2, $r17, $r18, null);
+
+        r0.<org.mortbay.jetty.NCSARequestLog: java.io.OutputStream _fileOut> = $r14;
+
+        r0.<org.mortbay.jetty.NCSARequestLog: boolean _closeOut> = 1;
+
+        $r19 = new java.lang.StringBuffer;
+
+        specialinvoke $r19.<java.lang.StringBuffer: void <init>()>();
+
+        $r20 = virtualinvoke $r19.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>("Opened ");
+
+        $r21 = virtualinvoke r0.<org.mortbay.jetty.NCSARequestLog: java.lang.String getDatedFilename()>();
+
+        $r22 = virtualinvoke $r20.<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>($r21);
+
+        $r23 = virtualinvoke $r22.<java.lang.StringBuffer: java.lang.String toString()>();
+
+        staticinvoke <org.mortbay.log.Log: void info(java.lang.String)>($r23);
+
+        goto label3;
+
+     label2:
+        $r3 = <java.lang.System: java.io.PrintStream err>;
+
+        r0.<org.mortbay.jetty.NCSARequestLog: java.io.OutputStream _fileOut> = $r3;
+
+     label3:
+        $r4 = r0.<org.mortbay.jetty.NCSARequestLog: java.io.OutputStream _fileOut>;
+
+        r0.<org.mortbay.jetty.NCSARequestLog: java.io.OutputStream _out> = $r4;
+
+        $r5 = r0.<org.mortbay.jetty.NCSARequestLog: java.lang.String[] _ignorePaths>;
+
+        if $r5 == null goto label6;
+
+        $r6 = r0.<org.mortbay.jetty.NCSARequestLog: java.lang.String[] _ignorePaths>;
+
+        $i0 = lengthof $r6;
+
+        if $i0 <= 0 goto label6;
+
+        $r7 = new org.mortbay.jetty.servlet.PathMap;
+
+        specialinvoke $r7.<org.mortbay.jetty.servlet.PathMap: void <init>()>();
+
+        r0.<org.mortbay.jetty.NCSARequestLog: org.mortbay.jetty.servlet.PathMap _ignorePathMap> = $r7;
+
+        i3 = 0;
+
+     label4:
+        $r8 = r0.<org.mortbay.jetty.NCSARequestLog: java.lang.String[] _ignorePaths>;
+
+        $i1 = lengthof $r8;
+
+        if i3 >= $i1 goto label5;
+
+        $r13 = r0.<org.mortbay.jetty.NCSARequestLog: org.mortbay.jetty.servlet.PathMap _ignorePathMap>;
+
+        $r9 = r0.<org.mortbay.jetty.NCSARequestLog: java.lang.String[] _ignorePaths>;
+
+        $r12 = $r9[i3];
+
+        $r10 = r0.<org.mortbay.jetty.NCSARequestLog: java.lang.String[] _ignorePaths>;
+
+        $r11 = $r10[i3];
+
+        virtualinvoke $r13.<org.mortbay.jetty.servlet.PathMap: java.lang.Object put(java.lang.Object,java.lang.Object)>($r12, $r11);
+
+        i3 = i3 + 1;
+
+        goto label4;
+
+     label5:
+        goto label7;
+
+     label6:
+        r0.<org.mortbay.jetty.NCSARequestLog: org.mortbay.jetty.servlet.PathMap _ignorePathMap> = null;
+
+     label7:
+        $r29 = new java.io.OutputStreamWriter;
+
+        $r30 = r0.<org.mortbay.jetty.NCSARequestLog: java.io.OutputStream _out>;
+
+        specialinvoke $r29.<java.io.OutputStreamWriter: void <init>(java.io.OutputStream)>($r30);
+
+        r0.<org.mortbay.jetty.NCSARequestLog: java.io.Writer _writer> = $r29;
+
+        $r31 = new java.util.ArrayList;
+
+        specialinvoke $r31.<java.util.ArrayList: void <init>()>();
+
+        r0.<org.mortbay.jetty.NCSARequestLog: java.util.ArrayList _buffers> = $r31;
+
+        $r32 = newarray (char)[1024];
+
+        r0.<org.mortbay.jetty.NCSARequestLog: char[] _copy> = $r32;
+
+        specialinvoke r0.<org.mortbay.component.AbstractLifeCycle: void doStart()>();
+
+        return;
+    }
+
+    protected void doStop() throws java.lang.Exception
+    {
+        java.io.OutputStream $r2, $r3;
+        org.mortbay.jetty.NCSARequestLog r0;
+        java.io.IOException $r5, $r6;
+        java.io.Writer $r1, $r4;
+        boolean $z0;
+
+        r0 := @this: org.mortbay.jetty.NCSARequestLog;
+
+        specialinvoke r0.<org.mortbay.component.AbstractLifeCycle: void doStop()>();
+
+     label1:
+        $r1 = r0.<org.mortbay.jetty.NCSARequestLog: java.io.Writer _writer>;
+
+        if $r1 == null goto label2;
+
+        $r4 = r0.<org.mortbay.jetty.NCSARequestLog: java.io.Writer _writer>;
+
+        virtualinvoke $r4.<java.io.Writer: void flush()>();
+
+     label2:
+        goto label4;
+
+     label3:
+        $r6 := @caughtexception;
+
+        staticinvoke <org.mortbay.log.Log: void ignore(java.lang.Throwable)>($r6);
+
+     label4:
+        $r2 = r0.<org.mortbay.jetty.NCSARequestLog: java.io.OutputStream _out>;
+
+        if $r2 == null goto label8;
+
+        $z0 = r0.<org.mortbay.jetty.NCSARequestLog: boolean _closeOut>;
+
+        if $z0 == 0 goto label8;
+
+     label5:
+        $r3 = r0.<org.mortbay.jetty.NCSARequestLog: java.io.OutputStream _out>;
+
+        virtualinvoke $r3.<java.io.OutputStream: void close()>();
+
+     label6:
+        goto label8;
+
+     label7:
+        $r5 := @caughtexception;
+
+        staticinvoke <org.mortbay.log.Log: void ignore(java.lang.Throwable)>($r5);
+
+     label8:
+        r0.<org.mortbay.jetty.NCSARequestLog: java.io.OutputStream _out> = null;
+
+        r0.<org.mortbay.jetty.NCSARequestLog: java.io.OutputStream _fileOut> = null;
+
+        r0.<org.mortbay.jetty.NCSARequestLog: boolean _closeOut> = 0;
+
+        r0.<org.mortbay.jetty.NCSARequestLog: org.mortbay.util.DateCache _logDateCache> = null;
+
+        r0.<org.mortbay.jetty.NCSARequestLog: java.io.Writer _writer> = null;
+
+        r0.<org.mortbay.jetty.NCSARequestLog: java.util.ArrayList _buffers> = null;
+
+        r0.<org.mortbay.jetty.NCSARequestLog: char[] _copy> = null;
+
+        return;
+
+        catch java.io.IOException from label1 to label2 with label3;
+        catch java.io.IOException from label5 to label6 with label7;
+    }
+
+    public java.lang.String getFilenameDateFormat()
+    {
+        org.mortbay.jetty.NCSARequestLog r0;
+        java.lang.String $r1;
+
+        r0 := @this: org.mortbay.jetty.NCSARequestLog;
+
+        $r1 = r0.<org.mortbay.jetty.NCSARequestLog: java.lang.String _filenameDateFormat>;
+
+        return $r1;
+    }
+
+    public void setFilenameDateFormat(java.lang.String)
+    {
+        org.mortbay.jetty.NCSARequestLog r0;
+        java.lang.String r1;
+
+        r0 := @this: org.mortbay.jetty.NCSARequestLog;
+
+        r1 := @parameter0: java.lang.String;
+
+        r0.<org.mortbay.jetty.NCSARequestLog: java.lang.String _filenameDateFormat> = r1;
+
+        return;
+    }
+}

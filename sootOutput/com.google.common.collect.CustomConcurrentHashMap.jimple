@@ -1,0 +1,1583 @@
+class com.google.common.collect.CustomConcurrentHashMap extends java.util.AbstractMap implements java.util.concurrent.ConcurrentMap, java.io.Serializable
+{
+    static final int MAXIMUM_CAPACITY;
+    static final int MAX_SEGMENTS;
+    static final int DRAIN_THRESHOLD;
+    static final int CLEANUP_MAX;
+    final transient int segmentMask;
+    final transient int segmentShift;
+    final transient com.google.common.collect.CustomConcurrentHashMap$Segment[] segments;
+    final int concurrencyLevel;
+    final com.google.common.base.Equivalence keyEquivalence;
+    final com.google.common.base.Equivalence valueEquivalence;
+    final com.google.common.collect.CustomConcurrentHashMap$Strength keyStrength;
+    final com.google.common.collect.CustomConcurrentHashMap$Strength valueStrength;
+    final int maximumSize;
+    final long expireAfterAccessNanos;
+    final long expireAfterWriteNanos;
+    final java.util.Queue evictionNotificationQueue;
+    final com.google.common.collect.MapEvictionListener evictionListener;
+    final transient com.google.common.collect.CustomConcurrentHashMap$EntryFactory entryFactory;
+    final java.util.concurrent.Executor cleanupExecutor;
+    final com.google.common.base.Ticker ticker;
+    static final com.google.common.collect.CustomConcurrentHashMap$ValueReference UNSET;
+    static final java.util.Queue DISCARDING_QUEUE;
+    java.util.Set keySet;
+    java.util.Collection values;
+    java.util.Set entrySet;
+    private static final long serialVersionUID;
+
+    void <init>(com.google.common.collect.MapMaker)
+    {
+        com.google.common.collect.CustomConcurrentHashMap$Segment $r16, $r19;
+        com.google.common.collect.CustomConcurrentHashMap$Segment[] $r13, $r14, $r15, $r17, $r18;
+        boolean $z0, $z1, $z2, $z3, $z4;
+        com.google.common.collect.CustomConcurrentHashMap$Strength $r2, $r3, $r6;
+        com.google.common.collect.MapEvictionListener $r10, $r12;
+        com.google.common.base.Ticker $r9;
+        java.util.Queue $r20;
+        java.util.concurrent.ConcurrentLinkedQueue $r21;
+        long $l3, $l4;
+        int $i0, $i1, $i2, $i5, $i6, $i7, $i8, $i9, $i10, $i11, $i12, $i13, i14, $i15, $i16, $i17, $i18, $i19, i20, i21, i22, $i23, i24, i25, i26, i27, i28, $i30, $i32;
+        com.google.common.collect.CustomConcurrentHashMap r0;
+        com.google.common.collect.CustomConcurrentHashMap$EntryFactory $r7;
+        com.google.common.base.Equivalence $r4, $r5;
+        java.util.concurrent.Executor $r8;
+        com.google.common.collect.MapMaker r1;
+        com.google.common.collect.MapMaker$NullListener $r11;
+
+        r0 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        r1 := @parameter0: com.google.common.collect.MapMaker;
+
+        specialinvoke r0.<java.util.AbstractMap: void <init>()>();
+
+        $i0 = virtualinvoke r1.<com.google.common.collect.MapMaker: int getConcurrencyLevel()>();
+
+        $i1 = staticinvoke <java.lang.Math: int min(int,int)>($i0, 65536);
+
+        r0.<com.google.common.collect.CustomConcurrentHashMap: int concurrencyLevel> = $i1;
+
+        $r2 = virtualinvoke r1.<com.google.common.collect.MapMaker: com.google.common.collect.CustomConcurrentHashMap$Strength getKeyStrength()>();
+
+        r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$Strength keyStrength> = $r2;
+
+        $r3 = virtualinvoke r1.<com.google.common.collect.MapMaker: com.google.common.collect.CustomConcurrentHashMap$Strength getValueStrength()>();
+
+        r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$Strength valueStrength> = $r3;
+
+        $r4 = virtualinvoke r1.<com.google.common.collect.MapMaker: com.google.common.base.Equivalence getKeyEquivalence()>();
+
+        r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.base.Equivalence keyEquivalence> = $r4;
+
+        $r5 = virtualinvoke r1.<com.google.common.collect.MapMaker: com.google.common.base.Equivalence getValueEquivalence()>();
+
+        r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.base.Equivalence valueEquivalence> = $r5;
+
+        $i2 = r1.<com.google.common.collect.MapMaker: int maximumSize>;
+
+        r0.<com.google.common.collect.CustomConcurrentHashMap: int maximumSize> = $i2;
+
+        $l3 = virtualinvoke r1.<com.google.common.collect.MapMaker: long getExpireAfterAccessNanos()>();
+
+        r0.<com.google.common.collect.CustomConcurrentHashMap: long expireAfterAccessNanos> = $l3;
+
+        $l4 = virtualinvoke r1.<com.google.common.collect.MapMaker: long getExpireAfterWriteNanos()>();
+
+        r0.<com.google.common.collect.CustomConcurrentHashMap: long expireAfterWriteNanos> = $l4;
+
+        $r6 = r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$Strength keyStrength>;
+
+        $z0 = virtualinvoke r0.<com.google.common.collect.CustomConcurrentHashMap: boolean expires()>();
+
+        $z1 = virtualinvoke r0.<com.google.common.collect.CustomConcurrentHashMap: boolean evictsBySize()>();
+
+        $r7 = staticinvoke <com.google.common.collect.CustomConcurrentHashMap$EntryFactory: com.google.common.collect.CustomConcurrentHashMap$EntryFactory getFactory(com.google.common.collect.CustomConcurrentHashMap$Strength,boolean,boolean)>($r6, $z0, $z1);
+
+        r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$EntryFactory entryFactory> = $r7;
+
+        $r8 = virtualinvoke r1.<com.google.common.collect.MapMaker: java.util.concurrent.Executor getCleanupExecutor()>();
+
+        r0.<com.google.common.collect.CustomConcurrentHashMap: java.util.concurrent.Executor cleanupExecutor> = $r8;
+
+        $r9 = virtualinvoke r1.<com.google.common.collect.MapMaker: com.google.common.base.Ticker getTicker()>();
+
+        r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.base.Ticker ticker> = $r9;
+
+        $r10 = virtualinvoke r1.<com.google.common.collect.MapMaker: com.google.common.collect.MapEvictionListener getEvictionListener()>();
+
+        r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.MapEvictionListener evictionListener> = $r10;
+
+        $r12 = r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.MapEvictionListener evictionListener>;
+
+        $r11 = <com.google.common.collect.MapMaker$NullListener: com.google.common.collect.MapMaker$NullListener INSTANCE>;
+
+        if $r12 != $r11 goto label01;
+
+        $r20 = staticinvoke <com.google.common.collect.CustomConcurrentHashMap: java.util.Queue discardingQueue()>();
+
+        goto label02;
+
+     label01:
+        $r21 = new java.util.concurrent.ConcurrentLinkedQueue;
+
+        $r20 = $r21;
+
+        specialinvoke $r21.<java.util.concurrent.ConcurrentLinkedQueue: void <init>()>();
+
+     label02:
+        r0.<com.google.common.collect.CustomConcurrentHashMap: java.util.Queue evictionNotificationQueue> = $r20;
+
+        $i5 = virtualinvoke r1.<com.google.common.collect.MapMaker: int getInitialCapacity()>();
+
+        $i6 = staticinvoke <java.lang.Math: int min(int,int)>($i5, 1073741824);
+
+        i20 = $i6;
+
+        $z2 = virtualinvoke r0.<com.google.common.collect.CustomConcurrentHashMap: boolean evictsBySize()>();
+
+        if $z2 == 0 goto label03;
+
+        $i19 = r0.<com.google.common.collect.CustomConcurrentHashMap: int maximumSize>;
+
+        i20 = staticinvoke <java.lang.Math: int min(int,int)>($i6, $i19);
+
+     label03:
+        i21 = 0;
+
+        i22 = 1;
+
+     label04:
+        $i23 = r0.<com.google.common.collect.CustomConcurrentHashMap: int concurrencyLevel>;
+
+        if i22 >= $i23 goto label06;
+
+        $z4 = virtualinvoke r0.<com.google.common.collect.CustomConcurrentHashMap: boolean evictsBySize()>();
+
+        if $z4 == 0 goto label05;
+
+        $i17 = i22 * 2;
+
+        $i16 = r0.<com.google.common.collect.CustomConcurrentHashMap: int maximumSize>;
+
+        if $i17 > $i16 goto label06;
+
+     label05:
+        i21 = i21 + 1;
+
+        i22 = i22 << 1;
+
+        goto label04;
+
+     label06:
+        $i7 = 32 - i21;
+
+        r0.<com.google.common.collect.CustomConcurrentHashMap: int segmentShift> = $i7;
+
+        $i8 = i22 - 1;
+
+        r0.<com.google.common.collect.CustomConcurrentHashMap: int segmentMask> = $i8;
+
+        $r13 = virtualinvoke r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$Segment[] newSegmentArray(int)>(i22);
+
+        r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$Segment[] segments> = $r13;
+
+        $i18 = i20 / i22;
+
+        i24 = $i18;
+
+        $i9 = $i18 * i22;
+
+        if $i9 >= i20 goto label07;
+
+        i24 = $i18 + 1;
+
+     label07:
+        i25 = 1;
+
+     label08:
+        if i25 >= i24 goto label09;
+
+        i25 = i25 << 1;
+
+        goto label08;
+
+     label09:
+        $z3 = virtualinvoke r0.<com.google.common.collect.CustomConcurrentHashMap: boolean evictsBySize()>();
+
+        if $z3 == 0 goto label13;
+
+        $i11 = r0.<com.google.common.collect.CustomConcurrentHashMap: int maximumSize>;
+
+        $i12 = $i11 / i22;
+
+        i26 = $i12 + 1;
+
+        $i13 = r0.<com.google.common.collect.CustomConcurrentHashMap: int maximumSize>;
+
+        i14 = $i13 % i22;
+
+        i27 = 0;
+
+     label10:
+        $r17 = r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$Segment[] segments>;
+
+        $i15 = lengthof $r17;
+
+        if i27 >= $i15 goto label12;
+
+        if i27 != i14 goto label11;
+
+        $i30 = (int) -1;
+
+        i26 = i26 + $i30;
+
+     label11:
+        $r18 = r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$Segment[] segments>;
+
+        $r19 = virtualinvoke r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$Segment createSegment(int,int)>(i25, i26);
+
+        $r18[i27] = $r19;
+
+        i27 = i27 + 1;
+
+        goto label10;
+
+     label12:
+        goto label15;
+
+     label13:
+        i28 = 0;
+
+     label14:
+        $r14 = r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$Segment[] segments>;
+
+        $i10 = lengthof $r14;
+
+        if i28 >= $i10 goto label15;
+
+        $r15 = r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$Segment[] segments>;
+
+        $i32 = (int) -1;
+
+        $r16 = virtualinvoke r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$Segment createSegment(int,int)>(i25, $i32);
+
+        $r15[i28] = $r16;
+
+        i28 = i28 + 1;
+
+        goto label14;
+
+     label15:
+        return;
+    }
+
+    boolean evictsBySize()
+    {
+        int $i0, $i2;
+        com.google.common.collect.CustomConcurrentHashMap r0;
+        boolean $z0;
+
+        r0 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        $i0 = r0.<com.google.common.collect.CustomConcurrentHashMap: int maximumSize>;
+
+        $i2 = (int) -1;
+
+        if $i0 == $i2 goto label1;
+
+        $z0 = 1;
+
+        goto label2;
+
+     label1:
+        $z0 = 0;
+
+     label2:
+        return $z0;
+    }
+
+    boolean expires()
+    {
+        com.google.common.collect.CustomConcurrentHashMap r0;
+        boolean $z0, $z1, $z2;
+
+        r0 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        $z0 = virtualinvoke r0.<com.google.common.collect.CustomConcurrentHashMap: boolean expiresAfterWrite()>();
+
+        if $z0 != 0 goto label1;
+
+        $z1 = virtualinvoke r0.<com.google.common.collect.CustomConcurrentHashMap: boolean expiresAfterAccess()>();
+
+        if $z1 == 0 goto label2;
+
+     label1:
+        $z2 = 1;
+
+        goto label3;
+
+     label2:
+        $z2 = 0;
+
+     label3:
+        return $z2;
+    }
+
+    boolean expiresAfterWrite()
+    {
+        byte $b1;
+        int $i2;
+        com.google.common.collect.CustomConcurrentHashMap r0;
+        long $l0;
+        boolean $z0;
+
+        r0 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        $l0 = r0.<com.google.common.collect.CustomConcurrentHashMap: long expireAfterWriteNanos>;
+
+        $b1 = $l0 cmp 0L;
+
+        $i2 = (int) $b1;
+
+        if $i2 <= 0 goto label1;
+
+        $z0 = 1;
+
+        goto label2;
+
+     label1:
+        $z0 = 0;
+
+     label2:
+        return $z0;
+    }
+
+    boolean expiresAfterAccess()
+    {
+        byte $b1;
+        int $i2;
+        com.google.common.collect.CustomConcurrentHashMap r0;
+        long $l0;
+        boolean $z0;
+
+        r0 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        $l0 = r0.<com.google.common.collect.CustomConcurrentHashMap: long expireAfterAccessNanos>;
+
+        $b1 = $l0 cmp 0L;
+
+        $i2 = (int) $b1;
+
+        if $i2 <= 0 goto label1;
+
+        $z0 = 1;
+
+        goto label2;
+
+     label1:
+        $z0 = 0;
+
+     label2:
+        return $z0;
+    }
+
+    boolean isInlineCleanup()
+    {
+        java.util.concurrent.Executor $r1, $r2;
+        com.google.common.collect.CustomConcurrentHashMap r0;
+        boolean $z0;
+
+        r0 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        $r2 = r0.<com.google.common.collect.CustomConcurrentHashMap: java.util.concurrent.Executor cleanupExecutor>;
+
+        $r1 = <com.google.common.collect.MapMaker: java.util.concurrent.Executor DEFAULT_CLEANUP_EXECUTOR>;
+
+        if $r2 != $r1 goto label1;
+
+        $z0 = 1;
+
+        goto label2;
+
+     label1:
+        $z0 = 0;
+
+     label2:
+        return $z0;
+    }
+
+    static com.google.common.collect.CustomConcurrentHashMap$ValueReference unset()
+    {
+        com.google.common.collect.CustomConcurrentHashMap$ValueReference $r0;
+
+        $r0 = <com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$ValueReference UNSET>;
+
+        return $r0;
+    }
+
+    static com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry nullEntry()
+    {
+        com.google.common.collect.CustomConcurrentHashMap$NullEntry $r0;
+
+        $r0 = <com.google.common.collect.CustomConcurrentHashMap$NullEntry: com.google.common.collect.CustomConcurrentHashMap$NullEntry INSTANCE>;
+
+        return $r0;
+    }
+
+    static java.util.Queue discardingQueue()
+    {
+        java.util.Queue $r0;
+
+        $r0 = <com.google.common.collect.CustomConcurrentHashMap: java.util.Queue DISCARDING_QUEUE>;
+
+        return $r0;
+    }
+
+    private static int rehash(int)
+    {
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, $i8, $i9, i10, i11, i12, i13, i14, i15, $i17;
+
+        i10 := @parameter0: int;
+
+        $i0 = i10 << 15;
+
+        $i17 = (int) -12931;
+
+        $i1 = $i0 ^ $i17;
+
+        i11 = i10 + $i1;
+
+        $i2 = i11 >>> 10;
+
+        i12 = i11 ^ $i2;
+
+        $i3 = i12 << 3;
+
+        i13 = i12 + $i3;
+
+        $i4 = i13 >>> 6;
+
+        i14 = i13 ^ $i4;
+
+        $i6 = i14 << 2;
+
+        $i5 = i14 << 14;
+
+        $i7 = $i6 + $i5;
+
+        i15 = i14 + $i7;
+
+        $i8 = i15 >>> 16;
+
+        $i9 = i15 ^ $i8;
+
+        return $i9;
+    }
+
+    com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry newEntry(java.lang.Object, int, com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry)
+    {
+        com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry r2, $r4;
+        int i0;
+        com.google.common.collect.CustomConcurrentHashMap r0;
+        java.lang.Object r1;
+        com.google.common.collect.CustomConcurrentHashMap$EntryFactory $r3;
+
+        r0 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        r1 := @parameter0: java.lang.Object;
+
+        i0 := @parameter1: int;
+
+        r2 := @parameter2: com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry;
+
+        $r3 = r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$EntryFactory entryFactory>;
+
+        $r4 = virtualinvoke $r3.<com.google.common.collect.CustomConcurrentHashMap$EntryFactory: com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry newEntry(com.google.common.collect.CustomConcurrentHashMap,java.lang.Object,int,com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry)>(r0, r1, i0, r2);
+
+        return $r4;
+    }
+
+    com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry copyEntry(com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry, com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry)
+    {
+        com.google.common.collect.CustomConcurrentHashMap$ValueReference $r1, $r6;
+        com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry r0, r3, $r5;
+        com.google.common.collect.CustomConcurrentHashMap r2;
+        com.google.common.collect.CustomConcurrentHashMap$EntryFactory $r4;
+
+        r2 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        r0 := @parameter0: com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry;
+
+        r3 := @parameter1: com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry;
+
+        $r1 = interfaceinvoke r0.<com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry: com.google.common.collect.CustomConcurrentHashMap$ValueReference getValueReference()>();
+
+        $r4 = r2.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$EntryFactory entryFactory>;
+
+        $r5 = virtualinvoke $r4.<com.google.common.collect.CustomConcurrentHashMap$EntryFactory: com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry copyEntry(com.google.common.collect.CustomConcurrentHashMap,com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry,com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry)>(r2, r0, r3);
+
+        $r6 = interfaceinvoke $r1.<com.google.common.collect.CustomConcurrentHashMap$ValueReference: com.google.common.collect.CustomConcurrentHashMap$ValueReference copyFor(com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry)>($r5);
+
+        interfaceinvoke $r5.<com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry: void setValueReference(com.google.common.collect.CustomConcurrentHashMap$ValueReference)>($r6);
+
+        return $r5;
+    }
+
+    com.google.common.collect.CustomConcurrentHashMap$ValueReference newValueReference(com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry, java.lang.Object)
+    {
+        com.google.common.collect.CustomConcurrentHashMap$Strength $r3;
+        com.google.common.collect.CustomConcurrentHashMap$ValueReference $r4;
+        com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry r1;
+        com.google.common.collect.CustomConcurrentHashMap r0;
+        java.lang.Object r2;
+
+        r0 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        r1 := @parameter0: com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry;
+
+        r2 := @parameter1: java.lang.Object;
+
+        $r3 = r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$Strength valueStrength>;
+
+        $r4 = virtualinvoke $r3.<com.google.common.collect.CustomConcurrentHashMap$Strength: com.google.common.collect.CustomConcurrentHashMap$ValueReference referenceValue(com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry,java.lang.Object)>(r1, r2);
+
+        return $r4;
+    }
+
+    int hash(java.lang.Object)
+    {
+        com.google.common.base.Equivalence $r2;
+        int $i0, $i1;
+        com.google.common.collect.CustomConcurrentHashMap r0;
+        java.lang.Object r1, $r3;
+
+        r0 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        r1 := @parameter0: java.lang.Object;
+
+        $r2 = r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.base.Equivalence keyEquivalence>;
+
+        $r3 = staticinvoke <com.google.common.base.Preconditions: java.lang.Object checkNotNull(java.lang.Object)>(r1);
+
+        $i0 = interfaceinvoke $r2.<com.google.common.base.Equivalence: int hash(java.lang.Object)>($r3);
+
+        $i1 = staticinvoke <com.google.common.collect.CustomConcurrentHashMap: int rehash(int)>($i0);
+
+        return $i1;
+    }
+
+    void reclaimValue(com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry, com.google.common.collect.CustomConcurrentHashMap$ValueReference)
+    {
+        com.google.common.collect.CustomConcurrentHashMap$ValueReference r4;
+        com.google.common.collect.CustomConcurrentHashMap$Segment $r2;
+        com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry r0;
+        int $i0;
+        com.google.common.collect.CustomConcurrentHashMap r1;
+        java.lang.Object $r3;
+        boolean $z0;
+
+        r1 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        r0 := @parameter0: com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry;
+
+        r4 := @parameter1: com.google.common.collect.CustomConcurrentHashMap$ValueReference;
+
+        $i0 = interfaceinvoke r0.<com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry: int getHash()>();
+
+        $r2 = virtualinvoke r1.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$Segment segmentFor(int)>($i0);
+
+        $r3 = interfaceinvoke r0.<com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry: java.lang.Object getKey()>();
+
+        virtualinvoke $r2.<com.google.common.collect.CustomConcurrentHashMap$Segment: boolean unsetValue(java.lang.Object,int,com.google.common.collect.CustomConcurrentHashMap$ValueReference)>($r3, $i0, r4);
+
+        $z0 = virtualinvoke $r2.<com.google.common.collect.CustomConcurrentHashMap$Segment: boolean isHeldByCurrentThread()>();
+
+        if $z0 != 0 goto label1;
+
+        virtualinvoke $r2.<com.google.common.collect.CustomConcurrentHashMap$Segment: void postWriteCleanup()>();
+
+     label1:
+        return;
+    }
+
+    void reclaimKey(com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry)
+    {
+        com.google.common.collect.CustomConcurrentHashMap$Segment $r2;
+        com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry r0;
+        int $i0;
+        com.google.common.collect.CustomConcurrentHashMap r1;
+
+        r1 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        r0 := @parameter0: com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry;
+
+        $i0 = interfaceinvoke r0.<com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry: int getHash()>();
+
+        $r2 = virtualinvoke r1.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$Segment segmentFor(int)>($i0);
+
+        virtualinvoke $r2.<com.google.common.collect.CustomConcurrentHashMap$Segment: boolean unsetKey(com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry,int)>(r0, $i0);
+
+        return;
+    }
+
+    boolean isLive(com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry)
+    {
+        com.google.common.collect.CustomConcurrentHashMap$Segment $r2;
+        com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry r1;
+        int $i0;
+        com.google.common.collect.CustomConcurrentHashMap r0;
+        java.lang.Object $r3;
+        boolean $z0;
+
+        r0 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        r1 := @parameter0: com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry;
+
+        $i0 = interfaceinvoke r1.<com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry: int getHash()>();
+
+        $r2 = virtualinvoke r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$Segment segmentFor(int)>($i0);
+
+        $r3 = virtualinvoke $r2.<com.google.common.collect.CustomConcurrentHashMap$Segment: java.lang.Object getLiveValue(com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry)>(r1);
+
+        if $r3 == null goto label1;
+
+        $z0 = 1;
+
+        goto label2;
+
+     label1:
+        $z0 = 0;
+
+     label2:
+        return $z0;
+    }
+
+    boolean isExpired(com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry)
+    {
+        com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry r1;
+        com.google.common.collect.CustomConcurrentHashMap r0;
+        long $l0;
+        com.google.common.base.Ticker $r2;
+        boolean $z0;
+
+        r0 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        r1 := @parameter0: com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry;
+
+        $r2 = r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.base.Ticker ticker>;
+
+        $l0 = interfaceinvoke $r2.<com.google.common.base.Ticker: long read()>();
+
+        $z0 = virtualinvoke r0.<com.google.common.collect.CustomConcurrentHashMap: boolean isExpired(com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry,long)>(r1, $l0);
+
+        return $z0;
+    }
+
+    boolean isExpired(com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry, long)
+    {
+        com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry r0;
+        long l0, $l1, $l2;
+        byte $b3;
+        int $i4;
+        com.google.common.collect.CustomConcurrentHashMap r1;
+        boolean $z0;
+
+        r1 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        r0 := @parameter0: com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry;
+
+        l0 := @parameter1: long;
+
+        $l1 = interfaceinvoke r0.<com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry: long getExpirationTime()>();
+
+        $l2 = l0 - $l1;
+
+        $b3 = $l2 cmp 0L;
+
+        $i4 = (int) $b3;
+
+        if $i4 <= 0 goto label1;
+
+        $z0 = 1;
+
+        goto label2;
+
+     label1:
+        $z0 = 0;
+
+     label2:
+        return $z0;
+    }
+
+    boolean isCollected(com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry)
+    {
+        com.google.common.collect.CustomConcurrentHashMap$ValueReference $r2;
+        com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry r0;
+        java.lang.Object $r1, $r3;
+        com.google.common.collect.CustomConcurrentHashMap r4;
+        boolean $z0, $z1;
+
+        r4 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        r0 := @parameter0: com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry;
+
+        $r1 = interfaceinvoke r0.<com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry: java.lang.Object getKey()>();
+
+        if $r1 != null goto label1;
+
+        return 1;
+
+     label1:
+        $r2 = interfaceinvoke r0.<com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry: com.google.common.collect.CustomConcurrentHashMap$ValueReference getValueReference()>();
+
+        $z0 = interfaceinvoke $r2.<com.google.common.collect.CustomConcurrentHashMap$ValueReference: boolean isComputingReference()>();
+
+        if $z0 == 0 goto label2;
+
+        return 0;
+
+     label2:
+        $r3 = interfaceinvoke $r2.<com.google.common.collect.CustomConcurrentHashMap$ValueReference: java.lang.Object get()>();
+
+        if $r3 != null goto label3;
+
+        $z1 = 1;
+
+        goto label4;
+
+     label3:
+        $z1 = 0;
+
+     label4:
+        return $z1;
+    }
+
+    boolean isUnset(com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry)
+    {
+        com.google.common.collect.CustomConcurrentHashMap$ValueReference $r2;
+        com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry r1;
+        com.google.common.collect.CustomConcurrentHashMap r0;
+        boolean $z0;
+
+        r0 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        r1 := @parameter0: com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry;
+
+        $r2 = interfaceinvoke r1.<com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry: com.google.common.collect.CustomConcurrentHashMap$ValueReference getValueReference()>();
+
+        $z0 = virtualinvoke r0.<com.google.common.collect.CustomConcurrentHashMap: boolean isUnset(com.google.common.collect.CustomConcurrentHashMap$ValueReference)>($r2);
+
+        return $z0;
+    }
+
+    boolean isUnset(com.google.common.collect.CustomConcurrentHashMap$ValueReference)
+    {
+        com.google.common.collect.CustomConcurrentHashMap$ValueReference r0, $r1;
+        com.google.common.collect.CustomConcurrentHashMap r2;
+        boolean $z0;
+
+        r2 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        r0 := @parameter0: com.google.common.collect.CustomConcurrentHashMap$ValueReference;
+
+        $r1 = <com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$ValueReference UNSET>;
+
+        if r0 != $r1 goto label1;
+
+        $z0 = 1;
+
+        goto label2;
+
+     label1:
+        $z0 = 0;
+
+     label2:
+        return $z0;
+    }
+
+    static void connectExpirables(com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry, com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry)
+    {
+        com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry r0, r1;
+
+        r0 := @parameter0: com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry;
+
+        r1 := @parameter1: com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry;
+
+        interfaceinvoke r0.<com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry: void setNextExpirable(com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry)>(r1);
+
+        interfaceinvoke r1.<com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry: void setPreviousExpirable(com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry)>(r0);
+
+        return;
+    }
+
+    static void nullifyExpirable(com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry)
+    {
+        com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry $r0, r1;
+
+        r1 := @parameter0: com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry;
+
+        $r0 = staticinvoke <com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry nullEntry()>();
+
+        interfaceinvoke r1.<com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry: void setNextExpirable(com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry)>($r0);
+
+        interfaceinvoke r1.<com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry: void setPreviousExpirable(com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry)>($r0);
+
+        return;
+    }
+
+    void enqueueNotification(java.lang.Object, int, com.google.common.collect.CustomConcurrentHashMap$ValueReference)
+    {
+        com.google.common.collect.CustomConcurrentHashMap$ValueReference r5, $r6;
+        com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry $r4;
+        int i0;
+        com.google.common.collect.CustomConcurrentHashMap r0;
+        java.lang.Object r3;
+        java.util.Queue $r1, $r2, $r7;
+
+        r0 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        r3 := @parameter0: java.lang.Object;
+
+        i0 := @parameter1: int;
+
+        r5 := @parameter2: com.google.common.collect.CustomConcurrentHashMap$ValueReference;
+
+        $r2 = r0.<com.google.common.collect.CustomConcurrentHashMap: java.util.Queue evictionNotificationQueue>;
+
+        $r1 = <com.google.common.collect.CustomConcurrentHashMap: java.util.Queue DISCARDING_QUEUE>;
+
+        if $r2 != $r1 goto label1;
+
+        return;
+
+     label1:
+        $r4 = virtualinvoke r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry newEntry(java.lang.Object,int,com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry)>(r3, i0, null);
+
+        $r6 = interfaceinvoke r5.<com.google.common.collect.CustomConcurrentHashMap$ValueReference: com.google.common.collect.CustomConcurrentHashMap$ValueReference copyFor(com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry)>($r4);
+
+        interfaceinvoke $r4.<com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry: void setValueReference(com.google.common.collect.CustomConcurrentHashMap$ValueReference)>($r6);
+
+        $r7 = r0.<com.google.common.collect.CustomConcurrentHashMap: java.util.Queue evictionNotificationQueue>;
+
+        interfaceinvoke $r7.<java.util.Queue: boolean offer(java.lang.Object)>($r4);
+
+        return;
+    }
+
+    void processPendingNotifications()
+    {
+        com.google.common.collect.CustomConcurrentHashMap$ValueReference $r6;
+        com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry $r3;
+        com.google.common.collect.MapEvictionListener $r4;
+        com.google.common.collect.CustomConcurrentHashMap r0;
+        java.lang.Object $r2, $r5, $r7;
+        java.util.Queue $r1;
+
+        r0 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+     label1:
+        $r1 = r0.<com.google.common.collect.CustomConcurrentHashMap: java.util.Queue evictionNotificationQueue>;
+
+        $r2 = interfaceinvoke $r1.<java.util.Queue: java.lang.Object poll()>();
+
+        $r3 = (com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry) $r2;
+
+        if $r3 == null goto label2;
+
+        $r4 = r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.MapEvictionListener evictionListener>;
+
+        $r5 = interfaceinvoke $r3.<com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry: java.lang.Object getKey()>();
+
+        $r6 = interfaceinvoke $r3.<com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry: com.google.common.collect.CustomConcurrentHashMap$ValueReference getValueReference()>();
+
+        $r7 = interfaceinvoke $r6.<com.google.common.collect.CustomConcurrentHashMap$ValueReference: java.lang.Object get()>();
+
+        interfaceinvoke $r4.<com.google.common.collect.MapEvictionListener: void onEviction(java.lang.Object,java.lang.Object)>($r5, $r7);
+
+        goto label1;
+
+     label2:
+        return;
+    }
+
+    static void connectEvictables(com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry, com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry)
+    {
+        com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry r0, r1;
+
+        r0 := @parameter0: com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry;
+
+        r1 := @parameter1: com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry;
+
+        interfaceinvoke r0.<com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry: void setNextEvictable(com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry)>(r1);
+
+        interfaceinvoke r1.<com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry: void setPreviousEvictable(com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry)>(r0);
+
+        return;
+    }
+
+    static void nullifyEvictable(com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry)
+    {
+        com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry $r0, r1;
+
+        r1 := @parameter0: com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry;
+
+        $r0 = staticinvoke <com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry nullEntry()>();
+
+        interfaceinvoke r1.<com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry: void setNextEvictable(com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry)>($r0);
+
+        interfaceinvoke r1.<com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry: void setPreviousEvictable(com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry)>($r0);
+
+        return;
+    }
+
+    final com.google.common.collect.CustomConcurrentHashMap$Segment[] newSegmentArray(int)
+    {
+        com.google.common.collect.CustomConcurrentHashMap$Segment[] $r1, $r2;
+        int i0;
+        java.lang.Object $r0;
+        com.google.common.collect.CustomConcurrentHashMap r3;
+
+        r3 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        i0 := @parameter0: int;
+
+        $r0 = staticinvoke <java.lang.reflect.Array: java.lang.Object newInstance(java.lang.Class,int)>(class "Lcom/google/common/collect/CustomConcurrentHashMap$Segment;", i0);
+
+        $r1 = (com.google.common.collect.CustomConcurrentHashMap$Segment[]) $r0;
+
+        $r2 = (com.google.common.collect.CustomConcurrentHashMap$Segment[]) $r1;
+
+        return $r2;
+    }
+
+    com.google.common.collect.CustomConcurrentHashMap$Segment segmentFor(int)
+    {
+        com.google.common.collect.CustomConcurrentHashMap$Segment $r2;
+        com.google.common.collect.CustomConcurrentHashMap$Segment[] $r1;
+        int i0, $i1, $i2, $i3, $i4;
+        com.google.common.collect.CustomConcurrentHashMap r0;
+
+        r0 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        i0 := @parameter0: int;
+
+        $r1 = r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$Segment[] segments>;
+
+        $i1 = r0.<com.google.common.collect.CustomConcurrentHashMap: int segmentShift>;
+
+        $i3 = i0 >>> $i1;
+
+        $i2 = r0.<com.google.common.collect.CustomConcurrentHashMap: int segmentMask>;
+
+        $i4 = $i3 & $i2;
+
+        $r2 = $r1[$i4];
+
+        return $r2;
+    }
+
+    com.google.common.collect.CustomConcurrentHashMap$Segment createSegment(int, int)
+    {
+        com.google.common.collect.CustomConcurrentHashMap$Segment $r0;
+        int i0, i1;
+        com.google.common.collect.CustomConcurrentHashMap r1;
+
+        r1 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        i0 := @parameter0: int;
+
+        i1 := @parameter1: int;
+
+        $r0 = new com.google.common.collect.CustomConcurrentHashMap$Segment;
+
+        specialinvoke $r0.<com.google.common.collect.CustomConcurrentHashMap$Segment: void <init>(com.google.common.collect.CustomConcurrentHashMap,int,int)>(r1, i0, i1);
+
+        return $r0;
+    }
+
+    public boolean isEmpty()
+    {
+        com.google.common.collect.CustomConcurrentHashMap$Segment $r3, $r4, $r5, $r6;
+        com.google.common.collect.CustomConcurrentHashMap$Segment[] r1;
+        int[] r2;
+        int $i0, $i1, $i2, $i3, $i4, $i5, $i6, $i7, i8, i9, i10;
+        com.google.common.collect.CustomConcurrentHashMap r0;
+
+        r0 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        r1 = r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$Segment[] segments>;
+
+        $i0 = lengthof r1;
+
+        r2 = newarray (int)[$i0];
+
+        i8 = 0;
+
+        i9 = 0;
+
+     label1:
+        $i1 = lengthof r1;
+
+        if i9 >= $i1 goto label3;
+
+        $r5 = r1[i9];
+
+        $i6 = $r5.<com.google.common.collect.CustomConcurrentHashMap$Segment: int count>;
+
+        if $i6 == 0 goto label2;
+
+        return 0;
+
+     label2:
+        $r6 = r1[i9];
+
+        $i7 = $r6.<com.google.common.collect.CustomConcurrentHashMap$Segment: int modCount>;
+
+        r2[i9] = $i7;
+
+        i8 = i8 + $i7;
+
+        i9 = i9 + 1;
+
+        goto label1;
+
+     label3:
+        if i8 == 0 goto label7;
+
+        i10 = 0;
+
+     label4:
+        $i2 = lengthof r1;
+
+        if i10 >= $i2 goto label7;
+
+        $r3 = r1[i10];
+
+        $i3 = $r3.<com.google.common.collect.CustomConcurrentHashMap$Segment: int count>;
+
+        if $i3 != 0 goto label5;
+
+        $i5 = r2[i10];
+
+        $r4 = r1[i10];
+
+        $i4 = $r4.<com.google.common.collect.CustomConcurrentHashMap$Segment: int modCount>;
+
+        if $i5 == $i4 goto label6;
+
+     label5:
+        return 0;
+
+     label6:
+        i10 = i10 + 1;
+
+        goto label4;
+
+     label7:
+        return 1;
+    }
+
+    public int size()
+    {
+        com.google.common.collect.CustomConcurrentHashMap$Segment $r2;
+        long $l3, l4;
+        com.google.common.collect.CustomConcurrentHashMap$Segment[] r1;
+        int $i0, $i1, $i2, i5;
+        com.google.common.collect.CustomConcurrentHashMap r0;
+
+        r0 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        r1 = r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$Segment[] segments>;
+
+        l4 = 0L;
+
+        i5 = 0;
+
+     label1:
+        $i0 = lengthof r1;
+
+        if i5 >= $i0 goto label2;
+
+        $r2 = r1[i5];
+
+        $i2 = $r2.<com.google.common.collect.CustomConcurrentHashMap$Segment: int count>;
+
+        $l3 = (long) $i2;
+
+        l4 = l4 + $l3;
+
+        i5 = i5 + 1;
+
+        goto label1;
+
+     label2:
+        $i1 = staticinvoke <com.google.common.primitives.Ints: int saturatedCast(long)>(l4);
+
+        return $i1;
+    }
+
+    public java.lang.Object get(java.lang.Object)
+    {
+        com.google.common.collect.CustomConcurrentHashMap$Segment $r2;
+        int $i0;
+        com.google.common.collect.CustomConcurrentHashMap r0;
+        java.lang.Object r1, $r3;
+
+        r0 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        r1 := @parameter0: java.lang.Object;
+
+        $i0 = virtualinvoke r0.<com.google.common.collect.CustomConcurrentHashMap: int hash(java.lang.Object)>(r1);
+
+        $r2 = virtualinvoke r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$Segment segmentFor(int)>($i0);
+
+        $r3 = virtualinvoke $r2.<com.google.common.collect.CustomConcurrentHashMap$Segment: java.lang.Object get(java.lang.Object,int)>(r1, $i0);
+
+        return $r3;
+    }
+
+    com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry getEntry(java.lang.Object)
+    {
+        com.google.common.collect.CustomConcurrentHashMap$Segment $r2;
+        com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry $r3;
+        int $i0;
+        com.google.common.collect.CustomConcurrentHashMap r0;
+        java.lang.Object r1;
+
+        r0 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        r1 := @parameter0: java.lang.Object;
+
+        $i0 = virtualinvoke r0.<com.google.common.collect.CustomConcurrentHashMap: int hash(java.lang.Object)>(r1);
+
+        $r2 = virtualinvoke r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$Segment segmentFor(int)>($i0);
+
+        $r3 = virtualinvoke $r2.<com.google.common.collect.CustomConcurrentHashMap$Segment: com.google.common.collect.CustomConcurrentHashMap$ReferenceEntry getEntry(java.lang.Object,int)>(r1, $i0);
+
+        return $r3;
+    }
+
+    public boolean containsKey(java.lang.Object)
+    {
+        com.google.common.collect.CustomConcurrentHashMap$Segment $r2;
+        int $i0;
+        com.google.common.collect.CustomConcurrentHashMap r0;
+        java.lang.Object r1;
+        boolean $z0;
+
+        r0 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        r1 := @parameter0: java.lang.Object;
+
+        $i0 = virtualinvoke r0.<com.google.common.collect.CustomConcurrentHashMap: int hash(java.lang.Object)>(r1);
+
+        $r2 = virtualinvoke r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$Segment segmentFor(int)>($i0);
+
+        $z0 = virtualinvoke $r2.<com.google.common.collect.CustomConcurrentHashMap$Segment: boolean containsKey(java.lang.Object,int)>(r1, $i0);
+
+        return $z0;
+    }
+
+    public boolean containsValue(java.lang.Object)
+    {
+        com.google.common.collect.CustomConcurrentHashMap$Segment $r3, $r4;
+        com.google.common.collect.CustomConcurrentHashMap$Segment[] r2;
+        int $i0, i1, i2;
+        java.lang.Object r0;
+        com.google.common.collect.CustomConcurrentHashMap r1;
+        boolean $z0;
+
+        r1 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        r0 := @parameter0: java.lang.Object;
+
+        staticinvoke <com.google.common.base.Preconditions: java.lang.Object checkNotNull(java.lang.Object)>(r0);
+
+        r2 = r1.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$Segment[] segments>;
+
+        i2 = 0;
+
+     label1:
+        $i0 = lengthof r2;
+
+        if i2 >= $i0 goto label3;
+
+        $r3 = r2[i2];
+
+        i1 = $r3.<com.google.common.collect.CustomConcurrentHashMap$Segment: int count>;
+
+        $r4 = r2[i2];
+
+        $z0 = virtualinvoke $r4.<com.google.common.collect.CustomConcurrentHashMap$Segment: boolean containsValue(java.lang.Object)>(r0);
+
+        if $z0 == 0 goto label2;
+
+        return 1;
+
+     label2:
+        i2 = i2 + 1;
+
+        goto label1;
+
+     label3:
+        return 0;
+    }
+
+    public java.lang.Object put(java.lang.Object, java.lang.Object)
+    {
+        com.google.common.collect.CustomConcurrentHashMap$Segment $r2;
+        int $i0;
+        com.google.common.collect.CustomConcurrentHashMap r0;
+        java.lang.Object r1, r3, $r4;
+
+        r0 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        r1 := @parameter0: java.lang.Object;
+
+        r3 := @parameter1: java.lang.Object;
+
+        $i0 = virtualinvoke r0.<com.google.common.collect.CustomConcurrentHashMap: int hash(java.lang.Object)>(r1);
+
+        $r2 = virtualinvoke r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$Segment segmentFor(int)>($i0);
+
+        $r4 = virtualinvoke $r2.<com.google.common.collect.CustomConcurrentHashMap$Segment: java.lang.Object put(java.lang.Object,int,java.lang.Object,boolean)>(r1, $i0, r3, 0);
+
+        return $r4;
+    }
+
+    public java.lang.Object putIfAbsent(java.lang.Object, java.lang.Object)
+    {
+        com.google.common.collect.CustomConcurrentHashMap$Segment $r2;
+        int $i0;
+        com.google.common.collect.CustomConcurrentHashMap r0;
+        java.lang.Object r1, r3, $r4;
+
+        r0 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        r1 := @parameter0: java.lang.Object;
+
+        r3 := @parameter1: java.lang.Object;
+
+        $i0 = virtualinvoke r0.<com.google.common.collect.CustomConcurrentHashMap: int hash(java.lang.Object)>(r1);
+
+        $r2 = virtualinvoke r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$Segment segmentFor(int)>($i0);
+
+        $r4 = virtualinvoke $r2.<com.google.common.collect.CustomConcurrentHashMap$Segment: java.lang.Object put(java.lang.Object,int,java.lang.Object,boolean)>(r1, $i0, r3, 1);
+
+        return $r4;
+    }
+
+    public void putAll(java.util.Map)
+    {
+        java.util.Map$Entry r4;
+        java.util.Iterator $r2;
+        java.util.Set $r1;
+        java.util.Map r0;
+        java.lang.Object $r3, $r6, $r7;
+        com.google.common.collect.CustomConcurrentHashMap r5;
+        boolean $z0;
+
+        r5 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        r0 := @parameter0: java.util.Map;
+
+        $r1 = interfaceinvoke r0.<java.util.Map: java.util.Set entrySet()>();
+
+        $r2 = interfaceinvoke $r1.<java.util.Set: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r2.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label2;
+
+        $r3 = interfaceinvoke $r2.<java.util.Iterator: java.lang.Object next()>();
+
+        r4 = (java.util.Map$Entry) $r3;
+
+        $r6 = interfaceinvoke r4.<java.util.Map$Entry: java.lang.Object getKey()>();
+
+        $r7 = interfaceinvoke r4.<java.util.Map$Entry: java.lang.Object getValue()>();
+
+        virtualinvoke r5.<com.google.common.collect.CustomConcurrentHashMap: java.lang.Object put(java.lang.Object,java.lang.Object)>($r6, $r7);
+
+        goto label1;
+
+     label2:
+        return;
+    }
+
+    public java.lang.Object remove(java.lang.Object)
+    {
+        com.google.common.collect.CustomConcurrentHashMap$Segment $r2;
+        int $i0;
+        com.google.common.collect.CustomConcurrentHashMap r0;
+        java.lang.Object r1, $r3;
+
+        r0 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        r1 := @parameter0: java.lang.Object;
+
+        $i0 = virtualinvoke r0.<com.google.common.collect.CustomConcurrentHashMap: int hash(java.lang.Object)>(r1);
+
+        $r2 = virtualinvoke r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$Segment segmentFor(int)>($i0);
+
+        $r3 = virtualinvoke $r2.<com.google.common.collect.CustomConcurrentHashMap$Segment: java.lang.Object remove(java.lang.Object,int)>(r1, $i0);
+
+        return $r3;
+    }
+
+    public boolean remove(java.lang.Object, java.lang.Object)
+    {
+        com.google.common.collect.CustomConcurrentHashMap$Segment $r2;
+        int $i0;
+        com.google.common.collect.CustomConcurrentHashMap r0;
+        java.lang.Object r1, r3;
+        boolean $z0;
+
+        r0 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        r1 := @parameter0: java.lang.Object;
+
+        r3 := @parameter1: java.lang.Object;
+
+        $i0 = virtualinvoke r0.<com.google.common.collect.CustomConcurrentHashMap: int hash(java.lang.Object)>(r1);
+
+        $r2 = virtualinvoke r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$Segment segmentFor(int)>($i0);
+
+        $z0 = virtualinvoke $r2.<com.google.common.collect.CustomConcurrentHashMap$Segment: boolean remove(java.lang.Object,int,java.lang.Object)>(r1, $i0, r3);
+
+        return $z0;
+    }
+
+    public boolean replace(java.lang.Object, java.lang.Object, java.lang.Object)
+    {
+        com.google.common.collect.CustomConcurrentHashMap$Segment $r2;
+        int $i0;
+        com.google.common.collect.CustomConcurrentHashMap r0;
+        java.lang.Object r1, r3, r4;
+        boolean $z0;
+
+        r0 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        r1 := @parameter0: java.lang.Object;
+
+        r3 := @parameter1: java.lang.Object;
+
+        r4 := @parameter2: java.lang.Object;
+
+        $i0 = virtualinvoke r0.<com.google.common.collect.CustomConcurrentHashMap: int hash(java.lang.Object)>(r1);
+
+        $r2 = virtualinvoke r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$Segment segmentFor(int)>($i0);
+
+        $z0 = virtualinvoke $r2.<com.google.common.collect.CustomConcurrentHashMap$Segment: boolean replace(java.lang.Object,int,java.lang.Object,java.lang.Object)>(r1, $i0, r3, r4);
+
+        return $z0;
+    }
+
+    public java.lang.Object replace(java.lang.Object, java.lang.Object)
+    {
+        com.google.common.collect.CustomConcurrentHashMap$Segment $r2;
+        int $i0;
+        com.google.common.collect.CustomConcurrentHashMap r0;
+        java.lang.Object r1, r3, $r4;
+
+        r0 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        r1 := @parameter0: java.lang.Object;
+
+        r3 := @parameter1: java.lang.Object;
+
+        $i0 = virtualinvoke r0.<com.google.common.collect.CustomConcurrentHashMap: int hash(java.lang.Object)>(r1);
+
+        $r2 = virtualinvoke r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$Segment segmentFor(int)>($i0);
+
+        $r4 = virtualinvoke $r2.<com.google.common.collect.CustomConcurrentHashMap$Segment: java.lang.Object replace(java.lang.Object,int,java.lang.Object)>(r1, $i0, r3);
+
+        return $r4;
+    }
+
+    public void clear()
+    {
+        com.google.common.collect.CustomConcurrentHashMap$Segment r2;
+        com.google.common.collect.CustomConcurrentHashMap$Segment[] r1;
+        int i0, i1;
+        com.google.common.collect.CustomConcurrentHashMap r0;
+
+        r0 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        r1 = r0.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$Segment[] segments>;
+
+        i0 = lengthof r1;
+
+        i1 = 0;
+
+     label1:
+        if i1 >= i0 goto label2;
+
+        r2 = r1[i1];
+
+        virtualinvoke r2.<com.google.common.collect.CustomConcurrentHashMap$Segment: void clear()>();
+
+        i1 = i1 + 1;
+
+        goto label1;
+
+     label2:
+        return;
+    }
+
+    public java.util.Set keySet()
+    {
+        com.google.common.collect.CustomConcurrentHashMap$KeySet $r3;
+        java.util.Set r1, $r2;
+        com.google.common.collect.CustomConcurrentHashMap r0;
+
+        r0 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        r1 = r0.<com.google.common.collect.CustomConcurrentHashMap: java.util.Set keySet>;
+
+        if r1 == null goto label1;
+
+        $r2 = r1;
+
+        goto label2;
+
+     label1:
+        $r3 = new com.google.common.collect.CustomConcurrentHashMap$KeySet;
+
+        $r2 = $r3;
+
+        specialinvoke $r3.<com.google.common.collect.CustomConcurrentHashMap$KeySet: void <init>(com.google.common.collect.CustomConcurrentHashMap)>(r0);
+
+        r0.<com.google.common.collect.CustomConcurrentHashMap: java.util.Set keySet> = $r3;
+
+     label2:
+        return $r2;
+    }
+
+    public java.util.Collection values()
+    {
+        com.google.common.collect.CustomConcurrentHashMap$Values $r3;
+        java.util.Collection r1, $r2;
+        com.google.common.collect.CustomConcurrentHashMap r0;
+
+        r0 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        r1 = r0.<com.google.common.collect.CustomConcurrentHashMap: java.util.Collection values>;
+
+        if r1 == null goto label1;
+
+        $r2 = r1;
+
+        goto label2;
+
+     label1:
+        $r3 = new com.google.common.collect.CustomConcurrentHashMap$Values;
+
+        $r2 = $r3;
+
+        specialinvoke $r3.<com.google.common.collect.CustomConcurrentHashMap$Values: void <init>(com.google.common.collect.CustomConcurrentHashMap)>(r0);
+
+        r0.<com.google.common.collect.CustomConcurrentHashMap: java.util.Collection values> = $r3;
+
+     label2:
+        return $r2;
+    }
+
+    public java.util.Set entrySet()
+    {
+        com.google.common.collect.CustomConcurrentHashMap$EntrySet $r3;
+        java.util.Set r1, $r2;
+        com.google.common.collect.CustomConcurrentHashMap r0;
+
+        r0 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        r1 = r0.<com.google.common.collect.CustomConcurrentHashMap: java.util.Set entrySet>;
+
+        if r1 == null goto label1;
+
+        $r2 = r1;
+
+        goto label2;
+
+     label1:
+        $r3 = new com.google.common.collect.CustomConcurrentHashMap$EntrySet;
+
+        $r2 = $r3;
+
+        specialinvoke $r3.<com.google.common.collect.CustomConcurrentHashMap$EntrySet: void <init>(com.google.common.collect.CustomConcurrentHashMap)>(r0);
+
+        r0.<com.google.common.collect.CustomConcurrentHashMap: java.util.Set entrySet> = $r3;
+
+     label2:
+        return $r2;
+    }
+
+    java.lang.Object writeReplace()
+    {
+        com.google.common.collect.CustomConcurrentHashMap$Strength $r5, $r6;
+        com.google.common.collect.CustomConcurrentHashMap$SerializationProxy $r0;
+        com.google.common.base.Equivalence $r3, $r4;
+        com.google.common.collect.MapEvictionListener $r2;
+        long $l2, $l3;
+        int $i0, $i1;
+        com.google.common.collect.CustomConcurrentHashMap r1;
+
+        r1 := @this: com.google.common.collect.CustomConcurrentHashMap;
+
+        $r0 = new com.google.common.collect.CustomConcurrentHashMap$SerializationProxy;
+
+        $r6 = r1.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$Strength keyStrength>;
+
+        $r5 = r1.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$Strength valueStrength>;
+
+        $r4 = r1.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.base.Equivalence keyEquivalence>;
+
+        $r3 = r1.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.base.Equivalence valueEquivalence>;
+
+        $l3 = r1.<com.google.common.collect.CustomConcurrentHashMap: long expireAfterWriteNanos>;
+
+        $l2 = r1.<com.google.common.collect.CustomConcurrentHashMap: long expireAfterAccessNanos>;
+
+        $i1 = r1.<com.google.common.collect.CustomConcurrentHashMap: int maximumSize>;
+
+        $i0 = r1.<com.google.common.collect.CustomConcurrentHashMap: int concurrencyLevel>;
+
+        $r2 = r1.<com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.MapEvictionListener evictionListener>;
+
+        specialinvoke $r0.<com.google.common.collect.CustomConcurrentHashMap$SerializationProxy: void <init>(com.google.common.collect.CustomConcurrentHashMap$Strength,com.google.common.collect.CustomConcurrentHashMap$Strength,com.google.common.base.Equivalence,com.google.common.base.Equivalence,long,long,int,int,com.google.common.collect.MapEvictionListener,java.util.concurrent.ConcurrentMap)>($r6, $r5, $r4, $r3, $l3, $l2, $i1, $i0, $r2, r1);
+
+        return $r0;
+    }
+
+    static void <clinit>()
+    {
+        com.google.common.collect.CustomConcurrentHashMap$2 $r1;
+        com.google.common.collect.CustomConcurrentHashMap$1 $r0;
+
+        <com.google.common.collect.CustomConcurrentHashMap: long serialVersionUID> = 4L;
+
+        <com.google.common.collect.CustomConcurrentHashMap: int CLEANUP_MAX> = 16;
+
+        <com.google.common.collect.CustomConcurrentHashMap: int DRAIN_THRESHOLD> = 63;
+
+        <com.google.common.collect.CustomConcurrentHashMap: int MAX_SEGMENTS> = 65536;
+
+        <com.google.common.collect.CustomConcurrentHashMap: int MAXIMUM_CAPACITY> = 1073741824;
+
+        $r0 = new com.google.common.collect.CustomConcurrentHashMap$1;
+
+        specialinvoke $r0.<com.google.common.collect.CustomConcurrentHashMap$1: void <init>()>();
+
+        <com.google.common.collect.CustomConcurrentHashMap: com.google.common.collect.CustomConcurrentHashMap$ValueReference UNSET> = $r0;
+
+        $r1 = new com.google.common.collect.CustomConcurrentHashMap$2;
+
+        specialinvoke $r1.<com.google.common.collect.CustomConcurrentHashMap$2: void <init>()>();
+
+        <com.google.common.collect.CustomConcurrentHashMap: java.util.Queue DISCARDING_QUEUE> = $r1;
+
+        return;
+    }
+}

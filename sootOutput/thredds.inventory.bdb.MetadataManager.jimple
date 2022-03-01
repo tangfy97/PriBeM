@@ -1,0 +1,1376 @@
+public class thredds.inventory.bdb.MetadataManager extends java.lang.Object
+{
+    private static final org.slf4j.Logger logger;
+    private static final java.lang.String UTF8;
+    private static java.lang.String root;
+    private static com.sleepycat.je.Environment myEnv;
+    private static java.util.List openDatabases;
+    private static boolean readOnly;
+    private static boolean debug;
+    private static boolean debugDelete;
+    private java.lang.String collectionName;
+    private com.sleepycat.je.Database database;
+
+    public static void setCacheDirectory(java.lang.String)
+    {
+        java.lang.String r0;
+
+        r0 := @parameter0: java.lang.String;
+
+        <thredds.inventory.bdb.MetadataManager: java.lang.String root> = r0;
+
+        return;
+    }
+
+    private static synchronized void setup() throws com.sleepycat.je.DatabaseException
+    {
+        java.lang.Throwable $r18;
+        java.lang.String $r3, $r7, $r11, $r15, $r17, $r26;
+        boolean $z0, $z1, $z2;
+        org.slf4j.Logger $r5, $r13, $r19, $r22;
+        com.sleepycat.je.Environment $r0, $r20, $r21;
+        java.io.File $r2;
+        com.sleepycat.je.EnvironmentConfig $r1;
+        java.lang.StringBuilder $r4, $r6, $r8, $r9, $r10, $r12, $r14, $r16, $r23, $r24, $r25;
+
+        $r0 = <thredds.inventory.bdb.MetadataManager: com.sleepycat.je.Environment myEnv>;
+
+        if $r0 == null goto label1;
+
+        return;
+
+     label1:
+        $r1 = new com.sleepycat.je.EnvironmentConfig;
+
+        specialinvoke $r1.<com.sleepycat.je.EnvironmentConfig: void <init>()>();
+
+        virtualinvoke $r1.<com.sleepycat.je.EnvironmentConfig: com.sleepycat.je.EnvironmentConfig setReadOnly(boolean)>(0);
+
+        virtualinvoke $r1.<com.sleepycat.je.EnvironmentConfig: com.sleepycat.je.EnvironmentConfig setAllowCreate(boolean)>(1);
+
+        virtualinvoke $r1.<com.sleepycat.je.EnvironmentConfig: com.sleepycat.je.EnvironmentConfig setSharedCache(boolean)>(1);
+
+        $r2 = new java.io.File;
+
+        $r3 = <thredds.inventory.bdb.MetadataManager: java.lang.String root>;
+
+        specialinvoke $r2.<java.io.File: void <init>(java.lang.String)>($r3);
+
+        $z0 = virtualinvoke $r2.<java.io.File: boolean exists()>();
+
+        if $z0 != 0 goto label2;
+
+        $z2 = virtualinvoke $r2.<java.io.File: boolean mkdirs()>();
+
+        if $z2 != 0 goto label2;
+
+        $r13 = <thredds.inventory.bdb.MetadataManager: org.slf4j.Logger logger>;
+
+        $r12 = new java.lang.StringBuilder;
+
+        specialinvoke $r12.<java.lang.StringBuilder: void <init>()>();
+
+        $r14 = virtualinvoke $r12.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("MetadataManager failed to make directory ");
+
+        $r15 = <thredds.inventory.bdb.MetadataManager: java.lang.String root>;
+
+        $r16 = virtualinvoke $r14.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r15);
+
+        $r17 = virtualinvoke $r16.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r13.<org.slf4j.Logger: void warn(java.lang.String)>($r17);
+
+     label2:
+        $r21 = new com.sleepycat.je.Environment;
+
+        specialinvoke $r21.<com.sleepycat.je.Environment: void <init>(java.io.File,com.sleepycat.je.EnvironmentConfig)>($r2, $r1);
+
+        <thredds.inventory.bdb.MetadataManager: com.sleepycat.je.Environment myEnv> = $r21;
+
+        $r22 = <thredds.inventory.bdb.MetadataManager: org.slf4j.Logger logger>;
+
+        $r23 = new java.lang.StringBuilder;
+
+        specialinvoke $r23.<java.lang.StringBuilder: void <init>()>();
+
+        $r24 = virtualinvoke $r23.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("MetadataManager opened bdb in directory=");
+
+        $r25 = virtualinvoke $r24.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>($r2);
+
+        $r26 = virtualinvoke $r25.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r22.<org.slf4j.Logger: void info(java.lang.String)>($r26);
+
+        <thredds.inventory.bdb.MetadataManager: boolean readOnly> = 0;
+
+     label3:
+        goto label5;
+
+     label4:
+        $r18 := @caughtexception;
+
+        $r19 = <thredds.inventory.bdb.MetadataManager: org.slf4j.Logger logger>;
+
+        interfaceinvoke $r19.<org.slf4j.Logger: void warn(java.lang.String)>("MetadataManager failed to open directory, try read-only");
+
+        <thredds.inventory.bdb.MetadataManager: boolean readOnly> = 1;
+
+        virtualinvoke $r1.<com.sleepycat.je.EnvironmentConfig: com.sleepycat.je.EnvironmentConfig setReadOnly(boolean)>(1);
+
+        virtualinvoke $r1.<com.sleepycat.je.EnvironmentConfig: com.sleepycat.je.EnvironmentConfig setAllowCreate(boolean)>(0);
+
+        $r20 = new com.sleepycat.je.Environment;
+
+        specialinvoke $r20.<com.sleepycat.je.Environment: void <init>(java.io.File,com.sleepycat.je.EnvironmentConfig)>($r2, $r1);
+
+        <thredds.inventory.bdb.MetadataManager: com.sleepycat.je.Environment myEnv> = $r20;
+
+     label5:
+        $r5 = <thredds.inventory.bdb.MetadataManager: org.slf4j.Logger logger>;
+
+        $r4 = new java.lang.StringBuilder;
+
+        specialinvoke $r4.<java.lang.StringBuilder: void <init>()>();
+
+        $r6 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("MetadataManager: open bdb at root ");
+
+        $r7 = <thredds.inventory.bdb.MetadataManager: java.lang.String root>;
+
+        $r8 = virtualinvoke $r6.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r7);
+
+        $r9 = virtualinvoke $r8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(" readOnly = ");
+
+        $z1 = <thredds.inventory.bdb.MetadataManager: boolean readOnly>;
+
+        $r10 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(boolean)>($z1);
+
+        $r11 = virtualinvoke $r10.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r5.<org.slf4j.Logger: void info(java.lang.String)>($r11);
+
+        return;
+
+        catch com.sleepycat.je.EnvironmentLockedException from label2 to label3 with label4;
+    }
+
+    public static synchronized void closeAll()
+    {
+        java.lang.Throwable $r15;
+        thredds.inventory.bdb.MetadataManager r8;
+        java.util.ArrayList $r0, $r3;
+        java.lang.String $r12, $r14;
+        boolean $z0, $z1;
+        java.io.PrintStream $r10;
+        org.slf4j.Logger $r6, $r16;
+        java.util.Iterator $r2;
+        com.sleepycat.je.Environment $r4, $r5;
+        java.util.List $r1;
+        java.lang.Object $r7;
+        java.lang.StringBuilder $r9, $r11, $r13;
+
+        $r0 = new java.util.ArrayList;
+
+        $r1 = <thredds.inventory.bdb.MetadataManager: java.util.List openDatabases>;
+
+        specialinvoke $r0.<java.util.ArrayList: void <init>(java.util.Collection)>($r1);
+
+        $r2 = interfaceinvoke $r0.<java.util.List: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r2.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label3;
+
+        $r7 = interfaceinvoke $r2.<java.util.Iterator: java.lang.Object next()>();
+
+        r8 = (thredds.inventory.bdb.MetadataManager) $r7;
+
+        $z1 = <thredds.inventory.bdb.MetadataManager: boolean debug>;
+
+        if $z1 == 0 goto label2;
+
+        $r10 = <java.lang.System: java.io.PrintStream out>;
+
+        $r9 = new java.lang.StringBuilder;
+
+        specialinvoke $r9.<java.lang.StringBuilder: void <init>()>();
+
+        $r11 = virtualinvoke $r9.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("  close database ");
+
+        $r12 = r8.<thredds.inventory.bdb.MetadataManager: java.lang.String collectionName>;
+
+        $r13 = virtualinvoke $r11.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r12);
+
+        $r14 = virtualinvoke $r13.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        virtualinvoke $r10.<java.io.PrintStream: void println(java.lang.String)>($r14);
+
+     label2:
+        virtualinvoke r8.<thredds.inventory.bdb.MetadataManager: void close()>();
+
+        goto label1;
+
+     label3:
+        $r3 = new java.util.ArrayList;
+
+        specialinvoke $r3.<java.util.ArrayList: void <init>()>();
+
+        <thredds.inventory.bdb.MetadataManager: java.util.List openDatabases> = $r3;
+
+        $r4 = <thredds.inventory.bdb.MetadataManager: com.sleepycat.je.Environment myEnv>;
+
+        if $r4 == null goto label7;
+
+     label4:
+        $r5 = <thredds.inventory.bdb.MetadataManager: com.sleepycat.je.Environment myEnv>;
+
+        virtualinvoke $r5.<com.sleepycat.je.Environment: void close()>();
+
+        <thredds.inventory.bdb.MetadataManager: com.sleepycat.je.Environment myEnv> = null;
+
+        $r6 = <thredds.inventory.bdb.MetadataManager: org.slf4j.Logger logger>;
+
+        interfaceinvoke $r6.<org.slf4j.Logger: void info(java.lang.String)>("closed bdb caching");
+
+     label5:
+        goto label7;
+
+     label6:
+        $r15 := @caughtexception;
+
+        $r16 = <thredds.inventory.bdb.MetadataManager: org.slf4j.Logger logger>;
+
+        interfaceinvoke $r16.<org.slf4j.Logger: void error(java.lang.String,java.lang.Throwable)>("Error closing bdb: ", $r15);
+
+     label7:
+        return;
+
+        catch com.sleepycat.je.DatabaseException from label4 to label5 with label6;
+    }
+
+    public static void showEnvStats(java.util.Formatter)
+    {
+        java.lang.Throwable $r12;
+        com.sleepycat.je.DatabaseException $r13;
+        java.lang.Object[] $r4, $r5, $r11;
+        java.util.Iterator $r8;
+        com.sleepycat.je.Environment $r0, $r1, $r6;
+        java.util.Formatter r3;
+        java.util.List $r7;
+        com.sleepycat.je.EnvironmentStats $r2;
+        java.lang.Object $r9;
+        java.lang.String r10;
+        boolean $z0;
+
+        r3 := @parameter0: java.util.Formatter;
+
+        $r0 = <thredds.inventory.bdb.MetadataManager: com.sleepycat.je.Environment myEnv>;
+
+        if $r0 != null goto label1;
+
+        staticinvoke <thredds.inventory.bdb.MetadataManager: void setup()>();
+
+     label1:
+        $r1 = <thredds.inventory.bdb.MetadataManager: com.sleepycat.je.Environment myEnv>;
+
+        $r2 = virtualinvoke $r1.<com.sleepycat.je.Environment: com.sleepycat.je.EnvironmentStats getStats(com.sleepycat.je.StatsConfig)>(null);
+
+        $r4 = newarray (java.lang.Object)[1];
+
+        $r4[0] = $r2;
+
+        virtualinvoke r3.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("EnvironmentStats%n%s%n", $r4);
+
+        $r5 = newarray (java.lang.Object)[0];
+
+        virtualinvoke r3.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("%nDatabaseNames%n", $r5);
+
+        $r6 = <thredds.inventory.bdb.MetadataManager: com.sleepycat.je.Environment myEnv>;
+
+        $r7 = virtualinvoke $r6.<com.sleepycat.je.Environment: java.util.List getDatabaseNames()>();
+
+        $r8 = interfaceinvoke $r7.<java.util.List: java.util.Iterator iterator()>();
+
+     label2:
+        $z0 = interfaceinvoke $r8.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label3;
+
+        $r9 = interfaceinvoke $r8.<java.util.Iterator: java.lang.Object next()>();
+
+        r10 = (java.lang.String) $r9;
+
+        $r11 = newarray (java.lang.Object)[1];
+
+        $r11[0] = r10;
+
+        virtualinvoke r3.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>(" %s%n", $r11);
+
+        goto label2;
+
+     label3:
+        goto label5;
+
+     label4:
+        $r12 := @caughtexception;
+
+        $r13 = (com.sleepycat.je.DatabaseException) $r12;
+
+        virtualinvoke $r13.<com.sleepycat.je.DatabaseException: void printStackTrace()>();
+
+     label5:
+        return;
+
+        catch com.sleepycat.je.DatabaseException from label1 to label3 with label4;
+    }
+
+    public static java.lang.String getCacheLocation()
+    {
+        java.lang.String $r0;
+
+        $r0 = <thredds.inventory.bdb.MetadataManager: java.lang.String root>;
+
+        return $r0;
+    }
+
+    public static void sync()
+    {
+        com.sleepycat.je.Environment $r0, $r1;
+
+        $r0 = <thredds.inventory.bdb.MetadataManager: com.sleepycat.je.Environment myEnv>;
+
+        if $r0 == null goto label1;
+
+        $r1 = <thredds.inventory.bdb.MetadataManager: com.sleepycat.je.Environment myEnv>;
+
+        virtualinvoke $r1.<com.sleepycat.je.Environment: void sync()>();
+
+     label1:
+        return;
+    }
+
+    public static java.util.List getCollectionNames()
+    {
+        com.sleepycat.je.Environment $r0, $r1;
+        java.util.List $r2;
+
+        $r0 = <thredds.inventory.bdb.MetadataManager: com.sleepycat.je.Environment myEnv>;
+
+        if $r0 != null goto label1;
+
+        staticinvoke <thredds.inventory.bdb.MetadataManager: void setup()>();
+
+     label1:
+        $r1 = <thredds.inventory.bdb.MetadataManager: com.sleepycat.je.Environment myEnv>;
+
+        $r2 = virtualinvoke $r1.<com.sleepycat.je.Environment: java.util.List getDatabaseNames()>();
+
+        return $r2;
+    }
+
+    public static void deleteCollection(java.lang.String) throws java.lang.Exception
+    {
+        java.util.Iterator $r1;
+        com.sleepycat.je.Environment $r3;
+        thredds.inventory.bdb.MetadataManager r5;
+        java.util.List $r0;
+        com.sleepycat.je.Database $r7, $r8;
+        java.lang.Object $r4;
+        java.lang.String r2, $r6;
+        boolean $z0, $z1;
+
+        r2 := @parameter0: java.lang.String;
+
+        $r0 = <thredds.inventory.bdb.MetadataManager: java.util.List openDatabases>;
+
+        $r1 = interfaceinvoke $r0.<java.util.List: java.util.Iterator iterator()>();
+
+     label1:
+        $z0 = interfaceinvoke $r1.<java.util.Iterator: boolean hasNext()>();
+
+        if $z0 == 0 goto label3;
+
+        $r4 = interfaceinvoke $r1.<java.util.Iterator: java.lang.Object next()>();
+
+        r5 = (thredds.inventory.bdb.MetadataManager) $r4;
+
+        $r6 = r5.<thredds.inventory.bdb.MetadataManager: java.lang.String collectionName>;
+
+        $z1 = virtualinvoke $r6.<java.lang.String: boolean equals(java.lang.Object)>(r2);
+
+        if $z1 == 0 goto label2;
+
+        $r7 = r5.<thredds.inventory.bdb.MetadataManager: com.sleepycat.je.Database database>;
+
+        if $r7 == null goto label2;
+
+        $r8 = r5.<thredds.inventory.bdb.MetadataManager: com.sleepycat.je.Database database>;
+
+        virtualinvoke $r8.<com.sleepycat.je.Database: void close()>();
+
+     label2:
+        goto label1;
+
+     label3:
+        $r3 = <thredds.inventory.bdb.MetadataManager: com.sleepycat.je.Environment myEnv>;
+
+        virtualinvoke $r3.<com.sleepycat.je.Environment: void removeDatabase(com.sleepycat.je.Transaction,java.lang.String)>(null, r2);
+
+        return;
+    }
+
+    public static void delete(java.lang.String, java.lang.String)
+    {
+        thredds.inventory.bdb.MetadataManager $r0;
+        java.io.IOException $r3;
+        java.lang.String r1, r2;
+        java.lang.RuntimeException $r4;
+
+        r1 := @parameter0: java.lang.String;
+
+        r2 := @parameter1: java.lang.String;
+
+     label1:
+        $r0 = new thredds.inventory.bdb.MetadataManager;
+
+        specialinvoke $r0.<thredds.inventory.bdb.MetadataManager: void <init>(java.lang.String)>(r1);
+
+        virtualinvoke $r0.<thredds.inventory.bdb.MetadataManager: void delete(java.lang.String)>(r2);
+
+        virtualinvoke $r0.<thredds.inventory.bdb.MetadataManager: void close()>();
+
+     label2:
+        goto label4;
+
+     label3:
+        $r3 := @caughtexception;
+
+        $r4 = new java.lang.RuntimeException;
+
+        specialinvoke $r4.<java.lang.RuntimeException: void <init>(java.lang.Throwable)>($r3);
+
+        throw $r4;
+
+     label4:
+        return;
+
+        catch java.io.IOException from label1 to label2 with label3;
+    }
+
+    public void <init>(java.lang.String) throws com.sleepycat.je.DatabaseException, java.io.IOException
+    {
+        com.sleepycat.je.Environment $r2;
+        thredds.inventory.bdb.MetadataManager r0;
+        java.lang.String r1;
+
+        r0 := @this: thredds.inventory.bdb.MetadataManager;
+
+        r1 := @parameter0: java.lang.String;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        r0.<thredds.inventory.bdb.MetadataManager: java.lang.String collectionName> = r1;
+
+        $r2 = <thredds.inventory.bdb.MetadataManager: com.sleepycat.je.Environment myEnv>;
+
+        if $r2 != null goto label1;
+
+        staticinvoke <thredds.inventory.bdb.MetadataManager: void setup()>();
+
+     label1:
+        return;
+    }
+
+    private void openDatabase()
+    {
+        com.sleepycat.je.Environment $r4;
+        thredds.inventory.bdb.MetadataManager r0;
+        java.util.List $r6;
+        com.sleepycat.je.DatabaseConfig $r2;
+        com.sleepycat.je.Database $r1, $r5;
+        java.lang.String $r3;
+        boolean $z0, $z1, $z2, $z3;
+
+        r0 := @this: thredds.inventory.bdb.MetadataManager;
+
+        $r1 = r0.<thredds.inventory.bdb.MetadataManager: com.sleepycat.je.Database database>;
+
+        if $r1 == null goto label1;
+
+        return;
+
+     label1:
+        $r2 = new com.sleepycat.je.DatabaseConfig;
+
+        specialinvoke $r2.<com.sleepycat.je.DatabaseConfig: void <init>()>();
+
+        $z0 = <thredds.inventory.bdb.MetadataManager: boolean readOnly>;
+
+        virtualinvoke $r2.<com.sleepycat.je.DatabaseConfig: com.sleepycat.je.DatabaseConfig setReadOnly(boolean)>($z0);
+
+        $z1 = <thredds.inventory.bdb.MetadataManager: boolean readOnly>;
+
+        if $z1 != 0 goto label2;
+
+        $z3 = 1;
+
+        goto label3;
+
+     label2:
+        $z3 = 0;
+
+     label3:
+        virtualinvoke $r2.<com.sleepycat.je.DatabaseConfig: com.sleepycat.je.DatabaseConfig setAllowCreate(boolean)>($z3);
+
+        $z2 = <thredds.inventory.bdb.MetadataManager: boolean readOnly>;
+
+        if $z2 != 0 goto label4;
+
+        virtualinvoke $r2.<com.sleepycat.je.DatabaseConfig: com.sleepycat.je.DatabaseConfig setDeferredWrite(boolean)>(1);
+
+     label4:
+        $r4 = <thredds.inventory.bdb.MetadataManager: com.sleepycat.je.Environment myEnv>;
+
+        $r3 = r0.<thredds.inventory.bdb.MetadataManager: java.lang.String collectionName>;
+
+        $r5 = virtualinvoke $r4.<com.sleepycat.je.Environment: com.sleepycat.je.Database openDatabase(com.sleepycat.je.Transaction,java.lang.String,com.sleepycat.je.DatabaseConfig)>(null, $r3, $r2);
+
+        r0.<thredds.inventory.bdb.MetadataManager: com.sleepycat.je.Database database> = $r5;
+
+        $r6 = <thredds.inventory.bdb.MetadataManager: java.util.List openDatabases>;
+
+        interfaceinvoke $r6.<java.util.List: boolean add(java.lang.Object)>(r0);
+
+        return;
+    }
+
+    public void put(java.lang.String, java.lang.String)
+    {
+        byte[] $r4, $r7;
+        com.sleepycat.je.DatabaseEntry $r1, $r5;
+        thredds.inventory.bdb.MetadataManager r0;
+        java.lang.RuntimeException $r9;
+        com.sleepycat.je.Database $r3;
+        java.lang.String r2, r6, $r10;
+        java.io.UnsupportedEncodingException $r8;
+        boolean $z0;
+
+        r0 := @this: thredds.inventory.bdb.MetadataManager;
+
+        r2 := @parameter0: java.lang.String;
+
+        r6 := @parameter1: java.lang.String;
+
+        $z0 = <thredds.inventory.bdb.MetadataManager: boolean readOnly>;
+
+        if $z0 == 0 goto label1;
+
+        return;
+
+     label1:
+        specialinvoke r0.<thredds.inventory.bdb.MetadataManager: void openDatabase()>();
+
+     label2:
+        $r3 = r0.<thredds.inventory.bdb.MetadataManager: com.sleepycat.je.Database database>;
+
+        $r1 = new com.sleepycat.je.DatabaseEntry;
+
+        $r4 = virtualinvoke r2.<java.lang.String: byte[] getBytes(java.lang.String)>("UTF-8");
+
+        specialinvoke $r1.<com.sleepycat.je.DatabaseEntry: void <init>(byte[])>($r4);
+
+        $r5 = new com.sleepycat.je.DatabaseEntry;
+
+        $r7 = virtualinvoke r6.<java.lang.String: byte[] getBytes(java.lang.String)>("UTF-8");
+
+        specialinvoke $r5.<com.sleepycat.je.DatabaseEntry: void <init>(byte[])>($r7);
+
+        virtualinvoke $r3.<com.sleepycat.je.Database: com.sleepycat.je.OperationStatus put(com.sleepycat.je.Transaction,com.sleepycat.je.DatabaseEntry,com.sleepycat.je.DatabaseEntry)>(null, $r1, $r5);
+
+     label3:
+        goto label5;
+
+     label4:
+        $r8 := @caughtexception;
+
+        $r9 = new java.lang.RuntimeException;
+
+        $r10 = virtualinvoke $r8.<java.io.UnsupportedEncodingException: java.lang.String getMessage()>();
+
+        specialinvoke $r9.<java.lang.RuntimeException: void <init>(java.lang.String)>($r10);
+
+        throw $r9;
+
+     label5:
+        return;
+
+        catch java.io.UnsupportedEncodingException from label2 to label3 with label4;
+    }
+
+    public void put(byte[], byte[])
+    {
+        byte[] r2, r5;
+        com.sleepycat.je.DatabaseEntry $r1, $r4;
+        com.sleepycat.je.Database $r3;
+        thredds.inventory.bdb.MetadataManager r0;
+        boolean $z0;
+
+        r0 := @this: thredds.inventory.bdb.MetadataManager;
+
+        r2 := @parameter0: byte[];
+
+        r5 := @parameter1: byte[];
+
+        $z0 = <thredds.inventory.bdb.MetadataManager: boolean readOnly>;
+
+        if $z0 == 0 goto label1;
+
+        return;
+
+     label1:
+        specialinvoke r0.<thredds.inventory.bdb.MetadataManager: void openDatabase()>();
+
+        $r3 = r0.<thredds.inventory.bdb.MetadataManager: com.sleepycat.je.Database database>;
+
+        $r1 = new com.sleepycat.je.DatabaseEntry;
+
+        specialinvoke $r1.<com.sleepycat.je.DatabaseEntry: void <init>(byte[])>(r2);
+
+        $r4 = new com.sleepycat.je.DatabaseEntry;
+
+        specialinvoke $r4.<com.sleepycat.je.DatabaseEntry: void <init>(byte[])>(r5);
+
+        virtualinvoke $r3.<com.sleepycat.je.Database: com.sleepycat.je.OperationStatus put(com.sleepycat.je.Transaction,com.sleepycat.je.DatabaseEntry,com.sleepycat.je.DatabaseEntry)>(null, $r1, $r4);
+
+        return;
+    }
+
+    public void put(java.lang.String, byte[])
+    {
+        byte[] $r4, r6;
+        com.sleepycat.je.DatabaseEntry $r1, $r5;
+        thredds.inventory.bdb.MetadataManager r0;
+        java.lang.RuntimeException $r8;
+        com.sleepycat.je.Database $r3;
+        java.lang.String r2, $r9;
+        java.io.UnsupportedEncodingException $r7;
+        boolean $z0;
+
+        r0 := @this: thredds.inventory.bdb.MetadataManager;
+
+        r2 := @parameter0: java.lang.String;
+
+        r6 := @parameter1: byte[];
+
+        $z0 = <thredds.inventory.bdb.MetadataManager: boolean readOnly>;
+
+        if $z0 == 0 goto label1;
+
+        return;
+
+     label1:
+        specialinvoke r0.<thredds.inventory.bdb.MetadataManager: void openDatabase()>();
+
+     label2:
+        $r3 = r0.<thredds.inventory.bdb.MetadataManager: com.sleepycat.je.Database database>;
+
+        $r1 = new com.sleepycat.je.DatabaseEntry;
+
+        $r4 = virtualinvoke r2.<java.lang.String: byte[] getBytes(java.lang.String)>("UTF-8");
+
+        specialinvoke $r1.<com.sleepycat.je.DatabaseEntry: void <init>(byte[])>($r4);
+
+        $r5 = new com.sleepycat.je.DatabaseEntry;
+
+        specialinvoke $r5.<com.sleepycat.je.DatabaseEntry: void <init>(byte[])>(r6);
+
+        virtualinvoke $r3.<com.sleepycat.je.Database: com.sleepycat.je.OperationStatus put(com.sleepycat.je.Transaction,com.sleepycat.je.DatabaseEntry,com.sleepycat.je.DatabaseEntry)>(null, $r1, $r5);
+
+     label3:
+        goto label5;
+
+     label4:
+        $r7 := @caughtexception;
+
+        $r8 = new java.lang.RuntimeException;
+
+        $r9 = virtualinvoke $r7.<java.io.UnsupportedEncodingException: java.lang.String getMessage()>();
+
+        specialinvoke $r8.<java.lang.RuntimeException: void <init>(java.lang.String)>($r9);
+
+        throw $r8;
+
+     label5:
+        return;
+
+        catch java.io.UnsupportedEncodingException from label2 to label3 with label4;
+    }
+
+    public byte[] get(byte[])
+    {
+        byte[] r3, $r6;
+        com.sleepycat.je.DatabaseEntry $r1, $r2;
+        com.sleepycat.je.Database $r4;
+        com.sleepycat.je.LockMode $r5;
+        thredds.inventory.bdb.MetadataManager r0;
+
+        r0 := @this: thredds.inventory.bdb.MetadataManager;
+
+        r3 := @parameter0: byte[];
+
+        specialinvoke r0.<thredds.inventory.bdb.MetadataManager: void openDatabase()>();
+
+        $r1 = new com.sleepycat.je.DatabaseEntry;
+
+        specialinvoke $r1.<com.sleepycat.je.DatabaseEntry: void <init>()>();
+
+        $r4 = r0.<thredds.inventory.bdb.MetadataManager: com.sleepycat.je.Database database>;
+
+        $r2 = new com.sleepycat.je.DatabaseEntry;
+
+        specialinvoke $r2.<com.sleepycat.je.DatabaseEntry: void <init>(byte[])>(r3);
+
+        $r5 = <com.sleepycat.je.LockMode: com.sleepycat.je.LockMode DEFAULT>;
+
+        virtualinvoke $r4.<com.sleepycat.je.Database: com.sleepycat.je.OperationStatus get(com.sleepycat.je.Transaction,com.sleepycat.je.DatabaseEntry,com.sleepycat.je.DatabaseEntry,com.sleepycat.je.LockMode)>(null, $r2, $r1, $r5);
+
+        $r6 = virtualinvoke $r1.<com.sleepycat.je.DatabaseEntry: byte[] getData()>();
+
+        return $r6;
+    }
+
+    public byte[] getBytes(java.lang.String)
+    {
+        byte[] $r5, $r7;
+        com.sleepycat.je.DatabaseEntry $r1, $r2;
+        com.sleepycat.je.LockMode $r6;
+        thredds.inventory.bdb.MetadataManager r0;
+        java.lang.RuntimeException $r9;
+        com.sleepycat.je.Database $r4;
+        java.lang.String r3;
+        java.io.UnsupportedEncodingException $r8;
+
+        r0 := @this: thredds.inventory.bdb.MetadataManager;
+
+        r3 := @parameter0: java.lang.String;
+
+        specialinvoke r0.<thredds.inventory.bdb.MetadataManager: void openDatabase()>();
+
+     label1:
+        $r1 = new com.sleepycat.je.DatabaseEntry;
+
+        specialinvoke $r1.<com.sleepycat.je.DatabaseEntry: void <init>()>();
+
+        $r4 = r0.<thredds.inventory.bdb.MetadataManager: com.sleepycat.je.Database database>;
+
+        $r2 = new com.sleepycat.je.DatabaseEntry;
+
+        $r5 = virtualinvoke r3.<java.lang.String: byte[] getBytes(java.lang.String)>("UTF-8");
+
+        specialinvoke $r2.<com.sleepycat.je.DatabaseEntry: void <init>(byte[])>($r5);
+
+        $r6 = <com.sleepycat.je.LockMode: com.sleepycat.je.LockMode DEFAULT>;
+
+        virtualinvoke $r4.<com.sleepycat.je.Database: com.sleepycat.je.OperationStatus get(com.sleepycat.je.Transaction,com.sleepycat.je.DatabaseEntry,com.sleepycat.je.DatabaseEntry,com.sleepycat.je.LockMode)>(null, $r2, $r1, $r6);
+
+        $r7 = virtualinvoke $r1.<com.sleepycat.je.DatabaseEntry: byte[] getData()>();
+
+     label2:
+        return $r7;
+
+     label3:
+        $r8 := @caughtexception;
+
+        $r9 = new java.lang.RuntimeException;
+
+        specialinvoke $r9.<java.lang.RuntimeException: void <init>(java.lang.Throwable)>($r8);
+
+        throw $r9;
+
+        catch java.io.UnsupportedEncodingException from label1 to label2 with label3;
+    }
+
+    public java.lang.String get(java.lang.String)
+    {
+        byte[] $r5, $r10;
+        com.sleepycat.je.OperationStatus $r7, $r8;
+        com.sleepycat.je.DatabaseEntry $r1, $r2;
+        com.sleepycat.je.LockMode $r6;
+        thredds.inventory.bdb.MetadataManager r0;
+        java.lang.RuntimeException $r12;
+        com.sleepycat.je.Database $r4;
+        java.lang.String r3, $r9;
+        java.io.UnsupportedEncodingException $r11;
+
+        r0 := @this: thredds.inventory.bdb.MetadataManager;
+
+        r3 := @parameter0: java.lang.String;
+
+        specialinvoke r0.<thredds.inventory.bdb.MetadataManager: void openDatabase()>();
+
+     label1:
+        $r1 = new com.sleepycat.je.DatabaseEntry;
+
+        specialinvoke $r1.<com.sleepycat.je.DatabaseEntry: void <init>()>();
+
+        $r4 = r0.<thredds.inventory.bdb.MetadataManager: com.sleepycat.je.Database database>;
+
+        $r2 = new com.sleepycat.je.DatabaseEntry;
+
+        $r5 = virtualinvoke r3.<java.lang.String: byte[] getBytes(java.lang.String)>("UTF-8");
+
+        specialinvoke $r2.<com.sleepycat.je.DatabaseEntry: void <init>(byte[])>($r5);
+
+        $r6 = <com.sleepycat.je.LockMode: com.sleepycat.je.LockMode DEFAULT>;
+
+        $r7 = virtualinvoke $r4.<com.sleepycat.je.Database: com.sleepycat.je.OperationStatus get(com.sleepycat.je.Transaction,com.sleepycat.je.DatabaseEntry,com.sleepycat.je.DatabaseEntry,com.sleepycat.je.LockMode)>(null, $r2, $r1, $r6);
+
+        $r8 = <com.sleepycat.je.OperationStatus: com.sleepycat.je.OperationStatus SUCCESS>;
+
+        if $r7 != $r8 goto label3;
+
+        $r9 = new java.lang.String;
+
+        $r10 = virtualinvoke $r1.<com.sleepycat.je.DatabaseEntry: byte[] getData()>();
+
+        specialinvoke $r9.<java.lang.String: void <init>(byte[],java.lang.String)>($r10, "UTF-8");
+
+     label2:
+        return $r9;
+
+     label3:
+        return null;
+
+     label4:
+        $r11 := @caughtexception;
+
+        $r12 = new java.lang.RuntimeException;
+
+        specialinvoke $r12.<java.lang.RuntimeException: void <init>(java.lang.Throwable)>($r11);
+
+        throw $r12;
+
+        catch java.io.UnsupportedEncodingException from label1 to label2 with label4;
+    }
+
+    public void delete(java.lang.String)
+    {
+        byte[] $r3;
+        org.slf4j.Logger $r5;
+        com.sleepycat.je.DatabaseEntry $r1;
+        thredds.inventory.bdb.MetadataManager r0;
+        java.lang.RuntimeException $r7;
+        java.lang.Exception $r6;
+        com.sleepycat.je.Database $r4;
+        java.lang.String r2;
+        boolean $z0;
+
+        r0 := @this: thredds.inventory.bdb.MetadataManager;
+
+        r2 := @parameter0: java.lang.String;
+
+        $z0 = <thredds.inventory.bdb.MetadataManager: boolean readOnly>;
+
+        if $z0 == 0 goto label1;
+
+        $r5 = <thredds.inventory.bdb.MetadataManager: org.slf4j.Logger logger>;
+
+        interfaceinvoke $r5.<org.slf4j.Logger: void warn(java.lang.String)>("Cant dekete - readOnly mode");
+
+        return;
+
+     label1:
+        specialinvoke r0.<thredds.inventory.bdb.MetadataManager: void openDatabase()>();
+
+     label2:
+        $r1 = new com.sleepycat.je.DatabaseEntry;
+
+        $r3 = virtualinvoke r2.<java.lang.String: byte[] getBytes(java.lang.String)>("UTF-8");
+
+        specialinvoke $r1.<com.sleepycat.je.DatabaseEntry: void <init>(byte[])>($r3);
+
+        $r4 = r0.<thredds.inventory.bdb.MetadataManager: com.sleepycat.je.Database database>;
+
+        virtualinvoke $r4.<com.sleepycat.je.Database: com.sleepycat.je.OperationStatus delete(com.sleepycat.je.Transaction,com.sleepycat.je.DatabaseEntry)>(null, $r1);
+
+     label3:
+        goto label5;
+
+     label4:
+        $r6 := @caughtexception;
+
+        $r7 = new java.lang.RuntimeException;
+
+        specialinvoke $r7.<java.lang.RuntimeException: void <init>(java.lang.Throwable)>($r6);
+
+        throw $r7;
+
+     label5:
+        return;
+
+        catch java.lang.Exception from label2 to label3 with label4;
+    }
+
+    public void delete(java.util.Map)
+    {
+        byte[] $r14, $r18, $r23;
+        com.sleepycat.je.LockMode $r6;
+        thredds.inventory.bdb.MetadataManager r0;
+        java.util.Map r20;
+        boolean $z0, $z1, $z2;
+        com.sleepycat.je.DatabaseEntry $r4, $r5, $r22, r41;
+        java.lang.StringBuilder $r27, $r29, $r31, $r34, $r36, $r38;
+        java.io.UnsupportedEncodingException $r26;
+        java.lang.Throwable $r25;
+        com.sleepycat.je.OperationStatus $r7, $r8, $r12;
+        java.lang.Object[] $r15;
+        java.util.ArrayList $r1;
+        com.sleepycat.je.Database $r2, $r11;
+        int $i0;
+        java.lang.String $r13, $r17, $r19, $r30, $r32, $r37, $r39;
+        java.io.PrintStream $r16;
+        java.lang.UnsupportedOperationException $r33;
+        org.slf4j.Logger $r24, $r28, $r35;
+        java.util.Iterator $r9;
+        com.sleepycat.je.Cursor $r3, r40;
+        java.lang.Object $r10, $r21;
+
+        r0 := @this: thredds.inventory.bdb.MetadataManager;
+
+        r20 := @parameter0: java.util.Map;
+
+        $z0 = <thredds.inventory.bdb.MetadataManager: boolean readOnly>;
+
+        if $z0 == 0 goto label01;
+
+        $r24 = <thredds.inventory.bdb.MetadataManager: org.slf4j.Logger logger>;
+
+        interfaceinvoke $r24.<org.slf4j.Logger: void warn(java.lang.String)>("Cant dekete - readOnly mode");
+
+        return;
+
+     label01:
+        specialinvoke r0.<thredds.inventory.bdb.MetadataManager: void openDatabase()>();
+
+        $r1 = new java.util.ArrayList;
+
+        specialinvoke $r1.<java.util.ArrayList: void <init>()>();
+
+        r40 = null;
+
+     label02:
+        $r2 = r0.<thredds.inventory.bdb.MetadataManager: com.sleepycat.je.Database database>;
+
+        $r3 = virtualinvoke $r2.<com.sleepycat.je.Database: com.sleepycat.je.Cursor openCursor(com.sleepycat.je.Transaction,com.sleepycat.je.CursorConfig)>(null, null);
+
+        r40 = $r3;
+
+        $r4 = new com.sleepycat.je.DatabaseEntry;
+
+        specialinvoke $r4.<com.sleepycat.je.DatabaseEntry: void <init>()>();
+
+        $r5 = new com.sleepycat.je.DatabaseEntry;
+
+        specialinvoke $r5.<com.sleepycat.je.DatabaseEntry: void <init>()>();
+
+     label03:
+        $r6 = <com.sleepycat.je.LockMode: com.sleepycat.je.LockMode DEFAULT>;
+
+        $r7 = virtualinvoke $r3.<com.sleepycat.je.Cursor: com.sleepycat.je.OperationStatus getNext(com.sleepycat.je.DatabaseEntry,com.sleepycat.je.DatabaseEntry,com.sleepycat.je.LockMode)>($r4, $r5, $r6);
+
+        $r8 = <com.sleepycat.je.OperationStatus: com.sleepycat.je.OperationStatus SUCCESS>;
+
+        if $r7 != $r8 goto label05;
+
+        $r17 = new java.lang.String;
+
+        $r18 = virtualinvoke $r4.<com.sleepycat.je.DatabaseEntry: byte[] getData()>();
+
+        specialinvoke $r17.<java.lang.String: void <init>(byte[],java.lang.String)>($r18, "UTF-8");
+
+        $i0 = virtualinvoke $r17.<java.lang.String: int indexOf(int)>(35);
+
+        if $i0 <= 0 goto label04;
+
+        $r19 = virtualinvoke $r17.<java.lang.String: java.lang.String substring(int,int)>(0, $i0);
+
+        $r21 = interfaceinvoke r20.<java.util.Map: java.lang.Object get(java.lang.Object)>($r19);
+
+        if null != $r21 goto label04;
+
+        $r22 = new com.sleepycat.je.DatabaseEntry;
+
+        $r23 = virtualinvoke $r4.<com.sleepycat.je.DatabaseEntry: byte[] getData()>();
+
+        specialinvoke $r22.<com.sleepycat.je.DatabaseEntry: void <init>(byte[])>($r23);
+
+        interfaceinvoke $r1.<java.util.List: boolean add(java.lang.Object)>($r22);
+
+     label04:
+        goto label03;
+
+     label05:
+        $z1 = <thredds.inventory.bdb.MetadataManager: boolean debugDelete>;
+
+        if $z1 == 0 goto label07;
+
+        $r9 = interfaceinvoke $r1.<java.util.List: java.util.Iterator iterator()>();
+
+     label06:
+        $z2 = interfaceinvoke $r9.<java.util.Iterator: boolean hasNext()>();
+
+        if $z2 == 0 goto label07;
+
+        $r10 = interfaceinvoke $r9.<java.util.Iterator: java.lang.Object next()>();
+
+        r41 = (com.sleepycat.je.DatabaseEntry) $r10;
+
+        $r11 = r0.<thredds.inventory.bdb.MetadataManager: com.sleepycat.je.Database database>;
+
+        $r12 = virtualinvoke $r11.<com.sleepycat.je.Database: com.sleepycat.je.OperationStatus delete(com.sleepycat.je.Transaction,com.sleepycat.je.DatabaseEntry)>(null, r41);
+
+        $r13 = new java.lang.String;
+
+        $r14 = virtualinvoke r41.<com.sleepycat.je.DatabaseEntry: byte[] getData()>();
+
+        specialinvoke $r13.<java.lang.String: void <init>(byte[],java.lang.String)>($r14, "UTF-8");
+
+        $r16 = <java.lang.System: java.io.PrintStream out>;
+
+        $r15 = newarray (java.lang.Object)[2];
+
+        $r15[0] = $r12;
+
+        $r15[1] = $r13;
+
+        virtualinvoke $r16.<java.io.PrintStream: java.io.PrintStream printf(java.lang.String,java.lang.Object[])>("%s deleted %s%n", $r15);
+
+        goto label06;
+
+     label07:
+        if null == $r3 goto label15;
+
+        virtualinvoke $r3.<com.sleepycat.je.Cursor: void close()>();
+
+        goto label15;
+
+     label08:
+        $r33 := @caughtexception;
+
+        $r35 = <thredds.inventory.bdb.MetadataManager: org.slf4j.Logger logger>;
+
+        $r34 = new java.lang.StringBuilder;
+
+        specialinvoke $r34.<java.lang.StringBuilder: void <init>()>();
+
+        $r36 = virtualinvoke $r34.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Trying to delete ");
+
+        $r37 = r0.<thredds.inventory.bdb.MetadataManager: java.lang.String collectionName>;
+
+        $r38 = virtualinvoke $r36.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r37);
+
+        $r39 = virtualinvoke $r38.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r35.<org.slf4j.Logger: void error(java.lang.String,java.lang.Throwable)>($r39, $r33);
+
+     label09:
+        if null == r40 goto label15;
+
+        virtualinvoke r40.<com.sleepycat.je.Cursor: void close()>();
+
+        goto label15;
+
+     label10:
+        $r26 := @caughtexception;
+
+        $r28 = <thredds.inventory.bdb.MetadataManager: org.slf4j.Logger logger>;
+
+        $r27 = new java.lang.StringBuilder;
+
+        specialinvoke $r27.<java.lang.StringBuilder: void <init>()>();
+
+        $r29 = virtualinvoke $r27.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("Trying to delete ");
+
+        $r30 = r0.<thredds.inventory.bdb.MetadataManager: java.lang.String collectionName>;
+
+        $r31 = virtualinvoke $r29.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($r30);
+
+        $r32 = virtualinvoke $r31.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        interfaceinvoke $r28.<org.slf4j.Logger: void error(java.lang.String,java.lang.Throwable)>($r32, $r26);
+
+     label11:
+        if null == r40 goto label15;
+
+        virtualinvoke r40.<com.sleepycat.je.Cursor: void close()>();
+
+        goto label15;
+
+     label12:
+        $r25 := @caughtexception;
+
+     label13:
+        if null == r40 goto label14;
+
+        virtualinvoke r40.<com.sleepycat.je.Cursor: void close()>();
+
+     label14:
+        throw $r25;
+
+     label15:
+        return;
+
+        catch java.lang.UnsupportedOperationException from label02 to label07 with label08;
+        catch java.io.UnsupportedEncodingException from label02 to label07 with label10;
+        catch java.lang.Throwable from label02 to label07 with label12;
+        catch java.lang.Throwable from label08 to label09 with label12;
+        catch java.lang.Throwable from label10 to label11 with label12;
+        catch java.lang.Throwable from label12 to label13 with label12;
+    }
+
+    public void close()
+    {
+        java.util.List $r3;
+        com.sleepycat.je.Database $r1, $r2;
+        thredds.inventory.bdb.MetadataManager r0;
+
+        r0 := @this: thredds.inventory.bdb.MetadataManager;
+
+        $r1 = r0.<thredds.inventory.bdb.MetadataManager: com.sleepycat.je.Database database>;
+
+        if $r1 == null goto label1;
+
+        $r2 = r0.<thredds.inventory.bdb.MetadataManager: com.sleepycat.je.Database database>;
+
+        virtualinvoke $r2.<com.sleepycat.je.Database: void close()>();
+
+        $r3 = <thredds.inventory.bdb.MetadataManager: java.util.List openDatabases>;
+
+        interfaceinvoke $r3.<java.util.List: boolean remove(java.lang.Object)>(r0);
+
+        r0.<thredds.inventory.bdb.MetadataManager: com.sleepycat.je.Database database> = null;
+
+     label1:
+        return;
+    }
+
+    public void showStats(java.util.Formatter)
+    {
+        java.lang.Throwable $r5;
+        com.sleepycat.je.DatabaseException $r6;
+        java.lang.Object[] $r4;
+        com.sleepycat.je.Database $r1;
+        thredds.inventory.bdb.MetadataManager r0;
+        com.sleepycat.je.DatabaseStats $r2;
+        java.util.Formatter r3;
+
+        r0 := @this: thredds.inventory.bdb.MetadataManager;
+
+        r3 := @parameter0: java.util.Formatter;
+
+        specialinvoke r0.<thredds.inventory.bdb.MetadataManager: void openDatabase()>();
+
+     label1:
+        $r1 = r0.<thredds.inventory.bdb.MetadataManager: com.sleepycat.je.Database database>;
+
+        $r2 = virtualinvoke $r1.<com.sleepycat.je.Database: com.sleepycat.je.DatabaseStats getStats(com.sleepycat.je.StatsConfig)>(null);
+
+        $r4 = newarray (java.lang.Object)[1];
+
+        $r4[0] = $r2;
+
+        virtualinvoke r3.<java.util.Formatter: java.util.Formatter format(java.lang.String,java.lang.Object[])>("primary stats %n%s%n", $r4);
+
+     label2:
+        goto label4;
+
+     label3:
+        $r5 := @caughtexception;
+
+        $r6 = (com.sleepycat.je.DatabaseException) $r5;
+
+        virtualinvoke $r6.<com.sleepycat.je.DatabaseException: void printStackTrace()>();
+
+     label4:
+        return;
+
+        catch com.sleepycat.je.DatabaseException from label1 to label2 with label3;
+    }
+
+    public java.util.List getContent() throws com.sleepycat.je.DatabaseException, java.io.UnsupportedEncodingException
+    {
+        java.lang.Throwable $r14;
+        com.sleepycat.je.OperationStatus $r7, $r8;
+        byte[] $r10, $r12;
+        com.sleepycat.je.LockMode $r6;
+        thredds.inventory.bdb.MetadataManager r0;
+        java.util.ArrayList $r1;
+        com.sleepycat.je.Database $r2;
+        java.lang.String $r9, $r11;
+        thredds.inventory.bdb.MetadataManager$KeyValue $r13;
+        com.sleepycat.je.DatabaseEntry $r4, $r5;
+        com.sleepycat.je.Cursor $r3, r15;
+
+        r0 := @this: thredds.inventory.bdb.MetadataManager;
+
+        specialinvoke r0.<thredds.inventory.bdb.MetadataManager: void openDatabase()>();
+
+        $r1 = new java.util.ArrayList;
+
+        specialinvoke $r1.<java.util.ArrayList: void <init>()>();
+
+        r15 = null;
+
+     label1:
+        $r2 = r0.<thredds.inventory.bdb.MetadataManager: com.sleepycat.je.Database database>;
+
+        $r3 = virtualinvoke $r2.<com.sleepycat.je.Database: com.sleepycat.je.Cursor openCursor(com.sleepycat.je.Transaction,com.sleepycat.je.CursorConfig)>(null, null);
+
+        r15 = $r3;
+
+        $r4 = new com.sleepycat.je.DatabaseEntry;
+
+        specialinvoke $r4.<com.sleepycat.je.DatabaseEntry: void <init>()>();
+
+        $r5 = new com.sleepycat.je.DatabaseEntry;
+
+        specialinvoke $r5.<com.sleepycat.je.DatabaseEntry: void <init>()>();
+
+     label2:
+        $r6 = <com.sleepycat.je.LockMode: com.sleepycat.je.LockMode DEFAULT>;
+
+        $r7 = virtualinvoke $r3.<com.sleepycat.je.Cursor: com.sleepycat.je.OperationStatus getNext(com.sleepycat.je.DatabaseEntry,com.sleepycat.je.DatabaseEntry,com.sleepycat.je.LockMode)>($r4, $r5, $r6);
+
+        $r8 = <com.sleepycat.je.OperationStatus: com.sleepycat.je.OperationStatus SUCCESS>;
+
+        if $r7 != $r8 goto label3;
+
+        $r9 = new java.lang.String;
+
+        $r10 = virtualinvoke $r4.<com.sleepycat.je.DatabaseEntry: byte[] getData()>();
+
+        specialinvoke $r9.<java.lang.String: void <init>(byte[],java.lang.String)>($r10, "UTF-8");
+
+        $r11 = new java.lang.String;
+
+        $r12 = virtualinvoke $r5.<com.sleepycat.je.DatabaseEntry: byte[] getData()>();
+
+        specialinvoke $r11.<java.lang.String: void <init>(byte[],java.lang.String)>($r12, "UTF-8");
+
+        $r13 = new thredds.inventory.bdb.MetadataManager$KeyValue;
+
+        specialinvoke $r13.<thredds.inventory.bdb.MetadataManager$KeyValue: void <init>(thredds.inventory.bdb.MetadataManager,java.lang.String,java.lang.String)>(r0, $r9, $r11);
+
+        interfaceinvoke $r1.<java.util.List: boolean add(java.lang.Object)>($r13);
+
+        goto label2;
+
+     label3:
+        if null == $r3 goto label7;
+
+        virtualinvoke $r3.<com.sleepycat.je.Cursor: void close()>();
+
+        goto label7;
+
+     label4:
+        $r14 := @caughtexception;
+
+     label5:
+        if null == r15 goto label6;
+
+        virtualinvoke r15.<com.sleepycat.je.Cursor: void close()>();
+
+     label6:
+        throw $r14;
+
+     label7:
+        return $r1;
+
+        catch java.lang.Throwable from label1 to label3 with label4;
+        catch java.lang.Throwable from label4 to label5 with label4;
+    }
+
+    public static void main(java.lang.String[]) throws java.lang.Exception
+    {
+        java.io.PrintStream $r2;
+        thredds.inventory.bdb.MetadataManager $r0;
+        java.lang.String[] r3;
+        java.util.Formatter $r1;
+
+        r3 := @parameter0: java.lang.String[];
+
+        $r0 = new thredds.inventory.bdb.MetadataManager;
+
+        specialinvoke $r0.<thredds.inventory.bdb.MetadataManager: void <init>(java.lang.String)>("dummy");
+
+        $r1 = new java.util.Formatter;
+
+        $r2 = <java.lang.System: java.io.PrintStream out>;
+
+        specialinvoke $r1.<java.util.Formatter: void <init>(java.io.PrintStream)>($r2);
+
+        virtualinvoke $r0.<thredds.inventory.bdb.MetadataManager: void showStats(java.util.Formatter)>($r1);
+
+        staticinvoke <thredds.inventory.bdb.MetadataManager: void closeAll()>();
+
+        return;
+    }
+
+    static void <clinit>()
+    {
+        org.slf4j.Logger $r0;
+        java.util.ArrayList $r1;
+        java.lang.StringBuilder $r3, $r4, $r5;
+        java.lang.String $r2, $r6, r7;
+
+        <thredds.inventory.bdb.MetadataManager: java.lang.String UTF8> = "UTF-8";
+
+        $r0 = staticinvoke <org.slf4j.LoggerFactory: org.slf4j.Logger getLogger(java.lang.Class)>(class "Lthredds/inventory/bdb/MetadataManager;");
+
+        <thredds.inventory.bdb.MetadataManager: org.slf4j.Logger logger> = $r0;
+
+        <thredds.inventory.bdb.MetadataManager: java.lang.String root> = null;
+
+        <thredds.inventory.bdb.MetadataManager: com.sleepycat.je.Environment myEnv> = null;
+
+        $r1 = new java.util.ArrayList;
+
+        specialinvoke $r1.<java.util.ArrayList: void <init>()>();
+
+        <thredds.inventory.bdb.MetadataManager: java.util.List openDatabases> = $r1;
+
+        <thredds.inventory.bdb.MetadataManager: boolean readOnly> = 0;
+
+        <thredds.inventory.bdb.MetadataManager: boolean debug> = 0;
+
+        <thredds.inventory.bdb.MetadataManager: boolean debugDelete> = 0;
+
+        $r2 = staticinvoke <java.lang.System: java.lang.String getProperty(java.lang.String)>("user.home");
+
+        r7 = $r2;
+
+        if $r2 != null goto label1;
+
+        r7 = staticinvoke <java.lang.System: java.lang.String getProperty(java.lang.String)>("user.dir");
+
+     label1:
+        if r7 != null goto label2;
+
+        r7 = ".";
+
+     label2:
+        $r3 = new java.lang.StringBuilder;
+
+        specialinvoke $r3.<java.lang.StringBuilder: void <init>()>();
+
+        $r4 = virtualinvoke $r3.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(r7);
+
+        $r5 = virtualinvoke $r4.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>("/.unidata/bdb/");
+
+        $r6 = virtualinvoke $r5.<java.lang.StringBuilder: java.lang.String toString()>();
+
+        <thredds.inventory.bdb.MetadataManager: java.lang.String root> = $r6;
+
+        return;
+    }
+}
