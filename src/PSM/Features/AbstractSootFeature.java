@@ -1,4 +1,5 @@
 package PSM.Features;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -8,6 +9,7 @@ import PSM.IFeature;
 import PSM.Info.Method;
 import soot.G;
 import soot.Hierarchy;
+import soot.PackManager;
 import soot.RefType;
 import soot.Scene;
 import soot.SootClass;
@@ -28,19 +30,22 @@ public abstract class AbstractSootFeature implements IFeature {
   private void initializeSoot(String cp) {
     if (SOOT_INITIALIZED) return;
     G.reset();
-
-    Options.v().set_allow_phantom_refs(true);
+    
+    Options.v().set_keep_line_number(true);
     Options.v().set_prepend_classpath(true);
+    Options.v().set_allow_phantom_refs(true);
+    Options.v().set_output_format(Options.output_format_jimple);
+    Options.v().set_process_dir(Collections.singletonList(cp));
     Options.v().set_whole_program(true);
+    Scene.v().loadNecessaryClasses();
+    //PackManager.v().runPacks();
     Options.v().set_include_all(true);
     Options.v().set_soot_classpath(cp);
     Options.v().setPhaseOption("cg.spark", "on");
-    Options.v().set_output_format(Options.output_format_jimple);
+    Options.v().setPhaseOption("cg","verbose:true");
     Options.v().set_no_bodies_for_excluded(true);
-    //Options.v().setPhaseOption("jb", "use-original-names:true");
     Options.v().set_prepend_classpath(true);
     Options.v().set_output_dir(System.getProperty("user.dir")+"/sootOutput");
-    Scene.v().loadNecessaryClasses();
     SOOT_INITIALIZED = true;
   }
 

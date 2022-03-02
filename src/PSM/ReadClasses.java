@@ -1,5 +1,8 @@
 package PSM;
 import java.io.BufferedReader;
+import vasco.*;
+import vasco.callgraph.CallGraphTransformer;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -21,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +40,7 @@ import soot.jimple.DefinitionStmt;
 import soot.jimple.IdentityStmt;
 import soot.jimple.InstanceInvokeExpr;
 import soot.jimple.InvokeExpr;
+import soot.jimple.JimpleBody;
 import soot.jimple.ParameterRef;
 import soot.jimple.ReturnStmt;
 import soot.jimple.Stmt;
@@ -56,8 +61,8 @@ import soot.jimple.infoflow.sourcesSinks.manager.ISourceSinkManager;
 import soot.jimple.infoflow.sourcesSinks.manager.SinkInfo;
 import soot.jimple.infoflow.sourcesSinks.manager.SourceInfo;
 import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
+import soot.jimple.spark.SparkTransformer;
 import soot.jimple.toolkits.callgraph.CallGraph;
-import soot.jimple.toolkits.callgraph.Sources;
 import soot.options.Options;
 import soot.tagkit.LineNumberTag;
 //import soot.jimple.toolkits.callgraph.Edge;
@@ -408,9 +413,141 @@ public class ReadClasses {
 		return EIM;
 	}
 	
+	static void setSparkPointsToAnalysis() {
+		System.out.println("[spark] Starting analysis ...");
+				
+		HashMap opt = new HashMap();
+		opt.put("enabled","true");
+		opt.put("verbose","true");
+		opt.put("ignore-types","false");          
+		opt.put("force-gc","false");            
+		opt.put("pre-jimplify","false");          
+		opt.put("vta","false");                   
+		opt.put("rta","false");                   
+		opt.put("field-based","false");           
+		opt.put("types-for-sites","false");        
+		opt.put("merge-stringbuffer","true");   
+		opt.put("string-constants","false");     
+		opt.put("simulate-natives","true");      
+		opt.put("simple-edges-bidirectional","false");
+		opt.put("on-fly-cg","true");            
+		opt.put("simplify-offline","false");    
+		opt.put("simplify-sccs","false");        
+		opt.put("ignore-types-for-sccs","false");
+		opt.put("propagator","worklist");
+		opt.put("set-impl","double");
+		opt.put("double-set-old","hybrid");         
+		opt.put("double-set-new","hybrid");
+		opt.put("dump-html","false");           
+		opt.put("dump-pag","false");             
+		opt.put("dump-solution","false");        
+		opt.put("topo-sort","false");           
+		opt.put("dump-types","true");             
+		opt.put("class-method-var","true");     
+		opt.put("dump-answer","false");          
+		opt.put("add-tags","false");             
+		opt.put("set-mass","false"); 		
+		
+		SparkTransformer.v().transform("",opt);
+		
+		System.out.println("[spark] Done!");
+	}
+	
+	private static int getLineNumber(Stmt s) {
+		Iterator ti = s.getTags().iterator();
+		while (ti.hasNext()) {
+			Object o = ti.next();
+			if (o instanceof LineNumberTag) 
+				return Integer.parseInt(o.toString());
+		}
+		return -1;
+	}
+	
+	private static SootField getField(String classname, String fieldname) {
+		Collection app = Scene.v().getApplicationClasses();
+		Iterator ci = app.iterator();
+		while (ci.hasNext()) {
+			SootClass sc = (SootClass)ci.next();
+			if (sc.getName().equals(classname))
+				return sc.getFieldByName(fieldname);
+		}
+		throw new RuntimeException("Field "+fieldname+" was not found in class "+classname);
+	}
+	
+	private static Map/*<Integer,Local>*/ getLocals(SootClass sc, String methodname, String typename) {
+		Map res = new HashMap();
+		Iterator mi = sc.getMethods().iterator();
+		while (mi.hasNext()) {
+			SootMethod sm = (SootMethod)mi.next();
+			System.err.println(sm.getName());
+			if (true && sm.getName().equals(methodname) && sm.isConcrete()) {
+				JimpleBody jb = (JimpleBody)sm.retrieveActiveBody();
+				Iterator ui = jb.getUnits().iterator();
+				while (ui.hasNext()) {
+					Stmt s = (Stmt)ui.next();						
+					int line = getLineNumber(s);
+					// find definitions
+					Iterator bi = s.getDefBoxes().iterator();
+					while (bi.hasNext()) {
+						Object o = bi.next();
+						if (o instanceof ValueBox) {
+							Value v = ((ValueBox)o).getValue();
+							if (v.getType().toString().equals(typename) && v instanceof Local)
+								res.put(new Integer(line),v);
+						}
+					}					
+				}
+			}
+		}
+		
+		return res;
+	}
+	
+	private static void printLocalIntersects(Map/*<Integer,Local>*/ ls) {
+		soot.PointsToAnalysis pta = Scene.v().getPointsToAnalysis();
+		Iterator i1 = ls.entrySet().iterator();
+		while (i1.hasNext()) {
+			Map.Entry e1 = (Map.Entry)i1.next();
+			int p1 = ((Integer)e1.getKey()).intValue();
+			Local l1 = (Local)e1.getValue();
+			PointsToSet r1 = pta.reachingObjects(l1);
+			Iterator i2 = ls.entrySet().iterator();
+			while (i2.hasNext()) {
+				Map.Entry e2 = (Map.Entry)i2.next();
+				int p2 = ((Integer)e2.getKey()).intValue();
+				Local l2 = (Local)e2.getValue();
+				PointsToSet r2 = pta.reachingObjects(l2);	
+				if (p1<=p2)
+					System.out.println("["+p1+","+p2+"]\t Container intersect? "+r1.hasNonEmptyIntersection(r2));
+			}
+		}
+	}
+	
+	
+	private static void printFieldIntersects(Map/*<Integer,Local>*/ ls, SootField f) {
+		soot.PointsToAnalysis pta = Scene.v().getPointsToAnalysis();
+		Iterator i1 = ls.entrySet().iterator();
+		while (i1.hasNext()) {
+			Map.Entry e1 = (Map.Entry)i1.next();
+			int p1 = ((Integer)e1.getKey()).intValue();
+			Local l1 = (Local)e1.getValue();
+			PointsToSet r1 = pta.reachingObjects(l1,f);
+			Iterator i2 = ls.entrySet().iterator();
+			while (i2.hasNext()) {
+				Map.Entry e2 = (Map.Entry)i2.next();
+				int p2 = ((Integer)e2.getKey()).intValue();
+				Local l2 = (Local)e2.getValue();
+				PointsToSet r2 = pta.reachingObjects(l2,f);	
+				if (p1<=p2)
+					System.out.println("["+p1+","+p2+"]\t Container.item intersect? "+r1.hasNonEmptyIntersection(r2));
+			}
+		}
+	}
+	
 	private void loadMethodsFromTestLib(final Set<String> testClasses) throws Exception {
 		Set<Value> valueSet = new HashSet<Value>();
 		Map<Value, SootMethod> map = new LinkedHashMap<Value, SootMethod>();
+		Map res = new HashMap();
 		Map<Value, SootMethod> sinkMap = new LinkedHashMap<Value, SootMethod>();
 	    int methodCount = methods.size();
 	    BOM = loadBOM();
@@ -422,7 +559,8 @@ public class ReadClasses {
 	      @Override
 	      public Type appliesInternal(Method method) throws Exception {
 	    	  System.out.println("Start looking for sources and sinks: ");
-	    	  
+	    	  setSparkPointsToAnalysis();
+
 	        for (String className : testClasses) {
 	          SootClass sc = Scene.v().forceResolve(className, SootClass.BODIES);
 	          sc.setApplicationClass();
@@ -435,21 +573,30 @@ public class ReadClasses {
 	  	        	
 	  	        	for (Unit u : m.retrieveActiveBody().getUnits()) {
 	        			  Value value = null;
+	        			  int line = getLineNumber((Stmt)u);
+	        			  Iterator bi = u.getDefBoxes().iterator();
+	  					while (bi.hasNext()) {
+	  						Object o = bi.next();
+	  						if (o instanceof ValueBox) {
+	  							Value v = ((ValueBox)o).getValue();
+	  							if (v instanceof Local)
+	  								res.put(new Integer(line),v);
+	  						}
+	  					}
 	        			  SootMethod methodBOM = null;
 	        			  if (u instanceof AssignStmt) {
 	        				  if (((AssignStmt) u).containsInvokeExpr()) {
+	        					  
 	        					  InvokeExpr invokeSource = ((AssignStmt) u).getInvokeExpr();
 	        					  for (String s : BOM) {
 	        				  		if ((s.contains(invokeSource.getMethod().toString()))) {
 	        				  			methodBOM = invokeSource.getMethod();
-	        				  			//basicSource.add(methodBOM);
+	        				  			System.out.println(methodBOM);
 	        				  			//if (!m.getReturnType().toString().toLowerCase().contains("void")) basicSource.add(m);
 	        				  			value = ((AssignStmt) u).getLeftOp();	
 	        				  			map.put(value,methodBOM);
-	        				  			//System.out.println("value "+value);
-	        				  			//System.out.println("source: "+u);
-	        				  			//valueSet.add(value);
-	        				  		}}
+	        				  			}
+	        				  		}
 	        				  }
 	        			  }
 	        			  
@@ -458,99 +605,11 @@ public class ReadClasses {
 	        				  if (map.containsKey(stmt.getOp())) basicSource.add(map.get(stmt.getOp())); //basicSource.add(m);
 	        			  }
 	        		  }
-	  	        	/*
-	  	        	for (Unit u0 : m.retrieveActiveBody().getUnits()) {
-	  	        		
-	  	        		
-	  	        		  if (((Stmt) u0).containsInvokeExpr()) {
-	  	        			  InvokeExpr ie = ((Stmt) u0).getInvokeExpr();
-	  	        			  for (int i = 0; i < ie.getArgCount(); i++) {
-	  	        				  //the function cannot be valueOf and the type must change
-	  	        				  //if (valueSet.contains(ie.getArg(i)) && !ie.getMethod().getName().toString().toLowerCase().contains("valueof")) {
-	  	        				  if (map.containsKey(ie.getArg(i)) && !ie.getMethod().getName().toString().toLowerCase().contains("valueof") && !ie.getMethod().getName().toString().toLowerCase().contains("init")) {
-	  	        					  //System.out.println("Value: "+ie.getArg(i)+" from BOM gets processed here: "+ie+" from: ");
-	  	        					  //System.out.println(map.get(ie.getArg(i)));
-	  	        					if(!(ie.getMethod().getReturnType() == ie.getArg(i).getType()) 
-	  	        							&& !ie.getMethod().getReturnType().toString().contains("void") 
-	  	        							&& (ie.getArg(i).getType().toString().toLowerCase().contains("string")
-	  	        									|| ie.getArg(i).getType().toString().toLowerCase().contains("list")
-	  	        									|| ie.getArg(i).getType().toString().toLowerCase().contains("array")
-	  	        									|| ie.getArg(i).getType().toString().toLowerCase().contains("buffer")
-	  	        									|| ie.getArg(i).getType().toString().toLowerCase().contains("byte"))
-	  	        							&& !ie.getArg(i).toString().toLowerCase().contains("$")
-	  	        							&& !ie.getArg(i).getType().toString().toLowerCase().contains("exception")
-	  	        							&& !ie.getMethod().getReturnType().toString().toLowerCase().contains("exception")
-	  	        							&& !ie.getArg(i).toString().toLowerCase().contains("#")) {
-	  	        							//&& !ie.getMethod().getReturnType().toString().toLowerCase().contains("string")) {
-	  	        					  //if(!(ie.getMethod().getReturnType() == ie.getArg(i).getType()) && !ie.getMethod().getReturnType().toString().contains("void")) {
-	  	        						  //System.out.println(ie.getArg(i)+" "+map.get(ie.getArg(i))+" "+ie+" "+ie.getArg(i).getType()+" "+ie.getMethod().getReturnType());
-	  	        					  }
-	  	        					  if(!(ie.getMethod().getReturnType() == ie.getArg(i).getType()) && ie.getMethod().getReturnType().toString().contains("void")) {
-	  	        						  //System.out.println("Value: "+ie.getArg(i)+" gets processed and no return.");
-	  	        					  }
-	  	        				  }
-	  	        			  }
-	  	        		  }
-
-	  	        		  
-	  	        		  if (u0 instanceof AssignStmt) {
-	  	        			  Value leftVal = ((AssignStmt) u0).getLeftOp();
-	  	        			  Value rightVal = ((AssignStmt) u0).getRightOp();
-	  	        			  //if (map.containsKey(leftVal)) map.remove(leftVal);
-	  	        			  if (map.containsKey(rightVal)) {
-	  	        				  map.put(leftVal, m);
-	  	        				  if ((((AssignStmt) u0).containsFieldRef())) {
-	  	        					  //System.out.println("Value: "+rightVal+ " from BOM: "+map.get(rightVal)+"flows to a field: "+((AssignStmt) u0).getFieldRef());
-	  	        				  }
-	  	        			  }
-	  	        		  }
-	  	        	  }*/
-	  	        	
-	  	        	//analyze();
+	  	        	}
 	  	        }
-	  	      }
-/*
 	          
-	          for (SootMethod sm : sc.getMethods()) {    
-	        	  
-	        	  if (sm.isConcrete() && (sm.toString().toLowerCase().contains("sql")
-						  || sm.getDeclaringClass().toString().toLowerCase().contains("sql")
-						  || sm.toString().toLowerCase().contains("query")
-						  || sm.getDeclaringClass().toString().toLowerCase().contains("database")
-						  || sm.toString().toLowerCase().contains("database")
-						  || sm.getDeclaringClass().toString().toLowerCase().contains("query"))
-						  && sm.toString().toLowerCase().contains("init")
-						  && sm.toString().toLowerCase().contains("exception")) {
-	        		  System.out.println(sm);
-	        		  basicSink.add(sm);
-	        	  }
-	        	  
-	        	  if (sm.isConcrete()) {
-	        		  
-	        		  for (Unit u : sm.retrieveActiveBody().getUnits()) {
-	        			  if (((Stmt) u).containsInvokeExpr()) {
-	        				  InvokeExpr invokeExpr = ((Stmt) u).getInvokeExpr();
-	        				  
-	        				  if ((invokeExpr.getMethod().toString().toLowerCase().contains("sql")
-	        						  || invokeExpr.getMethod().getDeclaringClass().toString().toLowerCase().contains("sql")
-	        						  || invokeExpr.getMethod().toString().toLowerCase().contains("query")
-	        						  || invokeExpr.getMethod().getDeclaringClass().toString().toLowerCase().contains("database")
-	        						  || invokeExpr.getMethod().toString().toLowerCase().contains("database")
-	        						  || invokeExpr.getMethod().getDeclaringClass().toString().toLowerCase().contains("query"))
-	        						  && !invokeExpr.getMethod().toString().toLowerCase().contains("init")
-	        						  && !invokeExpr.getMethod().toString().toLowerCase().contains("exception")) {
-	        				  //if (BIM.contains(invokeExpr.getMethod().getName().toString())) {
-	        					  //sinkMap.put(invokeExpr.getArg(0), invokeExpr.getMethod());
-	        					  //basicSink.add(invokeExpr.getMethod());
-	        					  //System.out.println("Class: "+sc+" Method: "+sm);
-	        					  System.out.println(sm);
-	        					  basicSink.add(sm);
-	        				  }
-	        			  }
-	        		  }
-	        	  }
-	          }*/
-	          
+	          printLocalIntersects(res);
+
 	          for (SootMethod sm : sc.getMethods()) {    
 	        	  
 	        	  if (sm.isConcrete() && BIM.contains(sm.toString())) {
