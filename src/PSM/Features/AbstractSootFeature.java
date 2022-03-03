@@ -31,6 +31,15 @@ public abstract class AbstractSootFeature implements IFeature {
     if (SOOT_INITIALIZED) return;
     G.reset();
     
+ // Call-graph options
+    Options.v().setPhaseOption("cg", "safe-newinstance:true");
+    Options.v().setPhaseOption("cg.cha","enabled:false");
+
+    // Enable SPARK call-graph construction
+    Options.v().setPhaseOption("cg.spark","enabled:true");
+    Options.v().setPhaseOption("cg.spark","verbose:true");
+    Options.v().setPhaseOption("cg.spark","on-fly-cg:true");
+    
     Options.v().set_keep_line_number(true);
     Options.v().set_prepend_classpath(true);
     Options.v().set_allow_phantom_refs(true);
@@ -42,7 +51,6 @@ public abstract class AbstractSootFeature implements IFeature {
     Options.v().set_include_all(true);
     Options.v().set_soot_classpath(cp);
     Options.v().setPhaseOption("cg.spark", "on");
-    Options.v().setPhaseOption("cg","verbose:true");
     Options.v().set_no_bodies_for_excluded(true);
     Options.v().set_prepend_classpath(true);
     Options.v().set_output_dir(System.getProperty("user.dir")+"/sootOutput");

@@ -63,6 +63,7 @@ import soot.jimple.infoflow.sourcesSinks.manager.SourceInfo;
 import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
 import soot.jimple.spark.SparkTransformer;
 import soot.jimple.toolkits.callgraph.CallGraph;
+import soot.jimple.toolkits.callgraph.Targets;
 import soot.options.Options;
 import soot.tagkit.LineNumberTag;
 //import soot.jimple.toolkits.callgraph.Edge;
@@ -503,22 +504,35 @@ public class ReadClasses {
 		return res;
 	}
 	
-	private static void printLocalIntersects(Map/*<Integer,Local>*/ ls) {
+	public static void deleteDuplicate(Map map1, Map map2) {
+		Iterator<Integer> itr = map1.keySet().iterator();
+		int key;
+		while (itr.hasNext()) {
+		    key = itr.next();
+		    if (map2.containsKey(key)) {
+		        itr.remove();
+		        map2.remove(key);
+		    }
+		}
+	}
+	
+	private static void printLocalIntersects(Map/*<Integer,Local>*/ ls, Map /*<Integer,Local>*/ all) {
 		soot.PointsToAnalysis pta = Scene.v().getPointsToAnalysis();
 		Iterator i1 = ls.entrySet().iterator();
+		Iterator i2 = all.entrySet().iterator();
 		while (i1.hasNext()) {
 			Map.Entry e1 = (Map.Entry)i1.next();
 			int p1 = ((Integer)e1.getKey()).intValue();
 			Local l1 = (Local)e1.getValue();
 			PointsToSet r1 = pta.reachingObjects(l1);
-			Iterator i2 = ls.entrySet().iterator();
+			
 			while (i2.hasNext()) {
 				Map.Entry e2 = (Map.Entry)i2.next();
 				int p2 = ((Integer)e2.getKey()).intValue();
 				Local l2 = (Local)e2.getValue();
 				PointsToSet r2 = pta.reachingObjects(l2);	
-				if (p1<=p2)
-					System.out.println("["+p1+","+p2+"]\t Container intersect? "+r1.hasNonEmptyIntersection(r2));
+				if (p1<=p2 && r1.hasNonEmptyIntersection(r2))
+					System.out.println("["+p1+","+p2+"]");
 			}
 		}
 	}
@@ -548,6 +562,7 @@ public class ReadClasses {
 		Set<Value> valueSet = new HashSet<Value>();
 		Map<Value, SootMethod> map = new LinkedHashMap<Value, SootMethod>();
 		Map res = new HashMap();
+		Map so = new HashMap();
 		Map<Value, SootMethod> sinkMap = new LinkedHashMap<Value, SootMethod>();
 	    int methodCount = methods.size();
 	    BOM = loadBOM();
@@ -560,41 +575,73 @@ public class ReadClasses {
 	      public Type appliesInternal(Method method) throws Exception {
 	    	  System.out.println("Start looking for sources and sinks: ");
 	    	  setSparkPointsToAnalysis();
+	    	  
+	    	  
 
 	        for (String className : testClasses) {
 	          SootClass sc = Scene.v().forceResolve(className, SootClass.BODIES);
+	          
 	          sc.setApplicationClass();
+	          /*
+	          if(sc.getName().toLowerCase().contains("main")) Options.v().set_main_class(sc.getName());
+	          
+	          SootMethod entryPoint = sc.getMethodByName("main");
+	          List<SootMethod> entryPoints = new ArrayList<SootMethod>();
+	          entryPoints.add(entryPoint);
+	          Scene.v().setEntryPoints(entryPoints);
+	          */
+	          int numOfEdges =0;
+	    	  CallGraph callGraph = Scene.v().getCallGraph();
+
 
 	          for (SootMethod m : sc.getMethods()) {
 	        	  //if (m.getName().contains("main")&& m.getDeclaringClass().getName().contains("console")) System.out.println(m);
 	  	        if (m.isConcrete()) {
-	  	        	if (BOM.contains(m.toString())) basicSource.add(m);
+	  	        	if (BOM.contains(m.getName())) {
+	  	        		basicSource.add(m);
+	  	        		Iterator<soot.jimple.toolkits.callgraph.Edge> edges = callGraph.edgesInto(m);
+	  	        		while (edges.hasNext()) {
+  						  soot.jimple.toolkits.callgraph.Edge edge = edges.next();
+  						  System.out.println(" source: "+edge.src()+" invocation: "+edge.srcStmt()+" to: "+edge.tgt());
+  					  }
+	  	        	}
+	  	        	
 	  	        	if (EOM.contains(m.toString())) basicSource.add(m);
 	  	        	
 	  	        	for (Unit u : m.retrieveActiveBody().getUnits()) {
 	        			  Value value = null;
+	        			  /*
 	        			  int line = getLineNumber((Stmt)u);
 	        			  Iterator bi = u.getDefBoxes().iterator();
 	  					while (bi.hasNext()) {
 	  						Object o = bi.next();
 	  						if (o instanceof ValueBox) {
-	  							Value v = ((ValueBox)o).getValue();
+	  							Value v = ((ValueBox)o).getValue();.
 	  							if (v instanceof Local)
 	  								res.put(new Integer(line),v);
 	  						}
 	  					}
+	  					
+	  					*/
 	        			  SootMethod methodBOM = null;
 	        			  if (u instanceof AssignStmt) {
 	        				  if (((AssignStmt) u).containsInvokeExpr()) {
-	        					  
+	        					  int lineo = getLineNumber((Stmt)u);
 	        					  InvokeExpr invokeSource = ((AssignStmt) u).getInvokeExpr();
 	        					  for (String s : BOM) {
 	        				  		if ((s.contains(invokeSource.getMethod().toString()))) {
 	        				  			methodBOM = invokeSource.getMethod();
-	        				  			System.out.println(methodBOM);
+	        				  			
 	        				  			//if (!m.getReturnType().toString().toLowerCase().contains("void")) basicSource.add(m);
 	        				  			value = ((AssignStmt) u).getLeftOp();	
+	        				  			//System.out.println("value: "+value+" invocation: "+invokeSource+" "+u);
 	        				  			map.put(value,methodBOM);
+	        				  			/*
+	        				  			if (value instanceof Local) {
+	        				  				so.put(line, value);
+	        				  				deleteDuplicate(so,res);
+	        				  				printLocalIntersects(so,res);
+	        				  				}*/
 	        				  			}
 	        				  		}
 	        				  }
@@ -602,13 +649,27 @@ public class ReadClasses {
 	        			  
 	        			  if (u instanceof ReturnStmt) {
 	        				  ReturnStmt stmt = (ReturnStmt) u;
-	        				  if (map.containsKey(stmt.getOp())) basicSource.add(map.get(stmt.getOp())); //basicSource.add(m);
+	        				  if (map.containsKey(stmt.getOp())) {
+	        					  Value v = stmt.getOp();
+	        					  basicSource.add(map.get(v)); //basicSource.add(m);
+	        					  Iterator<MethodOrMethodContext> targets = new Targets(callGraph.edgesOutOf(map.get(v)));
+	        					  Iterator<soot.jimple.toolkits.callgraph.Edge> edges = callGraph.edgesInto(map.get(v));
+	        					  while (targets.hasNext()) {
+	        						  numOfEdges++;
+	        						  SootMethod tgt = (SootMethod) targets.next();
+	        						  //System.out.println(map.get(stmt.getOp()) + " may call " + tgt);
+	        						  }
+	        					  while (edges.hasNext()) {
+	        						  soot.jimple.toolkits.callgraph.Edge edge = edges.next();
+	        						  if(edge.srcStmt() instanceof AssignStmt && v.equals(((AssignStmt)(edge.srcStmt())).getLeftOp())) {
+	        							  System.out.println("Value: "+v+" from source: "+edge.getTgt()+" is called by "+edge.getSrc()+" via: "+edge.srcStmt()+" arg: "+((AssignStmt)(edge.srcStmt())).getLeftOp());
+	        						  }
+	        					  }
+	        					  }
+	        				  }
 	        			  }
-	        		  }
 	  	        	}
 	  	        }
-	          
-	          printLocalIntersects(res);
 
 	          for (SootMethod sm : sc.getMethods()) {    
 	        	  
