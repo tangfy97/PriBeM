@@ -39,7 +39,6 @@ public abstract class AbstractSootFeature implements IFeature {
     Options.v().setPhaseOption("cg.spark","enabled:true");
     Options.v().setPhaseOption("cg.spark","verbose:true");
     Options.v().setPhaseOption("cg.spark","on-fly-cg:true");
-    
     Options.v().set_keep_line_number(true);
     Options.v().set_prepend_classpath(true);
     Options.v().set_allow_phantom_refs(true);
