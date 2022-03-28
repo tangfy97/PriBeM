@@ -1,5 +1,10 @@
 package PSM;
 import java.io.BufferedReader;
+import org.jgrapht.*;
+import org.jgrapht.graph.*;
+import org.jgrapht.nio.*;
+import org.jgrapht.nio.dot.*;
+import org.jgrapht.traverse.*;
 import vasco.*;
 import vasco.callgraph.CallGraphTransformer;
 import com.google.common.collect.*;
@@ -18,6 +23,7 @@ import java.util.Map;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,9 +32,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -75,12 +83,18 @@ import soot.jimple.infoflow.problems.InfoflowProblem;
 //import soot.jimple.infoflow.android.*;
 //import soot.jimple.infoflow.android.entryPointCreators.*;
 
+import org.jgrapht.Graph;
+import org.jgrapht.graph.DefaultDirectedGraph;
+import org.jgrapht.graph.DefaultEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xmlpull.v1.XmlPullParserException;
 
 import PSM.Features.AbstractSootFeature;
 import PSM.Features.*;
+import PSM.CallGraphTemplate;
+import PSM.CallGraphTemplate.LocalGraph;
+import PSM.CallGraphTemplate.Vertex;
 import PSM.Info.Method;
 import polyglot.ast.Assert;
 
@@ -223,6 +237,47 @@ public class ReadClasses {
 		return sink;
 	}
 	
+	 /**
+     * Traverse a graph in depth-first order and print the vertices.
+     *
+     * @param hrefGraph a graph based on URI objects
+     *
+     * @param start the vertex where the traversal should start
+     */
+	public static void traverseHrefGraph(Graph<String, DefaultEdge> hrefGraph, String start)
+    {
+		int count = 0;
+        Iterator<String> iterator = new DepthFirstIterator<>(hrefGraph, start);
+        System.out.println("Starting from source: ");
+        while (iterator.hasNext()) {
+        	String method = iterator.next();
+            System.out.println(count+": "+method);
+            count++;
+        }
+        System.out.println("Flows from source is finished.");
+    }
+
+    /**
+     * Render a graph in DOT format.
+     *
+     * @param hrefGraph a graph based on URI objects
+     */
+    public static void renderHrefGraph(Graph<String, DefaultEdge> hrefGraph)
+        throws ExportException
+    {
+
+        DOTExporter<String, DefaultEdge> exporter =
+            new DOTExporter<>();
+        exporter.setVertexAttributeProvider((v) -> {
+            Map<String, Attribute> map = new LinkedHashMap<>();
+            map.put("label", DefaultAttribute.createAttribute(v.toString()));
+            return map;
+        });
+        Writer writer = new StringWriter();
+        exporter.exportGraph(hrefGraph, writer);
+        System.out.println(writer.toString());
+    }
+	
 	public void findFlow() throws Exception {
 		source = loadSource();
 		sink = loadSink();
@@ -364,6 +419,23 @@ public class ReadClasses {
 
 	}*/
 	
+
+	Set<SootMethod> depthFirstTraversal(LocalGraph graph, SootMethod root) {
+	    Set<SootMethod> visited = new LinkedHashSet<SootMethod>();
+	    Stack<SootMethod> stack = new Stack<SootMethod>();
+	    stack.push(root);
+	    while (!stack.isEmpty()) {
+	    	SootMethod vertex = stack.pop();
+	        if (!visited.contains(vertex)) {
+	            visited.add(vertex);
+	            for (Vertex v : graph.getAdjVertices(vertex)) {              
+	                stack.push(v.label);
+	            }
+	        }
+	    }
+	    return visited;
+	}
+	
 	public Set<String> loadBOM() throws Exception {
 		BufferedReader bufReader = new BufferedReader(new FileReader(bomPath)); 
 		Set<String> BOM = new HashSet<String>(); 
@@ -420,6 +492,7 @@ public class ReadClasses {
 		System.out.println("[spark] Starting analysis ...");
 				
 		HashMap opt = new HashMap();
+		
 		opt.put("enabled","true");
 		opt.put("verbose","true");
 		opt.put("ignore-types","false");          
@@ -427,10 +500,10 @@ public class ReadClasses {
 		opt.put("pre-jimplify","false");          
 		opt.put("vta","false");                   
 		opt.put("rta","false");                   
-		opt.put("field-based","false");           
+		opt.put("field-based","true");           
 		opt.put("types-for-sites","false");        
 		opt.put("merge-stringbuffer","true");   
-		opt.put("string-constants","false");     
+		opt.put("string-constants","true");     
 		opt.put("simulate-natives","true");      
 		opt.put("simple-edges-bidirectional","false");
 		opt.put("on-fly-cg","true");            
@@ -449,52 +522,13 @@ public class ReadClasses {
 		opt.put("class-method-var","true");     
 		opt.put("dump-answer","false");          
 		opt.put("add-tags","false");             
-		opt.put("set-mass","false"); 	
+		opt.put("set-mass","false"); 
 		
 		SparkTransformer.v().transform("",opt);
 		
 		System.out.println("[spark] Done!");
 	}
 	
-	private static Set getLocals(SootClass sc/*, String methodname, String typename*/) {
-		Set res = new HashSet();
-		Iterator mi = sc.getMethods().iterator();
-		while (mi.hasNext()) {
-			SootMethod sm = (SootMethod)mi.next();
-			System.err.println(sm.getName());
-			if (true && /*sm.getName().equals(methodname) && */sm.isConcrete()) {
-				JimpleBody jb = (JimpleBody)sm.retrieveActiveBody();
-				Iterator ui = jb.getUnits().iterator();
-				while (ui.hasNext()) {
-					Stmt s = (Stmt)ui.next();						
-					int line = getLineNumber(s);
-					// find definitions
-					Iterator bi = s.getDefBoxes().iterator();
-					while (bi.hasNext()) {
-						Object o = bi.next();
-						if (o instanceof ValueBox) {
-							Value v = ((ValueBox)o).getValue();
-							if (/*v.getType().toString().equals(typename) &&*/ v instanceof Local)
-								res.add(v);
-						}
-					}					
-				}
-			}
-		}
-		
-		return res;
-	}
-	
-	private static int getLineNumber(Stmt s) {
-		Iterator ti = s.getTags().iterator();
-		while (ti.hasNext()) {
-			Object o = ti.next();
-			if (o instanceof LineNumberTag) 
-				return Integer.parseInt(o.toString());
-		}
-		return -1;
-	}
-
 	
 	public void findAllEdgesInto(SootMethod m, CallGraph cg) {
 		for(Iterator<soot.jimple.toolkits.callgraph.Edge> it = cg.edgesOutOf(m); it.hasNext(); ){
@@ -527,24 +561,25 @@ public class ReadClasses {
 	        	
 	          SootClass sc = Scene.v().forceResolve(className, SootClass.BODIES);
 	          sc.setApplicationClass();
-	          
-	          int numOfEdges = 0;
-	          Multimap<Map<SootMethod,Stmt>, SootMethod> graph = ArrayListMultimap.create();
-	          Map<SootMethod, Stmt> callee = new LinkedHashMap<SootMethod, Stmt>();
+
+	          //int numOfEdges = 0;
+	          Multimap<SootMethod, SootMethod> call = ArrayListMultimap.create();
+	          //Map<SootMethod, SootMethod> call = new LinkedHashMap<SootMethod, SootMethod>();
 	    	  CallGraph callGraph = Scene.v().getCallGraph();
-	    	  PointsToAnalysis pta = Scene.v().getPointsToAnalysis();
+	    	  //PointsToAnalysis pta = Scene.v().getPointsToAnalysis();
 	    	  
 	    	  Set<SootMethod> startSet = new HashSet<SootMethod>();
 	    	  Set<Value> valueSet = new HashSet<Value>();
-	    	  Map<Integer, Local> valueMap = new LinkedHashMap<Integer, Local>();
+	    	  //Map<Integer, Local> valueMap = new LinkedHashMap<Integer, Local>();
 	    	  boolean hasSource = false;
 	    	  
 
 	          for (SootMethod m : sc.getMethods()) {
 	        	 
-	  	        if (m.isConcrete()) {
+	  	        if (m.isConcrete() && !m.getName().toLowerCase().contains("init")
+	  	        		&& !m.getName().toLowerCase().contains("main")) {
 
-	  	        	if (EOM.contains(m.toString())) {
+	  	        	if (EOM.contains(m.toString()) || BOM.contains(m.toString())) {
 	  	        		basicSource.add(m);
 	  	        		hasSource = true;
 	  	        	}
@@ -556,11 +591,11 @@ public class ReadClasses {
 	        			  SootMethod first = null;
 	        			  if (u instanceof AssignStmt) {
 	        				  if (((AssignStmt) u).containsInvokeExpr()) {
-	        					  int lineo = getLineNumber((Stmt)u);
+	        					  //int lineo = getLineNumber((Stmt)u);
 	        					  InvokeExpr invokeSource = ((AssignStmt) u).getInvokeExpr();
 	        					  //System.out.println(invokeSource.getMethod());
 	        					  for (String s : BOM) {
-	        				  		if ((s.equals(invokeSource.getMethod().getName()))) {
+	        				  		if ((s.equals(invokeSource.getMethod().toString()))) {
 	        					  //if(invokeSource.getMethod().getName().toLowerCase().contains("next")) {
 	        				  			methodBOM = invokeSource.getMethod();
 	        				  			value = ((AssignStmt) u).getLeftOp();	
@@ -590,64 +625,88 @@ public class ReadClasses {
 	          
 	          if(hasSource == true) {
 	        	  System.out.println("Now we build call graphs for class: "+sc);
-	        	  
-	        	  /*
-	        	  for (SootMethod sm : basicSource) {
-	        		  Iterator<soot.jimple.toolkits.callgraph.Edge> edges = callGraph.edgesInto(sm);
-	        		  while(edges.hasNext()) {
-	        			  soot.jimple.toolkits.callgraph.Edge edge = edges.next(); 
-	        			  if(edge.srcStmt() instanceof AssignStmt) {
-	        				  startSet.add(edge.src());
-	        				  //valueSet.add(((AssignStmt) edge.srcStmt()).getLeftOp());
-	        			  }
-	        		  }
-	        	  }*/
-
-	        	  
+	        	  LocalGraph localGraph = new LocalGraph();
+	        	  Graph<String, DefaultEdge> g = new DefaultDirectedGraph<>(DefaultEdge.class);
 	        	  
 	        	  for (SootMethod sm : sc.getMethods()) {
-	        		  if(sm.isConcrete()) {
-	        			  Iterator<soot.jimple.toolkits.callgraph.Edge> edges = callGraph.edgesOutOf(sm);
-	        			  while (edges.hasNext()) {
-	        				  soot.jimple.toolkits.callgraph.Edge edge = edges.next(); 
-	        				  if(!edge.srcStmt().equals(null) && edge.srcStmt().containsInvokeExpr()) {
-	        					  //System.out.println(edge);
-	        					  System.out.println(edge.src()+" calls: "+edge.tgt()+" via: "+edge.srcStmt());
-	        					  callee.put(edge.tgt(), edge.srcStmt());
-	        					  graph.put(callee, edge.src());
+	        		  if(!sm.getName().contains("init")) {
+	        			  if(basicSource.contains(sm)) System.out.println("Source here: "+sm);
+	        			  Iterator<soot.jimple.toolkits.callgraph.Edge> edgesOut = callGraph.edgesOutOf(sm);
+	        			  Iterator<soot.jimple.toolkits.callgraph.Edge> edgesIn = callGraph.edgesInto(sm);
+	        			  while (edgesOut.hasNext()) {
+	        				  soot.jimple.toolkits.callgraph.Edge edgeOut = edgesOut.next(); 
+	        				  if(!edgeOut.src().getName().contains("init") && !edgeOut.tgt().getName().contains("init")) {
+	        					  //System.out.println("Out from: " +sm+" edge: "+edgeOut);
+	        					  //call.put(edgeOut.tgt(), edgeOut.src());
+	        					  //localGraph.addVertex(edgeOut.src());
+	        					  //localGraph.addVertex(edgeOut.tgt());
+	        					  //localGraph.addEdge(edgeOut.tgt(), edgeOut.src());
+	        					  g.addVertex(edgeOut.src().getName());
+	        					  g.addVertex(edgeOut.tgt().getName());
+	        					  g.addEdge(edgeOut.tgt().getName(), edgeOut.src().getName());
+	        					  //System.out.println(edge.src()+" calls: "+edge.tgt()+" via: "+edge);
 	        					  }
 	        				  }
-	        		  }
-	        	  }
-	        	  
-	        	  if(!graph.isEmpty()) {
-	        		  for(SootMethod p : callee.keySet()) {
-	        			  for(SootMethod k : basicSource) {
-	        				  if(p.getName().equals(k.getName())
-	        						  /*&& p instanceof AssignStmt*/) {
-	        					  if (!startSet.contains(p)) {
-	        						  System.out.println("Found source being called: "+p);
-	        						  startSet.add(p);
-	        					  }
+	        			  while (edgesIn.hasNext()) {
+	        				  soot.jimple.toolkits.callgraph.Edge edgeIn = edgesIn.next(); 
+	        				  if(!edgeIn.src().getName().contains("init") && !edgeIn.tgt().getName().contains("init")) {
+	        				  //System.out.println("In to: " +sm+" edge: "+edgeIn);
+	        				  //call.put(edgeIn.tgt(), edgeIn.src());
+	        					  //localGraph.addVertex(edgeIn.src());
+	        					  //localGraph.addVertex(edgeIn.tgt());
+	        					  //localGraph.addEdge(edgeIn.tgt(), edgeIn.src());
+	        					  g.addVertex(edgeIn.src().getName());
+	        					  g.addVertex(edgeIn.tgt().getName());
+	        					  g.addEdge(edgeIn.tgt().getName(), edgeIn.src().getName());
 	        				  }
 	        			  }
 	        		  }
 	        	  }
-	        	  /*
-	        	  for(SootMethod start : startSet) {
-	        		  int count = 0;
-					  while(start != null) {
-						  ImmutableCollection<Stmt> temp = null;
-						  temp = graph.inverse().get(start);
-						  //System.out.println(count+": "+temp);
-						  start = temp;
-						  count ++;
-						  }
-					  }*/
-	        	  }
+	        	  if(!g.edgeSet().isEmpty()) {
+	        	  for (SootMethod source : basicSource) {
+	        		  Boolean start = g.vertexSet().contains(source.getName());
+	        		  if(start) {
+	        			  System.out.println("Start traversal for source: "+source+"...");
+	        			  traverseHrefGraph(g, source.getName());
+		        		  //renderHrefGraph(g);
+	        			  }
+	        		  }
+	        	  System.out.println("Callgraph for class: "+sc);
+	        	  renderHrefGraph(g);}
+	        	  } 
 	          hasSource = false;
 	          }
-
+	        
+	        /*
+	        for (String className : testClasses) {
+	        	if(className.contains("ABServer")) {
+	        		SootClass mainClass = Scene.v().forceResolve(className, SootClass.BODIES);
+	        		mainClass.setApplicationClass();
+	        		
+	        		CallGraph callGraph = Scene.v().getCallGraph();
+	        		
+	        		System.out.println("Now we build call graphs for class: "+mainClass);
+		        	  
+		        	  for (SootMethod sm : mainClass.getMethods()) {
+		        		  //if(sm.isConcrete()) {
+		        		  System.out.println(sm+"\n");
+		        			  Iterator<soot.jimple.toolkits.callgraph.Edge> edgesOut = callGraph.edgesOutOf(sm);
+		        			  Iterator<soot.jimple.toolkits.callgraph.Edge> edgesIn = callGraph.edgesInto(sm);
+		        			  while (edgesOut.hasNext()) {
+		        				  soot.jimple.toolkits.callgraph.Edge edgeOut = edgesOut.next(); 
+		        				  //if(!edge.srcStmt().equals(null) && edge.srcStmt().containsInvokeExpr()) {
+		        					  System.out.println(edgeOut);
+		        					  //System.out.println(edge.src()+" calls: "+edge.tgt()+" via: "+edge);
+		        					  //}
+		        				  }
+		        			  while (edgesIn.hasNext()) {
+		        				  soot.jimple.toolkits.callgraph.Edge edgeIn = edgesIn.next(); 
+		        				  System.out.println(edgeIn);
+		        			  }
+		        		  //}
+		        	  }
+	        	}
+	        }*/
 
 	        for (String className : testClasses) {
 		          SootClass sc = Scene.v().forceResolve(className, SootClass.BODIES);
@@ -987,5 +1046,7 @@ public class ReadClasses {
 		}
 		return sb.toString();
 	}
+	
+	
 	
 }
