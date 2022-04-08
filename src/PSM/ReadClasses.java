@@ -635,6 +635,7 @@ public class ReadClasses {
 	        			  Iterator<soot.jimple.toolkits.callgraph.Edge> edgesIn = callGraph.edgesInto(sm);
 	        			  while (edgesOut.hasNext()) {
 	        				  soot.jimple.toolkits.callgraph.Edge edgeOut = edgesOut.next(); 
+	        				  //System.out.println(edgesOut);
 	        				  if(!edgeOut.src().getName().contains("init") && !edgeOut.tgt().getName().contains("init")) {
 	        					  //System.out.println("Out from: " +sm+" edge: "+edgeOut);
 	        					  //call.put(edgeOut.tgt(), edgeOut.src());
