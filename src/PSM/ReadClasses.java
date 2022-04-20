@@ -645,6 +645,9 @@ public class ReadClasses {
 	        					  g.addVertex(edgeOut.src().getName());
 	        					  g.addVertex(edgeOut.tgt().getName());
 	        					  g.addEdge(edgeOut.tgt().getName(), edgeOut.src().getName());
+	        					  if((edgeOut.src().getDeclaringClass() != edgeOut.tgt().getDeclaringClass()) && !edgeOut.tgt().getDeclaringClass().toString().contains("java")) {
+	        						  System.out.println("Global flow here: "+edgeOut.src()+" calls: "+edgeOut.tgt()+" via: "+edgeOut);
+	        					  }
 	        					  //System.out.println(edge.src()+" calls: "+edge.tgt()+" via: "+edge);
 	        					  }
 	        				  }
@@ -669,11 +672,11 @@ public class ReadClasses {
 	        		  if(start) {
 	        			  System.out.println("Start traversal for source: "+source+"...");
 	        			  traverseHrefGraph(g, source.getName());
-		        		  //renderHrefGraph(g);
 	        			  }
 	        		  }
-	        	  System.out.println("Callgraph for class: "+sc);
-	        	  renderHrefGraph(g);}
+	        	  //System.out.println("Callgraph for class: "+sc);
+	        	  //renderHrefGraph(g);
+	        	  }
 	        	  } 
 	          hasSource = false;
 	          }
