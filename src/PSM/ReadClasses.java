@@ -97,7 +97,7 @@ import PSM.CallGraphTemplate.LocalGraph;
 import PSM.CallGraphTemplate.Vertex;
 import PSM.Info.Method;
 import polyglot.ast.Assert;
-
+import scala.unchecked;
 import boomerang.BackwardQuery;
 import boomerang.Boomerang;
 import boomerang.DefaultBoomerangOptions;
@@ -601,7 +601,7 @@ public class ReadClasses {
 	        				  			value = ((AssignStmt) u).getLeftOp();	
 	        				  			//System.out.println("value: "+value+" invocation: "+invokeSource+" "+u);
 	        				  			map.put(value,methodBOM);
-	        				  			basicSource.add(m);
+	        				  			//basicSource.add(m);
 	        				  			basicSource.add(methodBOM);
 	        				  			valueSet.add(value);
 	        				  			hasSource=true;
@@ -619,6 +619,13 @@ public class ReadClasses {
 	        					  }
 	        				  }*/
 	        			  }
+	  	        	for (Unit u : m.retrieveActiveBody().getUnits()) {
+	  	        		for(ValueBox vb : u.getUseAndDefBoxes()) {
+	  	        			for(Value v : valueSet) {
+	  	        				if (vb.getValue().equals(v)) System.out.println("Value: "+v+" flows here: "+u);
+	  	        			}
+	  	        		}
+	  	        	}
 	  	        	}
 	  	        }
 	          //System.out.println("Finished scanning for class: "+sc);
@@ -637,33 +644,26 @@ public class ReadClasses {
 	        				  soot.jimple.toolkits.callgraph.Edge edgeOut = edgesOut.next(); 
 	        				  //System.out.println(edgesOut);
 	        				  if(!edgeOut.src().getName().contains("init") && !edgeOut.tgt().getName().contains("init")) {
-	        					  //System.out.println("Out from: " +sm+" edge: "+edgeOut);
-	        					  //call.put(edgeOut.tgt(), edgeOut.src());
-	        					  //localGraph.addVertex(edgeOut.src());
-	        					  //localGraph.addVertex(edgeOut.tgt());
-	        					  //localGraph.addEdge(edgeOut.tgt(), edgeOut.src());
+	        					  //we add edges and vertex
 	        					  g.addVertex(edgeOut.src().getName());
 	        					  g.addVertex(edgeOut.tgt().getName());
 	        					  g.addEdge(edgeOut.tgt().getName(), edgeOut.src().getName());
+	        					  //check global flows here: if start and end points of edge are declared by different classes
 	        					  if((edgeOut.src().getDeclaringClass() != edgeOut.tgt().getDeclaringClass()) && !edgeOut.tgt().getDeclaringClass().toString().contains("java")) {
 	        						  System.out.println("Global flow here: "+edgeOut.src()+" calls: "+edgeOut.tgt()+" via: "+edgeOut);
 	        					  }
 	        					  //System.out.println(edge.src()+" calls: "+edge.tgt()+" via: "+edge);
 	        					  }
 	        				  }
+	        			  /*
 	        			  while (edgesIn.hasNext()) {
 	        				  soot.jimple.toolkits.callgraph.Edge edgeIn = edgesIn.next(); 
 	        				  if(!edgeIn.src().getName().contains("init") && !edgeIn.tgt().getName().contains("init")) {
-	        				  //System.out.println("In to: " +sm+" edge: "+edgeIn);
-	        				  //call.put(edgeIn.tgt(), edgeIn.src());
-	        					  //localGraph.addVertex(edgeIn.src());
-	        					  //localGraph.addVertex(edgeIn.tgt());
-	        					  //localGraph.addEdge(edgeIn.tgt(), edgeIn.src());
 	        					  g.addVertex(edgeIn.src().getName());
 	        					  g.addVertex(edgeIn.tgt().getName());
 	        					  g.addEdge(edgeIn.tgt().getName(), edgeIn.src().getName());
 	        				  }
-	        			  }
+	        			  }*/
 	        		  }
 	        	  }
 	        	  if(!g.edgeSet().isEmpty()) {
