@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -244,20 +245,34 @@ public class ReadClasses {
      *
      * @param start the vertex where the traversal should start
      */
-	public static void traverseHrefGraph(Graph<String, DefaultEdge> hrefGraph, String start)
+	public static Graph<SootMethod, DefaultEdge> traverseHrefGraph(Graph<SootMethod, DefaultEdge> hrefGraph, SootMethod start)
     {
 		int count = 0;
-        Iterator<String> iterator = new DepthFirstIterator<>(hrefGraph, start);
-        System.out.println("Starting from source: ");
+		Graph<SootMethod, DefaultEdge> cg = new DefaultDirectedGraph<>(DefaultEdge.class);
+		Iterator<SootMethod> iterator = new DepthFirstIterator<>(hrefGraph, start);
+		SootMethod callee = null;
+        
         while (iterator.hasNext()) {
-        	String method = iterator.next();
-            System.out.println(count+": "+method);
-            
+        	SootMethod caller = iterator.next();
+        	if(callee != null) {
+        		cg.addVertex(callee);
+        		cg.addVertex(caller);
+        		cg.addEdge(callee, caller);
+        		System.out.println(count+": "+callee+" -> "+caller);
+        		if((caller.getDeclaringClass()!= callee.getDeclaringClass()) && 
+        				(!caller.getDeclaringClass().toString().toLowerCase().contains("java"))){System.out.println("Global flow detected: "+callee+" -> "+caller);}
+        		}
+        	if(callee == null) {
+        		System.out.println("Starting from source: "+caller);
+        	}
             count++;
+            callee = caller;
         }
+        
         System.out.println("Flows from source is finished.");
         //System.out.println("***************************");
         System.out.println("\n");
+        return cg;
     }
 
     /**
@@ -265,11 +280,11 @@ public class ReadClasses {
      *
      * @param hrefGraph a graph based on URI objects
      */
-    public static void renderHrefGraph(Graph<String, DefaultEdge> hrefGraph)
+    public static void renderHrefGraph(Graph<SootMethod, DefaultEdge> hrefGraph)
         throws ExportException
     {
 
-        DOTExporter<String, DefaultEdge> exporter =
+        DOTExporter<SootMethod, DefaultEdge> exporter =
             new DOTExporter<>();
         exporter.setVertexAttributeProvider((v) -> {
             Map<String, Attribute> map = new LinkedHashMap<>();
@@ -594,12 +609,10 @@ public class ReadClasses {
 
 	        			  if (u instanceof AssignStmt) {
 	        				  if (((AssignStmt) u).containsInvokeExpr()) {
-	        					  //int lineo = getLineNumber((Stmt)u);
 	        					  InvokeExpr invokeSource = ((AssignStmt) u).getInvokeExpr();
-	        					  //System.out.println(invokeSource.getMethod());
 	        					  for (String s : BOM) {
-	        				  		//if ((s.equals(invokeSource.getMethod().toString()))) {
-	        					  if(invokeSource.getMethod().getName().toLowerCase().contains("next")) {
+	        				  		if ((s.equals(invokeSource.getMethod().toString()))) {
+	        					  //if(invokeSource.getMethod().getName().toLowerCase().contains("next")) {
 	        				  			methodBOM = invokeSource.getMethod();
 	        				  			value = ((AssignStmt) u).getLeftOp();	
 	        				  			//System.out.println("value: "+value+" invocation: "+invokeSource+" "+u);
@@ -631,7 +644,7 @@ public class ReadClasses {
 	        	  System.out.println("***************************");
 	        	  System.out.println("Now we build call graphs for class: "+sc);
 	        	  //LocalGraph localGraph = new LocalGraph();
-	        	  Graph<String, DefaultEdge> g = new DefaultDirectedGraph<>(DefaultEdge.class);
+	        	  Graph<SootMethod, DefaultEdge> g = new DefaultDirectedGraph<>(DefaultEdge.class);
 	        	  
 	        	  for (SootMethod sm : sc.getMethods()) {
 	        		  if(!sm.getName().contains("init")) {
@@ -650,19 +663,15 @@ public class ReadClasses {
 	        			  while (edgesOut.hasNext()) {
 	        				  soot.jimple.toolkits.callgraph.Edge edgeOut = edgesOut.next(); 
 	        				  //System.out.println(edgesOut);
-	        				  if(!edgeOut.src().getName().contains("init") && !edgeOut.tgt().getName().contains("init")) {
+	        				  if(!edgeOut.src().getName().contains("init") 
+	        						  && !edgeOut.tgt().getName().contains("init")
+	        						  && !edgeOut.src().getDeclaringClass().getName().contains("error")
+	        						  && !edgeOut.tgt().getDeclaringClass().getName().contains("error")) {
 	        					  //we add edges and vertex
-	        					  g.addVertex(edgeOut.src().getName());
-	        					  g.addVertex(edgeOut.tgt().getName());
-	        					  g.addEdge(edgeOut.tgt().getName(), edgeOut.src().getName());
-	        					  //check global flows here: if start and end points of edge are declared by different classes
-	        					  if((edgeOut.src().getDeclaringClass() != edgeOut.tgt().getDeclaringClass()) && !edgeOut.tgt().getDeclaringClass().toString().contains("java")) {
-	        						  System.out.println("\n");
-	        						  System.out.println("Global flow here: "+edgeOut);
-	        						  System.out.println("Class: "+edgeOut.tgt().getDeclaringClass());
-	        						  if(basicSource.contains(edgeOut.tgt())) {System.out.println("Global flow goes to a source: "+edgeOut.tgt());}
-	        						  
-	        					  }
+	        					  g.addVertex(edgeOut.src());
+	        					  g.addVertex(edgeOut.tgt());
+	        					  g.addEdge(edgeOut.tgt(), edgeOut.src());
+
 	        					  //System.out.println(edge.src()+" calls: "+edge.tgt()+" via: "+edge);
 	        					  }
 	        				  }
@@ -679,14 +688,15 @@ public class ReadClasses {
 	        	  }
 	        	  if(!g.edgeSet().isEmpty()) {
 	        	  for (SootMethod source : basicSource) {
-	        		  Boolean start = g.vertexSet().contains(source.getName());
+	        		  Boolean start = g.vertexSet().contains(source);
 	        		  if(start) {
 	        			  System.out.println("Start traversal for source: "+source+"...");
-	        			  traverseHrefGraph(g, source.getName());
+	        			  //traverseHrefGraph(g, source);
+	        			  renderHrefGraph(traverseHrefGraph(g, source));
 	        			  }
 	        		  }
 	        	  //System.out.println("Callgraph for class: "+sc);
-	        	  renderHrefGraph(g);
+	        	  //renderHrefGraph(g);
 	        	  }
 	        	  } 
 	          hasSource = false;
