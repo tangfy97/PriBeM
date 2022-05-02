@@ -1,5 +1,7 @@
 This repo hosts the source code of Privacy-sensitive Behaviour Miner (PriBM) for Java/Android applications.
 
+Privacy-sensitive Behaviour Miner (PriBM) is a semi-automatic tool to find privacy-relevant behaviours in programs.
+
 Samples used for the experiments are listed under folder `examples\`.
 
 The manually annotated BOM and EOM files are located under `basic\`.
