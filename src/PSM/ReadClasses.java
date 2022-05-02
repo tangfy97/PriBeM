@@ -252,9 +252,12 @@ public class ReadClasses {
         while (iterator.hasNext()) {
         	String method = iterator.next();
             System.out.println(count+": "+method);
+            
             count++;
         }
         System.out.println("Flows from source is finished.");
+        //System.out.println("***************************");
+        System.out.println("\n");
     }
 
     /**
@@ -588,20 +591,20 @@ public class ReadClasses {
 	        			  Value value = null;
 
 	        			  SootMethod methodBOM = null;
-	        			  SootMethod first = null;
+
 	        			  if (u instanceof AssignStmt) {
 	        				  if (((AssignStmt) u).containsInvokeExpr()) {
 	        					  //int lineo = getLineNumber((Stmt)u);
 	        					  InvokeExpr invokeSource = ((AssignStmt) u).getInvokeExpr();
 	        					  //System.out.println(invokeSource.getMethod());
 	        					  for (String s : BOM) {
-	        				  		if ((s.equals(invokeSource.getMethod().toString()))) {
-	        					  //if(invokeSource.getMethod().getName().toLowerCase().contains("next")) {
+	        				  		//if ((s.equals(invokeSource.getMethod().toString()))) {
+	        					  if(invokeSource.getMethod().getName().toLowerCase().contains("next")) {
 	        				  			methodBOM = invokeSource.getMethod();
 	        				  			value = ((AssignStmt) u).getLeftOp();	
 	        				  			//System.out.println("value: "+value+" invocation: "+invokeSource+" "+u);
 	        				  			map.put(value,methodBOM);
-	        				  			//basicSource.add(m);
+	        				  			basicSource.add(m);
 	        				  			basicSource.add(methodBOM);
 	        				  			valueSet.add(value);
 	        				  			hasSource=true;
@@ -619,27 +622,31 @@ public class ReadClasses {
 	        					  }
 	        				  }*/
 	        			  }
-	  	        	for (Unit u : m.retrieveActiveBody().getUnits()) {
-	  	        		for(ValueBox vb : u.getUseAndDefBoxes()) {
-	  	        			for(Value v : valueSet) {
-	  	        				if (vb.getValue().equals(v)) System.out.println("Value: "+v+" flows here: "+u);
-	  	        			}
-	  	        		}
-	  	        	}
 	  	        	}
 	  	        }
 	          //System.out.println("Finished scanning for class: "+sc);
 	          
 	          if(hasSource == true) {
+	        	  System.out.println("\n");
+	        	  System.out.println("***************************");
 	        	  System.out.println("Now we build call graphs for class: "+sc);
-	        	  LocalGraph localGraph = new LocalGraph();
+	        	  //LocalGraph localGraph = new LocalGraph();
 	        	  Graph<String, DefaultEdge> g = new DefaultDirectedGraph<>(DefaultEdge.class);
 	        	  
 	        	  for (SootMethod sm : sc.getMethods()) {
 	        		  if(!sm.getName().contains("init")) {
-	        			  if(basicSource.contains(sm)) System.out.println("Source here: "+sm);
+	        			  if(basicSource.contains(sm)) {
+	        				  System.out.println("\n");
+	        				  System.out.println("Source here: "+sm);
+	        				  Iterator<soot.jimple.toolkits.callgraph.Edge> edgesIntoSrc= callGraph.edgesInto(sm);
+	        				  while (edgesIntoSrc.hasNext()) {
+	        					  soot.jimple.toolkits.callgraph.Edge eSrc = edgesIntoSrc.next(); 
+	        					  System.out.println("Edges to Source: "+eSrc);
+	        				  }
+	        			  }
+	        			  
 	        			  Iterator<soot.jimple.toolkits.callgraph.Edge> edgesOut = callGraph.edgesOutOf(sm);
-	        			  Iterator<soot.jimple.toolkits.callgraph.Edge> edgesIn = callGraph.edgesInto(sm);
+	        			  
 	        			  while (edgesOut.hasNext()) {
 	        				  soot.jimple.toolkits.callgraph.Edge edgeOut = edgesOut.next(); 
 	        				  //System.out.println(edgesOut);
@@ -650,7 +657,11 @@ public class ReadClasses {
 	        					  g.addEdge(edgeOut.tgt().getName(), edgeOut.src().getName());
 	        					  //check global flows here: if start and end points of edge are declared by different classes
 	        					  if((edgeOut.src().getDeclaringClass() != edgeOut.tgt().getDeclaringClass()) && !edgeOut.tgt().getDeclaringClass().toString().contains("java")) {
-	        						  System.out.println("Global flow here: "+edgeOut.src()+" calls: "+edgeOut.tgt()+" via: "+edgeOut);
+	        						  System.out.println("\n");
+	        						  System.out.println("Global flow here: "+edgeOut);
+	        						  System.out.println("Class: "+edgeOut.tgt().getDeclaringClass());
+	        						  if(basicSource.contains(edgeOut.tgt())) {System.out.println("Global flow goes to a source: "+edgeOut.tgt());}
+	        						  
 	        					  }
 	        					  //System.out.println(edge.src()+" calls: "+edge.tgt()+" via: "+edge);
 	        					  }
@@ -675,7 +686,7 @@ public class ReadClasses {
 	        			  }
 	        		  }
 	        	  //System.out.println("Callgraph for class: "+sc);
-	        	  //renderHrefGraph(g);
+	        	  renderHrefGraph(g);
 	        	  }
 	        	  } 
 	          hasSource = false;

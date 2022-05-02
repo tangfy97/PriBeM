@@ -1,7 +1,11 @@
-This is the trial run of PSM detector.
+This repo hosts the source code of Privacy-sensitive Behaviour Miner (PriBM) for Java/Android applications.
 
-`source.txt` shows an initial result of the PSM detector targeting sources, the data source are listed under folder `examples\`.
+Samples used for the experiments are listed under folder `examples\`.
 
 The manually annotated BOM and EOM files are located under `basic\`.
 
-Main algorithm for this detector is described under [`src\PSM\ReadClasses.java`](https://github.com/feiyangtang97/PSMFinder/blob/main/src/PSM/ReadClasses.java), line 363-396.
+Main algorithm for this detector is described under [`src\PSM\ReadClasses.java`](https://github.com/feiyangtang97/PSMFinder/blob/main/src/PSM/ReadClasses.java).
+
+This algorithm aims to perform the following tasks:
+1. Output a list of COIs (class of interests, where source methods are found in its invocations)
+2. Output the call-graphs stemming from each source methods in the COIs
