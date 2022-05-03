@@ -174,7 +174,8 @@ public class ReadClasses {
 				System.out.println(count + ": " + callee + " -> " + caller);
 				if ((caller.getDeclaringClass() != callee.getDeclaringClass()) &&
 						(!caller.getDeclaringClass().toString().toLowerCase().contains("java"))) {
-					System.out.println("Global flow detected: " + callee + " -> " + caller);
+					System.out.println("Global flow detected: " + callee + " -> " + caller+"\n");
+					System.out.println("Adding connections to callgraphs in class: "+caller.getDeclaringClass());
 					if (!visited.contains(caller.getDeclaringClass())) {
 						visited.add(caller.getDeclaringClass());
 						traverseHrefGraphIntern(getCG(caller.getDeclaringClass()), caller);
@@ -189,6 +190,7 @@ public class ReadClasses {
 		}
 
 		System.out.println("Flows from " + start + " is finished.");
+		System.out.println("/////////////////////////////////////");
 		System.out.println("\n");
 		renderHrefGraph(cg);
 	}
@@ -573,9 +575,9 @@ public class ReadClasses {
 					}
 
 					if (hasSource == true) {
-						System.out.println("\n");
-						System.out.println("***************************");
-						System.out.println("Now we build call graphs for class: " + sc);
+						//System.out.println("\n");
+						//System.out.println("***************************");
+						System.out.println("Start inspections for class: " + sc);
 						// LocalGraph localGraph = new LocalGraph();
 						Graph<SootMethod, DefaultEdge> g = new DefaultDirectedGraph<>(DefaultEdge.class);
 
