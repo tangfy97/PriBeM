@@ -19,7 +19,7 @@ This algorithm aims to perform the following tasks:
 
 There are one sources here: `java.util.Scanner: int nextInt()>`. We aim to build the path `nextInt() -> getter() -> bar() -> foo() -> doStuff()`.
 
-`
+```
 Start inspections for class: toyForTest.data
 Source found in the callgraph: <java.util.Scanner: int nextInt()>...
 Start traversal: 
@@ -65,4 +65,4 @@ Sources and Sinks collected.
 
 Methods extraction finished.
 All finished.
-`
+```
