@@ -171,14 +171,20 @@ public class ReadClasses {
 				cg.addVertex(callee);
 				cg.addVertex(caller);
 				cg.addEdge(callee, caller);
-				System.out.println(count + ": " + callee + " -> " + caller);
-				if ((caller.getDeclaringClass() != callee.getDeclaringClass()) &&
-						(!caller.getDeclaringClass().toString().toLowerCase().contains("java"))) {
-					System.out.println("Global flow detected: " + callee + " -> " + caller+"\n");
-					System.out.println("Adding connections to callgraphs in class: "+caller.getDeclaringClass());
-					if (!visited.contains(caller.getDeclaringClass())) {
-						visited.add(caller.getDeclaringClass());
-						traverseHrefGraphIntern(getCG(caller.getDeclaringClass()), caller);
+				System.out.println("<" + count + ": " + callee + " -> " + caller + ">");
+				if (basicSource.contains(caller)) {
+					System.out.println("The above invocation flows into a source.");
+				} else {
+					if ((caller.getDeclaringClass() != callee.getDeclaringClass()) &&
+							(!caller.getDeclaringClass().toString().toLowerCase().contains("java"))) {
+						System.out.println("Global flow detected: " + callee + " -> " + caller + "\n");
+						System.out.println("Adding connections to callgraphs in class: " + caller.getDeclaringClass());
+						if (!visited.contains(caller.getDeclaringClass())) {
+							visited.add(caller.getDeclaringClass());
+							traverseHrefGraphIntern(getCG(caller.getDeclaringClass()), caller);
+						} else {
+							System.out.println(caller.getDeclaringClass() + " has been visited already.");
+						}
 					}
 				}
 			}
@@ -197,7 +203,7 @@ public class ReadClasses {
 
 	public void traverseHrefGraphIntern(Graph<SootMethod, DefaultEdge> hrefGraph,
 			SootMethod start) {
-		int count = 0;
+		// int count = 0;
 		Graph<SootMethod, DefaultEdge> cg = new DefaultDirectedGraph<>(DefaultEdge.class);
 		Iterator<SootMethod> iterator = new DepthFirstIterator<>(hrefGraph, start);
 		SootMethod callee = null;
@@ -213,7 +219,7 @@ public class ReadClasses {
 			if (callee == null) {
 				System.out.println("Continue with method: " + caller);
 			}
-			count++;
+			// count++;
 			callee = caller;
 		}
 
@@ -374,7 +380,7 @@ public class ReadClasses {
 			line = bufReader.readLine();
 		}
 		bufReader.close();
-		System.out.println("BOM is loaded with " + BOM.size() + " methods.");
+		System.out.println("Basic source methods are loaded with " + BOM.size() + " methods.");
 		return BOM;
 	}
 
@@ -387,7 +393,7 @@ public class ReadClasses {
 			line = bufReader.readLine();
 		}
 		bufReader.close();
-		System.out.println("BIM is loaded with " + BIM.size() + " methods.");
+		System.out.println("Basic sink methods are loaded with " + BIM.size() + " methods.");
 		return BIM;
 	}
 
@@ -400,7 +406,7 @@ public class ReadClasses {
 			line = bufReader.readLine();
 		}
 		bufReader.close();
-		System.out.println("EOM is loaded with " + EOM.size() + " methods.");
+		System.out.println("External source methods are loaded with " + EOM.size() + " methods.");
 		return EOM;
 	}
 
@@ -413,7 +419,7 @@ public class ReadClasses {
 			line = bufReader.readLine();
 		}
 		bufReader.close();
-		System.out.println("EIM is loaded with " + EIM.size() + " methods.");
+		System.out.println("External sink methods are loaded with " + EIM.size() + " methods.");
 		return EIM;
 	}
 
@@ -465,7 +471,6 @@ public class ReadClasses {
 		System.out.println("\n");
 		System.out.println("***************************");
 		System.out.println("Now we build call graphs for class: " + sc);
-		// LocalGraph localGraph = new LocalGraph();
 		Graph<SootMethod, DefaultEdge> g = new DefaultDirectedGraph<>(DefaultEdge.class);
 
 		for (SootMethod sm : sc.getMethods()) {
@@ -575,26 +580,13 @@ public class ReadClasses {
 					}
 
 					if (hasSource == true) {
-						//System.out.println("\n");
-						//System.out.println("***************************");
+						// System.out.println("\n");
+						// System.out.println("***************************");
 						System.out.println("Start inspections for class: " + sc);
-						// LocalGraph localGraph = new LocalGraph();
 						Graph<SootMethod, DefaultEdge> g = new DefaultDirectedGraph<>(DefaultEdge.class);
 
 						for (SootMethod sm : sc.getMethods()) {
 							if (!sm.getName().contains("init")) {
-								/*
-								 * if (basicSource.contains(sm)) {
-								 * System.out.println("\n");
-								 * System.out.println("Source here: " + sm);
-								 * Iterator<soot.jimple.toolkits.callgraph.Edge> edgesIntoSrc = callGraph
-								 * .edgesInto(sm);
-								 * while (edgesIntoSrc.hasNext()) {
-								 * soot.jimple.toolkits.callgraph.Edge eSrc = edgesIntoSrc.next();
-								 * System.out.println("Edges to Source: " + eSrc);
-								 * }
-								 * }
-								 */
 
 								Iterator<soot.jimple.toolkits.callgraph.Edge> edgesOut = callGraph.edgesOutOf(sm);
 								Iterator<soot.jimple.toolkits.callgraph.Edge> edgesInto = callGraph.edgesInto(sm);
@@ -629,8 +621,8 @@ public class ReadClasses {
 							for (SootMethod source : basicSource) {
 								Boolean start = g.vertexSet().contains(source);
 								if (start) {
-									System.out.println("Start traversal for source: " + source + "...");
-									// traverseHrefGraph(g, source);
+									System.out.println("Source found in the callgraph: " + source + "...");
+									System.out.println("Start traversal: " + "\n");
 									traverseHrefGraph(g, source);
 								}
 							}
