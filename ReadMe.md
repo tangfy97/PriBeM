@@ -1,4 +1,4 @@
-This repo hosts the source code of Privacy-sensitive Behaviour Miner (PriBM) for Java/Android applications.
+**This repo hosts the source code of Privacy-sensitive Behaviour Miner (PriBM) for Java/Android applications.**
 
 Privacy-sensitive Behaviour Miner (PriBM) is a semi-automatic tool to find privacy-relevant behaviours in programs.
 
@@ -14,7 +14,7 @@ This algorithm aims to perform the following tasks:
     - If one of the edges in the call-graph built points to a method that was decalred in another class, also as known as a global flow, we move to build a call-graph stemming from the caller in another class. This allows us to build a inter-component call-graph and provides more information.
     - If one of the edges in the call-graph built points to a source method, we do not build a call-graph on it but print this out. When another source method appears in a call-graph that stems from a source method, this might indicate that there is a data aggregation/accumulation happening.
 
-### H3 Example Output for toyForTest.zip/toyForTest.jar under folder `data\` :
+### Example Output for toyForTest.zip/toyForTest.jar under folder `data\` :
 
 There are one sources here: `java.util.Scanner: int nextInt()>` . We aim to build the path `nextInt() -> getter() -> bar() -> foo() -> doStuff()` .
 
