@@ -87,6 +87,7 @@ public class ReadClasses {
   public Set<Method> methods = new HashSet<Method>();
   public String testCp;
   public Set<SootMethod> basicSource = new HashSet<SootMethod>();
+  public Set<SootMethod> invokeSource = new HashSet<SootMethod>();
   public Set<SootMethod> basicSink = new HashSet<SootMethod>();
 
   public ReadClasses(String testCp) {
@@ -621,31 +622,22 @@ public class ReadClasses {
 
                 if (u instanceof AssignStmt) {
                   if (((AssignStmt) u).containsInvokeExpr()) {
-                    InvokeExpr invokeSource = ((AssignStmt) u).getInvokeExpr();
+                    InvokeExpr invok = ((AssignStmt) u).getInvokeExpr();
                     for (String s : BOM) {
-                      if ((s.equals(invokeSource.getMethod().toString()))) {
+                      if ((s.contains(invok.getMethod().getName()))) {
                         //if(invokeSource.getMethod().getName().toLowerCase().contains("next")) {
-                        methodBOM = invokeSource.getMethod();
+                        methodBOM = invok.getMethod();
                         value = ((AssignStmt) u).getLeftOp();
                         map.put(value, methodBOM);
-                        //basicSource.add(m);
+                        invokeSource.add(m);
                         basicSource.add(methodBOM);
+                        basicSource.add(m);
                         valueSet.add(value);
                         hasSource = true;
                       }
                     }
                   }
                 }
-                /*
-                 * if (u instanceof ReturnStmt) {
-                 * ReturnStmt stmt = (ReturnStmt) u;
-                 * if (map.containsKey(stmt.getOp())) {
-                 * Value v = stmt.getOp();
-                 * basicSource.add(map.get(v)); //basicSource.add(m);
-                 * hasSource = true;
-                 * }
-                 * }
-                 */
               }
             }
           }
@@ -653,7 +645,7 @@ public class ReadClasses {
           if (hasSource == true) {
             // System.out.println("\n");
             // System.out.println("***************************");
-            System.out.println("Start inspections for class: " + sc);
+
             Graph<SootMethod, DefaultEdge> g = new DefaultDirectedGraph<>(
               DefaultEdge.class
             );
@@ -713,13 +705,15 @@ public class ReadClasses {
                 }
               }
             }
+            //renderHrefGraph(g);
             if (!g.edgeSet().isEmpty()) {
               for (SootMethod source : basicSource) {
-                Boolean start = g.vertexSet().contains(source);
-                if (start) {
+                Boolean checkSource = g.vertexSet().contains(source);
+                if (checkSource) {
                   System.out.println(
                     "Source found in the callgraph: " + source + "..."
                   );
+                  System.out.println("In class: " + sc);
                   System.out.println("Start traversal: " + "\n");
                   traverseHrefGraph(g, source);
                 }
@@ -907,61 +901,6 @@ public class ReadClasses {
       }
       // bkWriter.println("Finished.");
       bkWriter.close();
-      /*
-       * PrintWriter baWriter = new PrintWriter("sinkall.txt", "UTF-8");
-       * for (SootMethod m : basicSinkAll) {
-       * //bkWriter.println(m+" -> _SINK_");
-       * baWriter.println(m);
-       * }
-       * //bkWriter.println("Finished.");
-       * bkWriter.close();
-       *
-       * PrintWriter frWriter = new PrintWriter("F2R.txt", "UTF-8");
-       * for (SootMethod m : flow2Return) {
-       * frWriter.println(m+" -> _SOURCE_");
-       * }
-       * //frWriter.println("Finished.");
-       * frWriter.close();
-       *
-       * PrintWriter fsWriter = new PrintWriter("F2S.txt", "UTF-8");
-       * for (SootMethod m : flow2Sink) {
-       * fsWriter.println(m+" -> _DEFECT_");
-       * }
-       * //fsWriter.println("Finished.");
-       * fsWriter.close();
-       *
-       * PrintWriter ffWriter = new PrintWriter("F2FC.txt", "UTF-8");
-       * for (SootClass c : flow2FieldC) {
-       * ffWriter.println(c+" -> _CLASS_");
-       * }
-       * //ffWriter.println("Finished.");
-       * ffWriter.close();
-       *
-       * PrintWriter ffmWriter = new PrintWriter("F2FM.txt", "UTF-8");
-       * for (SootMethod m : flow2FieldM) {
-       * ffmWriter.println(m+" -> _SOURCE_");
-       * }
-       * //ffmWriter.println("Finished.");
-       * ffmWriter.close();
-       *
-       * PrintWriter fdWriter = new PrintWriter("SourcesAndSinks.txt", "UTF-8");
-       * for (SootMethod m1 : flow2FieldM) {
-       * fdWriter.println(m1+" -> _SOURCE_");
-       * }
-       *
-       * for (SootMethod m2 : flow2Return) {
-       * fdWriter.println(m2+" -> _SOURCE_");
-       * }
-       *
-       * for (SootMethod m3 : basicSink) {
-       * fdWriter.println(m3+" -> _SINK_");
-       * }
-       *
-       * for (SootMethod m4 : basicSource) {
-       * fdWriter.println(m4+" -> _SOURCE_");
-       * }
-       * fdWriter.close();
-       */
     } catch (IOException e) {
       System.out.println("An error occurred.");
       e.printStackTrace();
