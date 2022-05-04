@@ -58,7 +58,7 @@ import org.jgrapht.graph.DefaultEdge;
 public class ReadClasses {
 
 	public static String sourceDirectory = System.getProperty("user.dir");
-	public static String jarDirectory = System.getProperty("user.dir") + "/examples";
+	public static String jarDirectory = System.getProperty("user.dir") + "/data";
 	public static String androidDirPath = System.getProperty("user.dir") + "/lib/android.jar";
 	public static String sourcePath = System.getProperty("user.dir") + "/source.txt";
 	public static String sinkPath = System.getProperty("user.dir") + "/sink.txt";
@@ -461,7 +461,7 @@ public class ReadClasses {
 
 		SparkTransformer.v().transform("", opt);
 
-		System.out.println("[spark] Done!");
+		System.out.println("[spark] Done! \n\n");
 	}
 
 	public Graph<SootMethod, DefaultEdge> getCG(SootClass sc) {
@@ -553,7 +553,7 @@ public class ReadClasses {
 										InvokeExpr invokeSource = ((AssignStmt) u).getInvokeExpr();
 										for (String s : BOM) {
 											if ((s.equals(invokeSource.getMethod().toString()))) {
-												// if(invokeSource.getMethod().getName().toLowerCase().contains("next"))
+												 //if(invokeSource.getMethod().getName().toLowerCase().contains("next")) {
 												methodBOM = invokeSource.getMethod();
 												value = ((AssignStmt) u).getLeftOp();
 												map.put(value, methodBOM);

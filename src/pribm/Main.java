@@ -7,7 +7,7 @@ import pribm.Info.Method;
 
 public class Main {
 	public static String sourceDirectory = System.getProperty("user.dir")+"/output";
-    public static String jarDirectory = System.getProperty("user.dir")+"/examples";
+    public static String jarDirectory = System.getProperty("user.dir")+"/data";
     public Set<Method> methods = new HashSet<Method>();
     private ReadClasses classReader;
     public String testCp;
