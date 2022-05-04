@@ -646,18 +646,12 @@ public class ReadClasses {
             // System.out.println("\n");
             // System.out.println("***************************");
 
-            Graph<SootMethod, DefaultEdge> g = new DefaultDirectedGraph<>(
-              DefaultEdge.class
-            );
+            Graph<SootMethod, DefaultEdge> g = new DefaultDirectedGraph<>(DefaultEdge.class);
 
             for (SootMethod sm : sc.getMethods()) {
               if (!sm.getName().contains("init")) {
-                Iterator<soot.jimple.toolkits.callgraph.Edge> edgesOut = callGraph.edgesOutOf(
-                  sm
-                );
-                Iterator<soot.jimple.toolkits.callgraph.Edge> edgesInto = callGraph.edgesInto(
-                  sm
-                );
+                Iterator<soot.jimple.toolkits.callgraph.Edge> edgesOut = callGraph.edgesOutOf(sm);
+                Iterator<soot.jimple.toolkits.callgraph.Edge> edgesInto = callGraph.edgesInto(sm);
 
                 while (edgesOut.hasNext()) {
                   soot.jimple.toolkits.callgraph.Edge edgeOut = edgesOut.next();
@@ -682,6 +676,7 @@ public class ReadClasses {
                     g.addEdge(edgeOut.tgt(), edgeOut.src());
                   }
                 }
+                
                 while (edgesInto.hasNext()) {
                   soot.jimple.toolkits.callgraph.Edge edgeIn = edgesInto.next();
                   if (
@@ -705,6 +700,61 @@ public class ReadClasses {
                 }
               }
             }
+            
+            for (SootMethod src : basicSource) {
+                if (!src.getName().contains("init")) {
+                  Iterator<soot.jimple.toolkits.callgraph.Edge> edgesOut = callGraph.edgesOutOf(src);
+                  Iterator<soot.jimple.toolkits.callgraph.Edge> edgesInto = callGraph.edgesInto(src);
+
+                  while (edgesOut.hasNext()) {
+                    soot.jimple.toolkits.callgraph.Edge edgeOut = edgesOut.next();
+                    // System.out.println(edgesOut);
+                    if (
+                      !edgeOut.src().getName().contains("init") &&
+                      !edgeOut.tgt().getName().contains("init") &&
+                      !edgeOut
+                        .src()
+                        .getDeclaringClass()
+                        .getName()
+                        .contains("error") &&
+                      !edgeOut
+                        .tgt()
+                        .getDeclaringClass()
+                        .getName()
+                        .contains("error")
+                    ) {
+                      // we add edges and vertex
+                      g.addVertex(edgeOut.src());
+                      g.addVertex(edgeOut.tgt());
+                      g.addEdge(edgeOut.tgt(), edgeOut.src());
+                    }
+                  }
+                  
+                  while (edgesInto.hasNext()) {
+                    soot.jimple.toolkits.callgraph.Edge edgeIn = edgesInto.next();
+                    if (
+                      !edgeIn.src().getName().contains("init") &&
+                      !edgeIn.tgt().getName().contains("init") &&
+                      !edgeIn
+                        .src()
+                        .getDeclaringClass()
+                        .getName()
+                        .contains("error") &&
+                      !edgeIn
+                        .tgt()
+                        .getDeclaringClass()
+                        .getName()
+                        .contains("error")
+                    ) {
+                      g.addVertex(edgeIn.src());
+                      g.addVertex(edgeIn.tgt());
+                      g.addEdge(edgeIn.tgt(), edgeIn.src());
+                    }
+                  }
+                }
+              }
+            
+            
             //renderHrefGraph(g);
             if (!g.edgeSet().isEmpty()) {
               for (SootMethod source : basicSource) {
