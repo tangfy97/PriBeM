@@ -557,7 +557,7 @@ public class ReadClasses {
 												methodBOM = invokeSource.getMethod();
 												value = ((AssignStmt) u).getLeftOp();
 												map.put(value, methodBOM);
-												basicSource.add(m);
+												//basicSource.add(m);
 												basicSource.add(methodBOM);
 												valueSet.add(value);
 												hasSource = true;
