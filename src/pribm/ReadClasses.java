@@ -95,6 +95,19 @@ public class ReadClasses {
 		loadMethodsFromTestLib(testClasses);
 		System.out.println("Methods extraction finished.");
 	}
+	
+	public static <T> Set<T> mergeSet(Set<T> a, Set<T> b)
+    {
+  
+        // Adding all elements of respective Sets
+        // using addAll() method
+        return new HashSet<T>() {
+            {
+                addAll(a);
+                addAll(b);
+            }
+        };
+    }
 
 	public static Set<String> getAllClassesFromJar(String jarFile) throws IOException {
 		Set<String> classes = new HashSet<String>();
@@ -173,11 +186,11 @@ public class ReadClasses {
 				cg.addVertex(caller);
 				cg.addEdge(callee, caller);
 				System.out.println("<" + count + ": " + callee + " -> " + caller + ">");
-				if (basicSource.contains(caller)) {
+				if (mergeSet(basicSource, invokeSource).contains(caller)) {
 					System.out.println("The above invocation flows into a source.");
 				} else {
-					if ((caller.getDeclaringClass() != callee.getDeclaringClass())
-							&& (!caller.getDeclaringClass().toString().contains("java"))) {
+					if ((caller.getDeclaringClass() != callee.getDeclaringClass()) && count > 0
+							/*&& (!caller.getDeclaringClass().toString().contains("java"))*/) {
 						System.out.println("Global flow detected: " + callee + " -> " + caller + "\n");
 						System.out.println("Adding connections to callgraphs in class: " + caller.getDeclaringClass());
 						if (!visited.contains(caller.getDeclaringClass())) {
@@ -205,14 +218,14 @@ public class ReadClasses {
 
 	public Graph<SootMethod, DefaultEdge> traverseHrefGraphIntern(Graph<SootMethod, DefaultEdge> hrefGraph,
 			SootMethod start) {
-		// int count = 0;
+
 		Graph<SootMethod, DefaultEdge> cg = new DefaultDirectedGraph<>(DefaultEdge.class);
 		Iterator<SootMethod> iterator = new DepthFirstIterator<>(hrefGraph, start);
 		SootMethod callee = null;
 
 		while (iterator.hasNext()) {
 			SootMethod caller = iterator.next();
-			if (callee != null && !caller.getDeclaringClass().toString().contains("java")) {
+			if (callee != null) {
 				cg.addVertex(callee);
 				cg.addVertex(caller);
 				cg.addEdge(callee, caller);
@@ -227,7 +240,7 @@ public class ReadClasses {
 
 		// System.out.println("Flows from "+start+" is finished.");
 		System.out.println("\n");
-		renderHrefGraph(cg);
+		//renderHrefGraph(cg);
 		return cg;
 	}
 
@@ -247,95 +260,6 @@ public class ReadClasses {
 		exporter.exportGraph(hrefGraph, writer);
 		System.out.println(writer.toString());
 	}
-
-	/*
-	 * public void findFlow() throws Exception { source = loadSource(); sink =
-	 * loadSink(); String targetPath = System.getProperty("user.dir") +
-	 * "/examples/fuseki-server_0.jar"; String libPath =
-	 * System.getProperty("user.dir") + "/lib/mysql-connector-java-8.0.28.jar";
-	 *
-	 * Options.v().set_output_dir(System.getProperty("user.dir") + "/sootOutput");
-	 * Options.v().set_output_format(Options.output_format_jimple);
-	 * Options.v().set_whole_program(true); Options.v().set_include_all(true);
-	 * PackManager.v().writeOutput();
-	 *
-	 * AbstractInfoflow infoflow = new Infoflow();
-	 * infoflow.getConfig().setEnableLineNumbers(true); //
-	 * infoflow.getConfig().setIncrementalResultReporting(true);
-	 * infoflow.getConfig().setInspectSinks(true);
-	 * infoflow.getConfig().setInspectSources(true);
-	 * infoflow.getConfig().getAccessPathConfiguration().setAccessPathLength(10);
-	 * infoflow.getConfig().setLogSourcesAndSinks(true);
-	 * infoflow.getConfig().setWriteOutputFiles(true); infoflow.setTaintWrapper(new
-	 * SummaryTaintWrapper(new LazySummaryProvider("summariesManual")));
-	 *
-	 * Collection<String> epoints = new ArrayList<String>(); epoints.
-	 * add("<org.apache.jena.fuseki.FusekiCmd: void main(java.lang.String[])>");
-	 *
-	 * DefaultEntryPointCreator entryPoints = new DefaultEntryPointCreator(epoints);
-	 *
-	 * System.out.println("Now finding flows between sources and sinks: ");
-	 *
-	 * ISourceSinkManager sourceSinkMgr = new ISourceSinkManager() {
-	 *
-	 * @Override public SourceInfo getSourceInfo(Stmt sCallSite, InfoflowManager
-	 * manager) { if (sCallSite.containsInvokeExpr() && (sCallSite instanceof
-	 * AssignStmt || sCallSite instanceof DefinitionStmt)) { for (SootMethod s :
-	 * basicSource) { if
-	 * (s.getName().equals(sCallSite.getInvokeExpr().getMethod().getName())) { if
-	 * (sCallSite instanceof AssignStmt) { AccessPath ap =
-	 * manager.getAccessPathFactory() .createAccessPath(((AssignStmt)
-	 * sCallSite).getLeftOp(), true); return new SourceInfo(null, ap); } if
-	 * (sCallSite instanceof DefinitionStmt) { AccessPath ap =
-	 * manager.getAccessPathFactory() .createAccessPath(((DefinitionStmt)
-	 * sCallSite).getLeftOp(), true); return new SourceInfo(null, ap); } } } }
-	 * return null; }
-	 *
-	 * @Override public SinkInfo getSinkInfo(Stmt sCallSite, InfoflowManager
-	 * manager, AccessPath ap) { if (!sCallSite.containsInvokeExpr()) return null;
-	 *
-	 * SootMethod target = sCallSite.getInvokeExpr().getMethod(); SinkInfo
-	 * targetInfo = new SinkInfo( (ISourceSinkDefinition) new
-	 * MethodSourceSinkDefinition(new SootMethodAndClass(target)));
-	 *
-	 * // if(target.getName().toString().toLowerCase().contains("print")) { for
-	 * (SootMethod s : basicSink) { if (s.getName().equals(target.getName()) &&
-	 * !target.getReturnType().toString().toLowerCase().contains("bool") &&
-	 * !target.getName().toLowerCase().contains("append") &&
-	 * !target.getName().toLowerCase().contains("tostring") &&
-	 * !target.getName().toLowerCase().contains("error") &&
-	 * !target.getName().toLowerCase().contains("init") &&
-	 * !target.getName().toLowerCase().contains("bug") &&
-	 * !target.getName().toLowerCase().contains("abort") &&
-	 * !target.getName().toLowerCase().contains("read") &&
-	 * !target.getName().toLowerCase().contains("main")) { return targetInfo; } }
-	 * return null; }
-	 *
-	 * @Override public void initialize() { // TODO Auto-generated method stub
-	 *
-	 * } };
-	 *
-	 * infoflow.computeInfoflow(targetPath, libPath, entryPoints, sourceSinkMgr); //
-	 * infoflow.computeInfoflow(targetPath, libPath, entryPoints, source, sink);
-	 * System.out.println("*****"); Writer flowResult = new
-	 * FileWriter(System.getProperty("user.dir") + "/flows.txt");
-	 * infoflow.getResults().printResults(flowResult); System.out.println("Find " +
-	 * infoflow.getResults().size() + " flows with " +
-	 * infoflow.getResults().numConnections() + " connections.\n");
-	 *
-	 * PrintWriter flowsource = new PrintWriter("flowFrom.txt", "UTF-8"); for (Stmt
-	 * m : infoflow.getCollectedSources()) { // bsWriter.println(m+" -> _SOURCE_");
-	 * flowsource.println(m); } // bsWriter.println("Finished.");
-	 * flowsource.close();
-	 *
-	 * PrintWriter flowsink = new PrintWriter("flowEnd.txt", "UTF-8"); for (Stmt m :
-	 * infoflow.getCollectedSinks()) { // bkWriter.println(m+" -> _SINK_");
-	 * flowsink.println(m); } // bkWriter.println("Finished."); flowsink.close();
-	 *
-	 * System.out.println("Flow start and end points printed.\n");
-	 *
-	 * }
-	 */
 
 	public Set<String> loadBOM() throws Exception {
 		BufferedReader bufReader = new BufferedReader(new FileReader(bomPath));
@@ -489,7 +413,8 @@ public class ReadClasses {
 					SootClass sc = Scene.v().forceResolve(className, SootClass.BODIES);
 					sc.setApplicationClass();
 					CallGraph callGraph = Scene.v().getCallGraph();
-					Set<Value> valueSet = new HashSet<Value>();
+					Set<SootMethod> visitedSource = new HashSet<SootMethod>();
+					//Set<Value> valueSet = new HashSet<Value>();
 					boolean hasSource = false;
 
 					for (SootMethod m : sc.getMethods()) {
@@ -501,7 +426,7 @@ public class ReadClasses {
 							}
 
 							for (Unit u : m.retrieveActiveBody().getUnits()) {
-								Value value = null;
+								//Value value = null;
 
 								SootMethod methodBOM = null;
 
@@ -509,16 +434,15 @@ public class ReadClasses {
 									if (((AssignStmt) u).containsInvokeExpr()) {
 										InvokeExpr invok = ((AssignStmt) u).getInvokeExpr();
 										for (String s : BOM) {
-											if ((s.contains(invok.getMethod().getName()))) {
+											if ((s.equals(invok.getMethod().toString()))) {
 												// if(invokeSource.getMethod().getName().toLowerCase().contains("next"))
 												// {
 												methodBOM = invok.getMethod();
-												value = ((AssignStmt) u).getLeftOp();
-												map.put(value, methodBOM);
+												//value = ((AssignStmt) u).getLeftOp();
+												//map.put(value, methodBOM);
 												invokeSource.add(m);
 												basicSource.add(methodBOM);
-												basicSource.add(m);
-												valueSet.add(value);
+												//valueSet.add(value);
 												hasSource = true;
 											}
 										}
@@ -566,48 +490,49 @@ public class ReadClasses {
 								}
 							}
 						}
-
-						for (SootMethod src : basicSource) {
-							if (!src.getName().contains("init")) {
-								//Iterator<soot.jimple.toolkits.callgraph.Edge> edgesOut = callGraph.edgesOutOf(src);
-								Iterator<soot.jimple.toolkits.callgraph.Edge> edgesInto = callGraph.edgesInto(src);
-/*
-								while (edgesOut.hasNext()) {
-									soot.jimple.toolkits.callgraph.Edge edgeOut = edgesOut.next();
-									// System.out.println(edgesOut);
-									if (!edgeOut.src().getName().contains("init")
-											&& !edgeOut.tgt().getName().contains("init")
-											&& !edgeOut.src().getDeclaringClass().getName().contains("error")
-											&& !edgeOut.tgt().getDeclaringClass().getName().contains("error")) {
-										// we add edges and vertex
-										g.addVertex(edgeOut.src());
-										g.addVertex(edgeOut.tgt());
-										g.addEdge(edgeOut.tgt(), edgeOut.src());
-									}
-								}*/
-
-								while (edgesInto.hasNext()) {
-									soot.jimple.toolkits.callgraph.Edge edgeIn = edgesInto.next();
-									if (!edgeIn.src().getName().contains("init")
-											&& !edgeIn.tgt().getName().contains("init")
-											&& !edgeIn.src().getDeclaringClass().getName().contains("error")
-											&& !edgeIn.tgt().getDeclaringClass().getName().contains("error")) {
-										g.addVertex(edgeIn.src());
-										g.addVertex(edgeIn.tgt());
-										g.addEdge(edgeIn.tgt(), edgeIn.src());
-									}
-								}
-							}
-						}
-
+						
 						// renderHrefGraph(g);
 						if (!g.edgeSet().isEmpty()) {
 							for (SootMethod source : basicSource) {
 								Boolean checkSource = g.vertexSet().contains(source);
-								if (checkSource) {
+								Boolean diffSource = !visitedSource.contains(source);
+								if (checkSource && diffSource) {
 									System.out.println("Source found in the callgraph: " + source + "...");
 									System.out.println("In class: " + sc);
+									
+										if (!source.getName().contains("init")) {
+											Iterator<soot.jimple.toolkits.callgraph.Edge> edgesOut = callGraph.edgesOutOf(source);
+											Iterator<soot.jimple.toolkits.callgraph.Edge> edgesInto = callGraph.edgesInto(source);
+
+											while (edgesOut.hasNext()) {
+												soot.jimple.toolkits.callgraph.Edge edgeOut = edgesOut.next();
+												// System.out.println(edgesOut);
+												if (!edgeOut.src().getName().contains("init")
+														&& !edgeOut.tgt().getName().contains("init")
+														&& !edgeOut.src().getDeclaringClass().getName().contains("error")
+														&& !edgeOut.tgt().getDeclaringClass().getName().contains("error")) {
+													// we add edges and vertex
+													g.addVertex(edgeOut.src());
+													g.addVertex(edgeOut.tgt());
+													g.addEdge(edgeOut.tgt(), edgeOut.src());
+												}
+											}
+
+											while (edgesInto.hasNext()) {
+												soot.jimple.toolkits.callgraph.Edge edgeIn = edgesInto.next();
+												if (!edgeIn.src().getName().contains("init")
+														&& !edgeIn.tgt().getName().contains("init")
+														&& !edgeIn.src().getDeclaringClass().getName().contains("error")
+														&& !edgeIn.tgt().getDeclaringClass().getName().contains("error")) {
+													g.addVertex(edgeIn.src());
+													g.addVertex(edgeIn.tgt());
+													g.addEdge(edgeIn.tgt(), edgeIn.src());
+												}
+											}
+										}
+									
 									System.out.println("Start traversal: " + "\n");
+									visitedSource.add(source);
 									traverseHrefGraph(g, source);
 								}
 							}
@@ -750,7 +675,6 @@ public class ReadClasses {
 				// bsWriter.println(m+" -> _SOURCE_");
 				bsWriter.println(m);
 			}
-			// bsWriter.println("Finished.");
 			bsWriter.close();
 
 			PrintWriter bkWriter = new PrintWriter("sink.txt", "UTF-8");
@@ -758,8 +682,13 @@ public class ReadClasses {
 				// bkWriter.println(m+" -> _SINK_");
 				bkWriter.println(m);
 			}
-			// bkWriter.println("Finished.");
 			bkWriter.close();
+			
+			PrintWriter isWriter = new PrintWriter("invokeSource.txt", "UTF-8");
+			for (SootMethod m : invokeSource) {
+				isWriter.println(m);
+			}
+			isWriter.close();
 		} catch (IOException e) {
 			System.out.println("An error occurred.");
 			e.printStackTrace();
@@ -768,6 +697,7 @@ public class ReadClasses {
 		System.out.println("Loaded " + (methods.size() - methodCount) + " methods from JAR files. \n");
 		System.out.println("Found " + basicSource.size() + " Source Methods.");
 		System.out.println("Found " + basicSink.size() + " Sink Methods.");
+		System.out.println("Found " + invokeSource.size() + " Methods Invoking a Basic Source.");
 		System.out.println("Sources and Sinks collected. \n");
 	}
 
