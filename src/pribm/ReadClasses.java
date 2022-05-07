@@ -4,11 +4,13 @@ import com.google.common.collect.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -66,6 +68,7 @@ public class ReadClasses {
 	public static String bimPath = System.getProperty("user.dir") + "/basic/BIM.txt";
 	public static String eomPath = System.getProperty("user.dir") + "/basic/EOM.txt";
 	public static String eimPath = System.getProperty("user.dir") + "/basic/EIM.txt";
+	public static String dotPath = System.getProperty("user.dir") + "/dot/";
 	public Set<String> EOM = new HashSet<String>();
 	public Set<String> EIM = new HashSet<String>();
 	public Set<String> BOM = new HashSet<String>();
@@ -95,19 +98,18 @@ public class ReadClasses {
 		loadMethodsFromTestLib(testClasses);
 		System.out.println("Methods extraction finished.");
 	}
-	
-	public static <T> Set<T> mergeSet(Set<T> a, Set<T> b)
-    {
-  
-        // Adding all elements of respective Sets
-        // using addAll() method
-        return new HashSet<T>() {
-            {
-                addAll(a);
-                addAll(b);
-            }
-        };
-    }
+
+	public static <T> Set<T> mergeSet(Set<T> a, Set<T> b) {
+
+		// Adding all elements of respective Sets
+		// using addAll() method
+		return new HashSet<T>() {
+			{
+				addAll(a);
+				addAll(b);
+			}
+		};
+	}
 
 	public static Set<String> getAllClassesFromJar(String jarFile) throws IOException {
 		Set<String> classes = new HashSet<String>();
@@ -170,9 +172,11 @@ public class ReadClasses {
 	 * @param hrefGraph a graph based on URI objects
 	 *
 	 * @param start     the vertex where the traversal should start
+	 * @throws IOException 
+	 * @throws ExportException 
 	 */
 
-	public void traverseHrefGraph(Graph<SootMethod, DefaultEdge> hrefGraph, SootMethod start) {
+	public void traverseHrefGraph(Graph<SootMethod, DefaultEdge> hrefGraph, SootMethod start) throws ExportException, IOException {
 		int count = 0;
 		Graph<SootMethod, DefaultEdge> cg = new DefaultDirectedGraph<>(DefaultEdge.class);
 		Graph<SootMethod, DefaultEdge> cgg = new DefaultDirectedGraph<>(DefaultEdge.class);
@@ -190,7 +194,7 @@ public class ReadClasses {
 					System.out.println("The above invocation flows into a source.");
 				} else {
 					if ((caller.getDeclaringClass() != callee.getDeclaringClass()) && count > 0
-							/*&& (!caller.getDeclaringClass().toString().contains("java"))*/) {
+					/* && (!caller.getDeclaringClass().toString().contains("java")) */) {
 						System.out.println("Global flow detected: " + callee + " -> " + caller + "\n");
 						System.out.println("Adding connections to callgraphs in class: " + caller.getDeclaringClass());
 						if (!visited.contains(caller.getDeclaringClass())) {
@@ -210,10 +214,11 @@ public class ReadClasses {
 		}
 
 		System.out.println("Flows from " + start + " is finished.");
-		System.out.println("/////////////////////////////////////");
+		System.out.println("*************************************");
+		System.out.println("*************************************");
 		System.out.println("\n");
 		Graphs.addGraph(cg, cgg);
-		renderHrefGraph(cg);
+		renderHrefGraph(cg, start);
 	}
 
 	public Graph<SootMethod, DefaultEdge> traverseHrefGraphIntern(Graph<SootMethod, DefaultEdge> hrefGraph,
@@ -229,18 +234,13 @@ public class ReadClasses {
 				cg.addVertex(callee);
 				cg.addVertex(caller);
 				cg.addEdge(callee, caller);
-				// System.out.println(count + ": " + callee + " -> " + caller);
 			}
 			if (callee == null) {
 				System.out.println("Continue with method: " + caller);
 			}
-			// count++;
 			callee = caller;
 		}
-
-		// System.out.println("Flows from "+start+" is finished.");
 		System.out.println("\n");
-		//renderHrefGraph(cg);
 		return cg;
 	}
 
@@ -248,8 +248,9 @@ public class ReadClasses {
 	 * Render a graph in DOT format.
 	 *
 	 * @param hrefGraph a graph based on URI objects
+	 * @throws IOException 
 	 */
-	public void renderHrefGraph(Graph<SootMethod, DefaultEdge> hrefGraph) throws ExportException {
+	public void renderHrefGraph(Graph<SootMethod, DefaultEdge> hrefGraph, SootMethod start) throws ExportException, IOException {
 		DOTExporter<SootMethod, DefaultEdge> exporter = new DOTExporter<>();
 		exporter.setVertexAttributeProvider(v -> {
 			Map<String, Attribute> map = new LinkedHashMap<>();
@@ -259,6 +260,19 @@ public class ReadClasses {
 		Writer writer = new StringWriter();
 		exporter.exportGraph(hrefGraph, writer);
 		System.out.println(writer.toString());
+		PrintWriter dotWriter;
+		try {
+			//File file = new File(String.format(start.toString(),".txt"));
+			//if (!file.getParentFile().mkdirs()) throw new IOException("Unable to create " + file.getParentFile());
+			//fWriter = new FileWriter(file, true);
+			String fileName = start.getName()+".txt";
+			dotWriter = new PrintWriter(String.format("dot\\%s", fileName));
+			dotWriter.println(writer.toString());
+			dotWriter.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	public Set<String> loadBOM() throws Exception {
@@ -314,7 +328,7 @@ public class ReadClasses {
 	}
 
 	static void setSparkPointsToAnalysis() {
-		System.out.println("[spark] Starting analysis ...");
+		System.out.println("[SPARK] Starting analysis ...");
 
 		HashMap opt = new HashMap();
 
@@ -351,7 +365,7 @@ public class ReadClasses {
 
 		SparkTransformer.v().transform("", opt);
 
-		System.out.println("[spark] Done! \n\n");
+		System.out.println("[SPARK] Done! \n\n");
 	}
 
 	public Graph<SootMethod, DefaultEdge> getCG(SootClass sc) {
@@ -359,7 +373,8 @@ public class ReadClasses {
 		CallGraph callGraph = Scene.v().getCallGraph();
 
 		System.out.println("\n");
-		System.out.println("***************************");
+		System.out.println("------------------------------------");
+		System.out.println("------------------------------------");
 		System.out.println("Now we build call graphs for class: " + sc);
 		Graph<SootMethod, DefaultEdge> g = new DefaultDirectedGraph<>(DefaultEdge.class);
 
@@ -396,7 +411,7 @@ public class ReadClasses {
 	}
 
 	private void loadMethodsFromTestLib(final Set<String> testClasses) throws Exception {
-		Map<Value, SootMethod> map = new LinkedHashMap<Value, SootMethod>();
+		//Map<Value, SootMethod> map = new LinkedHashMap<Value, SootMethod>();
 		int methodCount = methods.size();
 		BOM = loadBOM();
 		BIM = loadBIM();
@@ -414,7 +429,7 @@ public class ReadClasses {
 					sc.setApplicationClass();
 					CallGraph callGraph = Scene.v().getCallGraph();
 					Set<SootMethod> visitedSource = new HashSet<SootMethod>();
-					//Set<Value> valueSet = new HashSet<Value>();
+					// Set<Value> valueSet = new HashSet<Value>();
 					boolean hasSource = false;
 
 					for (SootMethod m : sc.getMethods()) {
@@ -426,7 +441,7 @@ public class ReadClasses {
 							}
 
 							for (Unit u : m.retrieveActiveBody().getUnits()) {
-								//Value value = null;
+								// Value value = null;
 
 								SootMethod methodBOM = null;
 
@@ -438,11 +453,11 @@ public class ReadClasses {
 												// if(invokeSource.getMethod().getName().toLowerCase().contains("next"))
 												// {
 												methodBOM = invok.getMethod();
-												//value = ((AssignStmt) u).getLeftOp();
-												//map.put(value, methodBOM);
+												// value = ((AssignStmt) u).getLeftOp();
+												// map.put(value, methodBOM);
 												invokeSource.add(m);
 												basicSource.add(methodBOM);
-												//valueSet.add(value);
+												// valueSet.add(value);
 												hasSource = true;
 											}
 										}
@@ -453,9 +468,6 @@ public class ReadClasses {
 					}
 
 					if (hasSource == true) {
-						// System.out.println("\n");
-						// System.out.println("***************************");
-
 						Graph<SootMethod, DefaultEdge> g = new DefaultDirectedGraph<>(DefaultEdge.class);
 
 						for (SootMethod sm : sc.getMethods()) {
@@ -465,7 +477,6 @@ public class ReadClasses {
 
 								while (edgesOut.hasNext()) {
 									soot.jimple.toolkits.callgraph.Edge edgeOut = edgesOut.next();
-									// System.out.println(edgesOut);
 									if (!edgeOut.src().getName().contains("init")
 											&& !edgeOut.tgt().getName().contains("init")
 											&& !edgeOut.src().getDeclaringClass().getName().contains("error")
@@ -490,7 +501,7 @@ public class ReadClasses {
 								}
 							}
 						}
-						
+
 						// renderHrefGraph(g);
 						if (!g.edgeSet().isEmpty()) {
 							for (SootMethod source : basicSource) {
@@ -499,38 +510,40 @@ public class ReadClasses {
 								if (checkSource && diffSource) {
 									System.out.println("Source found in the callgraph: " + source + "...");
 									System.out.println("In class: " + sc);
-									
-										if (!source.getName().contains("init")) {
-											Iterator<soot.jimple.toolkits.callgraph.Edge> edgesOut = callGraph.edgesOutOf(source);
-											Iterator<soot.jimple.toolkits.callgraph.Edge> edgesInto = callGraph.edgesInto(source);
 
-											while (edgesOut.hasNext()) {
-												soot.jimple.toolkits.callgraph.Edge edgeOut = edgesOut.next();
-												// System.out.println(edgesOut);
-												if (!edgeOut.src().getName().contains("init")
-														&& !edgeOut.tgt().getName().contains("init")
-														&& !edgeOut.src().getDeclaringClass().getName().contains("error")
-														&& !edgeOut.tgt().getDeclaringClass().getName().contains("error")) {
-													// we add edges and vertex
-													g.addVertex(edgeOut.src());
-													g.addVertex(edgeOut.tgt());
-													g.addEdge(edgeOut.tgt(), edgeOut.src());
-												}
-											}
+									if (!source.getName().contains("init")) {
+										Iterator<soot.jimple.toolkits.callgraph.Edge> edgesOut = callGraph
+												.edgesOutOf(source);
+										Iterator<soot.jimple.toolkits.callgraph.Edge> edgesInto = callGraph
+												.edgesInto(source);
 
-											while (edgesInto.hasNext()) {
-												soot.jimple.toolkits.callgraph.Edge edgeIn = edgesInto.next();
-												if (!edgeIn.src().getName().contains("init")
-														&& !edgeIn.tgt().getName().contains("init")
-														&& !edgeIn.src().getDeclaringClass().getName().contains("error")
-														&& !edgeIn.tgt().getDeclaringClass().getName().contains("error")) {
-													g.addVertex(edgeIn.src());
-													g.addVertex(edgeIn.tgt());
-													g.addEdge(edgeIn.tgt(), edgeIn.src());
-												}
+										while (edgesOut.hasNext()) {
+											soot.jimple.toolkits.callgraph.Edge edgeOut = edgesOut.next();
+											// System.out.println(edgesOut);
+											if (!edgeOut.src().getName().contains("init")
+													&& !edgeOut.tgt().getName().contains("init")
+													&& !edgeOut.src().getDeclaringClass().getName().contains("error")
+													&& !edgeOut.tgt().getDeclaringClass().getName().contains("error")) {
+												// we add edges and vertex
+												g.addVertex(edgeOut.src());
+												g.addVertex(edgeOut.tgt());
+												g.addEdge(edgeOut.tgt(), edgeOut.src());
 											}
 										}
-									
+
+										while (edgesInto.hasNext()) {
+											soot.jimple.toolkits.callgraph.Edge edgeIn = edgesInto.next();
+											if (!edgeIn.src().getName().contains("init")
+													&& !edgeIn.tgt().getName().contains("init")
+													&& !edgeIn.src().getDeclaringClass().getName().contains("error")
+													&& !edgeIn.tgt().getDeclaringClass().getName().contains("error")) {
+												g.addVertex(edgeIn.src());
+												g.addVertex(edgeIn.tgt());
+												g.addEdge(edgeIn.tgt(), edgeIn.src());
+											}
+										}
+									}
+
 									System.out.println("Start traversal: " + "\n");
 									visitedSource.add(source);
 									traverseHrefGraph(g, source);
@@ -683,7 +696,7 @@ public class ReadClasses {
 				bkWriter.println(m);
 			}
 			bkWriter.close();
-			
+
 			PrintWriter isWriter = new PrintWriter("invokeSource.txt", "UTF-8");
 			for (SootMethod m : invokeSource) {
 				isWriter.println(m);
