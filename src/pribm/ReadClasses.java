@@ -29,10 +29,8 @@ public class ReadClasses {
 
 	public static String sourceDirectory = System.getProperty("user.dir");
 	public static String jarDirectory = System.getProperty("user.dir") + "/data";
-	public static String androidDirPath = System.getProperty("user.dir") + "/lib/android.jar";
 	public static String sourcePath = System.getProperty("user.dir") + "/source.txt";
 	public static String sinkPath = System.getProperty("user.dir") + "/sink.txt";
-	public static String dotPath = System.getProperty("user.dir") + "/dot/";
 	public Set<String> EOM = new HashSet<String>();
 	public Set<String> EIM = new HashSet<String>();
 	public Set<String> BOM = new HashSet<String>();
@@ -40,9 +38,6 @@ public class ReadClasses {
 	public Set<String> source = new HashSet<String>();
 	public Set<String> sink = new HashSet<String>();
 	public Set<SootClass> visited = new HashSet<SootClass>();
-	// these might change
-	public String apkFilePath = System.getProperty("user.dir") + "/examples/kik.apk";
-	public String sourceSinkFilePath = System.getProperty("user.dir") + "/sourcesandsinks.txt";
 	public Set<Method> methods = new HashSet<Method>();
 	public String testCp;
 	public Set<SootMethod> basicSource = new HashSet<SootMethod>();
@@ -132,12 +127,16 @@ public class ReadClasses {
 				if (mergeSet(basicSource, invokeSource).contains(caller)) {
 					System.out.println("The above invocation flows into a source.");
 				} else {
+					if (basicSink.contains(caller)) {
+						System.out.println("The above invocation flows into a sink.");
+					}
 					if ((caller.getDeclaringClass() != callee.getDeclaringClass()) && count > 0) {
 						System.out.println("Global flow detected: " + callee + " -> " + caller + "\n");
 						System.out.println("Adding connections to callgraphs in class: " + caller.getDeclaringClass());
 						if (!visited.contains(caller.getDeclaringClass())) {
 							visited.add(caller.getDeclaringClass());
-							cgg = CallGraphBuilder.traverseHrefGraphIntern(CallGraphBuilder.getCG(caller.getDeclaringClass()), caller);
+							cgg = CallGraphBuilder.traverseHrefGraphIntern(
+									CallGraphBuilder.getCG(caller.getDeclaringClass()), caller);
 						} else {
 							System.out.println(caller.getDeclaringClass() + " has been visited already.");
 						}
@@ -158,8 +157,6 @@ public class ReadClasses {
 		Graphs.addGraph(cg, cgg);
 		CallGraphBuilder.renderHrefGraph(cg, start);
 	}
-
-	
 
 	private void loadMethodsFromTestLib(final Set<String> testClasses) throws Exception {
 
@@ -318,6 +315,7 @@ public class ReadClasses {
 												&& !(invokeExpr.getMethod().getName().contains("bug"))
 												&& !(invokeExpr.getMethod().getName().contains("abort"))) {
 											basicSink.add(sm);
+											basicSink.add(invokeExpr.getMethod());
 										}
 									}
 								}
