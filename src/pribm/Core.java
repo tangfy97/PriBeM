@@ -25,7 +25,7 @@ import soot.jimple.InvokeExpr;
 import soot.jimple.Stmt;
 import soot.jimple.toolkits.callgraph.CallGraph;
 
-public class ReadClasses {
+public class Core {
 
 	public static String sourceDirectory = System.getProperty("user.dir");
 	public static String jarDirectory = System.getProperty("user.dir") + "/data";
@@ -44,7 +44,7 @@ public class ReadClasses {
 	public Set<SootMethod> invokeSource = new HashSet<SootMethod>();
 	public Set<SootMethod> basicSink = new HashSet<SootMethod>();
 
-	public ReadClasses(String testCp) {
+	public Core(String testCp) {
 		this.testCp = testCp;
 	}
 

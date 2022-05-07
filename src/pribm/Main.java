@@ -9,7 +9,7 @@ public class Main {
 	public static String sourceDirectory = System.getProperty("user.dir") + "/output";
 	public static String jarDirectory = System.getProperty("user.dir") + "/data";
 	public Set<Method> methods = new HashSet<Method>();
-	private ReadClasses classReader;
+	private Core classReader;
 	public String testCp;
 
 	public static void main(String[] args) throws Exception {
@@ -34,12 +34,12 @@ public class Main {
 	}
 
 	private void internalRun(String sourceDir, String outputDir) throws Exception {
-		Set<String> testClasses = ReadClasses.getAllClassesFromDirectory(jarDirectory);
-		String testCp = ReadClasses.buildCP(jarDirectory);
+		Set<String> testClasses = Core.getAllClassesFromDirectory(jarDirectory);
+		String testCp = Core.buildCP(jarDirectory);
 
 		// Cache the methods from the set.
 		System.out.println("***** Loading java classes ***** \n");
-		classReader = new ReadClasses(testCp);
+		classReader = new Core(testCp);
 		classReader.loadTestSet(testClasses);
 		System.out.println("All finished.");
 
