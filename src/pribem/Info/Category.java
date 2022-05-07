@@ -1,4 +1,4 @@
-package pribm.Info;
+package pribem.Info;
 public enum Category {
     SOURCE(Constants.SOURCE, false), SINK(Constants.SINK, false), AUTHENTICATION_TO_HIGH(
             Constants.AUTHENTICATION_SAFE, false), AUTHENTICATION_TO_LOW(

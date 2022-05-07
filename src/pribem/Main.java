@@ -1,9 +1,9 @@
-package pribm;
+package pribem;
 
 import java.io.IOException;
 import java.util.*;
 
-import pribm.Info.Method;
+import pribem.Info.Method;
 
 public class Main {
 	public static String sourceDirectory = System.getProperty("user.dir") + "/output";

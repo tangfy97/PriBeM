@@ -1,6 +1,6 @@
-package pribm;
+package pribem;
 
-import pribm.Info.Method;
+import pribem.Info.Method;
 
 public interface IFeature {
 

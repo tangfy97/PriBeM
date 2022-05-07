@@ -1,12 +1,12 @@
-package pribm.Features;
+package pribem.Features;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import pribm.IFeature;
-import pribm.Info.Method;
+import pribem.IFeature;
+import pribem.Info.Method;
 import soot.G;
 import soot.Hierarchy;
 import soot.RefType;

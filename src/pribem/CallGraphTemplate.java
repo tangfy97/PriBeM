@@ -1,4 +1,4 @@
-package pribm;
+package pribem;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;

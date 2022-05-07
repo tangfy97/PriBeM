@@ -1,4 +1,4 @@
-package pribm.Info;
+package pribem.Info;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;

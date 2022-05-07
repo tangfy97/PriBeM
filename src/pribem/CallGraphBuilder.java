@@ -1,4 +1,4 @@
-package pribm;
+package pribem;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;

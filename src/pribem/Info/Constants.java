@@ -1,4 +1,4 @@
-package pribm.Info;
+package pribem.Info;
 public final class Constants {
 	
 	//JSON Attributes

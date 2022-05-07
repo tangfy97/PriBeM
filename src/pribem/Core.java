@@ -1,4 +1,4 @@
-package pribm;
+package pribem;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -17,8 +17,9 @@ import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.nio.*;
 import org.jgrapht.traverse.*;
-import pribm.Features.AbstractSootFeature;
-import pribm.Info.Method;
+
+import pribem.Features.AbstractSootFeature;
+import pribem.Info.Method;
 import soot.*;
 import soot.jimple.AssignStmt;
 import soot.jimple.InvokeExpr;
