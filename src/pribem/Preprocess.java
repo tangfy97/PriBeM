@@ -24,7 +24,7 @@ public class Preprocess {
 			line = bufReader.readLine();
 		}
 		bufReader.close();
-		System.out.println("Basic source methods are loaded with " + BOM.size() + " methods.");
+		System.out.println("BOMS are loaded with " + BOM.size() + " methods.");
 		return BOM;
 	}
 
@@ -37,7 +37,7 @@ public class Preprocess {
 			line = bufReader.readLine();
 		}
 		bufReader.close();
-		System.out.println("Basic sink methods are loaded with " + BIM.size() + " methods.");
+		System.out.println("BIMs are loaded with " + BIM.size() + " methods.");
 		return BIM;
 	}
 
@@ -50,7 +50,7 @@ public class Preprocess {
 			line = bufReader.readLine();
 		}
 		bufReader.close();
-		System.out.println("External source methods are loaded with " + EOM.size() + " methods.");
+		System.out.println("EOMs are loaded with " + EOM.size() + " methods.");
 		return EOM;
 	}
 
@@ -63,14 +63,14 @@ public class Preprocess {
 			line = bufReader.readLine();
 		}
 		bufReader.close();
-		System.out.println("External sink methods are loaded with " + EIM.size() + " methods.");
+		System.out.println("EIMs are loaded with " + EIM.size() + " methods.");
 		return EIM;
 	}
 
 	static void setSparkPointsToAnalysis() {
 		System.out.println("[SPARK] Starting analysis ...");
 
-		HashMap opt = new HashMap();
+		HashMap<String, String> opt = new HashMap<String, String>();
 
 		opt.put("enabled", "true");
 		opt.put("verbose", "true");

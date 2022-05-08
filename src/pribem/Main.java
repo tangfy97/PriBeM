@@ -1,6 +1,5 @@
 package pribem;
 
-import java.io.IOException;
 import java.util.*;
 
 import pribem.Info.Method;
@@ -14,18 +13,11 @@ public class Main {
 
 	public static void main(String[] args) throws Exception {
 
-		try {
-			String sourceDir = jarDirectory;
-			String outputDir = sourceDirectory;
+		String sourceDir = jarDirectory;
+		String outputDir = sourceDirectory;
 
-			Main main = new Main();
-			main.run(sourceDir, outputDir);
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		Main main = new Main();
+		main.run(sourceDir, outputDir);
 
 	}
 

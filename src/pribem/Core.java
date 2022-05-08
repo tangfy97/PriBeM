@@ -170,7 +170,6 @@ public class Core {
 		new AbstractSootFeature(testCp) {
 			@Override
 			public Type appliesInternal(Method method) throws Exception {
-				System.out.println("Start looking for sources and sinks: ");
 				Preprocess.setSparkPointsToAnalysis();
 
 				for (String className : testClasses) {
