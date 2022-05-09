@@ -106,12 +106,11 @@ public class Core {
 	 * @param hrefGraph a graph based on URI objects
 	 *
 	 * @param start     the vertex where the traversal should start
-	 * @throws IOException
-	 * @throws ExportException
+	 * @throws Exception 
 	 */
 
 	public void traverseHrefGraph(Graph<SootMethod, DefaultEdge> hrefGraph, SootMethod start)
-			throws ExportException, IOException {
+			throws Exception {
 		int count = 0;
 		Graph<SootMethod, DefaultEdge> cg = new DefaultDirectedGraph<>(DefaultEdge.class);
 		Graph<SootMethod, DefaultEdge> cgg = new DefaultDirectedGraph<>(DefaultEdge.class);
@@ -136,7 +135,7 @@ public class Core {
 						System.out.println("Adding connections to callgraphs in class: " + caller.getDeclaringClass());
 						if (!visited.contains(caller.getDeclaringClass())) {
 							visited.add(caller.getDeclaringClass());
-							cgg = CallGraphBuilder.traverseHrefGraphIntern(
+							cgg = traverseHrefGraphIntern(
 									CallGraphBuilder.getCG(caller.getDeclaringClass()), caller);
 						} else {
 							System.out.println(caller.getDeclaringClass() + " has been visited already.");
@@ -157,6 +156,49 @@ public class Core {
 		System.out.println("\n");
 		Graphs.addGraph(cg, cgg);
 		CallGraphBuilder.renderHrefGraph(cg, start);
+	}
+	
+	public Graph<SootMethod, DefaultEdge> traverseHrefGraphIntern(Graph<SootMethod, DefaultEdge> hrefGraph,
+			SootMethod start) {
+		int count = 0;
+
+		Graph<SootMethod, DefaultEdge> cg = new DefaultDirectedGraph<>(DefaultEdge.class);
+		Graph<SootMethod, DefaultEdge> cgg = new DefaultDirectedGraph<>(DefaultEdge.class);
+		Iterator<SootMethod> iterator = new DepthFirstIterator<>(hrefGraph, start);
+		SootMethod callee = null;
+
+		while (iterator.hasNext()) {
+			SootMethod caller = iterator.next();
+			if (callee != null) {
+				cg.addVertex(callee);
+				cg.addVertex(caller);
+				cg.addEdge(callee, caller);
+				if (mergeSet(basicSource, invokeSource).contains(caller)) {
+					System.out.println("The above invocation flows into a source.");
+				} else {
+					if (basicSink.contains(caller)) {
+						System.out.println("The above invocation flows into a sink.");
+					}
+					if ((caller.getDeclaringClass() != callee.getDeclaringClass()) && count > 0) {
+						System.out.println("Global flow detected: " + callee + " -> " + caller + "\n");
+						System.out.println("Adding connections to callgraphs in class: " + caller.getDeclaringClass());
+						if (!visited.contains(caller.getDeclaringClass())) {
+							visited.add(caller.getDeclaringClass());
+							cgg = traverseHrefGraphIntern(
+									CallGraphBuilder.getCG(caller.getDeclaringClass()), caller);
+						} else {
+							System.out.println(caller.getDeclaringClass() + " has been visited already.");
+						}
+					}
+				}
+			}
+			if (callee == null) {
+				System.out.println("Continue with method: " + caller);
+			}
+			callee = caller;
+		}
+		System.out.println("\n");
+		return cg;
 	}
 
 	private void loadMethodsFromTestLib(final Set<String> testClasses) throws Exception {
@@ -180,8 +222,7 @@ public class Core {
 					boolean hasSource = false;
 
 					for (SootMethod m : sc.getMethods()) {
-						if (m.isConcrete() && !m.getName().toLowerCase().contains("init")
-								&& !m.getName().toLowerCase().contains("main")) {
+						if (m.isConcrete() && !m.getName().toLowerCase().contains("init")) {
 							if (EOM.contains(m.toString()) || BOM.contains(m.toString())) {
 								basicSource.add(m);
 								hasSource = true;

@@ -1,10 +1,13 @@
 package pribem;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -25,37 +28,16 @@ import soot.jimple.toolkits.callgraph.CallGraph;
 
 public class CallGraphBuilder {
 
-	public static Graph<SootMethod, DefaultEdge> traverseHrefGraphIntern(Graph<SootMethod, DefaultEdge> hrefGraph,
-			SootMethod start) {
-
-		Graph<SootMethod, DefaultEdge> cg = new DefaultDirectedGraph<>(DefaultEdge.class);
-		Iterator<SootMethod> iterator = new DepthFirstIterator<>(hrefGraph, start);
-		SootMethod callee = null;
-
-		while (iterator.hasNext()) {
-			SootMethod caller = iterator.next();
-			if (callee != null) {
-				cg.addVertex(callee);
-				cg.addVertex(caller);
-				cg.addEdge(callee, caller);
-			}
-			if (callee == null) {
-				System.out.println("Continue with method: " + caller);
-			}
-			callee = caller;
-		}
-		System.out.println("\n");
-		return cg;
-	}
+	
 
 	/**
 	 * Render a graph in DOT format.
 	 *
 	 * @param hrefGraph a graph based on URI objects
-	 * @throws IOException
+	 * @throws Exception 
 	 */
 	public static void renderHrefGraph(Graph<SootMethod, DefaultEdge> hrefGraph, SootMethod start)
-			throws ExportException, IOException {
+			throws Exception {
 		DOTExporter<SootMethod, DefaultEdge> exporter = new DOTExporter<>();
 		exporter.setVertexAttributeProvider(v -> {
 			Map<String, Attribute> map = new LinkedHashMap<>();
@@ -67,12 +49,16 @@ public class CallGraphBuilder {
 		System.out.println(writer.toString());
 		PrintWriter dotWriter;
 		try {
-			// File file = new File(String.format(start.toString(),".txt"));
-			// if (!file.getParentFile().mkdirs()) throw new IOException("Unable to create "
-			// + file.getParentFile());
-			// fWriter = new FileWriter(file, true);
 			String fileName = start.getName() + ".txt";
-			dotWriter = new PrintWriter(String.format("dot\\%s", fileName));
+			SimpleDateFormat simpleDateFormat = new SimpleDateFormat("MMddhhmmss");
+			String dateAsString = simpleDateFormat.format(new Date());
+			File output = new File(String.format("dot\\%s\\%s", dateAsString, fileName));
+			File dir = output.getParentFile();
+			if (!dir.isDirectory() && !dir.mkdirs()) {
+			    // handle could not create directory
+			    throw new Exception("Could not create target directory '" + dir + "'");
+			}
+			dotWriter = new PrintWriter(output);
 			dotWriter.println(writer.toString());
 			dotWriter.close();
 		} catch (FileNotFoundException e) {
