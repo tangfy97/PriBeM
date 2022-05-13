@@ -24,7 +24,7 @@ public class Preprocess {
 			line = bufReader.readLine();
 		}
 		bufReader.close();
-		System.out.println("BOMS are loaded with " + BOM.size() + " methods.");
+		System.out.println("BOMs are loaded with " + BOM.size() + " methods.");
 		return BOM;
 	}
 

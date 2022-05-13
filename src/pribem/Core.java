@@ -38,6 +38,8 @@ public class Core {
 	public Set<String> BIM = new HashSet<String>();
 	public Set<String> source = new HashSet<String>();
 	public Set<String> sink = new HashSet<String>();
+	public Set<String> flow2Src = new HashSet<String>();
+	public Set<String> flow2Sink = new HashSet<String>();
 	public Set<SootClass> visited = new HashSet<SootClass>();
 	public Set<Method> methods = new HashSet<Method>();
 	public String testCp;
@@ -104,13 +106,11 @@ public class Core {
 	 * Traverse a graph in depth-first order and print the vertices.
 	 *
 	 * @param hrefGraph a graph based on URI objects
-	 *
 	 * @param start     the vertex where the traversal should start
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 
-	public void traverseHrefGraph(Graph<SootMethod, DefaultEdge> hrefGraph, SootMethod start)
-			throws Exception {
+	public void traverseHrefGraph(Graph<SootMethod, DefaultEdge> hrefGraph, SootMethod start) throws Exception {
 		int count = 0;
 		Graph<SootMethod, DefaultEdge> cg = new DefaultDirectedGraph<>(DefaultEdge.class);
 		Graph<SootMethod, DefaultEdge> cgg = new DefaultDirectedGraph<>(DefaultEdge.class);
@@ -119,28 +119,33 @@ public class Core {
 
 		while (iterator.hasNext()) {
 			SootMethod caller = iterator.next();
+			if (count > 0 && (caller.getDeclaringClass().toString().contains("java")
+					|| caller.getDeclaringClass().toString().contains("$") || caller.getName().toLowerCase().contains("init"))) {
+				continue;
+			}
 			if (callee != null) {
 				cg.addVertex(callee);
 				cg.addVertex(caller);
 				cg.addEdge(callee, caller);
 				System.out.println("<" + count + ": " + callee + " -> " + caller + ">");
-				if (mergeSet(basicSource, invokeSource).contains(caller)) {
-					System.out.println("The above invocation flows into a source.");
-				} else {
-					if (basicSink.contains(caller)) {
-						System.out.println("The above invocation flows into a sink.");
+				/*
+				 * if (mergeSet(basicSource, invokeSource).contains(caller)) {
+				 * System.out.println("The above invocation flows into a source.");
+				 * flow2Src.add("<" + count + ": " + callee + " -> " + caller + ">"); } else {
+				 * if (basicSink.contains(caller)) {
+				 * System.out.println("The above invocation flows into a sink.");
+				 * flow2Sink.add("<" + count + ": " + callee + " -> " + caller + ">"); }
+				 */
+				if ((caller.getDeclaringClass() != callee.getDeclaringClass()) && count > 0) {
+					System.out.println("Global flow detected: " + callee + " -> " + caller + "\n");
+					System.out.println("Adding connections to callgraphs in class: " + caller.getDeclaringClass());
+					if (!visited.contains(caller.getDeclaringClass())) {
+						// visited.add(caller.getDeclaringClass());
+						cgg = traverseHrefGraphIntern(CallGraphBuilder.getCG(caller.getDeclaringClass()), caller);
+					} else {
+						System.out.println(caller.getDeclaringClass() + " has been visited already.");
 					}
-					if ((caller.getDeclaringClass() != callee.getDeclaringClass()) && count > 0) {
-						System.out.println("Global flow detected: " + callee + " -> " + caller + "\n");
-						System.out.println("Adding connections to callgraphs in class: " + caller.getDeclaringClass());
-						if (!visited.contains(caller.getDeclaringClass())) {
-							visited.add(caller.getDeclaringClass());
-							cgg = traverseHrefGraphIntern(
-									CallGraphBuilder.getCG(caller.getDeclaringClass()), caller);
-						} else {
-							System.out.println(caller.getDeclaringClass() + " has been visited already.");
-						}
-					}
+					// }
 				}
 			}
 			if (callee == null) {
@@ -157,7 +162,7 @@ public class Core {
 		Graphs.addGraph(cg, cgg);
 		CallGraphBuilder.renderHrefGraph(cg, start);
 	}
-	
+
 	public Graph<SootMethod, DefaultEdge> traverseHrefGraphIntern(Graph<SootMethod, DefaultEdge> hrefGraph,
 			SootMethod start) {
 		int count = 0;
@@ -169,34 +174,39 @@ public class Core {
 
 		while (iterator.hasNext()) {
 			SootMethod caller = iterator.next();
+			if (count > 0 && (caller.getDeclaringClass().toString().contains("java")
+					|| caller.getDeclaringClass().toString().contains("$") || caller.getName().toLowerCase().contains("init"))) {
+				continue;
+			}
 			if (callee != null) {
 				cg.addVertex(callee);
 				cg.addVertex(caller);
-				cg.addEdge(callee, caller);
-				if (mergeSet(basicSource, invokeSource).contains(caller)) {
-					System.out.println("The above invocation flows into a source.");
-				} else {
-					if (basicSink.contains(caller)) {
-						System.out.println("The above invocation flows into a sink.");
-					}
-					if ((caller.getDeclaringClass() != callee.getDeclaringClass()) && count > 0) {
-						System.out.println("Global flow detected: " + callee + " -> " + caller + "\n");
-						System.out.println("Adding connections to callgraphs in class: " + caller.getDeclaringClass());
-						if (!visited.contains(caller.getDeclaringClass())) {
-							visited.add(caller.getDeclaringClass());
-							cgg = traverseHrefGraphIntern(
-									CallGraphBuilder.getCG(caller.getDeclaringClass()), caller);
-						} else {
-							System.out.println(caller.getDeclaringClass() + " has been visited already.");
-						}
+				cg.addEdge(callee, caller);/*
+											 * if (mergeSet(basicSource, invokeSource).contains(caller)) {
+											 * flow2Src.add("<" + count + ": " + callee + " -> " + caller + ">");
+											 * System.out.println("The above invocation flows into a source."); } else {
+											 * if (basicSink.contains(caller)) { flow2Sink.add("<" + count + ": " +
+											 * callee + " -> " + caller + ">");
+											 * System.out.println("The above invocation flows into a sink."); }
+											 */
+				if ((caller.getDeclaringClass() != callee.getDeclaringClass()) && count > 0) {
+					System.out.println("Global flow detected: " + callee + " -> " + caller + "\n");
+					System.out.println("Adding connections to callgraphs in class: " + caller.getDeclaringClass());
+					if (!visited.contains(caller.getDeclaringClass())) {
+						visited.add(caller.getDeclaringClass());
+						cgg = traverseHrefGraphIntern(CallGraphBuilder.getCG(caller.getDeclaringClass()), caller);
+					} else {
+						System.out.println(caller.getDeclaringClass() + " has been visited already.");
 					}
 				}
 			}
+			// }
 			if (callee == null) {
 				System.out.println("Continue with method: " + caller);
 			}
 			callee = caller;
 		}
+		Graphs.addGraph(cg, cgg);
 		System.out.println("\n");
 		return cg;
 	}
@@ -213,124 +223,6 @@ public class Core {
 			@Override
 			public Type appliesInternal(Method method) throws Exception {
 				Preprocess.setSparkPointsToAnalysis();
-
-				for (String className : testClasses) {
-					SootClass sc = Scene.v().forceResolve(className, SootClass.BODIES);
-					sc.setApplicationClass();
-					CallGraph callGraph = Scene.v().getCallGraph();
-					Set<SootMethod> visitedSource = new HashSet<SootMethod>();
-					boolean hasSource = false;
-
-					for (SootMethod m : sc.getMethods()) {
-						if (m.isConcrete() && !m.getName().toLowerCase().contains("init")) {
-							if (EOM.contains(m.toString()) || BOM.contains(m.toString())) {
-								basicSource.add(m);
-								hasSource = true;
-							}
-
-							for (Unit u : m.retrieveActiveBody().getUnits()) {
-								SootMethod methodBOM = null;
-								if (u instanceof AssignStmt) {
-									if (((AssignStmt) u).containsInvokeExpr()) {
-										InvokeExpr invok = ((AssignStmt) u).getInvokeExpr();
-										for (String s : BOM) {
-											if ((s.equals(invok.getMethod().toString()))) {
-												methodBOM = invok.getMethod();
-												invokeSource.add(m);
-												basicSource.add(methodBOM);
-												hasSource = true;
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-
-					if (hasSource == true) {
-						Graph<SootMethod, DefaultEdge> g = new DefaultDirectedGraph<>(DefaultEdge.class);
-
-						for (SootMethod sm : sc.getMethods()) {
-							if (!sm.getName().contains("init")) {
-								Iterator<soot.jimple.toolkits.callgraph.Edge> edgesOut = callGraph.edgesOutOf(sm);
-								Iterator<soot.jimple.toolkits.callgraph.Edge> edgesInto = callGraph.edgesInto(sm);
-
-								while (edgesOut.hasNext()) {
-									soot.jimple.toolkits.callgraph.Edge edgeOut = edgesOut.next();
-									if (!edgeOut.src().getName().contains("init")
-											&& !edgeOut.tgt().getName().contains("init")
-											&& !edgeOut.src().getDeclaringClass().getName().contains("error")
-											&& !edgeOut.tgt().getDeclaringClass().getName().contains("error")) {
-										// we add edges and vertex
-										g.addVertex(edgeOut.src());
-										g.addVertex(edgeOut.tgt());
-										g.addEdge(edgeOut.tgt(), edgeOut.src());
-									}
-								}
-
-								while (edgesInto.hasNext()) {
-									soot.jimple.toolkits.callgraph.Edge edgeIn = edgesInto.next();
-									if (!edgeIn.src().getName().contains("init")
-											&& !edgeIn.tgt().getName().contains("init")
-											&& !edgeIn.src().getDeclaringClass().getName().contains("error")
-											&& !edgeIn.tgt().getDeclaringClass().getName().contains("error")) {
-										g.addVertex(edgeIn.src());
-										g.addVertex(edgeIn.tgt());
-										g.addEdge(edgeIn.tgt(), edgeIn.src());
-									}
-								}
-							}
-						}
-
-						if (!g.edgeSet().isEmpty()) {
-							for (SootMethod source : basicSource) {
-								Boolean checkSource = g.vertexSet().contains(source);
-								Boolean diffSource = !visitedSource.contains(source);
-								if (checkSource && diffSource) {
-									System.out.println("Source found in the callgraph: " + source + "...");
-									System.out.println("In class: " + sc);
-
-									if (!source.getName().contains("init")) {
-										Iterator<soot.jimple.toolkits.callgraph.Edge> edgesOut = callGraph
-												.edgesOutOf(source);
-										Iterator<soot.jimple.toolkits.callgraph.Edge> edgesInto = callGraph
-												.edgesInto(source);
-
-										while (edgesOut.hasNext()) {
-											soot.jimple.toolkits.callgraph.Edge edgeOut = edgesOut.next();
-											if (!edgeOut.src().getName().contains("init")
-													&& !edgeOut.tgt().getName().contains("init")
-													&& !edgeOut.src().getDeclaringClass().getName().contains("error")
-													&& !edgeOut.tgt().getDeclaringClass().getName().contains("error")) {
-												// we add edges and vertex
-												g.addVertex(edgeOut.src());
-												g.addVertex(edgeOut.tgt());
-												g.addEdge(edgeOut.tgt(), edgeOut.src());
-											}
-										}
-
-										while (edgesInto.hasNext()) {
-											soot.jimple.toolkits.callgraph.Edge edgeIn = edgesInto.next();
-											if (!edgeIn.src().getName().contains("init")
-													&& !edgeIn.tgt().getName().contains("init")
-													&& !edgeIn.src().getDeclaringClass().getName().contains("error")
-													&& !edgeIn.tgt().getDeclaringClass().getName().contains("error")) {
-												g.addVertex(edgeIn.src());
-												g.addVertex(edgeIn.tgt());
-												g.addEdge(edgeIn.tgt(), edgeIn.src());
-											}
-										}
-									}
-
-									System.out.println("Start traversal: " + "\n");
-									visitedSource.add(source);
-									traverseHrefGraph(g, source);
-								}
-							}
-						}
-					}
-					hasSource = false;
-				}
 
 				for (String className : testClasses) {
 					SootClass sc = Scene.v().forceResolve(className, SootClass.BODIES);
@@ -383,6 +275,135 @@ public class Core {
 					}
 				}
 
+				for (String className : testClasses) {
+					SootClass sc = Scene.v().forceResolve(className, SootClass.BODIES);
+					sc.setApplicationClass();
+					CallGraph callGraph = Scene.v().getCallGraph();
+					Set<SootMethod> visitedSource = new HashSet<SootMethod>();
+					boolean hasSource = false;
+					/*
+					 * System.out.println("~~~~~~~~~");
+					 * CallGraphBuilder.printGraph(CallGraphBuilder.getCG(sc));
+					 * System.out.println("~~~~~~~~~");
+					 */
+					for (SootMethod m : sc.getMethods()) {
+						if (m.isConcrete() && !m.getName().toLowerCase().contains("init")) {
+							
+							if (EOM.contains(m.toString()) || BOM.contains(m.toString())) {
+								basicSource.add(m);
+								hasSource = true;
+							}
+
+							for (Unit u : m.retrieveActiveBody().getUnits()) {
+								SootMethod methodBOM = null;
+								if (u instanceof AssignStmt) {
+									if (((AssignStmt) u).containsInvokeExpr()) {
+										InvokeExpr invok = ((AssignStmt) u).getInvokeExpr();
+										for (String s : BOM) {
+											if ((s.equals(invok.getMethod().toString()))) {
+												methodBOM = invok.getMethod();
+												invokeSource.add(m);
+												basicSource.add(methodBOM);
+												hasSource = true;
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+
+					if (hasSource == true) {
+						Graph<SootMethod, DefaultEdge> g = new DefaultDirectedGraph<>(DefaultEdge.class);
+
+						for (SootMethod sm : sc.getMethods()) {
+							//if (!sm.getName().contains("init")) {
+								Iterator<soot.jimple.toolkits.callgraph.Edge> edgesOut = callGraph.edgesOutOf(sm);
+								Iterator<soot.jimple.toolkits.callgraph.Edge> edgesInto = callGraph.edgesInto(sm);
+
+								while (edgesOut.hasNext()) {
+									soot.jimple.toolkits.callgraph.Edge edgeOut = edgesOut.next();
+/*
+									if (!edgeOut.src().getName().contains("init")
+											&& !edgeOut.tgt().getName().contains("init")
+											&& !edgeOut.src().getDeclaringClass().getName().contains("error")
+											&& !edgeOut.tgt().getDeclaringClass().getName().contains("error")) {*/
+										// we add edges and vertex
+										g.addVertex(edgeOut.src());
+										g.addVertex(edgeOut.tgt());
+										g.addEdge(edgeOut.tgt(), edgeOut.src());
+									//}
+								}
+
+								while (edgesInto.hasNext()) {
+									soot.jimple.toolkits.callgraph.Edge edgeIn = edgesInto.next();
+									/*
+									if (!edgeIn.src().getName().contains("init")
+											&& !edgeIn.tgt().getName().contains("init")
+											&& !edgeIn.src().getDeclaringClass().getName().contains("error")
+											&& !edgeIn.tgt().getDeclaringClass().getName().contains("error")) {*/
+										g.addVertex(edgeIn.src());
+										g.addVertex(edgeIn.tgt());
+										g.addEdge(edgeIn.tgt(), edgeIn.src());
+									//}
+								}
+							//}
+						}
+
+						if (!g.edgeSet().isEmpty()) {
+							for (SootMethod source : basicSource) {
+								Boolean checkSource = g.vertexSet().contains(source);
+								Boolean diffSource = !visitedSource.contains(source);
+								if (checkSource && diffSource) {
+									System.out.println("Source found in the callgraph: " + source + "...");
+									System.out.println("In class: " + sc);
+
+									//if (!source.getName().contains("init")) {
+										Iterator<soot.jimple.toolkits.callgraph.Edge> edgesOut = callGraph
+												.edgesOutOf(source);
+										Iterator<soot.jimple.toolkits.callgraph.Edge> edgesInto = callGraph
+												.edgesInto(source);
+
+										while (edgesOut.hasNext()) {
+											soot.jimple.toolkits.callgraph.Edge edgeOut = edgesOut.next();
+											/*
+											if (!edgeOut.src().getName().contains("init")
+													&& !edgeOut.tgt().getName().contains("init")
+													&& !edgeOut.src().getDeclaringClass().getName().contains("error")
+													&& !edgeOut.tgt().getDeclaringClass().getName().contains("error")) {*/
+												// we add edges and vertex
+												g.addVertex(edgeOut.src());
+												g.addVertex(edgeOut.tgt());
+												g.addEdge(edgeOut.tgt(), edgeOut.src());
+											//}
+										}
+
+										while (edgesInto.hasNext()) {
+											soot.jimple.toolkits.callgraph.Edge edgeIn = edgesInto.next();
+											/*
+											if (!edgeIn.src().getName().contains("init")
+													&& !edgeIn.tgt().getName().contains("init")
+													&& !edgeIn.src().getDeclaringClass().getName().contains("error")
+													&& !edgeIn.tgt().getDeclaringClass().getName().contains("error")) {*/
+												g.addVertex(edgeIn.src());
+												g.addVertex(edgeIn.tgt());
+												g.addEdge(edgeIn.tgt(), edgeIn.src());
+											//}
+										}
+									//}
+
+									System.out.println("Start traversal: " + "\n");
+									visitedSource.add(source);
+									traverseHrefGraph(g, source);
+								}
+							}
+						}
+
+					}
+					hasSource = false;
+
+				}
+
 				return Type.NOT_SUPPORTED;
 			}
 
@@ -408,6 +429,18 @@ public class Core {
 
 			PrintWriter isWriter = new PrintWriter("invokeSource.txt", "UTF-8");
 			for (SootMethod m : invokeSource) {
+				isWriter.println(m);
+			}
+			isWriter.close();
+
+			PrintWriter f2oWriter = new PrintWriter("flow2Src.txt", "UTF-8");
+			for (String m : flow2Src) {
+				isWriter.println(m);
+			}
+			isWriter.close();
+
+			PrintWriter f2iWriter = new PrintWriter("flow2Sink.txt", "UTF-8");
+			for (String m : flow2Sink) {
 				isWriter.println(m);
 			}
 			isWriter.close();
